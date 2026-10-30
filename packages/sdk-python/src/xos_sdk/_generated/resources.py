@@ -515,6 +515,14 @@ if TYPE_CHECKING:
         EmergencyContactCreate,
         EmergencyContactPage,
         EmergencyContactUpdate,
+        EngagedAllocation,
+        EngagedAllocationPage,
+        EngagedAllocationRequest,
+        EngagedAllocationSplit,
+        EngagedAllocationSplitResult,
+        EngagedAllocationUnsplit,
+        EngagedAllocationUnsplitResult,
+        EngagedAllocationWithdraw,
         Engagement,
         EngagementCreate,
         EngagementDocument,
@@ -866,6 +874,8 @@ if TYPE_CHECKING:
         OwnershipTransfer,
         OwnershipTransferOfferRequest,
         OwnershipTransferPage,
+        ParkingPass,
+        ParkingPassPage,
         PartnerStandingGrant,
         PartnerStandingGrantPage,
         PartnerStandingGrantRecordRequest,
@@ -1092,6 +1102,8 @@ if TYPE_CHECKING:
         Representation,
         RepresentationCreate,
         RepresentationPage,
+        RequestableItem,
+        RequestableItemPage,
         RequiredAdditionalInsured,
         RequiredAdditionalInsuredCreate,
         RequiredAdditionalInsuredPage,
@@ -33746,6 +33758,218 @@ class AiUsageResource(Resource):
         Requires the capability ``org.usage.read``.
         """
         return self._client.paginate(OPERATIONS["aiUsage.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class EngagedAllocationsResource(Resource):
+    """Operations on ``engagedAllocations``, in the Gateway module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[EngagedAllocation]:
+        """List engaged allocation rows
+
+        What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /engaged-allocations`` (operation ``engagedAllocations.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["engagedAllocations.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[EngagedAllocation]:
+        """List engaged allocation rows
+
+        What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /engaged-allocations`` (operation ``engagedAllocations.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["engagedAllocations.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        allocation_id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocation]:
+        """Get an engaged allocation
+
+        What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns one engaged allocation with its `ETag`. A engaged allocation the caller may not see returns 404.
+
+        ``GET /engaged-allocations/{allocation_id}`` (operation ``engagedAllocations.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.get"], path={"allocation_id": allocation_id}, query={"fields": fields}, options=options)
+
+    def request(
+        self,
+        body: EngagedAllocationRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocation]:
+        """Request an item for the pool or one person
+
+        The party side asks for an item for its pool or one person on its roster through `app.request_engaged_allocation`; it starts Requested for the producing org to decide. A credential need is a request: Gateway never issues. Refusals answer 422 with the rule, among them allocation_not_your_engagement, allocation_entry_not_on_engagement, allocation_not_requestable, offering_not_offered, allocation_cap_engagement, allocation_cap_person and allocation_engagement_closed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engaged-allocations/request`` (operation ``engagedAllocations.request``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.request"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def split(
+        self,
+        allocation_id: str,
+        body: EngagedAllocationSplit,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocationSplitResult]:
+        """Share an approved pool to people on the roster
+
+        Gives shares of an approved pool to people accepted on the roster through `app.split_engaged_allocation`, moving holds with them (422 allocation_not_pool, allocation_split_exceeds, allocation_cap_person, allocation_entry_not_accepted). Each person is sent allocation.assigned. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engaged-allocations/{allocation_id}/split`` (operation ``engagedAllocations.split``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.split"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def unsplit(
+        self,
+        allocation_id: str,
+        body: EngagedAllocationUnsplit,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocationUnsplitResult]:
+        """Give a share back to its pool
+
+        Gives part or all of a person's share back to its pool through `app.unsplit_engaged_allocation`, never what was issued (422 allocation_issued). A share given back whole is Withdrawn. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engaged-allocations/{allocation_id}/unsplit`` (operation ``engagedAllocations.unsplit``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.unsplit"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def withdraw(
+        self,
+        allocation_id: str,
+        body: EngagedAllocationWithdraw,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocation]:
+        """Withdraw a request or a share
+
+        Withdraws a Requested allocation, or an Approved one nothing of which was issued (422 allocation_issued), through `app.withdraw_engaged_allocation`: by the party side, or by the person on the roster for a request they made. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engaged-allocations/{allocation_id}/withdraw`` (operation ``engagedAllocations.withdraw``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.withdraw"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class RequestableItemsResource(Resource):
+    """Operations on ``requestableItems``, in the Gateway module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[RequestableItem]:
+        """List requestable item rows
+
+        What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /requestable-items`` (operation ``requestableItems.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["requestableItems.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[RequestableItem]:
+        """List requestable item rows
+
+        What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /requestable-items`` (operation ``requestableItems.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["requestableItems.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class MyParkingPassesResource(Resource):
+    """Operations on ``myParkingPasses``, in the Gateway module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ParkingPass]:
+        """List parking pass rows
+
+        The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /my-parking-passes`` (operation ``myParkingPasses.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request_page(OPERATIONS["myParkingPasses.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ParkingPass]:
+        """List parking pass rows
+
+        The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /my-parking-passes`` (operation ``myParkingPasses.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.paginate(OPERATIONS["myParkingPasses.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
 class WorkDetailsResource(Resource):

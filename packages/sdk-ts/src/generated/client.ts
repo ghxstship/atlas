@@ -361,6 +361,9 @@ import {
   AiSuggestionsResource,
   AiRequestsResource,
   AiUsageResource,
+  EngagedAllocationsResource,
+  RequestableItemsResource,
+  MyParkingPassesResource,
   WorkDetailsResource,
   EmergencyContactsResource,
   LoyaltyProgramsResource,
@@ -1247,6 +1250,12 @@ export class XosClient extends XosClientCore {
   readonly aiRequests: AiRequestsResource = new AiRequestsResource(this);
   /** Settings: operations on `aiUsage`. */
   readonly aiUsage: AiUsageResource = new AiUsageResource(this);
+  /** Gateway: operations on `engagedAllocations`. */
+  readonly engagedAllocations: EngagedAllocationsResource = new EngagedAllocationsResource(this);
+  /** Gateway: operations on `requestableItems`. */
+  readonly requestableItems: RequestableItemsResource = new RequestableItemsResource(this);
+  /** Gateway: operations on `myParkingPasses`. */
+  readonly myParkingPasses: MyParkingPassesResource = new MyParkingPassesResource(this);
   /** Identity: operations on `workDetails`. */
   readonly workDetails: WorkDetailsResource = new WorkDetailsResource(this);
   /** Identity: operations on `emergencyContacts`. */

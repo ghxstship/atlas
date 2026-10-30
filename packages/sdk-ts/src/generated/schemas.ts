@@ -40503,6 +40503,379 @@ export interface AiUsage {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface EngagedAllocationPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<EngagedAllocation>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags.
+ */
+export interface EngagedAllocation {
+  /**
+   * Identifier of the allocation.
+   * Format: `uuid`.
+   */
+  readonly allocation_id: string;
+  /**
+   * Identifier of the engagement it is held under: the pool's own or the roster entry's.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Identifier of the roster entry of the person who holds it; null for the pool.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * Name of the person who holds it; null for the pool.
+   */
+  readonly person_name: string | null;
+  /**
+   * What the allocation gives.
+   */
+  readonly kind:
+    "Credential" | "Parking Pass" | "Asset" | "Catering" | "Lodging" | "Travel" | "Per Diem";
+  /**
+   * Category, class, catering or block name; null for Travel and Per Diem.
+   */
+  readonly item_name: string | null;
+  /**
+   * Quantity allocated; a pool goes down as it is shared out.
+   */
+  readonly quantity: number;
+  /**
+   * Stored state.
+   */
+  readonly allocation_state: "Requested" | "Approved" | "Declined" | "Withdrawn";
+  /**
+   * The computed status.
+   */
+  readonly display_status:
+    | "Requested"
+    | "Approved"
+    | "Reserved"
+    | "Awaiting Order"
+    | "On Order"
+    | "Confirmed"
+    | "Received"
+    | "Partly Issued"
+    | "Issued"
+    | "Returned"
+    | "Revoked"
+    | "Declined"
+    | "Withdrawn";
+  /**
+   * Quantity held for it.
+   */
+  readonly reserved_quantity: number;
+  /**
+   * Quantity handed over.
+   */
+  readonly issued_quantity: number;
+  /**
+   * Quantity handed back.
+   */
+  readonly returned_quantity: number;
+  /**
+   * Identifier of the pool a share was split from.
+   * Format: `uuid`.
+   */
+  readonly parent_allocation_id: string | null;
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly needed_time_zone: string;
+  /**
+   * True when the caller asked for it.
+   */
+  readonly requested_by_me: boolean;
+  /**
+   * Why production declined it.
+   */
+  readonly decline_reason: string | null;
+}
+
+/**
+ * One request: one holder and one item.
+ */
+export interface EngagedAllocationRequest {
+  /**
+   * Identifier of the engagement the caller answers for.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Identifier of the roster entry of one person; left out for the pool.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id?: string;
+  /**
+   * What is asked for.
+   */
+  readonly item_kind:
+    "credential_category" | "asset_class" | "fulfillment" | "accommodation_block" | "service";
+  /**
+   * Identifier of the category, class, fulfillment or block; left out for a service.
+   * Format: `uuid`.
+   */
+  readonly item_id?: string;
+  /**
+   * Travel or Per Diem, for a service.
+   */
+  readonly service_kind?: "Travel" | "Per Diem";
+  /**
+   * Quantity.
+   */
+  readonly quantity: number;
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * What it is for.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string;
+}
+
+/**
+ * The shares written.
+ */
+export interface EngagedAllocationSplitResult {
+  /**
+   * The shares, in the order given.
+   */
+  readonly allocation_ids: ReadonlyArray<string>;
+}
+
+/**
+ * Shares of an approved pool for its people.
+ */
+export interface EngagedAllocationSplit {
+  readonly parts: ReadonlyArray<EngagedAllocationSplitPart>;
+}
+
+/**
+ * One person's share.
+ */
+export interface EngagedAllocationSplitPart {
+  /**
+   * Identifier of the roster entry on the pool's engagement.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Quantity for the person.
+   */
+  readonly quantity: number;
+}
+
+/**
+ * What went back.
+ */
+export interface EngagedAllocationUnsplitResult {
+  /**
+   * Quantity given back to the pool.
+   */
+  readonly quantity: number;
+}
+
+/**
+ * A share given back to its pool.
+ */
+export interface EngagedAllocationUnsplit {
+  /**
+   * How much goes back; all of it when left out.
+   */
+  readonly quantity?: number;
+}
+
+/**
+ * Withdrawing a request or a share.
+ */
+export interface EngagedAllocationWithdraw {
+  /**
+   * Why it is withdrawn.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface RequestableItemPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RequestableItem>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for.
+ */
+export interface RequestableItem {
+  /**
+   * Identifier of the engagement it may be asked for on.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * The item_kind of the request action.
+   */
+  readonly item_kind:
+    "credential_category" | "asset_class" | "fulfillment" | "accommodation_block" | "service";
+  /**
+   * Identifier of the category, class, fulfillment or block; null for a service.
+   * Format: `uuid`.
+   */
+  readonly item_id: string | null;
+  /**
+   * Its name; Travel or Per Diem for a service.
+   */
+  readonly name: string;
+  /**
+   * Offering it draws on; null for an Access badge.
+   */
+  readonly offering:
+    | "Travel"
+    | "Lodging"
+    | "Catering"
+    | "Parking"
+    | "Uniforms"
+    | "Per Diem"
+    | "Radios"
+    | "Carts"
+    | "Guest List"
+    | null;
+  /**
+   * Cap for the engagement.
+   */
+  readonly cap_per_engagement: number | null;
+  /**
+   * Cap for one person.
+   */
+  readonly cap_per_person: number | null;
+  /**
+   * Already requested or approved under the engagement and its roster.
+   */
+  readonly requested_quantity: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ParkingPassPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ParkingPass>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears.
+ */
+export interface ParkingPass {
+  /**
+   * Identifier of the pass.
+   * Format: `uuid`.
+   */
+  readonly credential_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Number printed on the pass.
+   */
+  readonly credential_number: string | null;
+  /**
+   * Parking category.
+   */
+  readonly category_name: string;
+  /**
+   * Valid from.
+   * Format: `date-time`.
+   */
+  readonly valid_from: string | null;
+  /**
+   * Valid until.
+   * Format: `date-time`.
+   */
+  readonly valid_to: string | null;
+  /**
+   * When it was revoked.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Zone codes.
+   */
+  readonly zone_codes: ReadonlyArray<string>;
+  /**
+   * Zone names, in the order of zone_codes.
+   */
+  readonly zone_names: ReadonlyArray<string>;
+  /**
+   * Make of the vehicle.
+   */
+  readonly vehicle_make: string | null;
+  /**
+   * Model of the vehicle.
+   */
+  readonly vehicle_model: string | null;
+  /**
+   * Colour of the vehicle.
+   */
+  readonly vehicle_color: string | null;
+  /**
+   * Identifier of the the caller, the pass holder.
+   * Format: `uuid`.
+   */
+  readonly holder_person_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface WorkDetailsPage {
   /**
    * Items on this page, in the documented default order.

@@ -3137,6 +3137,62 @@ export interface Components {
     email?: string | null;
     sort_order?: number;
   };
+  EngagedAllocation: {
+    allocation_id: string;
+    engagement_id: string;
+    roster_entry_id: string | null;
+    person_name: string | null;
+    kind: "Credential" | "Parking Pass" | "Asset" | "Catering" | "Lodging" | "Travel" | "Per Diem";
+    item_name: string | null;
+    quantity: number;
+    allocation_state: "Requested" | "Approved" | "Declined" | "Withdrawn";
+    display_status:
+      | "Requested"
+      | "Approved"
+      | "Reserved"
+      | "Awaiting Order"
+      | "On Order"
+      | "Confirmed"
+      | "Received"
+      | "Partly Issued"
+      | "Issued"
+      | "Returned"
+      | "Revoked"
+      | "Declined"
+      | "Withdrawn";
+    reserved_quantity: number;
+    issued_quantity: number;
+    returned_quantity: number;
+    parent_allocation_id: string | null;
+    needed_from: string;
+    needed_to: string;
+    needed_time_zone: string;
+    requested_by_me: boolean;
+    decline_reason: string | null;
+  };
+  EngagedAllocationPage: {
+    data: Array<Components["EngagedAllocation"]>;
+    next_cursor: string | null;
+  };
+  EngagedAllocationRequest: {
+    engagement_id: string;
+    roster_entry_id?: string;
+    item_kind:
+      "credential_category" | "asset_class" | "fulfillment" | "accommodation_block" | "service";
+    item_id?: string;
+    service_kind?: "Travel" | "Per Diem";
+    quantity: number;
+    needed_from: string;
+    needed_to: string;
+    time_zone: string;
+    note?: string;
+  };
+  EngagedAllocationSplit: { parts: Array<Components["EngagedAllocationSplitPart"]> };
+  EngagedAllocationSplitPart: { roster_entry_id: string; quantity: number };
+  EngagedAllocationSplitResult: { allocation_ids: Array<string> };
+  EngagedAllocationUnsplit: { quantity?: number };
+  EngagedAllocationUnsplitResult: { quantity: number };
+  EngagedAllocationWithdraw: { reason?: string };
   Engagement: {
     id: string;
     org_id: string;
@@ -5616,6 +5672,22 @@ export interface Components {
     data: Array<Components["OwnershipTransfer"]>;
     next_cursor: string | null;
   };
+  ParkingPass: {
+    credential_id: string;
+    project_id: string;
+    credential_number: string | null;
+    category_name: string;
+    valid_from: string | null;
+    valid_to: string | null;
+    revoked_at: string | null;
+    zone_codes: Array<string>;
+    zone_names: Array<string>;
+    vehicle_make: string | null;
+    vehicle_model: string | null;
+    vehicle_color: string | null;
+    holder_person_id: string;
+  };
+  ParkingPassPage: { data: Array<Components["ParkingPass"]>; next_cursor: string | null };
   PartnerStandingGrant: {
     id: string;
     org_id: string;
@@ -7174,6 +7246,28 @@ export interface Components {
   };
   RepresentationPage: { data: Array<Components["Representation"]>; next_cursor: string | null };
   RepresentationScope: "Offers" | "Advance" | "Settlement" | "Documents";
+  RequestableItem: {
+    engagement_id: string;
+    item_kind:
+      "credential_category" | "asset_class" | "fulfillment" | "accommodation_block" | "service";
+    item_id: string | null;
+    name: string;
+    offering:
+      | "Travel"
+      | "Lodging"
+      | "Catering"
+      | "Parking"
+      | "Uniforms"
+      | "Per Diem"
+      | "Radios"
+      | "Carts"
+      | "Guest List"
+      | null;
+    cap_per_engagement: number | null;
+    cap_per_person: number | null;
+    requested_quantity: number;
+  };
+  RequestableItemPage: { data: Array<Components["RequestableItem"]>; next_cursor: string | null };
   RequiredAdditionalInsured: {
     id: string;
     org_id: string;
@@ -25058,6 +25152,96 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["AiUsagePage"] };
   };
+  "engagedAllocations.list": {
+    module: "Gateway";
+    method: "get";
+    path: "/engaged-allocations";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["EngagedAllocationPage"] };
+  };
+  "engagedAllocations.get": {
+    module: "Gateway";
+    method: "get";
+    path: "/engaged-allocations/{allocation_id}";
+    params: { allocation_id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["EngagedAllocation"] };
+  };
+  "engagedAllocations.request": {
+    module: "Gateway";
+    method: "post";
+    path: "/engaged-allocations/request";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["EngagedAllocationRequest"];
+    responses: { 201: Components["EngagedAllocation"] };
+  };
+  "engagedAllocations.split": {
+    module: "Gateway";
+    method: "post";
+    path: "/engaged-allocations/{allocation_id}/split";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["EngagedAllocationSplit"];
+    responses: { 200: Components["EngagedAllocationSplitResult"] };
+  };
+  "engagedAllocations.unsplit": {
+    module: "Gateway";
+    method: "post";
+    path: "/engaged-allocations/{allocation_id}/unsplit";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["EngagedAllocationUnsplit"];
+    responses: { 200: Components["EngagedAllocationUnsplitResult"] };
+  };
+  "engagedAllocations.withdraw": {
+    module: "Gateway";
+    method: "post";
+    path: "/engaged-allocations/{allocation_id}/withdraw";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["EngagedAllocationWithdraw"];
+    responses: { 200: Components["EngagedAllocation"] };
+  };
+  "requestableItems.list": {
+    module: "Gateway";
+    method: "get";
+    path: "/requestable-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["RequestableItemPage"] };
+  };
+  "myParkingPasses.list": {
+    module: "Gateway";
+    method: "get";
+    path: "/my-parking-passes";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ParkingPassPage"] };
+  };
   "workDetails.list": {
     module: "Identity";
     method: "get";
@@ -29105,7 +29289,15 @@ export interface ModuleOperations {
     | "payoutAccounts.delete"
     | "backgroundChecks.list"
     | "backgroundChecks.create"
-    | "backgroundChecks.get";
+    | "backgroundChecks.get"
+    | "engagedAllocations.list"
+    | "engagedAllocations.get"
+    | "engagedAllocations.request"
+    | "engagedAllocations.split"
+    | "engagedAllocations.unsplit"
+    | "engagedAllocations.withdraw"
+    | "requestableItems.list"
+    | "myParkingPasses.list";
   Identity:
     | "me.get"
     | "people.list"

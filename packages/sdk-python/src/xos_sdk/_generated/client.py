@@ -367,6 +367,9 @@ from .resources import (
     AiSuggestionsResource,
     AiRequestsResource,
     AiUsageResource,
+    EngagedAllocationsResource,
+    RequestableItemsResource,
+    MyParkingPassesResource,
     WorkDetailsResource,
     EmergencyContactsResource,
     LoyaltyProgramsResource,
@@ -805,6 +808,9 @@ class XosClient(XosClientCore):
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
     ai_usage: AiUsageResource
+    engaged_allocations: EngagedAllocationsResource
+    requestable_items: RequestableItemsResource
+    my_parking_passes: MyParkingPassesResource
     work_details: WorkDetailsResource
     emergency_contacts: EmergencyContactsResource
     loyalty_programs: LoyaltyProgramsResource
@@ -1231,6 +1237,9 @@ class XosClient(XosClientCore):
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
         self.ai_usage = AiUsageResource(self)
+        self.engaged_allocations = EngagedAllocationsResource(self)
+        self.requestable_items = RequestableItemsResource(self)
+        self.my_parking_passes = MyParkingPassesResource(self)
         self.work_details = WorkDetailsResource(self)
         self.emergency_contacts = EmergencyContactsResource(self)
         self.loyalty_programs = LoyaltyProgramsResource(self)

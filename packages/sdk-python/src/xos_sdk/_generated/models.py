@@ -1358,6 +1358,19 @@ __all__ = [
     "AiRequestOutcome",
     "AiUsagePage",
     "AiUsage",
+    "EngagedAllocationPage",
+    "EngagedAllocation",
+    "EngagedAllocationRequest",
+    "EngagedAllocationSplitResult",
+    "EngagedAllocationSplit",
+    "EngagedAllocationSplitPart",
+    "EngagedAllocationUnsplitResult",
+    "EngagedAllocationUnsplit",
+    "EngagedAllocationWithdraw",
+    "RequestableItemPage",
+    "RequestableItem",
+    "ParkingPassPage",
+    "ParkingPass",
     "WorkDetailsPage",
     "WorkDetails",
     "GarmentLetterSize",
@@ -22334,6 +22347,197 @@ class AiUsage(TypedDict):
     input_tokens: Optional[int]
     #: Output tokens the model reported.
     output_tokens: Optional[int]
+
+
+class EngagedAllocationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[EngagedAllocation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class EngagedAllocation(TypedDict):
+    """What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags."""
+
+    #: Identifier of the allocation.
+    allocation_id: str
+    #: Identifier of the engagement it is held under: the pool's own or the roster entry's.
+    engagement_id: str
+    #: Identifier of the roster entry of the person who holds it; null for the pool.
+    roster_entry_id: Optional[str]
+    #: Name of the person who holds it; null for the pool.
+    person_name: Optional[str]
+    #: What the allocation gives.
+    kind: Literal["Credential", "Parking Pass", "Asset", "Catering", "Lodging", "Travel", "Per Diem"]
+    #: Category, class, catering or block name; null for Travel and Per Diem.
+    item_name: Optional[str]
+    #: Quantity allocated; a pool goes down as it is shared out.
+    quantity: float
+    #: Stored state.
+    allocation_state: Literal["Requested", "Approved", "Declined", "Withdrawn"]
+    #: The computed status.
+    display_status: Literal["Requested", "Approved", "Reserved", "Awaiting Order", "On Order", "Confirmed", "Received", "Partly Issued", "Issued", "Returned", "Revoked", "Declined", "Withdrawn"]
+    #: Quantity held for it.
+    reserved_quantity: float
+    #: Quantity handed over.
+    issued_quantity: float
+    #: Quantity handed back.
+    returned_quantity: float
+    #: Identifier of the pool a share was split from.
+    parent_allocation_id: Optional[str]
+    #: When it is first needed.
+    needed_from: str
+    #: When it is no longer needed.
+    needed_to: str
+    #: IANA time zone of the window.
+    needed_time_zone: str
+    #: True when the caller asked for it.
+    requested_by_me: bool
+    #: Why production declined it.
+    decline_reason: Optional[str]
+
+
+class _EngagedAllocationRequestRequired(TypedDict):
+    #: Identifier of the engagement the caller answers for.
+    engagement_id: str
+    #: What is asked for.
+    item_kind: Literal["credential_category", "asset_class", "fulfillment", "accommodation_block", "service"]
+    #: Quantity.
+    quantity: float
+    #: When it is first needed.
+    needed_from: str
+    #: When it is no longer needed.
+    needed_to: str
+    #: IANA time zone of the window.
+    time_zone: str
+
+
+class EngagedAllocationRequest(_EngagedAllocationRequestRequired, total=False):
+    """One request: one holder and one item."""
+
+    #: Identifier of the roster entry of one person; left out for the pool.
+    roster_entry_id: str
+    #: Identifier of the category, class, fulfillment or block; left out for a service.
+    item_id: str
+    #: Travel or Per Diem, for a service.
+    service_kind: Literal["Travel", "Per Diem"]
+    #: What it is for.
+    note: str
+
+
+class EngagedAllocationSplitResult(TypedDict):
+    """The shares written."""
+
+    #: The shares, in the order given.
+    allocation_ids: List[str]
+
+
+class EngagedAllocationSplit(TypedDict):
+    """Shares of an approved pool for its people."""
+
+    parts: List[EngagedAllocationSplitPart]
+
+
+class EngagedAllocationSplitPart(TypedDict):
+    """One person's share."""
+
+    #: Identifier of the roster entry on the pool's engagement.
+    roster_entry_id: str
+    #: Quantity for the person.
+    quantity: float
+
+
+class EngagedAllocationUnsplitResult(TypedDict):
+    """What went back."""
+
+    #: Quantity given back to the pool.
+    quantity: float
+
+
+class EngagedAllocationUnsplit(TypedDict, total=False):
+    """A share given back to its pool."""
+
+    #: How much goes back; all of it when left out.
+    quantity: float
+
+
+class EngagedAllocationWithdraw(TypedDict, total=False):
+    """Withdrawing a request or a share."""
+
+    #: Why it is withdrawn.
+    reason: str
+
+
+class RequestableItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[RequestableItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class RequestableItem(TypedDict):
+    """What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for."""
+
+    #: Identifier of the engagement it may be asked for on.
+    engagement_id: str
+    #: The item_kind of the request action.
+    item_kind: Literal["credential_category", "asset_class", "fulfillment", "accommodation_block", "service"]
+    #: Identifier of the category, class, fulfillment or block; null for a service.
+    item_id: Optional[str]
+    #: Its name; Travel or Per Diem for a service.
+    name: str
+    #: Offering it draws on; null for an Access badge.
+    offering: Optional[Literal["Travel", "Lodging", "Catering", "Parking", "Uniforms", "Per Diem", "Radios", "Carts", "Guest List"]]
+    #: Cap for the engagement.
+    cap_per_engagement: Optional[int]
+    #: Cap for one person.
+    cap_per_person: Optional[int]
+    #: Already requested or approved under the engagement and its roster.
+    requested_quantity: float
+
+
+class ParkingPassPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ParkingPass]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ParkingPass(TypedDict):
+    """The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears."""
+
+    #: Identifier of the pass.
+    credential_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Number printed on the pass.
+    credential_number: Optional[str]
+    #: Parking category.
+    category_name: str
+    #: Valid from.
+    valid_from: Optional[str]
+    #: Valid until.
+    valid_to: Optional[str]
+    #: When it was revoked.
+    revoked_at: Optional[str]
+    #: Zone codes.
+    zone_codes: List[str]
+    #: Zone names, in the order of zone_codes.
+    zone_names: List[str]
+    #: Make of the vehicle.
+    vehicle_make: Optional[str]
+    #: Model of the vehicle.
+    vehicle_model: Optional[str]
+    #: Colour of the vehicle.
+    vehicle_color: Optional[str]
+    #: Identifier of the the caller, the pass holder.
+    holder_person_id: str
 
 
 class WorkDetailsPage(TypedDict):

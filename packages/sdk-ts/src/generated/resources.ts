@@ -371,6 +371,13 @@ import type {
   EmergencyContact,
   EmergencyContactCreate,
   EmergencyContactUpdate,
+  EngagedAllocation,
+  EngagedAllocationRequest,
+  EngagedAllocationSplit,
+  EngagedAllocationSplitResult,
+  EngagedAllocationUnsplit,
+  EngagedAllocationUnsplitResult,
+  EngagedAllocationWithdraw,
   Engagement,
   EngagementCreate,
   EngagementDocument,
@@ -632,6 +639,7 @@ import type {
   OvertimeRule,
   OwnershipTransfer,
   OwnershipTransferOfferRequest,
+  ParkingPass,
   PartnerStandingGrant,
   PartnerStandingGrantRecordRequest,
   PassportReveal,
@@ -798,6 +806,7 @@ import type {
   ReportScheduleUpdate,
   Representation,
   RepresentationCreate,
+  RequestableItem,
   RequiredAdditionalInsured,
   RequiredAdditionalInsuredCreate,
   RequiredAdditionalInsuredUpdate,
@@ -36260,6 +36269,243 @@ export class AiUsageResource extends $Resource {
     options?: $RequestOptions,
   ): AsyncGenerator<AiUsage, void, undefined> {
     return this.client.paginate<AiUsage>($OPERATIONS["aiUsage.list"], { query: params }, options);
+  }
+}
+
+/**
+ * Operations on `engagedAllocations`, in the Gateway module.
+ *
+ * External-party resources: marketplace, saved searches, profile shares, availability, messages, tax and payout details (Section 4.4).
+ */
+export class EngagedAllocationsResource extends $Resource {
+  /**
+   * List engaged allocation rows
+   *
+   * What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /engaged-allocations` (operation `engagedAllocations.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<EngagedAllocation>,
+    options?: $RequestOptions,
+  ): Promise<$Page<EngagedAllocation>> {
+    return this.client.requestPage<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List engaged allocation rows
+   *
+   * What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /engaged-allocations` (operation `engagedAllocations.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<EngagedAllocation>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<EngagedAllocation, void, undefined> {
+    return this.client.paginate<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an engaged allocation
+   *
+   * What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns one engaged allocation with its `ETag`. A engaged allocation the caller may not see returns 404.
+   *
+   * `GET /engaged-allocations/{allocation_id}` (operation `engagedAllocations.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    allocationId: string,
+    params?: $FieldsParams<EngagedAllocation>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<EngagedAllocation>> {
+    return this.client.request<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.get"],
+      { path: { allocation_id: allocationId }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Request an item for the pool or one person
+   *
+   * The party side asks for an item for its pool or one person on its roster through `app.request_engaged_allocation`; it starts Requested for the producing org to decide. A credential need is a request: Gateway never issues. Refusals answer 422 with the rule, among them allocation_not_your_engagement, allocation_entry_not_on_engagement, allocation_not_requestable, offering_not_offered, allocation_cap_engagement, allocation_cap_person and allocation_engagement_closed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engaged-allocations/request` (operation `engagedAllocations.request`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  request(
+    body: EngagedAllocationRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EngagedAllocation>> {
+    return this.client.request<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.request"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Share an approved pool to people on the roster
+   *
+   * Gives shares of an approved pool to people accepted on the roster through `app.split_engaged_allocation`, moving holds with them (422 allocation_not_pool, allocation_split_exceeds, allocation_cap_person, allocation_entry_not_accepted). Each person is sent allocation.assigned. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engaged-allocations/{allocation_id}/split` (operation `engagedAllocations.split`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  split(
+    allocationId: string,
+    body: EngagedAllocationSplit,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EngagedAllocationSplitResult>> {
+    return this.client.request<EngagedAllocationSplitResult>(
+      $OPERATIONS["engagedAllocations.split"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Give a share back to its pool
+   *
+   * Gives part or all of a person's share back to its pool through `app.unsplit_engaged_allocation`, never what was issued (422 allocation_issued). A share given back whole is Withdrawn. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engaged-allocations/{allocation_id}/unsplit` (operation `engagedAllocations.unsplit`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  unsplit(
+    allocationId: string,
+    body: EngagedAllocationUnsplit,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EngagedAllocationUnsplitResult>> {
+    return this.client.request<EngagedAllocationUnsplitResult>(
+      $OPERATIONS["engagedAllocations.unsplit"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Withdraw a request or a share
+   *
+   * Withdraws a Requested allocation, or an Approved one nothing of which was issued (422 allocation_issued), through `app.withdraw_engaged_allocation`: by the party side, or by the person on the roster for a request they made. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engaged-allocations/{allocation_id}/withdraw` (operation `engagedAllocations.withdraw`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  withdraw(
+    allocationId: string,
+    body: EngagedAllocationWithdraw,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EngagedAllocation>> {
+    return this.client.request<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.withdraw"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `requestableItems`, in the Gateway module.
+ *
+ * External-party resources: marketplace, saved searches, profile shares, availability, messages, tax and payout details (Section 4.4).
+ */
+export class RequestableItemsResource extends $Resource {
+  /**
+   * List requestable item rows
+   *
+   * What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /requestable-items` (operation `requestableItems.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<RequestableItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<RequestableItem>> {
+    return this.client.requestPage<RequestableItem>(
+      $OPERATIONS["requestableItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List requestable item rows
+   *
+   * What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /requestable-items` (operation `requestableItems.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<RequestableItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<RequestableItem, void, undefined> {
+    return this.client.paginate<RequestableItem>(
+      $OPERATIONS["requestableItems.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `myParkingPasses`, in the Gateway module.
+ *
+ * External-party resources: marketplace, saved searches, profile shares, availability, messages, tax and payout details (Section 4.4).
+ */
+export class MyParkingPassesResource extends $Resource {
+  /**
+   * List parking pass rows
+   *
+   * The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /my-parking-passes` (operation `myParkingPasses.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  list(params?: $ListParams<ParkingPass>, options?: $RequestOptions): Promise<$Page<ParkingPass>> {
+    return this.client.requestPage<ParkingPass>(
+      $OPERATIONS["myParkingPasses.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List parking pass rows
+   *
+   * The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /my-parking-passes` (operation `myParkingPasses.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ParkingPass>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ParkingPass, void, undefined> {
+    return this.client.paginate<ParkingPass>(
+      $OPERATIONS["myParkingPasses.list"],
+      { query: params },
+      options,
+    );
   }
 }
 
