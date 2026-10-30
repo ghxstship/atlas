@@ -45705,49 +45705,49 @@
           "type": "uuid"
         },
         {
-          "comment": "Shirt size.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "shirt_size",
           "nullable": true,
           "references": null,
           "type": "app.garment_letter_size"
         },
         {
-          "comment": "Jacket size.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "jacket_size",
           "nullable": true,
           "references": null,
           "type": "app.garment_letter_size"
         },
         {
-          "comment": "Pants size as the person writes it, for example 32x32 or EU 48.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "pants_size",
           "nullable": true,
           "references": null,
           "type": "text"
         },
         {
-          "comment": "Shoe size with its system, for example US 10.5 or EU 44.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "shoe_size",
           "nullable": true,
           "references": null,
           "type": "text"
         },
         {
-          "comment": "Glove size.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "glove_size",
           "nullable": true,
           "references": null,
           "type": "app.garment_letter_size"
         },
         {
-          "comment": "Hat size as the person writes it, for example 7 1/4 or 58 cm.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "hat_size",
           "nullable": true,
           "references": null,
           "type": "text"
         },
         {
-          "comment": "Anything else about fit, for example a preferred cut.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "uniform_notes",
           "nullable": true,
           "references": null,
@@ -45761,7 +45761,7 @@
           "type": "app.dietary_need[]"
         },
         {
-          "comment": "Food and other allergies in the person's words, with how severe they are. Confidential.",
+          "comment": "Food and other allergies in the person's words, with how severe they are. Restricted (data.restricted.read.medical, R6a): never directly selectable by signed-in callers; the person reads their own through app.my_allergies, and an engaging org reads them only through private.read_allergies, which logs every unmasked read; the catering lead and on-site medical roles hold the capability on their project (2662).",
           "name": "allergies",
           "nullable": true,
           "references": null,
@@ -45789,21 +45789,21 @@
           "type": "text"
         },
         {
-          "comment": "Preferred seat when an org books travel.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "seat_preference",
           "nullable": true,
           "references": null,
           "type": "app.seat_preference"
         },
         {
-          "comment": "Preferred in-flight meal, for example Vegetarian (VGML).",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "meal_preference",
           "nullable": true,
           "references": null,
           "type": "text"
         },
         {
-          "comment": "IATA code of the airport the person travels from, for example MIA.",
+          "comment": "Retired (R6a): always NULL; dropped by R6b.",
           "name": "home_airport",
           "nullable": true,
           "references": null,
@@ -45873,7 +45873,7 @@
           "type": "uuid"
         }
       ],
-      "comment": "A person's work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Owned and read only by the person; an engaging org sees a category only while the person shares it with that engagement (app.work_detail_shares, app.shared_work_details). The passport number is Restricted and encrypted.",
+      "comment": "A person's work details (Section 4.5.6 item 10): dietary needs and allergies, accessibility needs and the passport; loyalty programs and emergency contacts sit beside them. Uniform sizes and travel preferences are entered per roster entry since R6a, and their columns here stay NULL until R6b drops them. Owned and read only by the person; an engaging org sees a category only while the person shares it with that engagement (app.work_detail_shares, app.shared_work_details). The passport number and allergies are Restricted; the passport number is encrypted.",
       "kind": "table",
       "name": "person_work_details",
       "partitioned": false,

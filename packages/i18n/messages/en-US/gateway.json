@@ -497,13 +497,13 @@
           "close": "Close",
           "none": "Not given",
           "nothing": "Nothing is shared with you yet.",
-          "uniform": "Uniform sizes",
           "dietary": "Dietary needs",
           "allergies": "Allergies",
           "onFile": "On file",
           "accessibility": "Accessibility needs",
           "emergency": "Emergency contacts",
-          "travel": "Travel profile",
+          "contact": "Contact",
+          "travel": "Loyalty programs",
           "passport": "Passport",
           "passportMasked": "Number ending {last4}"
         }

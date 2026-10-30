@@ -3,19 +3,10 @@
   "saved": "Saved.",
   "remove": "Remove",
   "removeNamed": "Remove {name}",
-  "uniform": {
-    "title": "Uniform sizes",
-    "description": "Sizes for the uniforms and safety gear an organization issues you.",
-    "shirt": "Shirt",
-    "jacket": "Jacket",
-    "pants": "Pants",
-    "pantsHelp": "For example 32x32 or EU 48.",
-    "shoe": "Shoes",
-    "shoeHelp": "With the size system, for example US 10.5 or EU 44.",
-    "gloves": "Gloves",
-    "hat": "Hat",
-    "notes": "Fit notes",
-    "save": "Save sizes"
+  "notice": {
+    "title": "Uniform sizes and travel preferences moved to each project",
+    "body": "Productions now ask for your uniform sizes, seat, meal and home airport on each project you are rostered on, and keep them only for that project. Enter them on the project.",
+    "link": "Open your engagements"
   },
   "dietary": {
     "title": "Dietary needs",
@@ -35,17 +26,10 @@
     "save": "Save accessibility needs"
   },
   "travel": {
-    "title": "Travel profile",
-    "description": "Preferences an organization uses when it books your travel.",
-    "seat": "Seat",
-    "meal": "In-flight meal",
-    "mealHelp": "For example Vegetarian (VGML).",
-    "airport": "Home airport",
-    "airportHelp": "Three-letter code, for example MIA.",
-    "save": "Save travel profile"
+    "title": "Loyalty programs",
+    "description": "Programs an organization can add to the travel it books for you."
   },
   "loyalty": {
-    "title": "Loyalty programs",
     "none": "No loyalty programs yet.",
     "kind": "Kind",
     "program": "Program",
@@ -106,6 +90,7 @@
   },
   "categories": {
     "emergencyContacts": "Emergency contacts",
+    "contact": "Contact",
     "uniformSizes": "Uniform sizes",
     "dietaryNeeds": "Dietary needs",
     "accessibilityNeeds": "Accessibility needs",
@@ -169,7 +154,9 @@
       "shareChanged": "Share changed",
       "shareRevoked": "Share revoked",
       "viewed": "Viewed",
+      "allergiesViewed": "Allergies viewed",
       "erased": "Work details erased",
+      "fieldsRemoved": "Uniform sizes and travel preferences removed from your profile",
       "other": "Recorded",
       "travelSaved": "Travel details saved",
       "travelCleared": "Travel details cleared",
@@ -190,14 +177,19 @@
     "closed": "Sharing ended with the engagement.",
     "hidden": "Shared, but your role does not cover it.",
     "unnamed": "The engaged person",
-    "seat": "Seat",
-    "meal": "In-flight meal",
-    "airport": "Home airport",
+    "contactEmail": "Email",
+    "contactPhone": "Phone",
+    "contactNone": "No verified email or phone yet.",
     "loyalty": "Loyalty programs",
     "allergies": "Allergies",
+    "allergiesMasked": "Restricted: medical access only",
+    "medical": {
+      "title": "Medical",
+      "description": "Shown to you for on-site care. Each view is logged.",
+      "none": "No allergies recorded."
+    },
     "needs": "Needs",
     "notes": "Notes",
-    "sizes": "{garment}: {size}",
     "passportName": "Name as printed",
     "passportCountry": "Issuing country",
     "passportExpires": "Expires on",
@@ -220,6 +212,9 @@
     "work_detail_share_categories": "Choose at least one category, or revoke the share.",
     "work_detail_not_shared": "The person has not shared their passport details with this engagement.",
     "org_read_only": "This organization is canceled and read-only, so nothing more is shared with it.",
+    "work_detail_field_moved": "Uniform sizes and travel preferences are no longer kept on your profile. Enter them on each project you are rostered on.",
+    "work_detail_category_retired": "Uniform sizes are no longer shared from your profile. Enter them on the project.",
+    "work_detail_share_contact_alone": "Share your contact together with at least one other category.",
     "phone": "Enter a phone number with its country code, for example +1 305 555 0142.",
     "invalid": "Check the highlighted fields and try again.",
     "conflict": "You already have this loyalty program.",
@@ -247,11 +242,9 @@
   "compass": {
     "edit": "Edit work details",
     "offline": "Your work details load when you are online.",
-    "failed": "Your work details did not load. Open your profile again to retry.",
-    "noSizes": "No uniform sizes yet."
+    "failed": "Your work details did not load. Open your profile again to retry."
   },
   "allergiesOnFile": "On file",
-  "allergiesMasked": "Allergies are on file. They are not shown to you.",
   "projectFacts": {
     "title": "Project details",
     "sentence": "The travel, uniform and vehicle details this project asks of you. They stay on this engagement, never on your profile, and leave after the engagement closes.",

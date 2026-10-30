@@ -52676,40 +52676,43 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "shirt_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "jacket_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "pants_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Pants size as the person writes it.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "32x32"
           },
           "shoe_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Shoe size with its system.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "US 10.5"
           },
           "glove_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "hat_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Hat size as the person writes it.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "7 1/4"
           },
           "uniform_notes": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 500,
-            "description": "Anything else about fit.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "Prefers a relaxed cut."
           },
           "dietary_needs": {
@@ -52723,7 +52726,7 @@
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 500,
-            "description": "Allergies in the person's words, with how severe.",
+            "description": "Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.",
             "example": "Peanuts, severe"
           },
           "dietary_notes": {
@@ -52748,19 +52751,20 @@
             "example": "Needs a seat near the stage door."
           },
           "seat_preference": {
-            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "meal_preference": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 100,
-            "description": "Preferred in-flight meal.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "Vegetarian (VGML)"
           },
           "home_airport": {
             "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "IATA airport code.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "MIA"
           },
           "passport_number": {
@@ -52828,7 +52832,7 @@
           "passport_expires_on",
           "passport_name"
         ],
-        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second)."
+        "description": "The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second)."
       },
       "GarmentLetterSize": {
         "type": "string",
@@ -52879,40 +52883,43 @@
         "type": "object",
         "properties": {
           "shirt_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "jacket_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "pants_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Pants size as the person writes it.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "32x32"
           },
           "shoe_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Shoe size with its system.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "US 10.5"
           },
           "glove_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "hat_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Hat size as the person writes it.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "7 1/4"
           },
           "uniform_notes": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 500,
-            "description": "Anything else about fit.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "Prefers a relaxed cut."
           },
           "dietary_needs": {
@@ -52926,7 +52933,7 @@
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 500,
-            "description": "Allergies in the person's words, with how severe.",
+            "description": "Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.",
             "example": "Peanuts, severe"
           },
           "dietary_notes": {
@@ -52951,19 +52958,20 @@
             "example": "Needs a seat near the stage door."
           },
           "seat_preference": {
-            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "meal_preference": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 100,
-            "description": "Preferred in-flight meal.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "Vegetarian (VGML)"
           },
           "home_airport": {
             "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "IATA airport code.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "MIA"
           },
           "passport_number": {
@@ -52999,40 +53007,43 @@
         "type": "object",
         "properties": {
           "shirt_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "jacket_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "pants_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Pants size as the person writes it.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "32x32"
           },
           "shoe_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Shoe size with its system.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "US 10.5"
           },
           "glove_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "hat_size": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Hat size as the person writes it.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "7 1/4"
           },
           "uniform_notes": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 500,
-            "description": "Anything else about fit.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "Prefers a relaxed cut."
           },
           "dietary_needs": {
@@ -53046,7 +53057,7 @@
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 500,
-            "description": "Allergies in the person's words, with how severe.",
+            "description": "Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.",
             "example": "Peanuts, severe"
           },
           "dietary_notes": {
@@ -53071,19 +53082,20 @@
             "example": "Needs a seat near the stage door."
           },
           "seat_preference": {
-            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }],
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts)."
           },
           "meal_preference": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 100,
-            "description": "Preferred in-flight meal.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "Vegetarian (VGML)"
           },
           "home_airport": {
             "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "IATA airport code.",
+            "description": "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).",
             "example": "MIA"
           },
           "passport_number": {
@@ -53531,7 +53543,7 @@
             "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
             "minItems": 1,
             "maxItems": 6,
-            "description": "Categories shared.",
+            "description": "Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.",
             "example": ["Dietary Needs", "Emergency Contacts"]
           },
           "shared_at": {
@@ -53551,6 +53563,11 @@
             "format": "uuid",
             "description": "Identifier of the roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "contact_shared": {
+            "type": "boolean",
+            "description": "The share names the person's own contact: their verified sign-in email and phone (R6a).",
+            "example": false
           }
         },
         "required": [
@@ -53566,7 +53583,8 @@
           "categories",
           "shared_at",
           "revoked_at",
-          "roster_entry_id"
+          "roster_entry_id",
+          "contact_shared"
         ],
         "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged."
       },
@@ -53580,7 +53598,7 @@
           "Travel Profile",
           "Passport"
         ],
-        "description": "A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.",
+        "description": "A category of work details shared with an engaging org on its own. The person's own contact (R6a) is shared with share_contact rather than as a category. Uniform Sizes is retired: sizes are entered per roster entry (projectFacts), and sharing it is refused with 422 work_detail_category_retired. Travel Profile is the loyalty programs; Passport is the passport details.",
         "example": "Emergency Contacts"
       },
       "WorkDetailShareCreate": {
@@ -53597,8 +53615,13 @@
             "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
             "minItems": 1,
             "maxItems": 6,
-            "description": "Categories shared.",
+            "description": "Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.",
             "example": ["Dietary Needs", "Emergency Contacts"]
+          },
+          "share_contact": {
+            "type": "boolean",
+            "description": "Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.",
+            "example": true
           }
         },
         "required": ["engagement_id", "categories"],
@@ -53612,8 +53635,13 @@
             "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
             "minItems": 1,
             "maxItems": 6,
-            "description": "Categories shared.",
+            "description": "Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.",
             "example": ["Dietary Needs", "Emergency Contacts"]
+          },
+          "share_contact": {
+            "type": "boolean",
+            "description": "Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.",
+            "example": true
           }
         },
         "description": "Fields accepted when updating a WorkDetailShare. Omitted fields are unchanged."
@@ -53677,18 +53705,24 @@
           "readable": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
-            "description": "Shared categories the caller's project capabilities cover; the others come back null.",
+            "description": "Shared categories the caller's project capabilities cover; the others come back null. The person's contact is readable when contact is not null.",
             "example": ["Dietary Needs"]
           },
           "emergency_contacts": {
             "type": ["array", "null"],
             "items": { "$ref": "#/components/schemas/SharedEmergencyContact" }
           },
+          "contact": {
+            "anyOf": [{ "$ref": "#/components/schemas/SharedContact" }, { "type": "null" }]
+          },
           "uniform": {
             "anyOf": [{ "$ref": "#/components/schemas/SharedUniformSizes" }, { "type": "null" }]
           },
           "dietary": {
             "anyOf": [{ "$ref": "#/components/schemas/SharedDietaryNeeds" }, { "type": "null" }]
+          },
+          "medical": {
+            "anyOf": [{ "$ref": "#/components/schemas/SharedMedicalNeeds" }, { "type": "null" }]
           },
           "accessibility": {
             "anyOf": [
@@ -53715,13 +53749,15 @@
           "categories",
           "readable",
           "emergency_contacts",
+          "contact",
           "uniform",
           "dietary",
+          "medical",
           "accessibility",
           "travel",
           "passport"
         ],
-        "description": "What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked."
+        "description": "What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked; allergies are masked unless the caller holds data.restricted.read.medical on the project (R6a)."
       },
       "SharedEmergencyContact": {
         "type": "object",
@@ -53765,36 +53801,58 @@
         ],
         "description": "An emergency contact as an engaging org reads it."
       },
+      "SharedContact": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "The person's verified sign-in email.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "phone": {
+            "type": ["string", "null"],
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "The person's verified sign-in phone. E.164 format.",
+            "example": "+13055550142"
+          }
+        },
+        "required": ["email", "phone"],
+        "description": "The person's own contact as an engaging org reads it (R6a): only verified sign-in addresses, null when none is verified. Read by engagement and safety readers, and by the company."
+      },
       "SharedUniformSizes": {
         "type": "object",
         "properties": {
           "shirt_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; entered per roster entry since R6a."
           },
           "jacket_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; entered per roster entry since R6a."
           },
           "pants_size": {
             "type": ["string", "null"],
-            "description": "Pants size.",
+            "description": "Retired: always null; entered per roster entry since R6a.",
             "example": "32x32"
           },
           "shoe_size": {
             "type": ["string", "null"],
-            "description": "Shoe size.",
+            "description": "Retired: always null; entered per roster entry since R6a.",
             "example": "US 10.5"
           },
           "glove_size": {
-            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }],
+            "description": "Retired: always null; entered per roster entry since R6a."
           },
           "hat_size": {
             "type": ["string", "null"],
-            "description": "Hat size.",
+            "description": "Retired: always null; entered per roster entry since R6a.",
             "example": "7 1/4"
           },
           "uniform_notes": {
             "type": ["string", "null"],
-            "description": "Fit notes.",
+            "description": "Retired: always null; entered per roster entry since R6a.",
             "example": "Prefers a relaxed cut."
           }
         },
@@ -53807,7 +53865,7 @@
           "hat_size",
           "uniform_notes"
         ],
-        "description": "Uniform sizes as an engaging org reads them."
+        "description": "Uniform sizes as an engaging org read them before R6a. Always null now: no live share names Uniform Sizes, and sizes are read per roster entry (projectFacts)."
       },
       "SharedDietaryNeeds": {
         "type": "object",
@@ -53818,8 +53876,13 @@
           },
           "allergies": {
             "type": ["string", "null"],
-            "description": "Allergies; null when masked for the reader (a company reader never reads them).",
+            "description": "Allergies; null when masked for the reader. Restricted: only a holder of data.restricted.read.medical on the project reads them, and each such read is logged; a company reader never does.",
             "example": "Peanuts, severe"
+          },
+          "allergies_masked": {
+            "type": "boolean",
+            "description": "Allergies are recorded and withheld from this reader (R6a).",
+            "example": false
           },
           "allergies_on_file": {
             "type": "boolean",
@@ -53832,8 +53895,26 @@
             "example": "No pork."
           }
         },
-        "required": ["dietary_needs", "allergies", "allergies_on_file", "dietary_notes"],
+        "required": [
+          "dietary_needs",
+          "allergies",
+          "allergies_masked",
+          "allergies_on_file",
+          "dietary_notes"
+        ],
         "description": "Dietary needs as an engaging org reads them."
+      },
+      "SharedMedicalNeeds": {
+        "type": "object",
+        "properties": {
+          "allergies": {
+            "type": ["string", "null"],
+            "description": "Allergies, unmasked.",
+            "example": "Peanuts, severe"
+          }
+        },
+        "required": ["allergies"],
+        "description": "The Restricted medical read (R6a): present when the share names Dietary Needs and the caller holds data.restricted.read.medical on the project (the org Owner, and by default the catering lead and on-site medical roles worked there), even without hospitality.fulfillment.read; null otherwise. Each read is logged as allergies.viewed."
       },
       "SharedAccessibilityNeeds": {
         "type": "object",
@@ -53855,17 +53936,18 @@
         "type": "object",
         "properties": {
           "seat_preference": {
-            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }]
+            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }],
+            "description": "Retired: always null; entered per roster entry since R6a."
           },
           "meal_preference": {
             "type": ["string", "null"],
-            "description": "Preferred in-flight meal.",
+            "description": "Retired: always null; entered per roster entry since R6a.",
             "example": "Vegetarian (VGML)"
           },
           "home_airport": {
             "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "IATA airport code.",
+            "description": "Retired: always null; entered per roster entry since R6a.",
             "example": "MIA"
           },
           "loyalty_programs": {
@@ -53874,7 +53956,7 @@
           }
         },
         "required": ["seat_preference", "meal_preference", "home_airport", "loyalty_programs"],
-        "description": "The travel profile as an engaging org reads it."
+        "description": "The travel profile as an engaging org reads it: the loyalty programs since R6a."
       },
       "SharedLoyaltyProgram": {
         "type": "object",
@@ -54015,7 +54097,7 @@
           "action": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
-            "description": "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.",
+            "description": "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, work_details.fields_removed, allergies.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.",
             "example": "work_details.viewed"
           },
           "categories": {
@@ -54023,6 +54105,11 @@
             "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
             "description": "Categories the act covered.",
             "example": ["Dietary Needs"]
+          },
+          "includes_contact": {
+            "type": "boolean",
+            "description": "The act covered the person's own contact, shared since R6a outside the category list.",
+            "example": false
           },
           "changed_columns": {
             "type": "array",
@@ -54054,6 +54141,7 @@
           "fact_kinds",
           "action",
           "categories",
+          "includes_contact",
           "changed_columns",
           "reason",
           "created_at"
@@ -144808,7 +144896,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
         "summary": "List work details rows",
-        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -144873,7 +144961,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Create a work details",
-        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -144961,7 +145049,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Get a work details",
-        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.",
+        "description": "The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.",
         "parameters": [
           {
             "schema": {
@@ -145031,7 +145119,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Update a work details",
-        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "description": "The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
         "parameters": [
           {
             "schema": {
@@ -145133,7 +145221,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Delete a work details",
-        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.",
+        "description": "The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.",
         "parameters": [
           {
             "schema": {
@@ -145788,7 +145876,8 @@
                       "categories": ["Dietary Needs", "Emergency Contacts"],
                       "shared_at": "2026-10-08T14:30:00Z",
                       "revoked_at": "2026-10-08T14:30:00Z",
-                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "contact_shared": false
                     }
                   ],
                   "next_cursor": null
@@ -145817,7 +145906,8 @@
             "application/json": {
               "example": {
                 "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "categories": ["Dietary Needs", "Emergency Contacts"]
+                "categories": ["Dietary Needs", "Emergency Contacts"],
+                "share_contact": true
               },
               "schema": { "$ref": "#/components/schemas/WorkDetailShareCreate" }
             }
@@ -145847,7 +145937,8 @@
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
                   "revoked_at": "2026-10-08T14:30:00Z",
-                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "contact_shared": false
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -145909,7 +146000,8 @@
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
                   "revoked_at": "2026-10-08T14:30:00Z",
-                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "contact_shared": false
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -145948,7 +146040,10 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "categories": ["Dietary Needs", "Emergency Contacts"] },
+              "example": {
+                "categories": ["Dietary Needs", "Emergency Contacts"],
+                "share_contact": true
+              },
               "schema": { "$ref": "#/components/schemas/WorkDetailShareUpdate" }
             }
           }
@@ -145977,7 +146072,8 @@
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
                   "revoked_at": "2026-10-08T14:30:00Z",
-                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "contact_shared": false
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -146042,7 +146138,8 @@
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
                   "revoked_at": "2026-10-08T14:30:00Z",
-                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "contact_shared": false
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -146066,7 +146163,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
         "x-xos-rpc": "app.shared_work_details",
         "summary": "Read what the share's person shared",
-        "description": "For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement readers and shift editors for uniform sizes, hospitality readers for the rest), through `app.shared_work_details`. Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Each read is logged in the person's access log and the org's audit ledger. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement and safety readers for the person's contact, hospitality readers for the rest), through `app.shared_work_details`. Allergies are Restricted: a holder of data.restricted.read.medical on the project reads them, in dietary and in medical (the medical read, also without hospitality.fulfillment.read); anyone else reads them masked (allergies_masked). Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Every read is logged in the person's access log and the org's audit ledger, and every unmasked allergy read also as allergies.viewed. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -146112,6 +146209,10 @@
                       "sort_order": 0
                     }
                   ],
+                  "contact": {
+                    "email": "alex.rivera@northwindlive.example",
+                    "phone": "+13055550142"
+                  },
                   "uniform": {
                     "shirt_size": "XXS",
                     "jacket_size": "XXS",
@@ -146124,9 +146225,11 @@
                   "dietary": {
                     "dietary_needs": ["Vegetarian"],
                     "allergies": "Peanuts, severe",
+                    "allergies_masked": false,
                     "allergies_on_file": true,
                     "dietary_notes": "No pork."
                   },
+                  "medical": { "allergies": "Peanuts, severe" },
                   "accessibility": {
                     "accessibility_needs": ["Step-Free Access"],
                     "accessibility_notes": "Needs a seat near the stage door."
@@ -146173,7 +146276,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
         "x-xos-rpc": "app.reveal_shared_passport_number",
         "summary": "Reveal a shared passport number",
-        "description": "For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Allergies, the other Restricted value, come back through details for medical readers (data.restricted.read.medical), logged on every read. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -146261,6 +146364,7 @@
                       "fact_kinds": ["Travel"],
                       "action": "work_details.viewed",
                       "categories": ["Dietary Needs"],
+                      "includes_contact": false,
                       "changed_columns": ["allergies"],
                       "reason": "Booking the June flights.",
                       "created_at": "2026-10-08T14:30:00Z"

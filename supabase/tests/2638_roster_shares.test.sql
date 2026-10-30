@@ -1,7 +1,7 @@
 -- pgTAP: migration 2638 (R4), work details shares keyed on the roster entry (owner decisions 0/1 and 4). A share names the
 -- sharer's own entry (the self entry for the engaged person); a rostered person shares only after accepting; two people
 -- share on one engagement. The company reads every category of a person who accepted its roster entry, whatever they
--- shared with the producing org, with the passport number masked and allergies NULL with allergies_on_file; before the
+-- shared with the producing org but the retired Uniform Sizes (R6a), with the passport number and allergies masked; before the
 -- person accepts, and after a decline or a withdrawal, it gets 42501, and the account consent follows. A Member-duty
 -- assignee and the worker the engagement names are refused. Producing-org readers read the shared categories their capabilities cover. Every read writes the
 -- access log and the audit ledger, without dedupe. shared_work_details answers for the self entry and
@@ -59,7 +59,7 @@ select app.add_account_member(pg_temp.id('acct_v'), pg_temp.id(p), 'Account Memb
 select pg_temp.as_user('kai');
 select app.accept_account_membership(pg_temp.membership('acct_v', 'kai'));
 select app.ensure_my_work_details();
-update app.person_work_details set shirt_size = 'M', allergies = 'Peanuts', dietary_needs = array['Vegetarian']::app.dietary_need[]
+update app.person_work_details set allergies = 'Peanuts', dietary_needs = array['Vegetarian']::app.dietary_need[]
 where person_id = pg_temp.id('kai');
 select app.set_my_passport_number('X1234567');
 select pg_temp.as_user('mo');
@@ -77,7 +77,7 @@ insert into world select 'self_ivy', r.id from app.engagement_roster_entries r w
 -- Shares key on the entry --------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');
 select lives_ok($$insert into world select 'share_ivy', app.share_work_details((select id from world where key = 'eng_ivy_a'),
-  array['Uniform Sizes', 'Dietary Needs']::app.work_detail_category[])$$, 'the engaged person shares');
+  array['Emergency Contacts', 'Dietary Needs']::app.work_detail_category[])$$, 'the engaged person shares');
 select pg_temp.as_platform();
 select is((select roster_entry_id from app.work_detail_shares where id = pg_temp.id('share_ivy')), pg_temp.id('self_ivy'),
   'an engaged person''s share keys on their self entry');
@@ -88,13 +88,13 @@ select throws_like($$update app.work_detail_shares set roster_entry_id = pg_temp
   'work_detail_share_entry_mismatch:%', 'a share''s engagement and person are its entry''s');
 
 select pg_temp.as_user('kai');
-select throws_like(format($$select app.share_work_details(%L, array['Uniform Sizes']::app.work_detail_category[])$$, pg_temp.id('eng_vendor_a')),
+select throws_like(format($$select app.share_work_details(%L, array['Dietary Needs']::app.work_detail_category[])$$, pg_temp.id('eng_vendor_a')),
   'roster_entry_not_accepted:%', 'a rostered person shares only after accepting the entry');
 select pg_temp.as_platform();
 select throws_ok(format($$select pg_temp.read('victor', 'e_kai')$$), '42501', null, 'before the person accepts, the company reads nothing');
 select pg_temp.as_user('kai');
 select app.respond_roster_entry(pg_temp.id('e_kai'), 'Accepted');
-select lives_ok(format($$insert into world select 'share_kai', app.share_work_details(%L, array['Uniform Sizes', 'Passport']::app.work_detail_category[])$$,
+select lives_ok(format($$insert into world select 'share_kai', app.share_work_details(%L, array['Emergency Contacts', 'Passport']::app.work_detail_category[])$$,
   pg_temp.id('eng_vendor_a')), 'after accepting, they share');
 select pg_temp.as_user('sam');
 select lives_ok(format($$select app.share_work_details(%L, array['Emergency Contacts']::app.work_detail_category[])$$, pg_temp.id('eng_vendor_a')),
@@ -108,10 +108,10 @@ select ok(private.account_roster_consent(pg_temp.id('acct_v'), pg_temp.id('kai')
 -- The company reads ----------------------------------------------------------------------------------------------------------------
 select is(pg_temp.read('victor', 'e_kai') ->> 'reader', 'company', 'the account''s Owner reads as the company');
 select is(jsonb_array_length(pg_temp.read('victor', 'e_kai') -> 'readable'), 6,
-  'every category, not only those shared with the producing org');
-select is(pg_temp.read('victor', 'e_kai') #>> '{uniform,shirt_size}', 'M', 'the uniform sizes');
+  'every category but the retired Uniform Sizes (R6a), not only those shared with the producing org');
+select ok(pg_temp.read('victor', 'e_kai') -> 'uniform' = 'null'::jsonb, 'uniform sizes are entered per roster entry now (R6a)');
 select is(pg_temp.read('pia', 'e_kai') #>> '{dietary,dietary_needs,0}', 'Vegetarian', 'the Advancing Lead reads the dietary needs, never shared with the org');
-select ok(pg_temp.read('victor', 'e_kai') #> '{dietary,allergies}' = 'null'::jsonb, 'allergies are NULL for a company reader');
+select ok(pg_temp.read('victor', 'e_kai') #> '{dietary,allergies}' = 'null'::jsonb, 'allergies are masked for a company reader');
 select is(pg_temp.read('victor', 'e_kai') #>> '{dietary,allergies_on_file}', 'true', 'with allergies_on_file');
 select ok(pg_temp.read('victor', 'e_kai') #> '{passport,passport_number}' = 'null'::jsonb, 'the passport number stays masked');
 select is(pg_temp.read('victor', 'e_kai') #>> '{passport,passport_number_last4}', '4567', 'showing its last four');
@@ -124,8 +124,8 @@ select throws_ok($$select pg_temp.read('sam', 'e_kai')$$, '42501', null,
 
 -- Producing-org readers ---------------------------------------------------------------------------------------------------------
 select is(pg_temp.read('bob', 'e_kai') ->> 'reader', 'org', 'a member of the producing org reads as the org');
-select ok((pg_temp.read('bob', 'e_kai') -> 'readable') <@ '["Uniform Sizes", "Passport"]'::jsonb
-  and (pg_temp.read('bob', 'e_kai') -> 'readable') ? 'Uniform Sizes', 'only the shared categories their capabilities cover');
+select ok((pg_temp.read('bob', 'e_kai') -> 'readable') <@ '["Emergency Contacts", "Passport"]'::jsonb
+  and (pg_temp.read('bob', 'e_kai') -> 'readable') ? 'Emergency Contacts', 'only the shared categories their capabilities cover');
 select ok(pg_temp.read('bob', 'e_kai') -> 'dietary' = 'null'::jsonb, 'an unshared category stays NULL for the org');
 select ok(pg_temp.read('alice', 'self_ivy') #>> '{dietary,allergies}' is null
   and pg_temp.read('alice', 'self_ivy') #>> '{dietary,allergies_on_file}' = 'false', 'an org reader of shared dietary needs sees no allergies when none are on file');
@@ -134,7 +134,7 @@ select app.ensure_my_work_details();
 update app.person_work_details set allergies = 'Shellfish' where person_id = pg_temp.id('ivy');
 select pg_temp.as_platform();
 select is(pg_temp.read('alice', 'self_ivy') #>> '{dietary,allergies}', 'Shellfish',
-  'until R6a, an org reader of shared dietary needs reads the allergies (today''s category rule)');
+  'the Owner, who holds data.restricted.read.medical, reads the Restricted allergies (R6a, 2663)');
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('ivy') and action = 'allergies.viewed'
   and roster_entry_id = pg_temp.id('self_ivy')), 1, 'an unmasked allergy read is logged as allergies.viewed');
 
@@ -210,7 +210,7 @@ with x as (insert into app.engagements (project_id, person_id, counterparty_id, 
   values (pg_temp.id('prj_a'), pg_temp.id('victor'), pg_temp.id('cp_v_a'), 'Client', '2027-06-01') returning id)
 insert into world select 'eng_client', id from x;
 select pg_temp.as_user('victor');
-select throws_like(format($$select app.share_work_details(%L, array['Uniform Sizes']::app.work_detail_category[])$$, pg_temp.id('eng_client')),
+select throws_like(format($$select app.share_work_details(%L, array['Dietary Needs']::app.work_detail_category[])$$, pg_temp.id('eng_client')),
   'work_detail_share_not_yours:%', 'the person of a Client engagement, which carries no roster entry, shares nothing (POST /work-detail-shares: 422)');
 select pg_temp.as_platform();
 -- A share made before R4, as 1340 allowed it.
@@ -219,7 +219,7 @@ with c as (insert into app.consent_records (org_id, person_id, purpose_code, not
 insert into world select 'consent_client', id from c;
 alter table app.work_detail_shares disable trigger t41_guard_work_detail_share_entry;
 with s as (insert into app.work_detail_shares (engagement_id, person_id, consent_record_id, categories)
-  values (pg_temp.id('eng_client'), pg_temp.id('victor'), pg_temp.id('consent_client'), array['Uniform Sizes']::app.work_detail_category[])
+  values (pg_temp.id('eng_client'), pg_temp.id('victor'), pg_temp.id('consent_client'), array['Dietary Needs']::app.work_detail_category[])
   returning id)
 insert into world select 'share_client', id from s;
 alter table app.work_detail_shares enable trigger t41_guard_work_detail_share_entry;

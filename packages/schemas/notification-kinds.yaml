@@ -254,6 +254,13 @@ kinds:
         test: supabase/tests/1561_signed_in_sessions.test.sql
       - emitter: supabase/migrations/1561_signed_in_sessions.sql#app.sign_out_my_other_sessions
         test: supabase/tests/1561_signed_in_sessions.test.sql
+  # Uniform sizes and travel preferences leave the profile (R6a, ADR 0102 decision 2): sent once to each person whose
+  # values the move deleted; moved names which (uniform, travel or both).
+  - kind: account.work_details_moved
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/2664_work_details_profile_move.sql#private.move_profile_work_details
+        test: supabase/tests/2664_work_details_profile_move.test.sql
   - kind: billing.payment_failed
     category: account
     emitted_by:
