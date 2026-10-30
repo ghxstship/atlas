@@ -8,6 +8,7 @@ import {
   onboardingStanding,
   readView,
   type EngagementDocumentKind,
+  type OnboardingItem,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -116,6 +117,12 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
     ? onboarding.data.filter((i) => onboardingStanding(i, today) !== "verified")
     : [];
   const rated = given.ok && given.data.length > 0;
+  // A role type without an Onboarding tab files its documents and certificates here; vendors file
+  // theirs on Compliance (R2).
+  const uploads =
+    !view.tabs.includes("engagement.onboarding") && e.roleType !== "Vendor"
+      ? open.filter((i) => isUpload(i) && canUpload(i, today))
+      : [];
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_var(--layout-property-column)] gap-24 max-lg:grid-cols-[minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-16">
@@ -153,16 +160,34 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
                             n: open.filter((i) => i.blocking).length,
                           }),
                         ],
-                        href: tabHref(
-                          engagementKey,
-                          view.tabs.includes("engagement.onboarding")
-                            ? "engagement.onboarding"
-                            : "engagement.overview",
-                        ),
+                        href: tabHref(engagementKey, onboardingTab(view)),
                       },
                     ]
                   : []),
               ]}
+            />
+          </Section>
+        ) : null}
+        {uploads.length > 0 ? (
+          <Section title={t("gateway.engagement.overview.uploads")}>
+            <RowList
+              label={t("gateway.engagement.overview.uploads")}
+              items={uploads.map((i) => ({
+                id: i.id,
+                title: i.name,
+                meta: [
+                  t(enumLabelKey("onboardingItemKind", i.kind)),
+                  i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
+                ],
+                detail: (
+                  <OnboardingUploadForm
+                    orgId={e.orgId}
+                    engagementId={e.id}
+                    itemId={i.id}
+                    name={i.name}
+                  />
+                ),
+              }))}
             />
           </Section>
         ) : null}
@@ -191,6 +216,25 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
       </aside>
     </div>
   );
+}
+
+/** Onboarding items the party completes with a file: documents and certificates. */
+export function isUpload(item: OnboardingItem): boolean {
+  return item.kind === "Document Upload" || item.kind === "Certification";
+}
+
+/** An item still waiting for its file, or whose file has expired. */
+export function canUpload(item: OnboardingItem, today: string): boolean {
+  const standing = onboardingStanding(item, today);
+  return standing === "todo" || standing === "expired";
+}
+
+/** Where the party finishes onboarding: its Onboarding tab, a vendor's Compliance, else the Overview. */
+function onboardingTab(view: TabProps["view"]): string {
+  if (view.tabs.includes("engagement.onboarding")) return "engagement.onboarding";
+  if (view.engagement.roleType === "Vendor" && view.tabs.includes("engagement.compliance"))
+    return "engagement.compliance";
+  return "engagement.overview";
 }
 
 const OFFER_KINDS: readonly EngagementDocumentKind[] = [

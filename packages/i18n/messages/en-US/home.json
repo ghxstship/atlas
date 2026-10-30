@@ -75,5 +75,12 @@
     "state": "State",
     "updated": "Updated",
     "projectsTitle": "Projects changed recently"
+  },
+  "tiles": "Home tiles",
+  "layout": {
+    "resize": "Resize {tile}",
+    "span": "{tile}, {span} of 12 columns",
+    "reset": "Reset layout",
+    "saveFailed": "Your layout did not save. Try again."
   }
 }

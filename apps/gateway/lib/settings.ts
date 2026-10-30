@@ -14,10 +14,13 @@ export function registryPage(gatewayNode: string): string | null {
     : null;
 }
 
-/** Personal settings shown on a Gateway settings section, in registry order. */
+/**
+ * Personal settings shown on a Gateway settings section, in registry order. A layout (an Atlas
+ * dashboard's tile spans, A129) is arranged on its dashboard, so Gateway never offers it.
+ */
 export function personalSettings(gatewayNode: string): SettingDefinition[] {
   const page = registryPage(gatewayNode);
-  return page ? SETTINGS.filter((s) => s.pages.personal === page) : [];
+  return page ? SETTINGS.filter((s) => s.pages.personal === page && s.input !== "layout") : [];
 }
 
 export function settingByKey(key: string): SettingDefinition | undefined {

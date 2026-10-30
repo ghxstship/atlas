@@ -1,5 +1,5 @@
 /**
- * `pnpm --filter @xos/sdk generate [--target ts|python|all] [--check]`
+ * `pnpm --filter @ghxstship/xos-sdk generate [--target ts|python|all] [--check]`
  *
  * Without `--check`, writes the generated SDK sources. With `--check`, writes nothing and
  * exits 1 when any generated file differs from a fresh generation.
@@ -40,6 +40,6 @@ for (const r of results) {
   }
 }
 if (failed) {
-  console.error("Run `pnpm --filter @xos/sdk generate` and commit the result.");
+  console.error("Run `pnpm --filter @ghxstship/xos-sdk generate` and commit the result.");
   process.exit(1);
 }

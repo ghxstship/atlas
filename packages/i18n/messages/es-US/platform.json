@@ -142,7 +142,8 @@
       "sessionsCaption": "Clientes que puede leer ahora",
       "seats": "Puestos de clientes",
       "discount": "Descuento mayorista del {percent} por ciento",
-      "noDiscount": "Condiciones mayoristas aún no registradas"
+      "noDiscount": "Condiciones mayoristas aún no registradas",
+      "tiles": "Mosaicos de la consola de socios"
     },
     "plans": {
       "access": "Access",
@@ -526,6 +527,34 @@
       "requiredShort": "obligatorio",
       "submit": "Agregar el campo",
       "done": "Campo agregado."
+    }
+  },
+  "customFields": {
+    "title": "Campos personalizados",
+    "companyTitle": "Campos de la empresa",
+    "edit": "Editar campos",
+    "save": "Guardar campos",
+    "cancel": "Cancelar",
+    "saved": "Se guardaron los campos personalizados.",
+    "notSet": "Sin valor",
+    "yes": "Sí",
+    "no": "No",
+    "someone": "Un exmiembro",
+    "requiredHelp": "Obligatorio.",
+    "currency": "Moneda de {label}",
+    "timeZone": "En {zone}.",
+    "urlHelp": "Empieza con http:// o https://.",
+    "problems": {
+      "required": "{label} es obligatorio. Escriba un valor.",
+      "invalid": "{label} no parece correcto. Revise el valor e inténtelo de nuevo.",
+      "currency": "Elija una moneda para {label}."
+    },
+    "errors": {
+      "custom_value_required": "Un campo obligatorio no puede quedar vacío. Escriba un valor y guarde de nuevo.",
+      "denied": "No puede cambiar estos campos. Los colaboradores y los roles superiores sí pueden; pídaselo a un Administrador.",
+      "invalid": "Estos valores no se pueden guardar así. Revíselos e inténtelo de nuevo.",
+      "unexpected": "No se pudieron guardar los campos. Inténtelo de nuevo en un momento.",
+      "refused": "No se pudieron guardar los campos porque un valor incumple una regla de esta organización. Revise los valores e inténtelo de nuevo."
     }
   },
   "inbox": {

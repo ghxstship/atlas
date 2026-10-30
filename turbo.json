@@ -11,7 +11,11 @@
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/schemas/src/capabilities/codes.generated.ts"
+      ]
     },
     "typecheck": {
       "dependsOn": ["^build"]

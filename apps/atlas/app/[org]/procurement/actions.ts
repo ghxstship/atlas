@@ -45,6 +45,7 @@ import {
 import type { XosClient } from "@xos/data";
 import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import {
   all,
   decimal,
@@ -233,11 +234,15 @@ export async function createPoAction(_: ActionState, form: FormData): Promise<Ac
   const currency = text(form, "currencyCode")?.toUpperCase() ?? null;
   if (currency === null || !/^[A-Z]{3}$/.test(currency)) errors.add("currencyCode", "currency");
   if (errors.any || !projectId || !vendorId || !currency) return errors.state;
-  return finish(
-    await createPurchaseOrder(ctx.viewer.db, { projectId, vendorId, currencyCode: currency }),
-    ctx,
-    MODULE,
-  );
+  const custom = await customFieldsOf(ctx, "app.purchase_orders", form);
+  if (custom.fieldErrors) return { fieldErrors: custom.fieldErrors };
+  const created = await createPurchaseOrder(ctx.viewer.db, {
+    projectId,
+    vendorId,
+    currencyCode: currency,
+  });
+  if (created.ok) await custom.save(created.data.id);
+  return finish(created, ctx, MODULE);
 }
 
 async function lineInput(

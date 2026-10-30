@@ -1,5 +1,5 @@
 # The XOS Python SDK. Runtime code is hand-written in src/xos_sdk/_runtime; src/xos_sdk/_generated
-# is produced from packages/api/openapi/v1.json by `pnpm --filter @xos/sdk generate` and never edited.
+# is produced from packages/api/openapi/v1.json by `pnpm --filter @ghxstship/xos-sdk generate` and never edited.
 # Standard library only: no runtime dependencies.
 
 [build-system]

@@ -41,7 +41,10 @@
       "notification_action_expired": "This link has expired. Open the item from Home to act on it.",
       "notification_action_not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
       "notification_action_invalid": "This link does not work. Open the item from Home.",
-      "notification_action_reason": "Say why you are rejecting it."
+      "notification_action_reason": "Say why you are rejecting it.",
+      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
+      "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
+      "submittal_note_length": "Write a note of 1 to 500 characters."
     }
   },
   "common": {
@@ -122,7 +125,8 @@
       "approvalsCount": "{n, plural, =0 {None} other {#}}",
       "entitlements": "Entitlements",
       "entitlementsCount": "{done} of {total} delivered",
-      "rated": "Thanks. Both ratings appear once the organization rates too, or after 14 days."
+      "rated": "Thanks. Both ratings appear once the organization rates too, or after 14 days.",
+      "uploads": "Documents to upload"
     },
     "documents": {
       "empty": "No documents yet. Contracts and forms the organization shares appear here.",
@@ -222,7 +226,15 @@
       "shipments": "Shipments"
     },
     "submittals": {
-      "empty": "No submittals requested yet. Requests for drawings and specs appear here."
+      "empty": "No submittals have been requested yet.",
+      "revision": "Revision {n}",
+      "returned": "Returned: {reason}",
+      "awaiting": "Submitted. The organization is reviewing it.",
+      "note": "Note",
+      "noteHelp": "Say what you are submitting and where the files are, in up to 500 characters.",
+      "submit": "Submit",
+      "resubmit": "Resubmit",
+      "done": "Sent for review."
     },
     "advance": {
       "empty": "No advance packet yet. When the organization sends one, answer each section here.",
@@ -331,7 +343,8 @@
         "plusOnes": "Plus-ones run from 0 to 20.",
         "settlementReason": "Write a short note or reason before answering.",
         "asset": "Choose approve, return or resubmit.",
-        "assetReason": "Say what to change, so the organization can revise the asset."
+        "assetReason": "Say what to change, so the organization can revise the asset.",
+        "submittalNote": "Write a note of up to 500 characters before submitting."
       },
       "advance": {
         "answer": "Your answer",
@@ -790,6 +803,14 @@
       "smallDisadvantagedBusiness": "Small disadvantaged business",
       "hubzone": "HUBZone business",
       "other": "Other certification"
+    },
+    "submittalKind": {
+      "shopDrawing": "Shop drawing",
+      "productData": "Product data",
+      "sample": "Sample",
+      "methodStatement": "Method statement",
+      "certificate": "Certificate",
+      "other": "Other"
     }
   },
   "explore": {
@@ -1047,7 +1068,17 @@
       "project": "Project",
       "when": "When",
       "kind": "What",
-      "state": "State"
+      "state": "State",
+      "callKind": {
+        "shift": "Shift",
+        "dockSlot": "Dock slot",
+        "set": "Set"
+      },
+      "where": "Where",
+      "contact": "Contact",
+      "message": "Message",
+      "bring": "What to bring",
+      "bringMore": "And {n} more"
     },
     "needsYou": {
       "title": "Needs you",
@@ -1330,7 +1361,8 @@
       "section": "{n}. {title}",
       "submit": "Send answer",
       "sent": "Answer sent. The organization reviews it next.",
-      "done": "Your advance is complete"
+      "done": "Your advance is complete",
+      "returned": "The organization returned this answer: {reason}"
     },
     "sign": {
       "eyebrow": "Signing link",
@@ -1359,7 +1391,8 @@
       "document_token_validity": "This signing link is no longer valid. Ask the organization for a new one.",
       "document_not_awaiting_signature": "This document is not waiting for a signature anymore.",
       "document_signer_name": "Type your full name, at least two characters.",
-      "token_invalid": "This link is not valid. Use the latest link the organization sent."
+      "token_invalid": "This link is not valid. Use the latest link the organization sent.",
+      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned."
     }
   },
   "settings": {

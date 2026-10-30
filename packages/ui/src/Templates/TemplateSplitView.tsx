@@ -10,7 +10,7 @@ export function TemplateSplitView({
   listLabel,
 }: TemplateSplitViewProps): ReactElement {
   return (
-    <div className="flex gap-16 min-w-0 max-lg:flex-col">
+    <div data-template="split-view" className="flex gap-16 min-w-0 max-lg:flex-col">
       <div className="max-lg:[&>div]:w-full! max-lg:[&_[role=separator]]:hidden">
         <ResizablePanel
           initial={listWidth}
