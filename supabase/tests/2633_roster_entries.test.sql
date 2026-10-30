@@ -239,11 +239,11 @@ select pg_temp.as_user('sam');
 select throws_like(format($$select app.respond_roster_entry(%L, 'Declined')$$, pg_temp.id('self_vendor')), 'roster_response_not_yours:%',
   'nobody answers a self entry, not even its person');
 select pg_temp.as_user('kai');
-select throws_like(format($$select app.share_work_details(%L, array['Uniform Sizes']::app.work_detail_category[])$$, pg_temp.id('eng_vendor_a')),
+select throws_like(format($$select app.share_work_details(%L, array['Dietary Needs']::app.work_detail_category[])$$, pg_temp.id('eng_vendor_a')),
   'roster_entry_not_accepted:%', 'a rostered person shares only after accepting');
 select lives_ok(format($$select app.respond_roster_entry(%L, 'Declined')$$, pg_temp.id('e_kai')), 'the person declines');
 select lives_ok(format($$select app.respond_roster_entry(%L, 'Accepted')$$, pg_temp.id('e_kai')), 'and changes their mind while the entry is live');
-select lives_ok(format($$insert into world select 'share_kai', app.share_work_details(%L, array['Uniform Sizes']::app.work_detail_category[])$$,
+select lives_ok(format($$insert into world select 'share_kai', app.share_work_details(%L, array['Dietary Needs']::app.work_detail_category[])$$,
   pg_temp.id('eng_vendor_a')), 'then shares their work details on the entry');
 select pg_temp.as_platform();
 select is((select roster_entry_id from app.work_detail_shares where id = pg_temp.id('share_kai')), pg_temp.id('e_kai'), 'the share keys on the entry');
