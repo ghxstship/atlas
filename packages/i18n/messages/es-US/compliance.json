@@ -332,5 +332,51 @@
       "projectLocation": "Ubicación del proyecto",
       "projectLocationHelp": "La dirección completa o, al menos, el condado y el estado."
     }
+  },
+  "liveLinks": {
+    "viewTitle": "Vista compartida",
+    "screenTitle": "Pantalla",
+    "intro": "Alguien compartió contigo una vista en vivo. Escribe el código de acceso que llegó con el enlace.",
+    "screenIntro": "Esta pantalla muestra un orden del show en vivo. Escribe el código de acceso que llegó con el enlace.",
+    "accessCode": "Código de acceso",
+    "accessCodeHelp": "El código de 6 dígitos que llegó con el enlace. Este dispositivo lo recuerda hasta que el enlace venza o durante 7 días.",
+    "submit": "Abrir",
+    "updatesLive": "Se actualiza en vivo",
+    "expires": "El enlace vence el {date}",
+    "poweredBy": "Con la tecnología de XOS",
+    "truncated": "Se muestran las primeras {count} filas. La lista completa está en XOS.",
+    "empty": "Todavía no hay nada que mostrar.",
+    "noDate": "Sin fecha",
+    "notAvailable": "Este enlace no está disponible.",
+    "columns": {
+      "key": "Clave",
+      "title": "Título",
+      "kind": "Tipo",
+      "state": "Estado",
+      "dates": "Fechas",
+      "scopeNode": "Alcance",
+      "position": "N.º",
+      "label": "Cue",
+      "segment": "Segmento",
+      "planned": "Planificado",
+      "duration": "Duración",
+      "called": "Llamado"
+    },
+    "due": "Vence el {date}",
+    "range": "{start} a {end}",
+    "published": "Publicado el {date}",
+    "refusals": {
+      "live_link_invalid": "Este enlace no funciona. Puede que lo hayan revocado, reemplazado por uno nuevo o que esté mal escrito.",
+      "live_link_rate_limited": "Demasiados intentos desde tu red. Espera 10 minutos y vuelve a intentarlo.",
+      "live_link_locked": "Este enlace está bloqueado tras demasiados códigos incorrectos. Pide uno nuevo a quien lo envió.",
+      "live_link_expired": "Este enlace venció. Pide uno nuevo a quien lo envió.",
+      "live_link_access_code_required": "Escribe el código de acceso que llegó con el enlace.",
+      "live_link_access_code": "Ese código no es correcto. Tras 5 códigos incorrectos el enlace se bloquea.",
+      "live_link_grant": "Escribe el código de acceso que llegó con el enlace para abrirlo en este dispositivo.",
+      "live_link_owner_access": "Este enlace no está disponible ahora. La persona que lo compartió ya no puede mostrarlo.",
+      "live_link_view_removed": "Lo que mostraba este enlace se eliminó. Pide un enlace nuevo a quien lo envió.",
+      "live_link_view_unsupported": "Esta vista cambió y ya no se puede mostrar en un enlace público. Consulta a quien lo envió.",
+      "live_link_reclassified": "Esta información ya no se puede compartir en un enlace público. Consulta a quien lo envió."
+    }
   }
 }

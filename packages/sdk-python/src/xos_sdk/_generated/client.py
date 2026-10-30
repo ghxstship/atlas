@@ -381,6 +381,7 @@ from .resources import (
     DeletionCertificatesResource,
     PartnerStandingGrantsResource,
     ShareLinksResource,
+    LiveLinksResource,
     PersonCalendarFeedsResource,
     ProjectInboxesResource,
     InboundMessagesResource,
@@ -811,6 +812,7 @@ class XosClient(XosClientCore):
     deletion_certificates: DeletionCertificatesResource
     partner_standing_grants: PartnerStandingGrantsResource
     share_links: ShareLinksResource
+    live_links: LiveLinksResource
     person_calendar_feeds: PersonCalendarFeedsResource
     project_inboxes: ProjectInboxesResource
     inbound_messages: InboundMessagesResource
@@ -1229,6 +1231,7 @@ class XosClient(XosClientCore):
         self.deletion_certificates = DeletionCertificatesResource(self)
         self.partner_standing_grants = PartnerStandingGrantsResource(self)
         self.share_links = ShareLinksResource(self)
+        self.live_links = LiveLinksResource(self)
         self.person_calendar_feeds = PersonCalendarFeedsResource(self)
         self.project_inboxes = ProjectInboxesResource(self)
         self.inbound_messages = InboundMessagesResource(self)

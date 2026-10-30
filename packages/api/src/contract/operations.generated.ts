@@ -4404,6 +4404,54 @@ export interface Components {
     details?: string | null;
   };
   ListingReportPage: { data: Array<Components["ListingReport"]>; next_cursor: string | null };
+  LiveDisplayLinkRequest: {
+    run_of_show_id: string;
+    expires_at?: string;
+    default_mode?: "Room Clock" | "Presenter Timer" | "Backstage";
+    note?: string;
+  };
+  LiveDisplayLinkToken: {
+    live_link_id: string;
+    token: string;
+    access_code: string;
+    expires_at: string;
+  };
+  LiveLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    link_kind: "View" | "Display";
+    saved_view_id: string | null;
+    run_of_show_id: string | null;
+    default_mode: "Room Clock" | "Presenter Timer" | "Backstage" | null;
+    token_hint: string;
+    note: string | null;
+    expires_at: string;
+    failed_attempts: number;
+    open_count: number;
+    last_opened_at: string | null;
+    rotated_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  LiveLinkPage: { data: Array<Components["LiveLink"]>; next_cursor: string | null };
+  LiveLinkRegenerated: { token: string; access_code: string; expires_at: string };
+  LiveViewLinkRequest: {
+    saved_view_id: string;
+    project_id: string;
+    expires_at: string;
+    note?: string;
+  };
+  LiveViewLinkToken: {
+    live_link_id: string;
+    token: string;
+    access_code: string;
+    expires_at: string;
+  };
   LostFoundClaim: {
     id: string;
     org_id: string;
@@ -25149,6 +25197,66 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["ShareLink"] };
   };
+  "liveLinks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/live-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["LiveLinkPage"] };
+  };
+  "liveLinks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/live-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["LiveLink"] };
+  };
+  "liveLinks.createView": {
+    module: "Platform";
+    method: "post";
+    path: "/live-links/view";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LiveViewLinkRequest"];
+    responses: { 201: Components["LiveViewLinkToken"] };
+  };
+  "liveLinks.createDisplay": {
+    module: "Platform";
+    method: "post";
+    path: "/live-links/display";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LiveDisplayLinkRequest"];
+    responses: { 201: Components["LiveDisplayLinkToken"] };
+  };
+  "liveLinks.regenerate": {
+    module: "Platform";
+    method: "post";
+    path: "/live-links/{id}/regenerate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["LiveLinkRegenerated"] };
+  };
+  "liveLinks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/live-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["LiveLink"] };
+  };
   "personCalendarFeeds.list": {
     module: "Platform";
     method: "get";
@@ -28492,6 +28600,12 @@ export interface ModuleOperations {
     | "shareLinks.create"
     | "shareLinks.get"
     | "shareLinks.revoke"
+    | "liveLinks.list"
+    | "liveLinks.get"
+    | "liveLinks.createView"
+    | "liveLinks.createDisplay"
+    | "liveLinks.regenerate"
+    | "liveLinks.revoke"
     | "personCalendarFeeds.list"
     | "personCalendarFeeds.create"
     | "personCalendarFeeds.get"

@@ -332,5 +332,51 @@
       "projectLocation": "Project location",
       "projectLocationHelp": "The full address, or at least the county and state."
     }
+  },
+  "liveLinks": {
+    "viewTitle": "Shared view",
+    "screenTitle": "Display screen",
+    "intro": "Someone shared a live view with you. Enter the access code that came with the link.",
+    "screenIntro": "This screen shows a running order live. Enter the access code that came with the link.",
+    "accessCode": "Access code",
+    "accessCodeHelp": "The 6-digit code sent with the link. This device remembers it until the link expires or for 7 days.",
+    "submit": "Open",
+    "updatesLive": "Updates live",
+    "expires": "Link expires {date}",
+    "poweredBy": "Powered by XOS",
+    "truncated": "Showing the first {count} rows. The full list is in XOS.",
+    "empty": "Nothing to show yet.",
+    "noDate": "No date",
+    "notAvailable": "This link is not available.",
+    "columns": {
+      "key": "Key",
+      "title": "Title",
+      "kind": "Kind",
+      "state": "State",
+      "dates": "Dates",
+      "scopeNode": "Scope",
+      "position": "#",
+      "label": "Cue",
+      "segment": "Segment",
+      "planned": "Planned",
+      "duration": "Length",
+      "called": "Called"
+    },
+    "due": "Due {date}",
+    "range": "{start} to {end}",
+    "published": "Published {date}",
+    "refusals": {
+      "live_link_invalid": "This link does not work. It may have been revoked, replaced by a new one or mistyped.",
+      "live_link_rate_limited": "Too many attempts from your network. Wait 10 minutes and try again.",
+      "live_link_locked": "This link is locked after too many wrong codes. Ask the sender for a new one.",
+      "live_link_expired": "This link has expired. Ask the sender for a new one.",
+      "live_link_access_code_required": "Enter the access code that came with the link.",
+      "live_link_access_code": "That code is not right. After 5 wrong codes the link locks.",
+      "live_link_grant": "Enter the access code that came with the link to open it on this device.",
+      "live_link_owner_access": "This link is not available right now. The person who shared it can no longer show it.",
+      "live_link_view_removed": "What this link showed was removed. Ask the sender for a new link.",
+      "live_link_view_unsupported": "This view changed and can no longer be shown on a public link. Ask the sender.",
+      "live_link_reclassified": "This information can no longer be shared on a public link. Ask the sender."
+    }
   }
 }

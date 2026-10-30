@@ -149,5 +149,42 @@
     "table": "Table",
     "timeline": "Timeline",
     "calendar": "Calendar"
+  },
+  "display": {
+    "action": "Display screens",
+    "title": "Display screens for {name}",
+    "description": "A room clock, presenter timer or backstage screen on any TV or laptop, with no sign-in. It needs the link and its access code, and follows cues as they are called.",
+    "defaultMode": "Opens in",
+    "expiresOn": "Expires",
+    "expiresHelp": "Leave empty for the end of the day after the show. At most 90 days ahead.",
+    "note": "Note",
+    "noteHelp": "For example, Stage left monitor. Never shown on the screen.",
+    "submit": "Create screen link",
+    "close": "Close",
+    "modes": {
+      "Room Clock": "Room clock",
+      "Presenter Timer": "Presenter timer",
+      "Backstage": "Backstage"
+    },
+    "modeKeys": "Keys 1, 2 and 3 switch modes.",
+    "now": "Now",
+    "next": "Next",
+    "following": "After that",
+    "timeLeft": "{time} left",
+    "elapsed": "{time} in",
+    "overBy": "Over by {time}",
+    "countUp": "{time} running",
+    "startsIn": "In {time}",
+    "lateBy": "{time} late",
+    "late": "Running {minutes, plural, one {# min} other {# min}} late",
+    "onTime": "On time",
+    "notStarted": "Waiting for the first cue.",
+    "complete": "Every cue is called.",
+    "noCue": "No cue running.",
+    "plannedAt": "Planned {time}",
+    "openWindow": "Open in new window",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "localTime": "Local time"
   }
 }
