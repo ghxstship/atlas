@@ -890,6 +890,11 @@ export interface Components {
     redacted_at: string | null;
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
+  AuroraAppliedDraft: { written: Array<{ suggestion_id: string; id: string }>; rejected: number };
+  AuroraApplyDraftRequest: {
+    request_id: string;
+    items: Array<{ suggestion_id: string; values?: Record<string, unknown> }>;
+  };
   AuroraAskRequest: { question: string; history?: Array<{ question: string; answer: string }> };
   AuroraBindCodeRequest: {
     code: string;
@@ -897,8 +902,16 @@ export interface Components {
     candidates: Array<{ element_id: string; name: string; urid: string }>;
   };
   AuroraDraftRequest: {
-    kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+    kind:
+      | "sop"
+      | "advance_packet"
+      | "email"
+      | "day_sheet"
+      | "change_order_description"
+      | "run_of_show"
+      | "risk_assessment";
     instructions: string;
+    target?: { collection: string; id: string };
     context?: Array<{ collection: string; id: string }>;
     verbiage?: Array<{ term: string; preferred: string }>;
   };
@@ -926,7 +939,11 @@ export interface Components {
     columns: Array<{ header: string; samples: Array<string> }>;
     fields: Array<{ name: string; description: string }>;
   };
-  AuroraPreview: { records: Array<Components["AuroraPreviewRecord"]>; vocabulary_terms: number };
+  AuroraPreview: {
+    records: Array<Components["AuroraPreviewRecord"]>;
+    vocabulary_terms: number;
+    categories?: Array<string>;
+  };
   AuroraPreviewRecord: {
     collection: string;
     id: string;
@@ -937,6 +954,8 @@ export interface Components {
   };
   AuroraPreviewRequest: {
     feature: "drafting" | "summaries";
+    draft_kind?: "run_of_show" | "risk_assessment";
+    target?: { collection: string; id: string };
     kind?: "record_activity" | "project_week" | "gate_readiness";
     subject_collection?: string;
     subject_id?: string;
@@ -24054,6 +24073,15 @@ export interface Operations {
     body: Components["AuroraDraftRequest"];
     responses: { 200: Components["AuroraResult"] };
   };
+  "aurora.applyDraft": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-draft";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyDraftRequest"];
+    responses: { 200: Components["AuroraAppliedDraft"] };
+  };
   "aurora.summarize": {
     module: "Settings";
     method: "post";
@@ -28143,6 +28171,7 @@ export interface ModuleOperations {
     | "aurora.filter"
     | "aurora.extract"
     | "aurora.draft"
+    | "aurora.applyDraft"
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"

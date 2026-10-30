@@ -1373,6 +1373,7 @@ export type OperationId =
   | "aurora.filter"
   | "aurora.extract"
   | "aurora.draft"
+  | "aurora.applyDraft"
   | "aurora.summarize"
   | "aurora.mapColumns"
   | "aurora.bindCode"
@@ -33084,6 +33085,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "home.dashboard.read",
     scopes: ["home"],
   },
+  "aurora.applyDraft": {
+    id: "aurora.applyDraft",
+    resource: "aurora",
+    verb: "applyDraft",
+    method: "POST",
+    path: "/aurora/apply-draft",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "AuroraApplyDraftRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "AuroraAppliedDraft",
+    item: null,
+    tag: "Settings",
+    summary: "Add a drafted list",
+    capability: "home.dashboard.read",
+    scopes: ["home"],
+  },
   "aurora.summarize": {
     id: "aurora.summarize",
     resource: "aurora",
@@ -42410,6 +42434,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "aurora.filter",
       "aurora.extract",
       "aurora.draft",
+      "aurora.applyDraft",
       "aurora.summarize",
       "aurora.mapColumns",
       "aurora.bindCode",

@@ -50904,7 +50904,15 @@
         "properties": {
           "kind": {
             "type": "string",
-            "enum": ["sop", "advance_packet", "email", "day_sheet", "change_order_description"],
+            "enum": [
+              "sop",
+              "advance_packet",
+              "email",
+              "day_sheet",
+              "change_order_description",
+              "run_of_show",
+              "risk_assessment"
+            ],
             "description": "What to draft.",
             "example": "sop"
           },
@@ -50914,6 +50922,26 @@
             "maxLength": 4000,
             "description": "What the draft should say.",
             "example": "Write the load-in SOP for the main stage."
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "collection": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$",
+                "description": "Collection of the list's record.",
+                "example": "run-of-show"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The running order or project.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              }
+            },
+            "required": ["collection", "id"],
+            "description": "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.",
+            "example": { "collection": "run-of-show", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
           },
           "context": {
             "type": "array",
@@ -50948,6 +50976,85 @@
         },
         "required": ["kind", "instructions"],
         "description": "Instructions for a draft."
+      },
+      "AuroraAppliedDraft": {
+        "type": "object",
+        "properties": {
+          "written": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the suggestion applied.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the cue or Risk record written.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                }
+              },
+              "required": ["suggestion_id", "id"]
+            },
+            "description": "Each kept line with the row it wrote, in list order.",
+            "example": [
+              {
+                "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e70"
+              }
+            ]
+          },
+          "rejected": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Lines of the draft left out and rejected.",
+            "example": 2
+          }
+        },
+        "required": ["written", "rejected"],
+        "description": "What a confirmed drafted list wrote."
+      },
+      "AuroraApplyDraftRequest": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the drafting request whose list is confirmed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the suggestion holding the line.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "values": {
+                  "type": "object",
+                  "additionalProperties": {},
+                  "description": "Values the person changed, overriding the proposed ones key by key. Cues take label, planned_at, duration, segment and description; risks take record_subtype, title, risk.likelihood, risk.impact and risk.mitigation.",
+                  "example": { "label": "Doors Open" }
+                }
+              },
+              "required": ["suggestion_id"]
+            },
+            "minItems": 1,
+            "maxItems": 60,
+            "description": "The kept lines in list order: at most 60 cues or 40 risks.",
+            "example": [{ "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+          }
+        },
+        "required": ["request_id", "items"],
+        "description": "The lines of a drafted list to add."
       },
       "AuroraSummarizeRequest": {
         "type": "object",
@@ -51094,6 +51201,12 @@
             "minimum": 0,
             "description": "Verbiage library terms a draft follows.",
             "example": 12
+          },
+          "categories": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "For a risk assessment, the canon Risk categories the draft may use.",
+            "example": ["Operational", "Commercial", "Safety", "Reputational", "Schedule"]
           }
         },
         "required": ["records", "vocabulary_terms"],
@@ -51148,6 +51261,32 @@
             "enum": ["drafting", "summaries"],
             "description": "The feature whose request is previewed.",
             "example": "drafting"
+          },
+          "draft_kind": {
+            "type": "string",
+            "enum": ["run_of_show", "risk_assessment"],
+            "description": "For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.",
+            "example": "run_of_show"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "collection": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$",
+                "description": "Collection of the list's record.",
+                "example": "run-of-show"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The running order or project.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              }
+            },
+            "required": ["collection", "id"],
+            "description": "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.",
+            "example": { "collection": "run-of-show", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
           },
           "kind": {
             "type": "string",
@@ -142118,7 +142257,7 @@
         "x-xos-capability": "home.dashboard.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
         "summary": "Draft text",
-        "description": "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -142127,6 +142266,10 @@
               "example": {
                 "kind": "sop",
                 "instructions": "Write the load-in SOP for the main stage.",
+                "target": {
+                  "collection": "run-of-show",
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
                 "context": [
                   { "collection": "venues", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
                 ],
@@ -142166,6 +142309,59 @@
                   ]
                 },
                 "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/apply-draft": {
+      "post": {
+        "operationId": "aurora.applyDraft",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Add a drafted list",
+        "description": "Adds the kept lines of a drafted run of show or risk assessment in one transaction, with the values the person changed, only while the list is still empty (aurora_draft_list_not_empty otherwise, with nothing written). Every other line of the draft is rejected. A line the database refuses names its line number and nothing is written. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "items": [{ "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraApplyDraftRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "written": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e70"
+                    }
+                  ],
+                  "rejected": 2
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraAppliedDraft" }
               }
             }
           },
@@ -142394,6 +142590,11 @@
             "application/json": {
               "example": {
                 "feature": "drafting",
+                "draft_kind": "run_of_show",
+                "target": {
+                  "collection": "run-of-show",
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
                 "kind": "gate_readiness",
                 "subject_collection": "projects",
                 "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -142413,7 +142614,11 @@
             },
             "content": {
               "application/json": {
-                "example": { "records": [], "vocabulary_terms": 12 },
+                "example": {
+                  "records": [],
+                  "vocabulary_terms": 12,
+                  "categories": ["Operational", "Commercial", "Safety", "Reputational", "Schedule"]
+                },
                 "schema": { "$ref": "#/components/schemas/AuroraPreview" }
               }
             }

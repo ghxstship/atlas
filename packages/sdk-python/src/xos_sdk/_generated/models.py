@@ -1272,6 +1272,8 @@ __all__ = [
     "AuroraFilterRequest",
     "AuroraExtractRequest",
     "AuroraDraftRequest",
+    "AuroraAppliedDraft",
+    "AuroraApplyDraftRequest",
     "AuroraSummarizeRequest",
     "AuroraMapColumnsRequest",
     "AuroraBindCodeRequest",
@@ -20935,7 +20937,7 @@ class AuroraExtractRequest(_AuroraExtractRequestRequired, total=False):
 
 class _AuroraDraftRequestRequired(TypedDict):
     #: What to draft.
-    kind: Literal["sop", "advance_packet", "email", "day_sheet", "change_order_description"]
+    kind: Literal["sop", "advance_packet", "email", "day_sheet", "change_order_description", "run_of_show", "risk_assessment"]
     #: What the draft should say.
     instructions: str
 
@@ -20943,10 +20945,30 @@ class _AuroraDraftRequestRequired(TypedDict):
 class AuroraDraftRequest(_AuroraDraftRequestRequired, total=False):
     """Instructions for a draft."""
 
+    #: The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+    target: Dict[str, Any]
     #: Records to draft from, read with the caller's permissions.
     context: List[Dict[str, Any]]
     #: The org's verbiage library entries to apply.
     verbiage: List[Dict[str, Any]]
+
+
+class AuroraAppliedDraft(TypedDict):
+    """What a confirmed drafted list wrote."""
+
+    #: Each kept line with the row it wrote, in list order.
+    written: List[Dict[str, Any]]
+    #: Lines of the draft left out and rejected.
+    rejected: int
+
+
+class AuroraApplyDraftRequest(TypedDict):
+    """The lines of a drafted list to add."""
+
+    #: Identifier of the drafting request whose list is confirmed.
+    request_id: str
+    #: The kept lines in list order: at most 60 cues or 40 risks.
+    items: List[Dict[str, Any]]
 
 
 class AuroraSummarizeRequest(TypedDict):
@@ -20984,13 +21006,18 @@ class AuroraBindCodeRequest(TypedDict):
     candidates: List[Dict[str, Any]]
 
 
-class AuroraPreview(TypedDict):
-    """What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."""
-
+class _AuroraPreviewRequired(TypedDict):
     #: Each record the request names, in order, with the gate readiness a gate summary adds.
     records: List[AuroraPreviewRecord]
     #: Verbiage library terms a draft follows.
     vocabulary_terms: int
+
+
+class AuroraPreview(_AuroraPreviewRequired, total=False):
+    """What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."""
+
+    #: For a risk assessment, the canon Risk categories the draft may use.
+    categories: List[str]
 
 
 class AuroraPreviewRecord(TypedDict):
@@ -21020,6 +21047,10 @@ class _AuroraPreviewRequestRequired(TypedDict):
 class AuroraPreviewRequest(_AuroraPreviewRequestRequired, total=False):
     """A drafting or summary request to preview before it is sent."""
 
+    #: For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.
+    draft_kind: Literal["run_of_show", "risk_assessment"]
+    #: The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+    target: Dict[str, Any]
     #: For summaries, what is summarized.
     kind: Literal["record_activity", "project_week", "gate_readiness"]
     #: For summaries, the collection summarized.
