@@ -15,13 +15,14 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * The confirm page of a one-tap email link in Gateway (A127, ADR 0106; Section 11.10 rule 5): an engaged worker's
  * shift or an applicant's offer, accepted with one more press after the email's button. Opening it only reads what
- * the link does; someone else's link says nothing about itself. Signed out, the person signs in and comes back here.
+ * the link does; someone else's link says nothing about itself, and a member's link (sent for Atlas, where the org's
+ * security settings apply) says only that it opens in Atlas. Signed out, the person signs in and comes back here.
  */
 export default async function ActionLinkPage({ params }: PageProps<"/auth/act/[token]">) {
   const { token } = await params;
   const ctx = await requireContext(isActionToken(token) ? `/auth/act/${token}` : "/home");
   const [t, tr] = await Promise.all([getTranslations("gateway.auth.actionLink"), getTranslate()]);
-  const result = await readActionLink(ctx.db, token);
+  const result = await readActionLink(ctx.db, token, "Gateway");
   const link = result.ok ? result.data : null;
   const icon = (
     <span className="text-text-tertiary">

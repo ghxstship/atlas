@@ -15,6 +15,7 @@ const STATE_RULES: Readonly<Record<string, string>> = {
   notification_action_used: "actionLink.state.used",
   notification_action_expired: "actionLink.state.expired",
   notification_action_not_yours: "actionLink.state.not_yours",
+  notification_action_elsewhere: "actionLink.state.elsewhere",
   notification_action_invalid: "actionLink.state.invalid",
   notification_action_reason: "actionLink.errors.notification_action_reason",
   unexpected: "actionLink.errors.unexpected",

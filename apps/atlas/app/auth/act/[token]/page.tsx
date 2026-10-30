@@ -18,7 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * The confirm page of a one-tap email link (A127, ADR 0106; Section 11.10 rule 5): the email's Approve, Reject or
  * Accept button opens it, and one more press acts, so acting from an email takes two taps. Opening it only reads what
- * the link does (app.read_notification_action); someone else's link says nothing about itself. Signed out, the person
+ * the link does (app.read_notification_action); someone else's link says nothing about itself, and a link sent for
+ * Gateway (an external party's or an applicant's) says only that it opens there. Signed out, the person
  * signs in and comes back here. A link that is ready meets its org's security settings first, as the Inbox does: a
  * refused network, a second factor the org requires, or a session past its lifetime or idle timeout sends the person
  * on before the button shows.
@@ -32,12 +33,13 @@ export default async function ActionLinkPage({ params }: PageProps<"/auth/act/[t
   }
   const t = await getTranslations("authSecurity.actionLink");
   const tr = await getTranslate();
-  const result = await readActionLink(viewer.db, token);
+  const result = await readActionLink(viewer.db, token, "Atlas");
   const read = result.ok ? result.data : null;
-  // A member's link (audience Atlas) works only while the viewer is a member of its org under the org's rules.
+  // A link ready here is a member's (an external party's or an applicant's link reads as elsewhere, for Gateway), and
+  // works only while the viewer is a member of its org under the org's rules.
   const admitted =
-    read?.state === "ready" && read.orgSlug !== null
-      ? (await enforceActionLinkGate(viewer, read.orgSlug, token)) || read.audience !== "Atlas"
+    read?.state === "ready"
+      ? read.orgSlug !== null && (await enforceActionLinkGate(viewer, read.orgSlug, token))
       : true;
   const link = admitted ? read : null;
   const inboxHref = link?.orgSlug ? `/${link.orgSlug}/inbox` : "/";

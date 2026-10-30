@@ -41,6 +41,7 @@
       "notification_action_expired": "This link has expired. Open the item from Home to act on it.",
       "notification_action_not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
       "notification_action_invalid": "This link does not work. Open the item from Home.",
+      "notification_action_elsewhere": "This link opens in Atlas. Use the button in the email to open it there.",
       "notification_action_reason": "Say why you are rejecting it.",
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
@@ -1764,6 +1765,7 @@
         "used": "This was already handled. Nothing else to do.",
         "expired": "This link has expired. Open the item from Home to act on it.",
         "not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+        "elsewhere": "This link opens in Atlas, where your organization's security settings apply. Use the button in the email to open it there.",
         "invalid": "This link does not work. Open the item from Home."
       }
     },

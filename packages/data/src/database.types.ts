@@ -62945,6 +62945,7 @@ export type Database = {
         }[];
       };
       my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
+      my_notifications_awaiting_answer: { Args: Record<PropertyKey, never>; Returns: string[] };
       my_oauth_access: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -63499,7 +63500,7 @@ export type Database = {
       read_integration_credential: { Args: { p_connection_id: string }; Returns: string };
       read_integration_inbound_secret: { Args: { p_connection_id: string }; Returns: string };
       read_notification_action: {
-        Args: { p_token: string };
+        Args: { p_app: string; p_token: string };
         Returns: {
           action: string;
           audience: string;
@@ -65355,7 +65356,10 @@ export type Database = {
         };
         Returns: string;
       };
-      use_notification_action: { Args: { p_comment?: string; p_token: string }; Returns: string };
+      use_notification_action: {
+        Args: { p_app: string; p_comment?: string; p_token: string };
+        Returns: string;
+      };
       venue_latitude: {
         Args: {
           p_venue: Omit<

@@ -64,8 +64,8 @@ export async function actionLinkGate(viewer: Viewer, org: string): Promise<Actio
 
 /**
  * Applies the gate: redirects to verify, sign in again or the network notice as the proxy would for /{org}/inbox,
- * and otherwise says whether the viewer is a member there. A link for an external party (audience Gateway) needs no
- * membership; one for a member (audience Atlas) does.
+ * and otherwise says whether the viewer is a member there. Every link Atlas confirms is a member's (audience Atlas),
+ * so it acts only for a member; an external party's or an applicant's link is Gateway's.
  */
 export async function enforceActionLinkGate(
   viewer: Viewer,

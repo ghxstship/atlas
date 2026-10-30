@@ -54,6 +54,7 @@ export const KNOWN_REFUSALS = [
   "notification_action_not_yours",
   "notification_action_invalid",
   "notification_action_reason",
+  "notification_action_elsewhere",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

@@ -27,13 +27,16 @@ export interface FyiLabels {
   readonly snooze: string;
   readonly keys: string;
   readonly new: string;
+  /** Said once the last item leaves; it takes the focus. */
+  readonly empty: string;
 }
 
 /**
  * Gateway Home's For Your Information list (A127; Section 11.10 rule 5, one inbox model): notifications that need
  * nothing from the person, each with Done and Snooze. From the keyboard, J and K (or the arrow keys) move between
  * items, E marks the selected one Done and H snoozes it for a day; the next item takes the focus, so a run of E
- * clears the list. An item leaves at once and comes back if the server refuses.
+ * clears the list, and once the last one leaves the empty-state sentence takes it. An item leaves at once and comes
+ * back if the server refuses.
  */
 export function FyiList({ rows, labels }: { rows: readonly FyiRow[]; labels: FyiLabels }) {
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
@@ -41,6 +44,7 @@ export function FyiList({ rows, labels }: { rows: readonly FyiRow[]; labels: Fyi
   const [outcome, setOutcome] = useState<string | undefined>(undefined);
   const [, startTransition] = useTransition();
   const items = useRef<(HTMLLIElement | null)[]>([]);
+  const empty = useRef<HTMLParagraphElement | null>(null);
   const visible = rows.filter((r) => !hidden.has(r.id));
   const current = Math.min(active, Math.max(visible.length - 1, 0));
 
@@ -52,9 +56,10 @@ export function FyiList({ rows, labels }: { rows: readonly FyiRow[]; labels: Fyi
   const act = (row: FyiRow, index: number, kind: "done" | "snooze") => {
     setOutcome(undefined);
     setHidden((h) => new Set([...h, row.id]));
-    // The next item takes the place of the one that left.
-    setActive(Math.min(index, visible.length - 2));
-    requestAnimationFrame(() => items.current[Math.min(index, visible.length - 2)]?.focus());
+    // The next item takes the place of the one that left; after the last one, the empty-state sentence does.
+    const next = Math.min(index, visible.length - 2);
+    setActive(Math.max(next, 0));
+    requestAnimationFrame(() => (next < 0 ? empty.current : items.current[next])?.focus());
     startTransition(async () => {
       const result = kind === "done" ? await fyiDoneAction(row.id) : await fyiSnoozeAction(row.id);
       if (!result.ok) {
@@ -79,7 +84,12 @@ export function FyiList({ rows, labels }: { rows: readonly FyiRow[]; labels: Fyi
     }
   };
 
-  if (visible.length === 0 && outcome === undefined) return null;
+  if (visible.length === 0 && outcome === undefined)
+    return (
+      <p ref={empty} tabIndex={-1} className="m-0 text-text-14 text-text-secondary outline-none">
+        {labels.empty}
+      </p>
+    );
   return (
     <div className="flex flex-col gap-8">
       <OutcomeAlert outcome={outcome} />

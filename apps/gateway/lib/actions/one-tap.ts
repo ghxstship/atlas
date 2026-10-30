@@ -24,7 +24,11 @@ const linkInput = z.object({
   reason: z.string().max(2000).optional(),
 });
 
-/** Acts through a one-tap link on the confirm page's press; opening the page never acts. */
+/**
+ * Acts through a one-tap link on the confirm page's press; opening the page never acts. Only a link sent for Gateway
+ * acts here (an external party's or an applicant's): a member's link is Atlas's, where the org's security settings
+ * apply, and the database refuses it here (notification_action_elsewhere).
+ */
 export async function confirmActionLinkAction(
   _: ActionLinkState,
   form: FormData,
@@ -40,6 +44,7 @@ export async function confirmActionLinkAction(
     return { outcome: "refusals.notification_action_reason" };
   const result = await actThroughLink(await createServerSupabase(), {
     token: parsed.data.token,
+    app: "Gateway",
     comment: parsed.data.reason?.trim() || null,
   });
   if (!result.ok) return { outcome: outcomeFor(result.error) };

@@ -41,6 +41,7 @@
       "notification_action_expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
       "notification_action_not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
       "notification_action_invalid": "Este enlace no funciona. Abre el elemento desde Inicio.",
+      "notification_action_elsewhere": "Este enlace se abre en Atlas. Usa el botón del correo para abrirlo allí.",
       "notification_action_reason": "Di por qué lo rechazas.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
       "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
@@ -1764,6 +1765,7 @@
         "used": "Esto ya se resolvió. No hay nada más que hacer.",
         "expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
         "not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+        "elsewhere": "Este enlace se abre en Atlas, donde se aplican los ajustes de seguridad de tu organización. Usa el botón del correo para abrirlo allí.",
         "invalid": "Este enlace no funciona. Abre el elemento desde Inicio."
       }
     },

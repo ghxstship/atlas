@@ -28,10 +28,13 @@ notification at all. Gateway Home showed what needs the person, and a short Upda
    the recipient works (Atlas for a member, Gateway for an engaged worker) and for an offer awaiting the applicant
    (Gateway). Decline stays in the Inbox and on push; an email offers only the actions this package's bar names.
 3. **A link never acts on GET.** Each link opens `/auth/act/{token}` in Atlas or Gateway under the Auth template. The
-   page signs the person in first if needed, then reads `app.read_notification_action`, which answers `ready`,
-   `used`, `expired`, `not_yours` or `invalid`; someone else's link says nothing about what it does. The page's
-   button calls `app.use_notification_action(token, comment)`, so approving from an email takes two taps: the
-   email's button and the confirm page's.
+   page signs the person in first if needed, then reads `app.read_notification_action(token, app)`, which answers
+   `ready`, `used`, `expired`, `elsewhere`, `not_yours` or `invalid`; someone else's link says nothing about what it
+   does. The page's button calls `app.use_notification_action(token, app, comment)`, so approving from an email takes
+   two taps: the email's button and the confirm page's. Each page names its own app, and a link works only in the
+   app it was sent for (its audience): opened on the other app's host, it reads `elsewhere` and the button is
+   refused (`notification_action_elsewhere`), so a member's link cannot skip Atlas's security checks through
+   Gateway.
 4. **The in-app action decides.** `app.use_notification_action` checks the recipient is the signed-in person, the
    link is unused and unexpired, and a rejection has its reason, then runs `app.act_on_notification` as that person.
    Every approval, timesheet, shift and offer rule, and step-up (`private.require_step_up`, which the Atlas page
@@ -43,8 +46,8 @@ notification at all. Gateway Home showed what needs the person, and a short Upda
    `resolveMembership`, as `/{org}/inbox` does, before the button shows and again before it acts: a network the
    org's IP allow-list refuses goes to the network notice, a second factor its MFA policy requires goes to verify,
    and a session past its lifetime or idle timeout goes to sign in again, each returning to the link. A member's
-   link (audience Atlas) does nothing once the person is no longer a member; an external party's needs no
-   membership.
+   link (audience Atlas) does nothing once the person is no longer a member. Gateway confirms only an external
+   party's or an applicant's link (audience Gateway), which needs no membership.
 5. **Expiry and retries.** A link lives 7 days. A retried delivery mints fresh links and revokes the earlier
    attempt's. Links 30 days past expiry are deleted the next time any email is minted.
 6. **Push actions for offers and messages.** `packages/platform/src/notifications/push.ts` adds the server categories
@@ -57,15 +60,19 @@ notification at all. Gateway Home showed what needs the person, and a short Upda
    `app.accept_shift` or `app.accept_engaged_shift`, declines it through the new `app.decline_shift` (back to Draft
    with the reason in its ledger, for the scheduler; only its member, or its engaged worker while the operational
    area is open, and an open shift nobody holds is declined by no one), accepts or declines an offer through `app.accept_offer` and
-   `app.decline_offer`, and replies through `app.send_chat_message`. Done and these actions reach any recipient;
-   approve and reject stay a member's.
+   `app.decline_offer`, and replies through `app.send_chat_message`. Done and these actions reach the recipient while
+   the notification is still theirs to see (`private.is_my_notification`, the rule row level security on
+   notifications reads); approve and reject stay a member's.
 7. **Offers reach the applicant.** A trigger on `app.offer_versions` sends `offer.sent` when the org's terms wait on
    the applicant (a new offer or revised terms). While an offer is Sent or Countered, `private.party_org_ids`
    counts the offering org as one the applicant works with, so `private.notify` and
    `app.claim_notification_deliveries` deliver it by email and push without being redefined.
 8. **Gateway's For Your Information.** Gateway Home lists `app.inbox_items` in For Your Information across every org
    that notified the person, with Done and Snooze buttons and the keys E, H, J and K on a roving-focus list, in place
-   of the Updates list. The `app.inbox_snoozes` policies now ask only that the notification is the person's own
+   of the Updates list. A published shift the person works or an offer awaiting them still needs their answer
+   (`app.my_notifications_awaiting_answer`, the notifications whose email offers Accept now), so the list leaves it
+   out: Done there would retire its email links while the shift or offer is unanswered. Offers to answer show in
+   Needs You. Once the last item leaves, the empty-state sentence takes the focus. The `app.inbox_snoozes` policies now ask only that the notification is the person's own
    (`private.is_my_notification`), so an external party snoozes too.
 
 ## Consequences

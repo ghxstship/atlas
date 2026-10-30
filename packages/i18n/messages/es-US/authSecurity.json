@@ -295,6 +295,7 @@
       "used": "Esto ya se resolvió. No hay nada más que hacer.",
       "expired": "Este enlace venció. Abre el elemento desde tu bandeja de entrada para resolverlo.",
       "not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+      "elsewhere": "Este enlace se abre en Gateway. Usa el botón del correo para abrirlo allí.",
       "invalid": "Este enlace no funciona. Abre el elemento desde tu bandeja de entrada."
     },
     "errors": {

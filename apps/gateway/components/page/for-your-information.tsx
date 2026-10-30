@@ -28,9 +28,10 @@ const GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}$/;
 
 /**
  * Gateway Home's For Your Information list (A127; Section 11.10 rule 5, one inbox model), beside Needs You: the
- * person's notifications from every org that need nothing from them (app.inbox_items), such as the steps of their
- * invoices (finding A38-002), saved-search matches and expiry reminders. Done (E) and Snooze (H) clear each one; the
- * same notifications go out by email and push as the person chose in Settings, Notifications.
+ * person's notifications from every org that need nothing from them (app.inbox_items, less the shifts and offers
+ * still waiting on their answer), such as the steps of their invoices (finding A38-002), saved-search matches and
+ * expiry reminders. Done (E) and Snooze (H) clear each one; the same notifications go out by email and push as the
+ * person chose in Settings, Notifications.
  */
 export async function ForYourInformation({
   db,
@@ -86,6 +87,7 @@ export async function ForYourInformation({
             snooze: t("gateway.home.fyi.snooze"),
             keys: t("gateway.home.fyi.keys"),
             new: t("gateway.home.fyi.new"),
+            empty: t("gateway.home.fyi.empty"),
           }}
         />
       )}

@@ -1,13 +1,14 @@
 -- pgTAP: migration 2200, one-tap actions (A127, ADR 0106; Section 11.10 rule 5). An email's action link works once,
--- for its recipient only, until it expires, and acts through app.act_on_notification so every rule still decides; a
--- forged or replaced link does nothing. A shift and an offer are accepted or declined and a message answered where the
--- notification arrives; an offer reaches its applicant; an external party clears and snoozes their own notifications.
+-- for its recipient only, in the app it was sent for, until it expires, and acts through app.act_on_notification so
+-- every rule still decides; a forged or replaced link does nothing. A shift and an offer are accepted or declined and a
+-- message answered where the notification arrives, and wait on the person until they answer; an offer reaches its
+-- applicant; an external party clears and snoozes their own notifications, but not one from an org they do not work with.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(59);
+select plan(68);
 
 create temporary table k (key text primary key, id uuid, token text);
 grant select, insert, update on k to public;
@@ -61,9 +62,9 @@ select is((select count(*)::integer from private.notification_action_tokens t
 
 -- Opening the link reads; it never acts.
 select pg_temp.as_user('carol');
-select is((select link_state || ' ' || action from app.read_notification_action(pg_temp.token('carol_approve'))),
+select is((select link_state || ' ' || action from app.read_notification_action(pg_temp.token('carol_approve'), 'Atlas')),
   'ready approve', 'the recipient reads what the link does');
-select is((select title from app.read_notification_action(pg_temp.token('carol_approve'))),
+select is((select title from app.read_notification_action(pg_temp.token('carol_approve'), 'Atlas')),
   (select message_args ->> 'title' from app.notifications where id = pg_temp.id('n_carol')), 'with the item''s title');
 select pg_temp.as_platform();
 select is((select timesheet_state::text from app.timesheets where id = pg_temp.id('ts')), 'Submitted',
@@ -71,29 +72,36 @@ select is((select timesheet_state::text from app.timesheets where id = pg_temp.i
 
 -- The wrong person.
 select pg_temp.as_user('bob');
-select is((select link_state from app.read_notification_action(pg_temp.token('carol_approve'))), 'not_yours',
+select is((select link_state from app.read_notification_action(pg_temp.token('carol_approve'), 'Atlas')), 'not_yours',
   'another approver signed in learns only that the link is not theirs');
-select is((select action from app.read_notification_action(pg_temp.token('carol_approve'))), null,
+select is((select action from app.read_notification_action(pg_temp.token('carol_approve'), 'Atlas')), null,
   'and nothing about what it does');
-select throws_ok(format($$select app.use_notification_action(%L)$$, pg_temp.token('carol_approve')), 'XR001',
+select throws_ok(format($$select app.use_notification_action(%L, 'Atlas')$$, pg_temp.token('carol_approve')), 'XR001',
   'notification_action_not_yours: This link was sent to someone else. Sign in as the person it was sent to.',
   'the link refuses the wrong person');
 
 -- Forged links.
 select pg_temp.as_user('carol');
 select is((select link_state from app.read_notification_action(
-  regexp_replace(pg_temp.token('carol_approve'), '\.[0-9a-f]{32}$', '.' || repeat('0', 32)))), 'invalid',
+  regexp_replace(pg_temp.token('carol_approve'), '\.[0-9a-f]{32}$', '.' || repeat('0', 32)), 'Atlas')), 'invalid',
   'a token with a forged signature is unknown');
-select is((select link_state from app.read_notification_action('xact_nonsense')), 'invalid', 'so is a malformed one');
-select throws_ok($$select app.use_notification_action('xact_nonsense')$$, 'XR001',
+select is((select link_state from app.read_notification_action('xact_nonsense', 'Atlas')), 'invalid', 'so is a malformed one');
+select throws_ok($$select app.use_notification_action('xact_nonsense', 'Atlas')$$, 'XR001',
   'notification_action_invalid: This link does not work. Open the item from your Inbox.', 'and neither acts');
 
 -- A rejection needs its reason; a rule that refuses leaves the link unused.
-select throws_ok(format($$select app.use_notification_action(%L)$$, pg_temp.token('carol_reject')), 'XR001',
+select throws_ok(format($$select app.use_notification_action(%L, 'Atlas')$$, pg_temp.token('carol_reject')), 'XR001',
   'notification_action_reason: Say why when you reject.', 'a rejection through the link asks for the reason');
 
+-- A member's link is confirmed in Atlas, which applies the org's security settings; Gateway's host does nothing with it.
+select is((select concat_ws(' ', link_state, action, title, audience)
+           from app.read_notification_action(pg_temp.token('carol_approve'), 'Gateway')), 'elsewhere Atlas',
+  'opened in Gateway, a member''s link says only that it opens in Atlas');
+select throws_ok(format($$select app.use_notification_action(%L, 'Gateway')$$, pg_temp.token('carol_approve')), 'XR001',
+  'notification_action_elsewhere: This link opens in Atlas. Use the button in the email.', 'and does not act there');
+
 -- Works once.
-select lives_ok(format($$select app.use_notification_action(%L)$$, pg_temp.token('carol_approve')),
+select lives_ok(format($$select app.use_notification_action(%L, 'Atlas')$$, pg_temp.token('carol_approve')),
   'the Manager approves through the link');
 select pg_temp.as_platform();
 select is((select timesheet_state::text from app.timesheets where id = pg_temp.id('ts')), 'Approved',
@@ -101,11 +109,11 @@ select is((select timesheet_state::text from app.timesheets where id = pg_temp.i
 select is((select approved_by from app.timesheet_approvals where timesheet_id = pg_temp.id('ts')), pg_temp.id('carol'),
   'as the Manager''s own approval');
 select pg_temp.as_user('carol');
-select throws_ok(format($$select app.use_notification_action(%L)$$, pg_temp.token('carol_approve')), 'XR001',
+select throws_ok(format($$select app.use_notification_action(%L, 'Atlas')$$, pg_temp.token('carol_approve')), 'XR001',
   'notification_action_used: This was already handled.', 'the link works once');
-select throws_ok(format($$select app.use_notification_action(%L, 'Changed my mind.')$$, pg_temp.token('carol_reject')),
+select throws_ok(format($$select app.use_notification_action(%L, 'Atlas', 'Changed my mind.')$$, pg_temp.token('carol_reject')),
   'XR001', 'notification_action_used: This was already handled.', 'and using it used the reject link too');
-select is((select link_state from app.read_notification_action(pg_temp.token('carol_reject'))), 'used',
+select is((select link_state from app.read_notification_action(pg_temp.token('carol_reject'), 'Atlas')), 'used',
   'the confirm page says it was handled');
 
 -- 2. Expiry, re-minting, and who may mint ---------------------------------------------------------------------------------
@@ -120,15 +128,15 @@ insert into world select 'n_bob', pg_temp.note('bob', 'approval.requested', 'ts2
 select pg_temp.mint('bob1', pg_temp.id('n_bob'));
 select pg_temp.mint('bob2', pg_temp.id('n_bob'));
 select pg_temp.as_user('bob');
-select is((select link_state from app.read_notification_action(pg_temp.token('bob1_approve'))), 'invalid',
+select is((select link_state from app.read_notification_action(pg_temp.token('bob1_approve'), 'Atlas')), 'invalid',
   'a retried delivery replaces the links of the attempt before');
 select pg_temp.as_platform();
 update private.notification_action_tokens set created_at = now() - interval '8 days', expires_at = now() - interval '1 day'
 where token_hash = extensions.digest(pg_temp.token('bob2_approve'), 'sha256');
 select pg_temp.as_user('bob');
-select is((select link_state from app.read_notification_action(pg_temp.token('bob2_approve'))), 'expired',
+select is((select link_state from app.read_notification_action(pg_temp.token('bob2_approve'), 'Atlas')), 'expired',
   'a link past its 7 days says so');
-select throws_ok(format($$select app.use_notification_action(%L)$$, pg_temp.token('bob2_approve')), 'XR001',
+select throws_ok(format($$select app.use_notification_action(%L, 'Atlas')$$, pg_temp.token('bob2_approve')), 'XR001',
   'notification_action_expired: This link has expired. Open the item from your Inbox.', 'and no longer acts');
 select throws_ok(format($$select * from app.mint_notification_action_tokens(%L)$$, pg_temp.email_delivery(pg_temp.id('n_bob'))),
   '42501', null, 'only the email sender (service role) mints links');
@@ -150,6 +158,9 @@ select is((select message_args ->> 'shiftState' from app.notifications where id 
   'Published', 'a shift notice says the shift waits on its worker');
 select set_eq(format($$select action, audience from private.notification_link_actions(%L)$$, pg_temp.note('frank', 'shift.assigned', 'sh1')),
   $$values ('accept', 'Atlas')$$, 'so its email offers Accept, confirmed in Atlas');
+select pg_temp.as_user('frank');
+select ok(pg_temp.note('frank', 'shift.assigned', 'sh1') in (select app.my_notifications_awaiting_answer()),
+  'and it waits on the worker''s answer, so it is no For Your Information item');
 
 select pg_temp.as_user('carol');
 select throws_ok(format($$select app.act_on_notification(%L, 'accept')$$, pg_temp.note('frank', 'shift.assigned', 'sh1')),
@@ -181,6 +192,10 @@ with x as (insert into app.shifts (project_id, role_code, starts_at, ends_at, ti
 select app.publish_shifts(array[(select id from k where key = 'sh_eng'), (select id from k where key = 'sh_open')]);
 select pg_temp.as_platform();
 insert into world select key, id from k where key in ('sh_eng', 'sh_open');
+insert into world select 'n_sh_eng', pg_temp.note('ivy', 'shift.assigned', 'sh_eng');
+select pg_temp.as_user('ivy');
+select ok(pg_temp.id('n_sh_eng') in (select app.my_notifications_awaiting_answer()),
+  'the engaged worker''s published shift waits on their answer');
 select pg_temp.as_user('frank');
 select throws_ok(format($$select app.decline_shift(%L, 'Not mine.')$$, pg_temp.id('sh_eng')), '42501', null,
   'a member of the org does not decline an engaged worker''s shift');
@@ -201,6 +216,9 @@ select lives_ok(format($$select app.decline_shift(%L, 'Booked elsewhere.')$$, pg
 select pg_temp.as_platform();
 select is((select shift_state::text from app.shifts where id = pg_temp.id('sh_eng')), 'Draft',
   'and it goes back to Draft for the scheduler');
+select pg_temp.as_user('ivy');
+select ok(pg_temp.id('n_sh_eng') not in (select app.my_notifications_awaiting_answer()),
+  'answered from the shift itself, its notice no longer waits on them');
 
 -- 4. A message, answered from the notification ---------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -239,6 +257,12 @@ select app.transition_application((select id from k where key = 'app_i'), 'Submi
 select pg_temp.as_platform();
 select ok(pg_temp.id('org_a') not in (select private.party_org_ids(pg_temp.id('quinn'))),
   'before an offer, the applicant does not work with the org');
+with n as (insert into app.notifications (org_id, recipient_person_id, kind, message_args)
+  values (pg_temp.id('org_a'), pg_temp.id('quinn'), 'invoice.paid', jsonb_build_object('title', 'INV-0999')) returning id)
+  insert into world select 'n_stray', id from n;
+select pg_temp.as_user('quinn');
+select throws_ok(format($$select app.act_on_notification(%L, 'done')$$, pg_temp.id('n_stray')), '42501', null,
+  'a notification from an org the person no longer works with is not theirs to mark Done');
 select pg_temp.as_user('carol');
 insert into k select 'offer', app.send_offer((select id from k where key = 'app_q'), 'Day', 90000, 'USD', '2027-06-01', '2027-06-03',
   'Welcome aboard.', null);
@@ -255,6 +279,14 @@ select set_eq(format($$select channel::text from app.notification_deliveries whe
   $$values ('Email'), ('Push')$$, 'by email and push, while the offer waits on them');
 select set_eq(format($$select action, audience from private.notification_link_actions(%L)$$, pg_temp.id('n_offer')),
   $$values ('accept', 'Gateway')$$, 'its email offers Accept, confirmed in Gateway');
+select pg_temp.mint('quinn', pg_temp.id('n_offer'));
+select pg_temp.as_user('quinn');
+select is((select concat_ws(' ', link_state, action, title, audience)
+           from app.read_notification_action(pg_temp.token('quinn_accept'), 'Atlas')), 'elsewhere Gateway',
+  'opened in Atlas, the applicant''s link says only that it opens in Gateway');
+select is((select link_state || ' ' || action from app.read_notification_action(pg_temp.token('quinn_accept'), 'Gateway')),
+  'ready accept', 'and is ready in Gateway');
+select ok(pg_temp.id('n_offer') in (select app.my_notifications_awaiting_answer()), 'the offer waits on the applicant');
 select pg_temp.as_user('quinn');
 select lives_ok(format($$select app.act_on_notification(%L, 'accept')$$, pg_temp.id('n_offer')),
   'the applicant accepts the offer from the notification');

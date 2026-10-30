@@ -5,11 +5,14 @@
 --     of each token is stored; the token is signed with the key, so a forged one is refused before any lookup
 --   * app.mint_notification_action_tokens: the email sender mints them at dispatch (service role)
 --   * app.read_notification_action and app.use_notification_action: the confirm page in Atlas or Gateway reads what a
---     link does without acting (a GET never acts) and acts on a press, for the signed-in recipient only, through
---     app.act_on_notification, so every rule and step-up still decides
+--     link does without acting (a GET never acts) and acts on a press, for the signed-in recipient only and only in
+--     the app the link was sent for, through app.act_on_notification, so every rule and step-up still decides
 --   * app.act_on_notification takes accept and decline for shift and engagement offers and reply for a message, which
---     Compass's push actions send through notifications.act; Done and the new actions reach every recipient, so an
---     external party acts too (approve and reject still need membership)
+--     Compass's push actions send through notifications.act; Done and the new actions reach every recipient who may
+--     still see the notification (private.is_my_notification), so an external party acts too (approve and reject
+--     still need membership)
+--   * app.my_notifications_awaiting_answer: the shifts and offers still waiting on the person, which Gateway's For Your
+--     Information list leaves out
 --   * app.decline_shift: the worker declines a published shift, which returns to Draft for the scheduler
 --   * offer.sent: the applicant is told when an org sends or revises an offer; while it waits on them the org counts as
 --     one they work with (private.party_org_ids), so the notice reaches them by email and push
@@ -240,7 +243,7 @@ grant execute on function app.mint_notification_action_tokens(uuid) to service_r
 
 -- 5. The confirm page ---------------------------------------------------------------------------------------------------------
 
-create or replace function app.read_notification_action(p_token text)
+create or replace function app.read_notification_action(p_token text, p_app text)
 returns table (
   link_state text, action text, kind text, title text, org_name text, org_slug text, audience text,
   expires_at timestamptz, notification_id uuid
@@ -264,6 +267,12 @@ begin
     return query select 'not_yours'::text, null::text, null::text, null::text, null::text, null::text, null::text, null::timestamptz, null::uuid;
     return;
   end if;
+  -- A link is confirmed only in the app it was sent for: Atlas applies the org's security settings to a member, and
+  -- Gateway does not, so a member's link opened on Gateway's host does nothing there.
+  if p_app is distinct from v_token.audience then
+    return query select 'elsewhere'::text, null::text, null::text, null::text, null::text, null::text, v_token.audience, null::timestamptz, null::uuid;
+    return;
+  end if;
   select * into v_note from app.notifications n
   where n.id = v_token.notification_id and n.created_at = v_token.notification_created_at;
   return query select
@@ -277,11 +286,11 @@ begin
 end;
 $$;
 
-comment on function app.read_notification_action(text) is 'The confirm page of a one-tap email link (ADR 0106): what the link does, for the signed-in recipient only, without acting. link_state is ready, used (acted on through this or another link, or Done in the Inbox), expired, not_yours (signed in as someone else; nothing else is said) or invalid (unknown, forged or replaced).';
-revoke all on function app.read_notification_action(text) from public, anon;
-grant execute on function app.read_notification_action(text) to authenticated, service_role;
+comment on function app.read_notification_action(text, text) is 'The confirm page of a one-tap email link (ADR 0106): what the link does, for the signed-in recipient only, without acting. p_app is the app whose confirm page asks (Atlas or Gateway). link_state is ready, used (acted on through this or another link, or Done in the Inbox), expired, elsewhere (the link is confirmed in the other app, named in audience; nothing else is said), not_yours (signed in as someone else; nothing else is said) or invalid (unknown, forged or replaced).';
+revoke all on function app.read_notification_action(text, text) from public, anon;
+grant execute on function app.read_notification_action(text, text) to authenticated, service_role;
 
-create or replace function app.use_notification_action(p_token text, p_comment text default null)
+create or replace function app.use_notification_action(p_token text, p_app text, p_comment text default null)
 returns uuid
 language plpgsql
 volatile
@@ -298,6 +307,10 @@ begin
   end if;
   if v_token.recipient_person_id <> v_person then
     perform private.refuse('notification_action_not_yours', 'This link was sent to someone else. Sign in as the person it was sent to.');
+  end if;
+  if p_app is distinct from v_token.audience then
+    perform private.refuse('notification_action_elsewhere',
+      format('This link opens in %s. Use the button in the email.', v_token.audience));
   end if;
   select * into v_token from private.notification_action_tokens t where t.id = v_token.id for update;
   select * into v_note from app.notifications n
@@ -319,9 +332,27 @@ begin
 end;
 $$;
 
-comment on function app.use_notification_action(text, text) is 'Acts through a one-tap email link (ADR 0106), on the confirm page''s press, never on opening it: only the signed-in recipient, once, before it expires; a rejection needs a reason. Runs app.act_on_notification as the person, so every rule and step-up still decides, and a refusal leaves the link unused. Using it uses every link of the notification. Returns the notification id.';
-revoke all on function app.use_notification_action(text, text) from public, anon;
-grant execute on function app.use_notification_action(text, text) to authenticated, service_role;
+comment on function app.use_notification_action(text, text, text) is 'Acts through a one-tap email link (ADR 0106), on the confirm page''s press, never on opening it: only the signed-in recipient, only in the app the link was sent for (p_app: Atlas for a member, whose org''s security settings Atlas applies; Gateway for an external party or an applicant), once, before it expires; a rejection needs a reason. Runs app.act_on_notification as the person, so every rule and step-up still decides, and a refusal leaves the link unused. Using it uses every link of the notification. Returns the notification id.';
+revoke all on function app.use_notification_action(text, text, text) from public, anon;
+grant execute on function app.use_notification_action(text, text, text) to authenticated, service_role;
+
+create or replace function app.my_notifications_awaiting_answer()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select n.id from app.notifications n
+  where n.recipient_person_id = private.current_person_id()
+    and n.kind in ('shift.assigned', 'shift.changed', 'offer.sent')
+    and n.archived_at is null and n.deleted_at is null
+    and exists (select 1 from private.notification_link_actions(n.id) a where a.action = 'accept');
+$$;
+
+comment on function app.my_notifications_awaiting_answer() is 'The signed-in person''s live notifications that still wait on their answer: a published shift they work, or an offer awaiting them (the ones whose email offers Accept now, private.notification_link_actions). Gateway leaves them out of For Your Information, where Done would retire their email links while the shift or offer is still unanswered (ADR 0106).';
+revoke all on function app.my_notifications_awaiting_answer() from public, anon;
+grant execute on function app.my_notifications_awaiting_answer() to authenticated, service_role;
 
 -- 6. Declining a shift ---------------------------------------------------------------------------------------------------------
 
@@ -380,8 +411,12 @@ declare
 begin
   select * into v_note from app.notifications n
   where n.id = p_notification_id and n.recipient_person_id = v_person and n.deleted_at is null;
-  -- Approving and rejecting are a member's; Done and answering an offer or a message are any recipient's (A127).
-  if v_note.id is null or (p_action in ('approve', 'reject') and v_note.org_id not in (select private.my_org_ids())) then
+  -- Approving and rejecting are a member's. Done and answering a shift, an offer or a message are the recipient's while
+  -- the notification is still theirs to see (private.is_my_notification: a member, an external party or an applicant
+  -- the org works with, as row level security on notifications reads it) (A127).
+  if v_note.id is null or not coalesce(case when p_action in ('approve', 'reject')
+                                            then v_note.org_id in (select private.my_org_ids())
+                                            else private.is_my_notification(v_note.id) end, false) then
     raise exception using errcode = '42501', message = 'notification not found';
   end if;
   if p_action is null or p_action not in ('approve', 'reject', 'done', 'accept', 'decline', 'reply') then
@@ -436,7 +471,7 @@ begin
   return v_note.id;
 end;
 $$;
-comment on function app.act_on_notification(uuid, text, text) is 'Acts on a notification where it arrives (Section 11.10 rule 5), for its recipient only: approve or reject the approval or the timesheet an approval request asks for (a member''s; app.decide_approval and app.decide_timesheet decide every rule); accept or decline a published shift (app.accept_shift, app.accept_engaged_shift, app.decline_shift) or an offer awaiting the applicant (app.accept_offer, app.decline_offer); reply to a message (app.send_chat_message, the reply in p_comment); or mark it Done. A refusal names its rule and the item stays; a handled or Done item leaves the Inbox. Push notification actions call it through the API (notifications.act) and one-tap email links through app.use_notification_action. Returns the notification id.';
+comment on function app.act_on_notification(uuid, text, text) is 'Acts on a notification where it arrives (Section 11.10 rule 5), for its recipient only, while it is still theirs to see (private.is_my_notification): approve or reject the approval or the timesheet an approval request asks for (a member''s; app.decide_approval and app.decide_timesheet decide every rule); accept or decline a published shift (app.accept_shift, app.accept_engaged_shift, app.decline_shift) or an offer awaiting the applicant (app.accept_offer, app.decline_offer); reply to a message (app.send_chat_message, the reply in p_comment); or mark it Done. A refusal names its rule and the item stays; a handled or Done item leaves the Inbox. Push notification actions call it through the API (notifications.act) and one-tap email links through app.use_notification_action. Returns the notification id.';
 revoke all on function app.act_on_notification(uuid, text, text) from public, anon;
 grant execute on function app.act_on_notification(uuid, text, text) to authenticated, service_role;
 

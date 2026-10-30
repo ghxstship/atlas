@@ -295,6 +295,7 @@
       "used": "This was already handled. Nothing else to do.",
       "expired": "This link has expired. Open the item from your Inbox to act on it.",
       "not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+      "elsewhere": "This link opens in Gateway. Use the button in the email to open it there.",
       "invalid": "This link does not work. Open the item from your Inbox."
     },
     "errors": {
