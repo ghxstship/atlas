@@ -13,6 +13,7 @@ Press **Mod+K** or **/** anywhere in Atlas to open the command menu. Before you 
 - Records and incidents, by title or by key (type `NWS-12`).
 - People in your organization, by name.
 - Documents, SOPs and handbook articles, by title and text.
+- Asset classes by name, and units by asset tag, class or serial (type `MH-002`). They show under **Inventory**.
 - Settings, by name or key: type `time zone` to reach the Localization page with the field ready to change.
 - Pages, help articles and actions such as **New record** or **Approve timesheets**.
 
@@ -22,7 +23,7 @@ You only ever see what you are allowed to open. Each word you type also matches 
 
 Add operators to narrow a search. They show as chips under the search field; one the menu does not understand is marked so you can fix it.
 
-- `type:` a record kind (`type:task`), or `person`, `incident`, `document`, `sop` or `article`.
+- `type:` a record kind (`type:task`), or `person`, `incident`, `document`, `sop`, `article`, `asset` or `"asset class"`.
 - `project:` a project key or the start of its name (`project:NWS`).
 - `assignee:me`, or part of someone's name (`assignee:ana`).
 - `status:` a state (`status:blocked`), or `open` or `closed`.

@@ -101,6 +101,57 @@ export function resolveStatuses(values: readonly string[], t: Translate): string
   });
 }
 
+/** The two inventory result types (P7) and the sitemap node each one opens on. */
+export const INVENTORY_NODES = {
+  asset: "assets.units",
+  asset_class: "assets.asset-classes",
+} as const;
+export type InventoryType = keyof typeof INVENTORY_NODES;
+
+/**
+ * The inventory types the search should leave out: each one whose page the person cannot open (the Assets
+ * module off, or the node hidden by role), so the query does no inventory work it could not show.
+ */
+export function hiddenInventoryTypes(visible: (node: string) => boolean): InventoryType[] {
+  return (Object.keys(INVENTORY_NODES) as InventoryType[]).filter(
+    (type) => !visible(INVENTORY_NODES[type]),
+  );
+}
+
+export interface InventoryEntry {
+  readonly label: string;
+  readonly code?: string;
+  readonly href: string;
+}
+
+/**
+ * An asset unit or asset class hit as the command menu lists it (P7), or null when its page is not one the
+ * person may open. A unit opens in the units page's peek by its tag and carries the tag as its code; a class
+ * opens in the asset classes page's peek by its id. A unit whose class the person cannot read (a Field
+ * member's) is titled by its tag, so the label reads `MH-002 · Asset` without the tag again as a code.
+ */
+export function inventoryEntry(
+  hit: {
+    readonly type: InventoryType;
+    readonly id: string;
+    readonly key: string | null;
+    readonly title: string;
+  },
+  input: { readonly org: string; readonly visible: (node: string) => boolean; readonly noun: string },
+): InventoryEntry | null {
+  if (!input.visible(INVENTORY_NODES[hit.type])) return null;
+  const label = `${hit.title} · ${input.noun}`;
+  if (hit.type === "asset_class") {
+    return { label, href: `/${input.org}/assets/asset-classes?peek=${encodeURIComponent(hit.id)}` };
+  }
+  if (!hit.key) return null;
+  return {
+    label,
+    ...(hit.title === hit.key ? {} : { code: hit.key }),
+    href: `/${input.org}/assets/units?peek=${encodeURIComponent(hit.key)}`,
+  };
+}
+
 export interface SettingEntry {
   readonly key: string;
   /** The setting's label, then the page it is on: `Time zone · Localization`. */

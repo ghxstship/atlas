@@ -21,6 +21,8 @@ import { SETTINGS } from "@xos/schemas/settings";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { CREATE_KINDS } from "@/lib/shell/create-menu";
 import {
+  hiddenInventoryTypes,
+  inventoryEntry,
   matchesWords,
   queryVector,
   resolveKinds,
@@ -34,7 +36,8 @@ import { observability } from "@/lib/observability";
 /**
  * The command menu's server half (Section 11.10 item 1, Section 11.7; findings A59-015 and A65-005). Before
  * anything is typed: the last things the person opened and the common actions. As they type: records,
- * incidents, people, documents, SOPs and handbook articles from app.global_search (the operator grammar,
+ * incidents, people, documents, SOPs, handbook articles, asset classes and asset units (the Inventory group,
+ * P7) from app.global_search (the operator grammar,
  * read with the person's own row level security, blended with semantic matches when the org has semantic
  * search on), the settings whose label or key matches, and the actions. It runs on demand, so nothing about
  * the org's data or the settings registry ships in the route bundle; the org context applies the IP
@@ -52,7 +55,7 @@ export interface CommandResultItem {
 }
 
 export interface CommandResultGroup {
-  readonly id: "recent" | "actions" | "records" | "people" | "documents" | "settings";
+  readonly id: "recent" | "actions" | "records" | "people" | "documents" | "inventory" | "settings";
   readonly label: string;
   readonly items: readonly CommandResultItem[];
 }
@@ -158,9 +161,20 @@ export async function searchCommandMenu(input: {
         return visible("knowledge.handbook")
           ? { href: `/${org}/knowledge/handbook?peek=${item.id}` }
           : null;
+      case "asset":
+      case "asset_class":
+        // toItem places inventory hits through inventoryEntry, which also labels them.
+        return null;
     }
   };
   const toItem = (item: Item): CommandResultItem | null => {
+    if (item.type === "asset" || item.type === "asset_class") {
+      const entry = inventoryEntry(
+        { ...item, type: item.type },
+        { org, visible, noun: t(`shell.commandMenu.types.${item.type}`) },
+      );
+      return entry ? { ...entry, icon: ICONS[item.type] } : null;
+    }
     const where = target(item);
     if (!where) return null;
     const noun =
@@ -219,10 +233,13 @@ export async function searchCommandMenu(input: {
       kinds: resolveKinds(parsed.kinds, t),
       excludeKinds: resolveKinds(parsed.excludeKinds, t),
     });
+    // An inventory type whose page the person cannot open is not searched at all.
+    const hidden = hiddenInventoryTypes(visible).filter((x) => !request.exclude_types.includes(x));
     const result = await globalSearch(ctx.viewer.db, {
       orgId: ctx.org.id,
       request: {
         ...request,
+        exclude_types: [...request.exclude_types, ...hidden],
         statuses: resolveStatuses(request.statuses, t),
         exclude_statuses: resolveStatuses(request.exclude_statuses, t),
       },
@@ -243,6 +260,7 @@ export async function searchCommandMenu(input: {
     const records = pick(["record", "incident"]);
     const people = pick(["person"]);
     const documents = pick(["document", "sop", "article"]);
+    const inventory = pick(["asset", "asset_class"]);
     if (records.length > 0)
       groups.push({ id: "records", label: t("shell.commandMenu.groups.records"), items: records });
     if (people.length > 0)
@@ -252,6 +270,13 @@ export async function searchCommandMenu(input: {
         id: "documents",
         label: t("shell.commandMenu.groups.documents"),
         items: documents,
+      });
+    // Inventory, not Assets: the Assets page group has that label, and group labels stay unique.
+    if (inventory.length > 0)
+      groups.push({
+        id: "inventory",
+        label: t("shell.commandMenu.groups.inventory"),
+        items: inventory,
       });
   }
 
@@ -281,6 +306,8 @@ const ICONS: Readonly<Record<SearchHit["type"], string>> = {
   document: "File",
   sop: "ClipboardList",
   article: "BookOpen",
+  asset: "Package",
+  asset_class: "Boxes",
 };
 
 function isItem(item: CommandResultItem | null): item is CommandResultItem {

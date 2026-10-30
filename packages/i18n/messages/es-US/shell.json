@@ -1274,6 +1274,7 @@
       "people": "Personas",
       "recent": "Recientes",
       "documents": "Documentos",
+      "inventory": "Inventario",
       "settings": "Configuración",
       "operators": "Operadores de búsqueda"
     },
@@ -1290,13 +1291,15 @@
       "person": "Persona",
       "document": "Documento",
       "sop": "SOP",
-      "article": "Artículo del manual"
+      "article": "Artículo del manual",
+      "asset": "Activo",
+      "asset_class": "Clase de activo"
     },
     "related": "Relacionado",
     "filters": "Filtros de búsqueda",
     "notUnderstood": "No se entiende {token}",
     "operators": {
-      "type": "Registros de un tipo, personas o documentos",
+      "type": "Registros de un tipo, personas, documentos o activos",
       "project": "Un proyecto, por clave o nombre",
       "assignee": "Asignado a usted, o a alguien por su nombre",
       "status": "Un estado, abierto o cerrado",
