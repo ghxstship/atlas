@@ -54,6 +54,7 @@ import {
   claimingRule,
   fillRate,
   listShiftClaims,
+  listShiftIdsWithWaitingClaims,
   listShiftPlanningProjectIds,
   listShiftTemplates,
 } from "@xos/data/crew";
@@ -726,6 +727,24 @@ export async function ShiftsCollection(props: {
     // Crew fill (Section 11.11): planners get the drag board with its live meter; readers see the meter.
     const fill = fillRate(shifts.map((s) => ({ state: s.state, assigned: s.member !== null })));
     const fillText = t("crew.scheduling.fill.value", { ...fill });
+    // Open shifts on projects the planner may staff: crew.shift.write can reach some projects only (2252).
+    const staffableOpen = canWrite
+      ? shifts.filter(
+          (s) => s.member === null && s.state !== "Canceled" && staffable.has(s.projectId),
+        )
+      : [];
+    // A shift with claims waiting (1322 approval and seniority rules) is decided on the shift, not dropped on:
+    // app.assign_open_shift refuses it (shift_claims_waiting), so the board lists it apart, linked to the shift.
+    const claimed = await listShiftIdsWithWaitingClaims(
+      db,
+      staffableOpen.map((s) => s.id),
+    );
+    if (!claimed.ok) throw new Error(`Cannot read the waiting claims: ${claimed.error.kind}`);
+    const boardShift = (s: Shift) => ({
+      id: s.id,
+      label: t("crew.common.pair", { a: roleName(s.roleCode), b: when(s) }),
+      projectKey: s.projectKey,
+    });
     body = (
       <div className="flex flex-col gap-12">
         {canWrite ? (
@@ -734,15 +753,10 @@ export async function ShiftsCollection(props: {
             weekStart={week}
             filled={fill.filled}
             total={fill.total}
-            openShifts={shifts
-              .filter((s) => s.member === null && s.state !== "Canceled")
-              // Only shifts on projects the planner may staff: crew.shift.write can reach some projects only.
-              .filter((s) => staffable.has(s.projectId))
-              .map((s) => ({
-                id: s.id,
-                label: t("crew.common.pair", { a: roleName(s.roleCode), b: when(s) }),
-                projectKey: s.projectKey,
-              }))}
+            openShifts={staffableOpen.filter((s) => !claimed.data.has(s.id)).map(boardShift)}
+            claimedShifts={staffableOpen
+              .filter((s) => claimed.data.has(s.id))
+              .map((s) => ({ ...boardShift(s), href: peekHref(s.id) }))}
           />
         ) : (
           <FillMeter

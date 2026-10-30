@@ -7,6 +7,7 @@ import {
   daysBetween,
   fillRate,
   getMyAvailabilityStatus,
+  listShiftIdsWithWaitingClaims,
   listShiftPlanningProjectIds,
   listShiftTemplates,
   rankShiftCandidates,
@@ -15,8 +16,8 @@ import {
 import { fakeClient, okResponse } from "./fake-client.ts";
 
 /**
- * Crew scheduling (A132, migrations 2250 and 2251): shift templates and planning from one, the fill rate, the
- * member's availability window and the candidates ranked for a shift.
+ * Crew scheduling (A132, migrations 2250 to 2253): shift templates and planning from one, the fill rate, the
+ * member's availability window, the candidates ranked for a shift and assigning an open shift.
  */
 
 const refused = (rule: string) => ({
@@ -229,31 +230,48 @@ describe("availability", () => {
 });
 
 describe("assigning an open shift", () => {
-  it("lands only while nobody holds the shift", async () => {
-    const { db, calls } = fakeClient({ "from:shifts": [okResponse([{ id: "s1" }])] });
+  it("assigns through the RPC that keeps the claim rules", async () => {
+    const { db, calls } = fakeClient({ "rpc:assign_open_shift": [okResponse("s1")] });
     expect(await assignOpenShift(db, "s1", "m1")).toEqual({ ok: true, data: null });
-    expect(calls[0]?.steps).toContainEqual(["update", [{ membership_id: "m1" }]]);
-    expect(calls[0]?.steps).toContainEqual(["eq", ["id", "s1"]]);
-    expect(calls[0]?.steps).toContainEqual(["is", ["membership_id", null]]);
-    expect(calls[0]?.steps).toContainEqual(["is", ["deleted_at", null]]);
+    expect(calls[0]?.steps).toContainEqual(["args", [{ p_shift_id: "s1", p_membership_id: "m1" }]]);
   });
 
-  it("refuses a shift someone claimed or was put on since the board was read", async () => {
-    const { db, calls } = fakeClient({
-      "from:shifts": [okResponse([]), okResponse({ id: "s1", membership_id: "m2" })],
-    });
+  it("passes on the refusal for a shift someone holds", async () => {
+    const { db } = fakeClient({ "rpc:assign_open_shift": [refused("shift_already_filled")] });
     const result = await assignOpenShift(db, "s1", "m1");
     expect(result.ok === false && result.error).toMatchObject({
       kind: "refusal",
       rule: "shift_already_filled",
     });
-    expect(calls).toHaveLength(2);
   });
 
-  it("reports a shift that is gone as not found", async () => {
-    const { db } = fakeClient({ "from:shifts": [okResponse([]), okResponse(null)] });
+  it("passes on the refusal for a shift with claims waiting", async () => {
+    const { db } = fakeClient({ "rpc:assign_open_shift": [refused("shift_claims_waiting")] });
     const result = await assignOpenShift(db, "s1", "m1");
-    expect(result.ok === false && result.error.kind).toBe("not-found");
+    expect(result.ok === false && result.error).toMatchObject({
+      kind: "refusal",
+      rule: "shift_claims_waiting",
+    });
+  });
+});
+
+describe("shifts with claims waiting", () => {
+  it("reads the shifts that carry a Requested claim", async () => {
+    const { db, calls } = fakeClient({
+      "from:shift_claims": [okResponse([{ shift_id: "s2" }, { shift_id: "s2" }])],
+    });
+    const result = await listShiftIdsWithWaitingClaims(db, ["s1", "s2"]);
+    expect(result.ok && [...result.data]).toEqual(["s2"]);
+    expect(calls[0]?.steps).toContainEqual(["in", ["shift_id", ["s1", "s2"]]]);
+    expect(calls[0]?.steps).toContainEqual(["eq", ["claim_state", "Requested"]]);
+    expect(calls[0]?.steps).toContainEqual(["is", ["deleted_at", null]]);
+  });
+
+  it("reads nothing for no shifts", async () => {
+    const { db, calls } = fakeClient({});
+    const result = await listShiftIdsWithWaitingClaims(db, []);
+    expect(result.ok && result.data.size).toBe(0);
+    expect(calls).toHaveLength(0);
   });
 });
 

@@ -61385,6 +61385,7 @@ export type Database = {
         };
         Returns: string;
       };
+      assign_open_shift: { Args: { p_membership_id: string; p_shift_id: string }; Returns: string };
       assign_training: {
         Args: {
           p_course_id: string;

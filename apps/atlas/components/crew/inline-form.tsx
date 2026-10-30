@@ -3,7 +3,7 @@
 import { Button, InlineAlert } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { startTransition, useActionState, useEffect, useRef, type ReactNode } from "react";
+import { startTransition, useActionState, useEffect, useId, useRef, type ReactNode } from "react";
 import type { CrewActionState } from "@/lib/crew/action-state";
 import type { Action } from "./forms.types";
 
@@ -12,7 +12,9 @@ const INITIAL: CrewActionState = {};
 /**
  * A crew form set in a page rather than a drawer (A132: shift templates in Settings, availability in Me): the
  * controls come from the server as children, the server action answers with translated sentences, and a refusal
- * keeps what was typed and lists what to fix. Success rereads the page and announces `successMessage`.
+ * keeps what was typed and lists what to fix. Each refused control is marked invalid and described by its line in
+ * that list, so a screen reader names the problem when focus returns to it. Success rereads the page and announces
+ * `successMessage`.
  */
 export function CrewInlineForm(props: {
   action: Action;
@@ -29,6 +31,7 @@ export function CrewInlineForm(props: {
   const router = useRouter();
   const form = useRef<HTMLFormElement>(null);
   const [state, run, pending] = useActionState(props.action, INITIAL);
+  const errorId = useId();
 
   useEffect(() => {
     if (!state.ok) return;
@@ -36,7 +39,26 @@ export function CrewInlineForm(props: {
     router.refresh();
   }, [state, props.resetOnSuccess, router]);
 
-  const fieldErrors = Object.values(state.fieldErrors ?? {});
+  // The controls arrive from the server as children, so the refused ones are marked here, by name, after each answer.
+  useEffect(() => {
+    const errors = state.fieldErrors ?? {};
+    for (const element of Array.from(form.current?.elements ?? [])) {
+      const name = element.getAttribute("name");
+      if (!name || element.getAttribute("type") === "hidden") continue;
+      // Keep whatever else describes the control (its help text); add or drop only this form's error line.
+      const own = `${errorId}-${name}`;
+      const others = (element.getAttribute("aria-describedby") ?? "")
+        .split(" ")
+        .filter((id) => id !== "" && id !== own);
+      const ids = errors[name] ? [...others, own] : others;
+      if (errors[name]) element.setAttribute("aria-invalid", "true");
+      else element.removeAttribute("aria-invalid");
+      if (ids.length > 0) element.setAttribute("aria-describedby", ids.join(" "));
+      else element.removeAttribute("aria-describedby");
+    }
+  }, [state, errorId]);
+
+  const fieldErrors = Object.entries(state.fieldErrors ?? {});
   return (
     <form
       ref={form}
@@ -61,8 +83,10 @@ export function CrewInlineForm(props: {
             {state.error}
             {fieldErrors.length > 0 ? (
               <ul className="m-0 mt-4 ps-16">
-                {fieldErrors.map((e) => (
-                  <li key={e}>{e}</li>
+                {fieldErrors.map(([name, e]) => (
+                  <li key={name} id={`${errorId}-${name}`}>
+                    {e}
+                  </li>
                 ))}
               </ul>
             ) : null}
