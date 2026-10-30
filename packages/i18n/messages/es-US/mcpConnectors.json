@@ -1,0 +1,43 @@
+{
+  "title": "Conectores de asistentes de IA",
+  "description": "Conecta Claude, ChatGPT u otro cliente MCP a XOS. El asistente lee lo que cada persona le permite alcanzar, y cada cambio que pide espera a que esa persona lo confirme en XOS.",
+  "off": "El extremo MCP alojado todavía no está activado en este XOS. Puedes registrar un conector ahora; funcionará cuando el extremo esté activado.",
+  "kind": "Asistente",
+  "kinds": {
+    "Claude": "Claude",
+    "ChatGPT": "ChatGPT",
+    "Other": "Otro cliente MCP"
+  },
+  "name": "Nombre (opcional)",
+  "redirect": "URL de devolución",
+  "redirectHelp": "La dirección https que el asistente te pide registrar para OAuth.",
+  "scopes": "Lo que puede alcanzar de forma predeterminada",
+  "scopesHelp": "Cada persona sigue eligiendo en la pantalla de consentimiento. Los grupos que alcanzan datos restringidos o el control de la organización nunca son predeterminados.",
+  "register": "Registrar el conector",
+  "registered": "Registrado. Dale al asistente estos dos valores.",
+  "serverUrl": "URL del servidor MCP",
+  "clientId": "ID de cliente OAuth",
+  "copy": "Copiar",
+  "copied": "Copiado",
+  "steps": {
+    "Claude": "En Claude, abre Configuración, Conectores, Agregar conector personalizado. Pega la URL del servidor MCP, abre Configuración avanzada y pega el ID de cliente OAuth. Deja vacío el secreto de cliente.",
+    "ChatGPT": "En ChatGPT, abre Configuración, Conectores, Crear. Pega la URL del servidor MCP, elige OAuth y pega el ID de cliente OAuth sin secreto de cliente.",
+    "Other": "Dale al cliente MCP la URL del servidor y regístralo como cliente OAuth público con el ID de cliente, PKCE S256 y sin secreto de cliente."
+  },
+  "list": "Conectores registrados",
+  "none": "No hay ningún conector registrado.",
+  "remove": "Quitar",
+  "removeTitle": "¿Quitar {name}?",
+  "removeBody": "El acceso de todos a través de él termina de inmediato y los cambios que propuso vencen.",
+  "errors": {
+    "mcp_scope_restricted": "Un conector nunca recibe de forma predeterminada un grupo que alcance datos restringidos o el control de la organización.",
+    "mcp_redirect_uri_invalid": "La URL de devolución es una dirección https sin fragmento.",
+    "mcp_client_kind_required": "Elige Claude, ChatGPT u otro cliente MCP.",
+    "oauth_scope_unknown": "Uno de los grupos no es un grupo de capacidades.",
+    "oauth_scope_missing": "Elige al menos un grupo, y como máximo 40.",
+    "org_read_only": "Esta organización es de solo lectura, así que los conectores no pueden cambiar ahora.",
+    "denied": "Necesitas permiso para administrar integraciones para registrar un conector.",
+    "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
+  },
+  "connectorName": "{name} ({kind})"
+}

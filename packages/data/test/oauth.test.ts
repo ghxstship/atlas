@@ -7,12 +7,14 @@ import {
   getConsentRequest,
   getMyOAuthAccess,
   listConnectedApps,
+  oauthDefaultScopes,
   parseAuthorizeRequest,
   readAuthorizeAnswer,
   recordOAuthRequest,
   revokeConnectedApp,
   supabaseAuthorizeUrl,
   supabaseTokenUrl,
+  tokenRequestBody,
 } from "../src/oauth.ts";
 
 const CLIENT = "0f8fad5b-d9cb-469f-a165-70867728950e";
@@ -51,8 +53,62 @@ describe("authorization requests", () => {
         codeChallenge: CHALLENGE,
         codeChallengeMethod: "S256",
         scopes: ["projects", "work"],
+        resource: null,
       },
     });
+  });
+
+  it("allows no capability group, for an MCP connector's defaults to fill (B16)", () => {
+    const parsed = parseAuthorizeRequest(params({ scope: null }));
+    expect(parsed.ok && parsed.request.scopes).toEqual([]);
+    const openid = parseAuthorizeRequest(params({ scope: "openid email" }));
+    expect(openid.ok && openid.request.scopes).toEqual([]);
+  });
+
+  it("takes a resource XOS serves and refuses any other (RFC 8707, ADR 0155 D1)", () => {
+    const resources = ["https://api.example.test/mcp", "https://atlas.example.test/api/mcp"];
+    const parsed = parseAuthorizeRequest(params({ resource: "https://api.example.test/mcp" }), {
+      resources,
+    });
+    expect(parsed.ok && parsed.request.resource).toBe("https://api.example.test/mcp");
+    expect(
+      parseAuthorizeRequest(params({ resource: "https://evil.example.test/mcp" }), { resources }),
+    ).toEqual({ ok: false, problem: "resource" });
+    expect(parseAuthorizeRequest(params({ resource: "https://api.example.test/mcp" }))).toEqual({
+      ok: false,
+      problem: "resource",
+    });
+    const twice = params();
+    twice.append("resource", resources[0] ?? "");
+    twice.append("resource", resources[1] ?? "");
+    expect(parseAuthorizeRequest(twice, { resources })).toEqual({ ok: false, problem: "resource" });
+  });
+
+  it("checks a token request's resource and leaves it out of what Supabase Auth gets", () => {
+    const resources = ["https://api.example.test/mcp"];
+    expect(tokenRequestBody("grant_type=refresh_token&refresh_token=r1", resources)).toEqual({
+      ok: true,
+      body: "grant_type=refresh_token&refresh_token=r1",
+    });
+    expect(
+      tokenRequestBody(
+        "grant_type=authorization_code&code=c1&resource=https%3A%2F%2Fapi.example.test%2Fmcp",
+        resources,
+      ),
+    ).toEqual({ ok: true, body: "grant_type=authorization_code&code=c1" });
+    expect(
+      tokenRequestBody("grant_type=authorization_code&resource=https%3A%2F%2Fevil.test", resources),
+    ).toEqual({ ok: false });
+  });
+
+  it("reads an MCP connector's default groups", async () => {
+    const { db, rpc } = client({
+      oauth_default_scopes: { data: ["home", "projects"], error: null },
+    });
+    expect(await oauthDefaultScopes(db, CLIENT)).toEqual({ ok: true, data: ["home", "projects"] });
+    expect(rpc).toHaveBeenCalledWith("oauth_default_scopes", { p_client_id: CLIENT });
+    const none = client({ oauth_default_scopes: { data: null, error: null } });
+    expect(await oauthDefaultScopes(none.db, CLIENT)).toEqual({ ok: true, data: [] });
   });
 
   it.each([
@@ -62,7 +118,6 @@ describe("authorization requests", () => {
     [{ code_challenge_method: "plain" }, "pkce"],
     [{ code_challenge: null }, "pkce"],
     [{ code_challenge: "short" }, "pkce"],
-    [{ scope: "openid email" }, "scope"],
     [{ scope: "Work-Orders" }, "scope"],
     [{ state: "x".repeat(2001) }, "state"],
   ])("refuses %o as %s", (overrides, problem) => {
@@ -70,7 +125,9 @@ describe("authorization requests", () => {
   });
 
   it("asks Supabase Auth for its own scope and passes PKCE and state through", () => {
-    const parsed = parseAuthorizeRequest(params());
+    const parsed = parseAuthorizeRequest(params({ resource: "https://api.example.test/mcp" }), {
+      resources: ["https://api.example.test/mcp"],
+    });
     if (!parsed.ok) throw new Error("expected a request");
     const url = new URL(supabaseAuthorizeUrl("http://127.0.0.1:54321/", parsed.request));
     expect(url.pathname).toBe("/auth/v1/oauth/authorize");

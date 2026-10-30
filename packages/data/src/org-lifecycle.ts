@@ -28,7 +28,7 @@ import { untyped } from "./untyped.ts";
 
 // Banner status -------------------------------------------------------------------------------------------------
 
-export type ReadOnlyReason = "deletion" | "canceled" | "dunning";
+export type ReadOnlyReason = "deletion" | "canceled" | "dunning" | "paused";
 export type BillingState = "past_due" | "read_only";
 
 export interface OrgBannerStatus {
@@ -56,16 +56,26 @@ export interface OrgBannerStatus {
   } | null;
   /** The limit the caller's own seat is past, when it is read-only. */
   readonly ownSeatReadOnly: OwnSeatLimit | null;
+  /**
+   * The subscription pause (B16, 3051): every member sees it once it has started, billing readers while it is
+   * scheduled. resumesAt is null for an open-ended pause set in Stripe.
+   */
+  readonly pause: {
+    readonly startsAt: string;
+    readonly resumesAt: string | null;
+    readonly started: boolean;
+  } | null;
 }
 
 export type OwnSeatLimit = "seats" | "field_members";
 
-const READ_ONLY_REASONS: readonly ReadOnlyReason[] = ["deletion", "canceled", "dunning"];
+const READ_ONLY_REASONS: readonly ReadOnlyReason[] = ["deletion", "canceled", "dunning", "paused"];
 const BILLING_STATES: readonly BillingState[] = ["past_due", "read_only"];
 const OWN_SEAT_LIMITS: readonly OwnSeatLimit[] = ["seats", "field_members"];
 
-export function toBannerStatus(r: Raw | undefined): OrgBannerStatus {
+export function toBannerStatus(r: Raw | undefined, now: Date = new Date()): OrgBannerStatus {
   const reason = strOrNull(r?.["read_only_reason"]);
+  const pauseStartsAt = strOrNull(r?.["pause_starts_at"]);
   const billing = strOrNull(r?.["billing_state"]);
   const overLimitPlan = strOrNull(r?.["over_limit_plan"]);
   const ownSeat = strOrNull(r?.["own_seat_read_only"]);
@@ -101,10 +111,18 @@ export function toBannerStatus(r: Raw | undefined): OrgBannerStatus {
     ownSeatReadOnly: OWN_SEAT_LIMITS.includes(ownSeat as OwnSeatLimit)
       ? (ownSeat as OwnSeatLimit)
       : null,
+    pause:
+      pauseStartsAt === null
+        ? null
+        : {
+            startsAt: pauseStartsAt,
+            resumesAt: strOrNull(r?.["pause_resumes_at"]),
+            started: Date.parse(pauseStartsAt) <= now.getTime(),
+          },
   };
 }
 
-/** Everything the org banners show, in one call (app.org_banner_status, 1353, 1355 and 2071). Members only. */
+/** Everything the org banners show, in one call (app.org_banner_status, 1353, 1355, 2071 and 3051). Members only. */
 export function getOrgBannerStatus(db: XosClient, orgId: string): Promise<Result<OrgBannerStatus>> {
   return rpc(db, "org_banner_status", { p_org_id: orgId }, (data) =>
     toBannerStatus(((data as Raw[] | null) ?? [])[0]),

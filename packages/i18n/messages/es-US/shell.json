@@ -991,7 +991,8 @@
         "invite_rate_limited": "Demasiados intentos. Espera 15 minutos y vuelve a abrir el enlace de la invitación.",
         "invite_inviter_inactive": "La persona que te invitó ya no puede agregar miembros. Pide una nueva invitación a un administrador de la organización.",
         "seat_limit_reached": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que compre asientos adicionales o mejore el plan, y vuelve a abrir la invitación.",
-        "seat_limit_upgrade": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación."
+        "seat_limit_upgrade": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación.",
+        "member_blocked": "No puedes unirte a esta organización. Pregunta a uno de sus administradores."
       },
       "home": "Ir a Atlas",
       "closedTitle": "Este enlace de invitación ya no es válido",
@@ -1019,6 +1020,7 @@
       "provider_error": "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
       "email_not_verified": "El correo de esa cuenta aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
       "sso_required": "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
+      "member_blocked": "No puedes unirte a esta organización. Pregunta a uno de sus administradores.",
       "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       "fullName": "Escribe tu nombre completo.",
       "email": "Escribe un correo como nombre@empresa.com.",
@@ -1132,6 +1134,7 @@
         "role_unknown": "Ese rol no está disponible en esta organización.",
         "sod_self_grant": "No puedes invitarte ni cambiar tu propio rol.",
         "invite_expiry_range": "Elige un vencimiento de entre 1 y 30 días.",
+        "invite_blocked": "Esta dirección de correo electrónico o su dominio está en la lista de bloqueo de la organización. Quítala primero en Configuración, Miembros.",
         "grant_exceeds_holder": "Solo puedes asignar roles cuyas capacidades tienes tú.",
         "sole_owner": "Una organización conserva al menos un propietario. Primero nombra a otra persona propietaria.",
         "plan_limit_exceeded": "Tu plan no tiene asientos libres para ese rol. Elige Observador o Campo, o compara planes.",

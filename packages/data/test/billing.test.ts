@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   beginBillingCheckout,
+  beginSubscriptionPause,
+  beginSubscriptionResume,
   getBillingAccount,
   getBillingPortalCustomer,
+  getSubscriptionPause,
   recordBillingCheckout,
+  recordSubscriptionPause,
+  recordSubscriptionResume,
 } from "../src/billing.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -165,5 +170,99 @@ describe("billing portal and summary", () => {
         currentPeriodEnd: null,
       },
     });
+  });
+});
+
+describe("subscription pause (B16, 3051)", () => {
+  it("begins and records a pause, and begins and records a resume", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:begin_subscription_pause": [
+        okResponse([
+          {
+            stripe_subscription_id: "sub_1",
+            starts_at: "2026-11-15T00:00:00Z",
+            resumes_at: "2027-01-15T00:00:00Z",
+          },
+        ]),
+        errorResponse(
+          "XR001",
+          "pause_annual: An annual plan is paid for the year and cannot pause.",
+        ),
+        okResponse([]),
+      ],
+      "rpc:record_subscription_pause": [okResponse("pause-1")],
+      "rpc:begin_subscription_resume": [
+        okResponse([{ stripe_subscription_id: "sub_1", started: true }]),
+        okResponse([]),
+      ],
+      "rpc:record_subscription_resume": [okResponse("pause-1")],
+    });
+    expect(await beginSubscriptionPause(db, { orgId: org, months: 2, livemode: false })).toEqual({
+      ok: true,
+      data: {
+        stripeSubscriptionId: "sub_1",
+        startsAt: "2026-11-15T00:00:00Z",
+        resumesAt: "2027-01-15T00:00:00Z",
+      },
+    });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_org_id: org, p_months: 2, p_livemode: false }],
+    ]);
+    const annual = await beginSubscriptionPause(db, { orgId: org, months: 2, livemode: false });
+    expect(annual.ok === false && annual.error).toMatchObject({
+      kind: "refusal",
+      rule: "pause_annual",
+    });
+    expect((await beginSubscriptionPause(db, { orgId: org, months: 2, livemode: false })).ok).toBe(
+      false,
+    );
+    expect(
+      await recordSubscriptionPause(db, {
+        orgId: org,
+        months: 2,
+        livemode: false,
+        stripeSubscriptionId: "sub_1",
+      }),
+    ).toEqual({ ok: true, data: "pause-1" });
+    expect(await beginSubscriptionResume(db, { orgId: org, livemode: false })).toEqual({
+      ok: true,
+      data: { stripeSubscriptionId: "sub_1", started: true },
+    });
+    expect((await beginSubscriptionResume(db, { orgId: org, livemode: false })).ok).toBe(false);
+    expect(await recordSubscriptionResume(db, { orgId: org, livemode: false })).toEqual({
+      ok: true,
+      data: "pause-1",
+    });
+  });
+
+  it("reads the open pause, or none", async () => {
+    const { db } = fakeClient({
+      "rpc:subscription_pause_status": [
+        okResponse([
+          {
+            pause_id: "p1",
+            source: "Stripe",
+            months: null,
+            starts_at: "2026-10-01T00:00:00Z",
+            resumes_at: null,
+            started: true,
+          },
+        ]),
+        okResponse([]),
+      ],
+    });
+    expect(await getSubscriptionPause(db, org)).toEqual({
+      ok: true,
+      data: {
+        pauseId: "p1",
+        source: "Stripe",
+        months: null,
+        startsAt: "2026-10-01T00:00:00Z",
+        resumesAt: null,
+        started: true,
+      },
+    });
+    expect(await getSubscriptionPause(db, org)).toEqual({ ok: true, data: null });
   });
 });

@@ -330,12 +330,28 @@ describe("request log", () => {
           { id: "r1", ...base, ai_usage: { input_tokens: 10, output_tokens: 2 } },
           { id: "r2", ...base, ai_usage: [{ input_tokens: 3, output_tokens: 1 }] },
           { id: "r3", ...base, ai_usage: null },
+          {
+            id: "r4",
+            ...base,
+            model: "external-agent",
+            oauth_app_id: "app-1",
+            oauth_apps: { name: "Claude" },
+            ai_usage: null,
+          },
+          { id: "r5", ...base, oauth_app_id: "app-2", oauth_apps: null, ai_usage: null },
         ]),
         errorResponse("08000", "down"),
       ],
     });
     const log = await listAiRequests(db, "o1", 500);
-    expect(log.ok && log.data.map((r) => r.inputTokens)).toEqual([10, 3, null]);
+    expect(log.ok && log.data.map((r) => r.inputTokens)).toEqual([10, 3, null, null, null]);
+    expect(log.ok && log.data.map((r) => r.connectedApp)).toEqual([
+      null,
+      null,
+      null,
+      { id: "app-1", name: "Claude" },
+      { id: "app-2", name: null },
+    ]);
     expect(calls[0]?.steps.find(([m]) => m === "limit")?.[1]).toEqual([200]);
     expect((await listAiRequests(db, "o1")).ok).toBe(false);
   });
