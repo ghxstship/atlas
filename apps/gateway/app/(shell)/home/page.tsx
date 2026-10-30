@@ -6,6 +6,7 @@ import {
   listOnboardingItems,
   listRepresentations,
   listSharedRecords,
+  readView,
   searchMarketplace,
   type Engagement,
 } from "@xos/data/gateway";
@@ -30,7 +31,15 @@ import {
   type ScheduleView,
 } from "@/lib/format";
 import { getScheduleView } from "@/lib/time-zone";
-import { needsYou, pickUpNext, UP_NEXT_KINDS, type FeedItem } from "@/lib/home";
+import {
+  needsYou,
+  pickUpNext,
+  upNextDetails,
+  UP_NEXT_KINDS,
+  type FeedItem,
+  type UpNextDetails,
+} from "@/lib/home";
+import type { GatewayContext } from "@/lib/shell/context";
 import { lensApplications, lensEngagements, lensRepresentations } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
@@ -90,6 +99,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       }),
     ]);
   const upNext = records.ok ? pickUpNext(records.data, current, now) : null;
+  const details = upNext?.engagement ? await loadUpNextDetails(ctx, upNext.engagement) : null;
   const feed = needsYou({
     engagements,
     documents: documents.ok ? documents.data : [],
@@ -131,7 +141,14 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       {view === "feed" ? (
         <Section title={t("gateway.home.upNext.title")}>
           {upNext ? (
-            <UpNextCardView upNext={upNext} locale={locale} t={t} now={now} schedule={schedule} />
+            <UpNextCardView
+              upNext={upNext}
+              details={details}
+              locale={locale}
+              t={t}
+              now={now}
+              schedule={schedule}
+            />
           ) : (
             <EmptyStateLink
               icon="CalendarClock"
@@ -198,6 +215,78 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   );
 }
 
+/**
+ * The next call, the venue, the contact and what to bring for the Up Next engagement (R2), read in
+ * parallel. A read that fails leaves its rows out rather than failing the card.
+ */
+async function loadUpNextDetails(ctx: GatewayContext, e: Engagement): Promise<UpNextDetails> {
+  const [row, badges, gear] = await Promise.all([
+    readView(ctx.db, "engagement_up_next", { eq: { engagement_id: e.id } }),
+    readView(ctx.db, "credentials", {
+      eq: { project_id: e.projectId, holder_person_id: ctx.personId },
+    }),
+    readView(ctx.db, "asset_custody", { eq: { engagement_id: e.id } }),
+  ]);
+  return upNextDetails({
+    row: row.ok ? (row.data[0] ?? null) : null,
+    orgName: e.orgName,
+    badges: badges.ok ? badges.data : [],
+    gear: gear.ok ? gear.data : [],
+  });
+}
+
+/** The Up Next rows R2 adds, each left out when it has no value. */
+function detailItems(
+  details: UpNextDetails | null,
+  e: Engagement | null,
+  locale: string,
+  t: Translate,
+  schedule: ScheduleView,
+): { label: string; value: ReactNode }[] {
+  if (!details || !e) return [];
+  return [
+    ...(details.call
+      ? [
+          {
+            label: t(`gateway.home.upNext.callKind.${details.call.kind}`),
+            value: formatScheduleTime(locale, details.call.at, details.call.timeZone, schedule),
+          },
+        ]
+      : []),
+    ...(details.where ? [{ label: t("gateway.home.upNext.where"), value: details.where }] : []),
+    {
+      label: t("gateway.home.upNext.contact"),
+      value: (
+        <span className="flex flex-wrap items-center gap-8">
+          <span>{details.contact}</span>
+          <Link href={engagementHref(e, "messages")} className="text-accent-text underline">
+            {t("gateway.home.upNext.message")}
+          </Link>
+        </span>
+      ),
+    },
+    ...(details.bring.length > 0
+      ? [
+          {
+            label: t("gateway.home.upNext.bring"),
+            value: (
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {details.bring.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+                {details.bringMore > 0 ? (
+                  <li className="text-text-secondary">
+                    {t("gateway.home.upNext.bringMore", { n: details.bringMore })}
+                  </li>
+                ) : null}
+              </ul>
+            ),
+          },
+        ]
+      : []),
+  ];
+}
+
 function feedKey(item: FeedItem): string {
   switch (item.kind) {
     case "sign":
@@ -217,12 +306,15 @@ function feedKey(item: FeedItem): string {
 
 function UpNextCardView({
   upNext,
+  details,
   locale,
   t,
   now,
   schedule,
 }: {
   upNext: ReturnType<typeof pickUpNext> & object;
+  /** Call, venue, contact and what to bring for the Up Next engagement (R2). */
+  details: UpNextDetails | null;
   locale: string;
   t: Translate;
   now: Date;
@@ -257,6 +349,7 @@ function UpNextCardView({
               label: t("gateway.home.upNext.state"),
               value: t(enumLabelKey("engagementState", e.state)),
             },
+            ...detailItems(details, e, locale, t, schedule),
           ]}
         />
       </Card>
@@ -310,6 +403,7 @@ function UpNextCardView({
                 { label: t("gateway.home.upNext.project"), value: upNext.engagement.projectName },
               ]
             : []),
+          ...detailItems(details, upNext.engagement, locale, t, schedule),
         ]}
       />
     </Card>

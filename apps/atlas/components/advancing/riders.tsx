@@ -14,6 +14,8 @@ import { RiderExtraction } from "@/components/aurora/rider-extraction";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { EmptyStateLink } from "@/components/ui";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
+import { riderPartyChoices, riderPartyValue, type PartyChoice } from "@/lib/advancing/rider-party";
+import { engagementOptions } from "@/lib/people/project-people";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
@@ -28,6 +30,7 @@ import {
 import { isRowId, pickView, Property, withQuery, type Search } from "./shared";
 import { PageHeader, ProgressBar, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS = ["list", "table"] as const;
 
@@ -43,9 +46,38 @@ function riderState(r: RiderSummary): {
 }
 
 function partyName(r: RiderSummary, t: Translate): string {
+  if (r.engagementId) return r.engagementName ?? t("advancing.riders.artist");
   return r.counterpartyId
     ? (r.counterpartyName ?? t("advancing.common.counterparty"))
     : t("advancing.riders.noParty");
+}
+
+/**
+ * 'Whose rider' options: counterparties, then the Artist engagements that name a person on the
+ * reachable projects (R1's engagement options), labelled with the artist and the project key.
+ */
+async function riderParties(actx: AdvancingContext, t: Translate): Promise<PartyChoice[]> {
+  const { ctx, project } = actx;
+  const [parties, engagements] = await Promise.all([
+    listAdvanceParties(ctx.viewer.db, ctx.org.id),
+    engagementOptions(ctx, project?.id),
+  ]);
+  if (!parties.ok) throw new Error(`Cannot list parties: ${JSON.stringify(parties.error)}`);
+  return [
+    ...parties.data
+      .filter((p) => p.kind === "counterparty")
+      .map((p) => ({ value: `c:${p.id}`, label: p.name ?? t("advancing.common.counterparty") })),
+    ...engagements
+      .filter((e) => e.roleType === "Artist" && e.personId !== null)
+      .map((e) => ({
+        value: `e:${e.engagementId}`,
+        label: t("advancing.riders.engagementOption", {
+          name: e.personName ?? t("advancing.riders.artist"),
+          project: e.projectKey,
+        }),
+        projectId: e.projectId,
+      })),
+  ];
 }
 
 /**
@@ -66,12 +98,7 @@ export async function RidersCollection({
   const { ctx, can, projects, project } = actx;
   const t = await getTranslate();
   const peekId = search["peek"];
-  const parties = can.rider ? await listAdvanceParties(ctx.viewer.db, ctx.org.id) : null;
-  if (parties && !parties.ok)
-    throw new Error(`Cannot list parties: ${JSON.stringify(parties.error)}`);
-  const counterpartyOptions = (parties?.ok ? parties.data : [])
-    .filter((p) => p.kind === "counterparty")
-    .map((p) => ({ value: p.id, label: p.name ?? t("advancing.common.counterparty") }));
+  const parties = can.rider ? await riderParties(actx, t) : [];
 
   if (peekId && search["full"] === "1") {
     return (
@@ -79,7 +106,7 @@ export async function RidersCollection({
         actx={actx}
         riderId={peekId}
         backHref={withQuery(path, search, { peek: null, full: null })}
-        parties={counterpartyOptions}
+        parties={parties}
       />
     );
   }
@@ -101,25 +128,29 @@ export async function RidersCollection({
   if (peekId && isRowId(peekId) && !peekRider) notFound();
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={riders.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-        {...(can.rider && projects.length > 0
-          ? {
-              actions: (
-                <CreateRiderDialog
-                  org={ctx.org.slug}
-                  projects={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
-                  parties={counterpartyOptions}
-                  defaultProjectId={project?.id ?? null}
-                  defaultOpen={search["create"] === "1"}
-                />
-              ),
-            }
-          : {})}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={riders.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+          {...(can.rider && projects.length > 0
+            ? {
+                actions: (
+                  <CreateRiderDialog
+                    org={ctx.org.slug}
+                    projects={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+                    parties={parties}
+                    defaultProjectId={project?.id ?? null}
+                    defaultOpen={search["create"] === "1"}
+                  />
+                ),
+              }
+            : {})}
+        />
+      }
+    >
       {fixedProject ? null : (
         <div className="flex flex-wrap items-end gap-8">
           <SelectFilter
@@ -222,7 +253,7 @@ export async function RidersCollection({
           />
         ) : null,
       )}
-    </div>
+    </CollectionPage>
   );
 }
 
@@ -245,11 +276,18 @@ async function RiderPage({
   actx: AdvancingContext;
   riderId: string;
   backHref: string;
-  parties: readonly { value: string; label: string }[];
+  parties: readonly PartyChoice[];
 }) {
   const { ctx, can } = actx;
   const rider = await loadRider(actx, riderId);
   const t = await getTranslate();
+  // An artist's engagement is offered only on the rider's own project, and the rider's own party
+  // stays offered when the picker leaves it out, so saving a new title keeps it.
+  const current = riderPartyValue(rider);
+  const choices = riderPartyChoices(parties, rider.projectId, {
+    value: current,
+    label: partyName(rider, t),
+  });
   const format = await getFormatter();
   const org = ctx.org.slug;
   const project = actx.projects.find((p) => p.id === rider.projectId);
@@ -312,8 +350,8 @@ async function RiderPage({
           org={org}
           riderId={rider.id}
           title={rider.title}
-          counterpartyId={rider.counterpartyId}
-          parties={parties}
+          party={current}
+          parties={choices}
           disabled={!can.rider}
         />
       </Panel>

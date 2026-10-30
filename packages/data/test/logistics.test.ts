@@ -457,6 +457,10 @@ describe("dock slots", () => {
     expect(calls[2]?.steps[0]?.[1]).toEqual([
       { zone_id: "z1", shipment_id: "s1", engagement_id: "e1", starts_at: "a", ends_at: "b" },
     ]);
+    // An omitted vendor engagement is kept: the update never writes the column.
+    expect(calls[3]?.steps[0]?.[1]).toEqual([
+      { zone_id: "z1", shipment_id: "s1", starts_at: "a", ends_at: "b" },
+    ]);
     const listError = client({ "from:dock_slots": [errorResponse("XX000", "down")] });
     expect((await listDockSlots(listError.db, { orgId: "o1" })).ok).toBe(false);
   });
@@ -547,5 +551,20 @@ describe("access", () => {
     ]);
     expect(result.ok && result.data.projectsWith("hospitality.beo.approve").size).toBe(0);
     expect((await getOperationsAccess(db, "o1")).ok).toBe(false);
+  });
+});
+
+describe("dock slot vendor engagement", () => {
+  it("clears the engagement on null and keeps it when omitted", async () => {
+    const slot = { zoneId: "z1", shipmentId: null, startsAt: "a", endsAt: "b" };
+    const { db, calls } = client({
+      "from:dock_slots": [okResponse([{ id: "d1" }]), okResponse([{ id: "d1" }])],
+    });
+    expect((await updateDockSlot(db, "d1", { ...slot, engagementId: null })).ok).toBe(true);
+    expect((await updateDockSlot(db, "d1", slot)).ok).toBe(true);
+    expect(calls[0]?.steps[0]?.[1]).toEqual([
+      { zone_id: "z1", shipment_id: null, engagement_id: null, starts_at: "a", ends_at: "b" },
+    ]);
+    expect(calls[1]?.steps[0]?.[1]).not.toHaveProperty([0, "engagement_id"]);
   });
 });

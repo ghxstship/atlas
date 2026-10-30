@@ -34,7 +34,6 @@ import type { ShellQuickAdd } from "./shell-create";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
 import type { ShellKeys } from "@/lib/shell/shell-keys";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
-import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import type { AiFeature } from "@xos/data/ai";
 import { AiFeaturesProvider } from "@/components/aurora/ai-features";
@@ -46,8 +45,10 @@ import { UndoCenter } from "@/components/undo/undo-center";
 import { undoStack } from "@xos/ui/undo";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
 import { onDemand, useOnDemand } from "./on-demand";
+import { useRecentProjects } from "./recent-projects";
 import { broadcast, SessionWatcher } from "./session-watcher";
 import { ShellKeysContext } from "./shell-keys-context";
+import { SidebarFavorites, type FavoriteLink } from "./sidebar-favorites";
 import type { KeyState } from "./key-dispatch";
 
 /** The command menu (cmdk and the help article index) loads the first time it opens (A24-009). */
@@ -61,8 +62,8 @@ export interface ShellFrameProps {
   readonly org: { readonly name: string; readonly slug: string };
   readonly orgs: readonly { readonly name: string; readonly slug: string; readonly role: string }[];
   readonly nav: ShellNav;
-  /** The person's pinned pages and records in this org (app.favorites). */
-  readonly favorites: readonly NavLinkModel[];
+  /** The person's pinned pages and records in this org, in their order (app.favorites). */
+  readonly favorites: readonly FavoriteLink[];
   readonly workspaces: readonly { readonly slug: string; readonly name: string }[];
   readonly workspace: string | null;
   /** The language picker's choices; empty when the org locks its language. */
@@ -94,11 +95,12 @@ export interface ShellFrameProps {
 type Translate = (key: string, values?: Record<string, string>) => string;
 
 /**
- * The Atlas shell on @xos/ui (A05): org switcher, workspace filter, sitemap sidebar with favorites,
- * role-default groups and the person's own layout, the Create menu, breadcrumbs, account menu,
- * command menu, the phone bottom bar, focus mode and the session dialog. Every item comes from the
- * navigation model built from ia/sitemap.yaml on the server, and every shortcut (Cmd or Ctrl+K, `/`,
- * C, `?`, G then a letter, focus mode) from the shortcut registry with the person's own bindings.
+ * The Atlas shell on @xos/ui (A05): org switcher, workspace filter, sitemap sidebar with favorites
+ * (sidebar-favorites.tsx), the recent projects under Projects, role-default groups and the person's
+ * own layout, the Create menu, breadcrumbs, account menu, command menu, the phone bottom bar, focus
+ * mode and the session dialog. Every item comes from the navigation model built from
+ * ia/sitemap.yaml on the server, and every shortcut (Cmd or Ctrl+K, `/`, C, `?`, G then a letter,
+ * focus mode) from the shortcut registry with the person's own bindings.
  */
 export function ShellFrame(props: ShellFrameProps) {
   const { org, nav } = props;
@@ -122,33 +124,46 @@ export function ShellFrame(props: ShellFrameProps) {
     (open: boolean) => setMenuOpenOn(open ? pathname : null),
     [pathname],
   );
-  const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const signOutForm = useRef<HTMLFormElement>(null);
 
   const go = useCallback((href: string) => router.push(href as Route), [router]);
 
-  /** Sidebar items navigate client side; the anchor stays for middle-click and screen readers. */
+  /**
+   * Sidebar items navigate client side; the anchor stays for middle-click and screen readers. The items under one
+   * (the recent projects under Projects) come along.
+   */
   const toItem = useCallback(
-    (l: NavLinkModel): NavItem => ({
-      label: l.label,
-      icon: l.icon,
-      href: l.href,
-      onSelect: ((event: MouseEvent) => {
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-        event.preventDefault();
-        go(l.href);
-      }) as unknown as () => void,
-    }),
+    function toItem(l: NavLinkModel): NavItem {
+      return {
+        label: l.label,
+        icon: l.icon,
+        href: l.href,
+        onSelect: ((event: MouseEvent) => {
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+          event.preventDefault();
+          go(l.href);
+        }) as unknown as () => void,
+        ...(l.children ? { items: l.children.map(toItem), itemsLabel: l.childrenLabel } : {}),
+      };
+    },
     [go],
   );
 
+  // The pinned entries, with the recent projects under Projects kept current as projects open.
+  const pinned = useRecentProjects(nav.pinned);
+
   const active = useMemo(() => {
-    const all = [...nav.top, ...nav.pinned, ...nav.groups.flatMap((g) => g.items), ...nav.footer];
+    const all = [
+      ...nav.top,
+      ...pinned.flatMap((l) => [l, ...(l.children ?? [])]),
+      ...nav.groups.flatMap((g) => g.items),
+      ...nav.footer,
+    ];
     const match = all
       .filter((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))
       .sort((a, b) => b.href.length - a.href.length)[0];
     return match?.label;
-  }, [nav, pathname]);
+  }, [nav, pinned, pathname]);
 
   // What the key handler acts on, kept current as the person's keys change; read once per key.
   const keyState = useRef<KeyState | null>(null);
@@ -315,48 +330,19 @@ export function ShellFrame(props: ShellFrameProps) {
         {...(active ? { active } : {})}
         groups={[{ items: nav.top.map(toItem) }]}
       />
-      <section aria-labelledby="favorites-heading" className="px-8">
-        <div className="flex items-center justify-between gap-8">
-          <h2 id="favorites-heading" className="m-0 text-text-11 font-medium text-text-secondary">
-            {t("nav.atlas.actions.favorites")}
-          </h2>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={async () => {
-              const peek = new URLSearchParams(window.location.search).get("peek");
-              const result = await toggleFavoriteAction(org.slug, pathname, peek);
-              setFavoriteError(result.error ? t(`settings.errors.${result.error}`) : null);
-            }}
-          >
-            {props.favorites.some((f) => f.href.split("?")[0] === pathname)
-              ? t("settings.favorites.unpin")
-              : t("settings.favorites.pin")}
-          </Button>
-        </div>
-        {favoriteError ? (
-          <p role="alert" className="m-0 mt-4 text-text-12 text-danger-text">
-            {favoriteError}
-          </p>
-        ) : null}
-        {props.favorites.length === 0 ? (
-          <p className="m-0 mt-4 text-text-12 text-text-tertiary">
-            {t("shell.chrome.favoritesEmpty")}
-          </p>
-        ) : null}
-      </section>
-      {props.favorites.length > 0 ? (
-        <Sidebar
-          label={t("nav.atlas.actions.favorites")}
-          {...(active ? { active } : {})}
-          groups={[{ items: props.favorites.map(toItem) }]}
-        />
-      ) : null}
+      <SidebarFavorites
+        org={org.slug}
+        pathname={pathname}
+        favorites={props.favorites}
+        {...(active ? { active } : {})}
+        go={go}
+        toItem={toItem}
+      />
       <Sidebar
         label={t("shell.chrome.mainNav")}
         {...(active ? { active } : {})}
         groups={[
-          { items: nav.pinned.map(toItem) },
+          { items: pinned.map(toItem) },
           ...nav.groups.map((g) => ({
             label: g.label,
             collapsed: !g.expanded,
