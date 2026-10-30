@@ -11,6 +11,9 @@ import { createRecordAction, setChoiceAction } from "@/app/[org]/objects/actions
 import { WhyCanISeeThis } from "@/components/access/why-can-i-see-this";
 import { FieldHistoryList, type HistoryItem } from "@/components/history/field-history-list";
 import { ActionForm, usePlatformT } from "@/components/platform/kit";
+import { Region } from "@/components/shell/region";
+import { RegionContent } from "@/components/shell/region-content";
+import type { RegionData } from "@/lib/shell/region-data";
 import { CollabPanels } from "@/components/work/collab";
 import type { Conversation } from "@/components/work/record-sections";
 
@@ -161,7 +164,7 @@ export function CreateRecordDrawer({
 /**
  * A record in the side peek: its values, moving it to another board column, its activity (the field
  * history 2100 records), its comments and files through the same panels as every record's (Section
- * 4.6.3), and Why can I see this.
+ * 4.6.3), and Why can I see this. The activity and the comments and files each fail alone (A143).
  */
 export function RecordPeek({
   org,
@@ -188,7 +191,7 @@ export function RecordPeek({
   closeHref: string;
   /** The record's field history, worded; null when it could not be read. */
   activity: readonly HistoryItem[] | null;
-  conversation: Conversation;
+  conversation: RegionData<Conversation>;
   /** The viewer's person id, to offer deleting their own comments and files. */
   me: string | null;
 }) {
@@ -224,25 +227,31 @@ export function RecordPeek({
           />
         </ActionForm>
       ) : null}
-      {activity ? (
-        <FieldHistoryList
-          id={recordId}
-          title={c("history.title")}
-          empty={c("history.empty")}
-          items={activity}
-        />
-      ) : (
-        <p className="m-0 text-text-13 text-text-secondary">{c("history.unavailable")}</p>
-      )}
-      <CollabPanels
-        org={org}
-        subject={{ table: "app.custom_object_records", id: recordId }}
-        threads={conversation.threads}
-        attachments={conversation.attachments}
-        names={conversation.names}
-        me={me}
-        canPost
-      />
+      <Region>
+        {activity ? (
+          <FieldHistoryList
+            id={recordId}
+            title={c("history.title")}
+            empty={c("history.empty")}
+            items={activity}
+          />
+        ) : (
+          <p className="m-0 text-text-13 text-text-secondary">{c("history.unavailable")}</p>
+        )}
+      </Region>
+      <RegionContent data={conversation}>
+        {(loaded) => (
+          <CollabPanels
+            org={org}
+            subject={{ table: "app.custom_object_records", id: recordId }}
+            threads={loaded.threads}
+            attachments={loaded.attachments}
+            names={loaded.names}
+            me={me}
+            canPost
+          />
+        )}
+      </RegionContent>
       <WhyCanISeeThis paths={paths} />
     </Drawer>
   );
