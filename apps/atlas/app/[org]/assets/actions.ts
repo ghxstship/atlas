@@ -470,33 +470,44 @@ export async function allocationHoldsAction(
     .is("deleted_at", null)
     .maybeSingle();
   if (!unit.data) return [];
+  // Approved allocations of this unit's class first, so the holds read is bounded by the class rather than cut
+  // off by an org-wide limit.
+  const classOf = await db
+    .from("advance_allocations")
+    .select("id")
+    .eq("org_id", ctx.org.id)
+    .eq("asset_class_id", unit.data.asset_class_id)
+    .eq("allocation_state", "Approved")
+    .is("deleted_at", null);
+  const ofClass = (classOf.data ?? []).map((a) => a.id);
+  if (ofClass.length === 0) return [];
   const holds = await db
     .from("asset_reservations")
     .select("id, asset_unit_id, asset_lot_id, quantity, advance_allocation_id")
+    .in("advance_allocation_id", ofClass)
     .is("released_at", null)
     .is("deleted_at", null)
-    .is("asset_lot_id", null)
-    .limit(200);
+    .is("asset_lot_id", null);
   const statuses = await db
     .from("advance_allocation_status")
     .select(
-      "allocation_id, roster_entry_id, holder_engagement_id, item_name, quantity, issued_quantity, allocation_state",
+      "allocation_id, project_id, roster_entry_id, holder_engagement_id, item_name, quantity, issued_quantity, allocation_state",
     )
-    .eq("org_id", ctx.org.id)
-    .eq("allocation_state", "Approved")
-    .eq("kind", "Asset");
-  const classOf = await db
-    .from("advance_allocations")
-    .select("id, asset_class_id")
-    .eq("asset_class_id", unit.data.asset_class_id);
-  const ofClass = new Set((classOf.data ?? []).map((a) => a.id));
-  const holders = await db
-    .from("allocation_holders")
-    .select("roster_entry_id, engagement_id, holder_kind, holder_name, party_name");
+    .in("allocation_id", ofClass);
+  const projectIds = [
+    ...new Set((statuses.data ?? []).flatMap((a) => (a.project_id ? [a.project_id] : []))),
+  ];
+  const holders =
+    projectIds.length === 0
+      ? { data: [] }
+      : await db
+          .from("allocation_holders")
+          .select("roster_entry_id, engagement_id, holder_kind, holder_name, party_name")
+          .in("project_id", projectIds);
   const byAllocation = new Map((statuses.data ?? []).map((s) => [s.allocation_id, s]));
   return (holds.data ?? []).flatMap((h) => {
     const a = byAllocation.get(h.advance_allocation_id);
-    if (!a || !ofClass.has(h.advance_allocation_id)) return [];
+    if (!a) return [];
     if (h.asset_unit_id !== null && h.asset_unit_id !== unit.data?.id) return [];
     if (Number(a.issued_quantity ?? 0) >= Number(a.quantity ?? 0)) return [];
     const holder = (holders.data ?? []).find((x) =>

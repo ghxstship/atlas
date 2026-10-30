@@ -22,9 +22,6 @@ import {
   updateBeoAction,
 } from "@/app/[org]/hospitality/actions";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
-
-// Roster counts (R7) load with the record that shows them, and read only when asked for (each read is logged).
-const BeoRosterCounts = dynamic(() => import("./roster-counts").then((m) => m.BeoRosterCounts));
 import { nodeHref } from "@/lib/shell/sitemap";
 import { OperationsCalendar, OperationsList, OperationsTable, ViewSwitcher } from "./client";
 import { ActionButton, FormDrawer, InlineForm, type FieldSpec } from "./forms";
@@ -48,6 +45,9 @@ import {
 import { RecordView } from "./record";
 import { InlineAlert, PageHeader, RefusalNotice, TemplateCollection } from "./ui";
 import { DocumentActions } from "@/components/documents/document-actions";
+
+// Roster counts (R7) load with the record that shows them, and read only when asked for (each read is logged).
+const BeoRosterCounts = dynamic(() => import("./roster-counts").then((m) => m.BeoRosterCounts));
 
 /**
  * Hospitality > BEOs (Section 4.5.5; journey 21): banquet event orders generated from catering

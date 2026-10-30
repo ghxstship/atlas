@@ -139,6 +139,10 @@ export async function assignAllocationAction(
             : { kind: "service", serviceKind: targetId === "Per Diem" ? "Per Diem" : "Travel" };
   const sources = parseSources(form.get("sources"));
   if (sources === "invalid") return { error: "allocation_sources_invalid" };
+  // Channels are set once the allocation exists, so the count rule (2697) is checked first: a refusal after the
+  // allocation is created would leave it without channels.
+  const channels = target.kind === "asset" ? channelIds(form) : [];
+  if (channels.length > 16) return { error: "allocation_channel_count" };
   const input: AllocationInput = {
     projectId: d.projectId,
     holder: holderKind === "pool" ? { engagementId: holderId } : { rosterEntryId: holderId },
@@ -154,10 +158,12 @@ export async function assignAllocationAction(
       ? await requestAllocation(ctx.viewer.db, input)
       : await assignAllocation(ctx.viewer.db, { ...input, sources });
   if (!result.ok) return { error: errorKey(result.error) };
-  const channels = channelIds(form);
-  if (target.kind === "asset" && channels.length > 0) {
+  if (channels.length > 0) {
     const set = await setAllocationRadioChannels(ctx.viewer.db, result.data, channels);
-    if (!set.ok) return { error: errorKey(set.error), id: result.data };
+    if (!set.ok) {
+      revalidatePath(`/${ctx.org.slug}`, "layout");
+      return { error: errorKey(set.error), id: result.data };
+    }
   }
   revalidatePath(`/${ctx.org.slug}`, "layout");
   return { ok: true, id: result.data };
@@ -214,20 +220,47 @@ export async function splitAllocationAction(
   if (!id.success) return { error: "invalid" };
   const entries = form.getAll("entry").map(String);
   const quantities = form.getAll("quantity").map((q) => Number(q));
-  const tags = form.getAll("units").map(String);
+  // The Asset tags field takes tags as people read them off the radio; the RPC takes unit ids.
+  const tagsOf = form.getAll("units").map((v) =>
+    String(v)
+      .split(/[,\s]+/)
+      .map((t) => t.trim().toUpperCase())
+      .filter(Boolean),
+  );
+  const allTags = [...new Set(tagsOf.flat())];
+  const units =
+    allTags.length > 0
+      ? await ctx.viewer.db
+          .from("asset_units")
+          .select("id, asset_tag")
+          .eq("org_id", ctx.org.id)
+          .in("asset_tag", allTags)
+          .is("deleted_at", null)
+      : { data: [] as { id: string; asset_tag: string }[] };
+  const unitOf = new Map((units.data ?? []).map((u) => [u.asset_tag, u.id]));
+  if (allTags.some((t) => !unitOf.has(t))) return { error: "issue_unit_unknown" };
   const parts = entries
     .map((rosterEntryId, i) => ({
       rosterEntryId,
       quantity: quantities[i] ?? 0,
-      assetUnitIds: (tags[i] ?? "")
-        .split(/[,\s]+/)
-        .map((t) => t.trim())
-        .filter((t) => /^[0-9a-f-]{36}$/.test(t)),
+      assetUnitIds: (tagsOf[i] ?? []).map((t) => unitOf.get(t) as string),
     }))
     .filter((p) => p.rosterEntryId !== "" && p.quantity > 0);
   if (parts.length === 0) return { fieldErrors: { quantity: "required" } };
+  const channels = channelIds(form);
+  if (channels.length > 16) return { error: "allocation_channel_count" };
   const result = await splitAllocation(ctx.viewer.db, id.data, parts);
   if (!result.ok) return { error: errorKey(result.error) };
+  // A radio pool's shares are programmed with the channels the dialog names (G-91), each set as a whole.
+  if (form.get("channelsSent") === "1" && channels.length > 0) {
+    for (const share of result.data) {
+      const set = await setAllocationRadioChannels(ctx.viewer.db, share, channels);
+      if (!set.ok) {
+        revalidatePath(`/${ctx.org.slug}`, "layout");
+        return { error: errorKey(set.error) };
+      }
+    }
+  }
   revalidatePath(`/${ctx.org.slug}`, "layout");
   return { ok: true };
 }

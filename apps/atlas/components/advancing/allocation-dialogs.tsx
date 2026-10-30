@@ -33,8 +33,9 @@ import { useCopy, type Translate } from "./use-copy";
 /**
  * The allocation dialogs of Atlas (R7), loaded on demand with next/dynamic so the page carries none of their code:
  * Assign (or Request), Review (Approve with the hold sources, the allowance and, for radios, the channels; Decline
- * with a reason), Split, Issue (per kind; tags by scan or typing; a parking pass names the person's vehicle through
- * R5's logged read), Withdraw and Return to pool. Each submits a server action; refusals show their catalog copy.
+ * with a reason), Split (for radios, the shares' channels), Issue (per kind; tags by scan or typing; a parking pass
+ * names the person's vehicle through R5's logged read), Withdraw and Return to pool. Each submits a server action;
+ * refusals show their catalog copy.
  */
 
 type Action = (prev: AdvancingState, form: FormData) => Promise<AdvancingState>;
@@ -356,8 +357,13 @@ export function AllocationAssignDialog({
   const t = useCopy("advancing.allocations");
   const [open, setOpen] = useState(false);
   const formId = useId();
-  const { state, pending, submit } = useDialogAction(assignAllocationAction, () => setOpen(false));
+  const {
+    state,
+    pending,
+    submit: run,
+  } = useDialogAction(assignAllocationAction, () => setOpen(false));
   const [options, setOptions] = useState<AssignOptions | null>(null);
+  const [reasonMissing, setReasonMissing] = useState(false);
   const [holder, setHolder] = useState("");
   const [kind, setKind] = useState("credential");
   const [item, setItem] = useState("");
@@ -390,6 +396,24 @@ export function AllocationAssignDialog({
     chosen?.offering ?? null,
     holderRow?.rosterEntryId ?? null,
   );
+  // Assigning beyond the allowance needs a reason (allocation_over_allowance_reason); a request does not, as the
+  // reviewer gives it, so the check runs on submit rather than as a native required field shared by both buttons.
+  const beyond =
+    allowance && allowance.cap !== null && allowance.remaining !== null
+      ? Math.max(quantity - allowance.remaining, 0)
+      : 0;
+  const reasonNeeded = canAssign && beyond > 0;
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const note = new FormData(event.currentTarget).get("note");
+    if (reasonNeeded && submitter?.value === "assign" && !String(note ?? "").trim()) {
+      event.preventDefault();
+      setReasonMissing(true);
+      return;
+    }
+    setReasonMissing(false);
+    run(event);
+  };
   const kinds = [
     "credential",
     "parking_pass",
@@ -529,8 +553,9 @@ export function AllocationAssignDialog({
           name="note"
           maxLength={1000}
           width="100%"
-          label={t("assign.note")}
-          help={t("assign.noteHelp")}
+          label={reasonNeeded ? t("allowance.reason") : t("assign.note")}
+          help={reasonNeeded ? t("allowance.assignReasonHelp") : t("assign.noteHelp")}
+          {...(reasonMissing && reasonNeeded ? { error: t("allowance.reasonRequired") } : {})}
         />
         <Refusal state={state} />
       </form>
@@ -755,6 +780,12 @@ function SplitDialog({ org, row }: { org: string; row: AllocationRowProps }) {
             {t("splitDialog.addPerson")}
           </Button>
         </div>
+        {row.offering === "Radios" && options ? (
+          <>
+            <input type="hidden" name="channelsSent" value="1" />
+            <ChannelPicker t={t} channels={options.channels} hint={null} />
+          </>
+        ) : null}
         <Refusal state={state} />
       </form>
     </DialogShell>

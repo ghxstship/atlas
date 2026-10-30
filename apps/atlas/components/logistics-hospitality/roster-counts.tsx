@@ -4,15 +4,18 @@ import { Button } from "@xos/ui";
 import type { CateringCount } from "@xos/data/allocations";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
+import { useCopy } from "@/components/advancing/use-copy";
+import { workDetailLabel } from "@/components/work-details/shared-categories";
 import { rosterCountsAction } from "./roster-counts-actions";
 
 /**
  * Roster counts beside a BEO's typed guest count (R7): the people allocated the catering and their shared dietary
- * needs, Fewer than 5 where a count is suppressed, and the allergy row only for holders of
+ * needs (labeled from the workDetails catalog), Fewer than 5 where a count is suppressed, and the allergy row only for holders of
  * data.restricted.read.medical (the database leaves it out otherwise). Read on request, as each read is logged.
  */
 export function BeoRosterCounts({ org, fulfillmentId }: { org: string; fulfillmentId: string }) {
   const t = useTranslations("hospitality.beos.rosterCounts");
+  const details = useCopy("workDetails");
   const [counts, setCounts] = useState<CateringCount[] | null | "failed">(null);
   const [pending, start] = useTransition();
   if (counts === null || counts === "failed") {
@@ -49,7 +52,9 @@ export function BeoRosterCounts({ org, fulfillmentId }: { org: string; fulfillme
         {rows.map((c) => (
           <div key={c.dietaryNeed} className="contents">
             <dt className="text-text-secondary">
-              {c.dietaryNeed === "Allergies" ? t("allergies") : c.dietaryNeed}
+              {c.dietaryNeed === "Allergies"
+                ? t("allergies")
+                : workDetailLabel(details, "dietaryNeeds", c.dietaryNeed as string)}
             </dt>
             <dd className="m-0 tabular-nums">{c.suppressed ? t("fewerThanFive") : c.headcount}</dd>
           </div>

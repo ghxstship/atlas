@@ -347,13 +347,16 @@ async function Reservations({
   t: Translate;
   when: (iso: string) => string;
 }) {
-  const [holds, conflicts] = await Promise.all([
-    listUnitReservations(db, { assetUnitId: unit.id, assetClassId: unit.classId }),
-    listReservationConflicts(db, { assetClassId: unit.classId }),
-  ]);
+  const holds = await listUnitReservations(db, {
+    assetUnitId: unit.id,
+    assetClassId: unit.classId,
+  });
   const rows = holds.ok ? holds.data : [];
+  // The conflicts view sweeps every live hold the viewer can see, so it runs only when this unit has holds to flag.
+  const conflicts =
+    rows.length > 0 ? await listReservationConflicts(db, { assetClassId: unit.classId }) : null;
   const conflictOf = new Map(
-    (conflicts.ok ? conflicts.data : []).map((c) => [c.reservationId, c.conflict]),
+    (conflicts?.ok ? conflicts.data : []).map((c) => [c.reservationId, c.conflict]),
   );
   return (
     <Section title={t("assets.reservations.title")}>
