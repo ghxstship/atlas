@@ -3,6 +3,7 @@ import type { TimelinePreview } from "@xos/ui";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createPreviewer, previewOf, shiftsOf } from "@/components/schedule/reschedule-preview";
 import { timelineView } from "@/components/schedule/timeline-view";
+import { toActionError } from "@/components/work/action-result";
 
 /** A bar for a record; the timeline helpers read only the record's id, key, title and state. */
 function bar(
@@ -100,6 +101,34 @@ describe("timeline reschedule: the server's answer as the Timeline's preview", (
     expect(
       previewOf(bars, change, { ok: false, error: { key: "rules.reschedule_locked" } }, copy),
     ).toEqual({ change, moves: [], refusal: "error:rules.reschedule_locked" });
+    // A locked record the view leaves out is named by the database's sentence after the catalog's.
+    expect(
+      previewOf(
+        bars,
+        change,
+        {
+          ok: false,
+          error: { key: "rules.reschedule_locked", detail: "NWL-4 Load-In Window is locked." },
+        },
+        copy,
+      ),
+    ).toEqual({
+      change,
+      moves: [],
+      refusal: "error:rules.reschedule_locked NWL-4 Load-In Window is locked.",
+    });
+  });
+
+  it("names the locked record and gives a canceled record its own sentence", () => {
+    const refusal = (rule: string, message: string) =>
+      toActionError({ kind: "refusal", rule, message });
+    expect(refusal("reschedule_locked", "NWL-4 Load-In Window is locked.")).toEqual({
+      key: "rules.reschedule_locked",
+      detail: "NWL-4 Load-In Window is locked.",
+    });
+    expect(refusal("reschedule_canceled", "A canceled record stays where it was.")).toEqual({
+      key: "rules.reschedule_canceled",
+    });
   });
 });
 

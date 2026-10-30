@@ -80,6 +80,10 @@ export function Timeline({
   useEffect(() => {
     pending.current = onPendingChange;
   });
+  const controls = useRef<HTMLDivElement>(null);
+  const previewBar = useRef<HTMLDivElement>(null);
+  // The bar that takes focus back once the preview's Apply or Cancel, which held it, unmounts.
+  const refocus = useRef<string | null>(null);
 
   const dayLabel = (i: number) => {
     const d = days[i];
@@ -116,6 +120,11 @@ export function Timeline({
 
   useEffect(() => {
     pending.current?.(draft);
+    const key = refocus.current;
+    if (draft || key === null) return;
+    refocus.current = null;
+    const bars = controls.current?.querySelectorAll<HTMLButtonElement>("button[data-row]") ?? [];
+    for (const bar of bars) if (bar.dataset["row"] === key) bar.focus();
   }, [draft]);
 
   /** Where each row sits now: the pending change and what it pushes, else where it is. */
@@ -199,8 +208,14 @@ export function Timeline({
     const r = rows[next.row];
     setDraft(r && r.start === next.start && r.end === next.end ? null : next);
   };
+  /** Before the preview closes: if focus is on its buttons, hand it back to the row's bar. */
+  const keepFocus = (row: number) => {
+    if (previewBar.current?.contains(document.activeElement))
+      refocus.current = rows[row]?.key ?? null;
+  };
   const cancel = () => {
     if (!draft) return;
+    keepFocus(draft.row);
     setDraft(null);
     setNotice(t("timeline.preview.canceled"));
   };
@@ -220,6 +235,7 @@ export function Timeline({
     try {
       const result = await onReschedule(change);
       if (result !== false) {
+        keepFocus(change.row);
         setDraft((d) => (d === change ? null : d));
         setNotice(t("timeline.preview.applied", { key }));
       }
@@ -511,6 +527,7 @@ export function Timeline({
             </div>
             {editable ? (
               <div
+                ref={controls}
                 role="group"
                 aria-label={t("timeline.controls", { label })}
                 className="absolute inset-x-0 bottom-0"
@@ -581,6 +598,7 @@ export function Timeline({
       </div>
       {editable && draft ? (
         <div
+          ref={previewBar}
           role="group"
           aria-label={t("timeline.preview.label")}
           onKeyDown={(e) => {

@@ -616,6 +616,7 @@
       "baseline_locked": "Una línea base fijada nunca cambia. Capture una nueva línea base.",
       "reschedule_cycle": "Aquí el cronograma es circular, así que el registro no se puede mover. Quite primero una de sus dependencias.",
       "reschedule_locked": "Este cambio movería un registro completado o fijado en una línea base. Muévalo menos o cambie la dependencia.",
+      "reschedule_canceled": "Este registro está cancelado, así que se queda donde estaba en la línea de tiempo.",
       "reschedule_window": "Un registro no puede terminar antes de empezar. Cambie su tamaño en la otra dirección.",
       "reschedule_single_date": "Un registro con una sola fecha solo se puede mover. Asígnele un inicio y un final para cambiar su tamaño.",
       "reschedule_undated": "Asigne una fecha al registro antes de moverlo en la línea de tiempo.",

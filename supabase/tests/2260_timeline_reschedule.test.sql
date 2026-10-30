@@ -1,7 +1,7 @@
 -- pgTAP: timeline reschedule (2260, A133). Moving and resizing by whole days on the project's wall clock, successors
 -- pushed through the chain by the days their dependency needs (every dependency type, lag, a gap broken before the
--- change kept), nothing pulled earlier, preview equal to commit and writing nothing, cycles, locked windows, bad
--- windows, one-date resizes and undated records refused, the latest baseline window returned, one-date records pushed
+-- change kept), nothing pulled earlier, preview equal to commit and writing nothing, cycles, locked windows, canceled
+-- records, bad windows, one-date resizes and undated records refused, the latest baseline window returned, one-date records pushed
 -- by the instants they hold, a schedule whose chains split and rejoin previewed quickly, and capability, cross-tenant
 -- and anon denial.
 begin;
@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(34);
+select plan(35);
 
 create function pg_temp.new_record(p_project text, p_kind text, p_title text, p_subtype text default null) returns uuid
 language plpgsql as $$
@@ -108,6 +108,11 @@ select is((select due_at from app.reschedule_record(pg_temp.id('due'), 1, 1)), '
 insert into world values ('undated', pg_temp.new_record('prj_a', 'Task', 'Label the cable runs', 'Execute'));
 select throws_ok($$select * from app.reschedule_record((select id from world where key = 'undated'), 1, 1)$$, 'XR001',
   'reschedule_undated: Give the record a date before moving it on the timeline.', 'an undated record cannot be moved');
+insert into world values ('gone', pg_temp.new_record('prj_a', 'Task', 'Hang the side fills', 'Execute'));
+update app.records set starts_at = '2027-06-05 12:00+00', ends_at = '2027-06-05 22:00+00' where id = pg_temp.id('gone');
+select app.transition_record(pg_temp.id('gone'), 'Proposed', 'Canceled', 'Cut from the design.');
+select throws_ok($$select * from app.reschedule_record((select id from world where key = 'gone'), 1, 1)$$, 'XR001',
+  'reschedule_canceled: A canceled record stays where it was.', 'a canceled record cannot be moved');
 
 -- A Timeline window locked into a baseline stays put, and every row carries its baseline window.
 insert into world values ('window', pg_temp.new_record('prj_a', 'Timeline', 'Load-In Window', 'Show Cycle'));
@@ -116,8 +121,8 @@ update app.records set starts_at = '2027-06-20 12:00+00', ends_at = '2027-06-22 
 insert into app.record_dependencies (predecessor_record_id, successor_record_id) values (pg_temp.id('c'), pg_temp.id('window'));
 with x as (insert into app.schedule_baselines (project_id, name) values (pg_temp.id('prj_a'), 'Gate 3 Baseline') returning id) insert into world select 'bl', id from x;
 select ok(app.lock_baseline(pg_temp.id('bl')) > 0, 'a baseline locks the window');
-select throws_ok($$select * from app.reschedule_record((select id from world where key = 'a'), 20, 20)$$, 'XR001', null,
-  'a change that would push a locked window is refused');
+select throws_like($$select * from app.reschedule_record((select id from world where key = 'a'), 20, 20)$$,
+  'reschedule_locked: % Load-In Window is locked: %', 'a change that would push a locked window is refused, naming the window');
 select throws_ok($$select * from app.reschedule_record((select id from world where key = 'window'), 1, 1)$$, 'XR001', null,
   'a locked window cannot be moved');
 select is((select baseline_starts_at from app.reschedule_record(pg_temp.id('a'), 1, 1) where is_target), '2027-06-02 12:00+00'::timestamptz,
@@ -145,10 +150,11 @@ insert into app.record_dependencies (predecessor_record_id, successor_record_id)
 select is((select due_at from app.reschedule_record(pg_temp.id('due1'), 2, 2) where record_id = pg_temp.id('due2')),
   '2027-04-14 14:00+00'::timestamptz, 'a one-date successor is pushed by what the change adds to the gap between the instants');
 
--- A schedule whose chains split and rejoin: six phases of eight tasks, each task depending on every task of the phase
--- before (8^5 paths from the first task, 48 records). The cycle check walks records, not paths, so it stays quick.
+-- A schedule whose chains split and rejoin: eight phases of twelve tasks, each task depending on every task of the
+-- phase before (12^7, about 36 million paths from the first task, 96 records). The cycle check walks records, not
+-- paths, so it stays well inside the timeout; a walk that listed every path would not finish.
 insert into fan select p, n, pg_temp.new_record('prj_a', 'Task', 'Phase ' || p || ' department ' || n, 'Execute')
-from generate_series(1, 6) p, generate_series(1, 8) n;
+from generate_series(1, 8) p, generate_series(1, 12) n;
 update app.records r set starts_at = '2027-08-01 12:00+00'::timestamptz + pg_catalog.make_interval(days => f.phase * 2),
   ends_at = '2027-08-01 22:00+00'::timestamptz + pg_catalog.make_interval(days => f.phase * 2)
 from fan f where r.id = f.id;
@@ -156,9 +162,9 @@ insert into app.record_dependencies (predecessor_record_id, successor_record_id)
 select a.id, b.id from fan a join fan b on b.phase = a.phase + 1;
 set local statement_timeout = '10s';
 insert into fan_moves select * from app.reschedule_record((select id from fan where phase = 1 and slot = 1), 10, 10);
-select is((select count(*)::int from fan_moves), 41,
+select is((select count(*)::int from fan_moves), 85,
   'a schedule that splits and rejoins previews within the statement timeout, pushing every later phase');
-select is((select count(*)::int from fan_moves m join fan f on f.id = m.record_id where f.phase = 6 and m.shift_start_days = 5), 8,
+select is((select count(*)::int from fan_moves m join fan f on f.id = m.record_id where f.phase = 8 and m.shift_start_days = 3), 12,
   'the last phase moves by what the change adds through the whole chain (a day less each phase, as slack opens), every task of it');
 reset statement_timeout;
 

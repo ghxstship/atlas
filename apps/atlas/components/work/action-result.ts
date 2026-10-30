@@ -32,6 +32,7 @@ const EXPLAINED = new Set([
   "baseline_locked",
   "reschedule_cycle",
   "reschedule_locked",
+  "reschedule_canceled",
   "reschedule_window",
   "reschedule_single_date",
   "reschedule_undated",
@@ -58,7 +59,8 @@ const EXPLAINED = new Set([
 ]);
 
 /** Refusals whose database sentence is the correction the person needs. */
-const WITH_DETAIL = new Set(["record_title_grammar", "record_xyz_basis"]);
+/* reschedule_locked names the record that would move, which the view may not draw. */
+const WITH_DETAIL = new Set(["record_title_grammar", "record_xyz_basis", "reschedule_locked"]);
 
 export function toActionError(error: DataError): ActionError {
   switch (error.kind) {

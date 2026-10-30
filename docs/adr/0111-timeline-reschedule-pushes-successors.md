@@ -44,7 +44,9 @@ each downstream record once, as the guard does, so schedules whose chains split 
 downstream that misses the record ends the push rounds at their limit), a move of a
 record that is Complete or of a Timeline window locked into a baseline, or a change that would push one; a window
 that would end before it starts; a resize of a record with one date; and an undated record. Preview and commit
-refuse the same way. Canceled records neither move nor hold others back. Baselines are never written.
+refuse the same way. A Canceled record is refused under its own rule (`reschedule_canceled`), since Canceled is
+terminal; as a successor it neither moves nor holds others back. The locked refusal names the record that would move,
+which the view may not draw, and Atlas shows that sentence under the catalog's. Baselines are never written.
 
 ### 5. The browser estimates; the server decides
 

@@ -616,6 +616,7 @@
       "baseline_locked": "A locked baseline never changes. Capture a new baseline instead.",
       "reschedule_cycle": "The schedule is circular here, so the record cannot move. Remove one of its dependencies first.",
       "reschedule_locked": "This change would move a record that is complete or locked into a baseline. Move it less, or change the dependency.",
+      "reschedule_canceled": "This record is canceled, so it stays where it was on the timeline.",
       "reschedule_window": "A record cannot end before it starts. Resize it the other way.",
       "reschedule_single_date": "A record with one date can only move. Give it a start and an end to resize it.",
       "reschedule_undated": "Give the record a date before moving it on the timeline.",

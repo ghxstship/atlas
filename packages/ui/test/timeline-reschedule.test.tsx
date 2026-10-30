@@ -203,6 +203,31 @@ describe("Timeline rescheduling", () => {
     expect(onReschedule).toHaveBeenCalledWith({ row: 1, start: 5, end: 6 });
   });
 
+  it("hands focus back to the bar when the preview's Apply or Cancel closes it", async () => {
+    const onReschedule = vi.fn(() => Promise.resolve(true));
+    render(
+      <Timeline
+        label="Build schedule"
+        days={days}
+        rows={rows}
+        links={links}
+        onReschedule={onReschedule}
+      />,
+    );
+    const bar = screen.getByRole("button", { name: /^B-4 Strike/ });
+    bar.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    screen.getByRole("button", { name: "Cancel" }).focus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.queryByRole("group", { name: "Reschedule preview" })).toBeNull();
+    await waitFor(() => expect(document.activeElement).toBe(bar));
+    await userEvent.keyboard("{ArrowRight}");
+    screen.getByRole("button", { name: "Apply" }).focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onReschedule).toHaveBeenCalledWith({ row: 3, start: 2, end: 3 });
+    await waitFor(() => expect(document.activeElement).toBe(bar));
+  });
+
   it("resizes from either end by dragging its handle", () => {
     render(
       <Timeline

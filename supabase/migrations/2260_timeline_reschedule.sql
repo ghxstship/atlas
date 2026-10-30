@@ -141,7 +141,7 @@ begin
       )
       select w.record_id from walk w));
   if not exists (select 1 from pg_temp.reschedule_rows w where w.is_target) then
-    perform private.refuse('reschedule_locked', 'A canceled record stays where it was.');
+    perform private.refuse('reschedule_canceled', 'A canceled record stays where it was.');
   end if;
 
   -- The record itself. Its due time is the end of its window when it has no end, so it moves with the end.
@@ -246,7 +246,7 @@ begin
 end;
 $$;
 
-comment on function app.reschedule_record(uuid, integer, integer, boolean, text) is 'Moves or resizes a record by whole days of its project''s calendar and pushes the successors whose dependencies the change would break (ADR 0111). Preview mode (p_commit false) writes nothing; commit mode writes the same rows in one transaction. Refuses cycles, locked records (Complete, or a Timeline window locked into a baseline), a window that ends before it starts and a resize of a one-date record. Returns the record and every record it moves, with their old and new dates and their latest baseline window. Needs schedule.timeline.write on the project.';
+comment on function app.reschedule_record(uuid, integer, integer, boolean, text) is 'Moves or resizes a record by whole days of its project''s calendar and pushes the successors whose dependencies the change would break (ADR 0111). Preview mode (p_commit false) writes nothing; commit mode writes the same rows in one transaction. Refuses cycles, a canceled record, locked records (Complete, or a Timeline window locked into a baseline), a window that ends before it starts and a resize of a one-date record. Returns the record and every record it moves, with their old and new dates and their latest baseline window. Needs schedule.timeline.write on the project.';
 
 revoke all on function app.reschedule_record(uuid, integer, integer, boolean, text) from public, anon;
 grant execute on function app.reschedule_record(uuid, integer, integer, boolean, text) to authenticated, service_role;

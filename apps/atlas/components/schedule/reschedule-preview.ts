@@ -20,7 +20,7 @@ export function shiftsOf(
 /**
  * The server's answer for a change as the Timeline's preview: every record it moves that the view
  * draws, as the bar's new days, and a note counting the records it moves that the view leaves out.
- * A refusal comes back as the catalog sentence for its key.
+ * A refusal comes back as the catalog sentence for its key, then the database's correction if any.
  */
 export function previewOf(
   bars: TimelineModel["bars"],
@@ -28,7 +28,14 @@ export function previewOf(
   result: ActionResult<RescheduleMove[]>,
   copy: { error: (key: string) => string; offView: (count: number) => string },
 ): TimelinePreview {
-  if (!result.ok) return { change, moves: [], refusal: copy.error(result.error.key) };
+  if (!result.ok) {
+    const { key, detail } = result.error;
+    return {
+      change,
+      moves: [],
+      refusal: detail ? `${copy.error(key)} ${detail}` : copy.error(key),
+    };
+  }
   const rowOf = new Map(bars.map((b, i) => [b.record.id, i]));
   const moves: TimelinePreview["moves"] = [];
   let offView = 0;
