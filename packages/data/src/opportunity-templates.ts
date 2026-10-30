@@ -35,6 +35,8 @@ export interface OpportunityDefaults {
   readonly applicationWindowDays: number | null;
   /** The default template, or null when none is set or the one set was deleted since. */
   readonly questionTemplateId: string | null;
+  /** New postings start with the client and event hidden until booking (2870). */
+  readonly hideClientUntilBooked: boolean;
 }
 
 export type OpportunityDefaultsInput = OpportunityDefaults;
@@ -46,6 +48,7 @@ export const NO_DEFAULTS: OpportunityDefaults = {
   currencyCode: null,
   applicationWindowDays: null,
   questionTemplateId: null,
+  hideClientUntilBooked: false,
 };
 
 interface TemplateRow {
@@ -158,7 +161,7 @@ export async function getOpportunityDefaults(
   const { data, error } = await db
     .from("opportunity_defaults")
     .select(
-      "visibility, rate_type, currency_code, application_window_days, template:application_question_templates(id, deleted_at)",
+      "visibility, rate_type, currency_code, application_window_days, hide_client_until_booked, template:application_question_templates(id, deleted_at)",
     )
     .eq("org_id", orgId)
     .maybeSingle();
@@ -169,6 +172,7 @@ export async function getOpportunityDefaults(
     rate_type: RateType | null;
     currency_code: string | null;
     application_window_days: number | null;
+    hide_client_until_booked: boolean;
     template: { id: string; deleted_at: string | null } | null;
   };
   return ok({
@@ -177,6 +181,7 @@ export async function getOpportunityDefaults(
     currencyCode: row.currency_code,
     applicationWindowDays: row.application_window_days,
     questionTemplateId: row.template && row.template.deleted_at === null ? row.template.id : null,
+    hideClientUntilBooked: row.hide_client_until_booked,
   });
 }
 
@@ -194,6 +199,7 @@ export async function saveOpportunityDefaults(
       currency_code: input.currencyCode,
       application_window_days: input.applicationWindowDays,
       application_question_template_id: input.questionTemplateId,
+      hide_client_until_booked: input.hideClientUntilBooked,
     } as unknown as Database["app"]["Tables"]["opportunity_defaults"]["Insert"],
     { onConflict: "org_id" },
   );

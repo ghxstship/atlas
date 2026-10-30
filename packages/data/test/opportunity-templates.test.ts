@@ -138,7 +138,7 @@ describe("question templates", () => {
 });
 
 describe("opportunity defaults", () => {
-  it("reads no row as the built-in start", async () => {
+  it("reads no row as the built-in start, with the client shown", async () => {
     const { db } = fakeClient({ "from:opportunity_defaults": [okResponse(null)] });
     expect(await repo.getOpportunityDefaults(db, "org1")).toEqual({
       ok: true,
@@ -152,6 +152,7 @@ describe("opportunity defaults", () => {
       rate_type: "Day",
       currency_code: "USD",
       application_window_days: 14,
+      hide_client_until_booked: true,
       template: { id: "t1", deleted_at: null },
     };
     const { db } = fakeClient({
@@ -168,6 +169,7 @@ describe("opportunity defaults", () => {
         currencyCode: "USD",
         applicationWindowDays: 14,
         questionTemplateId: "t1",
+        hideClientUntilBooked: true,
       },
     });
     const deleted = await repo.getOpportunityDefaults(db, "org1");
@@ -182,6 +184,7 @@ describe("opportunity defaults", () => {
       currencyCode: "EUR",
       applicationWindowDays: null,
       questionTemplateId: "t1",
+      hideClientUntilBooked: true,
     });
     expect(calls[0]?.steps[0]).toEqual([
       "upsert",
@@ -193,6 +196,7 @@ describe("opportunity defaults", () => {
           currency_code: "EUR",
           application_window_days: null,
           application_question_template_id: "t1",
+          hide_client_until_booked: true,
         },
         { onConflict: "org_id" },
       ],

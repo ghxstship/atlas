@@ -80,6 +80,25 @@ describe("search", () => {
     expect((await searchOpportunities(db)).ok).toBe(false);
   });
 
+  it("reads client_hidden, so a hidden client's listing shows its city (2871)", async () => {
+    const { db, calls } = gatewayClient({
+      "from:api_external.opportunities": [
+        okResponse([
+          { ...oppRow, venue_name: null, venue_locality: "Miami", client_hidden: true },
+          { ...oppRow, id: "0192f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f62" },
+        ]),
+      ],
+    });
+    const result = await searchOpportunities(db);
+    expect(result.ok && result.data[0]).toMatchObject({
+      clientHidden: true,
+      venueName: null,
+      venueLocality: "Miami",
+    });
+    expect(result.ok && result.data[1]?.clientHidden).toBe(false);
+    expect(calls[0]?.steps[0]?.[1]?.[0]).toContain("client_hidden");
+  });
+
   it("reads one opportunity with positions, questions and requirements", async () => {
     const { db } = gatewayClient({
       "from:api_external.opportunities": [

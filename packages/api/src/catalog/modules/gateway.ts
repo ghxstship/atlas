@@ -81,6 +81,25 @@ export const additions = defineAdditions("Gateway", {
       ),
     },
     {
+      id: "marketplace-listing-client-hidden",
+      since: "1.0.0-draft.2",
+      resources: ["marketplace"],
+      change:
+        "Adds `client_hidden`. While it is true, `venue_name` is null and the venue point the distance is measured from is rounded to 1 decimal.",
+      reason:
+        "api_external.opportunities.client_hidden (2871, P10): an org can hide the client and event of a listing until the caller is booked (app.opportunities.hide_client_until_booked, 2870), and the view then withholds the venue name and rounds the venue point. The posting org stays named.",
+      apply: editShape({
+        add: {
+          client_hidden: {
+            schema: fields.bool(
+              "True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.",
+              false,
+            ),
+          },
+        },
+      }),
+    },
+    {
       id: "saved-search-filter-columns",
       since: "1.0.0-draft.2",
       resources: ["savedSearches"],
