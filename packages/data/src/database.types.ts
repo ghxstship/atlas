@@ -1646,6 +1646,7 @@ export type Database = {
           category_name: string | null;
           credential_id: string | null;
           credential_number: string | null;
+          holder_person_id: string | null;
           project_id: string | null;
           revoked_at: string | null;
           valid_from: string | null;
