@@ -653,7 +653,8 @@ export const HELP_CONTENT: HelpIndex = {
       {
         slug: "settings-work-details",
         title: "Work details",
-        summary: "Where the facts about how you work come from.",
+        summary:
+          "Your emergency contacts, dietary and accessibility needs, loyalty programs and passport, and who sees them.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,
@@ -1350,7 +1351,8 @@ export const HELP_CONTENT: HelpIndex = {
       {
         slug: "settings-work-details",
         title: "Datos laborales",
-        summary: "De dónde vienen los datos sobre cómo trabajas.",
+        summary:
+          "Tus contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y pasaporte, y quién los ve.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,

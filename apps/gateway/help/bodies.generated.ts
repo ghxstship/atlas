@@ -3392,19 +3392,35 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Your work details come from your profile: your skills, certifications, rates and availability. Organizations see them when you apply or share your profile.",
+            v: "Settings, Work Details holds what organizations need to feed, book and look after you: emergency contacts, dietary and accessibility needs, loyalty programs and your passport details.",
           },
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Choose " },
-          { t: "strong", v: "Edit profile" },
-          { t: "text", v: " to change them in " },
+          {
+            t: "text",
+            v: "Uniform sizes and your seat, meal and home airport are no longer kept here. Each production asks for them on the project you are rostered on and keeps them only for that project: open the engagement and choose ",
+          },
+          { t: "strong", v: "Project details" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, and the organization's Owner, can read them, and every time they do it shows in your access log.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Your skills, certifications, rates and availability are in " },
           { t: "link", v: "Profile settings", href: "help:settings-profile" },
-          { t: "text", v: ". Mark the dates you are available or not on your " },
-          { t: "link", v: "profile", href: "help:profile" },
           { t: "text", v: "." },
         ],
       },
@@ -7075,19 +7091,35 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Tus datos laborales vienen de tu perfil: tus habilidades, certificaciones, tarifas y disponibilidad. Las organizaciones los ven cuando postulas o compartes tu perfil.",
+            v: "Configuración, Datos laborales reúne lo que las organizaciones necesitan para alimentarte, reservar tus viajes y cuidarte: contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y los datos de tu pasaporte.",
           },
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Elige " },
-          { t: "strong", v: "Editar perfil" },
-          { t: "text", v: " para cambiarlos en " },
+          {
+            t: "text",
+            v: "Las tallas de uniforme y tu asiento, comida y aeropuerto de origen ya no se guardan aquí. Cada producción te los pide en el proyecto en cuya lista estás y los guarda solo para ese proyecto: abre la contratación y elige ",
+          },
+          { t: "strong", v: "Datos del proyecto" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, y el Propietario de la organización, pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Tus habilidades, certificaciones, tarifas y disponibilidad están en " },
           { t: "link", v: "Configuración del perfil", href: "help:settings-profile" },
-          { t: "text", v: ". Marca las fechas en que estás disponible o no en tu " },
-          { t: "link", v: "perfil", href: "help:profile" },
           { t: "text", v: "." },
         ],
       },
