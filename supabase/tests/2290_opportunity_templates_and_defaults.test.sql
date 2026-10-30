@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(29);
+select plan(36);
 
 create function pg_temp.questions(p_key text) returns text
 language sql as $$
@@ -107,6 +107,39 @@ select app.transition_opportunity(pg_temp.id('opp'), 'Draft', 'Canceled', 'Poste
 select throws_ok($$select app.apply_question_template(pg_temp.id('opp'), pg_temp.id('tpl_a'))$$,
   'XR001', 'question_template_not_draft: A question template applies to a Draft opportunity. Add questions one at a time instead.',
   'a template applies to a Draft opportunity only');
+
+-- A coordinator who writes postings on one project, without reading postings org-wide, starts from the same defaults
+-- and templates: the second branch of private.opportunity_template_reader_org_ids. frank is Field in Northwind, so he
+-- holds no opportunities.posting capability until bob grants him posting.write on prj_a alone.
+select pg_temp.as_user('frank');
+select is((select count(*)::int from app.opportunity_defaults) + (select count(*)::int from app.application_question_templates), 0,
+  'a field member who writes no postings reads neither the defaults nor the templates');
+select pg_temp.as_user('bob');
+insert into app.user_capability_grants (membership_id, capability_code, scope_kind, scope_id, reason)
+values (pg_temp.id('frank@org_a'), 'opportunities.posting.write', 'project', pg_temp.id('prj_a'), 'Runs crew calls for the Summer Series.');
+select pg_temp.as_user('frank');
+select set_config('role', 'postgres', true); -- frank's claims, with the right to call the private helper
+select ok(not private.has_capability(pg_temp.id('org_a'), 'opportunities.posting.read'),
+  'with posting.write on one project, frank still does not read postings org-wide');
+select pg_temp.as_user('frank');
+select is((select visibility::text || ' ' || rate_type::text || ' ' || application_window_days from app.opportunity_defaults), 'Pool Day 14',
+  'but he reads Northwind''s opportunity defaults');
+select is((select string_agg(name, ', ' order by name) from app.application_question_templates), 'Crew Call Basics',
+  'and its question templates, and none of another org''s');
+select throws_ok($$insert into app.application_question_templates (org_id, name) values (pg_temp.id('org_a'), 'Frank''s Set')$$,
+  '42501', null, 'writing them still takes the marketplace settings');
+select pg_temp.as_user('carol');
+with o as (insert into app.opportunities (project_id, role_type, role_code, title, visibility, starts_on, ends_on)
+  values (pg_temp.id('prj_a'), 'Crew', '5000.51.02', 'Summer Series Stagehands', 'Pool', '2027-06-01', '2027-06-03') returning id)
+  insert into world select 'opp_frank', id from o;
+select pg_temp.as_user('frank');
+select is(app.apply_question_template(pg_temp.id('opp_frank'), pg_temp.id('tpl_a')), 2,
+  'he applies the template to a Draft opportunity on his project');
+select pg_temp.as_platform();
+select is(pg_temp.questions('opp_frank'),
+  '1:Do you hold a current rigging certification?* | 2:Which days can you work?',
+  'and the opportunity gets the template''s questions as they stand');
+select pg_temp.as_user('carol');
 update app.application_question_templates set deleted_at = now() where id = pg_temp.id('tpl_a');
 select pg_temp.as_platform();
 select ok(exists (select 1 from app.trash_items where subject_id = pg_temp.id('tpl_a')), 'a deleted template is in Trash');
