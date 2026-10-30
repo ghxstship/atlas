@@ -8547,7 +8547,7 @@
           "type": "boolean"
         },
         {
-          "comment": "Drafting of SOPs, advance packets, emails, day sheets and change order descriptions.",
+          "comment": "Drafting of SOPs, advance packets, emails, day sheets, change order descriptions, running orders and risk assessments.",
           "name": "drafting_enabled",
           "nullable": false,
           "references": null,
@@ -8839,7 +8839,7 @@
           "type": "uuid"
         },
         {
-          "comment": "Public API operation that performs the change, for example records.create or savedViews.create.",
+          "comment": "Public API operation that performs the change, for example records.create or savedViews.create. A drafted list's suggestions (drafting requests about app.run_of_show or app.projects) are applied together by app.apply_drafted_list.",
           "name": "operation_id",
           "nullable": false,
           "references": null,
