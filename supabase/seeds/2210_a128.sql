@@ -7,8 +7,8 @@
 --     and a mention, addressed to the person, which every lens shows
 --   * adds the Field role to their Demo Bayside Studios membership, so the Field lens hides the Admin's navigation
 --     (Finance among it); the Admin role still decides everything they can do there
--- Idempotent: each notification and the role are written once. Guarded on 1080_a38's person and membership and on
--- 1490_a92's timesheet; loads cleanly without them.
+-- Idempotent: each notification and the role are written once, and their email and push copies are never sent.
+-- Guarded on 1080_a38's person and membership and on 1490_a92's timesheet; loads cleanly without them.
 
 do $$
 declare
@@ -51,5 +51,12 @@ begin
       jsonb_build_object('title', 'Load-in plan', 'actorName',
         (select p.full_name from app.people p where p.id = c_owner)));
   end if;
+  -- The journeys read the Inbox only; the email and push copies are marked never sent, so the delivery worker
+  -- (and 0520's claim test, which claims 50 at a time) never sees them.
+  update app.notification_deliveries d set message_status = 'Suppressed', last_error = 'Demo seed: Inbox only.'
+  from app.notifications n
+  where n.id = d.notification_id and n.created_at = d.notification_created_at and n.recipient_person_id = p_multi
+    and n.org_id = c_org and n.kind in ('approval.requested', 'mention.created')
+    and d.message_status in ('Queued', 'Deferred');
 end;
 $$;
