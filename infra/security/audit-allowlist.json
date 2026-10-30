@@ -73,6 +73,15 @@
       "reason": "No patched release exists (vulnerable >=4.2.0 <=4.3.1). html-to-text uses deepmerge only to combine its option objects (html-to-text.cjs: the defaults with the caller's options, and duplicate selector entries); the email HTML is parsed, never merged. Our one caller, packages/email/src/render.ts, renders plain text with fixed options ({ plainText: true }), so no attacker-controlled object reaches mergeObject(). Review when html-to-text or deepmerge ships a fix. Accepted 2026-10-28 (RRR-241, gate 11).",
       "recorded": "2026-10-28",
       "review_by": "2027-01-28"
+    },
+    {
+      "id": "GHSA-qr28-fpjm-wq7f",
+      "package": "decode-uri-component",
+      "severity": "high",
+      "path": "apps/compass > expo-router > query-string > decode-uri-component",
+      "reason": "Every release up to 0.5.0 is vulnerable, and the fix, 0.5.1 (published 2026-10-23), is ESM only like 0.5.0, so query-string 7 under expo-router, which requires it from CommonJS, cannot take it as an override; 0.5.1 is also short of ADR 0001's two-week rule. pnpm why finds this one path only, in the Compass app, so no web app, Edge Function or API reaches it. The worst case is a stalled Compass screen on the device that opens a deliberately malformed link (quadratic decoding, denial of service, no data exposure), as for GHSA-vcc3-ghjq-m6fr. Review with that entry when expo-router moves to a query-string that accepts 0.5.x. Accepted 2026-10-30 (RRR-243, gate 11).",
+      "recorded": "2026-10-30",
+      "review_by": "2027-01-19"
     }
   ]
 }
