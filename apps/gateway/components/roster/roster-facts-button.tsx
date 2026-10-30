@@ -7,7 +7,8 @@ import { useState } from "react";
 
 /**
  * Project details on a crew row (R5). The drawer's code, with the wizard it can open, loads only when it first opens,
- * and it reads the facts then, so each open is one logged read and the list itself reads nothing.
+ * and it reads the facts then, so each open is one logged read and the list itself reads nothing. `self` is the
+ * person's own button (Gateway Home's roster row and updates): the drawer is titled Project details, not by a name.
  */
 const RosterFactsDrawer = dynamic(() =>
   import("./roster-facts-drawer").then((m) => m.RosterFactsDrawer),
@@ -18,11 +19,13 @@ export function RosterFactsButton({
   name,
   companyName,
   projectName,
+  self = false,
 }: {
   rosterEntryId: string;
   name: string;
   companyName: string;
   projectName: string;
+  self?: boolean;
 }) {
   const t = useTranslations("workDetails.projectFacts");
   const [open, setOpen] = useState(false);
@@ -37,6 +40,7 @@ export function RosterFactsButton({
           name={name}
           companyName={companyName}
           projectName={projectName}
+          self={self}
           onClose={() => setOpen(false)}
         />
       ) : null}

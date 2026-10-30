@@ -1250,7 +1250,8 @@
         "opportunityMatched": "New match for {searchName}: {title}",
         "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
         "certificationExpiring": "Your {title} certification expires on {expiresOn}",
-        "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}"
+        "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}",
+        "projectFactsEntered": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}} for {projectName}. Check them and correct anything that is wrong."
       }
     },
     "feed": {

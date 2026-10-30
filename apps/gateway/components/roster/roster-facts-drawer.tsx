@@ -16,19 +16,21 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
  * through app.roster_project_facts, which logs the read in the person's access log. Each kind shows who entered it.
  * For a kind the person has not entered, the manager may enter it for them ('Enter for {name}'); the producing org
  * decides whether that is allowed, and the RPC refuses otherwise. Opened by the person themselves (Gateway Home's
- * roster row), it holds their own wizard, and their read is not logged.
+ * roster row and updates, `self`), it is titled Project details and holds their own wizard; their read is not logged.
  */
 export function RosterFactsDrawer({
   rosterEntryId,
   name,
   companyName,
   projectName,
+  self = false,
   onClose,
 }: {
   rosterEntryId: string;
   name: string;
   companyName: string;
   projectName: string;
+  self?: boolean;
   onClose: () => void;
 }) {
   const t = useTranslations("workDetails") as unknown as Translate;
@@ -52,7 +54,13 @@ export function RosterFactsDrawer({
   const canEnter =
     facts?.standing === "Company" && kinds.some((k) => !facts.enteredByPerson[byKind(k)]);
   return (
-    <Drawer open title={t("projectFacts.drawerTitle", { name })} onClose={onClose}>
+    <Drawer
+      open
+      title={
+        self ? t("projectFacts.title") : t("projectFacts.drawerTitle", { name })
+      }
+      onClose={onClose}
+    >
       {error ? <InlineAlert tone="danger">{t(`errors.${error}`)}</InlineAlert> : null}
       {!facts && !error ? <Skeleton height={96} /> : null}
       {facts && own ? (

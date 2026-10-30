@@ -1250,7 +1250,8 @@
         "opportunityMatched": "Nueva coincidencia para {searchName}: {title}",
         "onboardingExpiring": "{title} para {orgName} vence el {expiresOn}",
         "certificationExpiring": "Su certificación {title} vence el {expiresOn}",
-        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}"
+        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}",
+        "projectFactsEntered": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}} para {projectName}. Revísalos y corrige lo que esté mal."
       }
     },
     "feed": {

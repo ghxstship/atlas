@@ -617,6 +617,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
             name={e.partyName ?? e.orgName ?? ""}
             companyName={e.partyName ?? ""}
             projectName={e.projectName ?? ""}
+            self
           />
           <Link href={"/settings/work-details" as Route} className="text-text-13 text-text-link">
             {t("gateway.home.feed.roster.share")}

@@ -8,7 +8,7 @@ import {
   type RosterEntry,
 } from "@xos/data/roster";
 import { listRosterFactStatus, rosterFactChip } from "@xos/data/roster-facts";
-import { InlineAlert, StateChip } from "@xos/ui";
+import { Button, InlineAlert, StateChip } from "@xos/ui";
 import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -92,6 +92,10 @@ export async function CrewTab({ view, t, locale }: TabProps) {
       e.personId !== null &&
       (e.entryState === "Returned" || (e.entryState === "Draft" && !locked)),
   );
+  // Drafts the lock holds back: with nothing else to submit, Submit stays on screen, disabled, with the lock sentence.
+  const held = locked
+    ? entries.filter((e) => !e.isSelf && e.personId !== null && e.entryState === "Draft").length
+    : 0;
   const local = (iso: string | null) =>
     iso
       ? new Intl.DateTimeFormat("sv-SE", {
@@ -130,6 +134,15 @@ export async function CrewTab({ view, t, locale }: TabProps) {
             variant="primary"
             done={t("gateway.engagement.crew.submitted")}
           />
+        ) : held > 0 ? (
+          <span className="inline-flex flex-col items-start gap-4">
+            <Button variant="primary" size="sm" disabled aria-describedby="crew-submit-locked">
+              {t("gateway.engagement.crew.submit", { n: held })}
+            </Button>
+            <span id="crew-submit-locked" className="text-text-12 text-text-secondary">
+              {lockedSentence}
+            </span>
+          </span>
         ) : null}
       </div>
       {entries.length === 0 ? (
