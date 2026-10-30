@@ -28,7 +28,7 @@ The history now also leaves out a column that signed-in people cannot select at 
 
 ### 3. Every entity with a record page is a subject
 
-2241 lists sixty-seven more tables in `private.field_history_subjects` and gives the thirty-two of them that had none an audit trail (`private.install_audit_trail`). They include `app.per_diems`, whose Crew page R1 added (the table dates from 0341 and already had a trail); the crew record takes a `historySubject` for such a ledger row, which has no comment thread. Left out: `app.time_entries`, which A130 partitions; `app.form_submissions`, whose answers may hold what a form asks about a person and stay out of the ledger; and `app.projects`, whose page is the project overview. `FIELD_HISTORY_SUBJECTS` in `@xos/data/field-history` mirrors the list, and its unit test reads the migrations so the two never drift.
+2241 lists sixty-eight more tables in `private.field_history_subjects` and gives the thirty-two of them that had none an audit trail (`private.install_audit_trail`). They include `app.time_entries`, which A130 partitioned (2231) and whose audit events name the parent table since 2230, and `app.per_diems`, whose Crew page R1 added (the table dates from 0341 and already had a trail); the crew record takes a `historySubject` for such a ledger row, which has no comment thread. Left out: `app.form_submissions`, whose answers may hold what a form asks about a person and stay out of the ledger; and `app.projects`, whose page is the project overview. `FIELD_HISTORY_SUBJECTS` in `@xos/data/field-history` mirrors the list, and its unit test reads the migrations so the two never drift.
 
 ### 4. The shared record sections carry the history
 
