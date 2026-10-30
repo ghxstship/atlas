@@ -11,7 +11,7 @@ import {
   listRunsOfShow,
 } from "@xos/data/show";
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
-import { getNode, isNodeVisible } from "@xos/ia";
+import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
@@ -26,6 +26,7 @@ import {
 } from "@/components/work/load";
 import { engagementOptions } from "@/lib/people/project-people";
 import type { OrgContext } from "@/lib/shell/context";
+import { importLinkHref } from "@/lib/imports/import-link";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
@@ -131,11 +132,10 @@ export async function RunsPage({
             canCall={caps.has("show.cue.call")}
             setTimes={setTimes.ok ? setTimes.data : []}
             artists={artists}
-            importHref={
-              canEdit && isNodeVisible(sitemap, "import", ctx.nav)
-                ? `/${ctx.org.slug}/import?target=cues&runOfShow=${run.data.id}`
-                : null
-            }
+            importHref={importLinkHref(ctx.org.slug, ctx.nav, canEdit, {
+              target: "cues",
+              runOfShowId: run.data.id,
+            })}
           >
             {param(search, "live") === "1" ? null : (
               <>

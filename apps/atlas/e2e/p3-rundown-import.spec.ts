@@ -8,8 +8,9 @@ import { uniqueId } from "./support";
  * P3 (RRR-217, gap G-84, Section 4.6.2): import a rundown into a running order. From the running order's peek,
  * Import cues opens the wizard with the target and running order chosen; rows pasted from a Shoflo-style rundown
  * are previewed, mapped with the Playbook and header suggestions and the sample values visible, and committed. The
- * cues appear in order; importing the same rows again is a dry run of updates only; the batch is undone. The
- * import worker runs with the service role (runImportWorker).
+ * cues appear in order; the Field lead, who holds the capability but not the import page, sees no link; importing
+ * the same rows again is a dry run of updates only; the batch is undone. The import worker runs with the service
+ * role (runImportWorker).
  */
 
 test.use({ reducedMotion: "reduce" });
@@ -38,6 +39,7 @@ async function expectNoHardCodedText(page: Page) {
 
 test("rundown import: paste, map with suggestions, commit, re-import as updates, undo", async ({
   page,
+  browser,
 }) => {
   const id = uniqueId();
   // The Producer holds show.run_of_show.write on the demo project.
@@ -102,6 +104,17 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
   await expect(cues.getByRole("listitem")).toHaveCount(3);
   await expect(cues.getByRole("listitem").nth(0)).toContainText(`Walk-in ${id}`);
   await expect(cues.getByRole("listitem").nth(2)).toContainText(`Host welcome ${id}`);
+
+  // The Field lead holds show.run_of_show.write on the project, but the field role never sees the import page
+  // (C14): the running order shows its cues and offers no Import cues link.
+  const field = await (await browser.newContext({ reducedMotion: "reduce" })).newPage();
+  await signInAs(field, "field@example.com", DEMO_ORG);
+  await field.goto(`/${DEMO_ORG}/show/run-of-show?peek=${runId}`);
+  await expect(
+    field.getByRole("list", { name: `Cues of Rundown ${id}` }).getByRole("listitem"),
+  ).toHaveCount(3);
+  await expect(field.getByRole("link", { name: "Import cues" })).toHaveCount(0);
+  await field.context().close();
 
   // The same rows again: every row matches its cue, by number or by cue and time, so nothing is created.
   await page.getByRole("link", { name: "Import cues" }).click();

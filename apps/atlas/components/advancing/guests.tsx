@@ -19,8 +19,7 @@ import { isRowId, partyLabel, pickView, withQuery, type Search } from "./shared"
 import { PageHeader, StateChip, Tag } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 import { CollectionPage } from "@/components/platform/collection-page";
-import { isNodeVisible } from "@xos/ia";
-import { sitemap } from "@/lib/shell/sitemap";
+import { importLinkHref } from "@/lib/imports/import-link";
 
 const VIEWS = ["list", "table"] as const;
 
@@ -87,6 +86,10 @@ export async function GuestList({
     note: g.note,
     scopeNodeId: g.scopeNodeId,
   });
+  const importHref = importLinkHref(ctx.org.slug, ctx.nav, can.rider, {
+    target: "guest_list_entries",
+    projectId: project.id,
+  });
 
   return (
     <CollectionPage
@@ -100,13 +103,8 @@ export async function GuestList({
             ? {
                 actions: (
                   <>
-                    {isNodeVisible(sitemap, "import", ctx.nav) ? (
-                      <Link
-                        href={
-                          `/${ctx.org.slug}/import?target=guest_list_entries&project=${project.id}` as Route
-                        }
-                        className="text-text-13 text-accent-text underline"
-                      >
+                    {importHref ? (
+                      <Link href={importHref} className="text-text-13 text-accent-text underline">
                         {t("advancing.guests.import")}
                       </Link>
                     ) : null}

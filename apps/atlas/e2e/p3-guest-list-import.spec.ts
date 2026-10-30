@@ -5,10 +5,11 @@ import { describe, hardCodedText } from "./pseudo-checks";
 import { uniqueId } from "./support";
 
 /**
- * P3 (RRR-217, gap G-72, Section 4.6.2): import a guest list into a project. From the project's guest list, Import
- * guests opens the wizard on that project; a .csv with one exact duplicate (updated, never added twice) and one near
- * duplicate (merge review, kept separate) is committed by one person. A second person approves the new guests in
- * bulk; the first person's approve is refused, since neither the uploader nor the committer decides them.
+ * P3 (RRR-217, gap G-72, Section 4.6.2): import a guest list into a project. The Field lead, who holds the
+ * capability but not the import page, sees no Import guests link. From the project's guest list, Import guests opens
+ * the wizard on that project; a .csv with one exact duplicate (updated, never added twice) and one near duplicate
+ * (merge review, kept separate) is committed by one person. A second person approves the new guests in bulk; the
+ * first person's approve is refused, since neither the uploader nor the committer decides them.
  */
 
 test.use({ reducedMotion: "reduce" });
@@ -35,6 +36,15 @@ test("guest list import: an exact and a near duplicate, commit, and approval by 
   await add.getByLabel("Guest name").fill(existing);
   await add.getByRole("button", { name: "Add guest" }).click();
   await expect(owner.getByRole("link", { name: existing })).toBeVisible();
+
+  // The Field lead holds advancing.rider.write on the project, but the field role never sees the import page
+  // (C14): the guest list offers Add guest and no Import guests link.
+  const field = await asPerson(browser, "field@example.com");
+  await field.goto(`/${DEMO_ORG}/p/NWS/advancing?section=guests`);
+  await expect(field.getByRole("link", { name: existing })).toBeVisible();
+  await expect(field.getByRole("button", { name: "Add guest" })).toBeVisible();
+  await expect(field.getByRole("link", { name: "Import guests" })).toHaveCount(0);
+  await field.context().close();
 
   // The Producer imports the list from the guest list page.
   const producer = await asPerson(browser, "producer@example.com");
