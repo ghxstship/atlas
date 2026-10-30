@@ -5,13 +5,14 @@
 -- upgrading lifts the guard at once, and a later downgrade keeps the Owner's choice. The guard reaches a read-only
 -- project's grandchildren too: lines of its budget and comments in its threads. Field seats are checked with the
 -- Access field limit lowered to 1 inside this transaction, so the fixture stays small. A console limit override lifts
--- the guard while it lasts.
+-- the guard while it lasts. Share links count as writes to their file. The hourly refresh is checked by moving dates
+-- back with the recompute triggers held off, since nothing writes when a date passes.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(77);
+select plan(99);
 
 create function pg_temp.project(p_key text) returns uuid language sql stable as $$
   select p.id from app.projects p where p.org_id = pg_temp.id('lim_org') and p.project_key = p_key $$;
@@ -19,6 +20,23 @@ create function pg_temp.read_only(p_key text) returns boolean language sql stabl
   select exists (select 1 from app.over_limit_objects x where x.project_id = pg_temp.project(p_key)) $$;
 create function pg_temp.seat_read_only(p_member text) returns boolean language sql stable as $$
   select exists (select 1 from app.over_limit_objects x where x.membership_id = pg_temp.id(p_member || '@lim_org')) $$;
+-- A file on one of Lantern's projects whose version scanned clean, as 1380 makes one.
+create function pg_temp.clean_file(p_user text, p_project text, p_name text) returns uuid
+language plpgsql as $$
+declare
+  v_version uuid;
+  v_object text;
+begin
+  perform pg_temp.as_user(p_user);
+  select u.attachment_version_id, u.object_name into v_version, v_object
+  from app.begin_attachment_upload('app.projects', pg_temp.project(p_project), p_name, 'application/pdf', 1200) u;
+  insert into storage.objects (bucket_id, name, metadata) values ('attachments', v_object, '{"size": 1200}');
+  perform app.complete_attachment_upload(v_version, repeat('ab', 32));
+  perform pg_temp.as_platform();
+  perform app.record_attachment_scan(v_version, true);
+  insert into world select p_name, v.attachment_id from app.attachment_versions v where v.id = v_version;
+  return v_version;
+end $$;
 create function pg_temp.trial_end() returns timestamptz language sql stable as $$
   select s.trial_ends_at from app.subscriptions s where s.org_id = pg_temp.id('lim_org') and s.deleted_at is null
     and s.subscription_state <> 'canceled' $$;
@@ -52,6 +70,15 @@ select pg_temp.join_org('nina', 'lim_org', 'omar', 'admin');
 select pg_temp.join_org('nina', 'lim_org', 'pia', 'member');
 select pg_temp.join_org('nina', 'lim_org', 'quinn', 'field');
 select pg_temp.join_org('nina', 'lim_org', 'rosa', 'field');
+select pg_temp.clean_file('nina', 'LRA', 'tour-rider.pdf');
+select pg_temp.clean_file('nina', 'LRB', 'fair-rider.pdf');
+select pg_temp.as_user('nina');
+insert into world select 'fair_link', l.share_link_id
+from app.create_share_link(pg_temp.id('fair-rider.pdf'), now() + interval '7 days') l;
+select pg_temp.as_user('omar');
+insert into world select 'omar_link', l.share_link_id
+from app.create_share_link(pg_temp.id('tour-rider.pdf'), now() + interval '7 days') l;
+select pg_temp.as_platform();
 
 select is((select count(*)::int from app.over_limit_objects where org_id = pg_temp.id('lim_org')), 0,
   'on the Pro trial nothing is over a limit');
@@ -109,11 +136,20 @@ select throws_like($$insert into app.record_grants (target_kind, target_id, capa
 select lives_ok($$insert into app.record_grants (target_kind, target_id, capability_code, grantee_person_id, valid_to, reason)
   values ('project', pg_temp.project('LRA'), 'projects.project.read', pg_temp.id('rosa'), now() + interval '7 days', 'Covering the tour.')$$,
   'the writable project can still be shared');
+select throws_like($$select * from app.create_share_link(pg_temp.id('fair-rider.pdf'), now() + interval '7 days')$$,
+  'plan_limit_read_only: This project is read-only:%', 'a read-only project''s file is not sent out by share link');
+select lives_ok($$select * from app.create_share_link(pg_temp.id('tour-rider.pdf'), now() + interval '7 days')$$,
+  'the writable project''s files still are');
+select lives_ok($$select app.revoke_share_link(pg_temp.id('fair_link'))$$,
+  'a link made to the read-only project''s file before is still revoked, which withdraws access');
 
 select pg_temp.as_user('omar');
 select throws_like($$insert into app.workspaces (org_id, slug, name) values (pg_temp.id('lim_org'), 'north', 'North')$$,
   'plan_limit_read_only: Your seat is read-only: the Access plan includes 1 seat and 3 members hold one.%',
   'a member whose seat is read-only cannot write, and the refusal names the seat limit');
+select throws_like($$select * from app.create_share_link(pg_temp.id('tour-rider.pdf'), now() + interval '7 days')$$,
+  'plan_limit_read_only: Your seat is read-only:%', 'nor make a share link, even to the writable project''s file');
+select lives_ok($$select app.revoke_share_link(pg_temp.id('omar_link'))$$, 'but still revokes a link it made');
 select throws_ok($$update app.projects set name = 'Spring Tour' where id = pg_temp.project('LRA')$$,
   'XR001', null, 'not even to the writable project');
 select lives_ok($$insert into app.favorites (org_id, person_id, node_id) values (pg_temp.id('lim_org'), pg_temp.id('omar'), 'projects')$$,
@@ -188,6 +224,15 @@ select lives_ok($$update app.projects set name = 'Lantern Spring Tour' where id 
   'and takes edits');
 select throws_like($$update app.projects set archived_at = null where id = pg_temp.project('LRC')$$,
   'plan_limit_exceeded:%', 'restoring a project past the limit is refused, so it never turns another read-only');
+select app.transition_project(pg_temp.project('LRA'), 'Proposed', 'Active', 'Load-in confirmed.');
+select lives_ok($$select app.transition_project(pg_temp.project('LRA'), 'Active', 'Complete', 'Tour wrapped.')$$,
+  'the Owner completes the writable project');
+select lives_ok($$update app.projects set archived_at = null where id = pg_temp.project('LRC')$$,
+  'with it complete, restoring the archived project fits the limit');
+select throws_like($$select app.transition_project(pg_temp.project('LRA'), 'Complete', 'Active', 'One more date.')$$,
+  'plan_limit_exceeded:%', 'reopening a completed project past the limit is refused');
+select throws_like($$update app.projects set project_state = 'Active' where id = pg_temp.project('LRA')$$,
+  'plan_limit_exceeded:%', 'and the project guard counts a reopen however it is written');
 
 -- Upgrading lifts the guard ------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
@@ -201,6 +246,8 @@ select lives_ok($$insert into app.workspaces (org_id, slug, name) values (pg_tem
 select pg_temp.as_user('nina');
 select lives_ok($$update app.projects set archived_at = null where id in (pg_temp.project('LRB'), pg_temp.project('LRC'))$$,
   'and the Owner restores both projects');
+select lives_ok($$select app.transition_project(pg_temp.project('LRA'), 'Complete', 'Active', 'One more date.')$$,
+  'and reopens the completed one');
 
 -- A later downgrade keeps the choice ---------------------------------------------------------------------------------------
 select pg_temp.as_platform();
@@ -250,6 +297,50 @@ select lives_ok($$update app.projects set deleted_at = now() where id = pg_temp.
   'deleting a read-only project stays allowed, its budget and comments with it');
 select ok(not pg_temp.read_only('LRB') and pg_temp.read_only('LRA'), 'a deleted project is no longer counted');
 select pg_temp.as_platform();
+
+-- The hourly refresh -----------------------------------------------------------------------------------------------------
+-- Every membership here began in this transaction, inside the refresh's two-hour window; they are moved a day back
+-- first, so each case below shows the branch of private.refresh_over_limit that picks the org up.
+alter table app.memberships disable trigger t93_recompute_over_limit;
+update app.memberships set valid_from = valid_from - interval '1 day' where org_id = pg_temp.id('lim_org');
+update app.memberships set valid_to = now() where id = pg_temp.id('quinn@lim_org');
+select ok(pg_temp.seat_read_only('quinn'), 'a membership that reaches its end writes nothing, so its seat stays in the read-only set');
+select cmp_ok(private.refresh_over_limit(), '>', 0, 'the hourly refresh picks up an org with read-only objects');
+select ok(not pg_temp.seat_read_only('quinn'), 'and frees the seat on time');
+insert into app.plan_overrides (org_id, override_kind, limit_code, limit_value, reason, starts_at, expires_at) values
+  (pg_temp.id('lim_org'), 'Limit', 'active_projects', 2, 'Both remaining projects through the season.',
+   now() - interval '1 day', now() + interval '14 days');
+select is((select count(*)::int from app.over_limit_objects where org_id = pg_temp.id('lim_org')), 0,
+  'with a limit override for both projects nothing in the org is read-only');
+-- Sven is added ahead while a seat override has room for him; the override then ends before he begins.
+insert into app.plan_overrides (org_id, override_kind, limit_code, limit_value, reason, starts_at, expires_at) values
+  (pg_temp.id('lim_org'), 'Limit', 'seats', 2, 'A second seat for the crew chief.', now() - interval '1 day', now() + interval '14 days');
+select pg_temp.new_user('sven', 'sven@lantern.test', 'Sven Okafor');
+with x as (insert into app.memberships (org_id, person_id, valid_from)
+  values (pg_temp.id('lim_org'), pg_temp.id('sven'), now() + interval '1 day') returning id)
+insert into world select 'sven@lim_org', id from x;
+insert into app.membership_roles (org_id, membership_id, role_id)
+  values (pg_temp.id('lim_org'), pg_temp.id('sven@lim_org'), pg_temp.system_role('member'));
+update app.plan_overrides set ended_at = now(), end_reason = 'The crew chief starts on Access.'
+where org_id = pg_temp.id('lim_org') and limit_code = 'seats' and ended_at is null;
+select ok(not pg_temp.seat_read_only('sven'), 'a membership dated ahead holds no seat before it begins');
+update app.memberships set valid_from = now() - interval '30 minutes' where id = pg_temp.id('sven@lim_org');
+select private.refresh_over_limit(now() + interval '3 hours');
+select ok(not pg_temp.seat_read_only('sven'), 'once it begins, a refresh whose two hours have passed does not pick the org up');
+select cmp_ok(private.refresh_over_limit(), '>', 0, 'the hourly refresh does pick up a membership that began in the last two hours');
+select ok(pg_temp.seat_read_only('sven'), 'and the seat it takes past the limit is read-only');
+alter table app.memberships enable trigger t93_recompute_over_limit;
+update app.memberships set deleted_at = now() where id = pg_temp.id('sven@lim_org');
+select is((select count(*)::int from app.over_limit_objects where org_id = pg_temp.id('lim_org')), 0,
+  'removing the membership frees the seat at once');
+alter table app.plan_overrides disable trigger t40_guard_plan_override;
+update app.plan_overrides set starts_at = now() - interval '14 days', expires_at = now() - interval '30 minutes'
+where org_id = pg_temp.id('lim_org') and ended_at is null;
+alter table app.plan_overrides enable trigger t40_guard_plan_override;
+select ok(not pg_temp.read_only('LRA'), 'an override that expires by itself writes nothing, so the set still reflects it');
+select cmp_ok(private.refresh_over_limit(), '>', 0,
+  'the hourly refresh picks up an override that expired in the last two hours, in an org with nothing read-only');
+select ok(pg_temp.read_only('LRA') and not pg_temp.read_only('LRC'), 'and applies it, keeping the Owner''s choice');
 
 -- Machinery ---------------------------------------------------------------------------------------------------------------
 select is((select coalesce(string_agg(t.table_name, ', '), '') from private.over_limit_personal_tables t

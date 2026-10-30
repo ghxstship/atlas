@@ -32,6 +32,10 @@
 --     a read-only project stays allowed, since it brings the org back under the limit. Each refusal is
 --     plan_limit_read_only and names the plan, the limit, the count and how to lift it. Workers, billing and
 --     retention (no person) still write.
+--   * Share links: app.share_links is exempt from that guard so a link can always be revoked (1380), and its own guard
+--     (private.guard_share_link, latest 2040) checked only the canceled, deletion and dunning states. Making a link now
+--     counts as a write to its file, so a person whose seat is read-only makes none and a read-only project's files are
+--     not sent out by link. Revoking stays open.
 --   * Restoring an archived or deleted project now counts against active_projects like creating or reopening one,
 --     so a restore never silently turns another project read-only.
 
@@ -365,7 +369,7 @@ begin
     where m.deleted_at is null and m.valid_from > p_now - interval '2 hours' and m.valid_from <= p_now
     union
     select po.org_id from app.plan_overrides po
-    where po.override_kind in ('Plan', 'Limit') and po.deleted_at is null
+    where po.override_kind in ('Plan', 'Limit') and po.deleted_at is null and po.ended_at is null
       and ((po.starts_at > p_now - interval '2 hours' and po.starts_at <= p_now)
            or (po.expires_at > p_now - interval '2 hours' and po.expires_at <= p_now))
   loop
@@ -375,7 +379,7 @@ begin
 end;
 $$;
 
-comment on function private.refresh_over_limit(timestamptz) is 'Over-limit step of the lifecycle job (ADR 0081): recomputes every org with read-only objects, so a membership that ended at its valid_to lifts a seat on time, every org whose memberships began in the last two hours, and every org whose console plan or limit override (1471) started or expired in the last two hours. Returns how many objects changed.';
+comment on function private.refresh_over_limit(timestamptz) is 'Over-limit step of the lifecycle job (ADR 0081): recomputes every org with read-only objects, so a membership that ended at its valid_to lifts a seat on time, every org whose memberships began in the last two hours, and every org whose console plan or limit override (1471) started or expired in the last two hours (an override ended early recomputed when it ended). p_now picks the orgs; each is recomputed from what is in force at now(), the time the job runs. Returns how many objects changed.';
 revoke all on function private.refresh_over_limit(timestamptz) from public, anon, authenticated;
 
 create or replace function private.run_org_lifecycle(p_now timestamptz default now())
@@ -638,6 +642,110 @@ $$;
 
 comment on function private.refuse_read_only_org() is 'Refuses a person''s write to a row of a read-only org: canceled, waiting for deletion (Section 14.7) or past day 21 of dunning (Section 16), each with its fix; and a write to what a plan limit made read-only (Section 16, 2070). Workers, billing and retention (no person) still write.';
 revoke all on function private.refuse_read_only_org() from public, anon, authenticated;
+
+-- Share links: making one is a write to its file ---------------------------------------------------------------------
+
+-- app.share_links is exempt from t15 so a link can always be revoked (1380); its own guard refuses new links. Recreated
+-- from 2040, its latest definition, with one more check after the canceled-org one. The trigger t40_guard_share_link
+-- (1380) is unchanged.
+create or replace function private.guard_share_link()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid := private.current_person_id();
+  v_attachment app.attachments;
+  v_version app.attachment_versions;
+  v_token text := 'xshr_' || encode(extensions.gen_random_bytes(32), 'hex');
+  v_code text;
+  v_limit interval;
+begin
+  if tg_op = 'UPDATE' then
+    if not private.in_trusted_operation('share_link_service') then
+      perform private.refuse('share_link_immutable', 'A share link changes only when it is opened or revoked.');
+    end if;
+    return new;
+  end if;
+
+  if v_person is null then
+    perform private.refuse('share_link_person', 'A share link is made by a signed-in person.');
+  end if;
+  select * into v_attachment from app.attachments a where a.id = new.attachment_id and a.deleted_at is null;
+  select * into v_version from app.attachment_versions v
+  where v.attachment_id = new.attachment_id and v.scan_status = 'Clean' and v.deleted_at is null
+  order by v.version_number desc limit 1;
+  if v_attachment.id is null or v_version.id is null then
+    perform private.refuse('share_link_file', 'Only a file with a version that scanned clean can be shared.');
+  end if;
+  if not private.is_member(v_attachment.org_id) then
+    raise exception using errcode = '42501', message = 'file not found';
+  end if;
+  if private.org_read_only(v_attachment.org_id) then
+    perform private.refuse('org_read_only', 'This organization is canceled and read-only. The Owner can reactivate it in Settings, Danger zone, during the 30 days.');
+  end if;
+  -- Making a link is a write to its file for the plan limits: refused to a read-only seat and for a read-only project.
+  if exists (select 1 from app.over_limit_objects x where x.org_id = v_attachment.org_id) then
+    perform private.refuse_over_limit_write(v_attachment.org_id, 'app.attachments', null, to_jsonb(v_attachment));
+  end if;
+
+  new.org_id := v_attachment.org_id;
+  new.attachment_version_id := v_version.id;
+  new.classification := v_attachment.classification;
+  new.recipient_email := nullif(lower(btrim(coalesce(new.recipient_email, ''))), '');
+  new.note := nullif(btrim(coalesce(new.note, '')), '');
+  new.failed_attempts := 0;
+  new.open_count := 0;
+  new.last_opened_at := null;
+  new.revoked_at := null;
+  new.revoked_by := null;
+
+  if new.classification = 'Restricted' then
+    perform private.refuse('share_link_restricted', 'A Restricted file is never shared by link (Section 8.6).');
+  end if;
+  if new.classification = 'Confidential' then
+    if not private.has_capability(new.org_id, 'data.export.confidential') then
+      perform private.refuse('share_link_confidential', 'Sharing a Confidential file needs the export capability for Confidential data.');
+    end if;
+    if new.recipient_email is null then
+      perform private.refuse('share_link_recipient', 'A link to a Confidential file names who it is for; the watermark carries that address.');
+    end if;
+    if private.watermark_required(new.classification, v_version.content_type)
+       and not private.watermarkable_content_type(v_version.content_type) then
+      perform private.refuse('share_link_watermark_unsupported', 'A Confidential image other than a PNG or JPEG cannot carry the viewer watermark, so it cannot be shared by link.');
+    end if;
+    new.access_code_required := true;
+  end if;
+  if new.expires_at is null and new.classification <> 'Public' then
+    perform private.refuse('share_link_expiry', 'A link to an Internal or Confidential file needs an expiry date.');
+  end if;
+  v_limit := case when new.classification = 'Confidential' then interval '30 days' else interval '90 days' end;
+  if new.expires_at is not null and (new.expires_at <= now() or new.expires_at > now() + v_limit) then
+    perform private.refuse('share_link_expiry_range', format('A link expires after now and within %s.', v_limit));
+  end if;
+  if new.recipient_email is not null and new.recipient_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
+    perform private.refuse('share_link_recipient_format', 'Enter the recipient''s email address.');
+  end if;
+
+  if new.access_code_required then
+    v_code := lpad(((('x' || encode(extensions.gen_random_bytes(4), 'hex'))::bit(32)::bigint) % 1000000)::text, 6, '0');
+    new.access_code_hash := private.share_code_hash(v_token, v_code);
+  else
+    new.access_code_hash := null;
+  end if;
+  new.token_hash := private.share_token_hash(v_token);
+  perform pg_catalog.set_config('xos.share_link_secret',
+    jsonb_build_object('token', v_token, 'access_code', v_code)::text, true);
+
+  insert into app.file_access_log (org_id, person_id, bucket_id, object_path, action, classification, watermarked)
+  values (new.org_id, v_person, 'attachments', v_version.object_name, 'Share Link Created', new.classification, false);
+  return new;
+end;
+$$;
+
+comment on function private.guard_share_link() is 'Share links: the database copies the file''s org, classification and current Clean version, applies the Section 8.6 rules (no Restricted file; Internal needs an expiry; Confidential needs data.export.confidential, an expiry within 30 days, an access code, the recipient''s email and a type the watermark can carry: a PDF, PNG or JPEG since 2040), draws the token and the code, stores only their hashes and logs Share Link Created. Making a link counts as a write to its file for the plan limits (2070, ADR 0081): a person whose own seat is read-only, or a file of a read-only project, gets plan_limit_read_only. Afterwards a link changes only inside the open and revoke RPCs, so revoking stays open.';
+revoke all on function private.guard_share_link() from public, anon, authenticated;
 
 -- Restoring a project counts against the limit ------------------------------------------------------------------------
 
