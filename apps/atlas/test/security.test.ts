@@ -30,6 +30,11 @@ describe("content security policy", () => {
     expect(production).toContain("connect-src 'self' wss://db.example.test;");
   });
 
+  it("plays media only from itself and the previewer's blob URLs", () => {
+    expect(production).toContain("media-src 'self' blob:;");
+    expect(production).not.toMatch(/frame-src|worker-src[^;]*blob:/);
+  });
+
   it("adds only what the dev server needs in development", () => {
     const dev = buildCsp({
       nonce: "n",

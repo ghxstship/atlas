@@ -28,6 +28,10 @@ export type FilePreviewerProps = ReferenceFilePreviewerProps & {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onDownload?: () => void;
+  /** False for a file with no zoom, such as a video or a file shown only by name. */
+  zoomable?: boolean;
+  /** False while there is nothing to download yet, or when the file was refused. */
+  downloadable?: boolean;
 };
 
 export interface MapGeo {

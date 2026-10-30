@@ -18,6 +18,7 @@ import { fieldError } from "./kit-field-error";
 import { useFinanceT } from "./kit-use-finance-t";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { AttachmentPreview } from "@/components/files/file-preview";
 /**
  * Comments and attachments on a finance document (Section 19.6), on A18's unified comment system and
  * attachment service. Anyone who can read the document may comment; uploads are offered to people who
@@ -170,6 +171,7 @@ export function FinanceAttachments({
                 </span>
               </span>
               <span className="flex items-center gap-8">
+                <AttachmentPreview attachment={a} />
                 <Button size="sm" disabled={!a.current || pending} onClick={() => open(a.id)}>
                   {t("collab.download")}
                 </Button>
