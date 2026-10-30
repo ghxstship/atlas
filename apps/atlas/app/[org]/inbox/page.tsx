@@ -39,9 +39,9 @@ export default async function Page({ params }: PageProps<"/[org]/inbox">) {
       {
         kind: item.kind,
         subjectTable: item.subjectTable,
-        documentType: item.approval?.documentType ?? null,
+        approverRoleId: item.approval?.approverRoleId ?? null,
       },
-      ctx.lens.capabilities,
+      ctx.lens.inbox,
     ),
   );
   // Who acted, for notifications that did not store the actor's name (one name resolution, A59-011).

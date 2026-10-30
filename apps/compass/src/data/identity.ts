@@ -96,6 +96,8 @@ export interface OrgContext {
   readonly projects: readonly ProjectRef[];
   /** A member's org roles with their capabilities, for the role lens (A128); absent when they could not be read. */
   readonly roles?: readonly LensRole[];
+  /** The capabilities a member holds in the org through no role (grants, delegations), for the lens's Inbox. */
+  readonly personalCapabilities?: readonly string[];
 }
 
 /**
@@ -210,19 +212,31 @@ async function memberContexts(
         .is("deleted_at", null)
     : { data: [], error: null };
   if (caps.error) throw new IdentityError("capabilities", caps.error.message);
-  // Role codes and names for the role lens (A128); a failed read only leaves the lens out.
+  // Role codes and names for the role lens (A128), and the capabilities held through no role, which keep their
+  // notices under every lens; a failed read only leaves the lens out.
   const roleInfo = roleIds.length
-    ? await client.from("roles").select("id, code, name").in("id", roleIds)
+    ? await client.from("roles").select("id, code, name, org_id").in("id", roleIds)
     : { data: [], error: null };
+  const personal = await client.rpc("role_lens_personal_capabilities");
+  const lensReadable = !roleInfo.error && !personal.error;
   const roleById = new Map(
     (
-      (roleInfo.error ? [] : (roleInfo.data ?? [])) as {
+      (lensReadable ? (roleInfo.data ?? []) : []) as {
         id: string;
         code: string;
         name: string | null;
+        org_id: string | null;
       }[]
     ).map((r) => [String(r.id), r] as const),
   );
+  const personalByOrg = new Map<string, string[]>();
+  for (const p of (lensReadable ? (personal.data ?? []) : []) as {
+    org_id: string;
+    capability_code: string;
+  }[]) {
+    const org = String(p.org_id);
+    personalByOrg.set(org, [...(personalByOrg.get(org) ?? []), String(p.capability_code)]);
+  }
   // A project role adds capabilities on its project (SIM-007: the Field Supervisor dispatches).
   const projectRoleCaps = await client.rpc("my_project_role_capabilities");
   if (projectRoleCaps.error) throw new IdentityError("capabilities", projectRoleCaps.error.message);
@@ -285,6 +299,7 @@ async function memberContexts(
                 id: String(role.id),
                 code: String(role.code),
                 name: role.name ?? null,
+                system: role.org_id === null || role.org_id === undefined,
                 capabilities: capsByRole.get(String(r.role_id)) ?? [],
               },
             ]
@@ -295,6 +310,7 @@ async function memberContexts(
       orgName: orgName.get(membership.org_id) ?? "",
       kind: "member",
       roles,
+      personalCapabilities: personalByOrg.get(membership.org_id) ?? [],
       identity,
       scope: scopeFor(
         identity,

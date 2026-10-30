@@ -100,26 +100,30 @@ export function lensOrgCapabilities(capabilities: readonly LensCapability[]): Se
 
 // Inbox --------------------------------------------------------------------------------------------------------
 
-/** The capability each spend document type is approved with (private.spend_approve_capability, 1395). */
-export const SPEND_APPROVE_CAPABILITY: Readonly<Record<string, string>> = {
-  "Purchase Order": "finance.po.approve",
-  "Change Order": "finance.change_order.approve",
-  "Invoice Approval": "finance.invoice.approve",
-  Requisition: "people.requisition.approve",
-  Expense: "finance.expense.approve",
-  "Payroll Run": "crew.pay_period.manage",
-};
+/**
+ * Per org, the capabilities the signed-in person holds through no role: a direct grant, an org-level record grant, a
+ * delegation or their own break-glass session (app.role_lens_personal_capabilities). A notice picked by one of them
+ * is addressed to the person, so the Inbox keeps it under every lens.
+ */
+export function personalCapabilities(db: XosClient): Promise<Result<Map<string, Set<string>>>> {
+  return rpc(db, "role_lens_personal_capabilities", {}, (data) => {
+    const byOrg = new Map<string, Set<string>>();
+    for (const r of (data as Raw[] | null) ?? []) {
+      const org = str(r["org_id"]);
+      const set = byOrg.get(org) ?? new Set<string>();
+      set.add(str(r["capability_code"]));
+      byOrg.set(org, set);
+    }
+    return byOrg;
+  });
+}
 
 /**
- * Notification kinds a person receives because of a capability a role gives them, and those capabilities (any
- * one admits the item), as each kind's sender picks its recipients. Every other kind is addressed to the person
- * (a mention, an assignment, their own shift, account notice or report) and shows under every lens.
- *
- * The senders that pick by capability are checked against their latest definitions in the migrations
- * (test/role-lens.test.ts). Deletion and white-label notices go to the Owner role (private.org_owner_ids) and
- * break-glass notices to Owner and Admin, so each takes a capability those roles hold. weather.alert is left out:
- * it also reaches the project roles a weather plan names, which are the person's own assignments, not an org
- * role, so it shows under every lens.
+ * Notification kinds a person receives because of a capability they hold, and those capabilities (any one admits
+ * the item), as each kind's sender picks its recipients (private.person_capability_reach and the helpers on it).
+ * The sender checks of test/role-lens.test.ts compare each entry with its latest sender in the migrations.
+ * weather.alert is left out: it also reaches the project roles a weather plan names, which are the person's own
+ * assignments, not an org role, so it shows under every lens.
  */
 export const ROLE_ROUTED_KINDS: Readonly<Record<string, readonly string[]>> = {
   "incident.reported": ["safety.incident.dispatch"],
@@ -130,44 +134,106 @@ export const ROLE_ROUTED_KINDS: Readonly<Record<string, readonly string[]>> = {
   "billing.read_only": ["org.billing.read"],
   "billing.trial_ending": ["org.billing.read"],
   "billing.trial_ended": ["org.billing.read"],
-  "organization.deletion_requested": ["org.organization.delete"],
-  "organization.deletion_recovered": ["org.organization.delete"],
-  "organization.white_label_reverting": ["org.organization.delete"],
-  "organization.white_label_reverted": ["org.organization.delete"],
   "partner.client_left": ["org.partner.manage"],
-  "access.break_glass_started": ["org.security.write"],
+};
+
+/**
+ * Notification kinds sent to the holders of platform roles, and those roles' codes: deletion and white-label
+ * notices to the Owner role (private.org_owner_ids), break-glass notices to Owner and Admin. Only those roles'
+ * lenses keep them; a custom role that holds the same capabilities did not bring them.
+ */
+export const SYSTEM_ROLE_ROUTED_KINDS: Readonly<Record<string, readonly string[]>> = {
+  "organization.deletion_requested": ["owner"],
+  "organization.deletion_recovered": ["owner"],
+  "organization.white_label_reverting": ["owner"],
+  "organization.white_label_reverted": ["owner"],
+  "access.break_glass_started": ["owner", "admin"],
 };
 
 /** The parts of an Inbox item the lens reads; Atlas's InboxItem and Compass's notification rows both fit. */
 export interface LensInboxItem {
   readonly kind: string;
   readonly subjectTable: string | null;
-  /** For an approval request, the spend document type it asks about, when the reader has it. */
-  readonly documentType?: string | null;
+  /** For an approval request, the role the step it waits on names (app.inbox_items.approver_role_id). */
+  readonly approverRoleId?: string | null;
 }
 
+/** Why an Inbox item reached the person, which decides the lenses that keep it. */
+export type InboxRoute =
+  /** Addressed to the person (a mention, an assignment, a step naming them, a delegation): every lens. */
+  | { readonly by: "person" }
+  /** A capability the sender picks by, any one of which keeps it. */
+  | { readonly by: "capability"; readonly capabilities: readonly string[] }
+  /** An approval step naming an org role: that role's lens, or every lens when the person holds no such role. */
+  | { readonly by: "role"; readonly roleId: string }
+  /** Holders of these platform roles. */
+  | { readonly by: "system-role"; readonly codes: readonly string[] };
+
 /**
- * The capabilities that brought an Inbox item to the person, any one of which keeps it under a lens; null when
- * the item is addressed to the person and shows under every lens. An approval request whose document type the
- * reader does not have is kept by any spend approval capability.
+ * How an Inbox item reached the person. A spend approval request follows its step (private.step_approver_person_ids,
+ * 1395): a step naming a role reaches that role's holders, and a step naming a member reaches that member; an away
+ * approver's delegate is asked in their place, which the person reads as a step naming a role they do not hold.
+ * A timesheet request goes to everyone who approves timesheets org-wide (crew.timesheet.approve, 1140).
  */
-export function inboxItemCapabilities(item: LensInboxItem): readonly string[] | null {
+export function inboxItemRoute(item: LensInboxItem): InboxRoute {
   if (item.kind === "approval.requested") {
     const table = item.subjectTable?.replace(/^app\./, "") ?? null;
-    if (table === "timesheets") return ["crew.timesheet.approve"];
-    if (table !== "approval_instances") return null;
-    const approve = item.documentType ? SPEND_APPROVE_CAPABILITY[item.documentType] : undefined;
-    return approve ? [approve] : Object.values(SPEND_APPROVE_CAPABILITY);
+    if (table === "timesheets")
+      return { by: "capability", capabilities: ["crew.timesheet.approve"] };
+    if (table === "approval_instances" && item.approverRoleId) {
+      return { by: "role", roleId: item.approverRoleId };
+    }
+    return { by: "person" };
   }
-  return ROLE_ROUTED_KINDS[item.kind] ?? null;
+  const capabilities = ROLE_ROUTED_KINDS[item.kind];
+  if (capabilities) return { by: "capability", capabilities };
+  const codes = SYSTEM_ROLE_ROUTED_KINDS[item.kind];
+  if (codes) return { by: "system-role", codes };
+  return { by: "person" };
+}
+
+/** What the Inbox reads of a role lens. */
+export interface InboxLens {
+  /** The lens role. */
+  readonly roleId: string;
+  /** The lens role's platform code, or null for a custom role. */
+  readonly systemRoleCode: string | null;
+  /** Every org role the person holds in the org. */
+  readonly heldRoleIds: ReadonlySet<string>;
+  /** The lens role's capabilities the person holds (any reach), and those they hold through no role. */
+  readonly capabilities: ReadonlySet<string>;
+}
+
+/** The Inbox's view of a lens: the role, the roles the person holds, and the capabilities that keep an item. */
+export function inboxLens(input: {
+  readonly role: { readonly id: string; readonly code: string; readonly system: boolean };
+  readonly heldRoleIds: Iterable<string>;
+  readonly roleCapabilities: Iterable<string>;
+  readonly personalCapabilities: Iterable<string>;
+}): InboxLens {
+  return {
+    roleId: input.role.id,
+    systemRoleCode: input.role.system ? input.role.code : null,
+    heldRoleIds: new Set(input.heldRoleIds),
+    capabilities: new Set([...input.roleCapabilities, ...input.personalCapabilities]),
+  };
 }
 
 /**
  * True when an Inbox item shows under a lens: All roles (`lens` null) shows everything, and a role shows what is
- * addressed to the person plus what one of its capabilities brought (any reach).
+ * addressed to the person plus what that role brought them.
  */
-export function inboxItemInLens(item: LensInboxItem, lens: ReadonlySet<string> | null): boolean {
+export function inboxItemInLens(item: LensInboxItem, lens: InboxLens | null): boolean {
   if (lens === null) return true;
-  const needs = inboxItemCapabilities(item);
-  return needs === null || needs.some((c) => lens.has(c));
+  const route = inboxItemRoute(item);
+  switch (route.by) {
+    case "person":
+      return true;
+    case "capability":
+      return route.capabilities.some((c) => lens.capabilities.has(c));
+    case "role":
+      return route.roleId === lens.roleId || !lens.heldRoleIds.has(route.roleId);
+    case "system-role":
+      return lens.systemRoleCode !== null && route.codes.includes(lens.systemRoleCode);
+  }
 }

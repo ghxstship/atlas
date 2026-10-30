@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { inboxItemInLens } from "@xos/data/role-lens";
 import { internalAudience } from "../src/data/identity";
 import type { CompassIdentity, EngagementSummary } from "../src/domain/access";
 import {
   activeLens,
   lensIdentity,
-  lensInboxCapabilities,
+  lensInbox,
   lensOptions,
   type LensContext,
 } from "../src/domain/roleLens";
@@ -32,12 +33,14 @@ const member: LensContext = {
       id: "r-member",
       code: "member",
       name: null,
+      system: true,
       capabilities: ["crew.shift.read", "work.record.write"],
     },
     {
       id: "r-field",
       code: "field",
       name: null,
+      system: true,
       // A capability the person does not hold on this device never appears under the lens.
       capabilities: ["crew.shift.read", "crew.time_entry.write", "org.billing.manage"],
     },
@@ -106,13 +109,38 @@ describe("lensIdentity", () => {
   });
 });
 
-describe("lensInboxCapabilities", () => {
-  it("narrows a member's Inbox to the lens's capabilities and leaves others alone", () => {
+describe("lensInbox", () => {
+  it("narrows a member's Inbox to the lens and leaves All roles and engaged people alone", () => {
     const field = lensIdentity(member, "r-field", internalAudience);
-    expect([...(lensInboxCapabilities(member, "r-field", field) ?? [])]).toEqual(
-      field.capabilities,
+    const inbox = lensInbox(member, "r-field", field);
+    expect([...(inbox?.capabilities ?? [])].sort()).toEqual(field.capabilities);
+    expect(inbox?.roleId).toBe("r-field");
+    expect(inbox?.systemRoleCode).toBe("field");
+    expect(lensInbox(member, null, base)).toBeNull();
+    expect(lensInbox(engaged, "artist", engaged.identity)).toBeNull();
+  });
+
+  it("keeps an approval step under the role it names, and a notice picked by a grant under every lens", () => {
+    const granted: LensContext = { ...member, personalCapabilities: ["safety.incident.dispatch"] };
+    const field = lensIdentity(granted, "r-field", internalAudience);
+    const inbox = lensInbox(granted, "r-field", field);
+    const step = (roleId: string) => ({
+      kind: "approval.requested",
+      subjectTable: "approval_instances",
+      approverRoleId: roleId,
+    });
+    expect(inboxItemInLens(step("r-field"), inbox)).toBe(true);
+    expect(inboxItemInLens(step("r-member"), inbox)).toBe(false);
+    // A step naming a role the person does not hold reached them as a delegate, so it is theirs under every lens.
+    expect(inboxItemInLens(step("r-elsewhere"), inbox)).toBe(true);
+    expect(inboxItemInLens({ kind: "incident.reported", subjectTable: "incidents" }, inbox)).toBe(
+      true,
     );
-    expect(lensInboxCapabilities(member, null, base)).toBeNull();
-    expect(lensInboxCapabilities(engaged, "artist", engaged.identity)).toBeNull();
+    const member2 = lensInbox(
+      granted,
+      "r-member",
+      lensIdentity(granted, "r-member", internalAudience),
+    );
+    expect(inboxItemInLens(step("r-field"), member2)).toBe(false);
   });
 });

@@ -1,9 +1,12 @@
 import { systemRoleForBand, type Role, type XosClient } from "@xos/data";
 import {
+  inboxLens,
   lensCapabilities,
   lensOrgCapabilities,
   parseRoleLensCookie,
+  personalCapabilities,
   roleLensCapabilities,
+  type InboxLens,
 } from "@xos/data/role-lens";
 import type { NavContext } from "@xos/ia";
 import type { Membership } from "./membership";
@@ -20,8 +23,8 @@ export interface RoleLens {
   readonly roles: readonly Role[];
   /** The role the lens narrows to, or null for All roles. */
   readonly role: Role | null;
-  /** The lens's capabilities at any reach, for the Inbox; null for All roles. */
-  readonly capabilities: ReadonlySet<string> | null;
+  /** What the Inbox keeps under the lens; null for All roles. */
+  readonly inbox: InboxLens | null;
   /** Navigation for all the person's roles: the route guard follows it, as the proxy does. */
   readonly ownNav: NavContext;
 }
@@ -38,7 +41,7 @@ export async function applyRoleLens(
   const roles = membership.org.roles;
   const allRoles: LensedMembership = {
     ...membership,
-    lens: { roles, role: null, capabilities: null, ownNav: membership.nav },
+    lens: { roles, role: null, inbox: null, ownNav: membership.nav },
   };
   const roleId = parseRoleLensCookie(cookieValue, membership.org.slug);
   const role = roleId === null || roles.length < 2 ? undefined : roles.find((r) => r.id === roleId);
@@ -50,6 +53,13 @@ export async function applyRoleLens(
       return allRoles;
     }
     throw new Error(`Cannot narrow to the role: ${JSON.stringify(capabilities.error)}`);
+  }
+  // Notices picked by a capability the person holds through no role are addressed to them, under every lens.
+  const personal = await personalCapabilities(db);
+  if (!personal.ok) {
+    throw new Error(
+      `Cannot read the capabilities held through no role: ${JSON.stringify(personal.error)}`,
+    );
   }
   // The role's band, never better than the best band the person holds.
   const band = Math.max(role.band, membership.org.bestBand ?? role.band);
@@ -63,7 +73,12 @@ export async function applyRoleLens(
     lens: {
       roles,
       role,
-      capabilities: new Set(capabilities.data.map((c) => c.capability)),
+      inbox: inboxLens({
+        role,
+        heldRoleIds: roles.map((r) => r.id),
+        roleCapabilities: capabilities.data.map((c) => c.capability),
+        personalCapabilities: personal.data.get(membership.org.id) ?? [],
+      }),
       ownNav: membership.nav,
     },
   };

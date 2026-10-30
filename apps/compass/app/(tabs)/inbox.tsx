@@ -134,7 +134,7 @@ export default function InboxScreen(): ReactElement {
     (n) =>
       n.orgId !== resolved?.orgId ||
       inboxItemInLens(
-        { kind: n.kind, subjectTable: n.subjectTable, documentType: n.documentType ?? null },
+        { kind: n.kind, subjectTable: n.subjectTable, approverRoleId: n.approverRoleId ?? null },
         lens.inbox,
       ),
   );

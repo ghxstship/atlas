@@ -16,6 +16,7 @@ import {
 import type { ThemePreference } from "@xos/ui-native/theme";
 import { touchMySession } from "@xos/data/account-security";
 import type { XosClient } from "@xos/data/client";
+import type { InboxLens } from "@xos/data/role-lens";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -57,7 +58,7 @@ import { inOrg, personTimeZone } from "../domain/orgs";
 import {
   activeLens,
   lensIdentity,
-  lensInboxCapabilities,
+  lensInbox,
   lensOptions,
   type LensOption,
 } from "../domain/roleLens";
@@ -146,13 +147,13 @@ export interface CompassContextValue {
   readonly setOrgId: (orgId: string) => void;
   /**
    * The role lens of the active org (A128, Section 4.8.1): the roles the switcher offers (none for a person with
-   * fewer than two), the one chosen (null for All roles) and, for a member, the capabilities the Inbox narrows to.
+   * fewer than two), the one chosen (null for All roles) and, for a member, what the Inbox keeps under it.
    * `resolved.identity` already follows it.
    */
   readonly lens: {
     readonly options: readonly LensOption[];
     readonly current: string | null;
-    readonly inbox: ReadonlySet<string> | null;
+    readonly inbox: InboxLens | null;
   };
   /** Chooses the active org's lens for this app session; null returns to All roles. */
   readonly setLens: (lens: string | null) => void;
@@ -317,9 +318,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       options: activeContext ? lensOptions(activeContext) : [],
       current: activeContext ? activeLens(activeContext, chosenLens) : null,
       inbox:
-        activeContext && resolved
-          ? lensInboxCapabilities(activeContext, chosenLens, resolved.identity)
-          : null,
+        activeContext && resolved ? lensInbox(activeContext, chosenLens, resolved.identity) : null,
     }),
     [activeContext, chosenLens, resolved],
   );

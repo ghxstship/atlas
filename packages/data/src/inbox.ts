@@ -20,6 +20,8 @@ export interface InboxApproval {
   readonly currency: string | null;
   readonly state: string;
   readonly currentStep: number;
+  /** The role the step it waits on names, or null when the step names one member (2211, for the role lens). */
+  readonly approverRoleId: string | null;
 }
 
 export interface InboxItem {
@@ -53,7 +55,7 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
     untyped(db)
       .from("inbox_items")
       .select(
-        "id, created_at, kind, section, read_at, actor_person_id, subject_table, subject_id, project_id, message_args, document_type, subject_reference, amount_minor, currency_code, approval_state, current_step",
+        "id, created_at, kind, section, read_at, actor_person_id, subject_table, subject_id, project_id, message_args, document_type, subject_reference, amount_minor, currency_code, approval_state, current_step, approver_role_id",
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false })
@@ -85,6 +87,7 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
             currency: strOrNull(r["currency_code"]),
             state: str(r["approval_state"]),
             currentStep: num(r["current_step"]),
+            approverRoleId: strOrNull(r["approver_role_id"]),
           },
   }));
   return ok(sortInbox(items));

@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   GATEWAY_LENS_SCOPE,
   ROLE_ROUTED_KINDS,
-  SPEND_APPROVE_CAPABILITY,
-  inboxItemCapabilities,
+  SYSTEM_ROLE_ROUTED_KINDS,
   inboxItemInLens,
+  inboxItemRoute,
+  inboxLens,
+  personalCapabilities,
   lensCapabilities,
   lensOrgCapabilities,
   lesserReach,
@@ -116,12 +118,52 @@ describe("roleLensCapabilities", () => {
   });
 });
 
+describe("the capabilities held through no role", () => {
+  it("groups them by org", async () => {
+    const { db } = fakeClient({
+      "rpc:role_lens_personal_capabilities": [
+        okResponse([
+          { org_id: "org-1", capability_code: "crew.timesheet.approve" },
+          { org_id: "org-1", capability_code: "finance.po.approve" },
+          { org_id: "org-2", capability_code: "safety.incident.dispatch" },
+        ]),
+      ],
+    });
+    const result = await personalCapabilities(db);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect([...(result.data.get("org-1") ?? [])]).toEqual([
+      "crew.timesheet.approve",
+      "finance.po.approve",
+    ]);
+    expect([...(result.data.get("org-2") ?? [])]).toEqual(["safety.incident.dispatch"]);
+  });
+});
+
 describe("the Inbox under a lens", () => {
-  const manager = new Set(["finance.po.approve", "crew.timesheet.approve", "work.record.read"]);
-  const member = new Set(["work.record.read"]);
+  const MANAGER = { id: "role-manager", code: "manager", system: true };
+  const MEMBER = { id: "role-member", code: "member", system: true };
+  const OWNER = { id: "role-owner", code: "owner", system: true };
+  // A custom role an org named "owner": only the platform Owner role is sent the Owner's notices.
+  const CUSTOM = { id: "role-custom", code: "owner", system: false };
+  const held = [MANAGER.id, MEMBER.id, OWNER.id, CUSTOM.id];
+  const lens = (
+    role: { id: string; code: string; system: boolean },
+    roleCapabilities: string[],
+    personal: string[] = [],
+  ) => inboxLens({ role, heldRoleIds: held, roleCapabilities, personalCapabilities: personal });
+  const manager = lens(MANAGER, [
+    "finance.po.approve",
+    "crew.timesheet.approve",
+    "work.record.read",
+  ]);
+  const member = lens(MEMBER, ["work.record.read"]);
 
   it("shows everything under All roles", () => {
-    for (const kind of Object.keys(ROLE_ROUTED_KINDS)) {
+    for (const kind of [
+      ...Object.keys(ROLE_ROUTED_KINDS),
+      ...Object.keys(SYSTEM_ROLE_ROUTED_KINDS),
+    ]) {
       expect(inboxItemInLens({ kind, subjectTable: null }, null)).toBe(true);
     }
   });
@@ -134,70 +176,110 @@ describe("the Inbox under a lens", () => {
       "message.received",
     ]) {
       expect(inboxItemInLens({ kind, subjectTable: "records" }, member)).toBe(true);
-      expect(inboxItemCapabilities({ kind, subjectTable: "records" })).toBeNull();
+      expect(inboxItemRoute({ kind, subjectTable: "records" })).toEqual({ by: "person" });
     }
   });
 
-  it("routes an approval request by the capability its document type is approved with", () => {
-    const po = {
+  it("keeps a spend approval request under the role its step names, and only that role", () => {
+    const managerStep = {
       kind: "approval.requested",
       subjectTable: "approval_instances",
-      documentType: "Purchase Order",
+      approverRoleId: MANAGER.id,
     };
-    expect(inboxItemCapabilities(po)).toEqual(["finance.po.approve"]);
-    expect(inboxItemInLens(po, manager)).toBe(true);
-    expect(inboxItemInLens(po, member)).toBe(false);
+    expect(inboxItemRoute(managerStep)).toEqual({ by: "role", roleId: MANAGER.id });
+    expect(inboxItemInLens(managerStep, manager)).toBe(true);
+    expect(inboxItemInLens(managerStep, member)).toBe(false);
+    // The role brought it even when the role lacks the approval capability the decision also needs.
+    const memberStep = { ...managerStep, approverRoleId: MEMBER.id };
+    expect(inboxItemInLens(memberStep, member)).toBe(true);
+    expect(inboxItemInLens(memberStep, manager)).toBe(false);
+  });
+
+  it("keeps a request addressed to the person, by a named member or as a delegate, under every lens", () => {
+    const named = {
+      kind: "approval.requested",
+      subjectTable: "app.approval_instances",
+      approverRoleId: null,
+    };
+    expect(inboxItemRoute(named)).toEqual({ by: "person" });
+    expect(inboxItemInLens(named, member)).toBe(true);
+    expect(inboxItemInLens(named, manager)).toBe(true);
+    // A step naming a role the person does not hold reached them as an away approver's delegate.
+    const delegated = { ...named, approverRoleId: "role-elsewhere" };
+    expect(inboxItemInLens(delegated, member)).toBe(true);
+    expect(inboxItemInLens(delegated, manager)).toBe(true);
+  });
+
+  it("routes a timesheet request by the capability its sender picks", () => {
     const sheet = { kind: "approval.requested", subjectTable: "timesheets" };
     expect(inboxItemInLens(sheet, manager)).toBe(true);
     expect(inboxItemInLens(sheet, member)).toBe(false);
+    // An approver by a direct grant or a delegation keeps it under every lens.
+    expect(
+      inboxItemInLens(sheet, lens(MEMBER, ["work.record.read"], ["crew.timesheet.approve"])),
+    ).toBe(true);
   });
 
-  it("keeps an approval request of unknown document type for any spend approver", () => {
-    const unknown = { kind: "approval.requested", subjectTable: "app.approval_instances" };
-    expect(inboxItemCapabilities(unknown)).toEqual(Object.values(SPEND_APPROVE_CAPABILITY));
-    expect(inboxItemInLens(unknown, manager)).toBe(true);
-    expect(inboxItemInLens(unknown, member)).toBe(false);
-  });
-
-  it("hides a role-routed notice from a role without its capability", () => {
+  it("hides a capability-picked notice from a role without its capability", () => {
     const incident = { kind: "incident.reported", subjectTable: "app.incidents" };
     expect(inboxItemInLens(incident, member)).toBe(false);
-    expect(inboxItemInLens(incident, new Set(["safety.incident.dispatch"]))).toBe(true);
+    expect(inboxItemInLens(incident, lens(MEMBER, ["safety.incident.dispatch"]))).toBe(true);
+  });
+
+  it("keeps the Owner's and break-glass notices for the platform roles they are sent to", () => {
+    const deletion = {
+      kind: "organization.deletion_requested",
+      subjectTable: "app.org_deletion_requests",
+    };
+    const breakGlass = { kind: "access.break_glass_started", subjectTable: "break_glass_sessions" };
+    const owner = lens(OWNER, ["org.organization.delete", "org.security.write"]);
+    const custom = lens(CUSTOM, ["org.organization.delete", "org.security.write"]);
+    const admin = lens({ id: "role-admin", code: "admin", system: true }, ["org.security.write"]);
+    expect(inboxItemInLens(deletion, owner)).toBe(true);
+    expect(inboxItemInLens(deletion, custom)).toBe(false);
+    expect(inboxItemInLens(deletion, admin)).toBe(false);
+    expect(inboxItemInLens(breakGlass, owner)).toBe(true);
+    expect(inboxItemInLens(breakGlass, admin)).toBe(true);
+    expect(inboxItemInLens(breakGlass, custom)).toBe(false);
+    expect(inboxItemInLens(breakGlass, manager)).toBe(false);
   });
 });
 
-// Each role-routed kind against the latest migration that sends it: the capability the sender picks recipients by
-// is the one the lens keeps the notice for, so a role shows exactly the notices it brought.
-describe("the role-routed kinds follow their senders", () => {
+// Each routed kind against the latest migration that sends it: what the sender picks recipients by is what the lens
+// keeps the notice for, so a role shows exactly the notices it brought.
+describe("the routed kinds follow their senders", () => {
   const dir = new URL("../../../supabase/migrations/", import.meta.url);
   // Every migration's text, in file order.
   const migrations = readdirSync(dir)
     .filter((f) => f.endsWith(".sql"))
     .sort()
     .map((f) => readFileSync(new URL(f, dir), "utf8"));
-  const notifyOf = (kind: string) => new RegExp(`notify\\([^;]*?'${kind.replaceAll(".", "\\.")}'`);
+  const escape = (text: string) => text.replaceAll(".", "\\.");
+  const notifyOf = (kind: string, subject?: string) =>
+    new RegExp(`notify\\([^;]*?'${escape(kind)}'${subject ? `, '${escape(subject)}'` : ""}`);
   const capabilityPick =
     /(?:project_member_people_with\([^,]+,|person_capability_reach\([^,]+,[^,]+,)\s*'([a-z_]+\.[a-z_]+\.[a-z_]+)'/g;
 
-  /** The latest definition of a private helper, from its create to the end of its body. */
-  function helperBody(name: string): string {
-    const head = `create or replace function private.${name}(`;
+  /** The latest definition of a function, from its create to the end of its body. */
+  function latestBody(name: string): string {
+    const head = `create or replace function ${name}(`;
     const body = migrations.filter((m) => m.includes(head)).at(-1) ?? "";
     expect(body, name).not.toBe("");
     const at = body.indexOf(head);
     return body.slice(at, body.indexOf("$$;", at));
   }
+  const helperBody = (name: string) => latestBody(`private.${name}`);
 
   /** The recipient query of a kind's latest sender: from the loop that picks people to the notify call. */
-  function recipients(kind: string): string {
-    const body = migrations.filter((m) => notifyOf(kind).test(m)).at(-1) ?? "";
+  function recipients(kind: string, subject?: string): string {
+    const body = migrations.filter((m) => notifyOf(kind, subject).test(m)).at(-1) ?? "";
     expect(body, kind).not.toBe("");
-    const at = body.search(notifyOf(kind));
+    const at = body.search(notifyOf(kind, subject));
     return body.slice(body.lastIndexOf("for v_", at), at);
   }
 
-  function pickedCapabilities(kind: string): string[] {
-    const query = recipients(kind);
+  function pickedCapabilities(kind: string, subject?: string): string[] {
+    const query = recipients(kind, subject);
     const helpers = [...query.matchAll(/private\.(\w+_ids)\(/g)].map((m) => helperBody(m[1] ?? ""));
     const picked = [query, ...helpers].flatMap((s) =>
       [...s.matchAll(capabilityPick)].map((m) => m[1] ?? ""),
@@ -227,36 +309,76 @@ describe("the role-routed kinds follow their senders", () => {
     for (const kind of byCapability) {
       expect([...(ROLE_ROUTED_KINDS[kind] ?? [])].sort(), kind).toEqual(pickedCapabilities(kind));
     }
+    expect(Object.keys(ROLE_ROUTED_KINDS).sort()).toEqual([...byCapability].sort());
   });
 
   it("routes the trial notices like the other billing notices, by org.billing.read", () => {
     expect(pickedCapabilities("billing.trial_ending")).toEqual(["org.billing.read"]);
-    const billingOnly = new Set(["org.billing.read"]);
-    const deleteOnly = new Set(["org.organization.delete"]);
+    const billingOnly = inboxLens({
+      role: { id: "r1", code: "billing", system: false },
+      heldRoleIds: ["r1", "r2"],
+      roleCapabilities: ["org.billing.read"],
+      personalCapabilities: [],
+    });
+    const deleteOnly = inboxLens({
+      role: { id: "r2", code: "closer", system: false },
+      heldRoleIds: ["r1", "r2"],
+      roleCapabilities: ["org.organization.delete"],
+      personalCapabilities: [],
+    });
     for (const kind of ["billing.trial_ending", "billing.trial_ended"]) {
       expect(inboxItemInLens({ kind, subjectTable: "app.subscriptions" }, billingOnly)).toBe(true);
       expect(inboxItemInLens({ kind, subjectTable: "app.subscriptions" }, deleteOnly)).toBe(false);
     }
   });
 
-  it("routes the Owner's notices by a capability only the Owner role is sent them for", () => {
+  it("keeps the Owner's notices for the platform Owner role and break-glass notices for Owner and Admin", () => {
+    expect(helperBody("org_owner_ids")).toContain("private.system_role_id('owner')");
     for (const kind of byOwnerRole) {
       expect(recipients(kind), kind).toContain("private.org_owner_ids(");
-      expect(ROLE_ROUTED_KINDS[kind], kind).toEqual(["org.organization.delete"]);
+      expect(SYSTEM_ROLE_ROUTED_KINDS[kind], kind).toEqual(["owner"]);
     }
-    expect(recipients("access.break_glass_started")).toContain("r.code in ('owner', 'admin')");
+    expect(recipients("access.break_glass_started")).toContain(
+      "r.org_id is null and r.code in ('owner', 'admin')",
+    );
+    expect(SYSTEM_ROLE_ROUTED_KINDS["access.break_glass_started"]).toEqual(["owner", "admin"]);
+    expect(Object.keys(SYSTEM_ROLE_ROUTED_KINDS).sort()).toEqual(
+      [...byOwnerRole, "access.break_glass_started"].sort(),
+    );
   });
 
-  it("lists every routed kind under one of the checks", () => {
-    expect(Object.keys(ROLE_ROUTED_KINDS).sort()).toEqual(
-      [...byCapability, ...byOwnerRole, "access.break_glass_started"].sort(),
+  it("keeps a spend approval request for the role or the member its step names, as its sender picks", () => {
+    // private.notify_step_approvers asks the people private.step_approver_person_ids lists for the current step.
+    expect(recipients("approval.requested", "approval_instances")).toContain(
+      "private.step_approver_person_ids(p_instance.approval_policy_id, p_instance.current_step",
     );
+    const picks = helperBody("step_approver_person_ids");
+    expect(picks).toContain("m.id = s.approver_membership_id");
+    expect(picks).toContain("mr.role_id = s.approver_role_id");
+    // An away approver's delegate is asked in their place: a step naming a role the delegate does not hold.
+    expect(picks).toContain("private.away_delegate_person_ids(");
+    expect([...picks.matchAll(capabilityPick)]).toEqual([]);
+    // The Inbox names the role of the step the approval waits on.
+    const inbox =
+      migrations.filter((m) => m.includes("create or replace view app.inbox_items")).at(-1) ?? "";
+    expect(inbox).toContain("st.approver_role_id");
+    expect(inbox).toContain("st.step_order = a.current_step");
+  });
+
+  it("routes a timesheet request by crew.timesheet.approve, as its sender picks", () => {
+    expect(pickedCapabilities("approval.requested", "timesheets")).toEqual([
+      "crew.timesheet.approve",
+    ]);
+    expect(inboxItemRoute({ kind: "approval.requested", subjectTable: "timesheets" })).toEqual({
+      by: "capability",
+      capabilities: ["crew.timesheet.approve"],
+    });
   });
 
   it("shows a weather alert under every lens, since project roles a weather plan names receive it too", () => {
     expect(recipients("weather.alert")).toContain("app.weather_alert_roles");
-    expect(
-      inboxItemCapabilities({ kind: "weather.alert", subjectTable: "app.weather_alerts" }),
-    ).toBeNull();
+    expect(inboxItemRoute({ kind: "weather.alert", subjectTable: "app.weather_alerts" })).toEqual({
+      by: "person",
+    });
   });
 });

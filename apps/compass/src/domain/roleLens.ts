@@ -7,7 +7,7 @@
  * security and the RPCs decide every act as before.
  */
 import type { Audience } from "@xos/sync";
-import { lensCapabilities } from "@xos/data/role-lens";
+import { inboxLens, lensCapabilities, type InboxLens } from "@xos/data/role-lens";
 import type { CompassIdentity } from "./access";
 
 /** One org role the person holds, with its capabilities (role_capabilities), for the lens. */
@@ -16,6 +16,8 @@ export interface LensRole {
   readonly code: string;
   /** A custom role's name; null for a platform role, whose label comes from the catalog. */
   readonly name: string | null;
+  /** True for a platform role (Owner, Admin and the rest), false for the org's custom role. */
+  readonly system: boolean;
   readonly capabilities: readonly string[];
 }
 
@@ -33,6 +35,8 @@ export interface LensContext {
   readonly kind: "member" | "engaged";
   readonly identity: CompassIdentity;
   readonly roles?: readonly LensRole[];
+  /** A member's capabilities held through no role (grants, delegations), which keep their notices under every lens. */
+  readonly personalCapabilities?: readonly string[];
 }
 
 /** What the switcher offers in an org; empty when the person has fewer than two roles there. */
@@ -77,12 +81,24 @@ export function lensIdentity(
   return { ...identity, engagements, audience: lens as Audience };
 }
 
-/** The capabilities the Inbox narrows to under a lens: a member's narrowed set, else null (everything shows). */
-export function lensInboxCapabilities(
+/**
+ * What the Inbox keeps under a lens: for a member, the chosen role's capabilities they hold (`narrowed`) and those
+ * held through no role, with the role itself for approval steps that name it; null for All roles or an engaged
+ * person, whose Inbox shows everything.
+ */
+export function lensInbox(
   context: LensContext,
   chosen: string | null | undefined,
   narrowed: CompassIdentity,
-): ReadonlySet<string> | null {
-  if (activeLens(context, chosen) === null || context.kind !== "member") return null;
-  return new Set(narrowed.capabilities);
+): InboxLens | null {
+  if (context.kind !== "member") return null;
+  const lens = activeLens(context, chosen);
+  const role = lens === null ? undefined : context.roles?.find((r) => r.id === lens);
+  if (!role) return null;
+  return inboxLens({
+    role,
+    heldRoleIds: (context.roles ?? []).map((r) => r.id),
+    roleCapabilities: narrowed.capabilities,
+    personalCapabilities: context.personalCapabilities ?? [],
+  });
 }

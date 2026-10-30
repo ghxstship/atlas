@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Role, XosClient } from "@xos/data";
-import { roleLensCookie } from "@xos/data/role-lens";
+import { inboxItemInLens, roleLensCookie } from "@xos/data/role-lens";
 import type { Membership } from "../lib/shell/membership";
 import { applyRoleLens } from "../lib/shell/role-lens";
 
@@ -59,21 +59,29 @@ type Row = {
   lens_reach: string;
 };
 
-/** A client whose app.role_lens_capabilities answers with `rows`, or refuses. */
-function client(rows: Row[] | "refused"): XosClient {
+/**
+ * A client whose app.role_lens_capabilities answers with `rows`, or refuses, and whose
+ * app.role_lens_personal_capabilities answers with `personal` (org id and capability).
+ */
+function client(
+  rows: Row[] | "refused",
+  personal: { org_id: string; capability_code: string }[] = [],
+): XosClient {
   return {
-    rpc: async () =>
-      rows === "refused"
-        ? {
-            data: null,
-            error: {
-              code: "XR001",
-              message:
-                "role_lens_role_not_held: Choose one of the roles you hold in this organization.",
-              hint: null,
-            },
-          }
-        : { data: rows, error: null },
+    rpc: async (fn: string) =>
+      fn === "role_lens_personal_capabilities"
+        ? { data: personal, error: null }
+        : rows === "refused"
+          ? {
+              data: null,
+              error: {
+                code: "XR001",
+                message:
+                  "role_lens_role_not_held: Choose one of the roles you hold in this organization.",
+                hint: null,
+              },
+            }
+          : { data: rows, error: null },
   } as unknown as XosClient;
 }
 
@@ -88,7 +96,7 @@ describe("applyRoleLens", () => {
   it("shows All roles without a lens cookie", async () => {
     const lensed = await applyRoleLens(client([]), membership([MANAGER, MEMBER]), undefined);
     expect(lensed.lens.role).toBeNull();
-    expect(lensed.lens.capabilities).toBeNull();
+    expect(lensed.lens.inbox).toBeNull();
     expect(lensed.capabilities).toBe(OWN);
   });
 
@@ -112,6 +120,43 @@ describe("applyRoleLens", () => {
     expect(lensed.nav.role).toBe("member");
     // Navigation for every role the person holds stays for the route guard.
     expect(lensed.lens.ownNav.role).toBe("manager");
+  });
+
+  it("keeps in the Inbox what the lens role brought and what is addressed to the person", async () => {
+    const org = "01920000-0000-7000-8000-000000000001";
+    const db = client(
+      [row("work.record.read")],
+      [
+        { org_id: org, capability_code: "crew.timesheet.approve" },
+        {
+          org_id: "01920000-0000-7000-8000-000000000002",
+          capability_code: "safety.incident.dispatch",
+        },
+      ],
+    );
+    const lensed = await applyRoleLens(
+      db,
+      membership([MANAGER, MEMBER]),
+      roleLensCookie("demo", MEMBER.id),
+    );
+    const inbox = lensed.lens.inbox;
+    expect(inbox?.roleId).toBe(MEMBER.id);
+    expect(inbox?.systemRoleCode).toBe("member");
+    expect([...(inbox?.heldRoleIds ?? [])]).toEqual([MANAGER.id, MEMBER.id]);
+    const step = (roleId: string) => ({
+      kind: "approval.requested",
+      subjectTable: "approval_instances",
+      approverRoleId: roleId,
+    });
+    expect(inboxItemInLens(step(MEMBER.id), inbox ?? null)).toBe(true);
+    expect(inboxItemInLens(step(MANAGER.id), inbox ?? null)).toBe(false);
+    // A timesheet approver by a direct grant keeps the requests under every lens; another org's grant does not count.
+    expect(
+      inboxItemInLens({ kind: "approval.requested", subjectTable: "timesheets" }, inbox ?? null),
+    ).toBe(true);
+    expect(
+      inboxItemInLens({ kind: "incident.reported", subjectTable: "incidents" }, inbox ?? null),
+    ).toBe(false);
   });
 
   it("keeps the role's band no better than the best band the person holds", async () => {
