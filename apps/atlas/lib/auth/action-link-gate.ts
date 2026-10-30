@@ -4,7 +4,12 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Viewer } from "@/lib/shell/context";
 import { resolveMembership } from "@/lib/shell/membership";
-import { NETWORK_RESTRICTED_PATH, orgAuthRedirect, secondFactorRedirect } from "./assurance";
+import {
+  NETWORK_RESTRICTED_PATH,
+  orgAuthRedirect,
+  previousSeenFrom,
+  secondFactorRedirect,
+} from "./assurance";
 
 /**
  * The org's security settings on a one-tap email link (A127, ADR 0106). /auth/act/{token} is not under /{org}, so
@@ -44,15 +49,18 @@ export async function actionLinkGate(viewer: Viewer, org: string): Promise<Actio
   if (viewer.secondFactorOwed) return { kind: "second-factor" };
   if (!viewer.person) return { kind: "not-member" };
   const outcome: { gate: ActionLinkGate | null } = { gate: null };
+  const requestHeaders = await headers();
   const membership = await resolveMembership(
     viewer.db,
     viewer.person.id,
     org,
-    await headers(),
+    requestHeaders,
     () => {
       outcome.gate = { kind: "restricted" };
     },
     {
+      // The proxy has already set the last-seen cookie to this request; the idle timeout judges the one before.
+      lastSeenAt: previousSeenFrom(requestHeaders),
       onRequired: (decision) => {
         outcome.gate = { kind: "owed", decision };
       },
