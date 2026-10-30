@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decider: A134 (RRR-196), Section 4.5.6 Payroll and Time Off (S4.5.6-26)
-- Migrations: 2270, 2271
+- Migrations: 2270, 2271, 2272
 
 ## Context
 
@@ -63,7 +63,9 @@ The three panels are settings contributions (`apps/atlas/components/settings/con
 actions write with the viewer's client, so row level security decides every change. Retiring soft deletes, so payroll
 lines and requests that name a retired code or policy keep it. Retired calendars and removed holidays go to Trash, titled
 by name, and their update policies let editors restore them (ADR 0110); a venue assignment has no title and is simply
-assigned again. A unique conflict answers with the rule naming what is
+assigned again. Retiring a calendar ends its venue assignments in the same update (a trigger, 2272), so a venue held by a
+calendar that is no longer listed can take another one; restoring the calendar from Trash leaves its venues where they
+are by then. A unique conflict answers with the rule naming what is
 taken (a code, name, day or venue), never as a concurrent edit. Holiday calendars stay off the v1 API: the contract is
 frozen to additive changes, and nothing outside Atlas needs them yet.
 
@@ -72,3 +74,4 @@ frozen to additive changes, and nothing outside Atlas needs them yet.
 - Holidays added in Settings change time off day counts at once and are paid by the next calculation of a Draft run.
 - An org that adds a paid holiday must add a holiday earning code before calculating a run whose period holds it.
 - A venue calendar replaces the org calendars for work at that venue; it does not add to them.
+- A restored calendar governs no venue until its venues are assigned to it again.

@@ -1,7 +1,8 @@
--- pgTAP: 2270_holiday_calendars and 2271_holiday_pay (A134, RRR-196, ADR 0112). Holiday calendars are written under
+-- pgTAP: 2270_holiday_calendars, 2271_holiday_pay and 2272_retired_holiday_calendar_venues (A134, RRR-196, ADR 0112). Holiday calendars are written under
 -- org.payroll.write and read across the org; time off policies are written under the same capability; a time off
 -- request's day count skips holidays on the org's calendar; a payroll run pays holiday pay on the holiday earning code
--- from the calendar that governs the work (venue, then subdivision, then the org's), and refuses when no code is set.
+-- from the calendar that governs the work (venue, then subdivision, then the org's), and refuses when no code is set;
+-- a retired calendar stops governing either, and frees its venues for another calendar.
 -- Frank works Tuesday 2027-07-06 to Friday 2027-07-09, 8 hours a day, on prj_a (venue_a); his approved timesheet covers
 -- the week of Sunday 2027-07-04, inside the pay period 2027-06-27 to 2027-07-10. Times are pinned in New York.
 begin;
@@ -9,7 +10,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(31);
+select plan(37);
 
 -- Calendar writes and RLS -------------------------------------------------------------------------------------------------
 select pg_temp.as_user('bob');
@@ -148,6 +149,37 @@ select results_eq($$select code, hours from pg_temp.lines('run_venue')$$,
   'the venue''s calendar pays Pier Day''s 10 hours; its unpaid day and the org calendars pay nothing');
 select pg_temp.as_user('frank');
 select is(pg_temp.days(), 4, 'time off still counts on the org calendar, whatever the venues observe');
+
+-- A retired calendar governs nothing, and its venues can take another calendar.
+select pg_temp.as_user('bob');
+update app.holiday_calendars set deleted_at = now() where id = pg_temp.id('cal_pier');
+select is((select count(*)::integer from app.holiday_calendar_venues where holiday_calendar_id = pg_temp.id('cal_pier') and deleted_at is null), 0,
+  'retiring a calendar ends its venue assignments');
+select pg_temp.as_user('carol');
+select pg_temp.new_run('run_retired');
+select app.calculate_payroll_run(pg_temp.id('run_retired'));
+select results_eq($$select code, hours from pg_temp.lines('run_retired')$$,
+  $$values ('HOL'::text, 8.00::numeric), ('REG', 32.00)$$,
+  'once the venue''s calendar is retired, the California calendar''s State Day is paid again');
+select pg_temp.as_user('bob');
+with x as (insert into app.holiday_calendars (org_id, name) values (pg_temp.id('org_a'), 'Harbor') returning id)
+  insert into world select 'cal_harbor', id from x;
+insert into app.holidays (holiday_calendar_id, observed_on, name, paid_hours) values (pg_temp.id('cal_harbor'), '2027-07-09', 'Harbor Day', 6);
+select lives_ok($$insert into app.holiday_calendar_venues (holiday_calendar_id, venue_id) values (pg_temp.id('cal_harbor'), pg_temp.id('venue_a'))$$,
+  'the retired calendar''s venue takes another calendar');
+select pg_temp.as_user('carol');
+select pg_temp.new_run('run_harbor');
+select app.calculate_payroll_run(pg_temp.id('run_harbor'));
+select results_eq($$select code, hours from pg_temp.lines('run_harbor')$$,
+  $$values ('HOL'::text, 6.00::numeric), ('REG', 32.00)$$,
+  'the venue''s new calendar pays Harbor Day''s 6 hours');
+select pg_temp.as_user('bob');
+update app.holiday_calendars set deleted_at = null where id = pg_temp.id('cal_pier');
+select is((select count(*)::integer from app.holiday_calendar_venues where holiday_calendar_id = pg_temp.id('cal_pier') and deleted_at is null), 0,
+  'restoring a retired calendar leaves its venues where they are now');
+update app.holiday_calendars set deleted_at = now() where id = pg_temp.id('cal_us');
+select pg_temp.as_user('frank');
+select is(pg_temp.days(), 5, 'retiring the org calendar counts Independence Day as a day off again');
 
 select * from finish();
 rollback;

@@ -275,7 +275,10 @@ export async function updateHolidayCalendar(
   return landed(data);
 }
 
-/** Retires a calendar; its holidays and venue assignments stop applying with it. */
+/**
+ * Retires a calendar; its holidays stop applying with it, and 2272 ends its venue assignments in the same update so
+ * those venues can take another calendar.
+ */
 export async function retireHolidayCalendar(
   db: XosClient,
   id: string,
