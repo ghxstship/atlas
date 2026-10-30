@@ -1,4 +1,4 @@
--- 1639_notification_kind_seed.test.sql
+-- 2829_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -255,6 +255,10 @@ select set_eq(
   ('help_request.assigned', 'Email', 'assignments', 'notification'),
   ('help_request.assigned', 'SMS', 'assignments', null::text),
   ('help_request.assigned', 'Push', 'assignments', null::text),
+  ('credential_photo.requested', 'In App', 'assignments', null::text),
+  ('credential_photo.requested', 'Email', 'assignments', 'notification'),
+  ('credential_photo.requested', 'SMS', 'assignments', null::text),
+  ('credential_photo.requested', 'Push', 'assignments', null::text),
   ('opportunity.matched', 'In App', 'opportunities', null::text),
   ('opportunity.matched', 'Email', 'opportunities', 'notification'),
   ('opportunity.matched', 'Push', 'opportunities', null::text),

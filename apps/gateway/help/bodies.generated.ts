@@ -2591,6 +2591,86 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "profile-badge-photos": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Organizations that hold a live credential for you print a badge for it. This page shows one card per organization, with the photo its badge prints. An organization can ask you for a photo; the request opens this page.",
+          },
+        ],
+      },
+      { t: "h2", v: "What each card shows" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "On your badge" },
+            { t: "text", v: ": your photo prints on the badge." },
+          ],
+          [
+            { t: "strong", v: "Being checked" },
+            { t: "text", v: ": your photo is being virus-checked and prints in a few minutes." },
+          ],
+          [
+            { t: "strong", v: "Not accepted" },
+            { t: "text", v: ": the check refused your photo. Upload another." },
+          ],
+          [
+            { t: "strong", v: "Your profile photo" },
+            { t: "text", v: ": you gave no badge photo, so the badge prints your " },
+            { t: "link", v: "profile", href: "help:profile" },
+            { t: "text", v: " photo, when your privacy settings let the organization see it." },
+          ],
+          [
+            { t: "strong", v: "Requested" },
+            { t: "text", v: " or " },
+            { t: "strong", v: "None yet" },
+            { t: "text", v: ": the badge prints without a photo." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Giving a photo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Upload or take photo" },
+          {
+            t: "text",
+            v: " to pick a photo or take one with your camera. Drag the photo, or use the arrow keys and the zoom slider, to choose what shows in the 3 by 4 frame, then choose ",
+          },
+          { t: "strong", v: "Save photo" },
+          { t: "text", v: ". Nothing reads or detects your face; the crop is yours." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Use my profile photo" },
+          {
+            t: "text",
+            v: " copies your profile photo to the badge instead, when it is a JPEG or PNG of at most 2 MiB.",
+          },
+        ],
+      },
+      { t: "h2", v: "Who sees it, and taking it back" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization's credential staff see the photo, and so does anyone who sees your badge. Saving a photo records your consent for that organization. Choose ",
+          },
+          { t: "strong", v: "Remove" },
+          {
+            t: "text",
+            v: " at any time: the photo is deleted, your consent is withdrawn, and the organization prints your badge without it.",
+          },
+        ],
+      },
+    ],
     profile: [
       {
         t: "p",
@@ -6130,6 +6210,95 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: " envía tu motivo a la plataforma, que revisa cada reporte y le explica a la organización sus razones para cualquier medida.",
+          },
+        ],
+      },
+    ],
+    "profile-badge-photos": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las organizaciones que tienen una credencial vigente para ti imprimen una credencial con ella. Esta página muestra una tarjeta por organización, con la foto que imprime su credencial. Una organización puede pedirte una foto; la solicitud abre esta página.",
+          },
+        ],
+      },
+      { t: "h2", v: "Qué muestra cada tarjeta" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "En tu credencial" },
+            { t: "text", v: ": tu foto se imprime en la credencial." },
+          ],
+          [
+            { t: "strong", v: "En revisión" },
+            {
+              t: "text",
+              v: ": tu foto pasa por la revisión antivirus y se imprime en unos minutos.",
+            },
+          ],
+          [
+            { t: "strong", v: "No aceptada" },
+            { t: "text", v: ": la revisión rechazó tu foto. Sube otra." },
+          ],
+          [
+            { t: "strong", v: "Tu foto de perfil" },
+            {
+              t: "text",
+              v: ": no entregaste foto de credencial, así que se imprime la foto de tu ",
+            },
+            { t: "link", v: "perfil", href: "help:profile" },
+            {
+              t: "text",
+              v: ", cuando tu configuración de privacidad deja que la organización la vea.",
+            },
+          ],
+          [
+            { t: "strong", v: "Solicitada" },
+            { t: "text", v: " o " },
+            { t: "strong", v: "Aún no hay" },
+            { t: "text", v: ": la credencial se imprime sin foto." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Entregar una foto" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elige " },
+          { t: "strong", v: "Subir o tomar foto" },
+          {
+            t: "text",
+            v: " para escoger una foto o tomarla con la cámara. Arrastra la foto, o usa las flechas y el control de zoom, para elegir lo que se ve en el marco de 3 por 4, y luego elige ",
+          },
+          { t: "strong", v: "Guardar foto" },
+          { t: "text", v: ". Nada lee ni detecta tu cara; el recorte es tuyo." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Usar mi foto de perfil" },
+          {
+            t: "text",
+            v: " copia tu foto de perfil a la credencial, cuando es un JPEG o PNG de 2 MiB como máximo.",
+          },
+        ],
+      },
+      { t: "h2", v: "Quién la ve y cómo retirarla" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El personal de credenciales de la organización ve la foto, y también cualquiera que vea tu credencial. Al guardar una foto se registra tu consentimiento para esa organización. Elige ",
+          },
+          { t: "strong", v: "Quitar" },
+          {
+            t: "text",
+            v: " cuando quieras: la foto se borra, tu consentimiento se retira y la organización imprime tu credencial sin ella.",
           },
         ],
       },

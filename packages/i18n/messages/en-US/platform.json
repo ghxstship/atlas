@@ -692,6 +692,9 @@
       },
       "content": {
         "removed": "Your content removed"
+      },
+      "credential_photo": {
+        "requested": "Badge photo requested"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

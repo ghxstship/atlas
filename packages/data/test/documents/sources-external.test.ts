@@ -258,6 +258,8 @@ describe("Gateway documents read the api_external views", () => {
       ],
       [v("projects")]: [project],
       [v("engagements")]: [engagement],
+      // Someone other than the holder gets no row, so the badge prints the placeholder (P5).
+      "rpc:credential_badge_photos": [okResponse([])],
       "from:org_brands": [okResponse(null)],
       "from:setting_values": [okResponse(null)],
     });
