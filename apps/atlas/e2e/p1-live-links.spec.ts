@@ -61,14 +61,21 @@ test("a saved Schedule view shared live opens with its code and updates without 
   const slug = await newOwnerOrg(page);
   const id = uniqueId();
   const title = `Stage Load-In Complete ${id}`;
+  // A dated record: the Schedule, and so its live link, lists only records with a date.
   await page.goto(`/${slug}/p/SHW/schedule?create=1`);
   const create = page.getByRole("dialog").first();
   await create.getByLabel("Title").fill(title);
+  await create.getByLabel("Due").fill("2027-03-12T10:00");
   await create
     .getByRole("button", { name: /Create/ })
     .last()
     .click();
-  await expect(page.getByText(title).first()).toBeVisible();
+  await page.waitForURL(/peek=/);
+  const recordUrl = page.url();
+  // The new record opens in its peek; close it to reach the view menu.
+  await expect(page.getByRole("dialog").filter({ hasText: title })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 
   await page.getByRole("button", { name: /Saved views/ }).click();
   await page.getByRole("menuitem", { name: "Save current view" }).click();
@@ -97,11 +104,10 @@ test("a saved Schedule view shared live opens with its code and updates without 
     (window as unknown as { p1Loaded?: boolean }).p1Loaded = true;
   });
 
-  // A signed-in editor renames the milestone; the open page shows it without a reload.
-  await page.keyboard.press("Escape");
-  await page.getByText(title).first().click();
+  // A signed-in editor renames the record; the open page shows it without a reload.
+  await page.goto(recordUrl);
   const renamed = `Stage Load-In Approved ${id}`;
-  const titleField = page.getByLabel("Title").first();
+  const titleField = page.getByRole("dialog").first().getByLabel("Title", { exact: true });
   await titleField.fill(renamed);
   await titleField.press("Enter");
   await expect(guest.getByText(renamed)).toBeVisible({ timeout: 20_000 });
