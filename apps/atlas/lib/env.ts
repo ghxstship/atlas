@@ -121,6 +121,21 @@ const EnvSchema = z.object({
       "Use a loopback origin such as http://127.0.0.1:12111.",
     )
     .optional(),
+  /**
+   * The platform OAuth apps of Google Drive and OneDrive (B16, ADR 0155 D5): the "Connect with Google" and "Connect
+   * with Microsoft" buttons of Settings, Integrations need both halves of a provider's pair; without them that button
+   * is disabled. Server only, and the same values go to the integration-worker and storage-browse Edge Functions.
+   */
+  XOS_GOOGLE_STORAGE_CLIENT_ID: z.string().min(1).optional(),
+  XOS_GOOGLE_STORAGE_CLIENT_SECRET: z.string().min(1).optional(),
+  XOS_MICROSOFT_STORAGE_CLIENT_ID: z.string().min(1).optional(),
+  XOS_MICROSOFT_STORAGE_CLIENT_SECRET: z.string().min(1).optional(),
+  /**
+   * The hosted MCP endpoint (B16, ADR 0155 D1): on serves /api/mcp (and /mcp on the API host) with its OAuth
+   * protected-resource metadata; unset, both answer 404. Turned on by the owner once a Claude and a ChatGPT
+   * connector were verified in a test org.
+   */
+  XOS_MCP_HOSTED: z.enum(["on", "off"]).optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

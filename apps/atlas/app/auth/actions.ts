@@ -285,6 +285,8 @@ const PASSED_LINK_REFUSALS = new Set([
   "invite_rate_limited",
   "seat_limit_reached",
   "seat_limit_upgrade",
+  // The org's blocklist (B16, 3050): a generic sentence that does not say why.
+  "member_blocked",
 ]);
 
 export async function acceptInvitation(_: FormState, form: FormData): Promise<FormState> {

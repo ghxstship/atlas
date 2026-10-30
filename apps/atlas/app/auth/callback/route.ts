@@ -50,6 +50,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const provider = data.user?.app_metadata["provider"];
   if (typeof provider === "string" && provider.startsWith("sso:")) {
     const joined = await joinBySsoSession(db);
+    // The org's blocklist (B16, 3050) refused the just-in-time join: the person hears the generic sentence.
+    if (!joined.ok && joined.error.kind === "refusal" && joined.error.rule === "member_blocked") {
+      return back("member_blocked");
+    }
     if (joined.ok && joined.data && next === "/") return goTo(`/${joined.data.slug}/home`);
   }
   return goTo(next);
