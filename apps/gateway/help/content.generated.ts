@@ -273,6 +273,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "engagement-project-details",
+        title: "Project details",
+        summary: "The travel, uniform sizes and vehicle a project asks of you.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
+        order: 1,
+      },
+      {
         slug: "engagement-proof-of-performance",
         title: "Proof of performance",
         summary: "The evidence that your sponsorship entitlements were delivered.",
@@ -951,6 +959,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "Tus turnos agrupados por el puesto que cubre cada uno.",
         kind: "page",
         nodes: ["engagement.positions"],
+        order: 1,
+      },
+      {
+        slug: "engagement-project-details",
+        title: "Datos del proyecto",
+        summary: "El viaje, las tallas de uniforme y el vehículo que un proyecto te pide.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
         order: 1,
       },
       {

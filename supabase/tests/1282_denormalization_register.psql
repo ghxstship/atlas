@@ -62,6 +62,7 @@ insert into register_arrays values
   ('app.training_quiz_questions.options', 'reviewed'),
   ('app.work_detail_events.categories', 'reviewed'),
   ('app.work_detail_events.changed_columns', 'reviewed'),
+  ('app.work_detail_events.fact_kinds', 'reviewed'),
   ('app.work_detail_shares.categories', 'reviewed');
 create temporary table register_restated (column_name text not null, parent_column text not null, kind text not null, primary key (column_name, parent_column));
 insert into register_restated values
@@ -397,6 +398,7 @@ insert into register_stored values
 create temporary table register_tenant_exceptions (table_name text not null, kind text not null, primary key (table_name));
 insert into register_tenant_exceptions values
   ('app.active_org_selections', 'person-owned'),
+  ('app.airports', 'platform'),
   ('app.blocks', 'person-owned'),
   ('app.capabilities', 'platform'),
   ('app.capability_modules', 'platform'),

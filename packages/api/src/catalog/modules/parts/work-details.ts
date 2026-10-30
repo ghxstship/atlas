@@ -12,6 +12,7 @@ import type { CorrectionInput } from "../../corrections.ts";
 import { editDefinition, editShape, orNull } from "../../correct.ts";
 import { itemAction, itemQuery, resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
+import { ProjectFactKind } from "./roster-project-facts.ts";
 
 const label = (id: string, values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ id, description, example: values[0] });
@@ -243,12 +244,17 @@ const WorkDetailEvent = defineResource({
     org_id: orNull(fields.ref("org whose member acted or whose share changed")),
     engagement_id: orNull(fields.ref("engagement of a share, read or reveal")),
     roster_entry_id: orNull(fields.ref("roster entry of a share, read or reveal (R4)")),
+    fact_kinds: z.array(ProjectFactKind).meta({
+      description:
+        "Project fact kinds the act covered (R5): project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and changes to roster_travel_requests, roster_uniform_sizes and roster_vehicles.",
+      example: ["Travel"],
+    }),
     action: z
       .string()
       .regex(/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/)
       .meta({
         description:
-          "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.",
+          "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.",
         example: "work_details.viewed",
       }),
     categories: z

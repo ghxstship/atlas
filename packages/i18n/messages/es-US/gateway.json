@@ -60,7 +60,9 @@
       "invitation_closed": "Esta invitación ya se respondió, se revocó o venció. Pide una nueva.",
       "account_membership_not_yours": "Solo la persona que nombra una membresía puede confirmarla.",
       "account_membership_unconfirmed": "Este miembro aún no confirmó su membresía, así que no se le puede asignar.",
-      "assignment_account_mismatch": "Asigna miembros de la empresa que suministra esta contratación."
+      "assignment_account_mismatch": "Asigna miembros de la empresa que suministra esta contratación.",
+      "roster_locked": "Los nombres están cerrados en esta contratación. Pide a la organización productora que cambie la lista.",
+      "roster_lock_engagement_closed": "Esta contratación está cerrada, así que su cierre de nombres ya no cambia."
     }
   },
   "common": {
@@ -569,7 +571,10 @@
       "edit": "Editar puesto y llegada",
       "addTitle": "Agregar de tu equipo",
       "noTalent": "Todo tu equipo ya está en esta lista, o nadie ha confirmado su membresía. Invita personas por correo abajo.",
-      "inviteTitle": "Invitar por correo"
+      "inviteTitle": "Invitar por correo",
+      "locksOn": "Los nombres se cierran el {date}",
+      "lockedOn": "Nombres cerrados el {date}. Pide a {orgName} que cambie la lista.",
+      "factsTitle": "Datos del proyecto"
     },
     "accountTeam": {
       "title": "Equipo de la cuenta",
@@ -1245,7 +1250,8 @@
         "opportunityMatched": "Nueva coincidencia para {searchName}: {title}",
         "onboardingExpiring": "{title} para {orgName} vence el {expiresOn}",
         "certificationExpiring": "Su certificación {title} vence el {expiresOn}",
-        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}"
+        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}",
+        "projectFactsEntered": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}} para {projectName}. Revísalos y corrige lo que esté mal."
       }
     },
     "feed": {

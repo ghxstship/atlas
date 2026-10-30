@@ -72,7 +72,10 @@
     "sod_roster_reviewer": "Una persona distinta de quien agregó o envió una entrada la revisa.",
     "roster_entry_not_submitted": "Solo se revisa una entrada enviada. Recarga para ver su estado actual.",
     "roster_review_reason": "Indica qué cambiar, en 1 a 500 caracteres.",
-    "roster_review_outcome": "Acepta o devuelve la entrada."
+    "roster_review_outcome": "Acepta o devuelve la entrada.",
+    "roster_lock_engagement_closed": "Fija un cierre de nombres mientras la contratación está en incorporación, activa o en cierre.",
+    "roster_lock_rpc": "Fija el cierre de nombres desde la revisión del equipo.",
+    "roster_locked": "Los nombres están cerrados en esta contratación."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
@@ -449,6 +452,82 @@
     "cancel": "Cancelar",
     "profileTitle": "Perfil compartido",
     "profileNone": "No hay datos de trabajo compartidos que puedas leer.",
-    "noArrival": "Sin definir"
+    "noArrival": "Sin definir",
+    "lock": {
+      "locksOn": "Cierre de nombres {date}",
+      "lockedOn": "Nombres cerrados {date}",
+      "none": "Sin cierre de nombres",
+      "set": "Fijar cierre de nombres",
+      "title": "Cierre de nombres de {party}",
+      "sentence": "Después de esta hora la empresa ya no puede agregar, invitar, editar entradas en borrador ni enviar nombres nuevos. Las entradas devueltas siguen editables.",
+      "field": "Cierre de nombres a las",
+      "fieldHelp": "En la zona horaria del proyecto, {zone}.",
+      "save": "Guardar cierre",
+      "clear": "Quitar cierre",
+      "cancel": "Cancelar",
+      "saved": "Cierre de nombres guardado.",
+      "cleared": "Cierre de nombres quitado."
+    },
+    "factColumns": {
+      "travel": "Viaje",
+      "uniform": "Uniforme",
+      "vehicle": "Vehículo"
+    },
+    "factChips": {
+      "onFile": "Registrado",
+      "missing": "Falta",
+      "notOffered": "No ofrecido"
+    }
+  },
+  "travelParty": {
+    "title": "Grupo de viaje",
+    "sentence": "Todas las personas de una lista enviada o aceptada que viajan para este proyecto, con lo que está organizado. Cada consulta queda en el registro de acceso de la persona.",
+    "empty": "Nadie en las listas de este proyecto tiene viaje ofrecido todavía.",
+    "columns": {
+      "person": "Persona",
+      "party": "Parte",
+      "role": "Rol",
+      "arrive": "Llega",
+      "depart": "Sale",
+      "airports": "Aeropuertos",
+      "room": "Habitación",
+      "pickup": "Traslado",
+      "pass": "Credencial"
+    },
+    "chips": {
+      "missing": "Falta",
+      "assigned": "Asignada",
+      "booked": "Reservado",
+      "issued": "Emitida",
+      "notOffered": "No ofrecido",
+      "notNeeded": "No necesario",
+      "notVisible": "No visible"
+    },
+    "filters": {
+      "label": "Mostrar",
+      "all": "Todos",
+      "needsRoom": "Necesita habitación",
+      "needsPickup": "Necesita traslado",
+      "travelMissing": "Falta el viaje"
+    },
+    "counts": {
+      "title": "Por día",
+      "arriving": "Llegan",
+      "departing": "Salen",
+      "onSite": "En el sitio",
+      "rooms": "Habitaciones",
+      "pickups": "Traslados",
+      "truncated": "Se muestran los primeros 120 días."
+    },
+    "actions": {
+      "assignRoom": "Asignar habitación",
+      "addPickup": "Agregar traslado",
+      "issueLodging": "Emitir habitación",
+      "issueTravel": "Emitir traslado"
+    },
+    "noBlock": "Primero agrega un bloque de alojamiento en la página de Hospitalidad.",
+    "noFulfillment": "Primero agrega una gestión de Viaje en la página de Hospitalidad.",
+    "airports": "{inbound} a {outbound}",
+    "loadFailed": "El grupo de viaje no se cargó. Recarga la página para intentarlo de nuevo."
   }
 }

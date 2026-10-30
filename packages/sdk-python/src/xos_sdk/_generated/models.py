@@ -673,6 +673,7 @@ __all__ = [
     "EngagementState",
     "EngagementCreate",
     "EngagementTransitionRequest",
+    "RosterLockRequest",
     "EngagementDocumentPage",
     "EngagementDocument",
     "EngagementDocumentCreate",
@@ -1241,6 +1242,32 @@ __all__ = [
     "CueCall",
     "CueCallCreate",
     "CueCallUpdate",
+    "RosterEntryPage",
+    "RosterEntry",
+    "RosterEntryState",
+    "RosterPersonResponse",
+    "RosterProjectFacts",
+    "RosterFactOfferings",
+    "RosterFactPresence",
+    "RosterFactProvenance",
+    "ProjectFactKind",
+    "RosterTravelRequest",
+    "RosterUniformSizes",
+    "ShoeSizeSystem",
+    "RosterVehicle",
+    "SavedProjectFact",
+    "RosterTravelRequestInput",
+    "RosterUniformSizesInput",
+    "RosterVehicleInput",
+    "ClearedProjectFact",
+    "ClearProjectFactRequest",
+    "TravelPartyMemberPage",
+    "TravelPartyMember",
+    "TravelPartyRoom",
+    "TravelPartyPickup",
+    "TravelPartyPass",
+    "TravelDayCountPage",
+    "TravelDayCount",
     "GuestListEntryPage",
     "GuestListEntry",
     "GuestListEntryCreate",
@@ -12194,6 +12221,8 @@ class Engagement(TypedDict):
     activated_at: Optional[str]
     #: When it became Complete.
     completed_at: Optional[str]
+    #: Names lock: after this instant the company side can no longer name new crew; null means no lock.
+    roster_locks_at: Optional[str]
     #: Identifier of the accepted application the engagement came from.
     application_id: Optional[str]
     #: Worker classification, from xpms.worker_classification; null for Client and Sponsor engagements.
@@ -12242,6 +12271,13 @@ class EngagementTransitionRequest(_EngagementTransitionRequestRequired, total=Fa
 
     #: Reason, required by some transitions.
     reason: str
+
+
+class RosterLockRequest(TypedDict):
+    """The names lock of an engagement."""
+
+    #: When names lock; null clears the lock.
+    locks_at: Optional[str]
 
 
 class EngagementDocumentPage(TypedDict):
@@ -20496,6 +20532,368 @@ class CueCallUpdate(TypedDict, total=False):
     instruction: str
 
 
+class RosterEntryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[RosterEntry]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class RosterEntry(TypedDict):
+    """A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs."""
+
+    #: Identifier of the roster entry.
+    id: str
+    #: Identifier of the producing org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the engagement the person works under.
+    engagement_id: str
+    #: Supplying account, else the engaged person.
+    party_name: Optional[str]
+    #: External role type of the engagement.
+    role_type: str
+    #: True for the engaged person's own entry.
+    is_self: bool
+    #: Identifier of the resolved person; null for an unclaimed invitation.
+    person_id: Optional[str]
+    #: Name of the person.
+    full_name: Optional[str]
+    #: Address of the pending invitation.
+    invited_email: Optional[str]
+    #: When the pending invitation lapses.
+    invitation_expires_at: Optional[str]
+    #: Role worked, from the Roles Library.
+    role_code: Optional[str]
+    #: Job title of the role.
+    job_title: Optional[str]
+    #: Arrival window start.
+    arrival_starts_at: Optional[str]
+    #: Arrival window end.
+    arrival_ends_at: Optional[str]
+    #: IANA time zone of the arrival window.
+    arrival_time_zone: Optional[str]
+    entry_state: RosterEntryState
+    person_response: RosterPersonResponse
+    #: When the person last answered.
+    responded_at: Optional[str]
+    #: What the reviewer asked to change, while Returned.
+    return_reason: Optional[str]
+    #: Identifier of the withdrawn entry this one replaces.
+    replaces_entry_id: Optional[str]
+    #: Work details categories the person shares on this entry.
+    share_categories: List[str]
+
+
+class RosterProjectFacts(TypedDict):
+    """The project facts of a roster entry as the caller may read them (R5). Each Company or Producer read of a value is written to the person's access log, and a Producer read to the producing org's audit ledger."""
+
+    #: Roster entry.
+    roster_entry_id: str
+    #: Engagement.
+    engagement_id: str
+    #: Producing org.
+    org_id: str
+    #: Person the entry resolves to.
+    person_id: Optional[str]
+    #: Who reads: Person, the entry's own person; Company, a roster manager of the account that rosters them; Producer, a member of the producing org by capability.
+    standing: Literal["Person", "Company", "Producer"]
+    offered: RosterFactOfferings
+    present: RosterFactPresence
+    entered_by_person: RosterFactProvenance
+    #: Kinds the caller reads; the others come back null.
+    readable: List[ProjectFactKind]
+    travel: Optional[RosterTravelRequest]
+    uniform: Optional[RosterUniformSizes]
+    vehicle: Optional[RosterVehicle]
+
+
+class RosterFactOfferings(TypedDict):
+    """Which offerings the project turns on for the engagement."""
+
+    #: Travel is offered.
+    travel: bool
+    #: Lodging is offered.
+    lodging: bool
+    #: Uniforms are offered.
+    uniforms: bool
+    #: Parking is offered.
+    parking: bool
+
+
+class RosterFactPresence(TypedDict):
+    """Which kinds are on file."""
+
+    #: A live row exists for Travel.
+    travel: bool
+    #: A live row exists for Uniform.
+    uniform: bool
+    #: A live row exists for Vehicle.
+    vehicle: bool
+
+
+class RosterFactProvenance(TypedDict):
+    """Which kinds the person entered themselves; the others were entered by their company."""
+
+    #: The person entered Travel.
+    travel: bool
+    #: The person entered Uniform.
+    uniform: bool
+    #: The person entered Vehicle.
+    vehicle: bool
+
+
+class RosterTravelRequest(TypedDict):
+    """The travel a rostered person asks for on one project (R5)."""
+
+    #: Identifier of the travel request.
+    id: str
+    #: IATA code of the airport the person flies into.
+    inbound_airport_code: Optional[str]
+    #: Name of that airport.
+    inbound_airport_name: Optional[str]
+    #: IATA code of the airport the person flies home from.
+    outbound_airport_code: Optional[str]
+    #: Name of that airport.
+    outbound_airport_name: Optional[str]
+    #: Day the person travels to the project.
+    inbound_on: Optional[str]
+    #: Day the person travels home.
+    outbound_on: Optional[str]
+    #: Preferred seat.
+    seat_preference: Optional[Literal["Window", "Aisle", "No Preference"]]
+    #: Meal preference.
+    meal_preference: Optional[str]
+    #: The person needs a pickup on arrival.
+    needs_ground_transport: bool
+    #: The person needs a room.
+    needs_lodging: bool
+    #: Notes for the travel desk.
+    travel_notes: Optional[str]
+    #: When the request was last saved.
+    updated_at: str
+
+
+class RosterUniformSizes(TypedDict):
+    """The uniform sizes a rostered person gives for one project (R5)."""
+
+    #: Identifier of the uniform sizes.
+    id: str
+    #: Letter size.
+    shirt_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    jacket_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    pants_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    glove_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    hat_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Pants waist in inches.
+    pants_waist_in: Optional[int]
+    #: Pants inseam in inches.
+    pants_inseam_in: Optional[int]
+    #: Shoe size in half sizes.
+    shoe_size: Optional[float]
+    shoe_size_system: Optional[ShoeSizeSystem]
+    #: When the sizes were last saved.
+    updated_at: str
+
+
+class RosterVehicle(TypedDict):
+    """The vehicle a rostered person brings to one project (R5)."""
+
+    #: Identifier of the vehicle.
+    id: str
+    #: Vehicle make.
+    make: str
+    #: Vehicle model.
+    model: str
+    #: Vehicle color.
+    color: Optional[str]
+    #: License plate, letters and digits.
+    plate: str
+    #: ISO 3166-2 region that issued the plate.
+    plate_region: str
+    #: When the vehicle was last saved.
+    updated_at: str
+
+
+class SavedProjectFact(TypedDict):
+    """The live row a project fact save wrote."""
+
+    #: Identifier of the saved row.
+    id: str
+
+
+class _RosterTravelRequestInputRequired(TypedDict):
+    #: IATA code of the airport the person flies into; uppercased.
+    inbound_airport_code: Optional[str]
+    #: IATA code of the airport the person flies home from; uppercased.
+    outbound_airport_code: Optional[str]
+    #: Day the person travels to the project.
+    inbound_on: Optional[str]
+    #: Day the person travels home; on or after inbound_on.
+    outbound_on: Optional[str]
+
+
+class RosterTravelRequestInput(_RosterTravelRequestInputRequired, total=False):
+    """A full replacement of a roster entry's travel request. At least an airport or a date."""
+
+    #: Preferred seat.
+    seat_preference: Optional[Literal["Window", "Aisle", "No Preference"]]
+    #: Meal preference.
+    meal_preference: Optional[str]
+    #: A pickup is needed on arrival.
+    needs_ground_transport: bool
+    #: A room is needed; only while lodging is offered.
+    needs_lodging: bool
+    #: Notes for the travel desk.
+    travel_notes: Optional[str]
+
+
+class RosterUniformSizesInput(TypedDict, total=False):
+    """A full replacement of a roster entry's uniform sizes. At least one size."""
+
+    #: Letter size.
+    shirt_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    jacket_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    pants_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    glove_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    hat_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Waist in inches, 20 to 70.
+    pants_waist_in: Optional[int]
+    #: Inseam in inches, 20 to 40.
+    pants_inseam_in: Optional[int]
+    #: Shoe size, 1 to 20 in half sizes.
+    shoe_size: Optional[float]
+    shoe_size_system: Optional[ShoeSizeSystem]
+
+
+class _RosterVehicleInputRequired(TypedDict):
+    #: Vehicle make.
+    make: str
+    #: Vehicle model.
+    model: str
+    #: License plate; uppercased with spaces and hyphens removed.
+    plate: str
+    #: ISO 3166-2 region of the plate.
+    plate_region: str
+
+
+class RosterVehicleInput(_RosterVehicleInputRequired, total=False):
+    """A full replacement of a roster entry's vehicle."""
+
+    #: Vehicle color.
+    color: Optional[str]
+
+
+class ClearedProjectFact(TypedDict, total=False):
+    """Nothing; the kind is cleared."""
+
+    #: Identifier of the saved row.
+    id: str
+
+
+class ClearProjectFactRequest(TypedDict):
+    """The project fact kind to clear."""
+
+    kind: ProjectFactKind
+
+
+class TravelPartyMemberPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TravelPartyMember]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+# A rostered person of a project's travel party with what hospitality has arranged (R5, G-175).
+TravelPartyMember = TypedDict(
+    "TravelPartyMember",
+    {
+    "roster_entry_id": str,
+    "engagement_id": str,
+    "party_name": Optional[str],
+    "person_id": str,
+    "person_name": Optional[str],
+    "role_code": Optional[str],
+    "arrival_starts_at": Optional[str],
+    "arrival_ends_at": Optional[str],
+    "arrival_time_zone": Optional[str],
+    "travel": Optional[RosterTravelRequest],
+    "room": TravelPartyRoom,
+    "pickup": TravelPartyPickup,
+    "pass": Optional[TravelPartyPass],
+    },
+    total=True,
+)
+
+
+class TravelPartyRoom(TypedDict):
+    """The person's room on the project, if assigned."""
+
+    #: A room is assigned on one of the project's blocks.
+    assigned: bool
+    #: Check-in day.
+    check_in_on: Optional[str]
+    #: Check-out day.
+    check_out_on: Optional[str]
+    #: Title of the block.
+    block_name: Optional[str]
+
+
+class TravelPartyPickup(TypedDict):
+    """Whether the person's pickup is booked."""
+
+    #: A ground segment is booked on the arrival day.
+    booked: bool
+
+
+class TravelPartyPass(TypedDict):
+    """Whether the person's pass is issued; null without credentials.credential.read."""
+
+    #: A live credential is issued on the engagement.
+    issued: bool
+
+
+class TravelDayCountPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TravelDayCount]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TravelDayCount(TypedDict):
+    """One day of a project's travel counts (R5, G-175)."""
+
+    #: Day.
+    day: str
+    #: People arriving.
+    arriving: int
+    #: People departing.
+    departing: int
+    #: People on site, arrival to departure day.
+    on_site: int
+    #: Rooms needed that night.
+    rooms_needed: int
+    #: Pickups needed that day.
+    pickups_needed: int
+    #: The range ran past 120 days and was cut.
+    truncated: bool
+
+
 class GuestListEntryPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -21684,7 +22082,9 @@ class WorkDetailEvent(TypedDict):
     engagement_id: Optional[str]
     #: Identifier of the roster entry of a share, read or reveal (R4).
     roster_entry_id: Optional[str]
-    #: What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
+    #: Project fact kinds the act covered (R5): project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and changes to roster_travel_requests, roster_uniform_sizes and roster_vehicles.
+    fact_kinds: List[ProjectFactKind]
+    #: What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.
     action: str
     #: Categories the act covered.
     categories: List[WorkDetailCategory]
@@ -25639,6 +26039,18 @@ ExportFormat = Literal["CSV", "XLSX", "PDF"]
 
 #: Import row result state.
 ImportRowState = Literal["Valid", "Invalid", "Written", "Refused", "Skipped"]
+
+#: Review state of a roster entry.
+RosterEntryState = Literal["Draft", "Submitted", "Accepted", "Returned", "Withdrawn"]
+
+#: The rostered person's own answer.
+RosterPersonResponse = Literal["Pending", "Accepted", "Declined"]
+
+#: A kind of project fact a rostered person enters on their roster entry, asked only while its offering (Travel, Uniforms, Parking) is on.
+ProjectFactKind = Literal["Travel", "Uniform", "Vehicle"]
+
+#: Sizing system of a shoe size.
+ShoeSizeSystem = Literal["US Men", "US Women", "EU", "UK"]
 
 #: An Aurora AI feature (Section 4.7).
 AiFeature = Literal["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"]

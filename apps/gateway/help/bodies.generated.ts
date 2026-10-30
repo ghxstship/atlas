@@ -750,6 +750,24 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization can set a names lock: a date and time after which your company names no new crew for the engagement. Crew shows when names lock, and after that Add, Invite and Submit of new names are closed. A returned entry stays editable and can still be submitted again, and you can still withdraw entries. To add someone after the lock, ask the organization to move or clear it.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each row shows whether the person's travel, uniform sizes and vehicle are on file for the project. Project details opens them; like View profile, each time you open it the person can see that you did. When the organization allows it, you can enter a kind the person has not entered yet; they are told and can correct it. What the person entered themselves only they change.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -1346,6 +1364,44 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled.",
+          },
+        ],
+      },
+    ],
+    "engagement-project-details": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Project details shows when the organization offers travel, uniforms or parking on your engagement. It asks only for what the project offers: your travel request (the airports and dates you fly in and home, and whether you need a pickup or a room), your uniform sizes, and the vehicle you park on site.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each step saves when you continue, so you can stop and come back. Use my last details fills a step from what you entered on an earlier project; check it, then continue to save it.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These details stay on this engagement and are never written to your profile. The organization reads only the kinds its people need for their work, and your company sees them while you are on its roster; each time someone else reads them, your access log in Settings shows it. They are deleted after the engagement is complete or canceled, 90 days later unless the organization sets another time.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If your company entered something for you, you are told, and you can correct it here. You can clear a kind at any time.",
           },
         ],
       },
@@ -4302,6 +4358,24 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La organización puede fijar un cierre de nombres: una fecha y hora después de la cual tu empresa ya no nombra más gente para la contratación. Equipo muestra cuándo se cierran los nombres y, después, ya no puedes agregar, invitar ni enviar nombres nuevos. Una entrada devuelta sigue siendo editable y se puede volver a enviar, y aún puedes retirar entradas. Para agregar a alguien después del cierre, pide a la organización que lo mueva o lo quite.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada fila muestra si el viaje, las tallas de uniforme y el vehículo de la persona están registrados para el proyecto. Datos del proyecto los abre; como con Ver perfil, cada vez que los abres la persona puede ver que lo hiciste. Cuando la organización lo permite, puedes ingresar un tipo de dato que la persona todavía no ingresó; se le avisa y puede corregirlo. Lo que la persona ingresó por su cuenta solo lo cambia ella.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -4917,6 +4991,44 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela.",
+          },
+        ],
+      },
+    ],
+    "engagement-project-details": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Datos del proyecto aparece cuando la organización ofrece viaje, uniformes o estacionamiento en tu contratación. Solo pide lo que el proyecto ofrece: tu solicitud de viaje (los aeropuertos y las fechas de llegada y de regreso, y si necesitas que te recojan o una habitación), tus tallas de uniforme y el vehículo que estacionas en el sitio.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada paso se guarda al continuar, así que puedes parar y volver. Usar mis últimos datos llena un paso con lo que ingresaste en un proyecto anterior; revísalo y continúa para guardarlo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Estos datos se quedan en esta contratación y nunca se escriben en tu perfil. La organización solo lee los tipos que su gente necesita para su trabajo, y tu empresa los ve mientras estás en su lista; cada vez que otra persona los lee, tu registro de accesos en Configuración lo muestra. Se eliminan después de que la contratación se completa o se cancela, 90 días después salvo que la organización fije otro plazo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si tu empresa ingresó algo por ti, se te avisa y puedes corregirlo aquí. Puedes borrar un tipo de dato en cualquier momento.",
           },
         ],
       },

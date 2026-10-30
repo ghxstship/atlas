@@ -8,6 +8,7 @@
 import { checkInGuest, decideGuest, reviewSubmission, sendPacket } from "@xos/data/advancing";
 import { requirePerson } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
+import { rosterEntryHandlers } from "./parts/roster-project-facts.ts";
 import { handlersFor, tableResource, unwrap } from "./support/table.ts";
 
 const packets = tableResource("advancePackets");
@@ -32,6 +33,8 @@ export const handlers = defineHandlers("Advancing", {
   ...handlersFor("Advancing", riders),
   ...handlersFor("Advancing", riderLines),
   ...handlersFor("Advancing", guests),
+  // Roster entries and their project facts (R5): see ./parts/roster-project-facts.ts.
+  ...rosterEntryHandlers,
 
   "advancePackets.send": async ({ params }, context) => {
     await packets.read(context, params.id, ["id"]);

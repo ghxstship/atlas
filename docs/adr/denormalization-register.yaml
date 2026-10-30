@@ -284,6 +284,9 @@ arrays:
   - column: app.work_detail_events.changed_columns
     kind: reviewed
     note: Column names an edit changed, in the person's append-only log; a log payload, never a relationship (migration 1340).
+  - column: app.work_detail_events.fact_kinds
+    kind: reviewed
+    note: The set of project fact kinds an access touched, in the person's append-only log (R5, migration 2654).
   - column: app.work_detail_shares.categories
     kind: reviewed
     note: The set of work detail categories a share grants, read whole (migration 1340).
@@ -1602,6 +1605,9 @@ tenant_exceptions:
   - table: app.active_org_selections
     kind: person-owned
     note: One row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920).
+  - table: app.airports
+    kind: platform
+    note: Airports by IATA code, seeded by migration from packages/schemas/airports/airports.csv (R5, migration 2651).
   - table: app.blocks
     kind: person-owned
     note: Blocks keyed by person_id, readable only by the blocker (A52, migration 1206).
