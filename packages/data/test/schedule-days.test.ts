@@ -8,6 +8,7 @@ import {
   effectiveDayZone,
   listProjectDays,
   saveProjectDay,
+  saveProjectDays,
   type ProjectDay,
 } from "../src/schedule-days.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
@@ -156,6 +157,50 @@ describe("project days", () => {
     expect(!saved.ok && saved.error).toMatchObject({
       kind: "refusal",
       rule: "project_day_split_limit",
+    });
+  });
+
+  it("saves a date's segments in one call, dropping a venue when a Show node is named", async () => {
+    const { db, calls } = fakeClient({ "rpc:save_project_days": [okResponse(["d1", "d2"])] });
+    const saved = await saveProjectDays(db, {
+      projectId: "p1",
+      dayOn: "2027-11-14",
+      segments: [
+        { id: "d1", sortOrder: 2, dayType: "Load Out", venueId: "v1" },
+        { dayType: "Show", scopeNodeId: "n1", venueId: "v1", label: "  " },
+      ],
+      removedIds: ["d0"],
+    });
+    expect(saved).toEqual({ ok: true, data: ["d1", "d2"] });
+    const args = calls[0]?.steps[0]?.[1][0] as { p_segments: Record<string, unknown>[] };
+    expect(args).toMatchObject({
+      p_project_id: "p1",
+      p_day_on: "2027-11-14",
+      p_removed_ids: ["d0"],
+    });
+    expect(args.p_segments[0]).toMatchObject({ id: "d1", sortOrder: 2, venueId: "v1" });
+    expect(args.p_segments[1]).toMatchObject({ scopeNodeId: "n1", venueId: null, label: null });
+    expect(args.p_segments[1]).not.toHaveProperty("sortOrder");
+  });
+
+  it("returns a refused save as one refusal", async () => {
+    const { db } = fakeClient({
+      "rpc:save_project_days": [
+        errorResponse(
+          "XR001",
+          "project_day_scope_kind: A day serves a Show node.",
+          "project_day_scope_kind",
+        ),
+      ],
+    });
+    const saved = await saveProjectDays(db, {
+      projectId: "p1",
+      dayOn: "2027-11-14",
+      segments: [{ dayType: "Show", scopeNodeId: "root" }],
+    });
+    expect(!saved.ok && saved.error).toMatchObject({
+      kind: "refusal",
+      rule: "project_day_scope_kind",
     });
   });
 

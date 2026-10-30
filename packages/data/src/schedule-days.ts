@@ -174,6 +174,52 @@ export async function saveProjectDay(
   return ok({ id: (data as { id: string }).id });
 }
 
+/** One segment of a date as the day editor sends it: an existing one by id, keeping its place, or a new one. */
+export interface DaySegmentInput {
+  readonly id?: string | undefined;
+  readonly sortOrder?: number | undefined;
+  readonly dayType: DayType;
+  readonly label?: string | null;
+  readonly venueId?: string | null;
+  readonly locationText?: string | null;
+  readonly timeZone?: string | null;
+  readonly scopeNodeId?: string | null;
+  readonly teamCode?: string | null;
+}
+
+/**
+ * Saves one date's segments and moves the removed ones to Trash in a single transaction (app.save_project_days), so a
+ * refused segment leaves the date as it was. A kept segment keeps its place; a new one takes the first free place.
+ */
+export async function saveProjectDays(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly dayOn: string;
+    readonly segments: readonly DaySegmentInput[];
+    readonly removedIds?: readonly string[];
+  },
+): Promise<Result<string[]>> {
+  const { data, error } = await untyped(db).rpc("save_project_days", {
+    p_project_id: input.projectId,
+    p_day_on: input.dayOn,
+    p_segments: input.segments.map((s) => ({
+      ...(s.id ? { id: s.id } : {}),
+      ...(s.id && s.sortOrder ? { sortOrder: s.sortOrder } : {}),
+      dayType: s.dayType,
+      label: blank(s.label),
+      venueId: s.scopeNodeId ? null : (s.venueId ?? null),
+      locationText: blank(s.locationText),
+      timeZone: blank(s.timeZone),
+      scopeNodeId: s.scopeNodeId ?? null,
+      teamCode: s.teamCode ?? null,
+    })),
+    p_removed_ids: [...(input.removedIds ?? [])],
+  });
+  if (error) return fail(toDataError(error));
+  return ok((data as string[] | null) ?? []);
+}
+
 /** Moves a segment to Trash; restoreProjectDay is the delete toast's Undo (ADR 0110). */
 export async function deleteProjectDay(db: XosClient, id: string): Promise<Result<null>> {
   const { data, error } = await untyped(db)

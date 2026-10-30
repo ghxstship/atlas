@@ -30,7 +30,7 @@ import {
   deleteProjectDay,
   listProjectDays,
   restoreProjectDay,
-  saveProjectDay,
+  saveProjectDays,
   type DayType,
 } from "@xos/data/schedule-days";
 import { addDays } from "@xos/ui/quick-add";
@@ -77,9 +77,8 @@ const segment = z.object({
 });
 
 /**
- * Saves a date's segments and moves the removed ones to Trash, the removed ones first so the split limit holds. An
- * existing segment keeps its place in the day (sort_order); a new one takes the first free place, so no two writes
- * ever ask for the same place.
+ * Saves a date's segments and moves the removed ones to Trash in one transaction (app.save_project_days): a refused
+ * segment leaves the date as it was. An existing segment keeps its place in the day; a new one takes the first free one.
  */
 export async function saveProjectDaysAction(
   org: string,
@@ -97,35 +96,13 @@ export async function saveProjectDaysAction(
     })
     .safeParse(input);
   if (!parsed.success) return invalid();
-  const db = ctx.viewer.db;
-  for (const id of parsed.data.removedIds) {
-    const removed = await deleteProjectDay(db, id);
-    if (!removed.ok) return failed(removed.error);
-  }
-  const taken = new Set(
-    parsed.data.segments.flatMap((s) => (s.id && s.sortOrder ? [s.sortOrder] : [])),
-  );
-  const free = [1, 2, 3, 4].filter((n) => !taken.has(n));
-  const ordered = parsed.data.segments.map((s) => ({
-    ...s,
-    sortOrder: s.id && s.sortOrder ? s.sortOrder : (free.shift() ?? 4),
-  }));
-  for (const s of ordered) {
-    const saved = await saveProjectDay(db, {
-      ...(s.id ? { id: s.id } : {}),
-      projectId: parsed.data.projectId,
-      dayOn: parsed.data.dayOn,
-      dayType: s.dayType as (typeof DAY_TYPES)[number],
-      sortOrder: s.sortOrder,
-      label: s.label,
-      venueId: s.venueId,
-      scopeNodeId: s.scopeNodeId,
-      locationText: s.locationText,
-      timeZone: s.timeZone,
-      teamCode: s.teamCode,
-    });
-    if (!saved.ok) return failed(saved.error);
-  }
+  const saved = await saveProjectDays(ctx.viewer.db, {
+    projectId: parsed.data.projectId,
+    dayOn: parsed.data.dayOn,
+    segments: parsed.data.segments.map((s) => ({ ...s, dayType: s.dayType as DayType })),
+    removedIds: parsed.data.removedIds,
+  });
+  if (!saved.ok) return failed(saved.error);
   refresh(org);
   return done(null);
 }

@@ -66808,6 +66808,15 @@ export type Database = {
         };
         Returns: string;
       };
+      save_project_days: {
+        Args: {
+          p_day_on: string;
+          p_project_id: string;
+          p_removed_ids?: string[];
+          p_segments: Json;
+        };
+        Returns: string[];
+      };
       save_roster_travel_request: {
         Args: {
           p_inbound_airport_code: string;

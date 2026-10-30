@@ -14,6 +14,8 @@
 --     schedule.timeline.write holders; app.move_project_anchor (2934) moves every day of the project at once.
 --   * A deleted day is undone from Trash (ADR 0110): its title is its label, and an unlabelled day shows as Untitled
 --     there (trash-view.tsx), so the table is registered rather than excluded. The delete toast's Undo restores it too.
+--   * app.save_project_days saves one date's segments from the day editor in a single transaction (invoker), so a
+--     refused segment leaves the date as it was.
 -- No view is created, so 1650's xos_backup rule does not apply.
 
 create type app.project_day_type as enum ('Load In', 'Show', 'Load Out', 'Travel', 'Off', 'Rehearsal', 'Other');
@@ -118,3 +120,90 @@ call private.install_default_retention('app.project_days');
 call private.install_audit_trail('app.project_days');
 -- A deleted day belongs in Trash (ADR 0110): register it now rather than at the nightly sweep.
 select private.sync_trash_tables();
+
+-- The day editor's save: one date's segments in one transaction, so a refused segment leaves the date as it was.
+create or replace function app.save_project_days(
+  p_project_id uuid,
+  p_day_on date,
+  p_segments jsonb,
+  p_removed_ids uuid[] default '{}'
+)
+returns setof uuid
+language plpgsql
+volatile
+security invoker
+set search_path = ''
+as $$
+declare
+  v_seg jsonb;
+  v_free integer[];
+  v_sort integer;
+  v_id uuid;
+  v_node uuid;
+  v_venue uuid;
+  v_removed integer;
+  v_count integer;
+begin
+  if p_segments is null or pg_catalog.jsonb_typeof(p_segments) <> 'array'
+     or pg_catalog.jsonb_array_length(p_segments) > 4 or coalesce(pg_catalog.cardinality(p_removed_ids), 0) > 4 then
+    raise exception using errcode = '22023', message = 'a day takes at most four segments';
+  end if;
+  -- The removed segments first, so the split limit counts what stays.
+  select count(distinct r) into v_removed from pg_catalog.unnest(coalesce(p_removed_ids, '{}')) r;
+  update app.project_days d set deleted_at = now()
+  where d.id = any (coalesce(p_removed_ids, '{}')) and d.project_id = p_project_id and d.day_on = p_day_on
+    and d.deleted_at is null;
+  get diagnostics v_count = row_count;
+  if v_count <> v_removed then
+    raise exception using errcode = '42501', message = 'a segment to remove is not on this day';
+  end if;
+  -- A kept segment keeps its place in the day; a new one takes the first free place, so no two rows ask for one.
+  select coalesce(pg_catalog.array_agg(n order by n), '{}') into v_free
+  from pg_catalog.generate_series(1, 4) n
+  where n not in (
+    select (e.value ->> 'sortOrder')::integer from pg_catalog.jsonb_array_elements(p_segments) e
+    where nullif(e.value ->> 'id', '') is not null and e.value ->> 'sortOrder' is not null
+  );
+  for v_seg in select e.value from pg_catalog.jsonb_array_elements(p_segments) e loop
+    v_node := nullif(v_seg ->> 'scopeNodeId', '')::uuid;
+    v_venue := case when v_node is null then nullif(v_seg ->> 'venueId', '')::uuid end;
+    if nullif(v_seg ->> 'id', '') is not null and v_seg ->> 'sortOrder' is not null then
+      v_sort := (v_seg ->> 'sortOrder')::integer;
+    else
+      v_sort := coalesce(v_free[1], 4);
+      v_free := v_free[2:];
+    end if;
+    v_id := null;
+    if nullif(v_seg ->> 'id', '') is not null then
+      update app.project_days d set
+        day_type = (v_seg ->> 'dayType')::app.project_day_type,
+        sort_order = v_sort,
+        label = nullif(pg_catalog.btrim(v_seg ->> 'label'), ''),
+        venue_id = v_venue,
+        location_text = nullif(pg_catalog.btrim(v_seg ->> 'locationText'), ''),
+        time_zone = case when v_venue is null then nullif(pg_catalog.btrim(v_seg ->> 'timeZone'), '') end,
+        scope_node_id = v_node,
+        team_code = nullif(v_seg ->> 'teamCode', '')
+      where d.id = (v_seg ->> 'id')::uuid and d.project_id = p_project_id and d.day_on = p_day_on
+        and d.deleted_at is null
+      returning d.id into v_id;
+      if v_id is null then
+        raise exception using errcode = '42501', message = 'a segment to change is not on this day';
+      end if;
+    else
+      insert into app.project_days (project_id, day_on, day_type, sort_order, label, venue_id, location_text, time_zone,
+        scope_node_id, team_code)
+      values (p_project_id, p_day_on, (v_seg ->> 'dayType')::app.project_day_type, v_sort,
+        nullif(pg_catalog.btrim(v_seg ->> 'label'), ''), v_venue, nullif(pg_catalog.btrim(v_seg ->> 'locationText'), ''),
+        case when v_venue is null then nullif(pg_catalog.btrim(v_seg ->> 'timeZone'), '') end, v_node,
+        nullif(v_seg ->> 'teamCode', ''))
+      returning id into v_id;
+    end if;
+    return next v_id;
+  end loop;
+end;
+$$;
+
+comment on function app.save_project_days(uuid, date, jsonb, uuid[]) is 'The day editor''s save (G-38): moves the removed segments of one project date to Trash, then changes or adds the given ones ({id?, sortOrder?, dayType, label, venueId, scopeNodeId, locationText, timeZone, teamCode}) in one transaction, so a refused segment (project_day_split_limit, project_day_scope_kind, project_day_time_zone) leaves the date as it was. A kept segment keeps its place; a new one takes the first free place. A Show node gives the venue, so a venue is dropped when a node is named, and a zone is kept only when no venue applies. Invoker: row level security and the table''s guards decide (schedule.timeline.write). Returns the saved segments'' ids in the order given.';
+revoke all on function app.save_project_days(uuid, date, jsonb, uuid[]) from public, anon;
+grant execute on function app.save_project_days(uuid, date, jsonb, uuid[]) to authenticated, service_role;

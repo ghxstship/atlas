@@ -1,12 +1,12 @@
 -- pgTAP: project days (2930, B4 G-38). Read with schedule.timeline.read and written with schedule.timeline.write; split
 -- days of up to four segments with a unique place each; the zone, Show node and venue rules; a day that never changes
--- project; and Trash registration.
+-- project; Trash registration; and the day editor's save, all or nothing.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(18);
+select plan(21);
 
 select has_table('app', 'project_days', 'app.project_days exists');
 select enum_has_labels('app', 'project_day_type', array['Load In', 'Show', 'Load Out', 'Travel', 'Off', 'Rehearsal', 'Other'],
@@ -81,6 +81,26 @@ select is((select count(*)::int from app.project_days where project_id = pg_temp
 select pg_temp.as_platform();
 select ok(exists (select 1 from private.trash_tables t where t.table_name = 'project_days' and t.title_column = 'label'),
   'a deleted day is undone from Trash, titled by its label (ADR 0110)');
+
+-- The day editor saves a date in one transaction: a refused segment leaves the date as it was.
+select pg_temp.as_user('carol');
+create temporary table saved_days (id uuid);
+grant select, insert on saved_days to public;
+insert into saved_days select * from app.save_project_days(pg_temp.id('prj_a'), '2027-11-21',
+  jsonb_build_array(jsonb_build_object('dayType', 'Load Out', 'venueId', pg_temp.id('venue_a')),
+    jsonb_build_object('dayType', 'Travel', 'label', 'Travel to Austin', 'timeZone', 'America/Chicago')));
+select is((select array_agg(sort_order order by sort_order) from app.project_days
+  where project_id = pg_temp.id('prj_a') and day_on = '2027-11-21' and deleted_at is null), array[1, 2]::smallint[],
+  'the day editor adds two segments in the first free places');
+select throws_ok(format($$select * from app.save_project_days(%L, '2027-11-21', %L::jsonb, array[%L]::uuid[])$$,
+  pg_temp.id('prj_a'),
+  jsonb_build_array(jsonb_build_object('dayType', 'Show', 'scopeNodeId', pg_temp.id('root_a'))),
+  (select min(id::text) from saved_days)),
+  'XR001', 'project_day_scope_kind: A day serves a Show node of the project; choose a show, or leave it for the whole project.',
+  'a refused segment refuses the whole save');
+select is((select count(*)::int from app.project_days
+  where project_id = pg_temp.id('prj_a') and day_on = '2027-11-21' and deleted_at is null), 2,
+  'and the segment it would have removed is still on the day');
 
 select * from finish();
 rollback;
