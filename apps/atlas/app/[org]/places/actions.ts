@@ -29,7 +29,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { count, errorKey, text, type ActionState } from "@/components/places/kit/action-state";
-import { ADDRESS_ERROR, readAddress } from "@/lib/address";
+import { ADDRESS_ERROR, readAddress, VENUE_ADDRESS } from "@/lib/address";
 import { customFieldsOf } from "@/lib/custom-fields/form";
 import { getOrgContext } from "@/lib/shell/context";
 
@@ -69,8 +69,9 @@ export async function saveVenueAction(_: ActionState, form: FormData): Promise<A
   const longitude = text(form, "longitude");
   const lat = latitude === null ? null : Number(latitude);
   const lng = longitude === null ? null : Number(longitude);
-  // The venue's state is its jurisdiction's, so the form does not ask for it.
-  const address = readAddress(form, jurisdictionId?.slice(0, 2) ?? null, ["administrativeArea"]);
+  // The venue's state is its jurisdiction's, so the form does not ask for it; the other fields are
+  // optional, but a postal code must fit the jurisdiction's country.
+  const address = readAddress(form, jurisdictionId?.slice(0, 2) ?? null, VENUE_ADDRESS);
   if (!address.ok) {
     for (const [field, problem] of Object.entries(address.problems)) {
       fieldErrors[field] = ADDRESS_ERROR[problem];

@@ -57,17 +57,26 @@ const toInputs = (fields: readonly AddressField[], omit: readonly AddressInput[]
     .map((f) => INPUT[f])
     .filter((f): f is AddressInput => f !== undefined && !omit.includes(f));
 
-/**
- * The address form of a country. `omit` drops fields a record takes from elsewhere, as a venue takes its
- * state from its jurisdiction.
- */
-export function addressFormat(country: string, omit: readonly AddressInput[] = []): AddressFormat {
+export interface AddressOptions {
+  /** Fields a record takes from elsewhere, as a venue takes its state from its jurisdiction. */
+  readonly omit?: readonly AddressInput[];
+  /**
+   * Every field may be left blank, while what is given is still checked against the country. Venue
+   * addresses are optional this way (the API documents each field as nullable), so a venue stored
+   * with only its city keeps saving.
+   */
+  readonly optional?: boolean;
+}
+
+/** The address form of a country, in its order and with the fields it requires. */
+export function addressFormat(country: string, options: AddressOptions = {}): AddressFormat {
+  const omit = options.omit ?? [];
   return {
     country: country.toUpperCase(),
     rows: addressLayout(country)
       .map((row) => toInputs(row, omit))
       .filter((row) => row.length > 0),
-    required: toInputs(requiredAddressFields(country), omit),
+    required: options.optional ? [] : toInputs(requiredAddressFields(country), omit),
   };
 }
 
@@ -99,13 +108,16 @@ function field(form: FormData, name: string): string | null {
  * Reads the address fields of a submitted form for a country. An address left wholly blank is not
  * recorded (every field null); one that is started must have what the country requires and a postal
  * code that fits, which is written the way the country writes it. With no country known, only lengths
- * are checked.
+ * are checked. A required field the form did not post is not asked for: when someone changes the
+ * country, the form still shows the old country's fields until it is saved, and refusing a field the
+ * person cannot see would leave them stuck.
  */
 export function readAddress(
   form: FormData,
   country: string | null,
-  omit: readonly AddressInput[] = [],
+  options: AddressOptions = {},
 ): AddressRead {
+  const omit = options.omit ?? [];
   const read = (name: AddressInput) => (omit.includes(name) ? null : field(form, name));
   const raw: AddressValue = {
     streetAddress: read("streetAddress"),
@@ -131,7 +143,11 @@ export function readAddress(
       postalCode: value.postalCode,
     });
     for (const name of toInputs(found, omit)) {
-      problems[name] ??= name === "postalCode" && value.postalCode ? "postalCode" : "required";
+      if (name === "postalCode" && value.postalCode) {
+        problems[name] ??= "postalCode";
+      } else if (!options.optional && form.has(name)) {
+        problems[name] ??= "required";
+      }
     }
   }
   return Object.keys(problems).length > 0 ? { ok: false, problems } : { ok: true, value };
@@ -162,3 +178,6 @@ export function addressLines(
   );
   return lines.length > 0 ? lines : null;
 }
+
+/** Venue addresses: the state comes from the jurisdiction and every field is optional. */
+export const VENUE_ADDRESS: AddressOptions = { omit: ["administrativeArea"], optional: true };

@@ -22,17 +22,24 @@ Every address form in Atlas lays out its fields in the country's order and marks
 from a layout the server computes (`apps/atlas/lib/address.ts`), so no address metadata reaches the browser. The
 server action reads the address back against the same country: what the country requires, a postal code that fits,
 written the way the country's post writes it (`normalizePostalCode`). An address left wholly blank is not recorded.
+A required field the form did not show is not asked for: when someone changes a vendor's country, the form still
+shows the old country's fields until the save, and the next edit lays out the new country's.
+
+Venue addresses stay optional field by field, as they were in 4.0 and as the v1 API documents them: a venue is often
+recorded with only its city, and seeded and production venues have partial addresses. The venue form lays out the
+fields in the country's order and marks none required; the postal code, when given, must still fit the
+jurisdiction's country.
 
 The database checks only the postal code, with the same patterns (`private.postal_code_pattern`, kept equal to
 `address.ts` by a test that reads the migration). Required fields stay a form rule: an API caller may record a
 partial address, and a postal code alone is what a later process (tax filing, shipping) cannot repair.
 
-| Record           | Country from                          | Form                                                   |
-| ---------------- | ------------------------------------- | ------------------------------------------------------ |
-| Venue            | First two letters of its jurisdiction | Venue form; the state is the jurisdiction's, not asked |
-| Org legal entity | `country_code` (1200)                 | Legal Entities and Fiscal, per entity                  |
-| Vendor           | New `country_code` beside the address | Vendor record, Mailing address                         |
-| W-9 (tax form)   | Always US                             | Gateway Tax Documents                                  |
+| Record           | Country from                          | Form                                                                         |
+| ---------------- | ------------------------------------- | ---------------------------------------------------------------------------- |
+| Venue            | First two letters of its jurisdiction | Venue form; the state is the jurisdiction's, not asked; every field optional |
+| Org legal entity | `country_code` (1200)                 | Legal Entities and Fiscal, per entity                                        |
+| Vendor           | New `country_code` beside the address | Vendor record, Mailing address                                               |
+| W-9 (tax form)   | Always US                             | Gateway Tax Documents                                                        |
 
 Vendors and legal entities gain address columns (2320); the legal entity address reads through
 `app.org_legal_entities_masked`, appended so existing columns keep their places. A vendor's address fields need its

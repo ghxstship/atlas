@@ -13,7 +13,7 @@ import { regionFromLocale } from "@xos/i18n/formats";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter, getLocale } from "next-intl/server";
-import { addressFormat, addressLines } from "@/lib/address";
+import { addressFormat, addressLines, VENUE_ADDRESS } from "@/lib/address";
 import { requireNode } from "@/lib/shell/require-node";
 import { CustomFieldList } from "@/components/custom-fields/list";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
@@ -69,9 +69,12 @@ function address(v: Venue, locale: string): string | null {
   return lines ? lines.join(", ") : null;
 }
 
-/** The venue address form of a jurisdiction's country; the state is the jurisdiction's, so it is not asked. */
+/**
+ * The venue address form of a jurisdiction's country: the state is the jurisdiction's, so it is not
+ * asked, and every field stays optional (VENUE_ADDRESS).
+ */
 export function venueAddressFormat(jurisdictionId: string) {
-  return addressFormat(jurisdictionId.slice(0, 2) || "US", ["administrativeArea"]);
+  return addressFormat(jurisdictionId.slice(0, 2) || "US", VENUE_ADDRESS);
 }
 
 /** Projects located venues into the drawing box; venues without a location are left out. */
