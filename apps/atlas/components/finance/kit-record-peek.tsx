@@ -12,7 +12,8 @@ import { useQueryNav } from "./kit-use-query-nav";
  * The record peek beside the list: non-modal, Esc closes, and the full page opens the same anatomy
  * at `&full=1` (broadcast 1, item 4); a page whose records have no full page passes
  * `fullPage={false}` (saved reports). The kind label is catalog copy because finance documents are
- * not one of the 26 record kinds.
+ * not one of the 26 record kinds. The panel is a record region for the shell's record shortcuts
+ * (data-shortcut-scope, @xos/ui/shortcut-targets), with Open full as the Open full page target.
  */
 export function RecordPeek({
   kindLabel,
@@ -45,6 +46,7 @@ export function RecordPeek({
       <RDialog.Portal>
         <RDialog.Content
           aria-describedby={undefined}
+          data-shortcut-scope="record"
           onInteractOutside={(e) => e.preventDefault()}
           className="xos-anim-peek fixed inset-y-0 end-0 z-peek flex w-(--layout-peek) max-w-full flex-col overflow-y-auto border-s border-border-subtle bg-bg-raised text-text-primary shadow-dialog max-md:w-full forced-colors:border print:hidden"
         >
@@ -59,6 +61,7 @@ export function RecordPeek({
                   icon="Maximize2"
                   label={t("common.openFull")}
                   onClick={() => go({ full: "1" })}
+                  data-shortcut="record.open"
                 />
               ) : null}
               <RDialog.Close asChild>

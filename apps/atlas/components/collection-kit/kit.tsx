@@ -671,7 +671,11 @@ export function ActionButton({
   );
 }
 
-/** The lifecycle moves the database allows from the current state, each asking for a reason. */
+/**
+ * The lifecycle moves the database allows from the current state, each asking for a reason. The
+ * group is the record's Change state shortcut target (data-shortcut="record.state"): the key focuses
+ * the first move.
+ */
 export function TransitionButtons({
   action,
   org,
@@ -690,7 +694,13 @@ export function TransitionButtons({
   const t = useCopy("procurement.kit");
   if (moves.length === 0) return null;
   return (
-    <div className="flex flex-wrap items-center gap-8" role="group" aria-label={t("moves")}>
+    <div
+      className="flex flex-wrap items-center gap-8"
+      role="group"
+      aria-label={t("moves")}
+      data-shortcut="record.state"
+      data-shortcut-focus=""
+    >
       {moves.map((m) => (
         <ActionButton
           key={m.next}

@@ -17,9 +17,10 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
  *   region's own keys still answer in the region, such as a record's in the side peek.
  * - G, then a letter, goes to a section: the first key shows the hint, the next key either goes or
  *   cancels, Esc cancels, and the hint closes after four seconds.
- * - Record and view shortcuts answer in the region around focus (data-shortcut-scope): they click
- *   or focus the region's control marked with their id (@xos/ui/shortcut-targets). A region
- *   without that control leaves the key alone.
+ * - Record and view shortcuts answer in the region around focus (a record or collection template,
+ *   or data-shortcut-scope): they click or focus the region's control marked with their id
+ *   (@xos/ui/shortcut-targets). A region without that control leaves the key alone, except Copy
+ *   link, which copies the address on screen: it opens the record, as a page or in its peek.
  * - A key a component already handled (preventDefault) and keys pressed while composing text are
  *   left alone.
  */
@@ -42,6 +43,16 @@ const PENDING_MS = 4000;
 const OVERLAY =
   '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [aria-modal="true"]';
 const MODIFIER = /(?:^|\+)(?:Mod|Ctrl|Alt)\+/;
+
+/**
+ * Copy link in a record region that shows no Copy link control of its own (a record full page): the
+ * address on screen is the record's.
+ */
+function copyAddress(region: Element, id: string): boolean {
+  if (id !== "record.copy-link" || regionScope(region) !== "record") return false;
+  void navigator.clipboard?.writeText(window.location.href);
+  return true;
+}
 
 function typing(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -124,7 +135,9 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
   const run = (event: KeyboardEvent, id: string, now: KeyState, region: Element | null) => {
     const { keys, handlers } = now;
     if (keys.scopes[id] !== undefined) {
-      if (region !== null && runShortcut(region, id)) event.preventDefault();
+      if (region !== null && (runShortcut(region, id) || copyAddress(region, id))) {
+        event.preventDefault();
+      }
       return;
     }
     event.preventDefault();

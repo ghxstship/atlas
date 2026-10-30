@@ -472,6 +472,23 @@ describe("shell key handler (Section 11.2)", () => {
     expect(calls).toEqual([]);
   });
 
+  it("copies the address on screen for Copy link on a record page without a Copy link control", () => {
+    start(keys());
+    ran.length = 0;
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    Object.assign(window, { location: { href: "https://atlas.test/acme/r/NWL-1042" } });
+    const page = region("record", []);
+    expect(press("l", { target: new FakeElement("DIV", false, page) }).defaultPrevented).toBe(true);
+    expect(writeText).toHaveBeenCalledWith("https://atlas.test/acme/r/NWL-1042");
+    // A record without the control for another action still leaves its key alone.
+    expect(press("o", { target: new FakeElement("DIV", false, page) }).defaultPrevented).toBe(
+      false,
+    );
+    expect(ran).toEqual(["record:record.copy-link", "record:record.open"]);
+    vi.unstubAllGlobals();
+  });
+
   it("answers a region shortcut the person bound to a sequence", () => {
     start(
       buildShellKeys(SHORTCUT_REGISTRY, {
