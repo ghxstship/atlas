@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(72);
+select plan(73);
 
 create temporary table k (key text primary key, id uuid, token text);
 grant select, insert, update on k to public;
@@ -273,6 +273,10 @@ insert into world select 'offer', id from k where key = 'offer';
 insert into world select 'n_offer', pg_temp.note('quinn', 'offer.sent', 'offer');
 insert into world select 'offer_i', id from k where key = 'offer_i';
 insert into world select 'n_offer_i', pg_temp.note('ivy', 'offer.sent', 'offer_i');
+-- A later migration that recreates private.party_org_ids must keep 2200's open-offer clause, or offer.sent stops
+-- reaching an applicant who has no other tie to the org.
+select ok(pg_temp.id('org_a') in (select private.party_org_ids(pg_temp.id('quinn'))),
+  'while the offer waits on them, the applicant works with the org that sent it');
 select is((select message_args ->> 'title' from app.notifications where id = pg_temp.id('n_offer')), 'Summer Series Riggers',
   'the applicant is told about the offer');
 select set_eq(format($$select channel::text from app.notification_deliveries where notification_id = %L$$, pg_temp.id('n_offer')),
