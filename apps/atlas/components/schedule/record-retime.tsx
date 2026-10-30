@@ -68,7 +68,8 @@ export function RecordRetime({ org, recordId }: { org: string; recordId: string 
       router.refresh();
       return { ok: true };
     }
-    return { ok: false, message: result.ok ? (result.outcome.refused[0]?.message ?? "") : "" };
+    const first = result.ok ? result.outcome.refused[0] : undefined;
+    return { ok: false, message: first?.message ?? t("retime.undoFailed") };
   };
 
   const run = (commit: boolean) =>

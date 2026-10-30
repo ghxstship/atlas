@@ -153,7 +153,7 @@
     "per_diem_day_taken": "A per diem is already recorded for a day in that range. Remove it or choose other days.",
     "engagement_worker_person": "Time, shifts and per diems go to an engagement that names a person, not a company engagement. Choose a person.",
     "engagement_not_working": "External crew record time and receive per diems only while their engagement is Active or Closing.",
-    "payroll_holiday_code_missing": "A paid holiday falls in this pay period. Add a holiday earning code in Payroll and Time Off settings, then calculate again.",
+    "payroll_holiday_code_missing": "This pay period includes holiday pay. Add a holiday earning code in Payroll and Time Off settings, then calculate again.",
     "availability_poll_days": "Ask about 1 to 31 different days, none of them in the past.",
     "availability_poll_inside_notice": "Some days fall inside the org's availability notice period, which is locked. Ask only about later days.",
     "availability_poll_recipients": "Ask 1 to 200 different people.",
@@ -874,7 +874,7 @@
         "label": "Add US federal holidays to {name}",
         "year": "Year",
         "button": "Add US federal holidays",
-        "help": "Adds the 11 federal holidays on their observed days, each paying 8 hours, and skips days already on the calendar. Payroll needs a holiday earning code, or it refuses with payroll_holiday_code_missing.",
+        "help": "Adds the 11 federal holidays on their observed days, each paying 8 hours, and skips days already on the calendar. Add a holiday earning code too, or payroll cannot be calculated for a period with a holiday.",
         "result": "{added} added, {existing} already on the calendar.",
         "us_federal": {
           "new_years_day": "New Year's Day",

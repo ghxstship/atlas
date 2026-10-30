@@ -153,7 +153,7 @@
     "per_diem_day_taken": "Ya hay un viático registrado para un día de ese rango. Quítelo o elija otros días.",
     "engagement_worker_person": "El tiempo, los turnos y los viáticos van a una contratación que nombra a una persona, no a una contratación de empresa. Elija una persona.",
     "engagement_not_working": "El personal externo registra tiempo y recibe viáticos solo mientras su contratación está Activa o En cierre.",
-    "payroll_holiday_code_missing": "Un feriado pagado cae en este periodo de pago. Agregue un código de ingreso de feriado en la configuración de Nómina y tiempo libre, y calcule de nuevo.",
+    "payroll_holiday_code_missing": "Este periodo de pago incluye pago de feriado. Agregue un código de ingreso de feriado en la configuración de Nómina y tiempo libre, y calcule de nuevo.",
     "availability_poll_days": "Pregunte por 1 a 31 días distintos, ninguno en el pasado.",
     "availability_poll_inside_notice": "Algunos días caen dentro del período de aviso de disponibilidad de la organización, que está bloqueado. Pregunte solo por días posteriores.",
     "availability_poll_recipients": "Pregunte a entre 1 y 200 personas distintas.",
@@ -874,7 +874,7 @@
         "label": "Agregar los feriados federales de EE. UU. a {name}",
         "year": "Año",
         "button": "Agregar feriados federales de EE. UU.",
-        "help": "Agrega los 11 feriados federales en sus días observados, cada uno con 8 horas pagadas, y omite los días que ya están en el calendario. La nómina necesita un código de ingreso de feriado; si no, se rechaza con payroll_holiday_code_missing.",
+        "help": "Agrega los 11 feriados federales en sus días observados, cada uno con 8 horas pagadas, y omite los días que ya están en el calendario. Agregue también un código de ingreso de feriado; sin él, la nómina no se puede calcular para un periodo con un feriado.",
         "result": "{added} agregados, {existing} ya estaban en el calendario.",
         "us_federal": {
           "new_years_day": "Año Nuevo",

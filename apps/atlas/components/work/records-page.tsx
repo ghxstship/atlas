@@ -117,7 +117,8 @@ export async function RecordsPage({
   // People who may change the timeline drag its bars to reschedule (A133).
   const canReschedule = view === "timeline" && caps.has("schedule.timeline.write");
   // P8: beside their timeline, the records with no dates wait in an Unscheduled list to be placed.
-  // Schedule pages load dated records only, so the backlog is its own read with the same filters.
+  // Schedule pages load dated records only, so the backlog is its own read with the same filters. The
+  // database picks the undated, open records, so dated and closed ones never use up the read's limit.
   let backlog: { id: string; label: string }[] = [];
   if (canReschedule) {
     const undated = await listRecords(db, {
@@ -126,17 +127,11 @@ export async function RecordsPage({
       ...(fixedKinds ? { kinds: fixedKinds } : kinds.length > 0 ? { kinds } : {}),
       ...(states.length > 0 ? { states } : {}),
       ...(q ? { search: q } : {}),
+      undatedOnly: true,
+      excludeStates: ["Canceled", "Complete"],
     });
     backlog = must(undated, "records")
-      .filter(
-        (r) =>
-          !r.startsAt &&
-          !r.endsAt &&
-          !r.dueAt &&
-          r.state !== "Canceled" &&
-          r.state !== "Complete" &&
-          custom.keep(r.id),
-      )
+      .filter((r) => custom.keep(r.id))
       .map((r) => ({ id: r.id, label: `${r.key} ${r.title}` }));
   }
   let timeline = null;

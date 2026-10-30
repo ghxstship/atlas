@@ -48,6 +48,10 @@ export function RescheduleTimeline({
   const [error, setError] = useState<ActionError | null>(null);
   const [pending, setPending] = useState<TimelineChange | null>(null);
   const [dropped, setDropped] = useState<{ id: string; day: string } | null>(null);
+  // Once shown, the Unscheduled list stays, with its empty state, so the announcement of the last
+  // placement is still in the page to be read after the refresh empties the list.
+  const [listed, setListed] = useState(backlog.length > 0);
+  if (backlog.length > 0 && !listed) setListed(true);
 
   // The copy is read when an answer arrives, so a new translator never restarts a preview.
   const copy = useRef({
@@ -123,7 +127,7 @@ export function RescheduleTimeline({
   return (
     <div className="flex flex-col gap-8">
       <ActionErrorAlert error={error} />
-      {backlog.length > 0 ? (
+      {listed ? (
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="min-w-0">{drawn}</div>
           <ScheduleBacklog

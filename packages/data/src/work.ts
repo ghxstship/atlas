@@ -336,6 +336,10 @@ export interface RecordQuery {
   readonly to?: string;
   /** Only records with a start, end or due time. */
   readonly datedOnly?: boolean;
+  /** Only records with no start, end or due time (P8: the Unscheduled list). */
+  readonly undatedOnly?: boolean;
+  /** Leaves out records in these states. */
+  readonly excludeStates?: readonly string[];
   /** Trash: only soft-deleted records. Otherwise soft-deleted records are left out. */
   readonly trashed?: boolean;
   readonly limit?: number;
@@ -371,6 +375,10 @@ export async function listRecords(
   const window = windowFilter(query.from, query.to);
   if (window) q = q.or(window);
   if (query.datedOnly) q = q.or("starts_at.not.is.null,ends_at.not.is.null,due_at.not.is.null");
+  if (query.undatedOnly) q = q.is("starts_at", null).is("ends_at", null).is("due_at", null);
+  if (query.excludeStates && query.excludeStates.length > 0) {
+    q = q.not("record_state", "in", `(${query.excludeStates.join(",")})`);
+  }
   q = query.trashed ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
   const { data, error } = await q
     .order("project_id")

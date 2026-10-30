@@ -94,6 +94,7 @@
     "previewAlone": "Solo se mueve este registro.",
     "previewPushes": "{count, plural, one {También desplaza # sucesor.} other {También desplaza # sucesores.}}",
     "apply": "Aplicar",
-    "done": "{count, plural, one {Se movió # registro.} other {Se movieron # registros.}}"
+    "done": "{count, plural, one {Se movió # registro.} other {Se movieron # registros.}}",
+    "undoFailed": "No se pudo deshacer el ajuste. Vuelva a cargar para ver el registro."
   }
 }

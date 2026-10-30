@@ -94,6 +94,7 @@
     "previewAlone": "Only this record moves.",
     "previewPushes": "{count, plural, one {This also pushes # successor.} other {This also pushes # successors.}}",
     "apply": "Apply",
-    "done": "{count, plural, one {Moved # record.} other {Moved # records.}}"
+    "done": "{count, plural, one {Moved # record.} other {Moved # records.}}",
+    "undoFailed": "The retime could not be undone. Reload to see the record."
   }
 }
