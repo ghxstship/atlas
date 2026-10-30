@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-27
 - Decider: A124 (RRR-169), trace row S4.10-02
-- Migrations: 2180, 2181, 2182, 2183
+- Migrations: 2180, 2181, 2182, 2183, 2184
 
 ## Context
 
@@ -47,9 +47,10 @@ and `venue.restored` (0420) follow `archived_at`, and the triggers move before t
 emits nothing. A venue's name is unique among live, unarchived venues, so an archived venue's name
 can be reused; unarchiving it while a live venue holds the name is refused as `archive_name_taken`.
 Spaces, zones, capability documents, site plans and pins keep archiving through `deleted_at`.
-The venue list now reads the shared `archived=include|only` parameter; it still honors the older
-`archive=archived|all` that the other Places collections use, so saved views and bookmarks of it open
-as they did.
+The venue list now reads the shared `archived=include|only` parameter. A link that still carries the
+older `archive=archived|all` the other Places collections use is redirected once to the same list
+with `archived=only|include` (`archived` wins when both are present), so saved views and bookmarks
+open as they did while the filter control, the export and the list read one parameter.
 Every reader that offered venues by filtering `deleted_at` alone now also leaves archived venues out:
 the Event record venue picker, the asset venue picker, a partner's view of a client's venues, the
 import worker's venue lookup by id or name, and import duplicate review (`private.fuzzy_candidates`,
@@ -71,8 +72,10 @@ The lists that read `app.records` outside the collection loaders leave archived 
 Home's Today, Overdue, Blocked, Recent and alerts and their counts (so each page matches its export),
 My Work, the person card's open count, and the records offered when filing project mail. The records
 an org shares with an engaged external party (`api_external.records`, restated in 2183 from 0750)
-leave them out as well, so the party's Gateway schedule and calendar feed (1410) drop an archived
-record until it is unarchived.
+leave them out as well, so the party's Gateway schedule and person calendar feed (1410) drop an
+archived record until it is unarchived. Member and project calendar feeds read `app.records` directly;
+`api_public.calendar_feed`, restated in 2184 from 1410, leaves archived meetings, milestones and
+deadlines out of them too, so every subscriber of a project sees the same events.
 
 The default applies to lists only. A lookup of known rows passes `archived: "include"`: a record's
 parent and sub-records, the records at the other end of its dependencies, a baseline's items and the
