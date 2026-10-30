@@ -52,6 +52,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "content_report.overdue": ["subject"],
   "content_report.decided": ["subject", "action", "statement"],
   "content.removed": ["subject", "ruleReference", "statement"],
+  // P8 (2853): the project and the days an availability poll asks about.
+  "availability.requested": ["projectName", "dayCount", "firstDay", "lastDay"],
 };
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
@@ -63,6 +65,8 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.workforce_events": "schedule/events",
   // 1394: shift.assigned and shift.changed open the worker's shifts. Records open in inboxTarget.
   "app.shifts": "crew/shifts",
+  // P8: availability.requested opens the member's availability, where the poll's Requests card is.
+  "app.availability_polls": "me/work-details",
   "app.training_courses": "knowledge/training",
   "app.recognitions": "people/recognition",
   "app.support_tickets": "people/help-desk",
@@ -144,7 +148,7 @@ function values(
   const startsAt = date(a["startsAt"]);
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
-  for (const key of ["days", "count", "written", "refused", "skipped"]) {
+  for (const key of ["days", "count", "written", "refused", "skipped", "dayCount"]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }
   return out;

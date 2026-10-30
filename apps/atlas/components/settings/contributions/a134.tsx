@@ -19,6 +19,7 @@ import {
   holidayVenueAction,
   timeOffPolicyAction,
 } from "./a134-actions";
+import { HolidayPresetForm } from "@/components/crew/holiday-preset-form";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
@@ -359,6 +360,24 @@ function CalendarFields({
         label={t(`${P}.holidays.appliesToOrg`)}
         defaultChecked={calendar?.appliesToOrg ?? false}
       />
+      {/* P8 (2854): an org pay policy for work on this calendar's holidays; blank pays no premium. */}
+      <Input
+        id={`${idPrefix}-worked`}
+        name="workedHolidayMultiplier"
+        type="number"
+        min={1}
+        max={3}
+        step={0.01}
+        inputMode="decimal"
+        label={t(`${P}.holidays.workedMultiplier`)}
+        help={t(`${P}.holidays.workedMultiplierHelp`)}
+        defaultValue={
+          calendar && calendar.workedHolidayMultiplier !== null
+            ? String(calendar.workedHolidayMultiplier)
+            : ""
+        }
+        width={200}
+      />
     </div>
   );
 }
@@ -413,6 +432,13 @@ async function HolidayCalendarsPanel({ ctx }: SettingsPanelProps) {
               <div className="flex flex-col gap-4">
                 <span className="text-text-14 font-semibold">{c.name}</span>
                 <span className="text-text-12 text-text-secondary">{scopeOf(t, c)}</span>
+                {c.workedHolidayMultiplier !== null ? (
+                  <span className="text-text-12 text-text-secondary">
+                    {t(`${P}.holidays.workedMultiplierShown`, {
+                      multiplier: format.number(c.workedHolidayMultiplier),
+                    })}
+                  </span>
+                ) : null}
               </div>
               {c.holidays.length === 0 ? (
                 <p className="m-0 text-text-13 text-text-secondary">
@@ -457,6 +483,12 @@ async function HolidayCalendarsPanel({ ctx }: SettingsPanelProps) {
               )}
               {canEdit ? (
                 <div className="flex flex-col gap-12">
+                  <HolidayPresetForm
+                    org={org}
+                    calendarId={c.id}
+                    calendarName={c.name}
+                    thisYear={new Date().getUTCFullYear()}
+                  />
                   <ActionForm
                     action={holidayAction}
                     hidden={{ org, intent: "add", calendar: c.id }}

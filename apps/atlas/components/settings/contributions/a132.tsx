@@ -3,6 +3,7 @@ import {
   getMyAvailabilityStatus,
   listAvailabilityPeriods,
   listShiftTemplates,
+  myAvailabilityRequests,
 } from "@xos/data/crew";
 import { getFormatter } from "next-intl/server";
 import {
@@ -11,6 +12,7 @@ import {
   removeAvailabilityAction,
   trashShiftTemplateAction,
 } from "@/app/[org]/crew/scheduling-actions";
+import { AvailabilityRequests } from "@/components/crew/availability-requests";
 import { CrewInlineForm } from "@/components/crew/inline-form";
 import { InlineAlert } from "@/components/ui";
 import { getRoleTitles } from "@/lib/crew/context";
@@ -24,6 +26,7 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
  *                          every member. The availability window is the registry settings above.
  *   Me, Work details       the member's availability for the org: the window the org asks for, the days still
  *                          unstated, their periods, and a form to state one. The database locks the notice period.
+ *                          P8 adds the Requests card: the org's open availability polls addressed to the member.
  * Both read with the viewer's client, so row level security and the RPCs decide what shows.
  */
 async function ShiftTemplatesPanel({ ctx }: SettingsPanelProps) {
@@ -205,9 +208,12 @@ async function MyAvailabilityPanel({ ctx }: SettingsPanelProps) {
   if (!status.ok) return null;
   const [t, format] = await Promise.all([getTranslate(), getFormatter()]);
   const s = status.data;
-  const periods = s.calendarId
-    ? await listAvailabilityPeriods(ctx.viewer.db, s.calendarId, new Date().toISOString())
-    : null;
+  const [periods, requests] = await Promise.all([
+    s.calendarId
+      ? listAvailabilityPeriods(ctx.viewer.db, s.calendarId, new Date().toISOString())
+      : null,
+    myAvailabilityRequests(ctx.viewer.db),
+  ]);
   const day = (d: string) =>
     format.dateTime(new Date(`${d}T12:00:00Z`), { timeZone: "UTC", dateStyle: "medium" });
   const at = (iso: string) =>
@@ -243,6 +249,10 @@ async function MyAvailabilityPanel({ ctx }: SettingsPanelProps) {
           {t("crew.scheduling.availability.zone", { zone: s.timeZone })}
         </p>
       </header>
+      <AvailabilityRequests
+        org={ctx.org.slug}
+        requests={requests.ok ? requests.data.filter((r) => r.orgId === ctx.org.id) : []}
+      />
       {first && last ? (
         <InlineAlert tone={s.required ? "warning" : "info"}>
           {t("crew.scheduling.availability.unstated", {

@@ -3,6 +3,7 @@
 import type { DataError } from "@xos/data";
 import {
   addAvailabilityPeriod,
+  answerAvailabilityPoll,
   assignOpenShift,
   createShiftTemplate,
   createShiftsFromTemplate,
@@ -10,8 +11,10 @@ import {
   ensureMemberAvailabilityCalendar,
   rankShiftCandidates,
   removeAvailabilityPeriod,
+  sendAvailabilityPoll,
   trashShiftTemplate,
   type AvailabilityKind,
+  type PollAnswerResult,
   type ShiftCandidate,
 } from "@xos/data/crew";
 import { revalidatePath } from "next/cache";
@@ -21,12 +24,13 @@ import type { CrewActionState } from "@/lib/crew/action-state";
 import { errorMessage } from "@/lib/crew/errors";
 import { zonedToIso } from "@/lib/crew/time";
 import { getOrgContext } from "@/lib/shell/context";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 
 /**
  * Crew scheduling actions (A132, migrations 2250 and 2251, ADR 0063): plan shifts from a template, put a ranked
- * member on a shift from the schedule's drag list, keep the org's shift templates (Settings, Scheduling) and state
- * one's own availability (Me, Work details). Each resolves the viewer's org context again (404 when it is gone) and
+ * member on a shift from the schedule's drag list, keep the org's shift templates (Settings, Scheduling), state
+ * one's own availability (Me, Work details), and ask for and answer availability polls (P8, 2853). Each resolves the viewer's org context again (404 when it is gone) and
  * writes as the viewer, so row level security, the RPCs and the notice lock decide.
  */
 
@@ -237,4 +241,83 @@ export async function removeAvailabilityAction(_: State, form: FormData): Promis
   if (!result.ok) return failed(t, result.error);
   revalidatePath(`/${ctx.org.slug}/me/work-details`);
   return { ok: true };
+}
+
+// Availability polls (P8, 2853) ------------------------------------------------------------------------------
+
+export type PollActionResult =
+  | { readonly ok: true; readonly id: string }
+  | { readonly ok: false; readonly error: string; readonly rule?: string };
+
+/**
+ * A planner asks members and engaged freelancers for their availability on chosen days of a project. The
+ * database checks crew.shift.write, the days (1 to 31, none past, none inside the notice period while the org
+ * requires availability) and every recipient, and notifies each one.
+ */
+export async function sendAvailabilityPollAction(
+  org: string,
+  input: {
+    projectId: string;
+    title: string;
+    days: string[];
+    personIds: string[];
+    message?: string;
+    closesOn?: string;
+  },
+): Promise<PollActionResult> {
+  const { ctx, db, t } = await context(org);
+  const parsed = z
+    .object({
+      projectId: uuid,
+      title: z.string().trim().min(1).max(200),
+      days: z.array(isoDate).min(1).max(31),
+      personIds: z.array(uuid).min(1).max(200),
+      message: z.string().trim().max(1000).optional(),
+      closesOn: isoDate.optional(),
+    })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: t("crew.errors.fixFields") };
+  const { closesOn, message, ...rest } = parsed.data;
+  // A poll closing on a day stops taking answers at the end of that day, in the org's zone.
+  const closesAt = closesOn ? zonedToIso(`${closesOn}T23:59`, await getOrgTimeZone(ctx)) : null;
+  const result = await sendAvailabilityPoll(db, {
+    ...rest,
+    ...(message ? { message } : {}),
+    ...(closesAt ? { closesAt } : {}),
+  });
+  if (!result.ok) {
+    return {
+      ok: false,
+      error: errorMessage(t, result.error),
+      ...(result.error.kind === "refusal" ? { rule: result.error.rule } : {}),
+    };
+  }
+  refresh(ctx.org.slug);
+  return { ok: true, id: result.data };
+}
+
+export type AnswerActionResult =
+  | { readonly ok: true; readonly answers: readonly PollAnswerResult[] }
+  | { readonly ok: false; readonly error: string };
+
+/** A recipient answers a poll day by day (Me, Work details); a locked day comes back unwritten. */
+export async function answerAvailabilityPollAction(
+  org: string,
+  input: { pollId: string; answers: { day: string; kind: string }[] },
+): Promise<AnswerActionResult> {
+  const { ctx, db, t } = await context(org);
+  const parsed = z
+    .object({
+      pollId: uuid,
+      answers: z
+        .array(z.object({ day: isoDate, kind: z.enum(["Available", "Tentative", "Unavailable"]) }))
+        .min(1)
+        .max(31),
+    })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: t("crew.errors.fixFields") };
+  const result = await answerAvailabilityPoll(db, parsed.data);
+  if (!result.ok) return { ok: false, error: errorMessage(t, result.error) };
+  revalidatePath(`/${ctx.org.slug}/me/work-details`);
+  return { ok: true, answers: result.data };
 }

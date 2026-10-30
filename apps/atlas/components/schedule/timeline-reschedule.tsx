@@ -8,6 +8,7 @@ import type { ActionError } from "@/components/work/action-result";
 import { ActionErrorAlert, useCopy } from "@/components/work/action-ui";
 import { rescheduleRecordAction } from "./actions";
 import { createPreviewer, previewOf, shiftsOf } from "./reschedule-preview";
+import { ScheduleBacklog, type BacklogItem } from "./schedule-backlog";
 import { timelineView } from "./timeline-view";
 
 /** Quiet time after the last arrow key or pointer step before the server previews the change. */
@@ -20,17 +21,20 @@ const PREVIEW_DELAY_MS = 250;
  * (every dependency, locked records, records this view filters out) and that answer replaces the
  * estimate. Apply and Enter wait for that answer (`awaitPreview`), so what is applied is what the
  * server previewed; the commit runs the same computation in one transaction and the page refreshes
- * with the new dates. Loaded on demand with the timeline view, so other views never carry it
- * (ADR 0027).
+ * with the new dates. Beside it, the Unscheduled list (P8) holds the records with no dates, to be
+ * dropped on a day or scheduled by keyboard. Loaded on demand with the timeline view, so other
+ * views never carry it (ADR 0027).
  */
 export function RescheduleTimeline({
   org,
   label,
   timeline,
+  backlog = [],
 }: {
   org: string;
   label: string;
   timeline: TimelineModel;
+  backlog?: readonly BacklogItem[];
 }) {
   const format = useFormatter();
   const t = useCopy("schedule");
@@ -43,6 +47,7 @@ export function RescheduleTimeline({
   } | null>(null);
   const [error, setError] = useState<ActionError | null>(null);
   const [pending, setPending] = useState<TimelineChange | null>(null);
+  const [dropped, setDropped] = useState<{ id: string; day: string } | null>(null);
 
   // The copy is read when an answer arrives, so a new translator never restarts a preview.
   const copy = useRef({
@@ -93,20 +98,48 @@ export function RescheduleTimeline({
     return true;
   };
 
+  const drawn = (
+    <Timeline
+      label={label}
+      {...view}
+      preview={answer && answer.bars === timeline.bars ? answer.preview : null}
+      awaitPreview
+      onPendingChange={(change) => {
+        setPending(change);
+        if (!change) setError(null);
+      }}
+      onReschedule={apply}
+      {...(backlog.length > 0
+        ? {
+            onDayDrop: (index: number, id: string) => {
+              const day = timeline.days[index]?.day;
+              if (day) setDropped({ id, day });
+            },
+          }
+        : {})}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <ActionErrorAlert error={error} />
-      <Timeline
-        label={label}
-        {...view}
-        preview={answer && answer.bars === timeline.bars ? answer.preview : null}
-        awaitPreview
-        onPendingChange={(change) => {
-          setPending(change);
-          if (!change) setError(null);
-        }}
-        onReschedule={apply}
-      />
+      {backlog.length > 0 ? (
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="min-w-0">{drawn}</div>
+          <ScheduleBacklog
+            org={org}
+            items={backlog}
+            days={timeline.days.map((d, i) => ({
+              day: d.day,
+              label: view.days[i]?.label ?? d.day,
+            }))}
+            dropped={dropped}
+            onDropHandled={() => setDropped(null)}
+          />
+        </div>
+      ) : (
+        drawn
+      )}
     </div>
   );
 }

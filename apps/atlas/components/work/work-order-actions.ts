@@ -220,10 +220,14 @@ export async function createPunchItemAction(
   return done(result.data);
 }
 
-/** Copies a record with its checklist into a new Proposed record (journey 70). */
+/**
+ * Copies a record with its checklist into a new Proposed record (journey 70); `withoutDates` leaves
+ * the copy undated, for the schedule's Unscheduled list (P8).
+ */
 export async function duplicateRecordAction(
   org: string,
   recordId: string,
+  options: { withoutDates?: boolean } = {},
 ): Promise<ActionResult<{ key: string }>> {
   const ctx = await context(org);
   if (!z.uuid().safeParse(recordId).success) return invalid();
@@ -231,6 +235,7 @@ export async function duplicateRecordAction(
     orgId: ctx.org.id,
     recordId,
     withChildren: true,
+    withoutDates: options.withoutDates === true,
   });
   if (!result.ok) return failed(result.error);
   const copy = await getRecord(ctx.viewer.db, result.data.id);

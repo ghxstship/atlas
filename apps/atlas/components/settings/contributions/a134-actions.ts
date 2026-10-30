@@ -3,11 +3,13 @@
 import type { DataError } from "@xos/data";
 import {
   addHoliday,
+  addHolidayPreset,
   assignHolidayCalendarVenue,
   createEarningCode,
   createHolidayCalendar,
   createTimeOffPolicy,
   EARNING_CODE_KINDS,
+  HOLIDAY_PRESETS,
   normalizeEarningCode,
   normalizeSubdivisionCode,
   removeHoliday,
@@ -25,6 +27,7 @@ import { z } from "zod";
 import { contextFor } from "@/lib/platform/action-context";
 import { fromDataError } from "@/lib/platform/data-error";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
+import { getTranslate } from "@/lib/shell/translate";
 
 /**
  * Server actions of A134's panels on Settings, Payroll and Time Off (RRR-196, ADR 0112): earning codes, time off
@@ -132,6 +135,22 @@ export async function timeOffPolicyAction(
   return done(id);
 }
 
+/**
+ * The worked-holiday multiplier of a calendar (P8, 2854): blank is none, else 1 to 3 in steps of a hundredth.
+ * Undefined when it does not read, so the form says the value is invalid.
+ */
+function multiplier(form: FormData): number | null | undefined {
+  const raw = field(form, "workedHolidayMultiplier");
+  if (!raw) return null;
+  const value = Number(raw);
+  return Number.isFinite(value) &&
+    value >= 1 &&
+    value <= 3 &&
+    Number.isInteger(Math.round(value * 100))
+    ? Math.round(value * 100) / 100
+    : undefined;
+}
+
 export async function holidayCalendarAction(
   _: PlatformActionState,
   form: FormData,
@@ -153,11 +172,13 @@ export async function holidayCalendarAction(
   }
   const label = name(form);
   const subdivision = normalizeSubdivisionCode(field(form, "subdivision"));
-  if (!label || subdivision === undefined) return inputError();
+  const worked = multiplier(form);
+  if (!label || subdivision === undefined || worked === undefined) return inputError();
   const input = {
     name: label,
     subdivisionCode: subdivision,
     appliesToOrg: form.get("appliesToOrg") === "on",
+    workedHolidayMultiplier: worked,
   };
   if (intent === "create") {
     const result = await createHolidayCalendar(ctx.viewer.db, ctx.org.id, input);
@@ -210,6 +231,38 @@ export async function holidayAction(
   if (!result.ok) return outcome(result.error, () => "holiday_day_taken");
   refresh(ctx.org.slug);
   return done(result.data.id);
+}
+
+/**
+ * Adds the US federal holidays of a year to a calendar (P8, 2854), named in the viewer's language from the catalog.
+ * The outcome's value is "added:total", so the form says how many were added and how many it already held.
+ */
+export async function holidayPresetAction(
+  _: PlatformActionState,
+  form: FormData,
+): Promise<PlatformActionState> {
+  const ctx = await contextFor(form);
+  const calendar = field(form, "calendar");
+  const year = Number(field(form, "year"));
+  if (!uuid.safeParse(calendar).success || !Number.isInteger(year) || year < 2021 || year > 2100) {
+    return inputError();
+  }
+  const t = await getTranslate();
+  const names = Object.fromEntries(
+    HOLIDAY_PRESETS.us_federal.map((code) => [
+      code,
+      t(`crew.payrollSettings.holidays.preset.us_federal.${code}`),
+    ]),
+  );
+  const result = await addHolidayPreset(ctx.viewer.db, {
+    calendarId: calendar,
+    preset: "us_federal",
+    year,
+    names,
+  });
+  if (!result.ok) return fromDataError(result.error);
+  refresh(ctx.org.slug);
+  return done(calendar, `${result.data.added}:${result.data.total}`);
 }
 
 export async function holidayVenueAction(
