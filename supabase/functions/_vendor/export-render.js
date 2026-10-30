@@ -8,6 +8,7 @@ import {
   readReplicaUrl,
   renderTablePdf,
 } from "./chunks/data-report-files.js";
+import { dataClassification, exportFormat } from "./chunks/data-enums-generated.js";
 //#region ../data/src/export-renders.ts
 /**
  * The export.render worker (A102, RRR-146; migration 2030; Section 4.6.4, 8.6). Atlas asks for an
@@ -225,8 +226,8 @@ function exportRowsArray(data) {
     throw new Error("export_job_rows answered something other than an array of rows.");
   return data;
 }
-var FORMATS = ["CSV", "XLSX", "PDF"];
-var CLASSES = ["Public", "Internal", "Confidential", "Restricted"];
+var FORMATS = exportFormat;
+var CLASSES = dataClassification;
 /** ExportRenderStore over the service-role client: the 2030 worker RPCs and export_job_columns. */
 function supabaseExportRenderStore(client, options = {}) {
   const app = client.schema("app");

@@ -280,7 +280,7 @@ export async function renameOrganization(
 export async function listRoleCapabilities(
   db: XosClient,
   roleIds: readonly string[],
-): Promise<Result<Map<CapabilityCode, "own" | "assigned" | "organization">>> {
+): Promise<Result<Map<CapabilityCode, Database["app"]["Enums"]["capability_reach"]>>> {
   if (roleIds.length === 0) return ok(new Map());
   const { data, error } = await db
     .from("role_capabilities")
@@ -289,7 +289,7 @@ export async function listRoleCapabilities(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const order = { own: 0, assigned: 1, organization: 2 } as const;
-  const reach = new Map<CapabilityCode, "own" | "assigned" | "organization">();
+  const reach = new Map<CapabilityCode, Database["app"]["Enums"]["capability_reach"]>();
   for (const row of data) {
     // capability_code references app.capabilities, which migration 0203 seeds from the registry.
     const code = row.capability_code as CapabilityCode;

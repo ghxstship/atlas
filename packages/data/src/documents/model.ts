@@ -5,6 +5,7 @@
  * renderer writes follows the same order as the page.
  */
 
+import type { Database } from "../database.types.ts";
 /** The twelve Section 11.9 documents. */
 export const DOCUMENT_KINDS = [
   "purchase-order",
@@ -51,7 +52,7 @@ export const COMPLIANCE_DOCUMENT_KINDS = [
 export type ComplianceDocumentKind = (typeof COMPLIANCE_DOCUMENT_KINDS)[number];
 
 /** Section 8.3 classification, least to most sensitive. */
-export type DataClassification = "Public" | "Internal" | "Confidential" | "Restricted";
+export type DataClassification = Database["app"]["Enums"]["data_classification"];
 
 /**
  * The classification of each generated document: the highest classification among the registered

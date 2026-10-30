@@ -39,6 +39,7 @@ import { collectionState, withQuery, type SearchParams } from "@/lib/collection-
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { REFUSALS, memberOptions, orgPickers, workforceCopy } from "./shared";
+import * as enums from "@xos/data/enums";
 import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "table", "gallery"];
@@ -256,7 +257,7 @@ export async function TrainingSection({
                   label: t("training.lessonKind"),
                   required: true,
                   defaultValue: "Reading",
-                  options: ["Reading", "Video", "Quiz"].map((k) => ({
+                  options: enums.trainingLessonKind.map((k) => ({
                     value: k,
                     label: t(`training.kinds.${k}`),
                   })),

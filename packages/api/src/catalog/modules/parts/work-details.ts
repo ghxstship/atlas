@@ -12,66 +12,39 @@ import type { CorrectionInput } from "../../corrections.ts";
 import { editDefinition, editShape, orNull } from "../../correct.ts";
 import { itemAction, itemQuery, resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (id: string, values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ id, description, example: values[0] });
 
 const Category = label(
   "WorkDetailCategory",
-  [
-    "Emergency Contacts",
-    "Uniform Sizes",
-    "Dietary Needs",
-    "Accessibility Needs",
-    "Travel Profile",
-    "Passport",
-  ],
+  Constants.app.Enums.work_detail_category,
   "A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.",
 );
 const GarmentSize = label(
   "GarmentLetterSize",
-  ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"],
+  Constants.app.Enums.garment_letter_size,
   "Letter size for a shirt, jacket or gloves.",
 );
 const DietaryNeed = label(
   "DietaryNeed",
-  [
-    "Vegetarian",
-    "Vegan",
-    "Pescatarian",
-    "Halal",
-    "Kosher",
-    "Gluten Free",
-    "Dairy Free",
-    "Nut Free",
-    "Shellfish Free",
-  ],
+  Constants.app.Enums.dietary_need,
   "A dietary need hospitality caters for.",
 );
 const AccessibilityNeed = label(
   "AccessibilityNeed",
-  [
-    "Step-Free Access",
-    "Accessible Parking",
-    "Accessible Restroom",
-    "Seating",
-    "Sign Language Interpreter",
-    "Captioning",
-    "Large Print",
-    "Service Animal",
-    "Quiet Space",
-    "Assistance on Arrival",
-  ],
+  Constants.app.Enums.accessibility_need,
   "An accessibility need the person asks an engaging org to plan for.",
 );
 const SeatPreference = label(
   "SeatPreference",
-  ["Window", "Aisle", "No Preference"],
+  Constants.app.Enums.seat_preference,
   "Preferred seat when an org books travel.",
 );
 const LoyaltyProgramKind = label(
   "LoyaltyProgramKind",
-  ["Airline", "Hotel", "Car Rental", "Rail"],
+  Constants.app.Enums.loyalty_program_kind,
   "Kind of travel loyalty program.",
 );
 

@@ -11275,9 +11275,9 @@
           },
           "staffing_basis": {
             "type": "string",
-            "enum": ["Declared", "Ratio", "Fixed"],
+            "enum": ["Ratio", "Fixed", "Declared"],
             "description": "How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.",
-            "example": "Declared"
+            "example": "Ratio"
           },
           "starts_on": {
             "type": ["string", "null"],
@@ -11353,9 +11353,9 @@
           },
           "staffing_basis": {
             "type": "string",
-            "enum": ["Declared", "Ratio", "Fixed"],
+            "enum": ["Ratio", "Fixed", "Declared"],
             "description": "How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.",
-            "example": "Declared"
+            "example": "Ratio"
           },
           "starts_on": {
             "type": ["string", "null"],
@@ -11397,9 +11397,9 @@
           },
           "staffing_basis": {
             "type": "string",
-            "enum": ["Declared", "Ratio", "Fixed"],
+            "enum": ["Ratio", "Fixed", "Declared"],
             "description": "How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.",
-            "example": "Declared"
+            "example": "Ratio"
           },
           "starts_on": {
             "type": ["string", "null"],
@@ -11500,18 +11500,18 @@
           "role_type": {
             "type": ["string", "null"],
             "enum": [
-              "Crew",
-              "Contractor",
-              "Staff",
+              "Client",
               "Vendor",
+              "Contractor",
+              "Crew",
+              "Staff",
               "Artist",
               "Artist Representative",
-              "Client",
               "Sponsor",
               null
             ],
             "description": "External role type an opportunity published from the requisition seeks; null when filled internally.",
-            "example": "Crew"
+            "example": "Client"
           },
           "worker_classification": {
             "type": ["string", "null"],
@@ -11634,18 +11634,18 @@
           "role_type": {
             "type": ["string", "null"],
             "enum": [
-              "Crew",
-              "Contractor",
-              "Staff",
+              "Client",
               "Vendor",
+              "Contractor",
+              "Crew",
+              "Staff",
               "Artist",
               "Artist Representative",
-              "Client",
               "Sponsor",
               null
             ],
             "description": "External role type an opportunity published from the requisition seeks; null when filled internally.",
-            "example": "Crew"
+            "example": "Client"
           },
           "worker_classification": {
             "type": ["string", "null"],
@@ -11732,18 +11732,18 @@
           "role_type": {
             "type": ["string", "null"],
             "enum": [
-              "Crew",
-              "Contractor",
-              "Staff",
+              "Client",
               "Vendor",
+              "Contractor",
+              "Crew",
+              "Staff",
               "Artist",
               "Artist Representative",
-              "Client",
               "Sponsor",
               null
             ],
             "description": "External role type an opportunity published from the requisition seeks; null when filled internally.",
-            "example": "Crew"
+            "example": "Client"
           },
           "worker_classification": {
             "type": ["string", "null"],
@@ -57447,9 +57447,9 @@
           },
           "group_role": {
             "type": "string",
-            "enum": ["Member", "Owner"],
+            "enum": ["Owner", "Member"],
             "description": "Owners add and remove members.",
-            "example": "Member"
+            "example": "Owner"
           }
         },
         "required": [
@@ -57482,9 +57482,9 @@
           },
           "group_role": {
             "type": "string",
-            "enum": ["Member", "Owner"],
+            "enum": ["Owner", "Member"],
             "description": "Owners add and remove members.",
-            "example": "Member"
+            "example": "Owner"
           }
         },
         "required": ["group_id", "membership_id", "group_role"],
@@ -62174,9 +62174,9 @@
           },
           "severity": {
             "type": "string",
-            "enum": ["Severity 3", "Severity 1", "Severity 2", "Severity 4"],
+            "enum": ["Severity 1", "Severity 2", "Severity 3", "Severity 4"],
             "description": "Severity.",
-            "example": "Severity 3"
+            "example": "Severity 1"
           },
           "subject": {
             "type": "string",
@@ -62261,9 +62261,9 @@
           },
           "severity": {
             "type": "string",
-            "enum": ["Severity 3", "Severity 1", "Severity 2", "Severity 4"],
+            "enum": ["Severity 1", "Severity 2", "Severity 3", "Severity 4"],
             "description": "Severity.",
-            "example": "Severity 3"
+            "example": "Severity 1"
           },
           "subject": {
             "type": "string",
@@ -62432,9 +62432,9 @@
           },
           "load_basis": {
             "type": "string",
-            "enum": ["Occupant Load Factor", "Space Capacity", "Permit"],
+            "enum": ["Space Capacity", "Occupant Load Factor", "Permit"],
             "description": "Where the permitted load comes from.",
-            "example": "Occupant Load Factor"
+            "example": "Space Capacity"
           },
           "metric_domain": {
             "type": ["string", "null"],
@@ -63383,17 +63383,17 @@
           "category": {
             "type": "string",
             "enum": [
-              "Wallet",
               "Bag",
               "Clothing",
               "Electronics",
               "Jewelry",
               "Keys",
               "Documents",
+              "Wallet",
               "Other"
             ],
             "description": "Category.",
-            "example": "Wallet"
+            "example": "Bag"
           },
           "description": {
             "type": "string",
@@ -63466,17 +63466,17 @@
           "category": {
             "type": "string",
             "enum": [
-              "Wallet",
               "Bag",
               "Clothing",
               "Electronics",
               "Jewelry",
               "Keys",
               "Documents",
+              "Wallet",
               "Other"
             ],
             "description": "Category.",
-            "example": "Wallet"
+            "example": "Bag"
           },
           "description": {
             "type": "string",
@@ -63515,17 +63515,17 @@
           "category": {
             "type": "string",
             "enum": [
-              "Wallet",
               "Bag",
               "Clothing",
               "Electronics",
               "Jewelry",
               "Keys",
               "Documents",
+              "Wallet",
               "Other"
             ],
             "description": "Category.",
-            "example": "Wallet"
+            "example": "Bag"
           },
           "description": {
             "type": "string",
@@ -80569,7 +80569,7 @@
                       "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "staffing_basis": "Declared",
+                      "staffing_basis": "Ratio",
                       "starts_on": "2026-10-08",
                       "ends_on": "2026-10-08",
                       "assignment_state": "Proposed"
@@ -80605,7 +80605,7 @@
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "staffing_basis": "Declared",
+                "staffing_basis": "Ratio",
                 "starts_on": "2026-10-08",
                 "ends_on": "2026-10-08"
               },
@@ -80636,7 +80636,7 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "staffing_basis": "Declared",
+                  "staffing_basis": "Ratio",
                   "starts_on": "2026-10-08",
                   "ends_on": "2026-10-08",
                   "assignment_state": "Proposed"
@@ -80700,7 +80700,7 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "staffing_basis": "Declared",
+                  "staffing_basis": "Ratio",
                   "starts_on": "2026-10-08",
                   "ends_on": "2026-10-08",
                   "assignment_state": "Proposed"
@@ -80747,7 +80747,7 @@
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "staffing_basis": "Declared",
+                "staffing_basis": "Ratio",
                 "starts_on": "2026-10-08",
                 "ends_on": "2026-10-08"
               },
@@ -80778,7 +80778,7 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "staffing_basis": "Declared",
+                  "staffing_basis": "Ratio",
                   "starts_on": "2026-10-08",
                   "ends_on": "2026-10-08",
                   "assignment_state": "Proposed"
@@ -80868,7 +80868,7 @@
                       "requisition_state": "Proposed",
                       "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "role_type": "Crew",
+                      "role_type": "Client",
                       "worker_classification": "EMPLOYEE",
                       "pay_basis": "Hourly",
                       "arrangement": "Per Engagement",
@@ -80911,7 +80911,7 @@
                 "role_code": "5000.50.01",
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "role_type": "Crew",
+                "role_type": "Client",
                 "worker_classification": "EMPLOYEE",
                 "pay_basis": "Hourly",
                 "arrangement": "Per Engagement",
@@ -80950,7 +80950,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -81022,7 +81022,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -81076,7 +81076,7 @@
                 "role_code": "5000.50.01",
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "role_type": "Crew",
+                "role_type": "Client",
                 "worker_classification": "EMPLOYEE",
                 "pay_basis": "Hourly",
                 "arrangement": "Per Engagement",
@@ -81115,7 +81115,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -81232,7 +81232,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -81305,7 +81305,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -150548,7 +150548,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "group_role": "Member"
+                      "group_role": "Owner"
                     }
                   ],
                   "next_cursor": null
@@ -150578,7 +150578,7 @@
               "example": {
                 "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "group_role": "Member"
+                "group_role": "Owner"
               },
               "schema": { "$ref": "#/components/schemas/WorkforceGroupMemberCreate" }
             }
@@ -150604,7 +150604,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "group_role": "Member"
+                  "group_role": "Owner"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkforceGroupMember" }
               }
@@ -150662,7 +150662,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "group_role": "Member"
+                  "group_role": "Owner"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkforceGroupMember" }
               }
@@ -157490,7 +157490,7 @@
                       "ticket_number": "SUP-0001",
                       "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "category": "Question",
-                      "severity": "Severity 3",
+                      "severity": "Severity 1",
                       "subject": "Tablet will not sign in",
                       "body": "The dock tablet shows a blank screen.",
                       "ticket_state": "Open",
@@ -157527,7 +157527,7 @@
               "example": {
                 "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "category": "Question",
-                "severity": "Severity 3",
+                "severity": "Severity 1",
                 "subject": "Tablet will not sign in",
                 "body": "The dock tablet shows a blank screen."
               },
@@ -157556,7 +157556,7 @@
                   "ticket_number": "SUP-0001",
                   "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "category": "Question",
-                  "severity": "Severity 3",
+                  "severity": "Severity 1",
                   "subject": "Tablet will not sign in",
                   "body": "The dock tablet shows a blank screen.",
                   "ticket_state": "Open",
@@ -157622,7 +157622,7 @@
                   "ticket_number": "SUP-0001",
                   "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "category": "Question",
-                  "severity": "Severity 3",
+                  "severity": "Severity 1",
                   "subject": "Tablet will not sign in",
                   "body": "The dock tablet shows a blank screen.",
                   "ticket_state": "Open",
@@ -157700,7 +157700,7 @@
                   "ticket_number": "SUP-0001",
                   "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "category": "Question",
-                  "severity": "Severity 3",
+                  "severity": "Severity 1",
                   "subject": "Tablet will not sign in",
                   "body": "The dock tablet shows a blank screen.",
                   "ticket_state": "Open",
@@ -157881,7 +157881,7 @@
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Main Floor",
-                      "load_basis": "Occupant Load Factor",
+                      "load_basis": "Space Capacity",
                       "metric_domain": "capacity",
                       "metric_item": "Assembly - standing space",
                       "permitted_load": 100,
@@ -157947,7 +157947,7 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Main Floor",
-                  "load_basis": "Occupant Load Factor",
+                  "load_basis": "Space Capacity",
                   "metric_domain": "capacity",
                   "metric_item": "Assembly - standing space",
                   "permitted_load": 100,
@@ -158013,7 +158013,7 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Main Floor",
-                  "load_basis": "Occupant Load Factor",
+                  "load_basis": "Space Capacity",
                   "metric_domain": "capacity",
                   "metric_item": "Assembly - standing space",
                   "permitted_load": 100,
@@ -158088,7 +158088,7 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Main Floor",
-                  "load_basis": "Occupant Load Factor",
+                  "load_basis": "Space Capacity",
                   "metric_domain": "capacity",
                   "metric_item": "Assembly - standing space",
                   "permitted_load": 100,
@@ -158155,7 +158155,7 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Main Floor",
-                  "load_basis": "Occupant Load Factor",
+                  "load_basis": "Space Capacity",
                   "metric_domain": "capacity",
                   "metric_item": "Assembly - standing space",
                   "permitted_load": 100,
@@ -159192,7 +159192,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "item_number": "LF-0001",
-                      "category": "Wallet",
+                      "category": "Bag",
                       "description": "Brown leather wallet.",
                       "found_at": "2026-10-08T14:30:00Z",
                       "found_location": "Bar 2",
@@ -159227,7 +159227,7 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "category": "Wallet",
+                "category": "Bag",
                 "description": "Brown leather wallet.",
                 "found_at": "2026-10-08T14:30:00Z",
                 "found_location": "Bar 2",
@@ -159257,7 +159257,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "item_number": "LF-0001",
-                  "category": "Wallet",
+                  "category": "Bag",
                   "description": "Brown leather wallet.",
                   "found_at": "2026-10-08T14:30:00Z",
                   "found_location": "Bar 2",
@@ -159321,7 +159321,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "item_number": "LF-0001",
-                  "category": "Wallet",
+                  "category": "Bag",
                   "description": "Brown leather wallet.",
                   "found_at": "2026-10-08T14:30:00Z",
                   "found_location": "Bar 2",
@@ -159367,7 +159367,7 @@
           "content": {
             "application/json": {
               "example": {
-                "category": "Wallet",
+                "category": "Bag",
                 "description": "Brown leather wallet.",
                 "storage_location": "Security office locker 4"
               },
@@ -159395,7 +159395,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "item_number": "LF-0001",
-                  "category": "Wallet",
+                  "category": "Bag",
                   "description": "Brown leather wallet.",
                   "found_at": "2026-10-08T14:30:00Z",
                   "found_location": "Bar 2",
@@ -159549,7 +159549,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "item_number": "LF-0001",
-                  "category": "Wallet",
+                  "category": "Bag",
                   "description": "Brown leather wallet.",
                   "found_at": "2026-10-08T14:30:00Z",
                   "found_location": "Bar 2",

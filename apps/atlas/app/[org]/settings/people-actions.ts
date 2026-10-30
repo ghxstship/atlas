@@ -15,6 +15,7 @@ import { z } from "zod";
 import { env } from "@/lib/env";
 import { settingErrorKey } from "@/lib/settings/registry";
 import { getOrgContext } from "@/lib/shell/context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Org actions for joining, offboarding and the organization profile (Section 4.8.1, 4.8.2): links,
@@ -185,7 +186,7 @@ export async function saveOrganizationProfileAction(
       about: z.string().max(4000).nullable(),
       websiteUrl: z.url().startsWith("https://").max(2000).nullable(),
       contactEmail: z.email().max(320).nullable(),
-      visibility: z.enum(["Private", "Network", "Public"]),
+      visibility: z.enum(enums.profileVisibility),
     })
     .safeParse({
       handle: text(form, "handle")?.toLowerCase() ?? "",

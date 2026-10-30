@@ -16,6 +16,7 @@ import {
   bool,
   type Raw,
 } from "./workforce-shared.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * The no-code form builder (Section 4.9 Forms; migration 0803), imported as
@@ -27,8 +28,8 @@ import {
 
 export type FormFieldKind =
   "text" | "long_text" | "number" | "yes_no" | "choice" | "multi_choice" | "date" | "photo";
-export type FormTemplateState = "Draft" | "Published" | "Retired";
-export type FormSubmissionState = "Submitted" | "Approved" | "Rejected" | "Recorded";
+export type FormTemplateState = Database["app"]["Enums"]["form_template_state"];
+export type FormSubmissionState = Database["app"]["Enums"]["form_submission_state"];
 
 export const FORM_FIELD_KINDS: readonly FormFieldKind[] = [
   "text",

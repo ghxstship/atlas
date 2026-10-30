@@ -1,6 +1,8 @@
 import type { XosClient } from "./client.ts";
 import type { Result } from "./result.ts";
 import { bool, num, numOrNull, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * The operator console (A90, migrations 1470 to 1474; Section 4.10, Section 6, Section 8). Every call runs as the
@@ -9,7 +11,7 @@ import { bool, num, numOrNull, rpc, str, strOrNull, type Raw } from "./platform-
  * ledger, and a change to a tenant row lands in that tenant's audit ledger with the operator as the actor.
  */
 
-export type OperatorRole = "Support" | "Trust and Safety" | "Administrator";
+export type OperatorRole = Database["app"]["Enums"]["platform_operator_role"];
 
 export const CONSOLE_PERMISSIONS = [
   "tenants.read",
@@ -33,7 +35,7 @@ export interface Operator {
   readonly secondFactor: boolean;
 }
 
-const ROLES: readonly OperatorRole[] = ["Support", "Trust and Safety", "Administrator"];
+const ROLES: readonly OperatorRole[] = enums.platformOperatorRole;
 
 const isPermission = (v: unknown): v is ConsolePermission =>
   typeof v === "string" && (CONSOLE_PERMISSIONS as readonly string[]).includes(v);
@@ -66,7 +68,7 @@ export function can(operator: Operator | null, permission: ConsolePermission): b
 
 // Tenants --------------------------------------------------------------------------------------------------------------
 
-export type SubscriptionState = "trialing" | "active" | "past_due" | "read_only" | "canceled";
+export type SubscriptionState = Database["app"]["Enums"]["subscription_state"];
 
 export interface OrgSearchRow {
   readonly orgId: string;
@@ -139,7 +141,7 @@ export interface FlagState {
   } | null;
 }
 
-export type PlanOverrideKind = "Plan" | "Feature" | "Limit";
+export type PlanOverrideKind = Database["app"]["Enums"]["plan_override_kind"];
 
 export interface PlanOverride {
   readonly id: string;
@@ -464,13 +466,8 @@ export async function setKillSwitch(
 
 // Platform support sessions ----------------------------------------------------------------------------------------------
 
-export type SupportArea = "Overview" | "Members" | "Projects" | "Settings";
-export const SUPPORT_AREAS: readonly SupportArea[] = [
-  "Overview",
-  "Members",
-  "Projects",
-  "Settings",
-];
+export type SupportArea = Database["app"]["Enums"]["support_access_area"];
+export const SUPPORT_AREAS: readonly SupportArea[] = enums.supportAccessArea;
 
 export interface OpenSupportSession {
   readonly id: string;
@@ -653,9 +650,9 @@ export async function endSupportSession(db: XosClient, sessionId: string): Promi
 
 // Moderation ------------------------------------------------------------------------------------------------------------
 
-export type ModerationAction = "Removed" | "Restricted" | "Restored" | "No Action";
-export type ModerationGround = "Illegal Content" | "Terms Violation" | "No Violation";
-export type AppealState = "Open" | "Upheld" | "Reversed";
+export type ModerationAction = Database["app"]["Enums"]["moderation_action_kind"];
+export type ModerationGround = Database["app"]["Enums"]["moderation_ground"];
+export type AppealState = Database["app"]["Enums"]["moderation_appeal_state"];
 
 export interface QueueRow {
   readonly opportunityId: string;
@@ -885,12 +882,12 @@ export async function decideAppeal(
 
 // System banners ---------------------------------------------------------------------------------------------------------
 
-export type BannerAudience = "Everyone" | "Atlas" | "Gateway" | "Compass";
+export type BannerAudience = Database["app"]["Enums"]["system_banner_audience"];
 
 export interface ConsoleBanner {
   readonly id: string;
-  readonly kind: "Maintenance" | "Incident" | "Plan Notice" | "Notice";
-  readonly severity: "Info" | "Warning" | "Critical";
+  readonly kind: Database["app"]["Enums"]["system_banner_kind"];
+  readonly severity: Database["app"]["Enums"]["system_banner_severity"];
   readonly audience: BannerAudience;
   readonly message: string;
   readonly messageEs: string | null;

@@ -21,6 +21,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { actionContext } from "@/lib/operator";
 import { failed, field, fromResult, type ActionState } from "@/lib/action-state";
+import * as enums from "@xos/data/enums";
 
 /**
  * Support sessions, moderation, system banners and the platform team (A90, migrations 1470, 1472 to 1474). Each
@@ -28,17 +29,12 @@ import { failed, field, fromResult, type ActionState } from "@/lib/action-state"
  */
 
 const Uuid = z.uuid();
-const ACTIONS: readonly ModerationAction[] = ["Removed", "Restricted", "Restored", "No Action"];
-const GROUNDS: readonly ModerationGround[] = ["Illegal Content", "Terms Violation", "No Violation"];
-const KINDS: readonly ConsoleBanner["kind"][] = [
-  "Maintenance",
-  "Incident",
-  "Plan Notice",
-  "Notice",
-];
-const SEVERITIES: readonly ConsoleBanner["severity"][] = ["Info", "Warning", "Critical"];
-const AUDIENCES: readonly BannerAudience[] = ["Everyone", "Atlas", "Gateway", "Compass"];
-const ROLES: readonly OperatorRole[] = ["Support", "Trust and Safety", "Administrator"];
+const ACTIONS: readonly ModerationAction[] = enums.moderationActionKind;
+const GROUNDS: readonly ModerationGround[] = enums.moderationGround;
+const KINDS: readonly ConsoleBanner["kind"][] = enums.systemBannerKind;
+const SEVERITIES: readonly ConsoleBanner["severity"][] = enums.systemBannerSeverity;
+const AUDIENCES: readonly BannerAudience[] = enums.systemBannerAudience;
+const ROLES: readonly OperatorRole[] = enums.platformOperatorRole;
 
 const pick = <T extends string>(list: readonly T[], value: string): T | undefined =>
   list.find((v) => v === value);

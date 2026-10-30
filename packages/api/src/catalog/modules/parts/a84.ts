@@ -10,6 +10,7 @@ import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
 import { collectionAction, itemAction, resource } from "../../define.ts";
 import type { ActionSpec, ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 /** A new or rotated feed and its subscription token, shown once (also `calendarFeeds.create`). */
 export const CalendarFeedToken = z
@@ -71,7 +72,7 @@ const InboundMessage = audited(
       "Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason.",
     fields: {
       purpose: z
-        .enum(["Project Inbox", "Reply"])
+        .enum(Constants.app.Enums.inbound_purpose)
         .meta({ description: "What the mail was sent to.", example: "Project Inbox" }),
       inbound_address_id: orNull(fields.ref("project inbox the mail was sent to")),
       from_address: fields.text("Sender address.", "rigging@bayside-audio.test", 320),
@@ -81,7 +82,7 @@ const InboundMessage = audited(
       ),
       dkim_verified: fields.bool("True when the sender's DKIM signature verified.", true),
       inbound_status: z
-        .enum(["Received", "Verified", "Filed", "Rejected"])
+        .enum(Constants.app.Enums.inbound_status)
         .meta({ description: "Processing status.", example: "Verified" }),
       rejection_reason: orNull(fields.text("Why the mail was rejected.", "DKIM failed.", 500)),
       received_at: fields.instant("When the mail arrived."),

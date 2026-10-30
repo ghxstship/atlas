@@ -62,6 +62,7 @@ import {
   type EngagementProperty,
 } from "@/lib/opportunities/format";
 import { must, type PageSetup } from "@/lib/opportunities/page";
+import * as enums from "@xos/data/enums";
 
 /**
  * Engagements (Section 4.4.4 stages 6 to 9) for the org page and the project Engagements tab: the list in table, list or
@@ -439,7 +440,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                       label: t("onboarding.outcome"),
                       kind: "select",
                       defaultValue: "Passed",
-                      options: (["Passed", "Failed"] as const).map((o) => ({
+                      options: enums.verificationOutcome.map((o) => ({
                         value: o,
                         label: t(`outcomes.${enumKey(o)}`),
                       })),
@@ -716,7 +717,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                 label: t("fields.standing"),
                 kind: "select",
                 defaultValue: "Preferred",
-                options: (["Preferred", "Approved", "Do Not Engage"] as const).map((s) => ({
+                options: enums.poolStanding.map((s) => ({
                   value: s,
                   label: t(`standings.${enumKey(s)}`),
                 })),

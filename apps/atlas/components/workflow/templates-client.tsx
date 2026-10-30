@@ -17,6 +17,7 @@ import {
 } from "@/app/[org]/projects/templates/actions";
 import type { WorkflowActionState } from "@/lib/workflow/state";
 import { ActionForm, useWorkflowT } from "./kit";
+import type { Database } from "@xos/data/database.types";
 
 export interface Choice {
   readonly value: string;
@@ -270,7 +271,7 @@ export function AddItemForm({
   phases: readonly Choice[];
 }) {
   const t = useWorkflowT();
-  const [kind, setKind] = useState<"Record" | "Scope Node">("Record");
+  const [kind, setKind] = useState<Database["app"]["Enums"]["template_item_kind"]>("Record");
   const [scopeKind, setScopeKind] = useState("Show");
   const [recordKind, setRecordKind] = useState(recordKinds[0]?.value ?? "");
   const [xyz, setXyz] = useState("Y");
@@ -291,7 +292,7 @@ export function AddItemForm({
           { value: "Record", label: t("templates.items.kinds.Record") },
           { value: "Scope Node", label: t("templates.items.kinds.Scope Node") },
         ]}
-        onChange={(e) => setKind(e.target.value as "Record" | "Scope Node")}
+        onChange={(e) => setKind(e.target.value as Database["app"]["Enums"]["template_item_kind"])}
       />
       <Input
         name="name"

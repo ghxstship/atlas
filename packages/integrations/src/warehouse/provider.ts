@@ -1,4 +1,6 @@
 import { IntegrationError } from "../framework/errors.ts";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
 
 /**
  * The warehouse provider seam (A83, finding A65-029). A delivery writes plain files (one per table, a schema
@@ -10,16 +12,9 @@ import { IntegrationError } from "../framework/errors.ts";
  * marking it available in both places.
  */
 
-export type WarehouseProviderName =
-  "S3" | "Google Cloud Storage" | "Azure Blob" | "BigQuery" | "Snowflake";
+export type WarehouseProviderName = Database["app"]["Enums"]["warehouse_provider"];
 
-export const WAREHOUSE_PROVIDERS: readonly WarehouseProviderName[] = [
-  "S3",
-  "Google Cloud Storage",
-  "Azure Blob",
-  "BigQuery",
-  "Snowflake",
-];
+export const WAREHOUSE_PROVIDERS: readonly WarehouseProviderName[] = enums.warehouseProvider;
 
 /** Where a delivery goes, from app.claim_warehouse_delivery. */
 export interface WarehouseTarget {

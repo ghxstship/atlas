@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Credentials repository (Section 4.2 Credentials, Section 7.4, invariant 21): credential
@@ -672,7 +673,7 @@ export async function withdrawZoneAccess(db: XosClient, id: string): Promise<Res
 
 // Scans ----------------------------------------------------------------------------------------
 
-export type ScanResult = "Granted" | "Denied";
+export type ScanResult = Database["app"]["Enums"]["scan_result"];
 
 export interface AccessScan {
   readonly id: string;

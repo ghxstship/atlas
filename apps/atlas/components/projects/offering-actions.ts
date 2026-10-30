@@ -13,6 +13,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { getOrgContext } from "@/lib/shell/context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Offering rule actions (R3, owner decision 7): add and remove an audience rule of the org (Settings,
@@ -29,16 +30,7 @@ export interface OfferingRuleState {
   readonly at?: number;
 }
 
-const ROLE_TYPES: readonly ExternalRoleType[] = [
-  "Client",
-  "Vendor",
-  "Contractor",
-  "Crew",
-  "Staff",
-  "Artist",
-  "Artist Representative",
-  "Sponsor",
-];
+const ROLE_TYPES: readonly ExternalRoleType[] = enums.externalRoleType;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 function field(form: FormData, name: string): string {

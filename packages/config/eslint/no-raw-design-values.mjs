@@ -11,6 +11,7 @@
  * Module specifiers and directives are not design values and are skipped.
  */
 
+import { noRestatedEnums } from "./no-restated-enums.mjs";
 import { noServerConsole } from "./no-server-console.mjs";
 import { registeredCapability } from "./registered-capability.mjs";
 import { registeredRoute } from "./registered-route.mjs";
@@ -175,6 +176,7 @@ export const xosPlugin = {
   meta: { name: "@xos/eslint-plugin" },
   rules: {
     "no-raw-design-values": noRawDesignValues,
+    "no-restated-enums": noRestatedEnums,
     "no-server-console": noServerConsole,
     "registered-capability": registeredCapability,
     "registered-route": registeredRoute,

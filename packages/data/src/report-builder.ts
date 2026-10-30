@@ -3,6 +3,8 @@ import { csvField } from "./csv.ts";
 import { nullAwareSum } from "./finance.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * The report builder (Section 4.6.4, A33 on A18's report definitions, 0550): a source, fields with
@@ -15,31 +17,13 @@ import { untyped } from "./untyped.ts";
 type Raw = Record<string, unknown>;
 
 export type FieldType = "text" | "number" | "money" | "date";
-export type Aggregate = "None" | "Count" | "Sum" | "Average" | "Minimum" | "Maximum";
-export type FilterOperator =
-  "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
-export type ChartType = "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
+export type Aggregate = Database["app"]["Enums"]["report_aggregate"];
+export type FilterOperator = Database["app"]["Enums"]["filter_operator"];
+export type ChartType = Database["app"]["Enums"]["report_chart"];
 
-export const AGGREGATES: readonly Aggregate[] = [
-  "None",
-  "Count",
-  "Sum",
-  "Average",
-  "Minimum",
-  "Maximum",
-];
-export const FILTER_OPERATORS: readonly FilterOperator[] = [
-  "eq",
-  "ne",
-  "lt",
-  "lte",
-  "gt",
-  "gte",
-  "in",
-  "is_null",
-  "contains",
-];
-export const CHART_TYPES: readonly ChartType[] = ["Table", "Bar", "Line", "Area", "Pie", "Number"];
+export const AGGREGATES: readonly Aggregate[] = enums.reportAggregate;
+export const FILTER_OPERATORS: readonly FilterOperator[] = enums.filterOperator;
+export const CHART_TYPES: readonly ChartType[] = enums.reportChart;
 
 export interface SourceField {
   /** Column of the source relation; the catalog key of its label is `fields.<source>.<key>`. */

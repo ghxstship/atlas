@@ -6,16 +6,19 @@ import { ScrollRegion } from "../Layout/Layout.tsx";
 import { RESULT, ResultIcon, tableClass, tdClass, thClass } from "./XOS.shared.tsx";
 import { type ReconciliationTableProps, type Result } from "./XOS.types.ts";
 
+/** A row's outcome as the props carry it: Met, Gap or Unknown. */
+type RowResult = ReconciliationTableProps["rows"][number]["result"];
+
 /** Requirements against venue capability as Met, Gap or Unknown, with counts. */
 export function ReconciliationTable({ label, rows }: ReconciliationTableProps): ReactElement {
   const t = useT();
-  const counts: Record<"Met" | "Gap" | "Unknown", number> = { Met: 0, Gap: 0, Unknown: 0 };
+  const counts: Record<RowResult, number> = { Met: 0, Gap: 0, Unknown: 0 };
   for (const r of rows) counts[r.result] += 1;
-  const lower = (r: "Met" | "Gap" | "Unknown") => r.toLowerCase() as Result;
+  const lower = (r: RowResult) => r.toLowerCase() as Result;
   return (
     <div className="flex flex-col gap-12">
       <div className="flex flex-wrap items-center gap-8">
-        {(Object.keys(counts) as ("Met" | "Gap" | "Unknown")[]).map((k) => (
+        {(Object.keys(counts) as RowResult[]).map((k) => (
           <span key={k} className={chipClass}>
             <ResultIcon result={lower(k)} t={t} labeled={false} />
             {t(RESULT[lower(k)].key)}

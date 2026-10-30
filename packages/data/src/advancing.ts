@@ -1,5 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Advancing repository (Section 4.2): advance packets, their sections and party-bound recipients,
@@ -189,7 +191,7 @@ export interface PacketSummary {
 }
 
 /** Outcome of reviewing an answer (app.advance_review_outcome). */
-export type ReviewOutcome = "Accepted" | "Returned";
+export type ReviewOutcome = Database["app"]["Enums"]["advance_review_outcome"];
 
 interface SubmissionFact {
   readonly sectionId: string;
@@ -1348,12 +1350,12 @@ export async function confirmRiderLineProposals(
 
 // Reconciliation ------------------------------------------------------------------------------------
 
-export type ReconciliationResult = "Met" | "Gap" | "Unknown";
+export type ReconciliationResult = Database["app"]["Enums"]["reconciliation_result"];
 
 /** A requirement or capability statement of a project (one table, a direction facet). */
 export interface CapabilityStatement {
   readonly id: string;
-  readonly direction: "Require" | "Provide";
+  readonly direction: Database["app"]["Enums"]["capability_direction"];
   readonly urid: string;
   readonly description: string;
   readonly quantity: number | null;
@@ -1542,7 +1544,7 @@ export async function runReconciliation(
 // Guest list ----------------------------------------------------------------------------------------
 
 /** Guest list states (app.guest_entry_state, migration 0431), in lifecycle order. */
-export const GUEST_STATES = ["Requested", "Approved", "Declined", "Checked In"] as const;
+export const GUEST_STATES = enums.guestEntryState;
 export type GuestState = (typeof GUEST_STATES)[number];
 
 export interface GuestEntry {

@@ -817,6 +817,9 @@ importers:
       eslint:
         specifier: 10.12.0
         version: 10.12.0(jiti@2.7.0)
+      eslint-plugin-react:
+        specifier: 7.37.5
+        version: 7.37.5(eslint@10.12.0(jiti@2.7.0))
       stylelint:
         specifier: 16.26.1
         version: 16.26.1(typescript@6.0.3)

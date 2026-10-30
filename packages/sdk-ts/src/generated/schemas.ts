@@ -8300,7 +8300,7 @@ export interface RoleAssignment {
   /**
    * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly staffing_basis: "Declared" | "Ratio" | "Fixed";
+  readonly staffing_basis: "Ratio" | "Fixed" | "Declared";
   /**
    * First day of the assignment.
    * Format: `date`.
@@ -8350,7 +8350,7 @@ export interface RoleAssignmentCreate {
   /**
    * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly staffing_basis?: "Declared" | "Ratio" | "Fixed";
+  readonly staffing_basis?: "Ratio" | "Fixed" | "Declared";
   /**
    * First day of the assignment.
    * Format: `date`.
@@ -8386,7 +8386,7 @@ export interface RoleAssignmentUpdate {
   /**
    * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly staffing_basis?: "Declared" | "Ratio" | "Fixed";
+  readonly staffing_basis?: "Ratio" | "Fixed" | "Declared";
   /**
    * First day of the assignment.
    * Format: `date`.
@@ -8471,13 +8471,13 @@ export interface Requisition {
    * External role type an opportunity published from the requisition seeks; null when filled internally.
    */
   readonly role_type:
-    | "Crew"
-    | "Contractor"
-    | "Staff"
+    | "Client"
     | "Vendor"
+    | "Contractor"
+    | "Crew"
+    | "Staff"
     | "Artist"
     | "Artist Representative"
-    | "Client"
     | "Sponsor"
     | null;
   /**
@@ -8560,13 +8560,13 @@ export interface RequisitionCreate {
    * External role type an opportunity published from the requisition seeks; null when filled internally.
    */
   readonly role_type?:
-    | "Crew"
-    | "Contractor"
-    | "Staff"
+    | "Client"
     | "Vendor"
+    | "Contractor"
+    | "Crew"
+    | "Staff"
     | "Artist"
     | "Artist Representative"
-    | "Client"
     | "Sponsor"
     | null;
   /**
@@ -8639,13 +8639,13 @@ export interface RequisitionUpdate {
    * External role type an opportunity published from the requisition seeks; null when filled internally.
    */
   readonly role_type?:
-    | "Crew"
-    | "Contractor"
-    | "Staff"
+    | "Client"
     | "Vendor"
+    | "Contractor"
+    | "Crew"
+    | "Staff"
     | "Artist"
     | "Artist Representative"
-    | "Client"
     | "Sponsor"
     | null;
   /**
@@ -42571,7 +42571,7 @@ export interface WorkforceGroupMember {
   /**
    * Owners add and remove members.
    */
-  readonly group_role: "Member" | "Owner";
+  readonly group_role: "Owner" | "Member";
 }
 
 /**
@@ -42591,7 +42591,7 @@ export interface WorkforceGroupMemberCreate {
   /**
    * Owners add and remove members.
    */
-  readonly group_role: "Member" | "Owner";
+  readonly group_role: "Owner" | "Member";
 }
 
 /**
@@ -46074,7 +46074,7 @@ export interface HelpDeskRequest {
   /**
    * Severity.
    */
-  readonly severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+  readonly severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
   /**
    * One-line summary.
    * Length: 1 to 200.
@@ -46127,7 +46127,7 @@ export interface HelpDeskRequestCreate {
   /**
    * Severity.
    */
-  readonly severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+  readonly severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
   /**
    * One-line summary.
    * Length: 1 to 200.
@@ -46263,7 +46263,7 @@ export interface OccupancyCounter {
   /**
    * Where the permitted load comes from.
    */
-  readonly load_basis: "Occupant Load Factor" | "Space Capacity" | "Permit";
+  readonly load_basis: "Space Capacity" | "Occupant Load Factor" | "Permit";
   /**
    * Bible metric domain of the load factor.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -46953,7 +46953,7 @@ export interface LostFoundItem {
    * Category.
    */
   readonly category:
-    "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
   /**
    * Description a claimant is checked against.
    * Length: 1 to 1000.
@@ -46998,7 +46998,7 @@ export interface LostFoundItemCreate {
    * Category.
    */
   readonly category:
-    "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
   /**
    * Description a claimant is checked against.
    * Length: 1 to 1000.
@@ -47029,7 +47029,7 @@ export interface LostFoundItemUpdate {
    * Category.
    */
   readonly category?:
-    "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
   /**
    * Description a claimant is checked against.
    * Length: 1 to 1000.

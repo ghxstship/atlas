@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { csvField } from "./csv.ts";
 import { preferReplica } from "./read-replica.ts";
 import { defaultWatermark, renderTablePdf, type DataClassification } from "./report-files.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * The export.render worker (A102, RRR-146; migration 2030; Section 4.6.4, 8.6). Atlas asks for an
@@ -22,7 +24,7 @@ import { defaultWatermark, renderTablePdf, type DataClassification } from "./rep
 export const EXPORT_RENDER_JOB = "export.render";
 export const EXPORT_FILES_BUCKET = "export-files";
 
-export type ExportFormat = "CSV" | "XLSX" | "PDF";
+export type ExportFormat = Database["app"]["Enums"]["export_format"];
 
 /** Rows a file holds at most; a PDF is meant for reading, so it stops sooner. The file says when it is cut. */
 export const EXPORT_ROW_LIMITS: Readonly<Record<ExportFormat, number>> = {
@@ -311,8 +313,8 @@ function exportRowsArray(data: unknown): readonly unknown[] {
   return data;
 }
 
-const FORMATS: readonly ExportFormat[] = ["CSV", "XLSX", "PDF"];
-const CLASSES: readonly DataClassification[] = ["Public", "Internal", "Confidential", "Restricted"];
+const FORMATS: readonly ExportFormat[] = enums.exportFormat;
+const CLASSES: readonly DataClassification[] = enums.dataClassification;
 
 export interface ExportRenderStoreOptions {
   /**

@@ -13,8 +13,9 @@ import { useAssetsCopy } from "./copy";
 import { CustodyMoveDialog, type CustodyPickers } from "./custody";
 import { ActionButton, ActionDialog } from "./dialog";
 import { DamageForm, MaintenanceForm, type Option } from "./forms";
+import type { Database } from "@xos/data/database.types";
 
-type ScanAction = "check-out" | "check-in" | "transfer";
+type ScanAction = Database["app"]["Enums"]["asset_scan_action"];
 
 export interface UnitActionsProps {
   readonly org: string;

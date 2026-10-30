@@ -76,7 +76,7 @@ export function QuickAdd({
           onChange={(e) => setText(e.target.value)}
           className="flex-1 min-w-0 border-0 bg-transparent outline-none text-text-primary placeholder:text-text-tertiary pointer-coarse:min-h-target-coarse"
         />
-        <Kbd>↵</Kbd>
+        <Kbd>{t("key.enter")}</Kbd>
       </form>
       {text ? (
         <QuickAddChips

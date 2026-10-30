@@ -23,6 +23,7 @@ import type { CorrectionInput } from "../../corrections.ts";
 import { editDefinition, editShape, orNull } from "../../correct.ts";
 import { resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 const GATE =
@@ -445,7 +446,7 @@ const CueCall = editDefinition(
     fields: {
       cue_id: fields.ref("cue the call belongs to"),
       call_kind: z
-        .enum(["Audio", "Lighting", "Video", "Special Effects", "Stage"])
+        .enum(Constants.app.Enums.cue_call_kind)
         .meta({ description: "Department making the call.", example: "Lighting" }),
       instruction: fields.text(
         "What the department does on the cue.",

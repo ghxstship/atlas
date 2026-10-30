@@ -38,7 +38,8 @@
     "booked": "Booked"
   },
   "avatar": {
-    "more": "{n} more"
+    "more": "{n} more",
+    "overflow": "+{n}"
   },
   "badge": {
     "brightness": "Raise brightness",
@@ -252,6 +253,7 @@
     "whatFailed": "What failed?"
   },
   "key": {
+    "enter": "↵",
     "esc": "Esc",
     "space": "Space"
   },
@@ -329,6 +331,7 @@
     "account": "Account Number",
     "accountHelp": "Encrypted on entry. Only the last four digits are shown after saving.",
     "checking": "Checking",
+    "masked": "•••• {last4}",
     "routing": "Routing Number",
     "routingHint": "9 digits",
     "save": "Save Securely",
@@ -357,6 +360,9 @@
   "profile": {
     "complete": "{n}% complete",
     "title": "Profile"
+  },
+  "progress": {
+    "percent": "{n}%"
   },
   "provenance": {
     "rank": "Provenance rank {rank}",

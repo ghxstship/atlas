@@ -20,6 +20,8 @@
 
 export interface ServiceWorkerConfig {
   /** App name shown when a push carries no title. */
+  // The apps with a service worker, which equal app.shortcut_shell by coincidence; not that enum.
+  // eslint-disable-next-line xos/no-restated-enums
   readonly app: "Atlas" | "Gateway";
   /** Build release: a new value retires the previous build files' cache. */
   readonly version: string;

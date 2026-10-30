@@ -19,6 +19,7 @@ import { HEX_COLOR, checkAccent } from "@/lib/brand/contrast";
 import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
 import { settingErrorKey } from "@/lib/settings/registry";
 import { getOrgContext } from "@/lib/shell/context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Org settings actions owned by A30: brand and logos (Section 12), domains, module switches
@@ -54,7 +55,7 @@ const brandSchema = z.object({
   accentHex: z.string().regex(HEX_COLOR).nullable(),
   neutralTintHex: z.string().regex(HEX_COLOR).nullable(),
   fontFamily: z.string().max(80).nullable(),
-  radiusScale: z.enum(["Compact", "Default", "Rounded"]),
+  radiusScale: z.enum(enums.brandRadiusScale),
   emailSenderName: z.string().max(100).nullable(),
   supportEmail: z.email().max(320).nullable(),
   legalEntityName: z.string().max(200).nullable(),
@@ -152,7 +153,7 @@ export async function addDomainAction(
   const parsed = z
     .object({
       hostname: z.string().max(253).regex(HOSTNAME),
-      purpose: z.enum(["Atlas", "Gateway", "Email Sending", "Verified Domain"]),
+      purpose: z.enum(enums.orgDomainPurpose),
       autoJoinRoleId: z.uuid().nullable(),
     })
     .safeParse({

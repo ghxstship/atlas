@@ -7,6 +7,7 @@ export const SHELLS = ["atlas", "gateway", "compass"] as const;
 export type Shell = (typeof SHELLS)[number];
 
 /** The app.view_type labels a saved view stores (migrations 0540 and 0640). */
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export const SAVED_VIEW_TYPES = [
   "List",
   "Board",

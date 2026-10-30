@@ -24,6 +24,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { getOrgContext } from "@/lib/shell/context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Settings actions for the features A52 built (RRR-97): legal entities, the IP allow-list,
@@ -305,13 +306,7 @@ export async function unblockAction(
 
 // Project roles and shares (project settings) ------------------------------------------------------------
 
-const PROJECT_ROLES = [
-  "Producer",
-  "Department Head",
-  "Coordinator",
-  "Field Supervisor",
-  "Field",
-] as const;
+const PROJECT_ROLES = enums.projectRole;
 
 async function projectFor(form: FormData) {
   const org = form.get("org");

@@ -16,6 +16,7 @@ import { enumKey } from "@/lib/opportunities/format";
 import { must, setupPage, type PageSetup, type SearchParams } from "@/lib/opportunities/page";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { createRequirementAction, verifyItemAction } from "../actions";
+import * as enums from "@xos/data/enums";
 
 /**
  * Onboarding (Section 4.4.4 stage 6): the onboarding packet requirements per role type and jurisdiction, and every open
@@ -109,7 +110,7 @@ export default async function OnboardingPage({
                 label: t("fields.method"),
                 kind: "select",
                 defaultValue: "Reviewer",
-                options: (["Reviewer", "Automatic"] as const).map((m) => ({
+                options: enums.verificationMethod.map((m) => ({
                   value: m,
                   label: t(`methods.${enumKey(m)}`),
                 })),
@@ -270,7 +271,7 @@ function QueueItem({
               label: t("onboarding.outcome"),
               kind: "select",
               defaultValue: "Passed",
-              options: (["Passed", "Failed"] as const).map((o) => ({
+              options: enums.verificationOutcome.map((o) => ({
                 value: o,
                 label: t(`outcomes.${enumKey(o)}`),
               })),

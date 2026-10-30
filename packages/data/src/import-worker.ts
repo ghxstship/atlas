@@ -21,6 +21,7 @@ import {
   type SheetsFetch,
   type Workbook,
 } from "./import-sheets.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's
@@ -150,7 +151,7 @@ export interface ImportStore {
     rowId: string;
     batchId: string;
     targetId: string;
-    action: "Created" | "Updated" | "Merged";
+    action: Database["app"]["Enums"]["import_write_action"];
     before: Row | null;
   }): Promise<void>;
   refuseRow(rowId: string, reason: string): Promise<void>;

@@ -11,6 +11,7 @@
 import { isTimeZone } from "@xos/data/calendar";
 import { SETTINGS, type SettingDefinition } from "@xos/schemas/settings";
 import type { MutationInput, Row } from "@xos/sync";
+import { Constants, type Database } from "@xos/data/database.types";
 
 /** The device-local copy of the person's registered settings, one row per setting key. */
 export const PERSONAL_MIRROR = "_me_personal_settings";
@@ -58,8 +59,7 @@ export function choiceLabelKey(settingKey: string, choice: string): string {
 export type SettingValue = string | boolean | number | null;
 
 /** Where a value comes from (app.setting_source). */
-export type SettingSource =
-  "Personal" | "Project" | "Team" | "Workspace" | "Organization" | "Default";
+export type SettingSource = Database["app"]["Enums"]["setting_source"];
 
 /** A row of app.resolve_settings. */
 export interface ResolvedRow {
@@ -91,14 +91,7 @@ export interface PersonalSetting {
   readonly locked: boolean;
 }
 
-const SOURCES: readonly SettingSource[] = [
-  "Personal",
-  "Project",
-  "Team",
-  "Workspace",
-  "Organization",
-  "Default",
-];
+const SOURCES: readonly SettingSource[] = Constants.app.Enums.setting_source;
 
 /** A setting as the screen shows it: its device row, or the registry default before the first read. */
 export function settingOf(def: SettingDefinition, row: Row | undefined): PersonalSetting {

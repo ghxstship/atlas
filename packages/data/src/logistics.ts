@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Logistics repository (Section 4.2, RRR-23): shipments and their lines, dock slots, the gate
@@ -19,7 +20,7 @@ type GateQueueInsert = Derived<Tables["gate_queue"]["Insert"]>;
 type MarshallingInsert = Derived<Tables["marshalling_log"]["Insert"]>;
 
 export type ShipmentDirection = Database["app"]["Enums"]["shipment_direction"];
-export const SHIPMENT_DIRECTIONS: readonly ShipmentDirection[] = ["Inbound", "Outbound"];
+export const SHIPMENT_DIRECTIONS: readonly ShipmentDirection[] = enums.shipmentDirection;
 
 /**
  * Where a shipment stands, derived from its dock slots and gate queue entries, never stored

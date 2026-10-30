@@ -11,6 +11,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Server actions behind the support request drawer (Section 11.16): read one request, reply, and
@@ -22,7 +23,7 @@ export type SupportError = "denied" | "closed" | "invalid" | "conflict" | "unexp
 export type SupportResult<T = null> =
   { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: SupportError };
 
-const STATES = ["Open", "Waiting", "Resolved", "Closed"] as const;
+const STATES = enums.supportTicketState;
 
 function errorOf(error: DataError): SupportError {
   if (error.kind === "not-found") return "notFound";

@@ -38,7 +38,8 @@
     "booked": "Reservado"
   },
   "avatar": {
-    "more": "{n} más"
+    "more": "{n} más",
+    "overflow": "+{n}"
   },
   "badge": {
     "brightness": "Subir el brillo",
@@ -252,6 +253,7 @@
     "whatFailed": "¿Qué falló?"
   },
   "key": {
+    "enter": "↵",
     "esc": "Esc",
     "space": "Espacio"
   },
@@ -329,6 +331,7 @@
     "account": "Número de cuenta",
     "accountHelp": "Se cifra al ingresarlo. Después de guardar, solo se muestran los últimos cuatro dígitos.",
     "checking": "Corriente",
+    "masked": "•••• {last4}",
     "routing": "Número de ruta",
     "routingHint": "9 dígitos",
     "save": "Guardar de forma segura",
@@ -357,6 +360,9 @@
   "profile": {
     "complete": "{n}% completo",
     "title": "Perfil"
+  },
+  "progress": {
+    "percent": "{n}%"
   },
   "provenance": {
     "rank": "Nivel de procedencia {rank}",

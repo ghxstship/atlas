@@ -16,6 +16,7 @@ import { env } from "@/lib/env";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { contextFor } from "@/lib/platform/action-context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Partner console actions (A36, Section 4.6.1): create a client org, save the default client brand,
@@ -71,7 +72,7 @@ export async function saveDefaultBrandAction(
       accent: z.string().regex(HEX).nullable(),
       tint: z.string().regex(HEX).nullable(),
       font: z.string().max(100).nullable(),
-      radius: z.enum(["Compact", "Default", "Rounded"]),
+      radius: z.enum(enums.brandRadiusScale),
       sender: z.string().max(100).nullable(),
       support: z.email().nullable(),
     })

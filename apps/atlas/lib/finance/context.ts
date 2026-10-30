@@ -8,6 +8,7 @@ import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * Page context for the Finance and Reports pages (A15). It resolves the viewer's org context and the
@@ -17,7 +18,7 @@ import { sitemap } from "@/lib/shell/sitemap";
  * decides every row; this only shapes what the page offers.
  */
 
-export type Reach = "own" | "assigned" | "organization";
+export type Reach = Database["app"]["Enums"]["capability_reach"];
 
 export interface FinanceAccess {
   /** The best reach the viewer holds for a capability, or null when they hold none. */

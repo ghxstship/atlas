@@ -10,6 +10,7 @@ import {
 } from "./crew/shared.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * People repository (Section 4.2 People, migration 0361), imported as `@xos/data/people`: the
@@ -26,41 +27,11 @@ export type AgreementKind = Enums["agreement_kind"];
 export type AgreementState = Enums["agreement_state"];
 export type OfferState = Enums["offer_state"];
 
-export const REQUISITION_STATES: readonly RequisitionState[] = [
-  "Proposed",
-  "Approved",
-  "Rejected",
-  "Filled",
-  "Canceled",
-];
-export const ROLE_ASSIGNMENT_STATES: readonly RoleAssignmentState[] = [
-  "Proposed",
-  "Active",
-  "Complete",
-  "Canceled",
-];
-export const AGREEMENT_STATES: readonly AgreementState[] = [
-  "Proposed",
-  "Sent",
-  "Signed",
-  "Superseded",
-  "Expired",
-  "Canceled",
-];
-export const AGREEMENT_KINDS: readonly AgreementKind[] = [
-  "Offer Letter",
-  "Contractor Agreement",
-  "Master Services Agreement",
-  "Non-Disclosure Agreement",
-];
-export const OFFER_STATES: readonly OfferState[] = [
-  "Sent",
-  "Countered",
-  "Accepted",
-  "Declined",
-  "Withdrawn",
-  "Expired",
-];
+export const REQUISITION_STATES: readonly RequisitionState[] = enums.requisitionState;
+export const ROLE_ASSIGNMENT_STATES: readonly RoleAssignmentState[] = enums.roleAssignmentState;
+export const AGREEMENT_STATES: readonly AgreementState[] = enums.agreementState;
+export const AGREEMENT_KINDS: readonly AgreementKind[] = enums.agreementKind;
+export const OFFER_STATES: readonly OfferState[] = enums.offerState;
 
 // Canon workforce roles -------------------------------------------------------------------------------
 

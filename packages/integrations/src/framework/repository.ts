@@ -8,6 +8,7 @@ import type {
   SyncScope,
 } from "./catalog.ts";
 import type { DbClient, DbResponse } from "./db.ts";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * Repository functions for signed-in callers (Atlas settings and the API handlers). They run under
@@ -156,7 +157,7 @@ export async function storeCredential(
   db: DbClient,
   connectionId: string,
   secret: string,
-  kind: "OAuth Token" | "API Key" | "Service Account",
+  kind: Database["app"]["Enums"]["integration_credential_kind"],
   expiresAt: string | null = null,
 ): Promise<Result<null>> {
   const result = await settle<unknown>(

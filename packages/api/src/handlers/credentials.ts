@@ -8,6 +8,7 @@
 import { recordScan, revokeCredential } from "@xos/data/credentials";
 import { defineHandlers, created, ok } from "../runtime/handler.ts";
 import { handlersFor, tableResource, unwrap } from "./support/table.ts";
+import type { Database } from "@xos/data/database.types";
 
 const categories = tableResource("credentialCategories");
 const credentials = tableResource("credentials");
@@ -20,7 +21,7 @@ interface ScanBody {
   readonly credential_id: string;
   readonly zone_id: string;
   readonly device_scanned_at?: string | null;
-  readonly offline_result?: "Granted" | "Denied" | null;
+  readonly offline_result?: Database["app"]["Enums"]["scan_result"] | null;
 }
 
 export const handlers = defineHandlers("Credentials", {

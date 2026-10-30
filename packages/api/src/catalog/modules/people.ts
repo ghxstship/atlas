@@ -8,6 +8,7 @@ import { RateType, canonCodes, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions, setCapabilities } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -36,7 +37,7 @@ const peopleCorrections = [
         },
         staffing_basis: {
           schema: label(
-            ["Declared", "Ratio", "Fixed"],
+            Constants.app.Enums.staffing_basis,
             "How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.",
           ),
           create: "optional",
@@ -47,7 +48,7 @@ const peopleCorrections = [
         },
         ends_on: { schema: orNull(fields.date("Last day of the assignment.")), create: "optional" },
         assignment_state: {
-          schema: label(["Proposed", "Active", "Complete", "Canceled"], "Assignment state."),
+          schema: label(Constants.app.Enums.role_assignment_state, "Assignment state."),
         },
       },
     }),
@@ -76,16 +77,7 @@ const peopleCorrections = [
           role_type: {
             schema: orNull(
               label(
-                [
-                  "Crew",
-                  "Contractor",
-                  "Staff",
-                  "Vendor",
-                  "Artist",
-                  "Artist Representative",
-                  "Client",
-                  "Sponsor",
-                ],
+                Constants.app.Enums.external_role_type,
                 "External role type an opportunity published from the requisition seeks; null when filled internally.",
               ),
             ),
@@ -134,10 +126,7 @@ const peopleCorrections = [
             schema: orNull(fields.ref("person who requested; they cannot approve it")),
           },
           requisition_state: {
-            schema: label(
-              ["Proposed", "Approved", "Rejected", "Filled", "Canceled"],
-              "Requisition state.",
-            ),
+            schema: label(Constants.app.Enums.requisition_state, "Requisition state."),
           },
         },
       }),
@@ -156,15 +145,7 @@ const peopleCorrections = [
       remove: ["engagement_id", "document_id"],
       add: {
         agreement_kind: {
-          schema: label(
-            [
-              "Offer Letter",
-              "Contractor Agreement",
-              "Master Services Agreement",
-              "Non-Disclosure Agreement",
-            ],
-            "Kind of agreement.",
-          ),
+          schema: label(Constants.app.Enums.agreement_kind, "Kind of agreement."),
           create: "required",
         },
         body: {
@@ -205,10 +186,7 @@ const peopleCorrections = [
           ),
         },
         agreement_state: {
-          schema: label(
-            ["Proposed", "Sent", "Signed", "Superseded", "Expired", "Canceled"],
-            "Agreement state.",
-          ),
+          schema: label(Constants.app.Enums.agreement_state, "Agreement state."),
         },
       },
     }),
@@ -303,7 +281,7 @@ export const additions = defineAdditions("People", {
               ),
             },
             proposed_side: {
-              schema: z.enum(["Organization", "Party"]).meta({
+              schema: z.enum(Constants.app.Enums.offer_side).meta({
                 description: "Side that proposed the terms in force.",
                 example: "Organization",
               }),

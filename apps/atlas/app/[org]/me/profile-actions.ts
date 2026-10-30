@@ -20,6 +20,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { settingErrorKey } from "@/lib/settings/registry";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Personal profile actions (Section 4.8.2, 4.8.3): profile facts, visibility per section, skills,
@@ -89,7 +90,7 @@ const profileSchema = z.object({
     .string()
     .regex(/^[A-Z]{3}$/)
     .nullable(),
-  rateUnit: z.enum(["Hour", "Day", "Week", "Project"]).nullable(),
+  rateUnit: z.enum(enums.rateUnit).nullable(),
 });
 
 export async function saveProfileAction(
@@ -155,7 +156,7 @@ export async function saveProfileAction(
   return done(ctx.org.slug);
 }
 
-const VISIBILITY = z.enum(["Private", "Network", "Public"]);
+const VISIBILITY = z.enum(enums.profileVisibility);
 
 export async function savePrivacyAction(
   _: ProfileFormState,
@@ -213,7 +214,7 @@ export async function addProfileItemAction(
     const parsed = z
       .object({
         tag: z.string().regex(/^[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|\d{3}))?$/),
-        proficiency: z.enum(["Basic", "Conversational", "Fluent", "Native"]),
+        proficiency: z.enum(enums.languageProficiency),
       })
       .safeParse({ tag: text(form, "tag"), proficiency: form.get("proficiency") });
     if (!parsed.success) return { fieldErrors: { tag: "tag" } };

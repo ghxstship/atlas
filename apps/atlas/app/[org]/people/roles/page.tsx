@@ -21,6 +21,7 @@ import {
 import { workforceRoles } from "@/lib/people/roles";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import * as enums from "@xos/data/enums";
 
 /**
  * People > Roles (Section 4.5.5, playbook Roles Library): the 61 canon workforce roles with their
@@ -221,7 +222,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
                   ? "Fixed"
                   : "Declared",
             help: t("people.assignments.basisHelp"),
-            options: ["Declared", "Ratio", "Fixed"].map((b) => ({
+            options: enums.staffingBasis.map((b) => ({
               value: b,
               label: t(`people.basis.${b}`),
             })),

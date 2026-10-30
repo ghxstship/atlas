@@ -5,6 +5,7 @@
  * Fulfillments move through app.transition_fulfillment with compare-and-set and a reason.
  */
 import { uuidv7, type MutationInput } from "@xos/sync";
+import type { Database } from "@xos/data/database.types";
 
 export interface DockSlotRow {
   readonly id: string;
@@ -37,7 +38,7 @@ export interface MarshallingRow {
   readonly deleted_at?: string | null;
 }
 
-export type FulfillmentState = "Proposed" | "Active" | "Blocked" | "Complete" | "Canceled";
+export type FulfillmentState = Database["app"]["Enums"]["fulfillment_state"];
 
 export interface FulfillmentRow {
   readonly id: string;

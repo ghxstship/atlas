@@ -48,6 +48,7 @@ import {
   uuid,
   type ActionState,
 } from "@/lib/collection-kit/forms";
+import * as enums from "@xos/data/enums";
 
 /**
  * Vendor actions (Section 4.2 Vendors). Row level security and the 0330 RPCs decide every write:
@@ -445,13 +446,7 @@ export async function deleteEntitlementAction(
 
 // Sponsor assets and deliveries (0492) ------------------------------------------------------------------------
 
-const REVIEW_STATES: readonly ReviewState[] = [
-  "Proposed",
-  "Submitted",
-  "Approved",
-  "Returned",
-  "Canceled",
-];
+const REVIEW_STATES: readonly ReviewState[] = enums.reviewState;
 
 export async function createSponsorAssetAction(
   _: ActionState,

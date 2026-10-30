@@ -25,6 +25,8 @@ import {
 } from "@/lib/actions/operations";
 
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 export function useCopy(): Translate {
@@ -125,7 +127,8 @@ export function AdvanceAnswerForm(props: {
 export function ApprovalForm(props: { requestId: string; subject: string }) {
   const t = useCopy();
   const [state, action, pending] = useActionState<FormResult, FormData>(decideApprovalAction, {});
-  const [decision, setDecision] = useState<"Approved" | "Rejected">("Approved");
+  const [decision, setDecision] =
+    useState<Database["app"]["Enums"]["approval_decision"]>("Approved");
   return (
     <FormShell
       row
@@ -140,7 +143,7 @@ export function ApprovalForm(props: { requestId: string; subject: string }) {
       <input type="hidden" name="decision" value={decision} />
       <fieldset className="m-0 flex flex-wrap gap-8 border-0 p-0">
         <legend className="sr-only">{t("approval.decision")}</legend>
-        {(["Approved", "Rejected"] as const).map((d) => (
+        {enums.approvalDecision.map((d) => (
           <Button
             key={d}
             type="button"

@@ -8,6 +8,7 @@ import {
   renderReportXlsx,
   watermarked,
 } from "./data-report-files.js";
+import "./data-enums-generated.js";
 import { fail, ok, toDataError } from "./data-result.js";
 //#region ../data/src/untyped.ts
 /**

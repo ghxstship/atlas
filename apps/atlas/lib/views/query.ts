@@ -1,4 +1,5 @@
 import { savedViewTypeOf, VIEW_REGISTRY, viewCodeOf, type SavedViewType } from "@xos/schemas/views";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * Saved views and the query string (Section 11.15). Every Atlas collection keeps its view, filters,
@@ -76,7 +77,10 @@ export interface ViewQuery {
   readonly searchText: string | null;
   readonly groupByField: string | null;
   readonly filters: readonly { field: string; operator: ConditionOperator; value: string }[];
-  readonly sorts: readonly { field: string; direction: "Ascending" | "Descending" }[];
+  readonly sorts: readonly {
+    field: string;
+    direction: Database["app"]["Enums"]["sort_direction"];
+  }[];
 }
 
 /**
@@ -143,7 +147,10 @@ export function viewToQuery(
       operator?: string;
       value: string | null;
     }[];
-    readonly sorts: readonly { field: string; direction: "Ascending" | "Descending" }[];
+    readonly sorts: readonly {
+      field: string;
+      direction: Database["app"]["Enums"]["sort_direction"];
+    }[];
   },
   offered: readonly string[],
 ): string {

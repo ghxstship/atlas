@@ -16,6 +16,7 @@ import { z } from "zod";
 import { contextFor } from "@/lib/platform/action-context";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
+import * as enums from "@xos/data/enums";
 
 /**
  * Server actions of A83's panels on Settings, Integrations: warehouse delivery (Enterprise) and provider webhooks.
@@ -23,14 +24,8 @@ import { fromDataError } from "@/lib/platform/data-error";
  * a refusal comes back as its rule and the form shows the sentence from `platform.refusals`.
  */
 
-const PROVIDERS: readonly WarehouseProvider[] = [
-  "S3",
-  "Google Cloud Storage",
-  "Azure Blob",
-  "BigQuery",
-  "Snowflake",
-];
-const FORMATS: readonly WarehouseFormat[] = ["Parquet", "CSV"];
+const PROVIDERS: readonly WarehouseProvider[] = enums.warehouseProvider;
+const FORMATS: readonly WarehouseFormat[] = enums.warehouseFileFormat;
 const uuid = z.uuid();
 
 function refresh(slug: string): void {

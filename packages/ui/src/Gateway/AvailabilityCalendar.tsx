@@ -52,7 +52,8 @@ export function AvailabilityCalendar({
                       {d}
                       {isBooked || isAvailable ? (
                         <span className="sr-only">
-                          {` ${isBooked ? t("availability.booked") : t("availability.available")}`}
+                          {" "}
+                          {isBooked ? t("availability.booked") : t("availability.available")}
                         </span>
                       ) : null}
                     </span>

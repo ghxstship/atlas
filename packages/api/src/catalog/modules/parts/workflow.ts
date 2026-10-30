@@ -12,6 +12,7 @@ import { all, editDefinition, editShape, orNull } from "../../correct.ts";
 import type { CorrectionInput } from "../../corrections.ts";
 import { collectionAction, itemAction, resource, transitionBody } from "../../define.ts";
 import type { ActionSpec, ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -41,8 +42,8 @@ export const APPROVAL_DOCUMENT_TYPES = [
   "Requisition",
 ] as const;
 
-const PolicyState = z.enum(["Draft", "Active", "Retired"]);
-const ApprovalState = z.enum(["In Review", "Approved", "Rejected", "Canceled"]);
+const PolicyState = z.enum(Constants.app.Enums.approval_policy_state);
+const ApprovalState = z.enum(Constants.app.Enums.approval_state);
 const ScopeKind = z.enum(["Standing Venue", "Show"]);
 
 const documentType = (description: string) => label(APPROVAL_DOCUMENT_TYPES, description);
@@ -105,7 +106,7 @@ const TemplateItem = audited(
       "An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422).",
     fields: {
       template_version_id: fields.ref("template version"),
-      item_kind: label(["Scope Node", "Record"], "What the item creates."),
+      item_kind: label(Constants.app.Enums.template_item_kind, "What the item creates."),
       sort_order: fields.int("Position in the version, 1 first.", 1, 1),
       name: fields.text("Scope node name, or record title.", "Opening Night", 200),
       scope_kind: ScopeKind.nullable().meta({

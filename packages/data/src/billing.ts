@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Billing and Plan's billing calls (ADR 0033 decision 59, migration 1640): the checks before Atlas
@@ -8,7 +9,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * Owner (org.billing.manage) after a second factor in the last 15 minutes. Refusals come back with their rule.
  */
 
-export type BillingInterval = "Monthly" | "Annual";
+export type BillingInterval = Database["app"]["Enums"]["billing_interval"];
 
 /** What Checkout needs once the database's checks passed. */
 export interface CheckoutStart {

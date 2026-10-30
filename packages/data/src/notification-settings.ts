@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Notification settings of a member and of an org (Section 4.5.6: personal settings item 8 and org setting
@@ -10,10 +11,10 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  */
 
 /** Channels in matrix order (app.notification_channel). */
-export const NOTIFICATION_MATRIX_CHANNELS = ["In App", "Email", "SMS", "Push"] as const;
+export const NOTIFICATION_MATRIX_CHANNELS = enums.notificationChannel;
 export type MatrixChannel = (typeof NOTIFICATION_MATRIX_CHANNELS)[number];
 
-export const DIGEST_FREQUENCIES = ["Off", "Daily", "Weekly"] as const;
+export const DIGEST_FREQUENCIES = enums.digestFrequency;
 export type DigestFrequency = (typeof DIGEST_FREQUENCIES)[number];
 
 export interface MatrixCell {

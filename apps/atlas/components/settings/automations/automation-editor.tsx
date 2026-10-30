@@ -27,6 +27,8 @@ import {
   saveAutomationAction,
   type EditorData,
 } from "@/app/[org]/settings/automation-actions";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
 
 /**
  * The automation editor (A91, ADR 0047), loaded when a person opens it: the trigger from the event catalog, conditions
@@ -34,17 +36,7 @@ import {
  * event that runs nothing. The test evaluates here with @xos/schemas, the twin of the database's evaluator.
  */
 
-const OPERATORS: readonly FilterOperator[] = [
-  "eq",
-  "ne",
-  "lt",
-  "lte",
-  "gt",
-  "gte",
-  "in",
-  "is_null",
-  "contains",
-];
+const OPERATORS: readonly FilterOperator[] = enums.filterOperator;
 const RECORD_STATES = [
   "Proposed",
   "Ready",
@@ -70,7 +62,7 @@ type ItemDraft =
   | {
       readonly kind: "group";
       readonly key: string;
-      readonly match: "all" | "any";
+      readonly match: Database["app"]["Enums"]["automation_match"];
       readonly conditions: readonly ConditionDraft[];
     };
 
@@ -128,7 +120,10 @@ function conditionFrom(raw: Json): ConditionDraft {
   return { key: nextKey(), field: String(raw["field"] ?? ""), operator, value };
 }
 
-function itemsFrom(doc: unknown): { match: "all" | "any"; items: ItemDraft[] } {
+function itemsFrom(doc: unknown): {
+  match: Database["app"]["Enums"]["automation_match"];
+  items: ItemDraft[];
+} {
   const root = (doc ?? {}) as Json;
   const match = Array.isArray(root["any"]) ? "any" : "all";
   const list = (Array.isArray(root[match]) ? root[match] : []) as Json[];
@@ -183,7 +178,10 @@ function conditionDoc(c: ConditionDraft): Json {
   return { field: c.field.trim(), operator: c.operator, value: c.value };
 }
 
-function conditionsDoc(match: "all" | "any", items: readonly ItemDraft[]): Json {
+function conditionsDoc(
+  match: Database["app"]["Enums"]["automation_match"],
+  items: readonly ItemDraft[],
+): Json {
   return {
     [match]: items.map((i) =>
       i.kind === "condition"
@@ -253,7 +251,7 @@ export function AutomationEditor({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [trigger, setTrigger] = useState("record.created");
-  const [match, setMatch] = useState<"all" | "any">("all");
+  const [match, setMatch] = useState<Database["app"]["Enums"]["automation_match"]>("all");
   const [items, setItems] = useState<ItemDraft[]>([]);
   const [actions, setActions] = useState<ActionDraft[]>([newAction()]);
   const [enabled, setEnabled] = useState(true);

@@ -2,6 +2,7 @@ import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { num, numOrNull, rows, str, strOrNull, writtenId, type Raw } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Custom objects (A36 on A18's 0540; Section 4.6.3): org-defined types with typed fields, their records
@@ -10,18 +11,7 @@ import { untyped } from "./untyped.ts";
  * org.custom_objects.write define types and fields.
  */
 
-export const CUSTOM_DATA_TYPES = [
-  "Text",
-  "Number",
-  "Money",
-  "Date",
-  "Timestamp",
-  "Boolean",
-  "Choice",
-  "Person",
-  "Email",
-  "URL",
-] as const;
+export const CUSTOM_DATA_TYPES = enums.customDataType;
 export type CustomDataType = (typeof CUSTOM_DATA_TYPES)[number];
 
 export const OBJECT_VIEWS = ["List", "Board", "Table", "Calendar"] as const;

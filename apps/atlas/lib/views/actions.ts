@@ -19,6 +19,8 @@ import {
 import { SAVED_VIEW_TYPES } from "@xos/schemas/views";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
 import { CONDITION_OPERATORS, type ConditionOperator } from "./conditions";
 
 /**
@@ -39,7 +41,10 @@ export interface ViewDraft {
   readonly searchText: string | null;
   readonly groupByField: string | null;
   readonly filters: readonly { field: string; operator: ConditionOperator; value: string }[];
-  readonly sorts: readonly { field: string; direction: "Ascending" | "Descending" }[];
+  readonly sorts: readonly {
+    field: string;
+    direction: Database["app"]["Enums"]["sort_direction"];
+  }[];
 }
 
 const queryShape: z.ZodType<ViewDraft> = z.object({
@@ -56,9 +61,7 @@ const queryShape: z.ZodType<ViewDraft> = z.object({
       }),
     )
     .max(50),
-  sorts: z
-    .array(z.object({ field: FIELD, direction: z.enum(["Ascending", "Descending"]) }))
-    .max(10),
+  sorts: z.array(z.object({ field: FIELD, direction: z.enum(enums.sortDirection) })).max(10),
 });
 
 function errorOf(error: DataError): ViewsError {

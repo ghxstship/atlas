@@ -7,6 +7,7 @@ import {
   type MemberRef,
   type TransitionEntry,
 } from "./shared.ts";
+import * as enums from "../enums.generated.ts";
 
 /**
  * Time off policies and requests (migration 0341). The requester never approves their own request
@@ -14,12 +15,7 @@ import {
  */
 
 export type TimeOffState = Database["app"]["Enums"]["time_off_state"];
-export const TIME_OFF_STATES: readonly TimeOffState[] = [
-  "Proposed",
-  "Approved",
-  "Rejected",
-  "Canceled",
-];
+export const TIME_OFF_STATES: readonly TimeOffState[] = enums.timeOffState;
 
 export interface TimeOffPolicy {
   readonly id: string;

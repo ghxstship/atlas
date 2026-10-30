@@ -5,7 +5,14 @@
  * operator opts in, and only for the resources or modules named in the write scope.
  */
 import type { OperationSpec, XosClient } from "@ghxstship/xos-sdk";
-import { OPERATIONS, RESOURCES, TAGS, XosApiError, XosNetworkError } from "@ghxstship/xos-sdk";
+import {
+  FILTER_OPERATORS,
+  OPERATIONS,
+  RESOURCES,
+  TAGS,
+  XosApiError,
+  XosNetworkError,
+} from "@ghxstship/xos-sdk";
 import type { ToolDefinition, ToolProvider, ToolResult } from "./protocol.ts";
 import { InvalidParams } from "./protocol.ts";
 
@@ -70,9 +77,7 @@ const FILTER_SCHEMA = {
     'Conditions on top-level fields, combined with AND: {"field": {"op": value}}. Operators: eq, ne, lt, lte, gt, gte, in (array or comma-separated), is_null (boolean), contains.',
   additionalProperties: {
     type: "object",
-    properties: Object.fromEntries(
-      ["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"].map((op) => [op, {}]),
-    ),
+    properties: Object.fromEntries(FILTER_OPERATORS.map((op) => [op, {}])),
     additionalProperties: false,
   },
 };
