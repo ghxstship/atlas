@@ -352,6 +352,18 @@
     "companyMaySubmitProjectFacts": {
       "label": "Las empresas pueden ingresar datos del proyecto por su personal",
       "help": "Cuando está activado, la empresa que incluye a alguien en la lista puede ingresar sus datos de viaje, uniforme y vehículo. La persona recibe un aviso y puede corregir lo que no ingresó por su cuenta."
+    },
+    "workloadDayHours": {
+      "label": "Jornada de carga de trabajo (horas)",
+      "help": "En Programación, Carga de trabajo, la jornada de una persona se marca como excedida por encima de estas horas de turnos y tareas estimadas. Cambia lo que muestra la vista y no guarda nada."
+    },
+    "changeoverMinutes": {
+      "label": "Cambio mínimo entre actuaciones (minutos)",
+      "help": "En Programación, Conflictos, un intervalo entre dos actuaciones de menos minutos que este es una advertencia; las actuaciones que se superponen siempre son un conflicto."
+    },
+    "travelBufferMinutes": {
+      "label": "Margen de viaje (minutos)",
+      "help": "En Programación, Conflictos, un vuelo o traslado que llega a menos de estos minutos de la primera llamada de una persona, o sale tan pronto después de la última, es una advertencia; si llega después de la llamada o sale antes de que termine, es un conflicto."
     }
   },
   "choices": {

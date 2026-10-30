@@ -373,12 +373,15 @@ export function DaySheetPeek({
   sheet,
   canWrite,
   canPublish,
+  dayTypes,
   children,
 }: {
   org: string;
   sheet: DaySheet;
   canWrite: boolean;
   canPublish: boolean;
+  /** The day's types (B4, G-38), as text-labelled tags under the title. */
+  dayTypes?: ReactNode;
   children?: ReactNode;
 }) {
   const t = useCopy("show");
@@ -395,6 +398,7 @@ export function DaySheetPeek({
   const title = `${sheet.projectKey} · ${formatDay(sheet.day, locale, { dateStyle: "full" })}`;
   return (
     <Drawer title={title} open onOpenChange={(v) => (v ? undefined : close())}>
+      {dayTypes}
       <ActionErrorAlert error={error} />
       <Tag tone={sheet.publishedAt ? "success" : "neutral"}>
         {sheet.publishedAt

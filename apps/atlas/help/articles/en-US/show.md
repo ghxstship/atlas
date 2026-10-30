@@ -32,6 +32,10 @@ With focus in the console, **J** and **K** move the standby, **S** stands by, **
 
 Give each Stream Deck key a **Hotkey** action: **F13** Go, **F14** Standby, **F15** Previous cue, **F16** Next cue, **F17** Nudge +1 min, **F18** Nudge −1 min, **F19** Jump to cue and **F20** Department. They work while the console has focus, even with single-key shortcuts turned off, and you can change them in **Me, Keyboard shortcuts**.
 
+### Edit the running order as a grid
+
+Choose **Edit as grid** to type the cues like a spreadsheet: Time, Duration, Label, Segment and TBC, in running order. Time takes shorthand such as 830p or 20:30, and +1 marks a cue after midnight; Duration takes 45, 45m or 1h30. Typing in the last row adds a cue, and **Move up** and **Move down** reorder. Called cues, and the cues before the last called one, keep their places. **Save** previews; **Apply** writes every row or none and renumbers the cues.
+
 ## Day sheets
 
 A day sheet summarizes one day of a project: times, locations, contacts and notes. Publish it when it is ready; people see the latest published version.

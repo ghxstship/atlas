@@ -158,3 +158,33 @@ export function shiftDate(date: string, days: number): string {
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 }
+
+/** A project's anchor day, or null while none is set. */
+export async function getProjectAnchor(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<string | null>> {
+  const { data, error } = await db
+    .from("projects")
+    .select("anchor_on")
+    .eq("id", projectId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return fail({ kind: "not-found" });
+  return ok(data.anchor_on);
+}
+
+/** Whether a record stays on its dates when its project's anchor moves. */
+export async function getRecordAnchorPinned(
+  db: XosClient,
+  recordId: string,
+): Promise<Result<boolean>> {
+  const { data, error } = await db
+    .from("records")
+    .select("anchor_pinned")
+    .eq("id", recordId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return fail({ kind: "not-found" });
+  return ok(data.anchor_pinned);
+}

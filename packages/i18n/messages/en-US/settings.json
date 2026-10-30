@@ -352,6 +352,18 @@
     "companyMaySubmitProjectFacts": {
       "label": "Companies may enter project details for their people",
       "help": "When on, the company that rosters someone may enter their travel, uniform and vehicle details for them. The person is notified and can correct anything they did not enter themselves."
+    },
+    "workloadDayHours": {
+      "label": "Workload day (hours)",
+      "help": "On Schedule, Workload, a person's day reads as over above this many hours of shifts and estimated tasks. It changes what the view shows and stores nothing."
+    },
+    "changeoverMinutes": {
+      "label": "Minimum changeover (minutes)",
+      "help": "On Schedule, Clashes, a gap between two artists' sets under this many minutes is a warning; sets that overlap are always a clash."
+    },
+    "travelBufferMinutes": {
+      "label": "Travel buffer (minutes)",
+      "help": "On Schedule, Clashes, a flight or ride that lands within this many minutes of a person's first call, or leaves this soon after their last, is a warning; one that lands after the call or leaves before it ends is a clash."
     }
   },
   "choices": {

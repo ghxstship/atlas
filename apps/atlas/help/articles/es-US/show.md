@@ -32,6 +32,10 @@ Con el foco en la consola, **J** y **K** mueven la espera, **S** pone en espera,
 
 Asigne a cada tecla del Stream Deck una acción **Hotkey**: **F13** Go, **F14** En espera, **F15** Cue anterior, **F16** Cue siguiente, **F17** Ajustar +1 min, **F18** Ajustar −1 min, **F19** Saltar a un cue y **F20** Departamento. Funcionan mientras la consola tiene el foco, aunque los atajos de una tecla estén desactivados, y puede cambiarlas en **Yo, Atajos de teclado**.
 
+### Editar el orden de presentación como cuadrícula
+
+Elija **Editar como cuadrícula** para escribir los cues como en una hoja de cálculo: Hora, Duración, Etiqueta, Segmento y Por confirmar, en el orden de presentación. La hora acepta formas cortas como 8:30 p. m. o 20:30, y +1 marca un cue después de la medianoche; Duración acepta 45, 45m o 1h30. Escribir en la última fila agrega un cue, y **Subir** y **Bajar** reordenan. Los cues llamados, y los que van antes del último llamado, conservan su lugar. **Guardar** muestra la vista previa; **Aplicar** escribe todas las filas o ninguna y renumera los cues.
+
 ## Hojas del día
 
 Una hoja del día resume una jornada del proyecto: horarios, lugares, contactos y notas. Publíquela cuando esté lista; las personas ven la última versión publicada.

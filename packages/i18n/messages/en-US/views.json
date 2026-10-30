@@ -16,7 +16,8 @@
     "chart": "Chart",
     "feed": "Feed",
     "inbox": "Inbox",
-    "split": "Split view"
+    "split": "Split view",
+    "heatmap": "Heatmap"
   },
   "filter": {
     "add": "Add filter",
@@ -503,7 +504,10 @@
       "worked_minutes": "Worked minutes",
       "worker_classification": "Classification",
       "xyz": "XYZ",
-      "zone_id": "Zone"
+      "zone_id": "Zone",
+      "day_on": "Date",
+      "day_type": "Day type",
+      "team_code": "Team"
     }
   }
 }

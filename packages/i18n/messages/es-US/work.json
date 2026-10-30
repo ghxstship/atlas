@@ -263,7 +263,8 @@
     "board": "Tablero",
     "calendar": "Calendario",
     "timeline": "Cronograma",
-    "site-plan": "Plano del sitio"
+    "site-plan": "Plano del sitio",
+    "heatmap": "Mapa de calor"
   },
   "columns": {
     "key": "Clave",
@@ -654,7 +655,27 @@
       "cue_standby_called": "Ese cue ya se llamó, así que no puede quedar en espera. Elija un cue sin llamar.",
       "cue_standby_capability": "No puede poner cues en espera en este proyecto. Pida al jefe de escena que lo haga.",
       "cue_shift_range": "Ajuste el plan hasta una hora antes o después.",
-      "cue_call_kind": "Las llamadas van a Audio, Iluminación, Video, Efectos especiales o Escenario. Elija uno de esos departamentos."
+      "cue_call_kind": "Las llamadas van a Audio, Iluminación, Video, Efectos especiales o Escenario. Elija uno de esos departamentos.",
+      "project_day_split_limit": "Un día se divide en hasta cuatro partes. Cambie o quite una primero.",
+      "project_day_scope_kind": "Un día sirve a una función del proyecto. Elija una función o déjelo para todo el proyecto.",
+      "project_day_time_zone": "La sede de esta función fija la zona horaria. Deje la zona horaria vacía.",
+      "project_day_project_immutable": "Un día se queda en su proyecto. Agregue el día al otro proyecto.",
+      "grid_empty": "Escriba al menos una fila antes de guardar.",
+      "grid_too_large": "Una cuadrícula guarda como máximo 200 filas a la vez. Guarde por partes.",
+      "grid_incomplete": "Alguien agregó o quitó un cue. Vuelva a cargar el orden de presentación y edítelo de nuevo.",
+      "grid_kind": "Elija un tipo de registro para la fila nueva.",
+      "bulk_stale": "Alguien cambió esta fila después de que la cargó. Vuelva a cargar para ver el cambio.",
+      "day_template_title": "El título de un elemento de registro sigue la gramática de su tipo.",
+      "day_template_too_large": "Una plantilla de día admite como máximo 500 elementos. Quite algunos primero.",
+      "day_template_item_window": "Un elemento está a más de un día de este día o dura más de un día, así que una plantilla de día no puede guardarlo.",
+      "day_template_run_ambiguous": "Este día tiene más de un orden de presentación. Elija cuál usar.",
+      "day_template_run_unknown": "Elija un orden de presentación de este proyecto.",
+      "day_template_unknown": "Elija una plantilla de día de esta organización.",
+      "anchor_unset": "Fije el día ancla del proyecto antes de moverlo.",
+      "anchor_too_large": "Este cambio movería más de 2000 registros. Mueva el plan por partes.",
+      "anchor_show_started": "Ya se llamó un cue de este proyecto, así que sus funciones empezaron y se quedan en sus fechas.",
+      "anchor_sheet_collision": "Una hoja publicada ya cubre el día al que se movería una sin publicar.",
+      "anchor_pinned_pushed": "Este cambio empujaría un registro fijado a sus fechas."
     },
     "quickAdd": {
       "capability": "No puedes crear esto aquí.",

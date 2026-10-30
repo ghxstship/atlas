@@ -154,3 +154,46 @@ export function gridErrors(
   }
   return errors;
 }
+
+/** A cue as the cue grid loads it: its fields, its length in minutes and whether it was called. */
+export interface CueGridSource {
+  readonly id: string;
+  readonly position: number;
+  readonly label: string;
+  readonly plannedAt: string | null;
+  readonly durationMinutes: number | null;
+  readonly segment: string | null;
+  readonly startTbc: boolean;
+  readonly calledAt: string | null;
+}
+
+/** Postgres interval text (HH:MM:SS, with optional days) as whole minutes; null for none. */
+export function intervalMinutes(value: string | null): number | null {
+  if (value === null) return null;
+  const match = /^(?:(\d+) days? ?)?(\d+):(\d{2}):(\d{2})/.exec(value.trim());
+  if (!match) return null;
+  return Number(match[1] ?? 0) * 1440 + Number(match[2]) * 60 + Number(match[3]) + Math.round(Number(match[4]) / 60);
+}
+
+/** A running order's live cues in running order, for the cue grid. */
+export async function listCueGridRows(db: XosClient, runOfShowId: string): Promise<Result<CueGridSource[]>> {
+  const { data, error } = await db
+    .from("cues")
+    .select("id, position, label, planned_at, duration, segment, start_tbc, called_at")
+    .eq("run_of_show_id", runOfShowId)
+    .is("deleted_at", null)
+    .order("position");
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((c) => ({
+      id: c.id,
+      position: c.position,
+      label: c.label,
+      plannedAt: c.planned_at,
+      durationMinutes: intervalMinutes(c.duration === null ? null : String(c.duration)),
+      segment: c.segment,
+      startTbc: c.start_tbc,
+      calledAt: c.called_at,
+    })),
+  );
+}

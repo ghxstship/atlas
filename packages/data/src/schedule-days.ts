@@ -12,36 +12,11 @@ import { untyped } from "./untyped.ts";
 
 export type DayType = Database["app"]["Enums"]["project_day_type"];
 
+export { dayTypeSlug, dayTypeTone, type DayTypeTone } from "./schedule-day-tones.ts";
+import { dayTypeTone, type DayTypeTone } from "./schedule-day-tones.ts";
+
 /** The seven day types, in enum order. */
 export const DAY_TYPES: readonly DayType[] = Constants.app.Enums.project_day_type;
-
-/** A categorical colour step (viz-cat-1 to viz-cat-7) and an icon, so a day type never reads by colour alone. */
-export interface DayTypeTone {
-  readonly category: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  readonly icon: string;
-}
-
-const TONES: Readonly<Record<DayType, DayTypeTone>> = {
-  "Load In": { category: 1, icon: "Truck" },
-  Show: { category: 2, icon: "Ticket" },
-  "Load Out": { category: 3, icon: "Package" },
-  Travel: { category: 4, icon: "Plane" },
-  Off: { category: 5, icon: "Palmtree" },
-  Rehearsal: { category: 6, icon: "Clapperboard" },
-  Other: { category: 7, icon: "Circle" },
-};
-
-export function dayTypeTone(type: DayType): DayTypeTone {
-  return TONES[type];
-}
-
-/** Catalog slug of a day type, for copy keys (`schedule.days.types.loadIn`). */
-export function dayTypeSlug(type: DayType): string {
-  return type
-    .split(" ")
-    .map((w, i) => (i === 0 ? w.toLowerCase() : w))
-    .join("");
-}
 
 export function isDayType(value: unknown): value is DayType {
   return typeof value === "string" && (DAY_TYPES as readonly string[]).includes(value);
@@ -298,7 +273,11 @@ export async function listShowNodes(
 export async function listCanonTeams(
   db: XosClient,
 ): Promise<Result<{ code: string; name: string }[]>> {
-  const { data, error } = await db.schema("xpms").from("dim_team").select("team_id, team").order("team_id");
+  const { data, error } = await db
+    .schema("xpms")
+    .from("dim_team")
+    .select("team_id, team")
+    .order("team_id");
   if (error) return fail(toDataError(error));
   return ok(data.map((r) => ({ code: r.team_id, name: r.team })));
 }

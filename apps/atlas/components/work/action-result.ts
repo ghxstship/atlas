@@ -66,11 +66,41 @@ const EXPLAINED = new Set([
   "approval_decided",
   "approval_not_eligible",
   "time_zone_unknown",
+  // B4 scheduling depth (migrations 2930 to 2936).
+  "project_day_split_limit",
+  "project_day_scope_kind",
+  "project_day_time_zone",
+  "project_day_project_immutable",
+  "grid_empty",
+  "grid_too_large",
+  "grid_incomplete",
+  "grid_kind",
+  "bulk_stale",
+  "day_template_title",
+  "day_template_too_large",
+  "day_template_item_window",
+  "day_template_run_ambiguous",
+  "day_template_run_unknown",
+  "day_template_unknown",
+  "anchor_unset",
+  "anchor_too_large",
+  "anchor_show_started",
+  "anchor_sheet_collision",
+  "anchor_pinned_pushed",
 ]);
 
 /** Refusals whose database sentence is the correction the person needs. */
 /* reschedule_locked names the record that would move, which the view may not draw. */
-const WITH_DETAIL = new Set(["record_title_grammar", "record_xyz_basis", "reschedule_locked"]);
+const WITH_DETAIL = new Set([
+  "record_title_grammar",
+  "record_xyz_basis",
+  "reschedule_locked",
+  // B4: the item or date the database names.
+  "day_template_title",
+  "day_template_item_window",
+  "anchor_sheet_collision",
+  "anchor_pinned_pushed",
+]);
 
 export function toActionError(error: DataError): ActionError {
   switch (error.kind) {

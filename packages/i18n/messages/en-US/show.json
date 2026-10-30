@@ -233,5 +233,32 @@
     "nudgeLaterLabel": "Nudge the remaining plan one minute later",
     "keys": "Keys answer while the console has focus. Stream Deck keys F13 to F20 work even with single-key shortcuts off.",
     "cancel": "Cancel"
+  },
+  "cueGrid": {
+    "open": "Edit as grid",
+    "title": "Running order as a grid",
+    "label": "Cues after the last called cue",
+    "help": "Type a row per cue in running order. Time reads shorthand such as 830p or 20:30 on the project's clock ({zone}), and +1 marks the next day; Duration takes 45, 45m or 1h30. Typing in the last row adds a cue. Save shows what would change; Apply writes every row or none.",
+    "called": "{count, plural, one {# cue keeps its place: it is called, or comes before the last called cue} other {# cues keep their places: they are called, or come before the last called cue}}",
+    "order": "Order of the cues",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "loading": "Reading the running order…",
+    "preview": "{created, plural, one {# new} other {# new}}, {changed, plural, one {# changed or moved} other {# changed or moved}}, {refused, plural, =0 {nothing refused} one {# refused} other {# refused}}.",
+    "save": "Save",
+    "apply": "Apply",
+    "close": "Close",
+    "columns": {
+      "time": "Time",
+      "duration": "Duration",
+      "label": "Label",
+      "segment": "Segment",
+      "tbc": "TBC"
+    },
+    "badLabel": "Give the cue a label.",
+    "badTime": "This time does not read. Try 830p, 20:30 or 00:15 +1.",
+    "badDuration": "This length does not read. Try 45, 45m or 1h30.",
+    "fix": "{count, plural, one {Fix the cell marked before saving.} other {Fix the # cells marked before saving.}}",
+    "calledCue": "{n}. {label}"
   }
 }

@@ -34,8 +34,31 @@ import { getTranslate } from "@/lib/shell/translate";
 import { CreateRunDialog, RunBody, RunCollection, RunPeek } from "./runs";
 import { CallSheetPeek, DaySheetPeek, SheetCollection } from "./sheets";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { DayTypeTags } from "@/components/schedule/day-type-tags";
+import { dayTypeSlug, listProjectDays } from "@xos/data/schedule-days";
 
 type Subject = { table: "app.run_of_show" | "app.day_sheets" | "app.call_sheets"; id: string };
+
+/** A sheet day's types (B4, G-38) as tags, for the day sheet peek; nothing when the day has none. */
+async function daySheetTypes(ctx: OrgContext, projectId: string, day: string): Promise<ReactNode> {
+  const t = await getTranslate();
+  const days = await listProjectDays(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    projectIds: [projectId],
+    from: day,
+    to: day,
+  });
+  if (!days.ok || days.data.length === 0) return null;
+  return (
+    <DayTypeTags
+      label={t("schedule.days.label")}
+      tags={days.data.map((d) => ({
+        dayType: d.dayType,
+        label: d.label ?? t(`schedule.days.types.${dayTypeSlug(d.dayType)}`),
+      }))}
+    />
+  );
+}
 
 async function collab(ctx: OrgContext, meta: RecordMeta, subject: Subject): Promise<ReactNode> {
   const t = await getTranslate();
@@ -219,6 +242,7 @@ export async function DaySheetsPage({
             sheet={open}
             canWrite={caps.has("show.day_sheet.write")}
             canPublish={caps.has("show.call_sheet.publish")}
+            dayTypes={await daySheetTypes(ctx, open.projectId, open.day)}
           >
             <DocumentActions org={ctx.org.slug} kind="day-sheet" id={open.id} />
             {await collab(ctx, meta, { table: "app.day_sheets", id: open.id })}

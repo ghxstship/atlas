@@ -129,3 +129,12 @@ describe("grid saves", () => {
     expect(!saved.ok && saved.error).toMatchObject({ kind: "refusal", rule: "grid_too_large" });
   });
 });
+
+describe("cue grid rows", () => {
+  it("reads interval lengths as minutes", async () => {
+    const { intervalMinutes } = await import("../src/schedule-grid.ts");
+    expect(intervalMinutes("01:15:00")).toBe(75);
+    expect(intervalMinutes("1 day 00:30:00")).toBe(1470);
+    expect(intervalMinutes(null)).toBeNull();
+  });
+});

@@ -771,7 +771,9 @@
           "Unstated": "Sin indicar"
         }
       }
-    }
+    },
+    "laneAssigned": "{name} está en {shift}.",
+    "laneConflict": "{name} está en otro turno durante {shift}, así que no se asignó. Elija el turno en el tablero para ver la clasificación y presione Asignar para ponerlo de todos modos."
   },
   "perDiems": {
     "title": "Viáticos",
@@ -891,5 +893,21 @@
         }
       }
     }
+  },
+  "lanes": {
+    "label": "Carriles",
+    "people": "Personas",
+    "vendors": "Proveedores",
+    "zones": "Zonas",
+    "vendor": "Proveedor o contratista",
+    "zone": "Zona",
+    "dayTypes": "Tipos de día",
+    "dayTypesOn": "Tipos de día del {day}",
+    "more": "+{n} más",
+    "noVendors": "Ningún proveedor o contratista está contratado en estos proyectos esta semana.",
+    "noZones": "Las sedes de estos proyectos todavía no tienen zonas.",
+    "engaged": "Contratado este día",
+    "dockSlot": "Muelle {label}, {project}",
+    "workOrder": "Orden de trabajo {label}, {project}"
   }
 }

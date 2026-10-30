@@ -233,5 +233,32 @@
     "nudgeLaterLabel": "Retrasar un minuto el plan restante",
     "keys": "Las teclas responden mientras la consola tiene el foco. Las teclas F13 a F20 de un Stream Deck funcionan aunque los atajos de una tecla estén desactivados.",
     "cancel": "Cancelar"
+  },
+  "cueGrid": {
+    "open": "Editar como cuadrícula",
+    "title": "Orden de presentación como cuadrícula",
+    "label": "Cues después del último cue llamado",
+    "help": "Escriba una fila por cue en el orden de presentación. La hora acepta formas cortas como 8:30 p. m. o 20:30 en el reloj del proyecto ({zone}), y +1 marca el día siguiente; Duración acepta 45, 45m o 1h30. Escribir en la última fila agrega un cue. Guardar muestra lo que cambiaría; Aplicar escribe todas las filas o ninguna.",
+    "called": "{count, plural, one {# cue conserva su lugar: está llamado o va antes del último cue llamado} other {# cues conservan su lugar: están llamados o van antes del último cue llamado}}",
+    "order": "Orden de los cues",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "loading": "Leyendo el orden de presentación…",
+    "preview": "{created, plural, one {# nuevo} other {# nuevos}}, {changed, plural, one {# cambiado o movido} other {# cambiados o movidos}}, {refused, plural, =0 {nada rechazado} one {# rechazado} other {# rechazados}}.",
+    "save": "Guardar",
+    "apply": "Aplicar",
+    "close": "Cerrar",
+    "columns": {
+      "time": "Hora",
+      "duration": "Duración",
+      "label": "Etiqueta",
+      "segment": "Segmento",
+      "tbc": "Por confirmar"
+    },
+    "badLabel": "Dé una etiqueta al cue.",
+    "badTime": "Esta hora no se entiende. Pruebe 8:30 p. m., 20:30 o 00:15 +1.",
+    "badDuration": "Esta duración no se entiende. Pruebe 45, 45m o 1h30.",
+    "fix": "{count, plural, one {Corrija la celda marcada antes de guardar.} other {Corrija las # celdas marcadas antes de guardar.}}",
+    "calledCue": "{n}. {label}"
   }
 }

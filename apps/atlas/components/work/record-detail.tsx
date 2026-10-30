@@ -2,6 +2,7 @@ import { getFieldHistory, type HistoryEvent } from "@xos/data/field-history";
 import { FieldHistoryList } from "@/components/history/field-history-list";
 import { historyItems } from "@/lib/history/items";
 import { getActual, type Actual, type Dependency } from "@xos/data/schedule";
+import { getRecordAnchorPinned } from "@xos/data/anchor";
 import { getPunchItemForRecord } from "@xos/data/work-orders";
 import {
   getRecordByKey,
@@ -63,6 +64,9 @@ import {
 import { RelatedRecords, type RecordRelations } from "./related-records";
 
 // Minute retime of a dated record (P8), for people who may change the timeline; loads on demand.
+const AnchorPin = dynamic(() =>
+  import("@/components/schedule/anchor-pin").then((m) => m.AnchorPin),
+);
 const RecordRetime = dynamic(() =>
   import("@/components/schedule/record-retime").then((m) => m.RecordRetime),
 );
@@ -101,6 +105,8 @@ export interface RecordDetail {
   readonly conversation: Conversation;
   readonly canWrite: boolean;
   readonly canSchedule: boolean;
+  /** The record stays on its dates when the project's anchor moves (B4, G-44). */
+  readonly anchorPinned: boolean;
   readonly canRecur: boolean;
   /** How the viewer reads schedule times (me.time_zone_display and their own zone). */
   readonly scheduleView: ScheduleView;
@@ -136,6 +142,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     conversation,
     fieldHistory,
     shell,
+    pinned,
   ] = await Promise.all([
     loadRecordMeta(ctx),
     capabilitySet(ctx),
@@ -158,6 +165,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     loadConversation(ctx, subject),
     getFieldHistory(db, "app.records", record.id),
     getShellSettings(db, ctx.org.id, null),
+    getRecordAnchorPinned(db, record.id),
     // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
     rememberView(ctx, "records", record.id),
   ]);
@@ -184,6 +192,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     conversation,
     canWrite: caps.has("work.record.write") && !record.deletedAt,
     canSchedule: caps.has("schedule.timeline.write") && !record.deletedAt,
+    anchorPinned: pinned.ok ? pinned.data : false,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
     scheduleView: scheduleViewOf(shell.preferences, shell.viewerTimeZone),
   };
@@ -407,6 +416,9 @@ export async function RecordBody({
       />
       {detail.canSchedule && (record.startsAt || record.endsAt || record.dueAt) ? (
         <RecordRetime org={org} recordId={record.id} />
+      ) : null}
+      {detail.canSchedule ? (
+        <AnchorPin org={org} recordId={record.id} pinned={detail.anchorPinned} />
       ) : null}
       {dated ? (
         <ActualsForm

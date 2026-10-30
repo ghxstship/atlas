@@ -372,7 +372,9 @@ export async function listDayItems(
       .eq("project_id", input.projectId)
       .is("deleted_at", null)
       .neq("record_state", "Canceled")
-      .or(`and(starts_at.gte.${from},starts_at.lt.${to}),and(starts_at.is.null,due_at.gte.${from},due_at.lt.${to})`)
+      .or(
+        `and(starts_at.gte.${from},starts_at.lt.${to}),and(starts_at.is.null,due_at.gte.${from},due_at.lt.${to})`,
+      )
       .limit(500),
     untyped(db)
       .from("cues")
@@ -385,16 +387,25 @@ export async function listDayItems(
   if (records.error) return fail(toDataError(records.error));
   if (cues.error) return fail(toDataError(cues.error));
   const local = (at: string) =>
-    new Intl.DateTimeFormat("en-CA", { timeZone: input.timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(
-      new Date(at),
-    );
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: input.timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(at));
   const items: DayItem[] = [
     ...(records.data as DayRecordRow[])
       .filter((r) => {
         const at = r.starts_at ?? r.due_at;
         return at !== null && local(at) === input.day;
       })
-      .map((r) => ({ kind: "Record" as const, id: r.id, label: r.title, at: r.starts_at ?? r.due_at, endsAt: r.ends_at })),
+      .map((r) => ({
+        kind: "Record" as const,
+        id: r.id,
+        label: r.title,
+        at: r.starts_at ?? r.due_at,
+        endsAt: r.ends_at,
+      })),
     ...(cues.data as unknown as DayCueRow[]).map((c) => ({
       kind: "Cue" as const,
       id: c.id,
@@ -404,4 +415,12 @@ export async function listDayItems(
     })),
   ];
   return ok(items.sort((a, b) => (a.at ?? "￿").localeCompare(b.at ?? "￿")));
+}
+
+/** Brings a template back from Trash: the delete toast's Undo. */
+export async function restoreDayTemplate(db: XosClient, id: string): Promise<Result<null>> {
+  const { data, error } = await untyped(db).from("day_templates").update({ deleted_at: null }).eq("id", id).select("id");
+  if (error) return fail(toDataError(error));
+  if ((data as unknown[]).length === 0) return fail({ kind: "not-found" });
+  return ok(null);
 }

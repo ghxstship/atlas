@@ -1766,6 +1766,191 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Days" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Schedule, Days marks what each project day is for: " },
+          { t: "strong", v: "Load In" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Show" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Load Out" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Travel" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Off" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Rehearsal" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Other" },
+          {
+            t: "text",
+            v: ". Each day reads as text with an icon beside its colour, on the timeline, the calendar, the day sheet, Crew, Shifts and the portfolio timeline.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Choose " },
+            { t: "strong", v: "Add day" },
+            {
+              t: "text",
+              v: ", or open a day, to set its type, a label, where it happens (a venue, one of the project's shows, or a place in words), its time zone and its team.",
+            },
+          ],
+          [
+            { t: "strong", v: "Split day" },
+            {
+              t: "text",
+              v: " adds a part, up to four, such as a load-out in the morning and travel to the next city in the afternoon. A part at a venue reads in the venue's time zone.",
+            },
+          ],
+          [
+            { t: "text", v: "Removing a part moves it to Trash; " },
+            { t: "strong", v: "Undo" },
+            { t: "text", v: " brings it back." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Edit a day as a grid" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Open a day and choose " },
+          { t: "strong", v: "Edit as grid" },
+          {
+            t: "text",
+            v: " to type its records like a spreadsheet: Time, Title, Kind, Owner and TBC. Tab and Shift+Tab move across cells, Enter saves a cell and moves down, and typing in the last row adds a record.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: 'Time takes shorthand on the project\'s clock: 8, 8a, 830p, 8:30 pm, 20:30, noon, or a range such as 8a-10:30a. An end before the start is the next day. Phrases such as "tomorrow 9am" work too.',
+            },
+          ],
+          [
+            { t: "strong", v: "Save" },
+            {
+              t: "text",
+              v: " shows how many records are new, changed and refused, with each refusal on its cell. ",
+            },
+            { t: "strong", v: "Apply" },
+            { t: "text", v: " writes every row or none." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Day templates" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Save a day's records and cues as a template with " },
+          { t: "strong", v: "Save day as template" },
+          { t: "text", v: "; times are kept from local midnight. On another day, " },
+          { t: "strong", v: "Apply day template" },
+          {
+            t: "text",
+            v: " lays the template beside what the day already holds, by time: new items are marked ",
+          },
+          { t: "strong", v: "New" },
+          { t: "text", v: ", items already on the day are marked " },
+          { t: "strong", v: "Already on this day" },
+          {
+            t: "text",
+            v: " and unticked, and overlaps are counted. Untick what you do not want and apply; ",
+          },
+          { t: "strong", v: "Undo" },
+          {
+            t: "text",
+            v: " moves what was added to Trash. Templates are listed and edited on Projects, Templates.",
+          },
+        ],
+      },
+      { t: "h2", v: "The anchor" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The project Schedule tab shows the project's " },
+          { t: "strong", v: "Anchor" },
+          {
+            t: "text",
+            v: ", the day the plan counts from, usually the show day. The timeline draws it, and its table lists each record's offset, such as D−3 for three days before.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Set anchor" },
+            { t: "text", v: " sets the first anchor; it moves nothing." },
+          ],
+          [
+            { t: "strong", v: "Move anchor" },
+            {
+              t: "text",
+              v: " previews what moves and what stays: dated records move by whole days on the project's clock, with the running orders, cues, day types and unpublished sheets. Records pinned to their dates, complete or locked into a baseline stay, published sheets stay, and shifts never move: reschedule booked people on Crew, Shifts. ",
+            },
+            { t: "strong", v: "Move back" },
+            { t: "text", v: " in the toast moves the plan back." },
+          ],
+          [
+            { t: "text", v: "On a record, " },
+            { t: "strong", v: "Stays on its dates when the anchor moves" },
+            { t: "text", v: " pins it." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Workload" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Schedule, Workload shows hours per person per day for a week, from shifts and estimated tasks, as a heatmap or a table. Each cell shows its hours as text; a day over the organization's limit (10 hours unless changed under Settings, Scheduling) shows ",
+          },
+          { t: "strong", v: "Over 10 h" },
+          {
+            t: "text",
+            v: " with an icon. A shift past midnight counts on each day in its own time zone. Open a cell to see its shift hours, task hours and tasks with no estimate.",
+          },
+        ],
+      },
+      { t: "h2", v: "Clashes" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Schedule, Clashes lists people on two shifts at once, shifts during a person's travel, suppliers on two productions at different venues, artists on two stages, short changeovers, travel too close to a call and running orders past curfew. Each is a ",
+          },
+          { t: "strong", v: "Clash" },
+          { t: "text", v: " or a " },
+          { t: "strong", v: "Warning" },
+          {
+            t: "text",
+            v: ", says what clashes, and links to where it is fixed; nothing is fixed for you. A time to be confirmed lowers a clash to a warning. You see a clash only when you can read both of its sides.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Hospitality leads can also choose " },
+          { t: "strong", v: "Check travel requests" },
+          {
+            t: "text",
+            v: " to compare requested travel dates with each person's calls. Each check is recorded in the person's access log.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -2165,6 +2350,29 @@ export const HELP_BODIES: HelpBodies = {
           },
           { t: "strong", v: "Me, Keyboard shortcuts" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h3", v: "Edit the running order as a grid" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Edit as grid" },
+          {
+            t: "text",
+            v: " to type the cues like a spreadsheet: Time, Duration, Label, Segment and TBC, in running order. Time takes shorthand such as 830p or 20:30, and +1 marks a cue after midnight; Duration takes 45, 45m or 1h30. Typing in the last row adds a cue, and ",
+          },
+          { t: "strong", v: "Move up" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "Move down" },
+          {
+            t: "text",
+            v: " reorder. Called cues, and the cues before the last called one, keep their places. ",
+          },
+          { t: "strong", v: "Save" },
+          { t: "text", v: " previews; " },
+          { t: "strong", v: "Apply" },
+          { t: "text", v: " writes every row or none and renumbers the cues." },
         ],
       },
       { t: "h2", v: "Day sheets" },
@@ -4136,6 +4344,191 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Días" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Programación, Días indica para qué es cada día del proyecto: " },
+          { t: "strong", v: "Montaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Función" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Desmontaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Viaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Día libre" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ensayo" },
+          { t: "text", v: " u " },
+          { t: "strong", v: "Otro" },
+          {
+            t: "text",
+            v: ". Cada día se lee como texto con un icono junto a su color, en la línea de tiempo, el calendario, la hoja del día, Personal, Turnos y la línea de tiempo de la cartera.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Elija " },
+            { t: "strong", v: "Agregar día" },
+            {
+              t: "text",
+              v: ", o abra un día, para fijar su tipo, una etiqueta, dónde ocurre (una sede, una de las funciones del proyecto o un lugar escrito), su zona horaria y su equipo.",
+            },
+          ],
+          [
+            { t: "strong", v: "Dividir el día" },
+            {
+              t: "text",
+              v: " agrega una parte, hasta cuatro, como un desmontaje por la mañana y el viaje a la siguiente ciudad por la tarde. Una parte en una sede se lee en la zona horaria de la sede.",
+            },
+          ],
+          [
+            { t: "text", v: "Quitar una parte la mueve a la Papelera; " },
+            { t: "strong", v: "Deshacer" },
+            { t: "text", v: " la recupera." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Editar un día como cuadrícula" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Abra un día y elija " },
+          { t: "strong", v: "Editar como cuadrícula" },
+          {
+            t: "text",
+            v: " para escribir sus registros como en una hoja de cálculo: Hora, Título, Tipo, Responsable y Por confirmar. Tab y Mayús+Tab se mueven entre celdas, Intro guarda una celda y baja, y escribir en la última fila agrega un registro.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: 'La hora acepta formas cortas en el reloj del proyecto: 8 a. m., 8:30 p. m., 20 h, 20:30, mediodía o un rango como 8a-10:30a. Un final antes del inicio es el día siguiente. También funcionan frases como "mañana 9am".',
+            },
+          ],
+          [
+            { t: "strong", v: "Guardar" },
+            {
+              t: "text",
+              v: " muestra cuántos registros son nuevos, cambiados y rechazados, con cada rechazo en su celda. ",
+            },
+            { t: "strong", v: "Aplicar" },
+            { t: "text", v: " escribe todas las filas o ninguna." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Plantillas de día" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Guarde los registros y cues de un día como plantilla con " },
+          { t: "strong", v: "Guardar el día como plantilla" },
+          { t: "text", v: "; las horas se guardan desde la medianoche local. En otro día, " },
+          { t: "strong", v: "Aplicar plantilla de día" },
+          {
+            t: "text",
+            v: " pone la plantilla junto a lo que el día ya tiene, por hora: los elementos nuevos llevan ",
+          },
+          { t: "strong", v: "Nuevo" },
+          { t: "text", v: ", los que ya están en el día llevan " },
+          { t: "strong", v: "Ya está en este día" },
+          {
+            t: "text",
+            v: " y quedan desmarcados, y se cuentan las superposiciones. Desmarque lo que no quiera y aplique; ",
+          },
+          { t: "strong", v: "Deshacer" },
+          {
+            t: "text",
+            v: " mueve lo agregado a la Papelera. Las plantillas se listan y editan en Proyectos, Plantillas.",
+          },
+        ],
+      },
+      { t: "h2", v: "El ancla" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La pestaña Cronograma del proyecto muestra el " },
+          { t: "strong", v: "Ancla" },
+          {
+            t: "text",
+            v: ", el día desde el que cuenta el plan, normalmente el día de la función. La línea de tiempo lo marca, y su tabla muestra el desfase de cada registro, como D−3 para tres días antes.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Fijar el ancla" },
+            { t: "text", v: " fija la primera ancla; no mueve nada." },
+          ],
+          [
+            { t: "strong", v: "Mover el ancla" },
+            {
+              t: "text",
+              v: " muestra qué se mueve y qué se queda: los registros con fecha se mueven días enteros en el reloj del proyecto, junto con los órdenes de presentación, los cues, los tipos de día y las hojas sin publicar. Los registros fijados a sus fechas, completos o bloqueados en una línea base se quedan, las hojas publicadas se quedan y los turnos nunca se mueven: reprograme a las personas contratadas en Personal, Turnos. ",
+            },
+            { t: "strong", v: "Volver a mover" },
+            { t: "text", v: " en el aviso devuelve el plan." },
+          ],
+          [
+            { t: "text", v: "En un registro, " },
+            { t: "strong", v: "Se queda en sus fechas cuando se mueve el ancla" },
+            { t: "text", v: " lo fija." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Carga de trabajo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Programación, Carga de trabajo muestra las horas por persona y día de una semana, de turnos y tareas estimadas, como mapa de calor o tabla. Cada celda muestra sus horas como texto; un día sobre el límite de la organización (10 horas salvo que se cambie en Configuración, Programación) muestra ",
+          },
+          { t: "strong", v: "Más de 10 h" },
+          {
+            t: "text",
+            v: " con un icono. Un turno que pasa la medianoche cuenta en cada día en su propia zona horaria. Abra una celda para ver sus horas de turnos, horas de tareas y tareas sin estimación.",
+          },
+        ],
+      },
+      { t: "h2", v: "Conflictos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Programación, Conflictos lista personas en dos turnos a la vez, turnos durante el viaje de una persona, proveedores en dos producciones en sedes distintas, artistas en dos escenarios, cambios cortos, viajes demasiado cerca de una llamada y órdenes de presentación después de la hora límite. Cada uno es un ",
+          },
+          { t: "strong", v: "Conflicto" },
+          { t: "text", v: " o una " },
+          { t: "strong", v: "Advertencia" },
+          {
+            t: "text",
+            v: ", dice qué choca y enlaza a donde se corrige; nada se corrige por usted. Una hora por confirmar baja un conflicto a advertencia. Solo ve un conflicto cuando puede leer ambos lados.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Los responsables de hospitalidad también pueden elegir " },
+          { t: "strong", v: "Revisar solicitudes de viaje" },
+          {
+            t: "text",
+            v: " para comparar las fechas de viaje solicitadas con las llamadas de cada persona. Cada revisión queda registrada en el registro de acceso de la persona.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -4541,6 +4934,29 @@ export const HELP_BODIES: HelpBodies = {
           },
           { t: "strong", v: "Yo, Atajos de teclado" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h3", v: "Editar el orden de presentación como cuadrícula" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elija " },
+          { t: "strong", v: "Editar como cuadrícula" },
+          {
+            t: "text",
+            v: " para escribir los cues como en una hoja de cálculo: Hora, Duración, Etiqueta, Segmento y Por confirmar, en el orden de presentación. La hora acepta formas cortas como 8:30 p. m. o 20:30, y +1 marca un cue después de la medianoche; Duración acepta 45, 45m o 1h30. Escribir en la última fila agrega un cue, y ",
+          },
+          { t: "strong", v: "Subir" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Bajar" },
+          {
+            t: "text",
+            v: " reordenan. Los cues llamados, y los que van antes del último llamado, conservan su lugar. ",
+          },
+          { t: "strong", v: "Guardar" },
+          { t: "text", v: " muestra la vista previa; " },
+          { t: "strong", v: "Aplicar" },
+          { t: "text", v: " escribe todas las filas o ninguna y renumera los cues." },
         ],
       },
       { t: "h2", v: "Hojas del día" },

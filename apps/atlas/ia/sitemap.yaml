@@ -320,6 +320,21 @@ nodes:
             label: nav.atlas.pages.schedule.events
             route: "/{org}/schedule/events"
             list: { views: [list, calendar, table], default: list }
+          - id: schedule.days
+            kind: page
+            label: nav.atlas.pages.schedule.days
+            route: "/{org}/schedule/days"
+            list: { views: [table, calendar, list], default: table }
+          - id: schedule.workload
+            kind: page
+            label: nav.atlas.pages.schedule.workload
+            route: "/{org}/schedule/workload"
+            list: { views: [heatmap, table], default: heatmap }
+          - id: schedule.clashes
+            kind: page
+            label: nav.atlas.pages.schedule.clashes
+            route: "/{org}/schedule/clashes"
+            list: { views: [list, table], default: list }
       - id: work
         kind: item
         label: nav.atlas.items.work

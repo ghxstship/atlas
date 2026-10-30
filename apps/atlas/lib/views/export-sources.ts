@@ -1006,6 +1006,17 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "created_at",
   ]),
   "schedule/calendar": records,
+  // B4 (G-38): the projects' day types.
+  "schedule/days": source("app.project_days", [
+    "day_on",
+    "day_type",
+    "sort_order",
+    "label",
+    "location_text",
+    "time_zone",
+    "team_code",
+    "project_id",
+  ]),
   "schedule/events": source("app.workforce_events", [
     "event_kind",
     "title",
@@ -1127,6 +1138,11 @@ export const NOT_EXPORTED: Readonly<Record<string, string>> = {
   // which shows a moderator what they need to decide and nothing to carry away.
   "people/moderation":
     "Reported content stays in the moderation queue; an export would carry it out.",
+  // ADR 0143 decision 5: computed when read, never stored, so there is no relation to export from.
+  "schedule/workload":
+    "Hours are worked out from shifts and estimates as the page is read; nothing is stored to export.",
+  "schedule/clashes":
+    "Clashes are worked out as the page is read and shown only to someone who reads both sides; nothing is stored to export.",
 };
 
 export function exportEntryFor(collectionKey: string | null): ExportEntry | null {
