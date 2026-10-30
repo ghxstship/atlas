@@ -7,7 +7,7 @@ import { env } from "@/lib/env";
 import { getOrgContext } from "./context";
 
 /**
- * Sets the role lens of the org switcher (A128, ADR 0089) for the browser session: an httpOnly cookie with no
+ * Sets the role lens of the org switcher (A128, ADR 0107) for the browser session: an httpOnly cookie with no
  * expiry, naming the org and one role the person holds there. An empty role returns to All roles. A role the
  * person does not hold is ignored; the lens only narrows what the shell shows, so nothing here grants access.
  * A plain form action, so the switcher works before hydration and adds no JavaScript to the page.

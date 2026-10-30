@@ -9,7 +9,7 @@ import type { NavContext } from "@xos/ia";
 import type { Membership } from "./membership";
 
 /**
- * The role lens of the org switcher (Section 4.8.1, A128, ADR 0089). A person who holds several roles in the org
+ * The role lens of the org switcher (Section 4.8.1, A128, ADR 0107). A person who holds several roles in the org
  * narrows the shell to one of them for the browser session: navigation, search, the command and Create menus,
  * Home, My Work, Inbox and every control the context hides follow that role's capabilities, intersected with the
  * person's own (app.role_lens_capabilities), so the lens never shows more than All roles does. Row level security

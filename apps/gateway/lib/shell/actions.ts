@@ -66,7 +66,7 @@ export async function setActing(accountId: string): Promise<void> {
 }
 
 /**
- * The role lens (A128, ADR 0089): All roles (`all`), or one role type of the person's engagements, for the browser
+ * The role lens (A128, ADR 0107): All roles (`all`), or one role type of the person's engagements, for the browser
  * session (a cookie with no expiry). It only narrows what Gateway shows; a role type the person does not hold is
  * refused.
  */

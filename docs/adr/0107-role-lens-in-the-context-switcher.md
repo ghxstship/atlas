@@ -1,4 +1,4 @@
-# ADR 0089: The Role Lens in the Context Switcher
+# ADR 0107: The Role Lens in the Context Switcher
 
 - Status: Accepted
 - Date: 2026-10-27
@@ -14,8 +14,9 @@ Producer who is also a Member sees both roles' navigation, Inbox and controls at
 personal lens and is closed to most members. Gateway has no org roles at all: an external person's roles
 there are the role types of their engagements (Crew, Artist, Vendor and the rest, Section 4.4.2).
 
-The plan named this ADR 0062. That number was never used; it is recorded as 0089, the next free number
-after every package branch, so no two packages share one.
+The plan named this ADR 0062. Packages built since 4.0 take the next number above those in use on
+batch-c and on every package branch, rather than a gap left in the older range: batch-c ends at 0104
+in that sequence, R6a holds 0105 and A127 holds 0106, so this ADR is 0107.
 
 ## Decisions
 
@@ -47,9 +48,14 @@ held-role check would live in three places, and pgTAP could not hold them.
 Notifications do not record a role. `inboxItemCapabilities` names the capabilities that brought an item,
 as each sender picks recipients: an approval request by its document type's approve capability (the
 mapping of `private.spend_approve_capability`) or `crew.timesheet.approve`, an incident by
-`safety.incident.dispatch`, billing and lifecycle notices by the Owner or billing capability, and so on
-(`ROLE_ROUTED_KINDS`). Everything else (a mention, an assignment, the person's own shift, account notice or
-report) is addressed to the person and shows under every lens. The lens keeps an item when it holds one of
+`safety.incident.dispatch`, every billing notice (trials included) by `org.billing.read`, which
+`private.billing_owner_ids` and the dunning run pick by, and so on (`ROLE_ROUTED_KINDS`). Deletion and
+white-label notices go to the Owner role and break-glass notices to Owner and Admin, so they take a
+capability those roles hold (`org.organization.delete`, `org.security.write`). A weather alert also reaches
+the project roles a weather plan names, which are the person's own assignments, so it is not routed and
+shows under every lens. Everything else (a mention, an assignment, the person's own shift, account notice or
+report) is addressed to the person and shows under every lens. A unit test reads the latest migration that
+sends each capability-picked kind and checks its entry against the capability the sender picks recipients by. The lens keeps an item when it holds one of
 those capabilities at any reach, so a Member keeps what reaches them on assigned projects. No Inbox RPC
 needed a role parameter: the Inbox reads `app.inbox_items` and filters in the shell.
 
@@ -86,5 +92,6 @@ that its own guard then answers with 404.
 - Seed 2210_a128 gives Demo Multi-Role (multi@example.com, a Manager and a Member of the demo org, crew and
   an artist elsewhere) a timesheet approval request and a mention, for the Atlas and Gateway journeys and
   Compass's role-lens Maestro flow.
-- A new notification kind routed by a capability belongs in `ROLE_ROUTED_KINDS`; until it is added it shows
-  under every lens, which narrows less but never shows anything the person cannot see.
+- A new notification kind routed by a capability belongs in `ROLE_ROUTED_KINDS` and in the sender check of
+  `packages/data/test/role-lens.test.ts`, which fails when an entry lists a kind it does not check; until it is
+  added it shows under every lens, which narrows less but never shows anything the person cannot see.

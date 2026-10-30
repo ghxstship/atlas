@@ -1,4 +1,4 @@
--- pgTAP: the role lens (Section 4.8.1, A128, ADR 0089). A member narrows to one role they hold: the lens lists that
+-- pgTAP: the role lens (Section 4.8.1, A128, ADR 0107). A member narrows to one role they hold: the lens lists that
 -- role's capabilities capped at the member's own reach, never one they lack, and refuses a role they do not hold.
 -- Mia is a Member and a Field user of Northwind Live and a Viewer of Harbor Lights (0200_identity_world.psql).
 begin;

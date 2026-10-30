@@ -5,7 +5,7 @@ import { setRoleLensAction } from "@/lib/shell/role-lens-actions";
 type Translate = (key: string, values?: Record<string, string>) => string;
 
 /**
- * The role lens under the org switcher (Section 4.8.1, A128, ADR 0089): All roles, or one role the person holds in
+ * The role lens under the org switcher (Section 4.8.1, A128, ADR 0107): All roles, or one role the person holds in
  * the org. A server-rendered disclosure with a plain form, so it adds no JavaScript to any page (the shell's
  * pages sit close to their bundle budget) and works before hydration. Choosing an option sets the lens for the
  * browser session and renders the page again under it. It shows only for a person with two or more roles, and

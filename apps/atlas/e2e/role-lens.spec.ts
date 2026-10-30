@@ -4,7 +4,7 @@ import { expectAccessibleInBothThemes } from "./a16-support";
 import { signInAs as signIn } from "./a36-support";
 
 /**
- * The role lens under the org switcher (Section 4.8.1, A128, ADR 0089). Demo Multi-Role (multi@example.com) is a
+ * The role lens under the org switcher (Section 4.8.1, A128, ADR 0107). Demo Multi-Role (multi@example.com) is a
  * Producer and a Member of Demo Productions, and an Admin and a Field user of Demo Bayside Studios (seeds 1080_a38
  * and 2210_a128). Choosing one role hides the other role's navigation and Inbox items, All roles restores them,
  * and a lens never shows more than the person's own roles do.

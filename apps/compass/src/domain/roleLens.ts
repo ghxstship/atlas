@@ -1,5 +1,5 @@
 /**
- * The role lens in the org switcher (Section 4.8.1, A128, ADR 0089): All roles, or one of the person's roles in the
+ * The role lens in the org switcher (Section 4.8.1, A128, ADR 0107): All roles, or one of the person's roles in the
  * active org. A member narrows to one org role they hold: the screens follow that role's capabilities, intersected
  * with their own, so the lens never shows a control All roles would not. A person engaged by the org narrows to
  * one role type of their engagements (Crew, Artist and the rest): the screens follow those engagements only. The

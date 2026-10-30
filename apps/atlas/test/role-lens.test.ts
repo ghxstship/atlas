@@ -4,7 +4,7 @@ import { roleLensCookie } from "@xos/data/role-lens";
 import type { Membership } from "../lib/shell/membership";
 import { applyRoleLens } from "../lib/shell/role-lens";
 
-// The role lens of the org switcher (A128, ADR 0089): the lensed context is never wider than the person's own.
+// The role lens of the org switcher (A128, ADR 0107): the lensed context is never wider than the person's own.
 
 const MANAGER: Role = {
   id: "01920000-0000-7000-8000-00000000a001",
