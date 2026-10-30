@@ -75,5 +75,12 @@
     "state": "Estado",
     "updated": "Actualizado",
     "projectsTitle": "Proyectos cambiados recientemente"
+  },
+  "tiles": "Mosaicos de Inicio",
+  "layout": {
+    "resize": "Cambiar el tamaño de {tile}",
+    "span": "{tile}, {span} de 12 columnas",
+    "reset": "Restablecer diseño",
+    "saveFailed": "Tu diseño no se guardó. Inténtalo de nuevo."
   }
 }

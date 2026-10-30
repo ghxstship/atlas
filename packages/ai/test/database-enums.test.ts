@@ -6,7 +6,7 @@ import { AI_FEATURES } from "../src/model.ts";
 
 /**
  * This package sits below @xos/data, so its lists of database enum values cannot read Constants
- * (ADR 0120). Each is held here to the same values as its enum, in any order. A Record over a union
+ * (ADR 0123). Each is held here to the same values as its enum, in any order. A Record over a union
  * type must name each member once, so its keys are the union's members.
  */
 const suggestionStates: Record<AuroraSuggestion["suggestion_state"], true> = {

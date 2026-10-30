@@ -6,6 +6,7 @@
  * never hold memberships. Every "no" carries a reason, so the screen can show a refusal state that names
  * the next action instead of an empty page.
  */
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { Audience } from "@xos/sync";
 import { isInternal } from "@xos/sync";
 import { navigation } from "../navigation.generated";
@@ -76,7 +77,7 @@ const ALLOW: Access = { allowed: true };
 const deny = (reason: Denial): Access => ({ allowed: false, reason });
 
 /** Capability each internal feature needs on the project (canon capability codes, Section 8). */
-const INTERNAL_CAPABILITY: Readonly<Record<Feature, string | null>> = {
+const INTERNAL_CAPABILITY: Readonly<Record<Feature, CapabilityCode | null>> = {
   clock: "crew.time_entry.write",
   "kiosk.operate": "org.time_attendance.write",
   "shifts.swap": "crew.swap.request",

@@ -23,6 +23,7 @@ import { collectionState, withQuery, type SearchParams } from "@/lib/collection-
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import * as enums from "@xos/data/enums";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "vendors.refusals";
@@ -59,10 +60,9 @@ export async function VendorPrequalification({
   const title = t("prequalification.title");
   if (!items.ok || !vendors.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("prequalification.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canRequest = ctx.capabilities.has("vendors.vendor.write");

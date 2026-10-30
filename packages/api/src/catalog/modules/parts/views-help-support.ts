@@ -300,8 +300,8 @@ export const viewsHelpSupportResources: readonly ResourceSpec[] = [
   }),
 ];
 
-const personal = { read: "me.preferences.write", write: "me.preferences.write" };
-const support = { read: "me.account.write", write: "me.account.write" };
+const personal: CapabilityRule = { read: "me.preferences.write", write: "me.preferences.write" };
+const support: CapabilityRule = { read: "me.account.write", write: "me.account.write" };
 
 export const viewsHelpSupportCapabilities: Readonly<Record<string, CapabilityRule>> = {
   savedViewShares: { read: "my_work.items.read", write: "org.views.write" },

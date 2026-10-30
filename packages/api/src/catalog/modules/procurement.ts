@@ -8,6 +8,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
+import { fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
 import { rfqSealedResponseCorrections } from "./parts/rfq-sealed-responses.ts";
 import { procurementFieldHomes } from "./parts/playbook-field-homes.ts";
 import { procurementFieldExposure } from "./parts/playbook-field-exposure.ts";
@@ -30,6 +31,7 @@ const reasonBody = (id: string, what: string) =>
     .meta({ id, description: `Request to ${what}.` });
 
 export const additions = defineAdditions("Procurement", {
+  actions: { purchaseOrders: [fieldHistoryAction("purchase order")] },
   corrections: [
     {
       id: "rfq-number-and-deadline",

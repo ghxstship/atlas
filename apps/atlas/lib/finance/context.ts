@@ -1,6 +1,7 @@
 import { listRoleCapabilities } from "@xos/data";
 import { listProjects, type ProjectRef } from "@xos/data/finance";
 import { getNode, isNodeVisible } from "@xos/ia";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { requireNode } from "@/lib/shell/require-node";
@@ -21,9 +22,9 @@ export type Reach = Database["app"]["Enums"]["capability_reach"];
 
 export interface FinanceAccess {
   /** The best reach the viewer holds for a capability, or null when they hold none. */
-  readonly reach: (capability: string) => Reach | null;
+  readonly reach: (capability: CapabilityCode) => Reach | null;
   /** True when the viewer holds the capability at any reach. */
-  readonly can: (capability: string) => boolean;
+  readonly can: (capability: CapabilityCode) => boolean;
 }
 
 export const getAccess = cache(async (ctx: OrgContext): Promise<FinanceAccess> => {

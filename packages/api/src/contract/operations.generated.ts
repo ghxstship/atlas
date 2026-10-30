@@ -832,6 +832,34 @@ export interface Components {
     condition_enum_id: string | null;
     home_venue_id: string | null;
   };
+  AssetUnitBulkEditRequest: { rows: Array<Components["AssetUnitBulkRow"]>; reason?: string };
+  AssetUnitBulkEditResult: {
+    preview: boolean;
+    committed: boolean;
+    changed: number;
+    unchanged: number;
+    refused: Array<Components["BulkEditRefusal"]>;
+    inverse: Array<Components["AssetUnitBulkRow"]>;
+  };
+  AssetUnitBulkRow: {
+    id: string;
+    set: Components["AssetUnitBulkValues"];
+    expect?: Components["AssetUnitBulkValues"];
+  };
+  AssetUnitBulkValues: {
+    asset_state?:
+      | "Proposed"
+      | "Received"
+      | "Available"
+      | "Reserved"
+      | "Deployed"
+      | "In Maintenance"
+      | "Damaged"
+      | "Lost"
+      | "Retired";
+    home_venue_id?: string | null;
+    condition_enum_id?: string | null;
+  };
   AssetUnitCreate: {
     asset_class_id: string;
     asset_tag: string;
@@ -1375,6 +1403,7 @@ export interface Components {
     variance: Components["MoneyTotal"];
   };
   BudgetUpdate: { name?: string; currency_code?: string; is_baseline?: boolean };
+  BulkEditRefusal: { id: string | null; rule: string; message: string };
   Calendar: {
     id: string;
     org_id: string;
@@ -2691,6 +2720,13 @@ export interface Components {
     project_id: string | null;
   };
   DocumentCreate: { title: string; project_id?: string | null };
+  DocumentNotes: {
+    document_id: string;
+    text: string | null;
+    generation: number;
+    saved_through: number;
+    latest_edit: number;
+  };
   DocumentPage: { data: Array<Components["Document"]>; next_cursor: string | null };
   DocumentUpdate: { title?: string; project_id?: string | null };
   DocumentVersion: {
@@ -3138,6 +3174,19 @@ export interface Components {
   FeedReactionRequest: {
     reaction_code: "thumbs_up" | "heart" | "check" | "eyes" | "laugh" | "celebrate";
     on?: boolean;
+  };
+  FieldHistoryChange: { field: string; old_value?: unknown; new_value?: unknown; masked: boolean };
+  FieldHistoryEvent: {
+    event_id: string;
+    changed_at: string;
+    actor_person_id: string | null;
+    actor_name: string | null;
+    operation: "insert" | "update" | "delete";
+    changes: Array<Components["FieldHistoryChange"]>;
+  };
+  FieldHistoryEventPage: {
+    data: Array<Components["FieldHistoryEvent"]>;
+    next_cursor: string | null;
   };
   Fields: string;
   Filter: Record<
@@ -4103,6 +4152,23 @@ export interface Components {
     counterparty_id: string | null;
     payee_person_id: string | null;
     engagement_id: string | null;
+  };
+  InvoiceBulkEditRequest: { rows: Array<Components["InvoiceBulkRow"]>; reason?: string };
+  InvoiceBulkEditResult: {
+    preview: boolean;
+    committed: boolean;
+    changed: number;
+    unchanged: number;
+    refused: Array<Components["BulkEditRefusal"]>;
+    inverse: Array<Components["InvoiceBulkRow"]>;
+  };
+  InvoiceBulkRow: {
+    id: string;
+    set: Components["InvoiceBulkValues"];
+    expect?: Components["InvoiceBulkValues"];
+  };
+  InvoiceBulkValues: {
+    invoice_state?: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
   };
   InvoiceCreate: {
     project_id: string;
@@ -6381,6 +6447,29 @@ export interface Components {
     permit_identifier: string | null;
     inspection_result_enum_id: string | null;
   };
+  RecordBulkEditRequest: { rows: Array<Components["RecordBulkRow"]>; reason?: string };
+  RecordBulkEditResult: {
+    preview: boolean;
+    committed: boolean;
+    changed: number;
+    unchanged: number;
+    refused: Array<Components["BulkEditRefusal"]>;
+    inverse: Array<Components["RecordBulkRow"]>;
+  };
+  RecordBulkRow: {
+    id: string;
+    set: Components["RecordBulkValues"];
+    expect?: Components["RecordBulkValues"];
+  };
+  RecordBulkValues: {
+    record_state?: Components["RecordState"];
+    owner_party_id?: string | null;
+    accountable_party_id?: string | null;
+    due_at?: string | null;
+    phase_code?: Components["PhaseCode"] | null;
+    blocker_text?: string | null;
+    replan_reason?: string | null;
+  };
   RecordChecklistItem: {
     id: string;
     org_id: string;
@@ -7514,6 +7603,24 @@ export interface Components {
     scope_node_id: string | null;
     time_zone: string;
     scheduled_break_minutes: number | null;
+  };
+  ShiftBulkEditRequest: { rows: Array<Components["ShiftBulkRow"]>; reason?: string };
+  ShiftBulkEditResult: {
+    preview: boolean;
+    committed: boolean;
+    changed: number;
+    unchanged: number;
+    refused: Array<Components["BulkEditRefusal"]>;
+    inverse: Array<Components["ShiftBulkRow"]>;
+  };
+  ShiftBulkRow: {
+    id: string;
+    set: Components["ShiftBulkValues"];
+    expect?: Components["ShiftBulkValues"];
+  };
+  ShiftBulkValues: {
+    shift_state?: "Draft" | "Published" | "Accepted" | "Canceled";
+    membership_id?: string | null;
   };
   ShiftClaimResult: {
     id: string;
@@ -10138,6 +10245,33 @@ export interface Operations {
     body: undefined;
     responses: { 201: Components["Record"] };
   };
+  "records.bulkPreview": {
+    module: "Work";
+    method: "post";
+    path: "/records/bulk-preview";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["RecordBulkEditRequest"];
+    responses: { 200: Components["RecordBulkEditResult"] };
+  };
+  "records.bulkUpdate": {
+    module: "Work";
+    method: "post";
+    path: "/records/bulk-update";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["RecordBulkEditRequest"];
+    responses: { 200: Components["RecordBulkEditResult"] };
+  };
+  "records.fieldHistory": {
+    module: "Work";
+    method: "get";
+    path: "/records/{id}/field-history";
+    params: { id: string };
+    query: { limit?: number };
+    body: undefined;
+    responses: { 200: Components["FieldHistoryEventPage"] };
+  };
   "recordStateTransitions.list": {
     module: "Work";
     method: "get";
@@ -10672,6 +10806,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["Sop"] };
   };
+  "sops.fieldHistory": {
+    module: "Knowledge";
+    method: "get";
+    path: "/sops/{id}/field-history";
+    params: { id: string };
+    query: { limit?: number };
+    body: undefined;
+    responses: { 200: Components["FieldHistoryEventPage"] };
+  };
   "sopAcknowledgments.list": {
     module: "Knowledge";
     method: "get";
@@ -10755,6 +10898,24 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "documents.fieldHistory": {
+    module: "Knowledge";
+    method: "get";
+    path: "/documents/{id}/field-history";
+    params: { id: string };
+    query: { limit?: number };
+    body: undefined;
+    responses: { 200: Components["FieldHistoryEventPage"] };
+  };
+  "documents.notes": {
+    module: "Knowledge";
+    method: "get";
+    path: "/documents/{id}/notes";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["DocumentNotes"] };
   };
   "documentVersions.list": {
     module: "Knowledge";
@@ -12232,6 +12393,33 @@ export interface Operations {
     body: Components["AssetScanEvent"];
     responses: { 200: Components["AssetScanResult"] };
   };
+  "assetUnits.bulkPreview": {
+    module: "Assets";
+    method: "post";
+    path: "/asset-units/bulk-preview";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AssetUnitBulkEditRequest"];
+    responses: { 200: Components["AssetUnitBulkEditResult"] };
+  };
+  "assetUnits.bulkUpdate": {
+    module: "Assets";
+    method: "post";
+    path: "/asset-units/bulk-update";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AssetUnitBulkEditRequest"];
+    responses: { 200: Components["AssetUnitBulkEditResult"] };
+  };
+  "assetUnits.fieldHistory": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-units/{id}/field-history";
+    params: { id: string };
+    query: { limit?: number };
+    body: undefined;
+    responses: { 200: Components["FieldHistoryEventPage"] };
+  };
   "assetLots.list": {
     module: "Assets";
     method: "get";
@@ -12786,6 +12974,33 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["ShiftClaimResult"] };
+  };
+  "shifts.bulkPreview": {
+    module: "Crew";
+    method: "post";
+    path: "/shifts/bulk-preview";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShiftBulkEditRequest"];
+    responses: { 200: Components["ShiftBulkEditResult"] };
+  };
+  "shifts.bulkUpdate": {
+    module: "Crew";
+    method: "post";
+    path: "/shifts/bulk-update";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShiftBulkEditRequest"];
+    responses: { 200: Components["ShiftBulkEditResult"] };
+  };
+  "shifts.fieldHistory": {
+    module: "Crew";
+    method: "get";
+    path: "/shifts/{id}/field-history";
+    params: { id: string };
+    query: { limit?: number };
+    body: undefined;
+    responses: { 200: Components["FieldHistoryEventPage"] };
   };
   "shiftSwaps.list": {
     module: "Crew";
@@ -14554,6 +14769,33 @@ export interface Operations {
     body: Components["InvoicePaymentRequest"];
     responses: { 200: Components["Invoice"] };
   };
+  "invoices.bulkPreview": {
+    module: "Finance";
+    method: "post";
+    path: "/invoices/bulk-preview";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["InvoiceBulkEditRequest"];
+    responses: { 200: Components["InvoiceBulkEditResult"] };
+  };
+  "invoices.bulkUpdate": {
+    module: "Finance";
+    method: "post";
+    path: "/invoices/bulk-update";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["InvoiceBulkEditRequest"];
+    responses: { 200: Components["InvoiceBulkEditResult"] };
+  };
+  "invoices.fieldHistory": {
+    module: "Finance";
+    method: "get";
+    path: "/invoices/{id}/field-history";
+    params: { id: string };
+    query: { limit?: number };
+    body: undefined;
+    responses: { 200: Components["FieldHistoryEventPage"] };
+  };
   "invoiceLines.list": {
     module: "Finance";
     method: "get";
@@ -15172,6 +15414,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["PurchaseOrder"] };
   };
+  "purchaseOrders.fieldHistory": {
+    module: "Procurement";
+    method: "get";
+    path: "/purchase-orders/{id}/field-history";
+    params: { id: string };
+    query: { limit?: number };
+    body: undefined;
+    responses: { 200: Components["FieldHistoryEventPage"] };
+  };
   "poLines.list": {
     module: "Procurement";
     method: "get";
@@ -15552,6 +15803,15 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["VendorTransitionRequest"];
     responses: { 200: Components["Vendor"] };
+  };
+  "vendors.fieldHistory": {
+    module: "Vendors";
+    method: "get";
+    path: "/vendors/{id}/field-history";
+    params: { id: string };
+    query: { limit?: number };
+    body: undefined;
+    responses: { 200: Components["FieldHistoryEventPage"] };
   };
   "vendorClasses.list": {
     module: "Vendors";
@@ -26814,6 +27074,9 @@ export interface ModuleOperations {
     | "records.delete"
     | "records.transition"
     | "records.duplicate"
+    | "records.bulkPreview"
+    | "records.bulkUpdate"
+    | "records.fieldHistory"
     | "recordStateTransitions.list"
     | "recordStateTransitions.get"
     | "recordReplans.list"
@@ -26873,6 +27136,7 @@ export interface ModuleOperations {
     | "sops.update"
     | "sops.delete"
     | "sops.publish"
+    | "sops.fieldHistory"
     | "sopAcknowledgments.list"
     | "sopAcknowledgments.create"
     | "sopAcknowledgments.get"
@@ -26881,6 +27145,8 @@ export interface ModuleOperations {
     | "documents.get"
     | "documents.update"
     | "documents.delete"
+    | "documents.fieldHistory"
+    | "documents.notes"
     | "documentVersions.list"
     | "documentVersions.create"
     | "documentVersions.get"
@@ -27037,6 +27303,9 @@ export interface ModuleOperations {
     | "assetUnits.transition"
     | "assetUnits.scan"
     | "assetUnits.applyScan"
+    | "assetUnits.bulkPreview"
+    | "assetUnits.bulkUpdate"
+    | "assetUnits.fieldHistory"
     | "assetLots.list"
     | "assetLots.create"
     | "assetLots.get"
@@ -27183,6 +27452,9 @@ export interface ModuleOperations {
     | "shifts.transition"
     | "shifts.accept"
     | "shifts.claim"
+    | "shifts.bulkPreview"
+    | "shifts.bulkUpdate"
+    | "shifts.fieldHistory"
     | "shiftSwaps.list"
     | "shiftSwaps.create"
     | "shiftSwaps.get"
@@ -27356,6 +27628,9 @@ export interface ModuleOperations {
     | "invoices.transition"
     | "invoices.approve"
     | "invoices.recordPayment"
+    | "invoices.bulkPreview"
+    | "invoices.bulkUpdate"
+    | "invoices.fieldHistory"
     | "invoiceLines.list"
     | "invoiceLines.create"
     | "invoiceLines.get"
@@ -27418,6 +27693,7 @@ export interface ModuleOperations {
     | "purchaseOrders.approve"
     | "purchaseOrders.transition"
     | "purchaseOrders.acknowledge"
+    | "purchaseOrders.fieldHistory"
     | "poLines.list"
     | "poLines.create"
     | "poLines.get"
@@ -27456,6 +27732,7 @@ export interface ModuleOperations {
     | "vendors.update"
     | "vendors.delete"
     | "vendors.transition"
+    | "vendors.fieldHistory"
     | "vendorClasses.list"
     | "vendorClasses.create"
     | "vendorClasses.get"

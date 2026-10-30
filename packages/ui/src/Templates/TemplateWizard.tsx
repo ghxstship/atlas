@@ -18,7 +18,10 @@ export function TemplateWizard({
   const t = useT();
   const last = current >= steps.length - 1;
   return (
-    <div className="flex flex-col gap-24 w-full max-w-(--layout-form) mx-auto">
+    <div
+      data-template="wizard"
+      className="flex flex-col gap-24 w-full max-w-(--layout-form) mx-auto"
+    >
       <Stepper steps={steps} current={current} />
       <section className="flex flex-col gap-16">
         <h1 className="m-0 text-heading-20 font-semibold">{title}</h1>

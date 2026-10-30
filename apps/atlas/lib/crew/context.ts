@@ -8,6 +8,7 @@ import {
   type MemberRef,
   type ProjectRef,
 } from "@xos/data/crew";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { getCanonLabels } from "@/lib/canon/labels";
@@ -29,9 +30,9 @@ export interface CrewContext {
   readonly slug: string;
   readonly membershipId: string;
   /** True when the viewer holds the capability at any reach. */
-  readonly can: (capability: string) => boolean;
+  readonly can: (capability: CapabilityCode) => boolean;
   /** True when the viewer holds the capability across the org. */
-  readonly canAll: (capability: string) => boolean;
+  readonly canAll: (capability: CapabilityCode) => boolean;
   /** The project a project tab is scoped to; null on org-level pages. */
   readonly project: ProjectRef | null;
 }

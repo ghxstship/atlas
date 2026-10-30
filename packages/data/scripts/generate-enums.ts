@@ -7,7 +7,7 @@ import { Constants } from "../src/database.types.ts";
  * Writes src/enums.generated.ts from the Constants of src/database.types.ts: one named export per
  * database enum (`exportFormat` for app.export_format, `xpmsRefusal` for xpms.refusal). Client
  * components import these, because a bundler keeps only the lists a module names, where importing
- * Constants ships every enum to the browser (Section 3.15, rule 3; ADR 0120).
+ * Constants ships every enum to the browser (Section 3.15, rule 3; ADR 0123).
  * types:generate runs this after it rewrites database.types.ts. With --check, writes nothing and exits
  * 1 when the generated file is out of date.
  */

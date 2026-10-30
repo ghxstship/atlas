@@ -12,7 +12,11 @@
     },
     "lint": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/packages/data/src/database.types.ts"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/data/src/database.types.ts",
+        "$TURBO_ROOT$/packages/schemas/src/capabilities/codes.generated.ts"
+      ]
     },
     "typecheck": {
       "dependsOn": ["^build"]

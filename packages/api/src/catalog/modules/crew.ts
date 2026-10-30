@@ -10,6 +10,7 @@
 import { z } from "@hono/zod-openapi";
 import { canonCodes, exampleOf, fields, maskable } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
+import { fieldHistoryAction, shiftBulkActions } from "./parts/bulk-edit-and-history.ts";
 import {
   all,
   editShape,
@@ -88,6 +89,7 @@ const shiftClaimResult = (shift: z.ZodObject) => {
 };
 
 export const additions = defineAdditions("Crew", {
+  actions: { shifts: [...shiftBulkActions, fieldHistoryAction("shift")] },
   corrections: [
     {
       id: "shift-worker-and-time-zone",

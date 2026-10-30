@@ -10,7 +10,7 @@ import { SAVED_VIEW_TYPES } from "../src/views/model.ts";
 
 /**
  * @xos/data depends on this package, so its lists of database enum values cannot read Constants
- * (ADR 0120). Each is held here to the same values as its enum, in any order.
+ * (ADR 0123). Each is held here to the same values as its enum, in any order.
  */
 // A Record over a union type must name each member once, so its keys are the union's members.
 const valueTypes: Record<ReturnType<typeof dbValueType>, true> = {

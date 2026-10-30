@@ -3,7 +3,7 @@
  *
  * A state, kind or status that the database defines as an enum has one home: the enum, as the
  * generated `Constants` and `Database["…"]["Enums"]` of @xos/data/database.types, or one list of
- * @xos/data/enums in code a browser loads (ADR 0120). Code that writes the values out again drifts
+ * @xos/data/enums in code a browser loads (ADR 0123). Code that writes the values out again drifts
  * the day a migration adds or renames one.
  * The rule reports a string-literal union type or an array of string literals whose values are
  * exactly the values of one database enum, in any order. A subset is not reported: a list of the

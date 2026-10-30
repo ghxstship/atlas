@@ -8,19 +8,20 @@ const row = (over: Record<string, unknown>) => ({
   actor_person_id: "p1",
   actor_name: "Dave Lindqvist",
   operation: "update",
-  field: null,
-  old_value: null,
-  new_value: null,
-  masked: false,
+  changes: [],
   ...over,
 });
 
 describe("field history", () => {
-  it("groups changed fields into events, newest first, and keeps masked values out", () => {
+  it("maps one row per event, newest first, and keeps masked values out", () => {
     expect(
       toHistoryEvents([
-        row({ field: "owner_party_id", old_value: null, new_value: "p2" }),
-        row({ field: "title", old_value: "Hang", new_value: "Hang both", masked: true }),
+        row({
+          changes: [
+            { field: "owner_party_id", old_value: null, new_value: "p2", masked: false },
+            { field: "title", old_value: "Hang", new_value: "Hang both", masked: true },
+          ],
+        }),
         row({ event_id: "e0", changed_at: "2026-10-20T09:00:00Z", operation: "insert" }),
       ]),
     ).toEqual([
@@ -46,7 +47,21 @@ describe("field history", () => {
     ]);
   });
 
-  it("calls app.field_history and maps a refusal", async () => {
+  it("keeps every change of an event, however many fields it changed", () => {
+    const changes = Array.from({ length: 40 }, (_, i) => ({
+      field: `f${String(i).padStart(2, "0")}`,
+      old_value: i,
+      new_value: i + 1,
+      masked: false,
+    }));
+    const events = toHistoryEvents(
+      Array.from({ length: 1000 }, (_, i) => row({ event_id: `e${i}`, changes })),
+    );
+    expect(events).toHaveLength(1000);
+    expect(events.every((e) => e.changes.length === 40)).toBe(true);
+  });
+
+  it("calls app.field_history_events and maps a refusal", async () => {
     const calls: unknown[] = [];
     const answer = (result: unknown) =>
       ({
@@ -62,7 +77,7 @@ describe("field history", () => {
     );
     expect(done.ok && done.data[0]?.operation).toBe("delete");
     expect(calls[0]).toEqual([
-      "field_history",
+      "field_history_events",
       { p_subject_table: "app.records", p_subject_id: "r1", p_limit: 200 },
     ]);
     const hidden = await getFieldHistory(

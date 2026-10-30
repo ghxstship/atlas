@@ -40,6 +40,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { REFUSALS, memberOptions, orgPickers, workforceCopy } from "./shared";
 import * as enums from "@xos/data/enums";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "table", "gallery"];
 
@@ -79,10 +80,9 @@ export async function TrainingSection({
   const title = t("training.title");
   if (!courses.ok || !progress.ok || !completions.ok || !assignments.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("training.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canEdit = ctx.capabilities.has("knowledge.sop.publish");

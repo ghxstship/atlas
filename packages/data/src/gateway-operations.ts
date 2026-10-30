@@ -258,6 +258,27 @@ export function acknowledgePurchaseOrder(
   return callId(db.rpc("acknowledge_purchase_order", { p_purchase_order_id: purchaseOrderId }));
 }
 
+/**
+ * The vendor submits a Proposed submittal or resubmits a Returned one with a note
+ * (app.submit_engaged_submittal, R2); returns the transition id.
+ */
+export function submitEngagedSubmittal(
+  db: XosClient,
+  input: {
+    readonly submittalId: string;
+    readonly expected: "Proposed" | "Returned";
+    readonly note: string;
+  },
+): Promise<Result<{ id: string }>> {
+  return callId(
+    db.rpc("submit_engaged_submittal", {
+      p_submittal_id: input.submittalId,
+      p_expected: input.expected,
+      p_note: input.note,
+    }),
+  );
+}
+
 // Artist and advancing -------------------------------------------------------------------------------
 
 /** The engaged party answers an advance section (app.submit_engaged_advance_answer). */

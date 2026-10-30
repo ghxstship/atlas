@@ -2,7 +2,7 @@
  * The database enums as plain lists, read from the Constants block of the generated
  * packages/data/src/database.types.ts. The xos/no-restated-enums rule reads them, and so do the tests
  * of packages that sit below @xos/data in the dependency graph and cannot import Constants: each
- * holds its own copy of an enum equal to the database's (ADR 0120).
+ * holds its own copy of an enum equal to the database's (ADR 0123).
  */
 
 import { readFileSync } from "node:fs";

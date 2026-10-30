@@ -3,7 +3,7 @@
  * owned by a data agent; when the generated database types land, these are checked against them.
  * Values keep the order the spec gives, which is also the lifecycle order.
  * @xos/data depends on this package, so these cannot read its Constants: test/database-enums.test.ts
- * holds each list equal to its enum instead (ADR 0120).
+ * holds each list equal to its enum instead (ADR 0123).
  */
 /* eslint-disable xos/no-restated-enums */
 import { z } from "zod";

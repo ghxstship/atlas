@@ -1,4 +1,4 @@
-# ADR 0120: Database Enums Have One Home in Code
+# ADR 0123: Database Enums Have One Home in Code
 
 - Status: Accepted
 - Date: 2026-10-28

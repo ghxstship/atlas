@@ -4,7 +4,7 @@ import { REFUSAL_KINDS } from "../src/runtime/errors.ts";
 import { FILTER_OPERATORS } from "../src/runtime/types.ts";
 
 /**
- * The SDK is published on its own and cannot read @xos/data's Constants (ADR 0120). Its lists of
+ * The SDK is published on its own and cannot read @xos/data's Constants (ADR 0123). Its lists of
  * database enum values are held here to the same values as their enums, in any order.
  */
 const lists: readonly (readonly [string, readonly string[]])[] = [

@@ -10,6 +10,7 @@ import { z } from "zod";
 import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { exponentOf, getExponents } from "@/lib/finance/money";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { observability } from "@/lib/observability";
 import * as enums from "@xos/data/enums";
 
@@ -401,6 +402,9 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
   if (!direction.success) return inputError("direction");
   const code = currency.safeParse(f["currency"]);
   if (!code.success) return inputError("currency");
+  const custom = await customFieldsOf(ctx, "app.invoices", form);
+  const problem = Object.entries(custom.fieldErrors ?? {})[0];
+  if (problem) return inputError(...problem);
   const result = await finance.createInvoice(ctx.viewer.db, ctx.org.id, {
     ...dates,
     projectId: project.data,
@@ -408,6 +412,7 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
     direction: direction.data,
     currency: code.data,
   });
+  if (result.ok) await custom.save(result.data.id);
   // A form Aurora filled from a document closes its suggestions with the invoice written (A95).
   if (result.ok) {
     await applySuggestions(

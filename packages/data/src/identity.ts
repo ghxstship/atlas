@@ -1,3 +1,4 @@
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { Database, XosClient } from "./client.ts";
 
 /** An insert whose org_id the database derives from its parent row (ADR 0002 tenant guards). */
@@ -279,7 +280,7 @@ export async function renameOrganization(
 export async function listRoleCapabilities(
   db: XosClient,
   roleIds: readonly string[],
-): Promise<Result<Map<string, Database["app"]["Enums"]["capability_reach"]>>> {
+): Promise<Result<Map<CapabilityCode, Database["app"]["Enums"]["capability_reach"]>>> {
   if (roleIds.length === 0) return ok(new Map());
   const { data, error } = await db
     .from("role_capabilities")
@@ -288,11 +289,13 @@ export async function listRoleCapabilities(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const order = { own: 0, assigned: 1, organization: 2 } as const;
-  const reach = new Map<string, Database["app"]["Enums"]["capability_reach"]>();
+  const reach = new Map<CapabilityCode, Database["app"]["Enums"]["capability_reach"]>();
   for (const row of data) {
-    const current = reach.get(row.capability_code);
+    // capability_code references app.capabilities, which migration 0203 seeds from the registry.
+    const code = row.capability_code as CapabilityCode;
+    const current = reach.get(code);
     if (current === undefined || order[row.reach] > order[current]) {
-      reach.set(row.capability_code, row.reach);
+      reach.set(code, row.reach);
     }
   }
   return ok(reach);

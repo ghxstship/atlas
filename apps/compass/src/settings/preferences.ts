@@ -29,14 +29,18 @@ export type RegistrySection = keyof typeof SECTION_PAGES;
 /** Settings Compass draws elsewhere: the theme stays on Settings itself, beside Sunlight, the device's own theme. */
 export const SHOWN_ELSEWHERE: ReadonlySet<string> = new Set(["me.theme"]);
 
-/** The registered settings a section shows, in registry order; a hidden setting is never offered. */
+/**
+ * The registered settings a section shows, in registry order; a hidden setting is never offered, nor a
+ * layout, which a person arranges on its Atlas dashboard (A129).
+ */
 export function sectionSettings(
   section: RegistrySection,
   settings: readonly SettingDefinition[] = SETTINGS,
 ): SettingDefinition[] {
   const page = SECTION_PAGES[section];
   return settings.filter(
-    (s) => s.pages.personal === page && !s.hidden && !SHOWN_ELSEWHERE.has(s.key),
+    (s) =>
+      s.pages.personal === page && !s.hidden && s.input !== "layout" && !SHOWN_ELSEWHERE.has(s.key),
   );
 }
 

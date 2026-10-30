@@ -287,8 +287,11 @@ const ProjectMeasurementSummary = defineResource({
   },
 });
 
-const read = { read: "projects.gate.read" };
-const readWrite = { read: "projects.gate.read", write: "projects.gate.evidence.write" };
+const read: CapabilityRule = { read: "projects.gate.read" };
+const readWrite: CapabilityRule = {
+  read: "projects.gate.read",
+  write: "projects.gate.evidence.write",
+};
 
 export const measurementResources: readonly ResourceSpec[] = [
   resource("Projects", "/measurement-metrics", MeasurementMetric, {

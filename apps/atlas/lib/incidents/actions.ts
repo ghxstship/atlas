@@ -26,6 +26,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { failed, type ActionState } from "@/lib/operations/state";
 import { localToInstant } from "@/lib/operations/time";
 import * as enums from "@xos/data/enums";
@@ -94,6 +95,8 @@ export async function reportIncidentAction(_: ActionState, form: FormData): Prom
   if (!occurredAt || new Date(occurredAt) > new Date(Date.now() + 5 * 60_000)) {
     return { error: "occurredAt" };
   }
+  const custom = await customFieldsOf(ctx, "app.incidents", form);
+  if (custom.fieldErrors) return { error: "incidentInput" };
   const result = await reportIncident(ctx.viewer.db, {
     orgId: ctx.org.id,
     projectId: parsed.data.projectId,
@@ -103,6 +106,7 @@ export async function reportIncidentAction(_: ActionState, form: FormData): Prom
     zoneId: parsed.data.zoneId ?? null,
   });
   if (!result.ok) return failed(result.error);
+  await custom.save(result.data.id);
   return done(ctx.org.slug, { number: String(result.data.incidentNumber) });
 }
 

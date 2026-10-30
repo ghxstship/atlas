@@ -1,3 +1,4 @@
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { XosClient } from "./client.ts";
 import type { Result } from "./result.ts";
 import { rpc, str, strOrNull, type Raw } from "./platform-common.ts";
@@ -12,7 +13,7 @@ import type { Database } from "./database.types.ts";
 export type Reach = Database["app"]["Enums"]["capability_reach"];
 
 export interface PreviewCapability {
-  readonly capability: string;
+  readonly capability: CapabilityCode;
   readonly roleReach: Reach;
   readonly viewerReach: Reach | null;
   /** The lesser of the two; null when the viewer lacks the capability. */
@@ -26,7 +27,8 @@ export function viewAsCapabilities(
 ): Promise<Result<PreviewCapability[]>> {
   return rpc(db, "view_as_capabilities", { p_org_id: orgId, p_role_id: roleId }, (data) =>
     ((data as Raw[] | null) ?? []).map((r) => ({
-      capability: str(r["capability_code"]),
+      // capability_code comes from app.capabilities, seeded from the registry.
+      capability: str(r["capability_code"]) as CapabilityCode,
       roleReach: str(r["role_reach"]) as Reach,
       viewerReach: strOrNull(r["viewer_reach"]) as Reach | null,
       previewReach: strOrNull(r["preview_reach"]) as Reach | null,
@@ -35,7 +37,9 @@ export function viewAsCapabilities(
 }
 
 /** The capabilities a preview grants at organization reach, the set the shell narrows controls to. */
-export function previewOrgCapabilities(capabilities: readonly PreviewCapability[]): Set<string> {
+export function previewOrgCapabilities(
+  capabilities: readonly PreviewCapability[],
+): Set<CapabilityCode> {
   return new Set(
     capabilities.filter((c) => c.previewReach === "organization").map((c) => c.capability),
   );
