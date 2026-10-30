@@ -31,6 +31,14 @@
       "decided": {
         "subject": "{title} was {decision, select, approved {approved} other {rejected}}",
         "body": "{actorName} {decision, select, approved {approved} other {rejected}} {title}."
+      },
+      "reminder": {
+        "subject": "Reminder: {title} is waiting on you",
+        "body": "{title} has waited for your decision since {waitingSince, date, medium}. This is reminder {reminderNumber} of {reminderLimit}."
+      },
+      "link_code": {
+        "subject": "Your access code from {orgName}",
+        "body": "Your access code for {title} is in this email."
       }
     },
     "comment": {
@@ -371,5 +379,12 @@
   "deletionCertificate": {
     "subject": "Deletion certificate for {org}",
     "body": "The data of {org} was deleted from XOS on {date}, as the organization's lifecycle set out.\n\nYour deletion certificate is attached. Its id is {id}. You can also download it from Atlas while you have an account.\n\nEncrypted backups made before the deletion age out on their own schedule."
+  },
+  "approval_link_code": {
+    "subject": "Your code to decide for {orgName}",
+    "heading": "Your access code",
+    "body": "{orgName} asked you to decide an approval. Enter this code on the page you opened from the approval email:",
+    "expiry": "The code works for {minutes} minutes and only with the link it was requested from.",
+    "ignore": "If you did not ask for a code, ignore this email. Nothing is decided without the code and the link."
   }
 }

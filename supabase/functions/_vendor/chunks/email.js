@@ -19,6 +19,7 @@ var TEMPLATE_CODES = [
   "dsar_received",
   "subprocessor_confirm",
   "subprocessor_notice",
+  "approval_link_code",
 ];
 //#endregion
 //#region ../email/src/render.ts

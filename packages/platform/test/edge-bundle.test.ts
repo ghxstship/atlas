@@ -109,12 +109,16 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // email action copy in both locales (about 3.5 KB); 182.1 KB on 2026-10-27.
   "notification-dispatch": 186,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
-  // which the org export reaches at boot; 211.5 KB on 2026-10-25.
-  "org-lifecycle": 215,
+  // which the org export reaches at boot; 211.5 KB on 2026-10-25. P9: the shared stores mint an approval link's access
+  // code, and the email copy chunks carry the access-code email and the approval reminder in both locales (about
+  // 1.5 KB at boot); 216.4 KB on 2026-10-30.
+  "org-lifecycle": 219,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 145,
+  // P9: every kind's copy grew by approval.reminder and approval.link_code in both locales (about 1.4 KB); 146.4 KB on
+  // 2026-10-30.
+  "sms-webhook": 149,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,

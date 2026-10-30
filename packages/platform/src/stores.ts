@@ -357,6 +357,10 @@ export function notificationStore(
       }));
       return actionLinks(minted, { atlasUrl: options.appUrl, gatewayUrl: options.gatewayUrl });
     },
+    async mintApprovalLinkCodeFor(claim) {
+      const code = await db.rpc("mint_approval_link_code", { p_delivery_id: claim.deliveryId });
+      return typeof code === "string" ? code : null;
+    },
     async record(deliveryId, outcome, providerMessageId, error) {
       await db.rpc("record_notification_delivery", {
         p_delivery_id: deliveryId,

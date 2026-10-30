@@ -35,6 +35,15 @@ export interface InboxItem {
   readonly args: Readonly<Record<string, string>>;
   /** For an approval request: the approval it asks for, as it stands now. */
   readonly approval: InboxApproval | null;
+  /** For a request or reminder about a pass, dock booking or equipment approval (P9): its computed state now. */
+  readonly subjectApproval?: InboxSubjectApproval | null;
+}
+
+export interface InboxSubjectApproval {
+  readonly state: string;
+  /** Pass, Delivery or Equipment. */
+  readonly subject: string;
+  readonly currentStep: number | null;
 }
 
 function args(v: unknown): Record<string, string> {
@@ -53,7 +62,7 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
     untyped(db)
       .from("inbox_items")
       .select(
-        "id, created_at, kind, section, read_at, actor_person_id, subject_table, subject_id, project_id, message_args, document_type, subject_reference, amount_minor, currency_code, approval_state, current_step",
+        "id, created_at, kind, section, read_at, actor_person_id, subject_table, subject_id, project_id, message_args, document_type, subject_reference, amount_minor, currency_code, approval_state, current_step, subject_approval_state, subject_approval_subject, subject_approval_current_step",
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false })
@@ -86,6 +95,14 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
             state: str(r["approval_state"]),
             currentStep: num(r["current_step"]),
           },
+    subjectApproval:
+      r["subject_approval_state"] === null || r["subject_approval_state"] === undefined
+        ? null
+        : {
+            state: str(r["subject_approval_state"]),
+            subject: str(r["subject_approval_subject"]),
+            currentStep: numOrNull(r["subject_approval_current_step"]),
+          },
   }));
   return ok(sortInbox(items));
 }
@@ -98,12 +115,14 @@ export function sortInbox(items: readonly InboxItem[]): InboxItem[] {
 }
 
 /**
- * True when an item can be approved or rejected from the Inbox now: an approval in review, or a
- * submitted timesheet (migration 1140; its request leaves the Inbox once the timesheet is decided).
+ * True when an item can be approved or rejected from the Inbox now: an approval request or reminder (P9) about an
+ * approval in review, a submitted timesheet (migration 1140; its request leaves the Inbox once the timesheet is
+ * decided) or a pass, dock booking or equipment approval in review (2860).
  */
 export function isActionableApproval(item: InboxItem): boolean {
-  if (item.kind !== "approval.requested") return false;
+  if (item.kind !== "approval.requested" && item.kind !== "approval.reminder") return false;
   if (item.subjectTable === "timesheets") return item.subjectId !== null;
+  if (item.subjectTable === "subject_approvals") return item.subjectApproval?.state === "In Review";
   return item.approval?.state === "In Review";
 }
 

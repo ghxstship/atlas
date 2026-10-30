@@ -57,8 +57,9 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "account",
     ]);
     // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473) and the four
-    // reported content kinds of ADR 0033 decision 57 (1630), and A127's offer.sent (2200).
-    expect(registry.kinds).toHaveLength(55);
+    // reported content kinds of ADR 0033 decision 57 (1630), A127's offer.sent (2200), and P9's approval.reminder and
+    // approval.link_code (2862, 2861).
+    expect(registry.kinds).toHaveLength(57);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -69,6 +70,17 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       },
     });
     expect(notificationKind("export.ready")?.emailTemplate).toBe("export_ready");
+    // P9: a reminder offers Approve and Reject on the lock screen as the request does; the access code goes by email.
+    expect(notificationKind("approval.reminder")).toMatchObject({
+      category: "approvals",
+      emailTemplate: "notification",
+      pushCategory: "approval_request",
+    });
+    expect(notificationKind("approval.link_code")).toMatchObject({
+      category: "approvals",
+      emailTemplate: "approval_link_code",
+      pushCategory: null,
+    });
     // ADR 0033 decision 35: a short, reviewable bypass list; mandatory or urgent categories alone never bypass.
     // ADR 0033 decision 62 adds a new shift within 12 hours, security changes (with a recovery code used) and
     // emergency access.
@@ -126,7 +138,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // kind that names fewer channels. Kinds are never deleted.
     expect(sql.match(/\bdelete\b/g)).toHaveLength(2);
     expect(sql).toContain(
-      "delete from private.notification_templates\nwhere (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'));",
+      "delete from private.notification_templates\nwhere (kind = 'approval.link_code' and channel not in ('In App', 'Email'))\n   or (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'));",
     );
     const drift = renderNotificationDriftTest(registry);
     expect(drift).toContain("select plan(5);");

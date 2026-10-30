@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(33);
+select plan(36);
 
 create function pg_temp.reminders(p_subject text, p_person text default null) returns integer language sql as $$
   select count(*)::integer from app.notifications n
@@ -122,6 +122,7 @@ select pg_temp.issue('p3', 'erin');
 select is(private.send_approval_reminders(now() + interval '25 hours'), 0, 'with reminders off, nothing is sent');
 delete from app.setting_values where setting_key = 'approvals.reminders_enabled';
 
+
 -- 11. The manual nudge -----------------------------------------------------------------------------------------------------------------
 select pg_temp.backdate_approval('appr_p3', interval '5 hours');
 select pg_temp.as_user('gina');
@@ -157,6 +158,17 @@ select throws_like(format($$select app.remind_approvers('subject_approvals', %L)
 select app.cancel_subject_approval(pg_temp.id('appr_p3'), 'Not needed.');
 select throws_like(format($$select app.remind_approvers('subject_approvals', %L)$$, pg_temp.id('appr_p3')), 'approval_not_in_review:%',
   'and a withdrawn approval is not nudged');
+
+-- A shorter interval and a lower limit ---------------------------------------------------------------------------------------------
+select pg_temp.as_platform();
+insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_integer) values
+  (pg_temp.id('org_a'), 'approvals.reminder_interval_hours', 'Organization', pg_temp.id('org_a'), 4),
+  (pg_temp.id('org_a'), 'approvals.reminder_limit', 'Organization', pg_temp.id('org_a'), 1);
+select pg_temp.issue('p4', 'mia');
+select ok(private.send_approval_reminders(now() + interval '5 hours') > 0, 'with a 4-hour interval, reminders go after 5 hours');
+select is(pg_temp.reminders('appr_p4'), 1, 'to the pass waiting 5 hours');
+select is(private.send_approval_reminders(now() + interval '10 hours'), 0, 'and with a limit of 1, nothing more goes');
+delete from app.setting_values where setting_key in ('approvals.reminder_interval_hours', 'approvals.reminder_limit');
 
 -- 13. The schedule, and the backup login -----------------------------------------------------------------------------------------------
 select pg_temp.as_platform();

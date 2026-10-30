@@ -584,7 +584,9 @@
       },
       "approval": {
         "requested": "Aprobación solicitada",
-        "decided": "Aprobación resuelta"
+        "decided": "Aprobación resuelta",
+        "reminder": "Recordatorio de aprobación",
+        "link_code": "Código de acceso de aprobación"
       },
       "assignment": {
         "created": "Nueva asignación"

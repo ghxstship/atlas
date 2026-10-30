@@ -82,8 +82,22 @@ call private.describe('app.approval_rules', 'Approval rules of a project (P9, G-
   'rule_state', 'Draft, Active or Retired. Changes only through app.transition_approval_rule.'
 ]);
 
+create or replace function private.readable_approval_rule_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select r.id from app.approval_rules r where r.project_id in (select private.readable_project_ids());
+$$;
+
+comment on function private.readable_approval_rule_ids() is 'Approval rules the signed-in person may read: those of projects they read (P9). Used by the policies of the steps and the state ledger, never by app.approval_rules itself.';
+revoke all on function private.readable_approval_rule_ids() from public, anon;
+grant execute on function private.readable_approval_rule_ids() to authenticated, service_role;
+
 call private.install_lifecycle('app.approval_rules', 'approval_rule_id', 'rule_state', 'approval_rule', 'Draft',
-  $$approval_rule_id in (select r.id from app.approval_rules r)$$);
+  $$approval_rule_id in (select private.readable_approval_rule_ids())$$);
 
 create trigger t90_emit_approval_rule_state after insert on app.approval_rule_state_transitions
   for each row when (new.from_state is not null)
@@ -224,9 +238,23 @@ revoke all on function private.guard_approval_rule_step() from public, anon, aut
 create trigger t40_guard_approval_rule_step before insert or update on app.approval_rule_steps
   for each row execute function private.guard_approval_rule_step();
 
+create or replace function private.can_write_approval_rule_id(p_rule_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from app.approval_rules r where r.id = p_rule_id and private.can_write_approval_rule(r.org_id, r.project_id));
+$$;
+
+comment on function private.can_write_approval_rule_id(uuid) is 'True when the signed-in person edits the rule (private.can_write_approval_rule), for the step policies (P9).';
+revoke all on function private.can_write_approval_rule_id(uuid) from public, anon;
+grant execute on function private.can_write_approval_rule_id(uuid) to authenticated, service_role;
+
 call private.install_policies('app.approval_rule_steps',
-  $$exists (select 1 from app.approval_rules r where r.id = approval_rule_id)$$,
-  $$exists (select 1 from app.approval_rules r where r.id = approval_rule_id and private.can_write_approval_rule(r.org_id, r.project_id))$$);
+  $$approval_rule_id in (select private.readable_approval_rule_ids())$$,
+  $$private.can_write_approval_rule_id(approval_rule_id)$$);
 
 -- 4. Approvers ------------------------------------------------------------------------------------------------------------
 

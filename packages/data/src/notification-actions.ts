@@ -1,6 +1,6 @@
 import { isActionToken } from "@xos/schemas/notifications/action-token";
 import type { XosClient } from "./client.ts";
-import { fail, ok, type Result } from "./result.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 import { rows, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
 
@@ -106,6 +106,187 @@ export async function actThroughLink(
     { p_token: input.token, p_app: input.app, p_comment: input.comment ?? null },
     str,
   );
+}
+
+// Signed-out approval links (P9, migration 2861, ADR 0138) ------------------------------------------------------
+
+/**
+ * A link sent to an outside approver of an engagement step that lets them decide from email works without a sign-in:
+ * the page reads what it does with the token alone (no title: it names the pass holder), emails a 6-digit code on
+ * request, shows the request once the code is entered, and decides with the token and the code. Every call runs as
+ * anon through api_public; wrong codes count across both links of the notification and lock them at 5.
+ */
+export type SignedOutLinkState = "ready" | "used" | "expired" | "locked" | "sign_in" | "invalid";
+
+export interface SignedOutApprovalLink {
+  readonly state: SignedOutLinkState;
+  /** The link's own action; a Reject link needs a reason. Null unless the state is ready, used, expired or locked. */
+  readonly action: "approve" | "reject" | null;
+  readonly orgName: string | null;
+  /** Where the code goes, such as j***@venue.com. */
+  readonly maskedEmail: string | null;
+  readonly expiresAt: string | null;
+}
+
+const SIGNED_OUT_STATES: readonly SignedOutLinkState[] = [
+  "ready",
+  "used",
+  "expired",
+  "locked",
+  "sign_in",
+  "invalid",
+];
+
+const SIGNED_OUT_INVALID: SignedOutApprovalLink = {
+  state: "invalid",
+  action: null,
+  orgName: null,
+  maskedEmail: null,
+  expiresAt: null,
+};
+
+type PublicRpc = {
+  rpc(
+    fn: string,
+    args: Record<string, unknown>,
+  ): PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>;
+};
+
+function publicRpc(db: XosClient): PublicRpc {
+  return (db as unknown as { schema(name: "api_public"): PublicRpc }).schema("api_public");
+}
+
+async function publicRows(db: XosClient, fn: string, args: Raw): Promise<Result<Raw[]>> {
+  const { data, error } = await publicRpc(db).rpc(fn, args);
+  if (error) return fail(toDataError(error));
+  return ok(Array.isArray(data) ? (data as Raw[]) : data ? [data as Raw] : []);
+}
+
+/** Maps a read_approval_link row; anything unexpected reads as invalid. */
+export function toSignedOutLink(row: Raw | undefined): SignedOutApprovalLink {
+  if (!row) return SIGNED_OUT_INVALID;
+  const state = str(row["link_state"]) as SignedOutLinkState;
+  if (!SIGNED_OUT_STATES.includes(state)) return SIGNED_OUT_INVALID;
+  const action = strOrNull(row["action"]);
+  return {
+    state,
+    action: action === "approve" || action === "reject" ? action : null,
+    orgName: strOrNull(row["org_name"]),
+    maskedEmail: strOrNull(row["masked_email"]),
+    expiresAt: strOrNull(row["expires_at"]),
+  };
+}
+
+/** What a signed-out approval link does, with the token alone (api_public.read_approval_link). Never acts. */
+export async function readSignedOutApprovalLink(
+  db: XosClient,
+  token: string,
+): Promise<Result<SignedOutApprovalLink>> {
+  if (!isActionToken(token)) return ok(SIGNED_OUT_INVALID);
+  const result = await publicRows(db, "read_approval_link", { p_token: token });
+  if (!result.ok) return result;
+  return ok(toSignedOutLink(result.data[0]));
+}
+
+/** Email me a code: queues the code to the link's recipient; refusals come back typed with their rule. */
+export async function requestApprovalLinkCode(
+  db: XosClient,
+  token: string,
+): Promise<Result<null>> {
+  if (!isActionToken(token))
+    return fail({
+      kind: "refusal",
+      rule: "notification_action_invalid",
+      message: "This link does not work. Open the item from your Inbox.",
+    });
+  const result = await publicRows(db, "request_approval_link_code", { p_token: token });
+  return result.ok ? ok(null) : result;
+}
+
+/** The outcome of a code check or a decision through a signed-out link. */
+export type SignedOutOutcome =
+  | "ok"
+  | "decided"
+  | "notification_action_invalid"
+  | "approval_link_locked"
+  | "approval_link_code_wrong"
+  | "notification_action_used"
+  | "notification_action_expired"
+  | "notification_action_reason";
+
+const OUTCOMES: readonly SignedOutOutcome[] = [
+  "ok",
+  "decided",
+  "notification_action_invalid",
+  "approval_link_locked",
+  "approval_link_code_wrong",
+  "notification_action_used",
+  "notification_action_expired",
+  "notification_action_reason",
+];
+
+export interface SignedOutCheck {
+  readonly outcome: SignedOutOutcome;
+  /** Wrong codes still allowed before the links lock; null when the link was refused before the code. */
+  readonly attemptsLeft: number | null;
+}
+
+/** Maps a refusal row of preview_approval_link or use_approval_link; an unknown outcome reads as invalid. */
+export function toSignedOutCheck(row: Raw | undefined): SignedOutCheck {
+  const outcome = str(row?.["outcome"]) as SignedOutOutcome;
+  const left = row?.["attempts_left"];
+  return {
+    outcome: OUTCOMES.includes(outcome) ? outcome : "notification_action_invalid",
+    attemptsLeft: typeof left === "number" ? left : left == null ? null : Number(left),
+  };
+}
+
+const ACCESS_CODE = /^[0-9]{6}$/;
+
+export interface SignedOutPreview extends SignedOutCheck {
+  /** With outcome ok: what the request is about, and the step it waits on. */
+  readonly title: string | null;
+  readonly stepName: string | null;
+}
+
+/** The request behind a signed-out link, once the code is entered (api_public.preview_approval_link). */
+export async function previewSignedOutApprovalLink(
+  db: XosClient,
+  input: { readonly token: string; readonly code: string },
+): Promise<Result<SignedOutPreview>> {
+  if (!isActionToken(input.token))
+    return ok({ outcome: "notification_action_invalid", attemptsLeft: null, title: null, stepName: null });
+  const result = await publicRows(db, "preview_approval_link", {
+    p_token: input.token,
+    p_access_code: ACCESS_CODE.test(input.code.trim()) ? input.code.trim() : "",
+  });
+  if (!result.ok) return result;
+  const row = result.data[0];
+  return ok({
+    ...toSignedOutCheck(row),
+    title: strOrNull(row?.["title"]),
+    stepName: strOrNull(row?.["current_step_name"]),
+  });
+}
+
+/**
+ * Decides through a signed-out link with its code (api_public.use_approval_link). Refusals of the link itself come back
+ * as outcomes (a counted wrong code keeps its count); a refusal of the decision's own rules comes back as the error,
+ * with its rule, so both reach the page as one typed result.
+ */
+export async function decideThroughSignedOutLink(
+  db: XosClient,
+  input: { readonly token: string; readonly code: string; readonly comment?: string | null },
+): Promise<Result<SignedOutCheck>> {
+  if (!isActionToken(input.token))
+    return ok({ outcome: "notification_action_invalid", attemptsLeft: null });
+  const result = await publicRows(db, "use_approval_link", {
+    p_token: input.token,
+    p_access_code: ACCESS_CODE.test(input.code.trim()) ? input.code.trim() : "",
+    p_comment: input.comment?.trim() || null,
+  });
+  if (!result.ok) return result;
+  return ok(toSignedOutCheck(result.data[0]));
 }
 
 /** One For Your Information item on Gateway Home. */

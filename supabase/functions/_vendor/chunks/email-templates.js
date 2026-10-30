@@ -269,6 +269,12 @@ var actionStyles = {
     margin: `0 0 ${space("space-16")}`,
   },
 };
+/** The access code, in the heading style so it reads at a glance (P9). */
+var codeStyle = {
+  ...text("heading-20"),
+  color: color("text-primary"),
+  margin: `0 0 ${space("space-16")}`,
+};
 function Greeting({ ctx }) {
   return /* @__PURE__ */ jsx(Paragraph, {
     children: ctx.t("common.greeting", { name: ctx.recipientName }),
@@ -569,6 +575,37 @@ var templates = {
             }),
             /* @__PURE__ */ jsx(Paragraph, { children: summary }),
             /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_notice.objection") }),
+          ],
+        }),
+      };
+    },
+  },
+  approval_link_code: {
+    transactional: true,
+    compose: ({ code, orgName, expiresInMinutes }, ctx) => {
+      const subject = ctx.t("approval_link_code.subject", { orgName });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("approval_link_code.heading"),
+          transactional: true,
+          children: [
+            /* @__PURE__ */ jsx(Greeting, { ctx }),
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t("approval_link_code.body", { orgName }),
+            }),
+            /* @__PURE__ */ jsx(Text, {
+              style: codeStyle,
+              children: code,
+            }),
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t("approval_link_code.expiry", { minutes: expiresInMinutes }),
+            }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("approval_link_code.ignore") }),
           ],
         }),
       };

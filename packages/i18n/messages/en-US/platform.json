@@ -584,7 +584,9 @@
       },
       "approval": {
         "requested": "Approval requested",
-        "decided": "Approval decided"
+        "decided": "Approval decided",
+        "reminder": "Approval reminder",
+        "link_code": "Approval access code"
       },
       "assignment": {
         "created": "New assignment"

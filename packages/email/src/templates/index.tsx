@@ -80,6 +80,15 @@ export interface TemplateProps {
     readonly effectiveOn: Date;
     readonly listUrl: string;
   };
+  /**
+   * The access code of a signed-out approval link (P9, ADR 0138): minted while the email is rendered, never stored in
+   * clear, valid for expiresInMinutes. The org name says who asks; the code alone decides nothing without the link.
+   */
+  readonly approval_link_code: {
+    readonly code: string;
+    readonly orgName: string;
+    readonly expiresInMinutes: number;
+  };
 }
 
 export type TemplateCode = keyof TemplateProps;
@@ -148,6 +157,13 @@ const actionStyles = {
     textDecoration: "none",
   },
   note: { ...text("text-12"), color: color("text-secondary"), margin: `0 0 ${space("space-16")}` },
+} as const;
+
+/** The access code, in the heading style so it reads at a glance (P9). */
+const codeStyle = {
+  ...text("heading-20"),
+  color: color("text-primary"),
+  margin: `0 0 ${space("space-16")}`,
 } as const;
 
 function Greeting({ ctx }: { readonly ctx: TemplateContext }) {
@@ -396,6 +412,31 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             <Paragraph>{ctx.t("subprocessor_notice.intro", { effectiveOn })}</Paragraph>
             <Paragraph>{summary}</Paragraph>
             <Paragraph>{ctx.t("subprocessor_notice.objection")}</Paragraph>
+          </Layout>
+        ),
+      };
+    },
+  },
+  approval_link_code: {
+    transactional: true,
+    compose: ({ code, orgName, expiresInMinutes }, ctx) => {
+      const subject = ctx.t("approval_link_code.subject", { orgName });
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={ctx.t("approval_link_code.heading")}
+            transactional
+          >
+            <Greeting ctx={ctx} />
+            <Paragraph>{ctx.t("approval_link_code.body", { orgName })}</Paragraph>
+            <Text style={codeStyle}>{code}</Text>
+            <Paragraph>{ctx.t("approval_link_code.expiry", { minutes: expiresInMinutes })}</Paragraph>
+            <Paragraph>{ctx.t("approval_link_code.ignore")}</Paragraph>
           </Layout>
         ),
       };
