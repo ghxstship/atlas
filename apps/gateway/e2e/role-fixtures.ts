@@ -61,6 +61,25 @@ export async function asPerson<T extends Record<string, unknown>>(
   }
 }
 
+/**
+ * Offers one offering on a project, as the demo Owner (R3, owner decision 7): offerings default to
+ * Not Offered and Gateway shows the Travel and lodging, Per diem, Hospitality and Guest list tabs
+ * only where one is offered. Journeys that open one of those tabs set it first, so they never lean
+ * on the seed. Returns the value id.
+ */
+export async function offer(
+  key: `offerings.${string}`,
+  project: string = PROJECT,
+  mode: "provided" | "not-offered" = "provided",
+): Promise<string> {
+  const [row] = await asPerson<{ id: string }>(
+    PEOPLE.owner,
+    `select app.set_setting($1, $2, 'Project', $3, $4, null, null, false) as id`,
+    [DEMO.org, key, project, mode],
+  );
+  return row?.id as string;
+}
+
 /** A lifecycle move through private.transition_lifecycle, as the demo Owner. */
 export async function transition(
   entity: string,

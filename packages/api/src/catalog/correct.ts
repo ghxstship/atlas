@@ -8,6 +8,7 @@
  */
 import { z } from "@hono/zod-openapi";
 import type { ResourceDefinition } from "@xos/schemas";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { CapabilityRule } from "./capabilities.ts";
 import { RESOURCE_CAPABILITIES, canonRule } from "./capabilities.ts";
 import type { ActionSpec, OrderSpec, ResourceSpec, Verb } from "./types.ts";
@@ -262,7 +263,7 @@ export function removeActions(...verbs: readonly string[]) {
 /** Replaces actions by verb, or adds them, with optional capabilities for the new verbs. */
 export function putActions(
   actions: readonly ActionSpec[],
-  capabilities: Readonly<Record<string, string>> = {},
+  capabilities: Readonly<Record<string, CapabilityCode>> = {},
 ) {
   return (spec: ResourceSpec): ResourceSpec => {
     const byVerb = new Map(actions.map((a) => [a.verb, a]));

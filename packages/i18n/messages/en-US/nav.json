@@ -535,6 +535,7 @@
     "group": "Operator Console",
     "tenants": "Tenants",
     "tenant": "Tenant",
+    "metrics": "Metrics",
     "flags": "Feature Flags",
     "support": "Support Sessions",
     "supportSession": "Support Session",

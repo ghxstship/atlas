@@ -168,7 +168,18 @@ export function SettingsForm(props: SettingsFormProps) {
     const name = `value:${key}`;
     const help = f.help ? { help: f.help } : {};
     let control: ReactNode;
-    if (f.def.type === "boolean") {
+    // A layout is arranged on its dashboard (A129); here it can only be reset.
+    const layout = f.def.input === "layout";
+    if (layout) {
+      control = (
+        <div className="flex flex-col gap-4">
+          <span id={fieldId} tabIndex={-1} className="text-label-13 font-medium text-text-primary">
+            {f.label}
+          </span>
+          {f.help ? <p className="m-0 text-text-12 text-text-secondary">{f.help}</p> : null}
+        </div>
+      );
+    } else if (f.def.type === "boolean") {
       control = (
         <Checkbox
           id={fieldId}
@@ -248,7 +259,11 @@ export function SettingsForm(props: SettingsFormProps) {
           </p>
         ) : null}
         <p className="m-0 text-text-12 text-text-secondary">
-          {cleared ? t(inherits ? "inheritPending" : "resetPending") : f.sourceText}
+          {cleared
+            ? t(inherits ? "inheritPending" : "resetPending")
+            : layout
+              ? t(f.setHere ? "layoutCustom" : "layoutDefault")
+              : f.sourceText}
           {/* A setting deferred by a recorded decision is kept but not applied yet (A65-001). */}
           {f.def.deferred ? ` ${t("notInEffect")}` : null}
         </p>

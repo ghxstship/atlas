@@ -10,6 +10,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions } from "../correct.ts";
 import { collectionAction } from "../define.ts";
+import { assetUnitBulkActions, fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -85,6 +86,7 @@ const AssetScanResult = z
   .meta({ id: "AssetScanResult", description: "The outcome of one scan event." });
 
 export const additions = defineAdditions("Assets", {
+  actions: { assetUnits: [...assetUnitBulkActions, fieldHistoryAction("asset unit")] },
   corrections: [
     {
       id: "asset-class-element",

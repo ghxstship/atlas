@@ -30,7 +30,7 @@ Responde con cualquier estado 2xx en menos de 10 segundos. Cualquier otra respue
 La firma es HMAC-SHA256 de `{timestamp}.{cuerpo}` con el secreto de firma del destino. Verifícala sobre el cuerpo sin procesar, antes de interpretarlo, y rechaza marcas de tiempo de más de cinco minutos para evitar repeticiones.
 
 ```ts
-import { verifyWebhookSignature } from "@xos/sdk/webhooks";
+import { verifyWebhookSignature } from "@ghxstship/xos-sdk/webhooks";
 
 const result = await verifyWebhookSignature({
   payload: rawBody,

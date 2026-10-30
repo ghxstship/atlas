@@ -1,5 +1,5 @@
 /**
- * `@xos/sdk`: the TypeScript SDK for the XOS public API.
+ * `@ghxstship/xos-sdk`: the TypeScript SDK for the XOS public API.
  *
  * The runtime (transport, errors, pagination, webhooks) is hand-written; everything under
  * `generated/` is produced from `packages/api/openapi/v1.json` and never edited by hand.

@@ -6,10 +6,15 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions } from "../correct.ts";
 import { itemAction } from "../define.ts";
+import { documentNotesAction, fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
 
 const SINCE = "1.0.0-draft.2";
 
 export const additions = defineAdditions("Knowledge", {
+  actions: {
+    sops: [fieldHistoryAction("SOP")],
+    documents: [fieldHistoryAction("document"), documentNotesAction],
+  },
   corrections: [
     {
       id: "sop-code-version",

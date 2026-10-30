@@ -66,7 +66,9 @@
     "guest_entry_transition": "That move is not allowed. Approve a guest before checking them in.",
     "guest_entry_state": "Add a guest as requested, or as approved if you review guests.",
     "guest_entry_stamped": "Decision and check-in times are set automatically.",
-    "sod_guest_requester": "You requested this guest, so someone else must approve or decline them."
+    "sod_guest_requester": "You requested this guest, so someone else must approve or decline them.",
+    "rider_engagement_artist": "A rider can belong to an artist booked as a person whose engagement is still open. Choose another artist or an organization.",
+    "same_project": "That artist is engaged on another project. Choose an artist on this rider's project."
   },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",
@@ -257,22 +259,25 @@
       "projectError": "Choose the project this rider belongs to.",
       "name": "Rider name",
       "nameHelp": "For example, Technical Rider or Hospitality Rider.",
-      "nameError": "Enter a name of 1 to 200 characters.",
-      "party": "From",
-      "noParty": "No organization"
+      "nameError": "Enter a name of 1 to 200 characters."
     },
     "details": {
       "title": "Details",
       "name": "Rider name",
-      "nameError": "Enter a name of 1 to 200 characters.",
-      "party": "From",
-      "noParty": "No organization"
+      "nameError": "Enter a name of 1 to 200 characters."
     },
     "archive": {
       "action": "Archive",
       "confirmTitle": "Archive {title}?",
       "confirmSentence": "The rider leaves every list. Its asks and their fulfillment stay on record."
-    }
+    },
+    "fields": {
+      "party": "Whose rider"
+    },
+    "partyNone": "No one yet",
+    "partyError": "Choose whose rider this is from the list.",
+    "artist": "Artist",
+    "engagementOption": "{name} · artist on {project}"
   },
   "lines": {
     "title": "Asks",
