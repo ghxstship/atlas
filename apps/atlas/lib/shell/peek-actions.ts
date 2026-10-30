@@ -11,10 +11,13 @@ import type { RecordRelations } from "@/components/work/related-records";
 import { getOrgContext } from "./context";
 import { rememberView } from "./recents";
 import { observability } from "@/lib/observability";
+import { regionRead, type RegionData } from "./region-data";
 
 /**
  * What the shell's global peek shows for a record key (Section 4.5.3): the sections of the record's
  * full page (Section 11.2 item 4), read by the same loaders (components/work/record-sections.ts).
+ * The comments and files and the related records are each a RegionData: one that cannot be read
+ * shows Retry in its section and the rest of the peek shows (ADR 0118).
  */
 export interface ShellPeekRecord {
   readonly id: string;
@@ -43,11 +46,11 @@ export interface ShellPeekRecord {
     readonly byName: string | null;
   }[];
   /** Comments and files, which the viewer may add to unless the record is in Trash. */
-  readonly conversation: Conversation;
+  readonly conversation: RegionData<Conversation>;
   readonly inTrash: boolean;
   /** The viewer's person id, to offer deleting their own comments and files. */
   readonly me: string | null;
-  readonly relations: RecordRelations;
+  readonly relations: RegionData<RecordRelations>;
 }
 
 export type ShellPeekResult =
@@ -77,8 +80,10 @@ export async function loadShellPeekAction(
   const r = found.data;
   const read = await Promise.all([
     listStateHistory(ctx.viewer.db, r.id),
-    loadConversation(ctx, { table: "app.records", id: r.id }),
-    loadRelations(ctx, r.id),
+    regionRead("peek.conversation", () =>
+      loadConversation(ctx, { table: "app.records", id: r.id }),
+    ),
+    regionRead("peek.related", async () => (await loadRelations(ctx, r.id)).relations),
     // The command menu's recent items (Section 11.7).
     rememberView(ctx, "records", r.id),
   ]).catch((error: unknown) => {
@@ -86,7 +91,7 @@ export async function loadShellPeekAction(
     return null;
   });
   if (read === null) return { ok: false, reason: "unexpected" };
-  const [history, conversation, { relations }] = read;
+  const [history, conversation, relations] = read;
   return {
     ok: true,
     record: {

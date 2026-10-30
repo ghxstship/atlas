@@ -27,6 +27,7 @@ import { EmptyPanel, ErrorPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
 import { ButtonLink } from "@/components/ui";
 import { loadConversation, type Conversation } from "@/components/work/record-sections";
+import { regionRead, type RegionData } from "@/lib/shell/region-data";
 import { historyItems } from "@/lib/history/items";
 import { collectionState } from "@/lib/collection-kit/page";
 import { getFormatters, type Formatters } from "@/lib/platform/format";
@@ -202,12 +203,14 @@ async function ObjectRecords({
     ctx.role !== null && ["owner", "admin", "manager", "member", "collaborator"].includes(ctx.role);
   const peeked = state.peek ? (records.data.find((r) => r.id === state.peek) ?? null) : null;
   let paths: AccessPath[] | null = null;
-  let conversation: Conversation | null = null;
+  let conversation: RegionData<Conversation> | null = null;
   let activity: HistoryItem[] | null = null;
   if (peeked) {
     const [explained, collab, history, t] = await Promise.all([
       explainAccess(ctx.viewer.db, "custom_object_records", peeked.id),
-      loadConversation(ctx, { table: "app.custom_object_records", id: peeked.id }),
+      regionRead("object-peek.conversation", () =>
+        loadConversation(ctx, { table: "app.custom_object_records", id: peeked.id }),
+      ),
       getFieldHistory(ctx.viewer.db, "app.custom_object_records", peeked.id),
       getTranslate(),
     ]);
