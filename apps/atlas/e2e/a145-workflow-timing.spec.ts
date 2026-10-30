@@ -1,4 +1,4 @@
-import { percentile, workflowTargets } from "@xos/testing";
+import { workflowTargets } from "@xos/testing";
 import {
   countInteractions,
   expectAcknowledged,
@@ -144,7 +144,11 @@ function liveSubscription(page: Page): Promise<void> {
   });
 }
 
-/** Keeps a measured span on the test without asserting it. */
+/** A show's quiet spell before each call: two to five seconds, as cues are called at a show's pace. */
+const QUIET_MS = 2_000;
+const QUIET_JITTER_MS = 3_000;
+
+/** Keeps a measured span on the test; the assertion reads the spans together. */
 function note(description: string): void {
   test.info().annotations.push({ type: "latency", description });
 }
@@ -194,9 +198,12 @@ test("show: a called cue reaches another device in under 500 ms", async ({ page,
     await expect(call).toBeVisible();
     await settle(page);
 
-    // Each call as both devices show it; the last call completes the show.
-    const running: number[] = [];
+    // Each call as both devices show it; the last call completes the show. Every call counts, the first one too:
+    // a show calls its cues seconds to minutes apart, so each one waits on a quiet socket. The quiet spells are
+    // jittered so that no call keeps a fixed phase against Realtime's change poll (ADR 0119).
+    const spans: number[] = [];
     for (const [index, cue] of cues.entries()) {
+      await page.waitForTimeout(QUIET_MS + Math.random() * QUIET_JITTER_MS);
       const text = index === cues.length - 1 ? "The show is complete" : `Current cue: ${cue}`;
       const shown = { selector: '[role="status"]', text };
       const onFollower = await watchFor(follower, shown, { afterInput: false });
@@ -213,25 +220,17 @@ test("show: a called cue reaches another device in under 500 ms", async ({ page,
       for (const socket of sockets) socket.off("framereceived", listen);
       const pressed = caller.inputAt ?? caller.seenAt;
       const span = seen.seenAt - pressed;
-      const parts = `caller ${(caller.seenAt - pressed).toFixed(0)} ms, Realtime frame ${
-        heardAt === null ? "unseen" : `${(heardAt - pressed).toFixed(0)} ms`
-      }`;
-      if (index === 0) {
-        // The first call follows a quiet spell, after which Realtime's change poll answers up to half a second
-        // later (ADR 0119): kept on the test, not asserted, until cue calls are broadcast from the database.
-        note(`Cue sync after a quiet spell, ${cue}: ${span.toFixed(1)} ms (${parts})`);
-      } else {
-        note(`Cue sync, ${cue}: ${span.toFixed(1)} ms (${parts})`);
-        running.push(span);
-      }
-      // The next cue follows within a second, as a called sequence does.
-      await page.waitForTimeout(800);
+      spans.push(span);
+      note(
+        `Cue sync, ${cue}: ${span.toFixed(1)} ms (caller ${(caller.seenAt - pressed).toFixed(0)} ms, Realtime frame ${
+          heardAt === null ? "unseen" : `${(heardAt - pressed).toFixed(0)} ms`
+        })`,
+      );
     }
-    // A running cue sequence, from the stage manager's press to the cue on the other device: its median, so one
-    // stall of a loaded machine does not decide it, with every call kept above.
+    // Every connected device in under 500 ms: the slowest call decides, and every call is kept above.
     expectWithin(
-      `Cue sync, median of ${running.length} calls in a running sequence`,
-      percentile(running, 50) ?? Number.POSITIVE_INFINITY,
+      `Cue sync, slowest of ${spans.length} calls`,
+      Math.max(...spans),
       workflowTargets.cueSyncMs,
     );
   } finally {
