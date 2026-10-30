@@ -105,6 +105,9 @@ const LOG_KEYS: Readonly<Record<string, string>> = {
   "project_facts.counted": "projectFactsCounted",
   "project_facts.expired": "projectFactsExpired",
   "project_facts.erased": "projectFactsErased",
+  // A catering's roster counts (R7, 2695): one row per person counted.
+  "dietary_needs.counted": "dietaryNeedsCounted",
+  "allergies.counted": "allergiesCounted",
 };
 
 /** The `workDetails.log.actions.*` key of an access log action; unknown actions are `other`. */

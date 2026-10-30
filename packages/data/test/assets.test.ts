@@ -726,17 +726,16 @@ describe("custody ledger", () => {
     expect((await listAssetCustody(db, "o1")).ok).toBe(false);
   });
 
-  it("appends custody to one custodian or a place", async () => {
+  it("records custody through app.record_asset_custody, to one custodian or a place", async () => {
     const { db, calls } = client({
-      "from:asset_custody": [
-        okResponse({ id: "c9" }),
-        okResponse({ id: "c10" }),
+      "rpc:record_asset_custody": [
+        okResponse("c9"),
+        okResponse("c10"),
         errorResponse("42501", "no"),
       ],
     });
     expect(
       await recordAssetCustody(db, {
-        id: "ev-1",
         orgId: "o1",
         unitId: "u1",
         membershipId: "m1",
@@ -745,17 +744,11 @@ describe("custody ledger", () => {
         note: "  ",
       }),
     ).toEqual({ ok: true, data: { id: "c9" } });
-    expect(calls[0]?.steps[0]?.[1]).toEqual([
-      {
-        id: "ev-1",
-        org_id: "o1",
-        asset_unit_id: "u1",
-        custodian_membership_id: "m1",
-        venue_id: null,
-        project_id: "p1",
-        note: null,
-      },
-    ]);
+    expect(calls[0]?.steps[0]?.[1]?.[0]).toEqual({
+      p_asset_unit_id: "u1",
+      p_custodian_membership_id: "m1",
+      p_project_id: "p1",
+    });
     expect(
       await recordAssetCustody(db, {
         orgId: "o1",
@@ -765,11 +758,17 @@ describe("custody ledger", () => {
         venueId: null,
         projectId: null,
         note: "Crew kit.",
+        rosterEntryId: "r1",
+        reservationId: "h1",
       }),
     ).toEqual({ ok: true, data: { id: "c10" } });
-    expect(calls[1]?.steps[0]?.[1]).toMatchObject([
-      { custodian_engagement_id: "e1", note: "Crew kit." },
-    ]);
+    expect(calls[1]?.steps[0]?.[1]?.[0]).toEqual({
+      p_asset_unit_id: "u1",
+      p_custodian_engagement_id: "e1",
+      p_note: "Crew kit.",
+      p_roster_entry_id: "r1",
+      p_reservation_id: "h1",
+    });
     expect(
       (
         await recordAssetCustody(db, {

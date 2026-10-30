@@ -825,8 +825,6 @@ export async function listAssetCustody(
 }
 
 export interface CustodyInput {
-  /** A device-minted UUID v7 that makes the write idempotent (scans); generated when absent. */
-  readonly id?: string;
   readonly orgId: string;
   readonly unitId: string;
   readonly membershipId: string | null;
@@ -834,9 +832,17 @@ export interface CustodyInput {
   readonly venueId: string | null;
   readonly projectId: string | null;
   readonly note: string | null;
+  /** The person on the custodian engagement's roster who takes the unit (R7). */
+  readonly rosterEntryId?: string | null;
+  /** The hold of an allocation the hand-over is issued against (R7). */
+  readonly reservationId?: string | null;
 }
 
-/** Appends a custody row: hands a unit to a person or place (the ledger is append-only). */
+/**
+ * Records a custody hand-over through app.record_asset_custody (R7, 2692): a check-out or transfer to one
+ * custodian, or a check-in to a place, written by app.apply_asset_scan so the unit's state moves with it and the
+ * holder guards apply. Signed-in users no longer insert custody rows directly.
+ */
 export async function recordAssetCustody(
   db: XosClient,
   input: CustodyInput,
@@ -852,19 +858,18 @@ export async function recordAssetCustody(
     return refuse("asset_custody_somewhere", "A custody move names a person or a place.");
   }
   const note = input.note?.trim() ? input.note.trim() : null;
-  const row: Database["app"]["Tables"]["asset_custody"]["Insert"] = {
-    ...(input.id ? { id: input.id } : {}),
-    org_id: input.orgId,
-    asset_unit_id: input.unitId,
-    custodian_membership_id: input.membershipId,
-    ...(engagementId ? { custodian_engagement_id: engagementId } : {}),
-    venue_id: input.venueId,
-    project_id: input.projectId,
-    note,
-  };
-  const { data, error } = await db.from("asset_custody").insert(row).select("id").single();
+  const { data, error } = await db.rpc("record_asset_custody", {
+    p_asset_unit_id: input.unitId,
+    ...(input.membershipId ? { p_custodian_membership_id: input.membershipId } : {}),
+    ...(engagementId ? { p_custodian_engagement_id: engagementId } : {}),
+    ...(input.venueId ? { p_venue_id: input.venueId } : {}),
+    ...(input.projectId ? { p_project_id: input.projectId } : {}),
+    ...(note ? { p_note: note } : {}),
+    ...(input.rosterEntryId ? { p_roster_entry_id: input.rosterEntryId } : {}),
+    ...(input.reservationId ? { p_reservation_id: input.reservationId } : {}),
+  });
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({ id: data });
 }
 
 // Maintenance --------------------------------------------------------------------------------------
