@@ -245,6 +245,8 @@ export interface RecordSummary {
   readonly accountableId: string | null;
   readonly scopeNodeId: string | null;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed: shown as TBC, still sorted by the estimate. */
+  readonly startTbc: boolean;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
@@ -256,7 +258,7 @@ export interface RecordSummary {
 }
 
 const RECORD_COLUMNS =
-  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, ends_at, due_at, time_zone, blocker_text, replan_reason, created_at, updated_at, deleted_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
+  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, start_tbc, ends_at, due_at, time_zone, blocker_text, replan_reason, created_at, updated_at, deleted_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
 
 interface RecordRow {
   id: string;
@@ -273,6 +275,7 @@ interface RecordRow {
   accountable_party_id: string | null;
   scope_node_id: string | null;
   starts_at: string | null;
+  start_tbc: boolean;
   ends_at: string | null;
   due_at: string | null;
   time_zone: string | null;
@@ -307,6 +310,7 @@ export function toRecordSummary(row: RecordRow): RecordSummary {
     accountableId: row.accountable_party_id,
     scopeNodeId: row.scope_node_id,
     startsAt: row.starts_at,
+    startTbc: row.start_tbc ?? false,
     endsAt: row.ends_at,
     dueAt: row.due_at,
     timeZone: row.time_zone,
@@ -536,6 +540,8 @@ export interface RecordInput {
   readonly ownerId?: string | null | undefined;
   readonly accountableId?: string | null | undefined;
   readonly startsAt?: string | null | undefined;
+  /** The start is an estimate to be confirmed; the database clears it while the start is empty. */
+  readonly startTbc?: boolean | undefined;
   readonly endsAt?: string | null | undefined;
   readonly dueAt?: string | null | undefined;
   readonly timeZone?: string | null | undefined;
@@ -601,6 +607,7 @@ export async function createRecord(
       owner_party_id: input.ownerId ?? null,
       accountable_party_id: input.accountableId ?? null,
       starts_at: input.startsAt ?? null,
+      start_tbc: input.startTbc ?? false,
       ends_at: input.endsAt ?? null,
       due_at: input.dueAt ?? null,
       time_zone: input.timeZone ?? null,
@@ -626,6 +633,7 @@ export interface RecordPatch {
   readonly ownerId?: string | null | undefined;
   readonly accountableId?: string | null | undefined;
   readonly startsAt?: string | null | undefined;
+  readonly startTbc?: boolean | undefined;
   readonly endsAt?: string | null | undefined;
   readonly dueAt?: string | null | undefined;
   readonly timeZone?: string | null | undefined;
@@ -647,6 +655,7 @@ export async function updateRecord(
   if (patch.ownerId !== undefined) row.owner_party_id = patch.ownerId;
   if (patch.accountableId !== undefined) row.accountable_party_id = patch.accountableId;
   if (patch.startsAt !== undefined) row.starts_at = patch.startsAt;
+  if (patch.startTbc !== undefined) row.start_tbc = patch.startTbc;
   if (patch.endsAt !== undefined) row.ends_at = patch.endsAt;
   if (patch.dueAt !== undefined) row.due_at = patch.dueAt;
   if (patch.timeZone !== undefined) row.time_zone = patch.timeZone;
@@ -739,6 +748,7 @@ export async function duplicateRecord(
     ownerId: r.ownerId,
     accountableId: r.accountableId,
     startsAt: input.withoutDates ? null : r.startsAt,
+    startTbc: input.withoutDates ? false : r.startTbc,
     endsAt: input.withoutDates ? null : r.endsAt,
     dueAt: input.withoutDates ? null : r.dueAt,
     timeZone: r.timeZone,

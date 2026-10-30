@@ -1,10 +1,12 @@
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
 import {
+  cueCallKindOf,
   cueProgress,
   getRunOfShow,
   listCallSheets,
   listCalls,
+  listCueCalls,
   listCueEngagements,
   listCues,
   listDaySheets,
@@ -105,10 +107,11 @@ export async function RunsPage({
   let peek: ReactNode = null;
   const peekId = param(search, "peek");
   if (peekId && UUID.test(peekId)) {
-    const [run, cues, setTimes] = await Promise.all([
+    const [run, cues, setTimes, cueCalls] = await Promise.all([
       getRunOfShow(db, peekId),
       listCues(db, peekId),
       listCueEngagements(db, peekId),
+      listCueCalls(db, peekId),
     ]);
     if (run.ok) {
       const cueList = must(cues, "cues");
@@ -131,6 +134,8 @@ export async function RunsPage({
             canCall={caps.has("show.cue.call")}
             setTimes={setTimes.ok ? setTimes.data : []}
             artists={artists}
+            calls={must(cueCalls, "cue calls")}
+            department={cueCallKindOf(param(search, "dept"))}
           >
             {param(search, "live") === "1" ? null : (
               <>

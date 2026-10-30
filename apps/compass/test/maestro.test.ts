@@ -46,6 +46,8 @@ const DYNAMIC = [
   "setting-",
   "notify-",
   "work-",
+  // P2's department picker: one option per app.cue_call_kind slug, and All (SegmentedControl testID-value).
+  "show-department-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

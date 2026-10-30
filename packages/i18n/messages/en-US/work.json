@@ -333,7 +333,8 @@
     "none": "None",
     "notSet": "Not set",
     "unpriced": "Unpriced",
-    "gate": "Gate {gate} · {name}"
+    "gate": "Gate {gate} · {name}",
+    "tbcEstimate": "TBC · est. {time}"
   },
   "fields": {
     "title": "Title",
@@ -356,7 +357,8 @@
     "timeZone": "Time zone",
     "zoneNote": "Times are in {zone}.",
     "replanReason": "Replan reason",
-    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why."
+    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why.",
+    "startTbc": "Start time to be confirmed"
   },
   "record": {
     "properties": "Record properties",
@@ -646,7 +648,13 @@
       "shift_empty": "Select at least one record to shift.",
       "shift_too_large": "This shift moves more than 500 records with their successors. Shift fewer at a time.",
       "place_dated": "This record already has dates; drag its bar instead.",
-      "cue_called": "A called cue keeps its time. Clear it from the selection."
+      "cue_called": "A called cue keeps its time. Clear it from the selection.",
+      "cue_move_called": "A called cue keeps its place. Move an uncalled cue instead.",
+      "cue_move_before_called": "Cues move only after the last called cue. Choose a later place.",
+      "cue_standby_called": "That cue was already called, so it cannot go on standby. Choose an uncalled cue.",
+      "cue_standby_capability": "You cannot put cues on standby on this project. Ask the stage manager to do it.",
+      "cue_shift_range": "Nudge the plan by up to an hour earlier or later.",
+      "cue_call_kind": "Calls go to Audio, Lighting, Video, Special Effects or Stage. Choose one of those departments."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",
@@ -658,7 +666,8 @@
       "scopeProject": "That scope belongs to another project.",
       "project": "Name the project with ~ and a scope, for example ~NWS-E01."
     },
-    "shiftMinutes": "Enter whole minutes other than 0, up to seven days either way."
+    "shiftMinutes": "Enter whole minutes other than 0, up to seven days either way.",
+    "cueCall": "Each department's call can be up to 2000 characters. Shorten it and save again."
   },
   "grammar": {
     "Approval": "A noun phrase naming what is approved, for example Rigging Plan Sign-Off.",

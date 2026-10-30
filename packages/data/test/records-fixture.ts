@@ -17,6 +17,7 @@ export function recordRow(over: Record<string, unknown> = {}) {
     accountable_party_id: null,
     scope_node_id: null,
     starts_at: null,
+    start_tbc: false,
     ends_at: null,
     due_at: null,
     time_zone: null,

@@ -206,6 +206,9 @@ export function EditRecordForm({
   const [scope, setScope] = useState(record.scopeNodeId ?? "");
   const [phase, setPhase] = useState(record.phaseCode ?? "");
   const [replan, setReplan] = useState("");
+  // A start to be confirmed (G-40) needs a start: the box is off and disabled while Starts is empty.
+  const [startsValue, setStartsValue] = useState(toLocalInput(record.startsAt, tz));
+  const [startTbc, setStartTbc] = useState(record.startTbc);
   const personOptions = [
     { value: "", label: t("values.unassigned") },
     ...people.map((p) => ({ value: p.personId, label: p.name ?? t("values.unnamed") })),
@@ -240,6 +243,7 @@ export function EditRecordForm({
               scopeNodeId: scope || null,
               phaseCode: phase || null,
               startsAt: fromLocalInput(starts, tz),
+              startTbc: starts !== "" && startTbc,
               endsAt: fromLocalInput(ends, tz),
               dueAt: fromLocalInput(due, tz),
               ...(logsReplans && datesChanged && replan.trim() !== ""
@@ -302,6 +306,7 @@ export function EditRecordForm({
           label={t("fields.starts")}
           name="startsAt"
           defaultValue={toLocalInput(record.startsAt, tz)}
+          onChange={(e) => setStartsValue(e.target.value)}
         />
         <Input
           id="edit-ends"
@@ -309,6 +314,12 @@ export function EditRecordForm({
           label={t("fields.ends")}
           name="endsAt"
           defaultValue={toLocalInput(record.endsAt, tz)}
+        />
+        <Checkbox
+          label={t("fields.startTbc")}
+          checked={startsValue !== "" && startTbc}
+          disabled={startsValue === ""}
+          onChange={(e) => setStartTbc(e.target.checked)}
         />
       </div>
       <MoreFields>

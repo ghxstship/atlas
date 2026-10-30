@@ -402,7 +402,9 @@
     "go": "Go",
     "label": "Run of show",
     "live": "Live",
-    "nextIn": "Next cue in"
+    "nextIn": "Next cue in",
+    "standby": "Standby",
+    "skipped": "Skipped"
   },
   "rte": {
     "bold": "Bold",

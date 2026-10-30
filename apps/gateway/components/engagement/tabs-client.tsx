@@ -199,23 +199,25 @@ export async function RecordsTab({
           title: r.title,
           meta: [
             t(enumLabelKey("recordKind", r.kind)),
-            r.startsAt
-              ? formatScheduleTime(
-                  locale,
-                  r.startsAt,
-                  r.timeZone ?? view.engagement.projectTimeZone,
-                  view.scheduleView,
-                )
-              : r.dueAt
-                ? t("gateway.engagement.due", {
-                    date: formatScheduleTime(
-                      locale,
-                      r.dueAt,
-                      r.timeZone ?? view.engagement.projectTimeZone,
-                      view.scheduleView,
-                    ),
-                  })
-                : null,
+            r.startsAt && r.startTbc
+              ? t("gateway.common.tbc")
+              : r.startsAt
+                ? formatScheduleTime(
+                    locale,
+                    r.startsAt,
+                    r.timeZone ?? view.engagement.projectTimeZone,
+                    view.scheduleView,
+                  )
+                : r.dueAt
+                  ? t("gateway.engagement.due", {
+                      date: formatScheduleTime(
+                        locale,
+                        r.dueAt,
+                        r.timeZone ?? view.engagement.projectTimeZone,
+                        view.scheduleView,
+                      ),
+                    })
+                  : null,
           ],
           tag: { label: t(enumLabelKey("recordState", r.state)), tone: toneFor(r.state) },
         }))}
@@ -273,15 +275,17 @@ export async function RunOfShowTab({ view, t, locale, engagementKey }: TabProps)
                 id: c.id ?? "",
                 title: `${c.position ?? ""}. ${c.label ?? ""}`,
                 meta: [
-                  c.planned_at
-                    ? formatScheduleTime(
-                        locale,
-                        c.planned_at,
-                        view.engagement.projectTimeZone,
-                        view.scheduleView,
-                        "time",
-                      )
-                    : null,
+                  c.planned_at && c.start_tbc
+                    ? t("gateway.common.tbc")
+                    : c.planned_at
+                      ? formatScheduleTime(
+                          locale,
+                          c.planned_at,
+                          view.engagement.projectTimeZone,
+                          view.scheduleView,
+                          "time",
+                        )
+                      : null,
                   c.duration,
                   c.called_at
                     ? t("gateway.engagement.runOfShow.called", {
