@@ -22,8 +22,11 @@ changed default left them wrong (finding A65-007).
 A region answers for a scope. The record full page (`TemplateRecord`) and every collection
 (`TemplateCollection`) are regions by the template root they already carry (`data-template="record"`
 for `record`, `data-template="collection"` for `view`), so the templates and the pages that load them
-gain no bytes. Any other region carries `data-shortcut-scope`: the side peek (`SidePeek`) and the
-finance peek mark themselves `record`. The control that does an action carries
+gain no bytes. Any other region carries `data-shortcut-scope`: the side peeks mark themselves
+`record`. `SidePeek` and `Drawer` (with `shortcutScope="record"`) set it on their portaled content, so
+the collection kit's `PeekDrawer` (39 modules), the objects, project, advancing, running order, day
+sheet and call sheet peeks are regions, and the finance, crew and operations peeks, which render
+their own panels, carry it themselves. The control that does an action carries
 `data-shortcut="<registry id>"`, on itself or on a wrapper. The Atlas key handler, which loads on
 demand, looks the key up in the focused region's scope and asks `@xos/ui/shortcut-targets` for the
 control: it clicks a button, opens a menu trigger with the arrow key, focuses a field (selecting a
@@ -39,8 +42,9 @@ A feature binds its control to a shortcut by carrying the attribute; nothing in 
 The marked controls are shared ones, so each covers many record pages: the collection kit's state
 moves (`TransitionButtons`), finance's (`TransitionBar`), logistics' move form and record delete,
 the permit, asset unit, engagement and project state moves, Work's state, owner, title and Trash
-controls, both shared comment composers, and the side peek's Open full, Copy link and clickable
-state. A record page whose module has no such control (most have no inline title, owner or Trash
+controls, both shared comment composers, the side peek's Open full, Copy link and clickable state, the
+other peeks' Open full (and the crew peek's Copy link), the objects peek's board column and the day
+and call sheet peeks' Move to Trash. A record page whose module has no such control (most have no inline title, owner or Trash
 control) leaves that key alone. Open the filters presses the filter builder's Add filter (A117), which
 loads with the filter bar, not with the page; Export is A102's control. Save view's only control sits
 in the saved-views menu, so the view switcher keeps a `hidden` button with the attribute as its target.
@@ -51,7 +55,9 @@ shell code, and controls in `packages/ui` cannot reach Atlas's shell.
 
 Gateway has no rebinding and ships no registry. Its layout builds the person's G sequences (only for
 destinations their navigation offers) and the account and Switch org keys from the registry, and the
-frame answers them. The help panel lists the same ids.
+frame's letter handler (`components/shell/letter-keys.ts`, tested on its own) answers them. The help
+panel lists the same ids. Gateway's keys are the registry defaults, and G waits for its second key
+without the hint Atlas shows; both follow if Gateway gains rebinding.
 
 ### 3. Help articles hold generated lists
 
