@@ -16,7 +16,6 @@ import {
   type PoState,
   type PurchaseOrder,
 } from "@xos/data/procurement";
-import { Tag } from "@xos/ui";
 import dynamic from "next/dynamic";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
 import { getFormatter } from "next-intl/server";
@@ -479,24 +478,6 @@ async function PurchaseOrderRecord({
               };
             })}
           />
-          {supply.data.some((row) => row.offHireDue || lineWarnings.has(row.poLineId)) ? (
-            <div className="flex flex-wrap gap-8">
-              {supply.data.flatMap((row) => [
-                ...(row.offHireDue
-                  ? [
-                      <Tag key={`${row.poLineId}-off`} tone="danger">
-                        {t("supply.offHireDue")}
-                      </Tag>,
-                    ]
-                  : []),
-                ...(lineWarnings.get(row.poLineId) ?? []).map((w) => (
-                  <Tag key={`${row.poLineId}-${w.warning}`} tone="warning">
-                    {t(`hireWarnings.${HIRE_WARNING_KEY[w.warning]}`)}
-                  </Tag>
-                )),
-              ])}
-            </div>
-          ) : null}
         </KitSection>
       ) : null}
 

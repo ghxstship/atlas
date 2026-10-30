@@ -56,7 +56,9 @@ export async function UnitRecord({
       unit.custody.venueName ??
       t("assets.common.notRecorded"))
     : t("assets.units.noCustody");
+  // Returned is reached only through a return on the unit's order (R7a), never from this dialog.
   const next = (pickers.transitions.get(unit.state) ?? [])
+    .filter((s) => s !== "Returned")
     .filter((s) => s !== "Retired" || can.writeOff)
     .map((s) => ({ value: s, label: stateLabel(s) }));
 
