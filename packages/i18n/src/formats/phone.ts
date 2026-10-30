@@ -1,4 +1,5 @@
 import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js";
+import { regionOfLocale } from "./units";
 
 /**
  * Phone numbers (Section 15): stored in E.164 and shown in national format, through
@@ -9,10 +10,14 @@ import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js"
 
 const REGION = /^[A-Z]{2}$/;
 
-/** The region a locale implies (en-US and es-US give US), or null for a bare language. */
+/**
+ * The country a locale implies (en-US and es-US give US), or null for a bare language or a UN M.49
+ * region such as es-419. Goes through regionOfLocale, so on Hermes, which has no `Intl.Locale`,
+ * Compass still reads the region from the tag and a typed national number keeps its country.
+ */
 export function regionFromLocale(locale: string): string | null {
   try {
-    const region = new Intl.Locale(locale).maximize().region ?? null;
+    const region = regionOfLocale(locale);
     return region && REGION.test(region) ? region : null;
   } catch {
     return null;

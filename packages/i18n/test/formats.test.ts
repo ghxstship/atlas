@@ -211,4 +211,19 @@ describe("the region of a locale on an engine without Intl.Locale (Hermes, A93)"
       (Intl as { Locale?: unknown }).Locale = locale;
     }
   });
+
+  it("keeps a typed work phone's country, so Compass stores a national number in E.164 (A139)", () => {
+    const locale = Intl.Locale;
+    try {
+      (Intl as { Locale?: unknown }).Locale = undefined;
+      expect(regionFromLocale("es-US")).toBe("US");
+      expect(regionFromLocale("en-US")).toBe("US");
+      expect(regionFromLocale("es-419")).toBeNull();
+      expect(regionFromLocale("es")).toBeNull();
+      expect(toE164("(305) 555-0142", regionFromLocale("es-US"))).toBe("+13055550142");
+      expect(formatPhone("+13055550142", regionFromLocale("en-US"))).toBe("(305) 555-0142");
+    } finally {
+      (Intl as { Locale?: unknown }).Locale = locale;
+    }
+  });
 });

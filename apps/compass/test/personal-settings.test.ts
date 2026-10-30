@@ -1,7 +1,7 @@
 import type { XosClient } from "@xos/data";
 import { clearPersonalSetting, setPersonalSetting } from "@xos/data/settings";
 import { getMessages } from "@xos/i18n";
-import { toE164 } from "@xos/i18n/formats";
+import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { SETTINGS, type SettingDefinition } from "@xos/schemas/settings";
 import type { Mutation } from "@xos/sync";
 import { describe, expect, it } from "vitest";
@@ -280,6 +280,23 @@ describe("a typed value", () => {
     });
     expect(checkSettingValue(phone, "desk 4412", inUs)).toEqual({ ok: false, problem: "phone" });
     expect(checkSettingValue(phone, "+1 305 555 0142")).toEqual({ ok: false, problem: "phone" });
+  });
+
+  it("finds the person's region from their language on Hermes, which has no Intl.Locale (A139)", () => {
+    const phone = def("workforce.work_phone");
+    const locale = Intl.Locale;
+    try {
+      (Intl as { Locale?: unknown }).Locale = undefined;
+      // As RegistrySettings reads it: the region of i18n.language.
+      const region = regionFromLocale("es-US");
+      expect(region).toBe("US");
+      expect(checkSettingValue(phone, "(305) 555-0142", (input) => toE164(input, region))).toEqual({
+        ok: true,
+        value: "+13055550142",
+      });
+    } finally {
+      (Intl as { Locale?: unknown }).Locale = locale;
+    }
   });
 
   it("is a zone the phone knows", () => {
