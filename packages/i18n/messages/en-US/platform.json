@@ -692,6 +692,15 @@
       },
       "content": {
         "removed": "Your content removed"
+      },
+      "roster_entry": {
+        "invited": "Put on a crew roster",
+        "returned": "Roster entry returned",
+        "declined": "Roster entry declined",
+        "project_facts_entered": "Project details entered for you"
+      },
+      "engagement": {
+        "roster_lock_changed": "Names lock changed"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

@@ -236,6 +236,7 @@ describe("the export.render worker", () => {
     }
   });
 
+  // Renders an XLSX and a PDF at the PDF row limit: 5.4 s on a CI runner.
   it("cuts a file at its format's limit and says so", async () => {
     const many = Array.from({ length: EXPORT_ROW_LIMITS.PDF + 1 }, (_, i) => ({
       role_code: `R${i}`,
@@ -256,7 +257,7 @@ describe("the export.render worker", () => {
     expect(pdf.calls.finished[0]?.outcome).toMatchObject({ rowCount: EXPORT_ROW_LIMITS.PDF });
     const text = pdfPageTexts(uploads[1]?.body as Uint8Array).join("\n");
     expect(text).toContain(`First ${EXPORT_ROW_LIMITS.PDF} rows only.`);
-  });
+  }, 60_000);
 
   it("records a failure with its reason, Queued while the job retries and Failed after", async () => {
     const refused = new Error("export_job_rows: permission denied for view rate_card_lines_masked");

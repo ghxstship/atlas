@@ -692,6 +692,15 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "roster_entry": {
+        "invited": "Incluido en una lista de equipo",
+        "returned": "Entrada de la lista devuelta",
+        "declined": "Entrada de la lista rechazada",
+        "project_facts_entered": "Datos del proyecto ingresados para ti"
+      },
+      "engagement": {
+        "roster_lock_changed": "Cambió el cierre de nombres"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

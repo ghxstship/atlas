@@ -142,10 +142,12 @@ select ok((select d -> 'uniform' = 'null'::jsonb and d -> 'travel' = 'null'::jso
 select results_eq($$select d -> 'passport' ->> 'passport_number', d -> 'passport' ->> 'passport_number_last4',
   (d -> 'passport' ->> 'passport_number_masked')::boolean from app.shared_work_details((select id from world where key = 'eng_ivy_a')) d$$,
   $$values (null::text, 'TEST'::text, true)$$, 'the shared passport number is masked to its last four');
+-- Since R4 (2638) every read is logged, without the ten-minute dedupe, and the audit event names the roster entry.
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('ivy') and action = 'work_details.viewed'
-  and org_id = pg_temp.id('org_a')), 1, 'the org''s reads are logged once per reader in ten minutes');
+  and org_id = pg_temp.id('org_a')), 5, 'every one of the org''s five reads is logged');
 select is((select count(*)::int from app.audit_events where org_id = pg_temp.id('org_a') and action = 'work_details.viewed'
-  and subject_id = pg_temp.id('share_a')), 1, 'the org''s audit ledger records the read');
+  and subject_id = (select roster_entry_id from app.work_detail_shares where id = pg_temp.id('share_a'))), 5,
+  'and each reaches the org''s audit ledger');
 select is((select count(*)::int from app.work_detail_shares where id = pg_temp.id('share_a')), 1, 'the org sees the share itself');
 select pg_temp.as_user('xavier');
 select throws_ok(format($$select app.shared_work_details('%s')$$, pg_temp.id('eng_ivy_a')), '42501', null,

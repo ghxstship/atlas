@@ -20897,6 +20897,11 @@ export interface Engagement {
    */
   readonly completed_at: string | null;
   /**
+   * Names lock: after this instant the company side can no longer name new crew; null means no lock.
+   * Format: `date-time`.
+   */
+  readonly roster_locks_at: string | null;
+  /**
    * Identifier of the accepted application the engagement came from.
    * Format: `uuid`.
    */
@@ -20993,6 +20998,17 @@ export interface EngagementTransitionRequest {
    * Length: 1 to unbounded.
    */
   readonly reason?: string;
+}
+
+/**
+ * The names lock of an engagement.
+ */
+export interface RosterLockRequest {
+  /**
+   * When names lock; null clears the lock.
+   * Format: `date-time`.
+   */
+  readonly locks_at: string | null;
 }
 
 /**
@@ -26726,6 +26742,11 @@ export interface AccountMembership {
    * Format: `date-time`.
    */
   readonly valid_to: string | null;
+  /**
+   * When the person confirmed the membership; null until they do.
+   * Format: `date-time`.
+   */
+  readonly accepted_at: string | null;
 }
 
 /**
@@ -37024,6 +37045,702 @@ export interface CueCallUpdate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface RosterEntryPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RosterEntry>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs.
+ */
+export interface RosterEntry {
+  /**
+   * Identifier of the roster entry.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the producing org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the engagement the person works under.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Supplying account, else the engaged person.
+   */
+  readonly party_name: string | null;
+  /**
+   * External role type of the engagement.
+   */
+  readonly role_type: string;
+  /**
+   * True for the engaged person's own entry.
+   */
+  readonly is_self: boolean;
+  /**
+   * Identifier of the resolved person; null for an unclaimed invitation.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Name of the person.
+   */
+  readonly full_name: string | null;
+  /**
+   * Address of the pending invitation.
+   */
+  readonly invited_email: string | null;
+  /**
+   * When the pending invitation lapses.
+   * Format: `date-time`.
+   */
+  readonly invitation_expires_at: string | null;
+  /**
+   * Role worked, from the Roles Library.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly role_code: string | null;
+  /**
+   * Job title of the role.
+   */
+  readonly job_title: string | null;
+  /**
+   * Arrival window start.
+   * Format: `date-time`.
+   */
+  readonly arrival_starts_at: string | null;
+  /**
+   * Arrival window end.
+   * Format: `date-time`.
+   */
+  readonly arrival_ends_at: string | null;
+  /**
+   * IANA time zone of the arrival window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly arrival_time_zone: string | null;
+  readonly entry_state: RosterEntryState;
+  readonly person_response: RosterPersonResponse;
+  /**
+   * When the person last answered.
+   * Format: `date-time`.
+   */
+  readonly responded_at: string | null;
+  /**
+   * What the reviewer asked to change, while Returned.
+   */
+  readonly return_reason: string | null;
+  /**
+   * Identifier of the withdrawn entry this one replaces.
+   * Format: `uuid`.
+   */
+  readonly replaces_entry_id: string | null;
+  /**
+   * Work details categories the person shares on this entry.
+   */
+  readonly share_categories: ReadonlyArray<string>;
+}
+
+/**
+ * Review state of a roster entry.
+ */
+export type RosterEntryState = "Draft" | "Submitted" | "Accepted" | "Returned" | "Withdrawn";
+
+/**
+ * The rostered person's own answer.
+ */
+export type RosterPersonResponse = "Pending" | "Accepted" | "Declined";
+
+/**
+ * The project facts of a roster entry as the caller may read them (R5). Each Company or Producer read of a value is written to the person's access log, and a Producer read to the producing org's audit ledger.
+ */
+export interface RosterProjectFacts {
+  /**
+   * Roster entry.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Producing org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Person the entry resolves to.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Who reads: Person, the entry's own person; Company, a roster manager of the account that rosters them; Producer, a member of the producing org by capability.
+   */
+  readonly standing: "Person" | "Company" | "Producer";
+  readonly offered: RosterFactOfferings;
+  readonly present: RosterFactPresence;
+  readonly entered_by_person: RosterFactProvenance;
+  /**
+   * Kinds the caller reads; the others come back null.
+   */
+  readonly readable: ReadonlyArray<ProjectFactKind>;
+  readonly travel: RosterTravelRequest | null;
+  readonly uniform: RosterUniformSizes | null;
+  readonly vehicle: RosterVehicle | null;
+}
+
+/**
+ * Which offerings the project turns on for the engagement.
+ */
+export interface RosterFactOfferings {
+  /**
+   * Travel is offered.
+   */
+  readonly travel: boolean;
+  /**
+   * Lodging is offered.
+   */
+  readonly lodging: boolean;
+  /**
+   * Uniforms are offered.
+   */
+  readonly uniforms: boolean;
+  /**
+   * Parking is offered.
+   */
+  readonly parking: boolean;
+}
+
+/**
+ * Which kinds are on file.
+ */
+export interface RosterFactPresence {
+  /**
+   * A live row exists for Travel.
+   */
+  readonly travel: boolean;
+  /**
+   * A live row exists for Uniform.
+   */
+  readonly uniform: boolean;
+  /**
+   * A live row exists for Vehicle.
+   */
+  readonly vehicle: boolean;
+}
+
+/**
+ * Which kinds the person entered themselves; the others were entered by their company.
+ */
+export interface RosterFactProvenance {
+  /**
+   * The person entered Travel.
+   */
+  readonly travel: boolean;
+  /**
+   * The person entered Uniform.
+   */
+  readonly uniform: boolean;
+  /**
+   * The person entered Vehicle.
+   */
+  readonly vehicle: boolean;
+}
+
+/**
+ * A kind of project fact a rostered person enters on their roster entry, asked only while its offering (Travel, Uniforms, Parking) is on.
+ */
+export type ProjectFactKind = "Travel" | "Uniform" | "Vehicle";
+
+/**
+ * The travel a rostered person asks for on one project (R5).
+ */
+export interface RosterTravelRequest {
+  /**
+   * Identifier of the travel request.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * IATA code of the airport the person flies into.
+   * Pattern: `^[A-Za-z]{3}$`.
+   */
+  readonly inbound_airport_code: string | null;
+  /**
+   * Name of that airport.
+   */
+  readonly inbound_airport_name: string | null;
+  /**
+   * IATA code of the airport the person flies home from.
+   * Pattern: `^[A-Za-z]{3}$`.
+   */
+  readonly outbound_airport_code: string | null;
+  /**
+   * Name of that airport.
+   */
+  readonly outbound_airport_name: string | null;
+  /**
+   * Day the person travels to the project.
+   * Format: `date`.
+   */
+  readonly inbound_on: string | null;
+  /**
+   * Day the person travels home.
+   * Format: `date`.
+   */
+  readonly outbound_on: string | null;
+  /**
+   * Preferred seat.
+   */
+  readonly seat_preference: "Window" | "Aisle" | "No Preference" | null;
+  /**
+   * Meal preference.
+   */
+  readonly meal_preference: string | null;
+  /**
+   * The person needs a pickup on arrival.
+   */
+  readonly needs_ground_transport: boolean;
+  /**
+   * The person needs a room.
+   */
+  readonly needs_lodging: boolean;
+  /**
+   * Notes for the travel desk.
+   */
+  readonly travel_notes: string | null;
+  /**
+   * When the request was last saved.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+}
+
+/**
+ * The uniform sizes a rostered person gives for one project (R5).
+ */
+export interface RosterUniformSizes {
+  /**
+   * Identifier of the uniform sizes.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Letter size.
+   */
+  readonly shirt_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly jacket_size:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly pants_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly glove_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly hat_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Pants waist in inches.
+   * Range: 20 to 70.
+   */
+  readonly pants_waist_in: number | null;
+  /**
+   * Pants inseam in inches.
+   * Range: 20 to 40.
+   */
+  readonly pants_inseam_in: number | null;
+  /**
+   * Shoe size in half sizes.
+   * Range: 1 to 20.
+   */
+  readonly shoe_size: number | null;
+  readonly shoe_size_system: ShoeSizeSystem | null;
+  /**
+   * When the sizes were last saved.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+}
+
+/**
+ * Sizing system of a shoe size.
+ */
+export type ShoeSizeSystem = "US Men" | "US Women" | "EU" | "UK";
+
+/**
+ * The vehicle a rostered person brings to one project (R5).
+ */
+export interface RosterVehicle {
+  /**
+   * Identifier of the vehicle.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Vehicle make.
+   */
+  readonly make: string;
+  /**
+   * Vehicle model.
+   */
+  readonly model: string;
+  /**
+   * Vehicle color.
+   */
+  readonly color: string | null;
+  /**
+   * License plate, letters and digits.
+   */
+  readonly plate: string;
+  /**
+   * ISO 3166-2 region that issued the plate.
+   */
+  readonly plate_region: string;
+  /**
+   * When the vehicle was last saved.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+}
+
+/**
+ * The live row a project fact save wrote.
+ */
+export interface SavedProjectFact {
+  /**
+   * Identifier of the saved row.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+}
+
+/**
+ * A full replacement of a roster entry's travel request. At least an airport or a date.
+ */
+export interface RosterTravelRequestInput {
+  /**
+   * IATA code of the airport the person flies into; uppercased.
+   * Pattern: `^[A-Za-z]{3}$`.
+   */
+  readonly inbound_airport_code: string | null;
+  /**
+   * IATA code of the airport the person flies home from; uppercased.
+   * Pattern: `^[A-Za-z]{3}$`.
+   */
+  readonly outbound_airport_code: string | null;
+  /**
+   * Day the person travels to the project.
+   * Format: `date`.
+   */
+  readonly inbound_on: string | null;
+  /**
+   * Day the person travels home; on or after inbound_on.
+   * Format: `date`.
+   */
+  readonly outbound_on: string | null;
+  /**
+   * Preferred seat.
+   */
+  readonly seat_preference?: "Window" | "Aisle" | "No Preference" | null;
+  /**
+   * Meal preference.
+   * Length: 0 to 100.
+   */
+  readonly meal_preference?: string | null;
+  /**
+   * A pickup is needed on arrival.
+   */
+  readonly needs_ground_transport?: boolean;
+  /**
+   * A room is needed; only while lodging is offered.
+   */
+  readonly needs_lodging?: boolean;
+  /**
+   * Notes for the travel desk.
+   * Length: 0 to 500.
+   */
+  readonly travel_notes?: string | null;
+}
+
+/**
+ * A full replacement of a roster entry's uniform sizes. At least one size.
+ */
+export interface RosterUniformSizesInput {
+  /**
+   * Letter size.
+   */
+  readonly shirt_size?:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly jacket_size?:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly pants_size?:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly glove_size?:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly hat_size?: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Waist in inches, 20 to 70.
+   */
+  readonly pants_waist_in?: number | null;
+  /**
+   * Inseam in inches, 20 to 40.
+   */
+  readonly pants_inseam_in?: number | null;
+  /**
+   * Shoe size, 1 to 20 in half sizes.
+   */
+  readonly shoe_size?: number | null;
+  readonly shoe_size_system?: ShoeSizeSystem | null;
+}
+
+/**
+ * A full replacement of a roster entry's vehicle.
+ */
+export interface RosterVehicleInput {
+  /**
+   * Vehicle make.
+   * Length: 1 to 60.
+   */
+  readonly make: string;
+  /**
+   * Vehicle model.
+   * Length: 1 to 60.
+   */
+  readonly model: string;
+  /**
+   * Vehicle color.
+   * Length: 0 to 30.
+   */
+  readonly color?: string | null;
+  /**
+   * License plate; uppercased with spaces and hyphens removed.
+   * Length: 1 to 20.
+   */
+  readonly plate: string;
+  /**
+   * ISO 3166-2 region of the plate.
+   * Length: 2 to 6.
+   */
+  readonly plate_region: string;
+}
+
+/**
+ * Nothing; the kind is cleared.
+ */
+export interface ClearedProjectFact {
+  /**
+   * Identifier of the saved row.
+   * Format: `uuid`.
+   */
+  readonly id?: string;
+}
+
+/**
+ * The project fact kind to clear.
+ */
+export interface ClearProjectFactRequest {
+  readonly kind: ProjectFactKind;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TravelPartyMemberPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TravelPartyMember>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A rostered person of a project's travel party with what hospitality has arranged (R5, G-175).
+ */
+export interface TravelPartyMember {
+  /**
+   * Roster entry.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Supplying account, else the engaged person.
+   */
+  readonly party_name: string | null;
+  /**
+   * Person.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Name of the person.
+   */
+  readonly person_name: string | null;
+  /**
+   * Role worked.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly role_code: string | null;
+  /**
+   * Arrival window start.
+   * Format: `date-time`.
+   */
+  readonly arrival_starts_at: string | null;
+  /**
+   * Arrival window end.
+   * Format: `date-time`.
+   */
+  readonly arrival_ends_at: string | null;
+  /**
+   * IANA time zone of the arrival window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly arrival_time_zone: string | null;
+  readonly travel: RosterTravelRequest | null;
+  readonly room: TravelPartyRoom;
+  readonly pickup: TravelPartyPickup;
+  readonly pass: TravelPartyPass | null;
+}
+
+/**
+ * The person's room on the project, if assigned.
+ */
+export interface TravelPartyRoom {
+  /**
+   * A room is assigned on one of the project's blocks.
+   */
+  readonly assigned: boolean;
+  /**
+   * Check-in day.
+   * Format: `date`.
+   */
+  readonly check_in_on: string | null;
+  /**
+   * Check-out day.
+   * Format: `date`.
+   */
+  readonly check_out_on: string | null;
+  /**
+   * Title of the block.
+   */
+  readonly block_name: string | null;
+}
+
+/**
+ * Whether the person's pickup is booked.
+ */
+export interface TravelPartyPickup {
+  /**
+   * A ground segment is booked on the arrival day.
+   */
+  readonly booked: boolean;
+}
+
+/**
+ * Whether the person's pass is issued; null without credentials.credential.read.
+ */
+export interface TravelPartyPass {
+  /**
+   * A live credential is issued on the engagement.
+   */
+  readonly issued: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TravelDayCountPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TravelDayCount>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One day of a project's travel counts (R5, G-175).
+ */
+export interface TravelDayCount {
+  /**
+   * Day.
+   * Format: `date`.
+   */
+  readonly day: string;
+  /**
+   * People arriving.
+   */
+  readonly arriving: number;
+  /**
+   * People departing.
+   */
+  readonly departing: number;
+  /**
+   * People on site, arrival to departure day.
+   */
+  readonly on_site: number;
+  /**
+   * Rooms needed that night.
+   */
+  readonly rooms_needed: number;
+  /**
+   * Pickups needed that day.
+   */
+  readonly pickups_needed: number;
+  /**
+   * The range ran past 120 days and was cut.
+   */
+  readonly truncated: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface GuestListEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -39059,7 +39776,7 @@ export interface WorkDetailSharePage {
 }
 
 /**
- * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them.
+ * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged.
  */
 export interface WorkDetailShare {
   /**
@@ -39093,7 +39810,7 @@ export interface WorkDetailShare {
    */
   readonly updated_by: string | null;
   /**
-   * Identifier of the engagement the share serves; the caller must be its person.
+   * Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
    * Format: `uuid`.
    */
   readonly engagement_id: string;
@@ -39121,6 +39838,11 @@ export interface WorkDetailShare {
    * Format: `date-time`.
    */
   readonly revoked_at: string | null;
+  /**
+   * Identifier of the roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
 }
 
 /**
@@ -39139,7 +39861,7 @@ export type WorkDetailCategory =
  */
 export interface WorkDetailShareCreate {
   /**
-   * Identifier of the engagement the share serves; the caller must be its person.
+   * Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
    * Format: `uuid`.
    */
   readonly engagement_id: string;
@@ -39169,7 +39891,7 @@ export interface SharedWorkDetails {
    */
   readonly engagement_id: string;
   /**
-   * Person the engagement names.
+   * Person the engagement names, or the roster entry's person.
    * Format: `uuid`.
    */
   readonly person_id: string | null;
@@ -39178,6 +39900,15 @@ export interface SharedWorkDetails {
    * Format: `uuid`.
    */
   readonly org_id: string;
+  /**
+   * Roster entry read (R4): the engaged person's self entry; null when there is none.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * Who reads (R4): org, a member of the engaging org by capability; company, a roster manager of the account that rosters the person, who reads every category once the person accepted the entry.
+   */
+  readonly reader: "org" | "company";
   /**
    * Live share; null when none stands.
    * Format: `uuid`.
@@ -39271,9 +40002,13 @@ export interface SharedUniformSizes {
 export interface SharedDietaryNeeds {
   readonly dietary_needs: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies.
+   * Allergies; null when masked for the reader (a company reader never reads them).
    */
   readonly allergies: string | null;
+  /**
+   * Whether allergies are recorded, even when masked.
+   */
+  readonly allergies_on_file: boolean;
   /**
    * Other dietary notes.
    */
@@ -39410,7 +40145,16 @@ export interface WorkDetailEvent {
    */
   readonly engagement_id: string | null;
   /**
-   * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
+   * Identifier of the roster entry of a share, read or reveal (R4).
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * Project fact kinds the act covered (R5): project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and changes to roster_travel_requests, roster_uniform_sizes and roster_vehicles.
+   */
+  readonly fact_kinds: ReadonlyArray<ProjectFactKind>;
+  /**
+   * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.
    * Pattern: `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$`.
    */
   readonly action: string;

@@ -12,6 +12,7 @@ import type { CorrectionInput } from "../../corrections.ts";
 import { editDefinition, editShape, orNull } from "../../correct.ts";
 import { itemAction, itemQuery, resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
+import { ProjectFactKind } from "./roster-project-facts.ts";
 
 const label = (id: string, values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ id, description, example: values[0] });
@@ -201,11 +202,13 @@ const WorkDetailShare = editDefinition(
     name: "WorkDetailShare",
     table: "app.work_detail_shares",
     description:
-      "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them.",
-    serverSet: ["person_id", "consent_record_id", "shared_at", "revoked_at"],
+      "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged.",
+    serverSet: ["person_id", "consent_record_id", "shared_at", "revoked_at", "roster_entry_id"],
     immutable: ["engagement_id"],
     fields: {
-      engagement_id: fields.ref("engagement the share serves; the caller must be its person"),
+      engagement_id: fields.ref(
+        "engagement the share serves; the caller must be its person or on its roster (R4)",
+      ),
       person_id: fields.ref("person sharing"),
       consent_record_id: fields.ref("work_details_sharing consent record for the org"),
       categories: z
@@ -218,6 +221,11 @@ const WorkDetailShare = editDefinition(
         }),
       shared_at: fields.instant("When the share was given."),
       revoked_at: orNull(fields.instant("When the person revoked it; null while it stands.")),
+      roster_entry_id: orNull(
+        fields.ref(
+          "roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed",
+        ),
+      ),
     },
   }),
   { nullable: ["created_by", "updated_by"] },
@@ -235,12 +243,18 @@ const WorkDetailEvent = defineResource({
     actor_person_id: orNull(fields.ref("person who acted; null for the database or a service")),
     org_id: orNull(fields.ref("org whose member acted or whose share changed")),
     engagement_id: orNull(fields.ref("engagement of a share, read or reveal")),
+    roster_entry_id: orNull(fields.ref("roster entry of a share, read or reveal (R4)")),
+    fact_kinds: z.array(ProjectFactKind).meta({
+      description:
+        "Project fact kinds the act covered (R5): project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and changes to roster_travel_requests, roster_uniform_sizes and roster_vehicles.",
+      example: ["Travel"],
+    }),
     action: z
       .string()
       .regex(/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/)
       .meta({
         description:
-          "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.",
+          "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.",
         example: "work_details.viewed",
       }),
     categories: z
@@ -299,8 +313,18 @@ const sharedContact = z
 const SharedWorkDetails = z
   .object({
     engagement_id: fields.uuid("Engagement."),
-    person_id: orNull(fields.uuid("Person the engagement names.")),
+    person_id: orNull(fields.uuid("Person the engagement names, or the roster entry's person.")),
     org_id: fields.uuid("Engaging org."),
+    roster_entry_id: orNull(
+      fields.uuid(
+        "Roster entry read (R4): the engaged person's self entry; null when there is none.",
+      ),
+    ),
+    reader: z.enum(["org", "company"]).meta({
+      description:
+        "Who reads (R4): org, a member of the engaging org by capability; company, a roster manager of the account that rosters the person, who reads every category once the person accepted the entry.",
+      example: "org",
+    }),
     work_detail_share_id: orNull(fields.uuid("Live share; null when none stands.")),
     shared_at: orNull(fields.instant("When the share was given.")),
     sharing_open: fields.bool(
@@ -336,7 +360,13 @@ const SharedWorkDetails = z
       z
         .object({
           dietary_needs: z.array(DietaryNeed),
-          allergies: orNull(str("Allergies.", "Peanuts, severe")),
+          allergies: orNull(
+            str(
+              "Allergies; null when masked for the reader (a company reader never reads them).",
+              "Peanuts, severe",
+            ),
+          ),
+          allergies_on_file: fields.bool("Whether allergies are recorded, even when masked.", true),
           dietary_notes: orNull(str("Other dietary notes.", "No pork.")),
         })
         .meta({
