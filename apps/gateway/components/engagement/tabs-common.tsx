@@ -1,5 +1,6 @@
 import { addCalendarDays } from "@xos/data/calendar";
 import { workflowMarker } from "@xos/data/workflow-signal";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
 import {
   APP_ENUMS,
   listEngagementDocuments,
@@ -169,29 +170,33 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
             />
           </Section>
         ) : null}
-        {uploads.length > 0 ? (
-          <Section title={t("gateway.engagement.overview.uploads")}>
-            <RowList
-              label={t("gateway.engagement.overview.uploads")}
-              items={uploads.map((i) => ({
-                id: i.id,
-                title: i.name,
-                meta: [
-                  t(enumLabelKey("onboardingItemKind", i.kind)),
-                  i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
-                ],
-                detail: (
-                  <OnboardingUploadForm
-                    orgId={e.orgId}
-                    engagementId={e.id}
-                    itemId={i.id}
-                    name={i.name}
-                  />
-                ),
-              }))}
-            />
-          </Section>
-        ) : null}
+        {/* An uploaded item leaves the list, and its form with it, in the commit that brings the result; the scope
+            stays to hear of it (funnel signals, A146). */}
+        <ActionOutcomeScope token={uploads.map((i) => i.id).join(",")}>
+          {uploads.length > 0 ? (
+            <Section title={t("gateway.engagement.overview.uploads")}>
+              <RowList
+                label={t("gateway.engagement.overview.uploads")}
+                items={uploads.map((i) => ({
+                  id: i.id,
+                  title: i.name,
+                  meta: [
+                    t(enumLabelKey("onboardingItemKind", i.kind)),
+                    i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
+                  ],
+                  detail: (
+                    <OnboardingUploadForm
+                      orgId={e.orgId}
+                      engagementId={e.id}
+                      itemId={i.id}
+                      name={i.name}
+                    />
+                  ),
+                }))}
+              />
+            </Section>
+          ) : null}
+        </ActionOutcomeScope>
         <Section title={t("gateway.engagement.overview.stages")}>
           <EngagementTimeline
             current={STAGE_FOR_STATE[e.state] ?? 0}
@@ -332,86 +337,91 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
         label={t("gateway.engagement.onboarding.progress", { n: done, total: items.data.length })}
         value={(done / items.data.length) * 100}
       />
-      <RowList
-        label={t("nav.gateway.engagementTabs.onboarding")}
-        items={items.data.map((i) => {
-          const standing = onboardingStanding(i, today);
-          const canAct = standing === "todo" || standing === "expired";
-          return {
-            id: i.id,
-            title: i.name,
-            meta: [
-              t(enumLabelKey("onboardingItemKind", i.kind)),
-              i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
-              t(enumLabelKey("verificationMethod", i.verification)),
-              i.expiresOn
-                ? t("gateway.engagement.documents.expires", {
-                    date: formatDate(locale, i.expiresOn),
-                  })
-                : null,
-            ],
-            tag: {
-              label: t(`gateway.engagement.onboarding.standing.${standing}`),
-              tone:
-                standing === "verified"
-                  ? "success"
-                  : standing === "review"
-                    ? "accent"
-                    : standing === "expired"
-                      ? "danger"
-                      : "warning",
-            },
-            ...(canAct
-              ? {
-                  detail:
-                    i.kind === "Tax Form" ? (
-                      <TaxFormForm
-                        orgId={view.engagement.orgId}
-                        asAccount={view.ctx.acting !== null}
-                        kinds={APP_ENUMS.tax_form_kind.map((k) => ({
-                          value: k,
-                          label: t(enumLabelKey("taxFormKind", k)),
-                        }))}
-                      />
-                    ) : i.kind === "Electronic Signature" ? (
-                      <p className="m-0 text-text-13 text-text-secondary">
-                        {t("gateway.engagement.onboarding.signHint")}
-                      </p>
-                    ) : i.kind === "Acknowledgment" ? (
-                      // A training or briefing acknowledgment is the person's statement, no file
-                      // (journey 42); the organization verifies it like any other step.
-                      <div className="flex flex-col gap-8">
-                        <p className="m-0 text-text-13 text-text-secondary">
-                          {t("gatewayOnboarding.acknowledgeHint")}
-                        </p>
-                        <ActionButton
-                          action={submitOnboardingItemAction.bind(null, i.id)}
-                          label={t("gatewayOnboarding.acknowledge")}
-                          variant="secondary"
-                          done={t("gatewayOnboarding.acknowledged")}
+      {/* A sent item's form leaves in the commit that brings the result; the scope stays to hear of it (A146). */}
+      <ActionOutcomeScope
+        token={items.data.map((i) => `${i.id}:${onboardingStanding(i, today)}`).join(",")}
+      >
+        <RowList
+          label={t("nav.gateway.engagementTabs.onboarding")}
+          items={items.data.map((i) => {
+            const standing = onboardingStanding(i, today);
+            const canAct = standing === "todo" || standing === "expired";
+            return {
+              id: i.id,
+              title: i.name,
+              meta: [
+                t(enumLabelKey("onboardingItemKind", i.kind)),
+                i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
+                t(enumLabelKey("verificationMethod", i.verification)),
+                i.expiresOn
+                  ? t("gateway.engagement.documents.expires", {
+                      date: formatDate(locale, i.expiresOn),
+                    })
+                  : null,
+              ],
+              tag: {
+                label: t(`gateway.engagement.onboarding.standing.${standing}`),
+                tone:
+                  standing === "verified"
+                    ? "success"
+                    : standing === "review"
+                      ? "accent"
+                      : standing === "expired"
+                        ? "danger"
+                        : "warning",
+              },
+              ...(canAct
+                ? {
+                    detail:
+                      i.kind === "Tax Form" ? (
+                        <TaxFormForm
+                          orgId={view.engagement.orgId}
+                          asAccount={view.ctx.acting !== null}
+                          kinds={APP_ENUMS.tax_form_kind.map((k) => ({
+                            value: k,
+                            label: t(enumLabelKey("taxFormKind", k)),
+                          }))}
                         />
-                      </div>
-                    ) : i.kind === "Background Check" ? (
-                      <p className="m-0 text-text-13 text-text-secondary">
-                        {t("gateway.engagement.onboarding.backgroundHint")}
-                      </p>
-                    ) : i.kind === "Payout Details" ? (
-                      <p className="m-0 text-text-13 text-text-secondary">
-                        {t("gateway.engagement.onboarding.payoutHint")}
-                      </p>
-                    ) : (
-                      <OnboardingUploadForm
-                        orgId={view.engagement.orgId}
-                        engagementId={view.engagement.id}
-                        itemId={i.id}
-                        name={i.name}
-                      />
-                    ),
-                }
-              : {}),
-          };
-        })}
-      />
+                      ) : i.kind === "Electronic Signature" ? (
+                        <p className="m-0 text-text-13 text-text-secondary">
+                          {t("gateway.engagement.onboarding.signHint")}
+                        </p>
+                      ) : i.kind === "Acknowledgment" ? (
+                        // A training or briefing acknowledgment is the person's statement, no file
+                        // (journey 42); the organization verifies it like any other step.
+                        <div className="flex flex-col gap-8">
+                          <p className="m-0 text-text-13 text-text-secondary">
+                            {t("gatewayOnboarding.acknowledgeHint")}
+                          </p>
+                          <ActionButton
+                            action={submitOnboardingItemAction.bind(null, i.id)}
+                            label={t("gatewayOnboarding.acknowledge")}
+                            variant="secondary"
+                            done={t("gatewayOnboarding.acknowledged")}
+                          />
+                        </div>
+                      ) : i.kind === "Background Check" ? (
+                        <p className="m-0 text-text-13 text-text-secondary">
+                          {t("gateway.engagement.onboarding.backgroundHint")}
+                        </p>
+                      ) : i.kind === "Payout Details" ? (
+                        <p className="m-0 text-text-13 text-text-secondary">
+                          {t("gateway.engagement.onboarding.payoutHint")}
+                        </p>
+                      ) : (
+                        <OnboardingUploadForm
+                          orgId={view.engagement.orgId}
+                          engagementId={view.engagement.id}
+                          itemId={i.id}
+                          name={i.name}
+                        />
+                      ),
+                  }
+                : {}),
+            };
+          })}
+        />
+      </ActionOutcomeScope>
     </div>
   );
 }

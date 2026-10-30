@@ -1,6 +1,5 @@
 "use client";
 
-import { signalOnSuccess } from "@xos/data/workflow-signal";
 import { Button, Select, Textarea } from "@xos/ui";
 import { useId, useState } from "react";
 import {
@@ -11,16 +10,8 @@ import {
 import { ActionForm, useWorkflowT } from "./kit";
 
 // Each decision is the Finance funnel's step; the one that empties the person's queue completes it (A146).
-const decideAndSignal = signalOnSuccess(
-  decideApprovalAction,
-  "atlas.finance:step1",
-  (state) => state.ok === true,
-);
-const decideLastAndSignal = signalOnSuccess(
-  decideAndSignal,
-  "atlas.finance:done",
-  (state) => state.ok === true,
-);
+const DECIDED = ["atlas.finance:step1"] as const;
+const DECIDED_LAST = ["atlas.finance:step1", "atlas.finance:done"] as const;
 
 /**
  * Approve, or reject with a reason, the step an approval waits on. `last` marks the only approval left waiting on the
@@ -40,7 +31,7 @@ export function DecisionForm({
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
   return (
     <ActionForm
-      action={last ? decideLastAndSignal : decideAndSignal}
+      action={decideApprovalAction}
       hidden={{ org, id, decision }}
       label={t("approvals.decide.label")}
       submitLabel={
@@ -49,6 +40,7 @@ export function DecisionForm({
       submitVariant={decision === "approve" ? "primary" : "danger"}
       success={t("approvals.decide.done")}
       announce
+      signals={last ? DECIDED_LAST : DECIDED}
     >
       <fieldset className="m-0 flex flex-wrap gap-12 border-0 p-0">
         <legend className="mb-4 text-text-13 font-medium">{t("approvals.decide.legend")}</legend>

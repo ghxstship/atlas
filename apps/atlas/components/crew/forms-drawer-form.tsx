@@ -1,12 +1,12 @@
 "use client";
 
 import type { WorkflowSignal } from "@xos/data/product-workflows";
-import { signalOnSuccess } from "@xos/data/workflow-signal";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, Drawer, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { INITIAL } from "./forms.shared";
 import { type Action, type FieldSpec } from "./forms.types";
@@ -89,16 +89,17 @@ export function DrawerForm(props: {
   const t = useTranslations("crew.form");
   const router = useRouter();
   const close = useCloseHref(props.openKeys ?? ["create", "edit"]);
-  const [state, action, pending] = useActionState(
-    props.signal ? signalOnSuccess(props.action, props.signal, (s) => s.ok === true) : props.action,
-    INITIAL,
-  );
+  const [state, action, pending] = useActionState(props.action, INITIAL);
+  const signaled = useRef(state);
+  const { signal } = props;
   useEffect(() => {
     if (state.ok) {
+      if (signal && signaled.current !== state) emitWorkflow(signal);
+      signaled.current = state;
       router.push((state.redirect as Route | undefined) ?? close);
       router.refresh();
     }
-  }, [state, close, router]);
+  }, [state, close, router, signal]);
   return (
     <Drawer
       title={props.title}

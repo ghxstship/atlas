@@ -17,7 +17,7 @@ import {
   type ButtonProps,
 } from "@xos/ui";
 import type { WorkflowSignal } from "@xos/data/product-workflows";
-import { signalOnSuccess } from "@xos/data/workflow-signal";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { keepInputOnSubmit, useResetOnSuccess } from "./keep-input";
@@ -569,19 +569,17 @@ export function ActionButton({
 }) {
   const t = useCopy("procurement.kit");
   const router = useRouter();
-  const [state, formAction, pending] = useActionState(
-    signal ? signalOnSuccess(action, signal, (s) => s.ok === true) : action,
-    INITIAL,
-  );
+  const [state, formAction, pending] = useActionState(action, INITIAL);
   const [open, setOpen] = useState(false);
   const done = useRef<ActionState | null>(null);
   useEffect(() => {
     if (state.ok && done.current !== state) {
       done.current = state;
+      if (signal) emitWorkflow(signal);
       setOpen(false);
       router.refresh();
     }
-  }, [state, router]);
+  }, [state, router, signal]);
   const formId = `action-${label.replace(/[^a-z0-9]+/gi, "-")}-${Object.values(hidden).join("-")}`;
   const needsDialog = Boolean(reason || confirm || extraFields?.length);
   const form = (

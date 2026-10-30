@@ -1,7 +1,8 @@
 "use client";
 
-import { signalOnSuccess } from "@xos/data/workflow-signal";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, Checkbox, Dialog, InlineAlert, Input, Textarea } from "@xos/ui";
+import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { useTranslations } from "next-intl";
@@ -96,11 +97,7 @@ export interface ApplyFormProps {
 }
 
 // A sent application completes the Apply funnel (A146); submitting it is the funnel's step.
-const applyAndSignal = signalOnSuccess(
-  applyAction,
-  "gateway.apply:done",
-  (s: ApplyState) => s.sent === true,
-);
+const applied = () => emitWorkflow("gateway.apply:done");
 
 /**
  * Apply in one step (Section 4.4.3, Section 11.12 Apply): the person sees exactly what they share,
@@ -110,7 +107,8 @@ const applyAndSignal = signalOnSuccess(
  */
 export function ApplyForm(props: ApplyFormProps) {
   const t = useTranslations("gateway.explore.applyForm") as unknown as Translate;
-  const [state, action, pending] = useActionState<ApplyState, FormData>(applyAndSignal, {});
+  const [state, action, pending] = useActionState<ApplyState, FormData>(applyAction, {});
+  useActionOutcome(state, pending, (s) => s.sent === true, applied);
   const [lines, setLines] = useState([0]);
   const [next, setNext] = useState(1);
   if (state.sent) {

@@ -10,7 +10,11 @@ import type { WorkflowSignal } from "./product-workflows.ts";
 /** The window event emitWorkflow dispatches and the analytics module listens for. */
 export const WORKFLOW_SIGNAL_EVENT = "xos:workflow";
 
-/** Signals a workflow event from client code, for example once a server action succeeded. */
+/**
+ * Signals a workflow event from client code, for example once a server action succeeded: from the form's result
+ * (useActionOutcome in @xos/ui/pwa/action-outcome, or a success effect), never by wrapping the action, which would stop
+ * the form posting without JavaScript (ADR 0001).
+ */
 export function emitWorkflow(signal: WorkflowSignal): void {
   (globalThis as unknown as EventTarget).dispatchEvent(
     new CustomEvent(WORKFLOW_SIGNAL_EVENT, { detail: signal }),
@@ -25,20 +29,4 @@ export function workflowMarker(signal: WorkflowSignal): {
   readonly "data-workflow": WorkflowSignal;
 } {
   return { "data-workflow": signal };
-}
-
-/**
- * Wraps a server action so a result that `succeeded` signals, in the browser, after it returns. For forms whose row
- * can leave the page with the result, where an effect of the form would never run.
- */
-export function signalOnSuccess<S, P>(
-  action: (state: S, payload: P) => Promise<S>,
-  signal: WorkflowSignal,
-  succeeded: (state: S) => boolean,
-): (state: S, payload: P) => Promise<S> {
-  return async (state, payload) => {
-    const next = await action(state, payload);
-    if (succeeded(next)) emitWorkflow(signal);
-    return next;
-  };
 }

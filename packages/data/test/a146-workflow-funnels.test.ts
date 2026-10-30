@@ -12,12 +12,7 @@ import {
 } from "../src/product-workflows.ts";
 import { acknowledgeFunnelAlert, getConsoleFunnels } from "../src/console-funnels.ts";
 import { moduleClient } from "./module-client.ts";
-import {
-  emitWorkflow,
-  signalOnSuccess,
-  WORKFLOW_SIGNAL_EVENT,
-  workflowMarker,
-} from "../src/workflow-signal.ts";
+import { emitWorkflow, WORKFLOW_SIGNAL_EVENT, workflowMarker } from "../src/workflow-signal.ts";
 
 /**
  * The workflow funnels of Sections 11.11 to 11.13 (A146, migration 2340, ADR 0052): the registry the browser reads,
@@ -87,7 +82,7 @@ describe("signals", () => {
     expect(workflowFunnel("atlas.nothing")).toBeUndefined();
   });
 
-  it("dispatches a window event, marks markup and signals a succeeded action only", async () => {
+  it("dispatches a window event and marks markup", () => {
     const dispatched: Event[] = [];
     vi.stubGlobal("dispatchEvent", (e: Event) => dispatched.push(e));
     emitWorkflow("atlas.finance:step1");
@@ -95,16 +90,6 @@ describe("signals", () => {
     expect(dispatched[0]?.type).toBe(WORKFLOW_SIGNAL_EVENT);
     expect((dispatched[0] as CustomEvent).detail).toBe("atlas.finance:step1");
     expect(workflowMarker("gateway.apply:done")).toEqual({ "data-workflow": "gateway.apply:done" });
-
-    const action = vi.fn(async (_: { ok?: boolean }, form: string): Promise<{ ok?: boolean }> => ({
-      ok: form === "good",
-    }));
-    const wrapped = signalOnSuccess(action, "atlas.finance:done", (s) => s.ok === true);
-    await expect(wrapped({}, "bad")).resolves.toEqual({ ok: false });
-    expect(dispatched).toHaveLength(1);
-    await expect(wrapped({}, "good")).resolves.toEqual({ ok: true });
-    expect(dispatched).toHaveLength(2);
-    expect((dispatched[1] as CustomEvent).detail).toBe("atlas.finance:done");
   });
 });
 
@@ -170,6 +155,28 @@ describe("every Atlas and Gateway funnel is measured end to end", () => {
       .flatMap((f) => funnelSignals(f))
       .filter((s) => !literals.has(s) && !routed.has(s));
     expect(missing).toEqual([]);
+  });
+
+  // ADR 0001: a form bound to a server action posts without JavaScript only while useActionState holds the server
+  // action itself, so a form signals success from its result (useActionOutcome or a success effect), never by wrapping
+  // the action.
+  it("keeps the server action in useActionState where a form signals success", () => {
+    const forms: readonly (readonly [string, string])[] = [
+      ["apps/gateway/components/explore/forms.tsx", "applyAction"],
+      ["apps/gateway/components/engagement/forms.tsx", "submitInvoiceAction"],
+      ["apps/gateway/components/engagement/forms.tsx", "uploadOnboardingAction"],
+      ["apps/gateway/components/engagement/forms.tsx", "sendMessageAction"],
+      ["apps/atlas/components/advancing/forms.tsx", "reviewSubmissionAction"],
+      ["apps/atlas/components/crew/forms-drawer-form.tsx", "props.action"],
+      ["apps/atlas/components/collection-kit/kit.tsx", "action"],
+    ];
+    for (const [path, action] of forms) {
+      const held = [...read(path).matchAll(/useActionState(?:<[^>]*>)?\(\s*([\w.]+)/g)].map(
+        (m) => m[1],
+      );
+      expect(held, `${path} ${action}`).toContain(action);
+    }
+    expect(code).not.toMatch(/signalOnSuccess/);
   });
 });
 

@@ -1,8 +1,9 @@
 "use client";
 
 import type { WorkflowSignal } from "@xos/data/product-workflows";
-import { signalOnSuccess } from "@xos/data/workflow-signal";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, Checkbox, InlineAlert, Input, Textarea } from "@xos/ui";
+import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -34,22 +35,12 @@ export function useCopy(): Translate {
 }
 
 // Workflow funnel signals (A146): a submitted invoice completes Get paid, an uploaded item is Onboard's step, and a
-// sent reply completes Communicate.
-const submitInvoiceAndSignal = signalOnSuccess(
-  submitInvoiceAction,
-  "gateway.get_paid:done",
-  (s: FormResult) => s.done === true,
-);
-const uploadAndSignal = signalOnSuccess(
-  uploadOnboardingAction,
-  "gateway.onboard:step1",
-  (s: FormResult) => s.done === true,
-);
-const sendAndSignal = signalOnSuccess(
-  sendMessageAction,
-  "gateway.communicate:done",
-  (s: MessageFormState) => s.sent !== undefined,
-);
+// sent reply completes Communicate. An uploaded item can leave its list with the result, so the tabs that list them
+// wrap the rows in an ActionOutcomeScope.
+const done = (s: FormResult) => s.done === true;
+const invoiced = () => emitWorkflow("gateway.get_paid:done");
+const uploaded = () => emitWorkflow("gateway.onboard:step1");
+const replied = () => emitWorkflow("gateway.communicate:done");
 
 /** Shared form chrome: field and outcome errors, a success line, refresh on success. */
 export function FormShell({
@@ -246,7 +237,8 @@ export function InvoiceForm(props: {
   due: string;
 }) {
   const t = useCopy();
-  const [state, action, pending] = useActionState<FormResult, FormData>(submitInvoiceAndSignal, {});
+  const [state, action, pending] = useActionState<FormResult, FormData>(submitInvoiceAction, {});
+  useActionOutcome(state, pending, done, invoiced);
   const [lines, setLines] = useState([0]);
   const [next, setNext] = useState(1);
   return (
@@ -353,7 +345,8 @@ export function OnboardingUploadForm(props: {
   name: string;
 }) {
   const t = useCopy();
-  const [state, action, pending] = useActionState<FormResult, FormData>(uploadAndSignal, {});
+  const [state, action, pending] = useActionState<FormResult, FormData>(uploadOnboardingAction, {});
+  useActionOutcome(state, pending, done, uploaded);
   return (
     <FormShell
       row
@@ -493,7 +486,11 @@ export function MessageComposer(props: { threadId: string; action?: "engagement"
   const t = useCopy();
   const router = useRouter();
   const ref = useRef<HTMLFormElement>(null);
-  const [state, action, pending] = useActionState<MessageFormState, FormData>(sendAndSignal, {});
+  const [state, action, pending] = useActionState<MessageFormState, FormData>(
+    sendMessageAction,
+    {},
+  );
+  useActionOutcome(state, pending, (s) => s.sent !== undefined, replied);
   useEffect(() => {
     if (state.sent) {
       ref.current?.reset();

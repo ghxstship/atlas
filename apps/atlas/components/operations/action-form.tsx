@@ -1,7 +1,7 @@
 "use client";
 
 import type { WorkflowSignal } from "@xos/data/product-workflows";
-import { signalOnSuccess } from "@xos/data/workflow-signal";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, InlineAlert } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { startTransition, useActionState, useEffect, useRef, type ReactNode } from "react";
@@ -45,10 +45,7 @@ export function ActionForm({
   signals?: { readonly submit?: WorkflowSignal; readonly done?: WorkflowSignal };
   children?: ReactNode;
 }) {
-  const [state, run, pending] = useActionState(
-    signals?.done ? signalOnSuccess(action, signals.done, (s) => s.ok === true) : action,
-    {},
-  );
+  const [state, run, pending] = useActionState(action, {});
   const errors = useErrorCopy();
   const root = useTranslations() as unknown as Translate;
   const form = useRef<HTMLFormElement>(null);
@@ -56,6 +53,14 @@ export function ActionForm({
   useEffect(() => {
     if (state.ok && resetOnSuccess) form.current?.reset();
   }, [state, resetOnSuccess]);
+  // The form stays on the page with its result, so the result's own effect sends the funnel signal (A146).
+  const done = signals?.done;
+  const signaled = useRef(state);
+  useEffect(() => {
+    if (!state.ok || signaled.current === state) return;
+    signaled.current = state;
+    if (done) emitWorkflow(done);
+  }, [state, done]);
 
   return (
     <form

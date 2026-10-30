@@ -96,8 +96,18 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
   - a page view of a route template the registry lists, with no code in the page;
   - a `data-workflow` attribute (`workflowMarker`). On a link, button or form it signals when clicked or submitted.
     On any other element it signals when the element appears;
-  - `emitWorkflow` from client code, usually through `signalOnSuccess` around a server action, so a refused submit
-    never counts as a completion.
+  - `emitWorkflow` from client code, once a server action succeeded, so a refused submit never counts as a
+    completion. A form signals from its result, never by wrapping the action, so useActionState keeps the server
+    action and the form still posts without JavaScript (ADR 0001). `useActionOutcome` (`@xos/ui/pwa/action-outcome`)
+    or the form kit's own success effect does it.
+  - A row that leaves the page with its result (an answer reviewed out of the queue, an uploaded onboarding item)
+    never commits that result, since the revalidated page drops it in the same commit. Its list sits in an
+    `ActionOutcomeScope`, which stays mounted. A form that left while its action was pending counts as succeeded
+    when the scope's token changed in that commit. The token is the page's account of what those forms change, and
+    a refused action leaves both the row and the token as they were.
+  - The workflow kit's `ActionForm` (approvals, project templates) already ran its server action through a client
+    function before A146, to announce success for rows that leave. Its funnel signals ride on that function, so those
+    forms post as they did before.
 - **Consent unchanged.** The browser module that turns signals into events is the one section 3 describes. It loads
   only on a yes to performance cookies, stops under Global Privacy Control and posts to the app's own
   `/api/product-events`, which asks the consent seam again.
