@@ -66,17 +66,39 @@ pseudo-elements: some with motion, none under reduced motion.
 
 Atlas's `components/shell/region.tsx` (`Region`) gives it Next's behavior: `reportClientError` (ADR 0025) reports,
 Retry runs `router.refresh()` and `reset` in one transition so a server component's error can recover too,
-`unstable_rethrow` decides what passes through (redirect, not found, bailouts), and the path is the reset key.
+`unstable_rethrow` decides what passes through (redirect, not found, bailouts), and the path is the reset key. Its
+children render inside a Suspense boundary: during the server render an error an async server child throws stops
+there, the region renders again in the browser, and Region catches it, instead of the page going to `error.tsx`.
 
-Region wraps:
+### 4. A failed read fails its region, not the page
 
-- Home's tiles (readiness, alerts, recent activity). Each tile's content is a function called inside its Region,
-  so an error while building it stays in the tile.
-- The record page's panels below the record's own fields: Summarize, the kind's fields, the checklist, assignments,
-  related records, actuals, recurrence, field history, and comments and files.
-- The shell peek's comments and files and related records, and the custom object peek's activity and comments.
-- The comments and attachments of every collection kit panel (`collection-kit/collab.tsx`), around the server
-  component that loads them, so a read that throws stays in the panel.
+A boundary catches only errors thrown while its children render. Most of Atlas's pages read every region's data in
+one loader before rendering, and a loader's `must(...)` throws on any failed read, so a boundary alone would leave
+one broken read taking down the page. The loaders that read several regions at once therefore return one
+`RegionData<T>` per region (`lib/shell/region-data.ts`): the data, or `{ ok: false }`. `regionOf` and
+`regionRead` catch a region's failed read, report it on the server through `observability.errors` (tagged
+`source: region` and the region's name; the browser reporter skips server errors), and let Next's redirect and not
+found through. `RegionFailed` shows the same alert and Retry for such a region, and `RegionContent` renders a
+region's data inside a Region, or `RegionFailed` when its read failed; it builds the content as a child of the
+Region, so an error while building it stays in the region too.
+
+- Home (`lib/home/data.ts`): each tile reads on its own. Gate readiness feeds the readiness tile, the open blockers
+  count and the alerts, so those three fail together; the project counts, today's count and recent activity fail
+  alone. The dashboard grid (`components/dashboard/dashboard-grid.tsx`) puts every tile, the checklist and the plan
+  included, in its own Region.
+- The record page and the work peeks (`components/work/record-detail.tsx`): the kind's attribute values, the
+  checklist, assignments, watch, related records with dependencies, actuals, recurrence, state history, replans,
+  the punch note, and comments and files are each a region; the field history is worded inside its region. The
+  record itself, its properties, its state moves and the edit form still read for the whole page, since without
+  them there is no page to show.
+- The shell's peek (`lib/shell/peek-actions.ts`): comments and files and related records each fail alone, and Retry
+  reads the peek again. The custom object peek's comments do the same; its activity already showed "unavailable".
+- The comments and attachments of every collection kit panel (`collection-kit/collab.tsx`) load in an async server
+  component inside their Region.
+
+`test/region.test.tsx` (Region with Next's own redirect and not found, the router and reporter replaced, and the
+dashboard grid keeping its other tiles) and `test/region-loaders.test.ts` (Home, the record page and the shell peek
+with one failing read each) cover Atlas.
 
 Region and RegionBoundary add under 1 KB of gzip route JavaScript where they render (about 0.3 and 0.7 KB). Of
 the key pages Home renders them; the shell and the peek's host do not import them, and the shell peek's sections
@@ -87,7 +109,7 @@ every key page is within budget (`budget:js`: Projects and Inbox 198 KB, Home 18
 
 - A failing tile, panel or peek section no longer takes down its page: the rest renders and works.
 - Every new directory of pages under a shell needs its `template.tsx`; the app's test names it.
-- When A129's Dashboard template lands, its tiles render through `TemplateDashboard`; Home's tile helper keeps the
-  Region, and the dashboard template's own tiles take one the same way.
+- A loader that reads another page's regions together returns `RegionData` per region the same way; a page that
+  reads one thing keeps `must` and its `error.tsx`.
 - Gateway gains route transitions only; its pages already show `RegionError` for failed reads, and it has no
   record peek or dashboard tiles.
