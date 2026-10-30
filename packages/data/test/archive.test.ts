@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { applyArchived, inArchived, parseArchived, setArchived } from "../src/archive.ts";
+import {
+  countMyRecords,
+  listBlockedRecords,
+  listMyOverdueRecords,
+  listMyRecordsBetween,
+  listRecentRecords,
+} from "../src/home.ts";
+import { listMyWork } from "../src/my-work.ts";
+import { getPersonCard } from "../src/person-card.ts";
+import { listFilingTargets } from "../src/project-inbox.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 describe("archive (A124)", () => {
@@ -73,5 +83,24 @@ describe("archive (A124)", () => {
       kind: "refusal",
       rule: "archive_name_taken",
     });
+  });
+
+  it("leaves archived records out of Home, My Work, filing targets and the person card", async () => {
+    const { db, calls } = fakeClient({
+      "from:records": Array.from({ length: 8 }, () => okResponse([])),
+      "from:memberships": [okResponse(null)],
+    });
+    const person = { orgId: "o1", personId: "p1" };
+    await listMyRecordsBetween(db, { ...person, from: new Date(0), to: new Date(1) });
+    await listMyOverdueRecords(db, { ...person, now: new Date(0) });
+    await listBlockedRecords(db, "o1");
+    await listRecentRecords(db, person);
+    await countMyRecords(db, { ...person, which: "open" });
+    await listMyWork(db, { ...person, membershipId: null });
+    await listFilingTargets(db, "prj1", "NWL");
+    await getPersonCard(db, "o1", "p1");
+    const reads = calls.filter((c) => c.target === "from:records");
+    expect(reads).toHaveLength(8);
+    for (const read of reads) expect(read.steps).toContainEqual(["is", ["archived_at", null]]);
   });
 });
