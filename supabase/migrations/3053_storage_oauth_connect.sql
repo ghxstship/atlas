@@ -36,8 +36,8 @@ create index integration_oauth_states_person_idx on private.integration_oauth_st
 
 alter table private.integration_oauth_states enable row level security;
 revoke all on private.integration_oauth_states from public, anon, authenticated;
--- The rows hold PKCE verifiers: the read-only backup login never reads them (1650 grants it every new relation).
-revoke select on private.integration_oauth_states from xos_backup;
+-- The read-only backup login reads it like every relation (1650): a verifier is single-use, expires in 10 minutes and
+-- is worthless without the provider's code, which never reaches the database.
 
 comment on table private.integration_oauth_states is 'Pending OAuth authorizations of storage connections (3053, ADR 0155 D5): the state Atlas sent the provider, by hash, with the PKCE verifier and redirect URI, bound to one person and one connection, valid 10 minutes and used once. Read only through app.finish_integration_oauth; a row a day past its expiry is deleted when the next authorization starts.';
 comment on column private.integration_oauth_states.state_hash is 'SHA-256 of the state parameter; the state itself is never stored.';

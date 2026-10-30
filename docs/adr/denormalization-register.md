@@ -32,31 +32,32 @@ Section 3.15 allows a materialized view or stored derived value only for measure
 
 ADR 0002 allows JSON columns only for rich text documents, audit diffs and provider payloads. `registered` means the column is a derived entry above; `finding` means it is a violation with an open finding.
 
-| Column                                          | Exception        | Why                                                                                                       |
-| ----------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------- |
-| `app.ai_suggestion_fields.proposed_value`       | provider-payload | A field value the AI model proposed, kept as it answered until a person accepts or edits it.              |
-| `app.audit_events.diff`                         | audit-diff       | The audit ledger's diff of each write.                                                                    |
-| `app.automation_run_steps.request_body`         | provider-payload | Body sent to the operation (migration 1481).                                                              |
-| `app.automation_run_steps.response_body`        | provider-payload | The operation's answer, trimmed to its identifying fields (migration 1481).                               |
-| `app.automation_runs.event_payload`             | provider-payload | The event as webhooks send it, the run's input (migration 1481).                                          |
-| `app.domain_events.data`                        | provider-payload | Outbound webhook payload.                                                                                 |
-| `app.form_submissions.answers`                  | registered       | Answers to one immutable form version (A22-008).                                                          |
-| `app.form_template_versions.fields`             | registered       | Published form definition (A22-008).                                                                      |
-| `app.form_templates.fields`                     | registered       | Draft form definition (A22-008).                                                                          |
-| `app.idempotency_keys.response_body`            | provider-payload | The API response returned verbatim on replay.                                                             |
-| `app.import_row_results.before_image`           | audit-diff       | The target's changed columns before an import wrote them, used to undo it.                                |
-| `app.integration_connections.provider_settings` | provider-payload | Provider configuration the connector validates, such as calendar ids and default accounts. Never secrets. |
-| `app.integration_inbound_events.payload`        | provider-payload | The part of the provider's payload the worker needs, at most 64 KB (migration 1400).                      |
-| `app.notifications.message_args`                | provider-payload | Display arguments the catalog messages render for every channel; never relational.                        |
-| `app.org_domains.dns_records`                   | provider-payload | DNS records as the email or hosting provider gave them (migration 1355).                                  |
-| `app.platform_operator_actions.details`         | audit-diff       | What an operator action changed, as display values (migration 1470).                                      |
-| `app.stripe_events.payload`                     | provider-payload | Stripe event as sent, after signature verification.                                                       |
-| `app.sync_mutations.result`                     | provider-payload | The result returned to every replay of a Compass mutation.                                                |
-| `app.time_entry_audit.new_values`               | audit-diff       | Clock times after a change.                                                                               |
-| `app.time_entry_audit.old_values`               | audit-diff       | Clock times before a change.                                                                              |
-| `private.account_deletions.result`              | audit-diff       | What an account deletion erased and kept, as returned to the person (migration 1112).                     |
-| `private.account_security_events.detail`        | audit-diff       | Facts of a security event in the person's own log (migration 1560).                                       |
-| `private.platform_emails.args`                  | provider-payload | Template arguments for the email provider, cleared once sent (migration 1382).                            |
+| Column                                          | Exception        | Why                                                                                                                                                          |
+| ----------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app.ai_suggestion_fields.proposed_value`       | provider-payload | A field value the AI model proposed, kept as it answered until a person accepts or edits it.                                                                 |
+| `app.ai_suggestions.operation_request`          | provider-payload | How Atlas calls the operation a connected app proposed (path values and If-Match), as the app sent it; read whole when the person confirms (migration 3052). |
+| `app.audit_events.diff`                         | audit-diff       | The audit ledger's diff of each write.                                                                                                                       |
+| `app.automation_run_steps.request_body`         | provider-payload | Body sent to the operation (migration 1481).                                                                                                                 |
+| `app.automation_run_steps.response_body`        | provider-payload | The operation's answer, trimmed to its identifying fields (migration 1481).                                                                                  |
+| `app.automation_runs.event_payload`             | provider-payload | The event as webhooks send it, the run's input (migration 1481).                                                                                             |
+| `app.domain_events.data`                        | provider-payload | Outbound webhook payload.                                                                                                                                    |
+| `app.form_submissions.answers`                  | registered       | Answers to one immutable form version (A22-008).                                                                                                             |
+| `app.form_template_versions.fields`             | registered       | Published form definition (A22-008).                                                                                                                         |
+| `app.form_templates.fields`                     | registered       | Draft form definition (A22-008).                                                                                                                             |
+| `app.idempotency_keys.response_body`            | provider-payload | The API response returned verbatim on replay.                                                                                                                |
+| `app.import_row_results.before_image`           | audit-diff       | The target's changed columns before an import wrote them, used to undo it.                                                                                   |
+| `app.integration_connections.provider_settings` | provider-payload | Provider configuration the connector validates, such as calendar ids and default accounts. Never secrets.                                                    |
+| `app.integration_inbound_events.payload`        | provider-payload | The part of the provider's payload the worker needs, at most 64 KB (migration 1400).                                                                         |
+| `app.notifications.message_args`                | provider-payload | Display arguments the catalog messages render for every channel; never relational.                                                                           |
+| `app.org_domains.dns_records`                   | provider-payload | DNS records as the email or hosting provider gave them (migration 1355).                                                                                     |
+| `app.platform_operator_actions.details`         | audit-diff       | What an operator action changed, as display values (migration 1470).                                                                                         |
+| `app.stripe_events.payload`                     | provider-payload | Stripe event as sent, after signature verification.                                                                                                          |
+| `app.sync_mutations.result`                     | provider-payload | The result returned to every replay of a Compass mutation.                                                                                                   |
+| `app.time_entry_audit.new_values`               | audit-diff       | Clock times after a change.                                                                                                                                  |
+| `app.time_entry_audit.old_values`               | audit-diff       | Clock times before a change.                                                                                                                                 |
+| `private.account_deletions.result`              | audit-diff       | What an account deletion erased and kept, as returned to the person (migration 1112).                                                                        |
+| `private.account_security_events.detail`        | audit-diff       | Facts of a security event in the person's own log (migration 1560).                                                                                          |
+| `private.platform_emails.args`                  | provider-payload | Template arguments for the email provider, cleared once sent (migration 1382).                                                                               |
 
 ## Array columns
 
@@ -65,6 +66,7 @@ ADR 0002 forbids arrays of identifiers, and pgTAP 1280 refuses any `uuid[]` colu
 | Column                                        | Kind     | Why                                                                                                                  |
 | --------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
 | `app.api_keys.scopes`                         | reviewed | Capability groups checked against the registry on every write (A22-009).                                             |
+| `app.mcp_connectors.default_scopes`           | reviewed | Capability groups a connector offers by default, checked against the registry and never Restricted (migration 3052). |
 | `app.oauth_grants.scopes`                     | reviewed | Capability groups checked against the registry on every write (A22-009).                                             |
 | `app.person_work_details.accessibility_needs` | reviewed | A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).      |
 | `app.person_work_details.dietary_needs`       | reviewed | A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).      |

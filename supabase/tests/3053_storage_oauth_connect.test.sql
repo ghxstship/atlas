@@ -45,8 +45,8 @@ select ok((select state_hash = sha256(convert_to(split_part((select txt from k w
 select is((select private.base64url(sha256(convert_to(code_verifier, 'UTF8'))) from private.integration_oauth_states),
   split_part((select txt from k where key = 'state'), ' ', 2), 'the challenge is the S256 of the stored verifier');
 select ok((select expires_at = now() + interval '10 minutes' from private.integration_oauth_states), 'it lives 10 minutes');
-select ok(not has_table_privilege('xos_backup', 'private.integration_oauth_states', 'select'),
-  'the backup login never reads the verifiers');
+select ok(not has_table_privilege('authenticated', 'private.integration_oauth_states', 'select'),
+  'no session reads the verifiers; only app.finish_integration_oauth does');
 select pg_temp.as_user('bob');
 insert into k (key, txt) select 'state2', b.state
 from app.begin_integration_oauth((select id from k where key = 'drive'), 'https://atlas.example.test/oauth/integrations/callback') b;

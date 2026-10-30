@@ -10,6 +10,9 @@ set search_path = extensions, public;
 
 select plan(78);
 
+create temporary table k (key text primary key, at timestamptz, id uuid);
+grant select, insert, update on k to public;
+
 create function pg_temp.as_service() returns void
 language plpgsql as $$
 begin
@@ -46,8 +49,6 @@ begin
   where id = (pg_temp.open_pause()).id;
 end $$;
 
-create temporary table k (key text primary key, at timestamptz, id uuid);
-grant select, insert, update on k to public;
 insert into k (key, at) values ('period_end', date_trunc('second', now() + interval '20 days'));
 
 -- Setup: a file made before any pause; Northwind pays monthly through Stripe; Harbor Lights pays annually; Bluewater
@@ -250,7 +251,7 @@ select results_eq($$select source::text, starts_at, resumes_at from app.subscrip
 select pg_temp.as_user_stepped_up('alice');
 select is(app.record_subscription_pause(pg_temp.id('org_a'), 3, false, 'sub_N0rthw1nd'), (pg_temp.open_pause()).id,
   'Atlas recording right after the webhook takes over that pause');
-select pg_temp.as_platform();
+select pg_temp.as_user('alice');
 select results_eq($$select source::text, months from app.subscription_pause_status(pg_temp.id('org_a'))$$,
   $$values ('Owner'::text, 3)$$, 'as the Owner''s, for the months chosen');
 
@@ -272,12 +273,12 @@ select pg_temp.remember_open();
 update app.subscription_pauses set starts_at = private.pause_resume_at(now() + interval '1 hour', -1),
   resumes_at = private.pause_resume_at(private.pause_resume_at(now() + interval '1 hour', -1), 1)
 where id = (select id from k where key = 'last');
-delete from app.notifications where kind = 'billing.resumed';
+update app.notifications set read_at = now() where kind = 'billing.resumed' and read_at is null;
 select pg_temp.sync('active', false, null, now() + interval '5 seconds');
 select pg_temp.as_platform();
 select is((pg_temp.last_pause()).end_reason::text, 'Resumed on schedule', 'Stripe clearing it within two hours of the resume ends it on schedule');
-select is((select count(*)::integer from app.notifications where recipient_person_id = pg_temp.id('alice') and kind = 'billing.resumed'), 1,
-  'with billing.resumed, once');
+select is((select count(*)::integer from app.notifications where recipient_person_id = pg_temp.id('alice') and kind = 'billing.resumed'
+  and read_at is null), 1, 'with billing.resumed, once');
 
 -- Cancellation, deletion and Stripe deleting the subscription end a pause --------------------------------------------------
 select pg_temp.sync('active', true, null, now() + interval '6 seconds');

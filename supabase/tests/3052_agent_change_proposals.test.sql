@@ -43,6 +43,16 @@ select pg_temp.as_user('alice');
 insert into app.projects (org_id, project_key, name, time_zone) values (pg_temp.id('org_a'), 'NWT', 'Northwind Tour', 'America/New_York');
 select pg_temp.as_platform();
 insert into world select 'prj', p.id from app.projects p where p.project_key = 'NWT';
+-- A clean file on the project, for the share link a connector may not make.
+select pg_temp.as_user('alice');
+insert into k (key, id) select 'file_version', u.attachment_version_id
+from app.begin_attachment_upload('app.projects', pg_temp.id('prj'), 'rider.pdf', 'application/pdf', 1200) u;
+insert into storage.objects (bucket_id, name, metadata)
+select 'attachments', v.object_name, '{"size": 1200}' from app.attachment_versions v where v.id = (select id from k where key = 'file_version');
+select app.complete_attachment_upload((select id from k where key = 'file_version'), repeat('ab', 32));
+select pg_temp.as_platform();
+select app.record_attachment_scan((select id from k where key = 'file_version'), true);
+insert into k (key, id) select 'file', v.attachment_id from app.attachment_versions v where v.id = (select id from k where key = 'file_version');
 
 -- Registering a connector ------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
@@ -74,6 +84,8 @@ insert into app.oauth_apps (org_id, name, redirect_uri) values (pg_temp.id('org_
 select pg_temp.as_platform();
 insert into world select 'plain_app', a.id from app.oauth_apps a where a.name = 'Ledger Sync';
 insert into world select 'plain', c.auth_client_id from private.oauth_app_clients c where c.oauth_app_id = pg_temp.id('plain_app');
+insert into k (key, txt) select 'connector_text', a.client_id from app.oauth_apps a where a.id = (select id from k where key = 'connector_app');
+insert into k (key, txt) select 'plain_text', a.client_id from app.oauth_apps a where a.id = pg_temp.id('plain_app');
 
 select pg_temp.as_user('dave');
 select is(app.oauth_default_scopes(pg_temp.id('connector')), array['home', 'projects'], 'a member reads the connector''s default groups');
@@ -83,10 +95,10 @@ select is(app.oauth_default_scopes(pg_temp.id('connector')), null, 'and a non-me
 
 -- Consent --------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user_stepped_up('dave');
-select app.grant_oauth_consent((select client_id from app.oauth_apps where id = (select id from k where key = 'connector_app')), array['projects', 'home', 'data']);
+select app.grant_oauth_consent((select txt from k where key = 'connector_text'), array['projects', 'home', 'data']);
 select pg_temp.as_user('alice');
-select app.grant_oauth_consent((select client_id from app.oauth_apps where id = (select id from k where key = 'connector_app')), array['projects']);
-select app.grant_oauth_consent((select client_id from app.oauth_apps where id = pg_temp.id('plain_app')), array['projects']);
+select app.grant_oauth_consent((select txt from k where key = 'connector_text'), array['projects']);
+select app.grant_oauth_consent((select txt from k where key = 'plain_text'), array['projects']);
 
 -- Proposing ------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
@@ -136,7 +148,7 @@ select throws_like($$select pg_temp.propose('projects.update', array['projects']
 select pg_temp.as_app('alice', 'connector');
 select throws_like($$insert into app.projects (org_id, project_key, name, time_zone) values (pg_temp.id('org_a'), 'AGT', 'Agent Tour', 'UTC')$$,
   'agent_write_needs_review:%', 'a connector session''s direct write (PostgREST or the API) is refused');
-select throws_like($$insert into app.share_links (attachment_id, expires_at) values (gen_random_uuid(), now() + interval '1 day')$$,
+select throws_like($$insert into app.share_links (attachment_id, expires_at) values ((select id from k where key = 'file'), now() + interval '1 day')$$,
   'agent_write_needs_review:%', 'and so is making a share link');
 select pg_temp.as_app('alice', 'plain');
 select lives_ok($$insert into app.projects (org_id, project_key, name, time_zone) values (pg_temp.id('org_a'), 'PLN', 'Plain Tour', 'UTC')$$,
@@ -187,7 +199,7 @@ select throws_like($$select pg_temp.propose('projects.update', array['projects']
 
 -- A re-consent keeps them; a revoked grant expires them -------------------------------------------------------------------------
 select pg_temp.as_user_stepped_up('dave');
-select app.grant_oauth_consent((select client_id from app.oauth_apps where id = (select id from k where key = 'connector_app')), array['projects', 'home', 'data']);
+select app.grant_oauth_consent((select txt from k where key = 'connector_text'), array['projects', 'home', 'data']);
 select pg_temp.as_platform();
 select is(pg_temp.proposed('dave'), 100, 'consenting again keeps the proposals waiting');
 update app.oauth_grants set deleted_at = now()

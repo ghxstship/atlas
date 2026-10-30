@@ -187,6 +187,9 @@ json:
   - column: app.ai_suggestion_fields.proposed_value
     kind: provider-payload
     note: A field value the AI model proposed, kept as it answered until a person accepts or edits it.
+  - column: app.ai_suggestions.operation_request
+    kind: provider-payload
+    note: How Atlas calls the operation a connected app proposed (path values and If-Match), as the app sent it; read whole when the person confirms (migration 3052).
   - column: app.audit_events.diff
     kind: audit-diff
     note: The audit ledger's diff of each write.
@@ -259,6 +262,9 @@ arrays:
   - column: app.api_keys.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.mcp_connectors.default_scopes
+    kind: reviewed
+    note: Capability groups a connector offers by default, checked against the registry and never Restricted (migration 3052).
   - column: app.oauth_grants.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
