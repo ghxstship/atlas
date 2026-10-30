@@ -103,6 +103,11 @@ describe("what each section shows", () => {
     expect(registryKeys()).not.toContain("me.theme");
   });
 
+  it("never offers a dashboard layout, which a person arranges on its Atlas dashboard (A129)", () => {
+    expect(registryKeys()).not.toContain("me.dashboard_layout.home");
+    expect(registryKeys()).not.toContain("me.dashboard_layout.partner");
+  });
+
   it("never offers a hidden setting", () => {
     const hidden: SettingDefinition = { ...def("me.sounds"), key: "me.secret", hidden: true };
     expect(

@@ -13,7 +13,8 @@ import { fillRoute } from "@xos/ia";
 
 /**
  * The navigation model of the Atlas shell, generated from the sitemap for one viewer (Section 4.5.2):
- * the always-visible top items, the pinned Projects entry, the module groups with the role's default
+ * the always-visible top items, the pinned Projects entry with the person's recent projects under it, the module
+ * groups with the role's default
  * groups expanded and the person's own order and hidden items applied, the footer, the account entry,
  * the phone bottom bar and the command menu index with its shortcut hints. No navigation item is
  * written in a component; everything here comes from ia/sitemap.yaml.
@@ -24,7 +25,20 @@ export interface NavLinkModel {
   readonly label: string;
   readonly href: string;
   readonly icon: string;
+  /** Links listed under this one: the recent projects and All Projects under the pinned Projects entry. */
+  readonly children?: readonly NavLinkModel[];
+  /** Names the list of `children` for screen readers. */
+  readonly childrenLabel?: string;
 }
+
+/** A project the person opened recently, newest first (lib/shell/recents.ts). */
+export interface RecentProjectModel {
+  readonly key: string;
+  readonly name: string;
+}
+
+/** How many recent projects the sidebar lists under Projects (Section 4.5.2: the five most recent). */
+export const RECENT_PROJECT_COUNT = 5;
 
 export interface NavGroupModel {
   readonly id: string;
@@ -101,6 +115,8 @@ export const NAV_ICONS: Readonly<Record<string, string>> = {
   "action.search": "Search",
   "action.favorites": "Star",
   "action.menu": "Menu",
+  project: "Folder",
+  "projects.all": "List",
 };
 
 /**
@@ -163,6 +179,46 @@ function link(node: SitemapNode, params: Record<string, string>, t: Translate): 
   ];
 }
 
+/**
+ * The links under the pinned Projects entry (Section 4.5.2): the five projects the person opened most recently,
+ * once each and newest first, then All Projects. None when the viewer may not open a project page or has not
+ * opened one yet; the list comes from app.recent_projects, so it holds only projects they can still read.
+ */
+export function recentProjectLinks(
+  sitemap: Sitemap,
+  recent: readonly RecentProjectModel[],
+  input: {
+    readonly nav: NavContext;
+    readonly params: Record<string, string>;
+    readonly t: Translate;
+  },
+): NavLinkModel[] {
+  const { nav, params, t } = input;
+  const route = getNode(sitemap, "project").node.route;
+  if (route === undefined || !isNodeVisible(sitemap, "project", nav)) return [];
+  const keys = new Set<string>();
+  const projects = recent
+    .filter((p) => {
+      if (keys.has(p.key)) return false;
+      keys.add(p.key);
+      return true;
+    })
+    .slice(0, RECENT_PROJECT_COUNT);
+  if (projects.length === 0) return [];
+  const all = isNodeVisible(sitemap, "projects.all", nav)
+    ? link(getNode(sitemap, "projects.all").node, params, t)
+    : [];
+  return [
+    ...projects.map((p) => ({
+      id: `project.${p.key}`,
+      label: p.name,
+      href: fillRoute(route, { ...params, projectKey: p.key }),
+      icon: NAV_ICONS["project"] ?? "Circle",
+    })),
+    ...all,
+  ];
+}
+
 export function buildShellNav(
   sitemap: Sitemap,
   input: {
@@ -176,6 +232,8 @@ export function buildShellNav(
     readonly layout?: readonly SidebarLayoutEntry[];
     /** Shortcut keys as people read them, by the sitemap node they open, for command menu hints. */
     readonly hints?: Readonly<Record<string, string>>;
+    /** The projects the person opened most recently, newest first, listed under the pinned Projects entry. */
+    readonly recentProjects?: readonly RecentProjectModel[];
   },
 ): ShellNav {
   const { nav, params, t } = input;
@@ -187,8 +245,17 @@ export function buildShellNav(
   const top = navigable(sitemap.chrome?.["sidebarTop"] ?? []).flatMap((id) =>
     link(getNode(sitemap, id).node, params, t),
   );
+  const recent = recentProjectLinks(sitemap, input.recentProjects ?? [], { nav, params, t });
   const pinned = navigable(sitemap.chrome?.["sidebarPinned"] ?? []).flatMap((id) =>
-    link(getNode(sitemap, id).node, params, t),
+    link(getNode(sitemap, id).node, params, t).map((l) =>
+      l.id === "projects"
+        ? {
+            ...l,
+            childrenLabel: t("shell.chrome.recentProjects"),
+            ...(recent.length > 0 ? { children: recent } : {}),
+          }
+        : l,
+    ),
   );
   const shownAbove = new Set([...top, ...pinned].map((l) => l.id));
   const persona = input.persona ?? (input.role ? ROLE_PERSONA[input.role] : null);

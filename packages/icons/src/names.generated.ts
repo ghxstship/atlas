@@ -94,6 +94,7 @@ export const registeredIconNames = [
   "Globe",
   "GraduationCap",
   "Grid3x3",
+  "GripVertical",
   "Hammer",
   "Handshake",
   "HardHat",

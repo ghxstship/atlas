@@ -14,6 +14,7 @@ import {
 } from "@/lib/projects/actions";
 import { enumKey, stateIcon } from "@/lib/projects/format";
 import { ActionError, echoed, useClosingAction } from "./action-error";
+import { CustomFieldsSection } from "@/components/custom-fields/custom-fields-section";
 import { ProjectFields, type ProjectFormOptions } from "./project-fields";
 import { TransitionDialog } from "./transition-dialog";
 
@@ -145,6 +146,8 @@ export function ProjectSettings({
           ) : null}
         </form>
       </Section>
+
+      <CustomFieldsSection table="app.projects" id={project.id} />
 
       <Section
         id="settings-lifecycle"

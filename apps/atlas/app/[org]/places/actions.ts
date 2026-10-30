@@ -30,6 +30,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { count, errorKey, text, type ActionState } from "@/components/places/kit/action-state";
 import { ADDRESS_ERROR, readAddress } from "@/lib/address";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
@@ -94,11 +95,15 @@ export async function saveVenueAction(_: ActionState, form: FormData): Promise<A
     postalCode: address.value.postalCode,
   };
   const id = text(form, "id");
+  // An edit saves custom fields from the venue's own section, so only a create is held to them here.
+  const custom = await customFieldsOf(ctx, "app.venues", id === null ? form : undefined);
+  if (custom.fieldErrors) return { error: "invalid", fieldErrors: custom.fieldErrors };
   const saved =
     id === null
       ? await createVenue(ctx.viewer.db, ctx.org.id, input)
       : await updateVenue(ctx.viewer.db, id, input);
   if (!saved.ok) return { error: errorKey(saved.error) };
+  if (id === null) await custom.save(saved.data.id);
   const located = await setVenueLocation(
     ctx.viewer.db,
     saved.data.id,

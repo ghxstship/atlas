@@ -327,7 +327,9 @@
     "transition_reason_required": "Cada cambio de estado necesita un motivo.",
     "display_number_immutable": "Los números visibles nunca cambian.",
     "cross_org_reference": "Ese elemento pertenece a otra organización.",
-    "rfq_response_lines_required": "Agregue al menos una línea cotizada a la respuesta."
+    "rfq_response_lines_required": "Agregue al menos una línea cotizada a la respuesta.",
+    "sod_document_creator": "Separación de funciones: su organización no permite que quien creó este documento lo apruebe.",
+    "sod_receiver_po_approver": "Separación de funciones: su organización no permite que quien aprobó esta orden de compra reciba su mercancía. Pida a otra persona que la reciba."
   },
   "kit": {
     "views": "Vista",

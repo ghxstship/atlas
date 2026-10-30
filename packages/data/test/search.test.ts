@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { globalSearch, recentItems, recordRecentView, searchContext } from "../src/search.ts";
+import {
+  globalSearch,
+  recentItems,
+  recentProjects,
+  recordRecentView,
+  searchContext,
+} from "../src/search.ts";
 import { parseSearchQuery, searchRequest } from "../src/search-query.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -178,6 +184,46 @@ describe("recent views", () => {
     expect(await recordRecentView(broken.db, { orgId: "o1", table: "records", id: "r1" })).toBe(
       false,
     );
+  });
+});
+
+describe("recentProjects", () => {
+  it("lists the projects the person opened, newest first", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:recent_projects": [
+        okResponse([
+          {
+            project_id: "p2",
+            project_key: "NWX",
+            name: "Northwind Winter Gala",
+            viewed_at: "2026-10-22T12:00:00Z",
+          },
+          {
+            project_id: "p1",
+            project_key: "NWL",
+            name: "Northwind Summer Series",
+            viewed_at: "2026-10-21T12:00:00Z",
+          },
+        ]),
+        errorResponse("42501", "not a member"),
+      ],
+    });
+    const result = await recentProjects(db, "o1");
+    expect(result.ok && result.data.map((p) => `${p.key} ${p.name}`)).toEqual([
+      "NWX Northwind Winter Gala",
+      "NWL Northwind Summer Series",
+    ]);
+    expect(calls[0]?.steps[0]).toEqual(["args", [{ p_org_id: "o1", p_limit: 5 }]]);
+    expect((await recentProjects(db, "o1")).ok).toBe(false);
+  });
+
+  it("records a project view", async () => {
+    const { db, calls } = fakeClient({ "rpc:record_recent_view": [okResponse(true)] });
+    expect(await recordRecentView(db, { orgId: "o1", table: "projects", id: "p1" })).toBe(true);
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_org_id: "o1", p_subject_table: "projects", p_subject_id: "p1" }],
+    ]);
   });
 });
 

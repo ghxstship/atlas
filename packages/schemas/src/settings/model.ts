@@ -4,6 +4,8 @@
  * through private.define_setting, so pages, the API and the guards agree.
  */
 
+import type { CapabilityCode } from "../capabilities/codes.generated.ts";
+
 export const SETTING_TYPES = ["text", "boolean", "integer", "choice"] as const;
 export type SettingType = (typeof SETTING_TYPES)[number];
 
@@ -22,6 +24,8 @@ export const TEXT_INPUTS = [
   "date",
   "workspace",
   "phone",
+  // Arranged in place, such as a dashboard's tile spans: settings pages offer only Reset, never a field.
+  "layout",
 ] as const;
 export type TextInput = (typeof TEXT_INPUTS)[number];
 
@@ -33,7 +37,7 @@ export interface SettingDefinition {
   readonly contributor: string;
   readonly type: SettingType;
   readonly scopes: readonly SettingScope[];
-  readonly capability: string;
+  readonly capability: CapabilityCode;
   readonly lockable: boolean;
   readonly default: string | number | boolean | null;
   readonly choices: readonly string[];

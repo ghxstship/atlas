@@ -30,7 +30,10 @@
     "workspaceWorkspace": "Set for this workspace.",
     "workspaceTeam": "Set for a team.",
     "workspaceProject": "Set for a project.",
-    "workspaceDefault": "Platform default. Saving overrides it for this workspace."
+    "workspaceDefault": "Platform default. Saving overrides it for this workspace.",
+    "projectProject": "Set for this project.",
+    "projectOrganization": "Inherited from the organization. Saving overrides it for this project.",
+    "projectDefault": "Platform default. Saving overrides it for this project."
   },
   "errors": {
     "setting_locked": "Your organization locked this setting. Ask an Admin to unlock it first.",
@@ -287,6 +290,50 @@
     "supplierDiversityProgram": {
       "label": "Supplier diversity program",
       "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
+    },
+    "offeringsTravel": {
+      "label": "Travel",
+      "help": "Flights and ground transport for the people you engage. Offered, the Travel and lodging and Hospitality tabs appear on their Gateway engagements."
+    },
+    "offeringsLodging": {
+      "label": "Lodging",
+      "help": "Hotel rooms for the people you engage. Offered, the Travel and lodging and Hospitality tabs appear on their Gateway engagements."
+    },
+    "offeringsCatering": {
+      "label": "Catering",
+      "help": "Meals for the people you engage. Offered, the Hospitality tab appears on artist engagements in Gateway."
+    },
+    "offeringsParking": {
+      "label": "Parking",
+      "help": "Parking passes for the people you engage."
+    },
+    "offeringsUniforms": {
+      "label": "Uniforms",
+      "help": "Uniforms for the people you engage."
+    },
+    "offeringsPerDiem": {
+      "label": "Per diem",
+      "help": "Daily allowances for the people you engage. Offered, the Per diem tab appears on crew engagements in Gateway, and per diems can be added for them."
+    },
+    "offeringsRadios": {
+      "label": "Radios",
+      "help": "Radios issued to the people you engage."
+    },
+    "offeringsCarts": {
+      "label": "Carts",
+      "help": "Carts issued to the people you engage."
+    },
+    "offeringsGuestList": {
+      "label": "Guest list",
+      "help": "Guest list places for the people you engage. Offered, the Guest list tab appears on artist engagements in Gateway."
+    },
+    "homeLayout": {
+      "label": "Home layout",
+      "help": "Widen or narrow a Home tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
+    },
+    "partnerLayout": {
+      "label": "Partner console layout",
+      "help": "Widen or narrow a partner console tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
     }
   },
   "choices": {
@@ -377,6 +424,60 @@
       "system": "Match the device",
       "reduce": "Reduce motion",
       "full": "Full motion"
+    },
+    "offerings_travel": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_lodging": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_catering": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_parking": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_uniforms": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_per_diem": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_radios": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_carts": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
+    },
+    "offerings_guest_list": {
+      "not-offered": "Not offered",
+      "provided": "Provided",
+      "reimbursed": "Reimbursed",
+      "buyout": "Buyout"
     }
   },
   "brand": {
@@ -1070,5 +1171,7 @@
       "vendor_entitlements": "Vendor Entitlements",
       "verbiage": "Verbiage Library"
     }
-  }
+  },
+  "layoutCustom": "You arranged this dashboard. Reset puts its tiles back to their default widths.",
+  "layoutDefault": "Default layout. Arrange the tiles on the dashboard itself."
 }

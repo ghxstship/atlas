@@ -681,10 +681,12 @@ interface LotMovementRow {
   movement_kind: LotMovementKind;
   delta: number | string;
   custodian_membership_id: string | null;
+  custodian_engagement_id: string | null;
   project_id: string | null;
   note: string | null;
   created_at: string;
   custodian: { person: { full_name: string | null } | null } | null;
+  engagement: { person: { full_name: string | null } | null } | null;
   project: { project_key: string } | null;
 }
 
@@ -712,6 +714,9 @@ export interface LotMovement {
   readonly kind: LotMovementKind;
   readonly delta: number;
   readonly membershipId: string | null;
+  /** Engagement that took or returned the quantity (migration 2602). */
+  readonly engagementId: string | null;
+  /** The member's or the engaged person's name. */
   readonly custodianName: string | null;
   readonly projectId: string | null;
   readonly projectKey: string | null;
@@ -727,7 +732,7 @@ export async function listAssetLotMovements(
   const { data, error } = await db
     .from("asset_lot_movements")
     .select(
-      "id, movement_kind, delta, custodian_membership_id, project_id, note, created_at, custodian:memberships!asset_lot_movements_custodian_membership_id_fkey(person:people!memberships_person_id_fkey(full_name)), project:projects!asset_lot_movements_project_id_fkey(project_key)",
+      "id, movement_kind, delta, custodian_membership_id, custodian_engagement_id, project_id, note, created_at, custodian:memberships!asset_lot_movements_custodian_membership_id_fkey(person:people!memberships_person_id_fkey(full_name)), engagement:engagements!asset_lot_movements_custodian_engagement_id_fkey(person:people!engagements_person_id_fkey(full_name)), project:projects!asset_lot_movements_project_id_fkey(project_key)",
     )
     .eq("asset_lot_id", lotId)
     .order("created_at", { ascending: false });
@@ -738,7 +743,8 @@ export async function listAssetLotMovements(
       kind: r.movement_kind,
       delta: Number(r.delta),
       membershipId: r.custodian_membership_id,
-      custodianName: r.custodian?.person?.full_name ?? null,
+      engagementId: r.custodian_engagement_id ?? null,
+      custodianName: r.custodian?.person?.full_name ?? r.engagement?.person?.full_name ?? null,
       projectId: r.project_id,
       projectKey: r.project?.project_key ?? null,
       note: r.note,

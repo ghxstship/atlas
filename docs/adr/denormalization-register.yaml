@@ -334,6 +334,10 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Where the asset is kept, not the project's primary venue.
+  - column: app.asset_lot_movements.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project the quantity is out for; the custodian's engagement can be for another project or for none.
   - column: app.attachment_versions.checksum_sha256
     parent: app.document_versions.checksum_sha256
     kind: own
@@ -1013,6 +1017,14 @@ restated:
     parent: app.projects.starts_on
     kind: own
     note: First day of the work, not of the production.
+  - column: app.riders.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: The account whose rider it is; `riders_one_party` never sets it together with the engagement link (migration 2611).
+  - column: app.riders.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The rider's project; the engagement link is optional and `t39_rider_engagement_project` keeps it equal (migration 2611).
   - column: app.role_assignments.ends_on
     parent: app.projects.ends_on
     kind: own

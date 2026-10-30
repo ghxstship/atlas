@@ -8,6 +8,7 @@ import { saveVenueAction } from "@/app/[org]/places/actions";
 import { AddressInputs } from "@/components/address/address-inputs";
 import type { AddressFormat } from "@/lib/address";
 import { ActionForm, useCopy } from "../kit/form";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 
 /** IANA zones the runtime knows, with the venue's own zone first when it is missing from the list. */
 function timeZones(current: string | undefined): string[] {
@@ -137,6 +138,7 @@ export function VenueForm({
               />
             </div>
           </fieldset>
+          {venue ? null : <CustomFieldInputs table="app.venues" />}
         </>
       )}
     </ActionForm>

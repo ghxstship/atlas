@@ -24,6 +24,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { QuerySwitch } from "./client";
 import { REFUSALS, memberOptions, orgPickers, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
 
@@ -55,10 +56,9 @@ export async function RecognitionSection({
   const title = t("recognition.title");
   if (!list.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("recognition.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canGive = ctx.role !== "viewer";
@@ -186,13 +186,16 @@ export async function RecognitionSection({
 
   if (feedView) {
     return (
-      <div className="flex flex-col gap-16">
-        <PageHeader
-          title={title}
-          count={list.data.length}
-          views={viewSwitch}
-          actions={createButton}
-        />
+      <CollectionPage
+        header={
+          <PageHeader
+            title={title}
+            count={list.data.length}
+            views={viewSwitch}
+            actions={createButton}
+          />
+        }
+      >
         {consentPanel}
         {list.data.length === 0 ? (
           empty
@@ -206,7 +209,7 @@ export async function RecognitionSection({
           </div>
         )}
         {drawer}
-      </div>
+      </CollectionPage>
     );
   }
 

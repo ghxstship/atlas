@@ -1,16 +1,22 @@
 ---
 title: TypeScript SDK
-summary: The @xos/sdk client, generated from the OpenAPI document, with typed models, pagination, filters, idempotency, ETags and problem errors.
+summary: The @ghxstship/xos-sdk client, generated from the OpenAPI document, with typed models, pagination, filters, idempotency, ETags and problem errors.
 section: tools
 order: 7
 ---
 
-`@xos/sdk` covers every operation in the OpenAPI document. Its models, method signatures and operation table are generated from the document by CI and never edited by hand, so a new operation appears in the SDK as soon as it appears in the API. It runs on Node.js 22 or later, in browsers and on edge runtimes, with no dependencies.
+`@ghxstship/xos-sdk` covers every operation in the OpenAPI document. Its models, method signatures and operation table are generated from the document by CI and never edited by hand, so a new operation appears in the SDK as soon as it appears in the API. It runs on Node.js 22 or later, in browsers and on edge runtimes, with no dependencies.
+
+## Install
+
+```bash
+npm install @ghxstship/xos-sdk
+```
 
 ## Create a client
 
 ```ts
-import { XosClient } from "@xos/sdk";
+import { XosClient } from "@ghxstship/xos-sdk";
 
 const xos = new XosClient({
   baseUrl: "https://api.ghxstship.tech/v1",
@@ -61,7 +67,11 @@ POST methods send an `Idempotency-Key` automatically and reuse it on retries. Pa
 ## Errors
 
 ```ts
-import { XosPreconditionFailedError, XosRefusalError, XosValidationError } from "@xos/sdk";
+import {
+  XosPreconditionFailedError,
+  XosRefusalError,
+  XosValidationError,
+} from "@ghxstship/xos-sdk";
 
 try {
   await xos.purchaseOrders.approve(poId, {});
@@ -77,7 +87,7 @@ See [Errors and refusals](guide:errors) for every class.
 
 ## Webhooks
 
-`verifyWebhookSignature` and `signWebhookPayload` are exported from `@xos/sdk/webhooks`. See [Webhooks](guide:webhooks).
+`verifyWebhookSignature` and `signWebhookPayload` are exported from `@ghxstship/xos-sdk/webhooks`. See [Webhooks](guide:webhooks).
 
 ## Calling an operation by id
 
