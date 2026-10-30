@@ -114,14 +114,17 @@
     "validDays": "Días de validez",
     "visibility": "Visibilidad",
     "when": "Cuándo",
-    "isRemote": "El trabajo se puede hacer a distancia"
+    "isRemote": "El trabajo se puede hacer a distancia",
+    "hideClientUntilBooked": "Ocultar cliente y evento hasta la contratación"
   },
   "fieldErrors": {
     "required": "Completa este campo para continuar.",
     "invalid": "Revisa este valor: no tiene el formato esperado.",
     "dneReason": "Indica el motivo de No contratar; queda interno.",
     "dneReview": "Fija una fecha de revisión para No contratar.",
-    "payNeedsRate": "Elige Por hora, Por día, Tarifa fija o Por hito para publicar un rango de pago."
+    "payNeedsRate": "Elige Por hora, Por día, Tarifa fija o Por hito para publicar un rango de pago.",
+    "hiddenClientNamed": "Mientras el cliente y el evento están ocultos, quita del título y la descripción los nombres del proyecto, del cliente y del lugar.",
+    "hiddenClientPublished": "Esta publicación ya mostró su cliente y su evento. Ocúltalos en una publicación nueva mientras sea un borrador."
   },
   "errors": {
     "notFound": "Este registro ya no existe o ya no puedes verlo. Vuelve a cargar la página.",
@@ -183,9 +186,14 @@
       "plan_limit_exceeded": "Se alcanzó el límite mensual de contrataciones externas de tu plan. Mejora el plan o espera al mes siguiente.",
       "transition_reason_required": "Indica un motivo para el cambio.",
       "insureds_none_required": "La organización no exige asegurados adicionales para este proyecto. Agréguelos en Proveedores, Certificados de seguro, Asegurados exigidos.",
-      "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización."
+      "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización.",
+      "question_template_not_found": "Esa plantilla de preguntas se eliminó o no está disponible para ti. Elige otra plantilla.",
+      "question_template_not_draft": "Una plantilla de preguntas solo se aplica a una publicación en Borrador. Añade las preguntas una por una.",
+      "opportunity_hidden_client_named": "Mientras el cliente y el evento están ocultos, el título y la descripción no pueden nombrar el proyecto, su cliente ni el lugar. Quita el nombre o muestra el cliente y el evento.",
+      "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos."
     },
-    "insuredsMissing": "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado."
+    "insuredsMissing": "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado.",
+    "questionsNotApplied": "El borrador está guardado, pero no se añadieron las preguntas de la plantilla. Abre el borrador y añádelas allí."
   },
   "requisitions": {
     "title": "Requisiciones",
@@ -234,7 +242,16 @@
     "noInvitations": "Sin invitaciones. Invita a partes para asegurarte de que vean esta publicación.",
     "invitedParty": "Parte invitada",
     "invite": "Invitar",
-    "noKnownParties": "Las invitaciones se envían a personas y cuentas que contrataste o de las que recibiste solicitudes."
+    "noKnownParties": "Las invitaciones se envían a personas y cuentas que contrataste o de las que recibiste solicitudes.",
+    "questionTemplate": "Plantilla de preguntas",
+    "questionTemplateHelp": "Sus preguntas se copian en el borrador, donde puedes cambiarlas o quitarlas.",
+    "noQuestionTemplate": "Sin plantilla",
+    "questionTemplateOption": "{name} ({count, plural, one {# pregunta} other {# preguntas}})",
+    "hideClientHelp": "El personal ve tu organización, la ciudad, las fechas y el pago. El lugar permanece oculto, y el título y la descripción no pueden nombrar el proyecto, su cliente ni el lugar.",
+    "hideClientLocked": "El cliente y el evento solo se pueden ocultar antes de publicar una publicación. Desactivar esta opción sigue disponible.",
+    "clientHidden": "Cliente oculto hasta la contratación",
+    "clientHiddenTitle": "Cliente y evento",
+    "clientHiddenSave": "Guardar"
   },
   "pipeline": {
     "title": "Proceso de selección",
@@ -671,5 +688,35 @@
       "PrimaryandNoncontributory": "Primario y no contributivo",
       "WaiverofSubrogation": "Renuncia de subrogación"
     }
+  },
+  "templates": {
+    "title": "Cómo empiezan las nuevas oportunidades",
+    "description": "Las nuevas publicaciones empiezan con estos valores predeterminados y la plantilla de preguntas elegida. Quien crea una publicación puede cambiar cada valor antes de guardarla.",
+    "poolsLink": "Gestionar grupos",
+    "onboardingLink": "Gestionar requisitos de incorporación",
+    "loadError": "No se pudieron cargar los valores predeterminados de las oportunidades. Vuelve a cargar la página.",
+    "defaultsTitle": "Valores predeterminados de las oportunidades",
+    "defaultsForm": "Valores predeterminados para nuevas publicaciones",
+    "saveDefaults": "Guardar valores predeterminados",
+    "defaultsSaved": "Valores predeterminados guardados. Las nuevas publicaciones empiezan con ellos.",
+    "visibilityHelp": "Limitada por la visibilidad en el mercado de arriba. Publicar como Pública también requiere el plan Pro o superior.",
+    "payBasis": "Base de pago",
+    "currencyHelp": "Un código de tres letras, por ejemplo USD. Déjalo en blanco para empezar en USD.",
+    "window": "Plazo de solicitud en días",
+    "windowHelp": "Fija la fecha límite de solicitud esta cantidad de días después de crear una publicación. Déjalo en blanco para no fijar fecha límite.",
+    "noWindow": "Sin fecha límite",
+    "windowDays": "{count, plural, one {# día} other {# días}}",
+    "managersOnly": "Solo quienes gestionan la configuración del mercado pueden cambiar estos valores.",
+    "listTitle": "{count, plural, =0 {Plantillas de preguntas} one {# plantilla de preguntas} other {# plantillas de preguntas}}",
+    "listHelp": "Conjuntos reutilizables de preguntas de la solicitud. Pregunta solo sobre el trabajo, nunca sobre atributos protegidos. Cambiar una plantilla nunca cambia las publicaciones ya creadas con ella.",
+    "none": "Aún no hay plantillas de preguntas. Crea una con las preguntas que haces en la mayoría de las publicaciones.",
+    "delete": "Eliminar plantilla",
+    "noQuestions": "Aún no hay preguntas. Añade la primera abajo.",
+    "questionsOf": "Preguntas de {name}",
+    "new": "Nueva plantilla de preguntas",
+    "create": "Crear plantilla",
+    "created": "Plantilla creada. Ahora añade sus preguntas.",
+    "nameHelp": "Un nombre con mayúsculas iniciales, por ejemplo Básicos de Convocatoria de Equipo.",
+    "hideClientHelp": "Las publicaciones nuevas empiezan con el cliente y el evento ocultos al personal hasta su contratación. Cada publicación puede cambiarlo antes de publicarse."
   }
 }

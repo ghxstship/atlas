@@ -56,10 +56,15 @@ export interface Opportunity {
   readonly minimumAge: number | null;
   readonly state: OpportunityState;
   readonly positionCount: number;
+  /**
+   * The org hides the client and event until the caller is booked (2871): the venue name is null and the venue point is
+   * rounded to 1 decimal, so show the locality instead.
+   */
+  readonly clientHidden: boolean;
 }
 
 const OPPORTUNITY_COLUMNS =
-  "id, org_id, org_name, title, description, role_type, role_code, cat_urid, venue_name, jurisdiction_id, starts_on, ends_on, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, rate_on_request, deadline_at, minimum_age, opportunity_state, position_count, org_verified, venue_locality, venue_latitude, venue_longitude";
+  "id, org_id, org_name, title, description, role_type, role_code, cat_urid, venue_name, jurisdiction_id, starts_on, ends_on, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, rate_on_request, deadline_at, minimum_age, opportunity_state, position_count, org_verified, venue_locality, venue_latitude, venue_longitude, client_hidden";
 
 function toOpportunity(row: ExternalRow<"opportunities">): Opportunity {
   const id = req(row.id, "opportunities.id");
@@ -91,6 +96,7 @@ function toOpportunity(row: ExternalRow<"opportunities">): Opportunity {
     minimumAge: row.minimum_age,
     state: req(row.opportunity_state, "opportunities.opportunity_state"),
     positionCount: row.position_count ?? 0,
+    clientHidden: row.client_hidden ?? false,
   };
 }
 
@@ -866,6 +872,7 @@ function toRanked(row: SearchRow): RankedOpportunity {
     minimumAge: row.minimum_age,
     state: row.opportunity_state,
     positionCount: row.position_count ?? 0,
+    clientHidden: row.client_hidden ?? false,
     recommendation: {
       score: row.recommendation_score ?? 0,
       skills: row.skill_points ?? 0,

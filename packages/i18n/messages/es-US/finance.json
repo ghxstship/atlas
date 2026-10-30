@@ -481,7 +481,11 @@
     },
     "xyzCategory": "De la categoría",
     "xyzDeclare": "Las disciplinas necesitan una etiqueta declarada.",
-    "xyzFromCategory": "La etiqueta de la categoría es {tag}; elija otra solo para declarar una distinta."
+    "xyzFromCategory": "La etiqueta de la categoría es {tag}; elija otra solo para declarar una distinta.",
+    "lineFields": "Campos de línea",
+    "lineFieldsSentence": "Etiquetas y otros campos que tu organización agrega a las líneas de presupuesto en Configuración, Campos personalizados. Elige una línea y luego edita sus campos.",
+    "lineFieldsLine": "Línea",
+    "filteredLines": "Se muestran {shown} de {total} líneas. Las cifras del presupuesto de arriba cubren todas las líneas."
   },
   "expenses": {
     "create": "Gasto nuevo",
