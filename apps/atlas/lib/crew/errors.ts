@@ -60,6 +60,7 @@ export const KNOWN_REFUSALS = [
   "payroll_run_locked",
   "payroll_earning_code_missing",
   "payroll_overtime_code_missing",
+  "payroll_holiday_code_missing",
   "payroll_rate_missing",
   "payroll_wage_rule_missing",
   "payroll_export_changed",
