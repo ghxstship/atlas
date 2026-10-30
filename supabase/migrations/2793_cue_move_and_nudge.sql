@@ -39,6 +39,9 @@ begin
   end if;
   -- Read the cue again under the run's lock: another move or call may have committed meanwhile.
   select * into v_cue from app.cues c where c.id = p_cue_id and c.deleted_at is null;
+  if v_cue.id is null or v_cue.run_of_show_id <> v_run.id then
+    raise exception using errcode = '42501', message = 'show.run_of_show.write is required on the running order';
+  end if;
   if v_cue.called_at is not null then
     perform private.refuse('cue_move_called', 'A called cue keeps its place.');
   end if;
