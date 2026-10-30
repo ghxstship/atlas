@@ -48,6 +48,13 @@ export type Database = {
             referencedRelation: "engagements";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "account_engagement_assignments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
         ];
       };
       account_invitations: {
@@ -91,6 +98,30 @@ export type Database = {
             referencedColumns: ["account_id"];
           },
         ];
+      };
+      advance_allocations: {
+        Row: {
+          allocation_id: string | null;
+          allocation_state: Database["app"]["Enums"]["allocation_state"] | null;
+          decline_reason: string | null;
+          display_status: string | null;
+          engagement_id: string | null;
+          issued_quantity: number | null;
+          item_name: string | null;
+          kind: string | null;
+          needed_from: string | null;
+          needed_time_zone: string | null;
+          needed_to: string | null;
+          parent_allocation_id: string | null;
+          person_name: string | null;
+          quantity: number | null;
+          requested_by_me: boolean | null;
+          reserved_quantity: number | null;
+          returned_quantity: number | null;
+          roster_entry_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
       };
       advance_packets: {
         Row: {
@@ -264,6 +295,7 @@ export type Database = {
           id: string | null;
           project_id: string | null;
           project_name: string | null;
+          roster_entry_id: string | null;
         };
         ComputedFields: never;
         Relationships: [
@@ -289,10 +321,38 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "asset_custody_custodian_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "asset_custody_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["roster_entry_id"];
+          },
+          {
+            foreignKeyName: "asset_custody_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_entries";
             referencedColumns: ["id"];
           },
         ];
@@ -472,6 +532,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "client_approval_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "client_approval_requests_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
@@ -551,6 +618,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "clock_punches_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "clock_punches_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
@@ -569,6 +643,7 @@ export type Database = {
       credentials: {
         Row: {
           category_code: string | null;
+          category_kind: Database["app"]["Enums"]["credential_category_kind"] | null;
           category_name: string | null;
           credential_number: string | null;
           engagement_id: string | null;
@@ -609,6 +684,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
         ];
@@ -703,6 +785,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "engagement_deliverables_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "engagement_deliverables_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
@@ -771,6 +860,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "dock_slots_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "dock_slots_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
@@ -835,6 +931,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_documents_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
         ];
@@ -918,11 +1021,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
             columns: ["replaces_entry_id"];
             isOneToOne: false;
             referencedRelation: "engagement_roster";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
+            columns: ["replaces_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["roster_entry_id"];
           },
           {
             foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
@@ -980,6 +1097,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_threads_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
         ];
@@ -1226,6 +1350,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "invoices_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "invoices_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -1468,6 +1599,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "ratings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "ratings_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -1499,6 +1637,32 @@ export type Database = {
             columns: ["saved_search_id"];
             isOneToOne: false;
             referencedRelation: "my_saved_searches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      my_parking_passes: {
+        Row: {
+          category_name: string | null;
+          credential_id: string | null;
+          credential_number: string | null;
+          project_id: string | null;
+          revoked_at: string | null;
+          valid_from: string | null;
+          valid_to: string | null;
+          vehicle_color: string | null;
+          vehicle_make: string | null;
+          vehicle_model: string | null;
+          zone_codes: string[] | null;
+          zone_names: string[] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "credential_categories_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
             referencedColumns: ["id"];
           },
         ];
@@ -1610,6 +1774,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "profile_shares_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "profile_shares_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -1622,6 +1793,60 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "my_accounts";
             referencedColumns: ["account_id"];
+          },
+        ];
+      };
+      my_roster_engagements: {
+        Row: {
+          account_id: string | null;
+          areas: string[] | null;
+          arrangement: string | null;
+          arrival_time_zone: string | null;
+          arrival_window_end: string | null;
+          arrival_window_start: string | null;
+          end_date: string | null;
+          engagement_state: Database["app"]["Enums"]["engagement_state"] | null;
+          entry_role_code: string | null;
+          id: string | null;
+          job_title: string | null;
+          lead_name: string | null;
+          org_id: string | null;
+          org_name: string | null;
+          pay_basis: string | null;
+          person_id: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          project_time_zone: string | null;
+          rate_currency_code: string | null;
+          rate_minor: number | null;
+          role_code: string | null;
+          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          roster_entry_id: string | null;
+          roster_locks_at: string | null;
+          start_date: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "engagements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -1665,6 +1890,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
           {
@@ -1885,6 +2117,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "onboarding_items_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
         ];
@@ -2151,6 +2390,7 @@ export type Database = {
           id: string | null;
           project_id: string | null;
           project_name: string | null;
+          roster_entry_id: string | null;
         };
         ComputedFields: never;
         Relationships: [
@@ -2176,10 +2416,38 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "per_diems_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "per_diems_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "per_diems_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "per_diems_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["roster_entry_id"];
+          },
+          {
+            foreignKeyName: "per_diems_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_entries";
             referencedColumns: ["id"];
           },
         ];
@@ -2448,6 +2716,20 @@ export type Database = {
           },
         ];
       };
+      requestable_items: {
+        Row: {
+          cap_per_engagement: number | null;
+          cap_per_person: number | null;
+          engagement_id: string | null;
+          item_id: string | null;
+          item_kind: string | null;
+          name: string | null;
+          offering: Database["app"]["Enums"]["offering_kind"] | null;
+          requested_quantity: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       rider_lines: {
         Row: {
           description: string | null;
@@ -2524,6 +2806,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "riders_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "riders_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
@@ -2596,6 +2885,13 @@ export type Database = {
             referencedRelation: "engagements";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "self_billing_agreements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
         ];
       };
       settlement_lines: {
@@ -2657,6 +2953,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "settlements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "settlements_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
@@ -2700,6 +3003,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_reports_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
           {
@@ -2747,6 +3057,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
           {
@@ -2990,6 +3307,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "time_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "time_entries_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
@@ -3042,6 +3366,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "timesheets_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "timesheets_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
@@ -3088,6 +3419,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "travel_segments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
           {
@@ -3652,13 +3990,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "accommodation_blocks";
             referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "accommodation_assignments_allocation_id_fkey";
-            columns: ["allocation_id"];
-            isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
           },
           {
             foreignKeyName: "accommodation_assignments_allocation_id_fkey";
@@ -4609,13 +4940,6 @@ export type Database = {
             foreignKeyName: "advance_allocation_state_transitions_advance_allocation_id_fkey";
             columns: ["advance_allocation_id"];
             isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
-          {
-            foreignKeyName: "advance_allocation_state_transitions_advance_allocation_id_fkey";
-            columns: ["advance_allocation_id"];
-            isOneToOne: false;
             referencedRelation: "advance_allocations";
             referencedColumns: ["id"];
           },
@@ -4794,13 +5118,6 @@ export type Database = {
             foreignKeyName: "advance_allocations_parent_allocation_id_fkey";
             columns: ["parent_allocation_id"];
             isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_parent_allocation_id_fkey";
-            columns: ["parent_allocation_id"];
-            isOneToOne: false;
             referencedRelation: "advance_allocations";
             referencedColumns: ["id"];
           },
@@ -4891,13 +5208,6 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: "advance_issue_events_advance_allocation_id_fkey";
-            columns: ["advance_allocation_id"];
-            isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
           {
             foreignKeyName: "advance_issue_events_advance_allocation_id_fkey";
             columns: ["advance_allocation_id"];
@@ -6315,13 +6625,6 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: "allocation_radio_channels_advance_allocation_id_fkey";
-            columns: ["advance_allocation_id"];
-            isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
           {
             foreignKeyName: "allocation_radio_channels_advance_allocation_id_fkey";
             columns: ["advance_allocation_id"];
@@ -8166,13 +8469,6 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: "asset_reservations_advance_allocation_id_fkey";
-            columns: ["advance_allocation_id"];
-            isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
           {
             foreignKeyName: "asset_reservations_advance_allocation_id_fkey";
             columns: ["advance_allocation_id"];
@@ -14412,13 +14708,6 @@ export type Database = {
             foreignKeyName: "credentials_allocation_id_fkey";
             columns: ["allocation_id"];
             isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
-          {
-            foreignKeyName: "credentials_allocation_id_fkey";
-            columns: ["allocation_id"];
-            isOneToOne: false;
             referencedRelation: "advance_allocations";
             referencedColumns: ["id"];
           },
@@ -20549,13 +20838,6 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: "fulfillment_lines_allocation_id_fkey";
-            columns: ["allocation_id"];
-            isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
           {
             foreignKeyName: "fulfillment_lines_allocation_id_fkey";
             columns: ["allocation_id"];
@@ -34224,13 +34506,6 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: "per_diems_allocation_id_fkey";
-            columns: ["allocation_id"];
-            isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
           {
             foreignKeyName: "per_diems_allocation_id_fkey";
             columns: ["allocation_id"];
@@ -55742,13 +56017,6 @@ export type Database = {
             foreignKeyName: "travel_segments_allocation_id_fkey";
             columns: ["allocation_id"];
             isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
-          {
-            foreignKeyName: "travel_segments_allocation_id_fkey";
-            columns: ["allocation_id"];
-            isOneToOne: false;
             referencedRelation: "advance_allocations";
             referencedColumns: ["id"];
           },
@@ -59456,113 +59724,7 @@ export type Database = {
           roster_entry_id: string | null;
         };
         ComputedFields: never;
-        Relationships: [
-          {
-            foreignKeyName: "advance_allocation_state_transitions_created_by_fkey";
-            columns: ["decided_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_created_by_fkey";
-            columns: ["requested_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_engagement_id_fkey";
-            columns: ["holder_engagement_id"];
-            isOneToOne: false;
-            referencedRelation: "engagement_board";
-            referencedColumns: ["engagement_id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_engagement_id_fkey";
-            columns: ["holder_engagement_id"];
-            isOneToOne: false;
-            referencedRelation: "engagement_insured_checks";
-            referencedColumns: ["engagement_id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_engagement_id_fkey";
-            columns: ["holder_engagement_id"];
-            isOneToOne: false;
-            referencedRelation: "engagement_resolved";
-            referencedColumns: ["engagement_id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_engagement_id_fkey";
-            columns: ["holder_engagement_id"];
-            isOneToOne: false;
-            referencedRelation: "engagements";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_parent_allocation_id_fkey";
-            columns: ["parent_allocation_id"];
-            isOneToOne: false;
-            referencedRelation: "advance_allocation_status";
-            referencedColumns: ["allocation_id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_parent_allocation_id_fkey";
-            columns: ["parent_allocation_id"];
-            isOneToOne: false;
-            referencedRelation: "advance_allocations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "gate_criteria_status";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "project_authority";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "project_billing";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "projects";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_roster_entry_id_fkey";
-            columns: ["roster_entry_id"];
-            isOneToOne: false;
-            referencedRelation: "engagement_roster_entries";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "advance_allocations_roster_entry_id_fkey";
-            columns: ["roster_entry_id"];
-            isOneToOne: false;
-            referencedRelation: "roster_entry_people";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       ai_never_send: {
         Row: {
@@ -64165,6 +64327,10 @@ export type Database = {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
+      bulk_update_engaged_allocation_assignments: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
       bulk_update_fulfillments: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
@@ -67226,6 +67392,21 @@ export type Database = {
         Returns: string;
       };
       request_domain_check: { Args: { p_org_domain_id: string }; Returns: string };
+      request_engaged_allocation: {
+        Args: {
+          p_engagement_id: string;
+          p_item_id?: string;
+          p_item_kind: string;
+          p_needed_from: string;
+          p_needed_to: string;
+          p_note?: string;
+          p_quantity: number;
+          p_roster_entry_id?: string;
+          p_service_kind?: Database["app"]["Enums"]["allocation_service_kind"];
+          p_time_zone: string;
+        };
+        Returns: string;
+      };
       request_engaged_guest: {
         Args: {
           p_engagement_id: string;
@@ -67961,6 +68142,10 @@ export type Database = {
       sign_out_my_other_sessions: { Args: Record<PropertyKey, never>; Returns: number };
       sign_out_my_session: { Args: { p_session_id: string }; Returns: undefined };
       split_allocation: { Args: { p_allocation_id: string; p_parts: Json }; Returns: string[] };
+      split_engaged_allocation: {
+        Args: { p_parts: Json; p_pool_allocation_id: string };
+        Returns: string[];
+      };
       standard_library_status: {
         Args: { p_org_id: string };
         Returns: {
@@ -68513,6 +68698,10 @@ export type Database = {
         }[];
       };
       unsplit_allocation: { Args: { p_child_id: string; p_quantity?: number }; Returns: number };
+      unsplit_engaged_allocation: {
+        Args: { p_child_id: string; p_quantity?: number };
+        Returns: number;
+      };
       unsubscribe_by_token: { Args: { p_token: string }; Returns: string };
       unsubscribe_token: {
         Args: { p_category: string; p_org_id: string; p_person_id: string };
@@ -68636,6 +68825,10 @@ export type Database = {
       };
       withdraw_allocation: {
         Args: { p_allocation_id: string; p_reason?: string };
+        Returns: undefined;
+      };
+      withdraw_engaged_allocation: {
+        Args: { p_allocation_id: string; p_reason: string };
         Returns: undefined;
       };
       withdraw_join_request: { Args: { p_join_request_id: string }; Returns: undefined };

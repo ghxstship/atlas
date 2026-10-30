@@ -58,8 +58,8 @@ derived:
     adr: "0021"
   - objects:
       - private.sync_scope_grants
-    source: Membership, assignment, shift and engagement tables through the RLS helpers
-    refresh: Triggers on each source table plus a nightly full refresh (0942)
+    source: Membership, assignment, shift, engagement and roster entry tables through the RLS helpers (rosterEntryIds, R8)
+    refresh: Triggers on each source table plus a nightly full refresh (0942; roster entries and engagement states, 2702)
     reason: PowerSync parameter queries cannot call RLS helpers or join (gate 17 benchmark, A03F)
     adr: "0022"
   - objects:
