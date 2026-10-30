@@ -36,6 +36,7 @@ import {
 } from "@xos/ui/preferences";
 import type { GatewayKeys } from "@/lib/shell/shell-keys";
 import type { ThemePreference } from "@/lib/theme";
+import { installLetterKeys, type LetterState } from "./letter-keys";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
 
@@ -91,11 +92,6 @@ export interface GatewayFrameProps {
 }
 
 type Translate = (key: string, values?: Record<string, string>) => string;
-
-/** How long G waits for the second key of a sequence, as in Atlas. */
-const PENDING_MS = 4000;
-const OVERLAY =
-  '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [aria-modal="true"]';
 
 /** Whether a path sits under a destination; the longest match wins. */
 function activeLabel(links: readonly FrameLink[], pathname: string): string {
@@ -181,69 +177,19 @@ export function GatewayFrame(props: GatewayFrameProps) {
   }, []);
 
   // G then a letter goes to a destination, and single letters open the account panel or the
-  // organization switcher, from the registry keys the server sent (Section 11.2). Single keys obey
-  // me.shortcuts_enabled and stay quiet while typing and inside dialogs and menus; a key that
-  // completes no sequence cancels it and goes on to the page.
-  const keysRef = useRef(props.keys);
-  const commandRef = useRef<(id: string) => void>(() => undefined);
+  // organization switcher, from the registry keys the server sent (letter-keys.ts, Section 11.2).
+  const letters = useRef<LetterState>({ keys: props.keys, go, command: () => undefined });
   useEffect(() => {
-    keysRef.current = props.keys;
-    commandRef.current = (id) => {
-      if (id === "account") setAccountOpen(true);
-      else if (id === "switch-org") setSwitchOpen(true);
+    letters.current = {
+      keys: props.keys,
+      go,
+      command: (id) => {
+        if (id === "account") setAccountOpen(true);
+        else if (id === "switch-org") setSwitchOpen(true);
+      },
     };
-  }, [props.keys]);
-  useEffect(() => {
-    let waiting: string | null = null;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const onLetter = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const letter =
-        /^[a-z]$/i.test(event.key) &&
-        !event.metaKey &&
-        !event.ctrlKey &&
-        !event.altKey &&
-        !event.shiftKey
-          ? event.key.toUpperCase()
-          : null;
-      const quiet =
-        event.defaultPrevented ||
-        event.isComposing ||
-        target?.isContentEditable === true ||
-        ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
-      const prefix = waiting;
-      if (prefix !== null) {
-        clearTimeout(timer);
-        waiting = null;
-        const href =
-          letter === null || quiet ? undefined : keysRef.current.go[`${prefix} ${letter}`];
-        if (href !== undefined) {
-          event.preventDefault();
-          go(href);
-        }
-        return;
-      }
-      if (letter === null || quiet || event.repeat || !singleKeyShortcutsEnabled()) return;
-      if (target instanceof Element && target.closest(OVERLAY)) return;
-      const keys = keysRef.current;
-      const command = keys.commands[letter];
-      if (Object.keys(keys.go).some((k) => k.startsWith(`${letter} `))) {
-        event.preventDefault();
-        waiting = letter;
-        timer = setTimeout(() => {
-          waiting = null;
-        }, PENDING_MS);
-      } else if (command !== undefined) {
-        event.preventDefault();
-        commandRef.current(command);
-      }
-    };
-    window.addEventListener("keydown", onLetter);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("keydown", onLetter);
-    };
-  }, [go]);
+  }, [props.keys, go]);
+  useEffect(() => installLetterKeys(letters), []);
 
   // Settings changed in Atlas, Compass or Gateway settings reach this device: apply them now and keep the
   // cookie in step, so the next page renders with them (A65-001).
