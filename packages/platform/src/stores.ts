@@ -260,11 +260,20 @@ export interface NotificationStoreOptions {
 }
 
 /**
- * Kinds sent as the platform rather than the org (A138, Section 12): the org's XOS billing, trial and
- * white label plan notices. Their email keeps the platform brand while white label is in force.
+ * Kinds sent as the platform rather than the org (A138, Section 12): a person's sign-in security
+ * notices (account.*, which 2050 sends in whichever org they chose last), the org's XOS billing, trial
+ * and white label plan notices, and XOS deleting or recovering the org. Their email keeps the
+ * platform brand, sender and no org reply-to while white label is in force.
  */
+const PLATFORM_KIND_PREFIXES = [
+  "account.",
+  "billing.",
+  "organization.white_label_",
+  "organization.deletion_",
+] as const;
+
 export function isPlatformEmailKind(kind: string): boolean {
-  return kind.startsWith("billing.") || kind.startsWith("organization.white_label_");
+  return PLATFORM_KIND_PREFIXES.some((prefix) => kind.startsWith(prefix));
 }
 
 /**

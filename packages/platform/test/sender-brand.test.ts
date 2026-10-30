@@ -99,11 +99,16 @@ describe("senderFor", () => {
     expect(noBucket.brand).toEqual({ accentHex: "#0B5FFF" });
   });
 
-  it("keeps billing and plan notices platform-branded without asking for the brand", async () => {
+  it("keeps sign-in security, billing, plan and deletion notices platform-branded without asking for the brand", async () => {
     for (const kind of [
+      "account.security_changed",
+      "account.recovery_code_used",
+      "account.session_signed_out",
       "billing.payment_failed",
       "billing.trial_ending",
       "organization.white_label_reverting",
+      "organization.deletion_requested",
+      "organization.deletion_recovered",
     ]) {
       const { fake, rpcs } = db([northwind]);
       const sender = await notificationStore(fake, options).senderFor(ORG, "p1", kind);
@@ -114,6 +119,7 @@ describe("senderFor", () => {
     }
     expect(isPlatformEmailKind("approval.requested")).toBe(false);
     expect(isPlatformEmailKind("organization.ownership_offered")).toBe(false);
+    expect(isPlatformEmailKind("access.break_glass_started")).toBe(false);
   });
 
   it("quotes a sender name RFC 5322 reserves characters in, and drops control characters", async () => {

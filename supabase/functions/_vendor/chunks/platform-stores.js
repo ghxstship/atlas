@@ -186,11 +186,19 @@ function webhookStore(db) {
   };
 }
 /**
- * Kinds sent as the platform rather than the org (A138, Section 12): the org's XOS billing, trial and
- * white label plan notices. Their email keeps the platform brand while white label is in force.
+ * Kinds sent as the platform rather than the org (A138, Section 12): a person's sign-in security
+ * notices (account.*, which 2050 sends in whichever org they chose last), the org's XOS billing, trial
+ * and white label plan notices, and XOS deleting or recovering the org. Their email keeps the
+ * platform brand, sender and no org reply-to while white label is in force.
  */
+var PLATFORM_KIND_PREFIXES = [
+  "account.",
+  "billing.",
+  "organization.white_label_",
+  "organization.deletion_",
+];
 function isPlatformEmailKind(kind) {
-  return kind.startsWith("billing.") || kind.startsWith("organization.white_label_");
+  return PLATFORM_KIND_PREFIXES.some((prefix) => kind.startsWith(prefix));
 }
 /**
  * A From header: the display name without control characters, quoted when it holds a character

@@ -32,8 +32,13 @@ is prerendered, and it never talks to the database.
 4. **Reply-to.** The signed reply address of reply by email (Section 4.6.5) wins, because it threads the reply onto the
    record. An email without one replies to the org's support address; without that, it has no reply-to.
 5. **Platform email stays platform-branded.** Sign-in and verification email is Supabase Auth's and never passes through
-   this worker. Of the worker's kinds, the org's XOS billing, trial and plan notices (`billing.*` and
-   `organization.white_label_*`, `isPlatformEmailKind`) are sent as the platform and never ask for the brand.
+   this worker. Of the worker's kinds, these are sent as the platform and never ask for the brand
+   (`isPlatformEmailKind`): a person's sign-in security notices (`account.*`: a password, email, phone, MFA or passkey
+   change, a recovery code used, a session signed out), which `private.notify_account` (2050) sends in whichever org
+   the person chose last, so they belong to the person's account rather than to that org; the org's XOS billing,
+   trial and plan notices (`billing.*`, `organization.white_label_*`); and XOS deleting or recovering the org
+   (`organization.deletion_*`). They keep the platform From name, logo and accent and have no org reply-to. Kinds the
+   org's own people cause (ownership transfers, emergency access taken by its Owner) wear the org's brand.
 6. **The docs brand is Enterprise.** `api_public.docs_brand_for_slug(slug)` is public (anon may call it) and returns
    only `name`, `logo_light_path`, `logo_dark_path` and `accent_hex`, and only for an org whose plan in force is
    Enterprise with white label in force (`private.docs_brand_in_force`). Any other slug, including one that does not
@@ -44,7 +49,9 @@ is prerendered, and it never talks to the database.
    up with the anon key, rewrites `/o/<slug>/<page>` to the prerendered page, and hands the brand over in the
    `xos-docs-brand` cookie, scoped to `/o/<slug>` (or the mapped host). A head script applies the accent before first
    paint and hides the platform name; the brand mark then shows the logo (light or dark by theme) and the name, and
-   links to other docs pages stay inside the org's docs. Pages stay prerendered. The accent must pass the same gate as
+   links to other docs pages stay inside the org's docs. Pages stay prerendered, so the sidebar reads the browser's
+   `/o/<slug>/…` path without the tenant base (`docsPagePath`) and marks the same item the server rendered: the
+   rewrite causes no hydration mismatch, and the active item holds. The accent must pass the same gate as
    Atlas and Gateway, in every theme. An org without a docs brand under `/o/` is redirected to the platform docs; a
    mapped host without one serves the platform docs. A failed or unconfigured lookup (no `SUPABASE_URL` or
    `SUPABASE_ANON_KEY`) serves the platform docs: they are public, and the platform brand is never another org's
