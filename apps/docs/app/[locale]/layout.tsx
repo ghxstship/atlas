@@ -6,7 +6,14 @@ import { DocsSidebar, type NavGroup } from "@/components/nav.tsx";
 import { AppShell, ThemeSwitch, XOSProvider } from "@/components/ui.tsx";
 import { GUIDE_SECTIONS, guides } from "@/lib/content.ts";
 import type { Locale } from "@/lib/i18n.ts";
-import { LOCALES, isLocale, translator, uiMessages } from "@/lib/i18n.ts";
+import {
+  LOCALES,
+  PUBLISHED_LOCALES,
+  isLocale,
+  localeDirection,
+  translator,
+  uiMessages,
+} from "@/lib/i18n.ts";
 import { THEME_SCRIPT } from "@/lib/theme.ts";
 import "../globals.css";
 
@@ -62,10 +69,10 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = translator(locale);
-  const other = LOCALES.filter((l) => l !== locale);
+  const other = PUBLISHED_LOCALES.filter((l) => l !== locale);
   const ui = uiMessages(locale);
   return (
-    <html lang={locale} dir="ltr" data-theme="dark" suppressHydrationWarning>
+    <html lang={locale} dir={localeDirection(locale)} data-theme="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
@@ -89,14 +96,20 @@ export default async function LocaleLayout({
             sidebar={<DocsSidebar label={t("nav.label")} groups={navigation(locale)} />}
             header={
               <div className="flex flex-1 flex-wrap items-center justify-end gap-12">
-                <nav aria-label={t("language.label")} className="flex gap-8 text-text-13">
+                {/* The links share what the theme switch leaves, so a long name truncates with its title
+                    rather than wrapping out of the fixed header on a phone. */}
+                <nav
+                  aria-label={t("language.label")}
+                  className="flex flex-1 min-w-0 justify-end gap-8 text-text-13"
+                >
                   {other.map((l) => (
                     <a
                       key={l}
                       href={`/${l}`}
                       lang={l}
                       hrefLang={l}
-                      className="text-text-secondary hover:text-text-primary"
+                      title={t(`language.${l}`)}
+                      className="min-w-0 truncate text-text-secondary hover:text-text-primary"
                     >
                       {t(`language.${l}`)}
                     </a>

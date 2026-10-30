@@ -198,7 +198,9 @@
     "overrideNoExpiry": "{value}, fijada por {name}: {reason}",
     "killed": "Desactivado en todas partes (interruptor de emergencia)",
     "setFlag": "Fijar excepción",
+    "setFlagFor": "Fijar excepción {flag}",
     "clearFlag": "Quitar excepción",
+    "clearFlagFor": "Quitar excepción {flag}",
     "flagSaved": "Excepción del indicador guardada.",
     "flagCleared": "Excepción del indicador quitada.",
     "value": "Valor",
@@ -248,7 +250,9 @@
     "eu_data_residency": "Residencia de datos en la UE",
     "branded_compass_build": "Compilación de Compass con marca propia",
     "sla_credits": "Créditos del SLA",
-    "support_session_controls": "Controles de sesiones de soporte"
+    "support_session_controls": "Controles de sesiones de soporte",
+    "aurora_ai": "Aurora AI",
+    "legend_early_access": "Acceso anticipado a Legend"
   },
   "limitNames": {
     "seats": "Puestos",
@@ -266,6 +270,7 @@
     "overrides": "Excepciones vigentes",
     "overridesCount": "{on} activadas, {off} desactivadas",
     "killSwitch": "Interruptor de emergencia",
+    "killSwitchFor": "Interruptor de emergencia {flag}",
     "killOn": "Activar el interruptor de emergencia",
     "killOff": "Desactivar el interruptor de emergencia",
     "killed": "Activado: desactivado en todas partes",
@@ -443,6 +448,7 @@
     "grantedByPlatform": "Concedido el {when} por la plataforma: {reason}",
     "revokedBy": "Revocado el {when} por {name}: {reason}",
     "revoke": "Revocar",
+    "revokeFor": "Revocar {email}",
     "revoked": "Rol revocado.",
     "add": "Agregar a una persona",
     "email": "Correo de la cuenta",

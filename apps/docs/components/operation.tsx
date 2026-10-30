@@ -6,7 +6,7 @@ import type { ReactElement } from "react";
 import { CodeBlock } from "@/components/markdown.tsx";
 import { Tag } from "@/components/ui.tsx";
 import type { Translate } from "@/lib/i18n.ts";
-import type { FieldRow, OperationDoc } from "@/lib/openapi.ts";
+import type { Constraint, FieldRow, OperationDoc } from "@/lib/openapi.ts";
 
 export function MethodTag({ method }: { method: string }): ReactElement {
   return (
@@ -14,6 +14,25 @@ export function MethodTag({ method }: { method: string }): ReactElement {
       {method}
     </Tag>
   );
+}
+
+/** One constraint in the reader's language; a pattern stays code. */
+function ConstraintText({ c, t }: { c: Constraint; t: Translate }): ReactElement {
+  const bound = (n: number | null) => (n === null ? t("reference.constraintAny") : String(n));
+  switch (c.kind) {
+    case "pattern":
+      return (
+        <>
+          {t("reference.constraintPattern")} <code className="font-mono">{c.pattern}</code>
+        </>
+      );
+    case "length":
+      return <>{t("reference.constraintLength", { min: c.min, max: bound(c.max) })}</>;
+    case "range":
+      return <>{t("reference.constraintRange", { min: bound(c.min), max: bound(c.max) })}</>;
+    case "oneOf":
+      return <>{t("reference.constraintOneOf", { values: c.values.join(", ") })}</>;
+  }
 }
 
 function Fields({
@@ -56,17 +75,23 @@ function Fields({
               >
                 {r.name}
               </th>
-              <td className="p-8 align-top border-b border-border-subtle font-mono text-mono-12">
-                {r.type}
+              <td className="p-8 align-top border-b border-border-subtle">
+                <code className="font-mono text-mono-12">{r.type}</code>
               </td>
               <td className="p-8 align-top border-b border-border-subtle">
                 {r.required ? t("reference.yes") : t("reference.no")}
               </td>
               <td className="p-8 align-top border-b border-border-subtle">
                 {r.description}
-                {r.constraints ? (
+                {r.constraints.length > 0 ? (
                   <span className="block text-text-12 text-text-secondary">
-                    {t("reference.constraints")}: {r.constraints}
+                    {t("reference.constraints")}:{" "}
+                    {r.constraints.map((c, i) => (
+                      <span key={c.kind}>
+                        {i > 0 ? "; " : null}
+                        <ConstraintText c={c} t={t} />
+                      </span>
+                    ))}
                   </span>
                 ) : null}
               </td>

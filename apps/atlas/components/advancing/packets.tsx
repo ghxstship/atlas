@@ -244,7 +244,10 @@ export async function PacketsCollection({
                 <span className="font-mono text-text-12 text-text-secondary">
                   {projectKey(p.projectId)}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-text-14 text-text-primary">
+                <span
+                  className="min-w-0 flex-1 truncate text-text-14 text-text-primary"
+                  title={p.title}
+                >
                   {p.title}
                 </span>
                 <span className="text-text-12 text-text-secondary">{progress(p)}</span>

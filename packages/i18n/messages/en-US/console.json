@@ -198,7 +198,9 @@
     "overrideNoExpiry": "{value}, set by {name}: {reason}",
     "killed": "Off everywhere (kill switch)",
     "setFlag": "Set override",
+    "setFlagFor": "Set override {flag}",
     "clearFlag": "Clear override",
+    "clearFlagFor": "Clear override {flag}",
     "flagSaved": "Flag override saved.",
     "flagCleared": "Flag override cleared.",
     "value": "Value",
@@ -248,7 +250,9 @@
     "eu_data_residency": "EU data residency",
     "branded_compass_build": "Branded Compass build",
     "sla_credits": "SLA credits",
-    "support_session_controls": "Support session controls"
+    "support_session_controls": "Support session controls",
+    "aurora_ai": "Aurora AI",
+    "legend_early_access": "Legend early access"
   },
   "limitNames": {
     "seats": "Seats",
@@ -266,6 +270,7 @@
     "overrides": "Live overrides",
     "overridesCount": "{on} on, {off} off",
     "killSwitch": "Kill switch",
+    "killSwitchFor": "Kill switch {flag}",
     "killOn": "Turn the kill switch on",
     "killOff": "Turn the kill switch off",
     "killed": "On: off everywhere",
@@ -443,6 +448,7 @@
     "grantedByPlatform": "Granted {when} by the platform: {reason}",
     "revokedBy": "Revoked {when} by {name}: {reason}",
     "revoke": "Revoke",
+    "revokeFor": "Revoke {email}",
     "revoked": "Role revoked.",
     "add": "Add a person",
     "email": "Account email",

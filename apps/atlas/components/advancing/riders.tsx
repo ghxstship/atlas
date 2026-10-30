@@ -227,7 +227,10 @@ export async function RidersCollection({
                   <span className="font-mono text-text-12 text-text-secondary">
                     {projectKey(r.projectId)}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-text-14 text-text-primary">
+                  <span
+                    className="min-w-0 flex-1 truncate text-text-14 text-text-primary"
+                    title={r.title}
+                  >
                     {r.title}
                   </span>
                   <span className="text-text-12 text-text-secondary">{partyName(r, t)}</span>

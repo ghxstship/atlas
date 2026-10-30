@@ -5,13 +5,17 @@ import {
   type LaunchLocale,
   type Locale,
 } from "@xos/i18n/locales";
+import { isPseudoLocale, type PseudoLocale } from "@xos/i18n/pseudo";
 
 /**
- * Locale negotiation for the console, as Gateway's without pseudo-locales: the `xos-locale` cookie, then the
- * browser's Accept-Language list, then en-US. URLs carry no locale. Beta locales (ADR 0053) are chosen, never
- * guessed: the cookie accepts them, but the browser's languages match launch locales only.
+ * Locale negotiation for the console, as Gateway's: the `xos-locale` cookie, then the browser's Accept-Language
+ * list, then en-US. URLs carry no locale. Beta locales (ADR 0053) are chosen, never guessed: the cookie accepts
+ * them, but the browser's languages match launch locales only. Pseudo-locales are accepted from the cookie only,
+ * and only outside production, so they never reach an operator.
  */
 export const LOCALE_COOKIE = "xos-locale";
+
+export type ConsoleLocale = Locale | PseudoLocale;
 
 interface Ranged {
   readonly tag: string;
@@ -43,11 +47,23 @@ function matchRange(range: string): LaunchLocale | undefined {
 export function negotiateLocale(input: {
   readonly cookie?: string | undefined;
   readonly acceptLanguage?: string | null | undefined;
-}): Locale {
+  readonly production: boolean;
+}): ConsoleLocale {
   if (input.cookie && isLocale(input.cookie)) return input.cookie;
+  if (input.cookie && !input.production && isPseudoLocale(input.cookie)) return input.cookie;
   for (const range of parseAcceptLanguage(input.acceptLanguage)) {
     const match = matchRange(range);
     if (match) return match;
   }
   return defaultLocale;
+}
+
+/** Writing direction of a locale (ar-XB is the right-to-left pseudo-locale). */
+export function localeDirection(locale: ConsoleLocale): "ltr" | "rtl" {
+  return locale === "ar-XB" ? "rtl" : "ltr";
+}
+
+/** The BCP 47 tag Intl formatting uses for a locale; pseudo-locales format like their source. */
+export function formattingLocale(locale: ConsoleLocale): Locale {
+  return isPseudoLocale(locale) ? defaultLocale : locale;
 }

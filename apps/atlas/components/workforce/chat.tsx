@@ -96,10 +96,9 @@ export async function ChatSection({
                     </span>
                   ) : null}
                 </span>
-                <span className="truncate text-text-12 text-text-secondary">
-                  {c.lastMessageBody ?? t("chat.noMessages")}
-                  {c.lastMessageAt ? ` · ${when(c.lastMessageAt)}` : ""}
-                </span>
+                <TruncatedLine
+                  text={`${c.lastMessageBody ?? t("chat.noMessages")}${c.lastMessageAt ? ` · ${when(c.lastMessageAt)}` : ""}`}
+                />
               </a>
             </li>
           ))}
@@ -284,5 +283,14 @@ export async function ChatSection({
       />
       <TemplateSplitView listLabel={t("chat.conversations")} list={list} detail={detail} />
     </div>
+  );
+}
+
+/** The last message and its time, ellipsized with the whole line as its title. */
+function TruncatedLine({ text }: { text: string }) {
+  return (
+    <span className="truncate text-text-12 text-text-secondary" title={text}>
+      {text}
+    </span>
   );
 }
