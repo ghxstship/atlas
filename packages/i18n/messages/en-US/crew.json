@@ -59,6 +59,7 @@
     "shift_accept_rpc": "Only the person on the shift accepts it, or a crew member claims it while it is open.",
     "shift_already_claimed": "Someone already holds this shift. Choose another open shift.",
     "shift_already_filled": "Someone was put on this shift since you opened the schedule. Pick another open shift.",
+    "shift_claims_waiting": "Members claimed this shift. Approve or reject their claims on the shift before putting someone else on it.",
     "shift_not_published": "Only a published open shift can be claimed. Ask the planner to publish it.",
     "shift_double_booked": "You already hold a shift that overlaps this one. Swap or release that shift first.",
     "shift_state_conflict": "The shift changed state since you opened it. Reload to see its current state.",
@@ -617,6 +618,8 @@
       "value": "{filled} of {total} shifts filled ({percent}%)"
     },
     "noOpenShifts": "Every shift this week has someone on it.",
+    "noShifts": "No shifts are planned this week.",
+    "noStaffableShifts": "No open shift this week can be staffed here: the rest are on projects you cannot staff, or members claimed them.",
     "openShifts": "Open shifts ({count})",
     "ranked": "Ranked crew",
     "rankedFor": "Ranked for {shift}",
@@ -652,6 +655,13 @@
     "assignTo": "Assign {name} to {shift}",
     "assigned": "{name} is on {shift}. {fill}.",
     "assignFailed": "{name} was not assigned. {error}",
+    "dropConflict": "{name} is on another shift during {shift}, so they were not assigned. That shift is now chosen: check the ranking, then press Assign to put them on it anyway.",
+    "dropNotRanked": "{name} is not among the people ranked for {shift}, so they were not assigned. That shift is now chosen.",
+    "claimsWaiting": {
+      "title": "Claims waiting ({count})",
+      "help": "Members claimed these shifts. Open one to approve or reject its claims; nobody else can be put on it until they are decided.",
+      "decide": "Decide the claims on {shift}"
+    },
     "fromTemplate": {
       "open": "Plan from template",
       "title": "Plan shifts from a template",

@@ -3,7 +3,7 @@ import { fail, ok, toDataError, type Result } from "../result.ts";
 import { landed } from "./shared.ts";
 
 /**
- * Crew scheduling (A132, migrations 2250 to 2252, ADR 0063): shift templates an org plans from, members'
+ * Crew scheduling (A132, migrations 2250 to 2253, ADR 0063): shift templates an org plans from, members'
  * availability on the calendar they keep for the org, the org's availability window, and the members ranked
  * for one shift for the schedule's drag list. Row level security and the RPCs decide every row: templates are
  * written with org.scheduling.write, shifts are planned and ranked with crew.shift.write on the project.
@@ -370,38 +370,42 @@ export async function listShiftPlanningProjectIds(
 }
 
 /**
- * Puts a member on a shift that is still open, compare and set: the update lands only while nobody holds the
- * shift, so a crew member's claim (1322) or another planner's assignment made since the board was read is never
- * overwritten. A shift someone filled in the meantime comes back as the `shift_already_filled` refusal; a shift
- * that is gone or out of reach comes back not found.
+ * The shifts among `shiftIds` with a claim still waiting for a decision (Requested, 1322 approval and seniority
+ * rules). The drag board leaves these off its open shifts and sends the planner to decide the claims on the shift,
+ * since app.assign_open_shift refuses them (shift_claims_waiting). Claims are readable by their claimant and by
+ * crew.shift.write on the project, so a planner sees every claim on the shifts they may staff.
+ */
+export async function listShiftIdsWithWaitingClaims(
+  db: XosClient,
+  shiftIds: readonly string[],
+): Promise<Result<ReadonlySet<string>>> {
+  if (shiftIds.length === 0) return ok(new Set());
+  const { data, error } = await db
+    .from("shift_claims")
+    .select("shift_id")
+    .in("shift_id", [...shiftIds])
+    .eq("claim_state", "Requested")
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  return ok(new Set((data as { shift_id: string }[]).map((row) => row.shift_id)));
+}
+
+/**
+ * Puts a member on a shift that is still open (app.assign_open_shift, 2253). The RPC locks the shift as the claim
+ * RPCs do and refuses a shift someone holds (`shift_already_filled`: a claim under the first-come rule or another
+ * planner's assignment since the board was read is never overwritten) and a shift with claims waiting under the
+ * approval or seniority rule (`shift_claims_waiting`: those are decided on the shift, so the 1322 rules hold). A shift
+ * that is gone or out of reach comes back forbidden.
  */
 export async function assignOpenShift(
   db: XosClient,
   shiftId: string,
   membershipId: string,
 ): Promise<Result<null>> {
-  const { data, error } = await db
-    .from("shifts")
-    .update({ membership_id: membershipId })
-    .eq("id", shiftId)
-    .is("deleted_at", null)
-    .is("membership_id", null)
-    .select("id");
+  const { error } = await db.rpc("assign_open_shift", {
+    p_shift_id: shiftId,
+    p_membership_id: membershipId,
+  });
   if (error) return fail(toDataError(error));
-  if (data && data.length > 0) return ok(null);
-  const { data: shift, error: readError } = await db
-    .from("shifts")
-    .select("id, membership_id")
-    .eq("id", shiftId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (readError) return fail(toDataError(readError));
-  if (shift?.membership_id) {
-    return fail({
-      kind: "refusal",
-      rule: "shift_already_filled",
-      message: "Someone was put on this shift since the schedule was read.",
-    });
-  }
-  return fail({ kind: "not-found" });
+  return ok(null);
 }
