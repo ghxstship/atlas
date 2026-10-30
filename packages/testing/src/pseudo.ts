@@ -257,7 +257,7 @@ export function databaseText(url: string): Promise<Set<string>> {
             and c.table_schema in ('app', 'xpms', 'private', 'auth')
             and c.data_type in ('text', 'character varying', 'citext', 'json', 'jsonb')`,
       );
-      const q = (name: string) => `"${name.replace(/"/g, '""')}"`;
+      const q = (name: string) => client.escapeIdentifier(name);
       const parts = columns.rows.map((col) =>
         col.json
           ? `select jsonb_path_query(${q(col.c)}::jsonb, 'strict $.**') #>> '{}' as v from ${q(col.s)}.${q(col.t)} where ${q(col.c)} is not null`
