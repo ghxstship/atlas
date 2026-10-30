@@ -192,7 +192,7 @@
     "offer": {
       "sent": {
         "subject": "Oferta de {orgName}: {title}",
-        "body": "{orgName} le envió una oferta para {title}. Revise las condiciones y acéptelas o respóndalas en Gateway."
+        "body": "{orgName} te envió una oferta para {title}. Revisa las condiciones y acéptalas o respóndelas en Gateway."
       }
     },
     "onboarding": {
