@@ -331,17 +331,26 @@ declare
   v_subjects record;
   v_hash bytea;
   v_grant_hash bytea;
+  v_granted boolean;
   v_user uuid;
   v_claims text := current_setting('request.jwt.claims', true);
 begin
   select * into v_subjects from private.live_link_subjects(p_client_address);
-  if private.live_link_rate_limited(v_subjects.o_hop, v_subjects.o_subject) then
-    o_reason := 'live_link_rate_limited';
-    return;
-  end if;
   if p_token is not null and p_token ~ (case p_kind when 'View' then '^xshv_[0-9a-f]{64}$' else '^xscr_[0-9a-f]{64}$' end) then
     v_hash := private.share_token_hash(p_token);
     select * into o_link from app.live_links l where l.token_hash = v_hash and l.link_kind = p_kind;
+  end if;
+  v_grant_hash := case when p_grant ~ '^xlgr_[0-9a-f]{64}$' then private.share_token_hash(p_grant) end;
+  v_granted := o_link.id is not null and v_grant_hash is not null and exists (
+    select 1 from private.live_link_grants g
+    where g.grant_hash = v_grant_hash and g.live_link_id = o_link.id and g.expires_at > now()
+  );
+  -- The address failure limits stop guessing, so they apply only to a fetch without a valid grant: a device that
+  -- already proved the code keeps reading, and nobody sharing its address (a venue's network, or the Atlas server's
+  -- own egress) can blank its screen by spending that address's failures.
+  if not v_granted and private.live_link_rate_limited(v_subjects.o_hop, v_subjects.o_subject) then
+    o_reason := 'live_link_rate_limited';
+    return;
   end if;
   if o_link.id is null then
     if v_hash is null or not exists (select 1 from private.retired_live_link_tokens r where r.token_hash = v_hash) then
@@ -361,11 +370,7 @@ begin
     return;
   end if;
 
-  v_grant_hash := case when p_grant ~ '^xlgr_[0-9a-f]{64}$' then private.share_token_hash(p_grant) end;
-  if v_grant_hash is null or not exists (
-    select 1 from private.live_link_grants g
-    where g.grant_hash = v_grant_hash and g.live_link_id = o_link.id and g.expires_at > now()
-  ) then
+  if not v_granted then
     o_reason := 'live_link_grant';
     return;
   end if;
@@ -408,7 +413,7 @@ begin
 end;
 $$;
 
-comment on function private.live_link_reader(text, text, text, app.live_link_kind) is 'Checks a live link read: the address failure limits, the token (live_link_invalid, live_link_expired), the device grant (live_link_grant), 1200 fetches an hour per grant and 60000 per link (live_link_rate_limited), the allowlist''s classification (live_link_reclassified), and that the creator is still a member who holds the collection''s read capability on the project (live_link_owner_access). On success the claims are the creator''s; the caller restores its own.';
+comment on function private.live_link_reader(text, text, text, app.live_link_kind) is 'Checks a live link read: the address failure limits (only without a valid device grant, so a proven screen is never blanked by its address''s failures), the token (live_link_invalid, live_link_expired), the device grant (live_link_grant), 1200 fetches an hour per grant and 60000 per link (live_link_rate_limited), the allowlist''s classification (live_link_reclassified), and that the creator is still a member who holds the collection''s read capability on the project (live_link_owner_access). On success the claims are the creator''s; the caller restores its own.';
 revoke all on function private.live_link_reader(text, text, text, app.live_link_kind) from public, anon, authenticated;
 
 create or replace function api_public.live_view(p_token text, p_grant text, p_client_address text default null)

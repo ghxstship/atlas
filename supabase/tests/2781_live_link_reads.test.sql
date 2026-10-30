@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(44);
+select plan(48);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -236,6 +236,20 @@ select pg_temp.open('guess', 'xshv_' || lpad(g::text, 64, '0'), '000000', '198.5
 select is(pg_temp.open('v', pg_temp.val('v'), pg_temp.val('v:code'), '198.51.100.30'), 'live_link_rate_limited',
   'after 20 failed lookups in 10 minutes an address is refused');
 select is(pg_temp.open('v', pg_temp.val('v'), pg_temp.val('v:code'), '198.51.100.31'), 'ok', 'another address is not');
+-- The failure limits stop guessing; they never blank a device that already proved the code.
+insert into k values ('v_ungranted', null, pg_temp.val('v')), ('v_ungranted:grant', null, null);
+select is(pg_temp.read('v', '198.51.100.30') ->> 'status', 'ok',
+  'a device holding a valid grant still reads from an address past its failure limit');
+select is(pg_temp.read('v_ungranted', '198.51.100.30') ->> 'reason', 'live_link_rate_limited',
+  'while a fetch from that address without a grant is refused');
+select set_config('request.headers', json_build_object('x-forwarded-for', '192.0.2.10')::text, true);
+insert into private.rate_limit_events (bucket, subject_hash)
+select 'live_link.hop_failure', extensions.digest((select o_hop from private.live_link_subjects(null)), 'sha256') from generate_series(1, 2000);
+select is(pg_temp.read('v', '198.51.100.32') ->> 'status', 'ok',
+  'and when the reaching address (the Atlas server''s egress) used up its 2000 failures, granted screens keep reading');
+select is(pg_temp.read('v_ungranted', '198.51.100.32') ->> 'reason', 'live_link_rate_limited',
+  'while ungranted fetches through it are refused');
+delete from private.rate_limit_events where bucket = 'live_link.hop_failure';
 
 -- Day sheets: published ones only ----------------------------------------------------------------------------------
 select pg_temp.as_user('dave');

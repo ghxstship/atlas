@@ -84,8 +84,11 @@ Regenerating draws a new token, code and channel key and deletes every grant; th
 `private.retired_live_link_tokens` so a screen left open never counts as a failed guess. A link locked by wrong codes
 keeps serving devices that already proved the code, so a stranger cannot blank every screen.
 
-Failures count 20 per relayed address in 10 minutes and 2000 per reaching address in 15. Reads are limited per grant
-(1200 an hour) with a per-link ceiling (60000 an hour), so many screens on one link never lock each other out.
+Failures count 20 per relayed address in 10 minutes and 2000 per reaching address in 15. Those limits stop guessing,
+so a read checks them only when it carries no valid grant: every public page reaches PostgREST from the Atlas
+server's egress, and a venue's screens can share one NAT, so spending an address's failures must not blank the
+screens that already proved the code (a departure from 1410, which checks the address first). Reads are limited per
+grant (1200 an hour) with a per-link ceiling (60000 an hour), so many screens on one link never lock each other out.
 
 ### 6. An anonymous private channel that carries pings only
 
