@@ -3,6 +3,7 @@
 import type { DataError } from "@xos/data";
 import {
   addAvailabilityPeriod,
+  assignOpenShift,
   createShiftTemplate,
   createShiftsFromTemplate,
   daysBetween,
@@ -10,7 +11,6 @@ import {
   rankShiftCandidates,
   removeAvailabilityPeriod,
   trashShiftTemplate,
-  updateShift,
   type AvailabilityKind,
   type ShiftCandidate,
 } from "@xos/data/crew";
@@ -118,7 +118,11 @@ export async function rankCandidatesAction(
   return { ok: true, candidates: ranked.data };
 }
 
-/** Puts a member on an open shift, dropped from the ranked list or assigned from the keyboard. */
+/**
+ * Puts a member on an open shift, dropped from the ranked list or assigned from the keyboard. The board's open
+ * shifts are a snapshot, so the write lands only while the shift is still open (`assignOpenShift`); a shift claimed
+ * or assigned since comes back as the translated `shift_already_filled` refusal.
+ */
 export async function assignShiftAction(
   org: string,
   shiftId: string,
@@ -128,7 +132,7 @@ export async function assignShiftAction(
   if (!uuid.safeParse(shiftId).success || !uuid.safeParse(membershipId).success) {
     return { error: t("crew.errors.notFound") };
   }
-  const result = await updateShift(db, shiftId, { membershipId });
+  const result = await assignOpenShift(db, shiftId, membershipId);
   if (!result.ok) return failed(t, result.error);
   refresh(ctx.org.slug);
   return { ok: true };

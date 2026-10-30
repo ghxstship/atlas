@@ -9,6 +9,7 @@ import type { Translate } from "@/lib/shell/translate";
 export const KNOWN_REFUSALS = [
   "shift_accept_rpc",
   "shift_already_claimed",
+  "shift_already_filled",
   "shift_not_published",
   "shift_double_booked",
   "shift_state_conflict",

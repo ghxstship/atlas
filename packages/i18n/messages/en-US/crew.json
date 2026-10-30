@@ -58,6 +58,7 @@
   "refusals": {
     "shift_accept_rpc": "Only the person on the shift accepts it, or a crew member claims it while it is open.",
     "shift_already_claimed": "Someone already holds this shift. Choose another open shift.",
+    "shift_already_filled": "Someone was put on this shift since you opened the schedule. Pick another open shift.",
     "shift_not_published": "Only a published open shift can be claimed. Ask the planner to publish it.",
     "shift_double_booked": "You already hold a shift that overlaps this one. Swap or release that shift first.",
     "shift_state_conflict": "The shift changed state since you opened it. Reload to see its current state.",

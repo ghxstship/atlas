@@ -58,6 +58,7 @@
   "refusals": {
     "shift_accept_rpc": "Solo la persona del turno lo acepta, o un miembro del equipo lo reclama mientras está abierto.",
     "shift_already_claimed": "Alguien ya tiene este turno. Elija otro turno abierto.",
+    "shift_already_filled": "Alguien quedó asignado a este turno después de que abrió el horario. Elija otro turno abierto.",
     "shift_not_published": "Solo se puede reclamar un turno abierto publicado. Pida al planificador que lo publique.",
     "shift_double_booked": "Ya tiene un turno que se superpone con este. Intercambie o libere ese turno primero.",
     "shift_state_conflict": "El turno cambió de estado desde que lo abrió. Vuelva a cargar para ver su estado actual.",

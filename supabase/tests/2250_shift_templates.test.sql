@@ -7,13 +7,15 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(20);
+select plan(21);
 
 create temporary table c (key text primary key, id uuid);
 grant select, insert on c to public;
 
 -- Templates ----------------------------------------------------------------------------------------------------------
 select has_table('app', 'shift_templates', 'app.shift_templates exists');
+select is((select title_column from private.trash_tables where table_name = 'shift_templates'), 'name',
+  'a removed template is in Trash under its name as soon as the migration runs (ADR 0110)');
 select policies_are('app', 'shift_templates', array['shift_templates_read', 'shift_templates_insert', 'shift_templates_update'],
   'read, insert and update policies, no delete');
 

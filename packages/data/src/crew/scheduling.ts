@@ -354,3 +354,40 @@ export async function rankShiftCandidates(
     })),
   );
 }
+
+/**
+ * Puts a member on a shift that is still open, compare and set: the update lands only while nobody holds the
+ * shift, so a crew member's claim (1322) or another planner's assignment made since the board was read is never
+ * overwritten. A shift someone filled in the meantime comes back as the `shift_already_filled` refusal; a shift
+ * that is gone or out of reach comes back not found.
+ */
+export async function assignOpenShift(
+  db: XosClient,
+  shiftId: string,
+  membershipId: string,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("shifts")
+    .update({ membership_id: membershipId })
+    .eq("id", shiftId)
+    .is("deleted_at", null)
+    .is("membership_id", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  if (data && data.length > 0) return ok(null);
+  const { data: shift, error: readError } = await db
+    .from("shifts")
+    .select("id, membership_id")
+    .eq("id", shiftId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (readError) return fail(toDataError(readError));
+  if (shift?.membership_id) {
+    return fail({
+      kind: "refusal",
+      rule: "shift_already_filled",
+      message: "Someone was put on this shift since the schedule was read.",
+    });
+  }
+  return fail({ kind: "not-found" });
+}

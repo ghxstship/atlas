@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addAvailabilityPeriod,
+  assignOpenShift,
   createShiftsFromTemplate,
   createShiftTemplate,
   daysBetween,
@@ -223,5 +224,34 @@ describe("availability", () => {
       [null, "Unstated", true, 2],
     ]);
     expect(calls[0]?.steps[0]?.[1]).toEqual([{ p_shift_id: "s1", p_week_start: "2027-08-01" }]);
+  });
+});
+
+describe("assigning an open shift", () => {
+  it("lands only while nobody holds the shift", async () => {
+    const { db, calls } = fakeClient({ "from:shifts": [okResponse([{ id: "s1" }])] });
+    expect(await assignOpenShift(db, "s1", "m1")).toEqual({ ok: true, data: null });
+    expect(calls[0]?.steps).toContainEqual(["update", [{ membership_id: "m1" }]]);
+    expect(calls[0]?.steps).toContainEqual(["eq", ["id", "s1"]]);
+    expect(calls[0]?.steps).toContainEqual(["is", ["membership_id", null]]);
+    expect(calls[0]?.steps).toContainEqual(["is", ["deleted_at", null]]);
+  });
+
+  it("refuses a shift someone claimed or was put on since the board was read", async () => {
+    const { db, calls } = fakeClient({
+      "from:shifts": [okResponse([]), okResponse({ id: "s1", membership_id: "m2" })],
+    });
+    const result = await assignOpenShift(db, "s1", "m1");
+    expect(result.ok === false && result.error).toMatchObject({
+      kind: "refusal",
+      rule: "shift_already_filled",
+    });
+    expect(calls).toHaveLength(2);
+  });
+
+  it("reports a shift that is gone as not found", async () => {
+    const { db } = fakeClient({ "from:shifts": [okResponse([]), okResponse(null)] });
+    const result = await assignOpenShift(db, "s1", "m1");
+    expect(result.ok === false && result.error.kind).toBe("not-found");
   });
 });

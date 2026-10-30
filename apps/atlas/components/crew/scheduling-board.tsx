@@ -79,6 +79,8 @@ export function SchedulingBoard(props: {
     setBusy(false);
     if (!outcome.ok) {
       setAnnouncement(t("assignFailed", { name: nameOf(person), error: outcome.error ?? "" }));
+      // Filled since the board was read: reread so the shift leaves the open list and the meter counts it.
+      if (outcome.rule === "shift_already_filled") router.refresh();
       return;
     }
     const nextFilled = Math.min(total, filled + 1);

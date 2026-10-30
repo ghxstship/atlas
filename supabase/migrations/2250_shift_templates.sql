@@ -47,6 +47,8 @@ call private.install_policies('app.shift_templates',
   $$private.has_capability(org_id, 'org.scheduling.write')$$);
 call private.install_default_retention('app.shift_templates');
 call private.install_audit_trail('app.shift_templates');
+-- A removed template belongs in Trash (ADR 0110): register it now rather than at the nightly sweep.
+select private.sync_trash_tables();
 
 -- Laying a template onto days ---------------------------------------------------------------------------------------
 
