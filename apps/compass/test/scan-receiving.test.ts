@@ -117,6 +117,8 @@ describe("Receive against an order", () => {
           projectName: "Demo",
           roleType: "vendor",
           state: "Active",
+          via: "engagement",
+          rosterEntryId: null,
         },
       ],
     });

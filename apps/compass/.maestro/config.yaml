@@ -38,6 +38,7 @@ executionOrder:
     - field-expense-receipt
     - field-report-block
     - crew-external-today
+    - roster-member-today
     - crew-external-work
     - project-details
     - profile-credentials

@@ -34,6 +34,8 @@ const engagement = (over: Partial<EngagementSummary>): EngagementSummary => ({
   projectName: "Northwind Summer Series",
   roleType: "crew",
   state: "Active",
+  via: "engagement",
+  rosterEntryId: null,
   ...over,
 });
 

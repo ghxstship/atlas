@@ -89,7 +89,9 @@
     "notActiveTitle": "Tu contratación aún no está activa",
     "notActive": "Esto se abre cuando tu contratación pase a Activa. Termina la incorporación en Gateway.",
     "closedTitle": "Tu contratación terminó",
-    "closed": "El acceso a Compass terminó al completarse tu contratación. Pagos y documentos siguen en Gateway."
+    "closed": "El acceso a Compass terminó al completarse tu contratación. Pagos y documentos siguen en Gateway.",
+    "rosterMemberTitle": "Tu empresa se encarga de esto",
+    "rosterMember": "Trabajas en este proyecto en el equipo de tu empresa, así que tu empresa lleva tu tiempo, cambios de turno y gastos. Pregúntale a quien dirige tu equipo."
   },
   "sync": {
     "offline": "Sin conexión. Los cambios se guardan en este dispositivo.",
@@ -157,7 +159,10 @@
       "sponsor_entitlements": "beneficios del patrocinador",
       "engagement_documents": "documentos de la contratación",
       "profile_certifications": "tus certificaciones",
-      "profile_documents": "tus documentos"
+      "profile_documents": "tus documentos",
+      "roster_entries": "entradas de lista",
+      "advance_allocations": "artículos asignados a ti",
+      "parking_passes": "pases de estacionamiento"
     }
   },
   "queue": {
@@ -287,7 +292,31 @@
     "callTime": "Llamado {time}",
     "blockEmpty": "Nada aquí hoy.",
     "orgChip": "{org}",
-    "nextCueAt": "Previsto para el {day} a las {time}"
+    "nextCueAt": "Previsto para el {day} a las {time}",
+    "roster": {
+      "callTitle": "Tu citación",
+      "arrival": "Llega el {day}, de {start} a {end}",
+      "fromShift": "Tu primer turno de hoy.",
+      "noArrival": "Tu llegada aún no está definida. Tu empresa la define en la lista.",
+      "parkingTitle": "Estacionamiento",
+      "noParking": "No tienes pase de estacionamiento en este proyecto.",
+      "showPass": "Mostrar pase",
+      "gearTitle": "Equipo asignado",
+      "noGear": "Todavía no tienes nada asignado.",
+      "holding": "Lo tienes contigo",
+      "pickup": "Recoger en el mostrador: {status}",
+      "status": {
+        "approved": "Aprobado",
+        "reserved": "Reservado",
+        "awaitingOrder": "Esperando pedido",
+        "onOrder": "Pedido",
+        "confirmed": "Confirmado",
+        "received": "Recibido"
+      },
+      "contactTitle": "Contacto",
+      "contactSentence": "Pregúntale sobre tu citación, tu equipo o el estacionamiento.",
+      "projectDetails": "Actualizar datos del proyecto"
+    }
   },
   "orgs": {
     "title": "Organizaciones",
