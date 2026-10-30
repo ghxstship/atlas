@@ -310,6 +310,9 @@ describe("Identity: work detail shares and the access log", () => {
             categories: ["Dietary Needs"],
             changed_columns: [],
             reason: null,
+            // R5 (2654): the event names its roster entry and the project fact kinds; a work details read has none.
+            roster_entry_id: null,
+            fact_kinds: [],
             created_at: "2026-10-02T12:00:00.000Z",
           },
         ],
