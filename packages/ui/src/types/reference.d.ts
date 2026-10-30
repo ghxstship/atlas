@@ -894,6 +894,8 @@ export interface UndoToastProps {
   message: string;
   seconds?: number;
   onUndo?: () => void;
+  /** The button's label when the action is not a plain undo, such as "Move back"; Undo by default. */
+  undoLabel?: string;
 }
 export interface NotificationItem {
   title: string;
