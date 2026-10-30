@@ -10,8 +10,16 @@
 -- app.time_entries is listed too: A130 partitioned it (2231), and since 2230 its audit events name the parent table,
 -- so its history reads the parent's events under the parent's read policies.
 --
+-- People's memberships (the person record of People > Directory, whose history shows when someone joined, left or was
+-- removed), certificates people hold, training courses, vendor classes and verbiage terms have record pages without a
+-- comment thread; they are listed too, and training courses get an audit trail.
+--
 -- Left out: app.form_submissions, whose answers are submitted once and may hold what a form asks about a person, so
--- they stay out of the ledger; and app.projects, whose page is the project overview rather than a record page.
+-- they stay out of the ledger; app.support_tickets, whose body is what a person asked the help desk and whose message
+-- thread is its history, for the same reason; and app.projects, whose page is the project overview rather than a
+-- record page. Pages over ledgers or tallies (the custody ledger, payroll exports, occupancy counts, recognitions,
+-- the moderation queue), canon's read-only libraries (elements, workforce roles) and the door check-in, a view of guest
+-- list entries whose record carries their history, have no history of their own.
 
 -- 1. Audit trails for the subjects that had none ---------------------------------------------------------------------------
 
@@ -43,6 +51,7 @@ call private.install_audit_trail('app.schedule_baselines');
 call private.install_audit_trail('app.shipments');
 call private.install_audit_trail('app.site_plans');
 call private.install_audit_trail('app.spaces');
+call private.install_audit_trail('app.training_courses');
 call private.install_audit_trail('app.venues');
 call private.install_audit_trail('app.work_orders');
 call private.install_audit_trail('app.workforce_events');
@@ -63,7 +72,9 @@ insert into private.field_history_subjects (table_name) values
   -- People, crew and opportunities
   ('app.agreements'),
   ('app.applications'),
+  ('app.certification_holders'),
   ('app.engagements'),
+  ('app.memberships'),
   ('app.offers'),
   ('app.opportunities'),
   ('app.pay_periods'),
@@ -75,6 +86,7 @@ insert into private.field_history_subjects (table_name) values
   ('app.time_entries'),
   ('app.time_off_requests'),
   ('app.timesheets'),
+  ('app.training_courses'),
   -- Procurement, vendors and canon
   ('app.canon_extension_proposals'),
   ('app.catalog_bindings'),
@@ -85,6 +97,7 @@ insert into private.field_history_subjects (table_name) values
   ('app.rfqs'),
   ('app.sponsor_entitlements'),
   ('app.submittals'),
+  ('app.vendor_classes'),
   ('app.vendor_scorecards'),
   -- Operations
   ('app.credential_categories'),
@@ -122,10 +135,11 @@ insert into private.field_history_subjects (table_name) values
   ('app.day_sheets'),
   ('app.run_of_show'),
   ('app.schedule_baselines'),
-  -- Workforce
+  -- Workforce and knowledge
   ('app.feed_posts'),
   ('app.groups'),
   ('app.handbook_articles'),
   ('app.lost_found_items'),
+  ('app.verbiage_terms'),
   ('app.workforce_events')
 on conflict (table_name) do nothing;

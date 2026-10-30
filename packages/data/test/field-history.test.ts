@@ -179,6 +179,24 @@ describe("field history", () => {
     });
   });
 
+  it("walks a record's kind attribute currency the same way", () => {
+    const events = toHistoryEvents([
+      row({
+        event_id: "e2",
+        changes: [
+          { field: "attributes.value_minor", old_value: 80000, new_value: 9000, masked: false },
+          { field: "attributes.currency_code", old_value: "USD", new_value: "JPY", masked: false },
+          { field: "currency_code", old_value: "EUR", new_value: "GBP", masked: false },
+        ],
+      }),
+      row({ event_id: "e1", operation: "insert" }),
+    ]);
+    expect(Object.fromEntries(eventCurrencies(events, "JPY", "attributes.currency_code"))).toEqual({
+      e2: { before: "USD", after: "JPY" },
+      e1: { before: "USD", after: "USD" },
+    });
+  });
+
   it("lists exactly the tables the migrations make field history subjects", () => {
     const listed = new Set<string>();
     for (const file of readdirSync(migrations).filter((f) => f.endsWith(".sql"))) {

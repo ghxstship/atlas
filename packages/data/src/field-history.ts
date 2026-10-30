@@ -32,6 +32,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.canon_extension_proposals",
   "app.capability_documents",
   "app.catalog_bindings",
+  "app.certification_holders",
   "app.change_orders",
   "app.cost_centers",
   "app.credential_categories",
@@ -56,6 +57,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.invoices",
   "app.journal_entries",
   "app.lost_found_items",
+  "app.memberships",
   "app.offers",
   "app.opportunities",
   "app.pay_periods",
@@ -86,9 +88,12 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.time_entries",
   "app.time_off_requests",
   "app.timesheets",
+  "app.training_courses",
+  "app.vendor_classes",
   "app.vendor_scorecards",
   "app.vendors",
   "app.venues",
+  "app.verbiage_terms",
   "app.work_orders",
   "app.workforce_events",
   "app.zones",
@@ -176,16 +181,18 @@ export async function getHistoryMoney(
 /**
  * The currency each event's amounts were in, newest first: an event's after values are in the
  * currency the row held right after it, its before values in the one it held before. Walking back
- * from the row's currency now, an event that changed `currency_code` hands its before value on.
+ * from the row's currency now, an event that changed the currency field (`currency_code`, or a
+ * record's `attributes.<column>`) hands its before value on.
  */
 export function eventCurrencies(
   events: readonly HistoryEvent[],
   currencyCode: string | null,
+  currencyField = "currency_code",
 ): Map<string, { readonly before: string | null; readonly after: string | null }> {
   const out = new Map<string, { before: string | null; after: string | null }>();
   let current = currencyCode;
   for (const event of events) {
-    const change = event.changes.find((c) => c.field === "currency_code" && !c.masked);
+    const change = event.changes.find((c) => c.field === currencyField && !c.masked);
     const before =
       change === undefined ? current : typeof change.before === "string" ? change.before : null;
     out.set(event.id, { before, after: current });

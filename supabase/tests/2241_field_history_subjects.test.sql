@@ -1,13 +1,14 @@
 -- pgTAP: 2241, field history on every record page (A131, RRR-177, S4.10-04). Each entity with a record page or peek is a
 -- field history subject with an audit trail whose read policies the history follows; editing an expense, a change order,
--- a budget, an engagement, a time entry, a per diem or an agreement shows each changed field before and after; a column
--- signed-in people cannot select stays out of the history.
+-- a budget, an engagement, a time entry, a per diem, an agreement, a training course, a vendor class, a verbiage term, a
+-- certificate or a membership shows each changed field before and after; a column signed-in people cannot select stays
+-- out of the history.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(23);
+select plan(30);
 
 create temporary table new_subjects (table_name text primary key);
 insert into new_subjects values
@@ -25,7 +26,8 @@ insert into new_subjects values
   ('app.capability_documents'), ('app.inspection_templates'), ('app.inspections'), ('app.permit_requirements'),
   ('app.site_plans'), ('app.spaces'), ('app.venues'), ('app.zones'),
   ('app.call_sheets'), ('app.day_sheets'), ('app.run_of_show'), ('app.schedule_baselines'),
-  ('app.feed_posts'), ('app.groups'), ('app.handbook_articles'), ('app.lost_found_items'), ('app.workforce_events');
+  ('app.feed_posts'), ('app.groups'), ('app.handbook_articles'), ('app.lost_found_items'), ('app.workforce_events'),
+  ('app.certification_holders'), ('app.memberships'), ('app.training_courses'), ('app.vendor_classes'), ('app.verbiage_terms');
 grant select on new_subjects to public;
 
 -- Each subject: registered, audited, readable by its own policies -----------------------------------------------------
@@ -40,6 +42,15 @@ select is(
   (select array_agg(s.table_name order by s.table_name) from private.field_history_subjects s
    where not exists (select 1 from pg_catalog.pg_trigger g where g.tgrelid = s.table_name::regclass and g.tgname = 't85_audit_trail')),
   null, 'and so does every subject listed before');
+
+-- private.caller_reads_row answers only from permissive read policies that apply to signed-in people; a subject with
+-- none would refuse every caller, so each must have one.
+select is(
+  (select array_agg(n.table_name order by n.table_name) from new_subjects n
+   where not exists (select 1 from pg_catalog.pg_policy p
+                     where p.polrelid = n.table_name::regclass and p.polcmd in ('r', '*') and p.polqual is not null
+                       and p.polpermissive and (0::oid = any (p.polroles) or 'authenticated'::regrole = any (p.polroles)))),
+  null, 'each has a read policy for signed-in people, so its history can answer');
 
 -- The history evaluates each table's own read policies: for a row the caller cannot read (here, none at all) every
 -- subject refuses with 42501, which also proves each policy compiles inside private.caller_reads_row.
@@ -156,6 +167,46 @@ select ok(exists (select 1 from app.audit_events where subject_id = pg_temp.id('
 select pg_temp.as_user('carol');
 select ok(not exists (select 1 from app.field_history('app.agreements', pg_temp.id('agr')) where field = 'access_code_hash'),
   'the history leaves it out');
+select pg_temp.as_platform();
+
+-- Record pages without a comment thread: a training course (audited since this migration), a vendor class, a verbiage
+-- term, a certificate and the person record of People > Directory (a membership) --------------------------------------
+select pg_temp.as_user('alice');
+with x as (insert into app.training_courses (org_id, title, pass_percent) values (pg_temp.id('org_a'), 'Rigging Basics', 80) returning id)
+  insert into world select 'a131_course', id from x;
+update app.training_courses set pass_percent = 90 where id = pg_temp.id('a131_course');
+select is((select old_value from app.field_history('app.training_courses', pg_temp.id('a131_course')) where field = 'pass_percent'),
+  '80'::jsonb, 'a training course edit shows its pass mark before');
+select is((select new_value from app.field_history('app.training_courses', pg_temp.id('a131_course')) where field = 'pass_percent'),
+  '90'::jsonb, 'and after');
+
+with x as (insert into app.vendor_classes (org_id, name) values (pg_temp.id('org_a'), 'Staging Suppliers') returning id)
+  insert into world select 'a131_class', id from x;
+update app.vendor_classes set description = 'Decks, risers and rigging.' where id = pg_temp.id('a131_class');
+select is((select new_value #>> '{}' from app.field_history('app.vendor_classes', pg_temp.id('a131_class')) where field = 'description'),
+  'Decks, risers and rigging.', 'a vendor class edit shows its new description');
+
+with x as (insert into app.verbiage_terms (org_id, term, casing_rule, definition)
+  values (pg_temp.id('org_a'), 'Load-in', 'Load-in', 'When crews bring equipment into a venue.') returning id)
+  insert into world select 'a131_term', id from x;
+update app.verbiage_terms set definition = 'When crews bring equipment into a venue and build the show.' where id = pg_temp.id('a131_term');
+select is((select old_value #>> '{}' from app.field_history('app.verbiage_terms', pg_temp.id('a131_term')) where field = 'definition'),
+  'When crews bring equipment into a venue.', 'a verbiage term edit shows its definition before');
+
+with x as (insert into app.certifications (org_id, name, issuing_body) values (pg_temp.id('org_a'), 'A131 Rigging Level 1', 'ETCP') returning id)
+  insert into world select 'a131_cert', id from x;
+with x as (insert into app.certification_holders (certification_id, person_id, issued_on, expires_on)
+  values (pg_temp.id('a131_cert'), pg_temp.id('frank'), '2027-01-01', '2028-01-01') returning id)
+  insert into world select 'a131_holder', id from x;
+update app.certification_holders set expires_on = '2029-01-01' where id = pg_temp.id('a131_holder');
+select is((select new_value #>> '{}' from app.field_history('app.certification_holders', pg_temp.id('a131_holder')) where field = 'expires_on'),
+  '2029-01-01', 'a certificate edit shows its new expiry');
+
+select pg_temp.as_platform();
+update app.memberships set valid_to = '2027-12-31 00:00+00' where id = pg_temp.id('frank@org_a');
+select pg_temp.as_user('alice');
+select is((select (new_value #>> '{}')::timestamptz from app.field_history('app.memberships', pg_temp.id('frank@org_a')) where field = 'valid_to'),
+  '2027-12-31 00:00+00'::timestamptz, 'a membership edit shows when it ends');
 select pg_temp.as_platform();
 
 select * from finish();
