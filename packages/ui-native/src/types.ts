@@ -371,6 +371,13 @@ export interface RunOfShowLiveProps extends NativeBaseProps {
   nextLabel: string;
   /** What a screen reader says for the countdown, such as "2 min 10 s to Doors" (A23-009). */
   countdownLabel?: string;
+  /**
+   * Index of the next cue when it is not the one after `current`: the cue the caller put on standby, or the cue
+   * after a jump (ADR 0131). Defaults to `current + 1`.
+   */
+  next?: number;
+  /** Shown in place of the countdown, such as "TBC" while the next cue's time is to be confirmed. */
+  countdownText?: string;
 }
 
 export interface CredentialBadgeProps extends NativeBaseProps {

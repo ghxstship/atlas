@@ -397,15 +397,20 @@ export function RunOfShowLive({
   showMode,
   nextLabel,
   countdownLabel,
+  next: nextIndex,
+  countdownText,
   testID,
 }: RunOfShowLiveProps): ReactElement {
   const theme = useTheme();
-  const next = cues[current + 1];
+  const after = nextIndex ?? current + 1;
+  const next = cues[after];
   const now = cues[current];
   const big = showMode ? "heading32" : "heading24";
   const minutes = Math.floor(Math.abs(nextInSeconds) / 60);
   const seconds = Math.abs(nextInSeconds) % 60;
-  const countdown = `${nextInSeconds < 0 ? "+" : ""}${minutes}:${seconds.toString().padStart(2, "0")}`;
+  const countdown =
+    countdownText ??
+    `${nextInSeconds < 0 ? "+" : ""}${minutes}:${seconds.toString().padStart(2, "0")}`;
   return (
     <View testID={testID} style={{ gap: theme.space["16"] }}>
       {now ? (
@@ -431,7 +436,7 @@ export function RunOfShowLive({
           <View accessible accessibilityLabel={countdownLabel ?? countdown}>
             <Text
               variant="heading32"
-              tone={nextInSeconds < 0 ? "danger" : "primary"}
+              tone={countdownText === undefined && nextInSeconds < 0 ? "danger" : "primary"}
               testID="next-cue-countdown"
             >
               {countdown}
@@ -439,7 +444,7 @@ export function RunOfShowLive({
           </View>
         </View>
       ) : null}
-      {cues.slice(current + 2, current + 5).map((cue) => (
+      {cues.slice(after + 1, after + 4).map((cue) => (
         <View key={cue.number} style={{ flexDirection: "row", gap: theme.space["12"] }}>
           <Text variant="mono13" tone="tertiary">
             {cue.time}

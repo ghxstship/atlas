@@ -138,7 +138,7 @@ select is((select count(*)::int from private.column_classifications
 select is((select array_agg(column_name::text order by ordinal_position) from information_schema.columns
   where table_schema = 'api_external' and table_name = 'engagement_up_next'),
   array['engagement_id', 'project_id', 'venue_name', 'venue_street_address', 'venue_locality', 'venue_postal_code', 'contact_name',
-    'next_call_at', 'next_call_time_zone', 'next_call_kind'], 'the view lists its columns');
+    'next_call_at', 'next_call_time_zone', 'next_call_kind', 'next_call_tbc'], 'the view lists its columns (next_call_tbc appended by 2790)');
 select ok(has_table_privilege('authenticated', 'api_external.engagement_up_next', 'select'), 'signed-in users read the view');
 select ok(not has_table_privilege('anon', 'api_external.engagement_up_next', 'select'), 'anon does not');
 
