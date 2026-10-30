@@ -327,8 +327,9 @@ export function BudgetEditor(props: Props) {
         return null;
       }
       if (result.error?.kind === "not-found") {
+        // Named by the grid row it showed on, as the presence and currency captions name lines.
+        setRemovedLine(lines.findIndex((l) => l.id === id) + 1 || previous.lineNumber);
         setLines((current) => current.filter((l) => l.id !== id));
-        setRemovedLine(previous.lineNumber);
         setStatus({});
         return null;
       }
