@@ -95,6 +95,39 @@ describe("labelActivity (A59-030)", () => {
     ]);
   });
 
+  it("names a row moved to Trash from Trash itself, so a hidden line keeps its generic noun (2121)", async () => {
+    const { db, calls } = fakeClient({
+      "from:trash_items": [okResponse([{ subject_id: "l1", title: "Sell-out bonus." }])],
+    });
+    const labelled = await labelActivity(db, [
+      entry({
+        id: "1",
+        type: "settlement_line.trashed",
+        subjectTable: "settlement_lines",
+        subjectId: "l1",
+      }),
+      entry({
+        id: "2",
+        type: "invoice_line.trashed",
+        subjectTable: "invoice_lines",
+        subjectId: "l2",
+      }),
+      entry({
+        id: "3",
+        type: "record.trashed",
+        subjectTable: "records",
+        subjectId: "r1",
+        data: { title: "Hang the banner" },
+      }),
+    ]);
+    expect(labelled.map((e) => e.subjectLabel ?? null)).toEqual([
+      "Sell-out bonus.",
+      null,
+      "Hang the banner",
+    ]);
+    expect(calls.some((c) => c.target === "from:trash_items")).toBe(true);
+  });
+
   it("keeps the generic noun when a lookup fails or nothing needs a label", async () => {
     const { db } = fakeClient({ "from:credentials": [errorResponse("42501", "denied")] });
     const [only] = await labelActivity(db, [

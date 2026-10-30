@@ -14,6 +14,9 @@ import { expectAccessible, uniqueId } from "./support";
  *   33 two people edit one budget line; the second sees the conflict dialog and keeps theirs
  *   34 200 spreadsheet rows pasted as one batch, then undone
  *   37 budget totals shown in EUR at the recorded rate, with its date
+ * and, for A118 (ADR 0077), an undo of a budget cell edit refused once someone else saved the line, an undo of
+ * Keep mine that writes back the other person's line, a removed invoice line brought back with Cmd or Ctrl+Z and
+ * removed again with Shift, and a removed settlement line brought back the same way.
  * plus the spend authority and separation of duties refusals. Every page is checked with axe in both
  * themes. Names carry a per-run id so reruns never collide.
  */
@@ -54,11 +57,15 @@ async function expectAccessibleInBothThemes(page: Page) {
   await settle(page);
 }
 
-/** A status message, or a toast in the page's Notifications live region (no status role there). */
+/**
+ * A status message, or a toast in the page's Notifications live region or the shell's Undo notifications region (no
+ * status role there).
+ */
 const status = (page: Page, text: string | RegExp) =>
   page
     .getByRole("status")
     .or(page.getByRole("region", { name: "Notifications", exact: true }))
+    .or(page.getByRole("region", { name: "Undo notifications", exact: true }))
     .filter({ hasText: text });
 
 /** Creates a working budget on NWS through the UI and opens it; returns its id. */
@@ -182,6 +189,156 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await expectAccessible(page);
     await dialog.getByRole("button", { name: "Take theirs" }).click();
     await expect(grid(page)).toContainText("Delay towers, two sets");
+  });
+
+  test("an undo of a cell edit is refused once someone else saved the line", async ({
+    page,
+    browser,
+  }) => {
+    const id = uniqueId();
+    const name = `A118 undo ${id}`;
+    await signIn(page, "producer@example.com");
+    const budget = await newBudget(page, name);
+    await addLine(page, "Delay towers", "1500.00");
+
+    const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
+    const edit = async (p: Page, from: RegExp, to: string) => {
+      await grid(p).getByRole("gridcell", { name: from }).dblclick();
+      await p.keyboard.press("ControlOrMeta+a");
+      await p.keyboard.type(to);
+      await p.keyboard.press("Enter");
+      await expect(grid(p)).toContainText(to);
+      await settle(p);
+    };
+    await edit(page, /Delay towers/, "Delay towers, two sets");
+
+    const other = await asPerson(browser, "owner@example.com");
+    await other.goto(`/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}`);
+    await edit(other, /Delay towers, two sets/, "Delay towers, three sets");
+
+    // A new line reloads the grid, which now holds the other person's version of the edited line.
+    await addLine(page, "Spare cable", "200.00");
+    await expect(grid(page)).toContainText("Delay towers, three sets");
+    await page.getByRole("heading", { name, exact: false }).first().click();
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(
+      status(page, "Someone changed this line after your edit; reload to see the change."),
+    ).toBeVisible();
+    await expect(grid(page)).toContainText("Delay towers, three sets");
+    await other.reload();
+    await expect(grid(other)).toContainText("Delay towers, three sets");
+    await other.context().close();
+  });
+
+  test("an undo of Keep mine writes back the other person's line, not the stale one", async ({
+    page,
+    browser,
+  }) => {
+    const id = uniqueId();
+    const name = `A118 keep mine ${id}`;
+    await signIn(page, "producer@example.com");
+    const budget = await newBudget(page, name);
+    await addLine(page, "Delay towers", "1500.00");
+
+    const other = await asPerson(browser, "owner@example.com");
+    await other.goto(`/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}`);
+
+    const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
+    const edit = async (p: Page, to: string) => {
+      await grid(p).getByRole("gridcell", { name: /Delay towers/ }).dblclick();
+      await p.keyboard.press("ControlOrMeta+a");
+      await p.keyboard.type(to);
+      await p.keyboard.press("Enter");
+    };
+    await edit(other, "Delay towers, two sets");
+    await expect(grid(other)).toContainText("Delay towers, two sets");
+    await settle(other);
+
+    await edit(page, "Delay towers, one set");
+    const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
+    await dialog.getByRole("button", { name: "Keep mine" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(grid(page)).toContainText("Delay towers, one set");
+    await settle(page);
+
+    // The undo restores the row Keep mine replaced, the other person's two sets, never the original line.
+    await page.getByRole("heading", { name, exact: false }).first().click();
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(grid(page)).toContainText("Delay towers, two sets");
+    await settle(page);
+    await other.reload();
+    await expect(grid(other)).toContainText("Delay towers, two sets");
+    await other.context().close();
+  });
+});
+
+test.describe("Invoice and settlement lines (A118)", () => {
+  test("a removed line comes back with Cmd or Ctrl+Z and goes again with Shift", async ({
+    page,
+  }) => {
+    const id = uniqueId();
+    const description = `Truss rental ${id}`;
+    await signIn(page, "producer@example.com");
+    await page.goto(`/${ORG}/finance/invoices?project=${PROJECT}&create=1`);
+    const sheet = page.getByRole("dialog", { name: "New invoice" });
+    await sheet.getByLabel("Counterparty").selectOption({ index: 1 });
+    await sheet.getByLabel("Invoice number").fill(`A118-${id}`);
+    await sheet.getByRole("button", { name: "New invoice" }).click();
+    await page.waitForURL(/peek=/);
+    await settle(page);
+
+    const lineForm = page.getByRole("form", { name: "Add line" });
+    await lineForm.getByLabel("Description").fill(description);
+    await lineForm.getByLabel("Unit price in USD").fill("900.00");
+    await lineForm.getByRole("button", { name: "Add line" }).click();
+    const lines = page.getByRole("table", { name: "Lines" });
+    await expect(lines).toContainText(description);
+    await settle(page);
+
+    await lines.getByRole("button", { name: "Remove" }).click();
+    await expect(page.getByText("No lines yet.", { exact: false })).toBeVisible();
+    await expect(status(page, `Removed ${description}.`).first()).toBeVisible();
+    await expectAccessible(page);
+
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(status(page, `Undone: Removed ${description}.`)).toBeVisible();
+    await expect(lines).toContainText(description);
+    await expect(lines).toContainText("$900.00");
+
+    await page.keyboard.press("ControlOrMeta+Shift+z");
+    await expect(status(page, `Redone: Removed ${description}.`)).toBeVisible();
+    await expect(page.getByText("No lines yet.", { exact: false })).toBeVisible();
+  });
+
+  test("a removed settlement line comes back with Cmd or Ctrl+Z", async ({ page }) => {
+    const id = uniqueId();
+    const description = `Sell-out bonus ${id}`;
+    await signIn(page, "producer@example.com");
+    await page.goto(`/${ORG}/finance/payments?project=${PROJECT}&tab=settlements&create=1`);
+    const sheet = page.getByRole("dialog", { name: "New settlement" });
+    await sheet.getByLabel("Engagement").selectOption({ index: 1 });
+    await sheet.getByLabel("Title").fill(`A118 settlement ${id}`);
+    await sheet.getByRole("button", { name: "New settlement" }).click();
+    await page.waitForURL(/peek=/);
+    await settle(page);
+
+    const lineForm = page.getByRole("form", { name: "Add line" });
+    await lineForm.getByLabel("Kind").selectOption("Bonus");
+    await lineForm.getByLabel("Description").fill(description);
+    await lineForm.getByLabel("Amount in USD").fill("500.00");
+    await lineForm.getByRole("button", { name: "Add line" }).click();
+    const lines = page.getByRole("table", { name: "Lines" });
+    await expect(lines).toContainText(description);
+    await settle(page);
+
+    await lines.getByRole("button", { name: "Remove" }).click();
+    await expect(page.getByText("No lines yet.", { exact: false })).toBeVisible();
+    await expect(status(page, `Removed ${description}.`).first()).toBeVisible();
+
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(status(page, `Undone: Removed ${description}.`)).toBeVisible();
+    await expect(lines).toContainText(description);
+    await expect(lines).toContainText("$500.00");
   });
 });
 

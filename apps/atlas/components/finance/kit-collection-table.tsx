@@ -42,7 +42,13 @@ export function CollectionTable({
   const go = useQueryNav();
   const t = useFinanceT();
   const refs = useMemo(
-    () => rows.map((r) => ({ id: r.id, label: String(r["label"] ?? r.id) })),
+    () =>
+      rows.map((r) => ({
+        id: r.id,
+        label: String(r["label"] ?? r.id),
+        // The version the row was read at, which a bulk change is sent against (Section 11.7).
+        ...(typeof r["version"] === "string" ? { version: r["version"] } : {}),
+      })),
     [rows],
   );
   const first = columns[0]?.key;

@@ -110,6 +110,7 @@ const shiftRow = {
   record_id: null,
   scope_node_id: null,
   created_at: "2027-05-01T00:00:00.000Z",
+  updated_at: "2027-05-02T00:00:00.000Z",
   project: { project_key: "NWL", name: "Northwind" },
   membership: member,
   engagement_id: null,
@@ -243,6 +244,8 @@ describe("shifts", () => {
     });
     expect(result.ok && result.data[0]?.member?.name).toBe("Fern Field");
     expect(result.ok && result.data[1]?.member).toBeNull();
+    // The version a bulk change is sent against (migration 2120).
+    expect(result.ok && result.data[0]?.updatedAt).toBe("2027-05-02T00:00:00.000Z");
     expect(calls[0]?.steps).toContainEqual(["in", ["shift_state", ["Published"]]]);
     expect((await listShifts(db, { orgId: "o1" })).ok).toBe(false);
   });
@@ -365,6 +368,7 @@ describe("shifts", () => {
       recordId: null,
       scopeNodeId: null,
       createdAt: start,
+      updatedAt: start,
     });
     const a = mk("a", "2027-06-01T08:00:00Z", "2027-06-01T16:00:00Z", "p1");
     const b = mk("b", "2027-06-01T12:00:00Z", "2027-06-01T18:00:00Z", "p1");

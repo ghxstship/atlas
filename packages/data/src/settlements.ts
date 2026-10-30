@@ -253,6 +253,19 @@ export async function addSettlementLine(
   return error ? fail(toDataError(error)) : ok(null);
 }
 
+/**
+ * Restores a deleted settlement line through the Trash RPC (migration 1031), for its Undo and for Activity, while
+ * the settlement is Proposed; a number a newer line took moves it to the end (migration 2121).
+ */
+export async function restoreSettlementLine(db: XosClient, lineId: string): Promise<Result<null>> {
+  const { error } = await db.rpc("restore_trash_item", {
+    p_subject_table: "settlement_lines",
+    p_subject_id: lineId,
+  });
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/** Deletes a settlement line to Trash (soft delete) while the settlement is Proposed. */
 export async function deleteSettlementLine(db: XosClient, lineId: string): Promise<Result<null>> {
   const { error } = await untyped(db)
     .from("settlement_lines")

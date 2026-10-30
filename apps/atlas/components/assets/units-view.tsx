@@ -115,6 +115,7 @@ export async function UnitsView({
   const rows: CollectionRow[] = visible.map((u) => ({
     key: u.id,
     id: u.id,
+    version: u.updatedAt,
     peek: u.assetTag,
     title: `${u.assetTag} · ${u.className}`,
     meta: u.custody

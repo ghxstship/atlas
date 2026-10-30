@@ -43,6 +43,8 @@ export interface CollectionRow {
   readonly key: string;
   /** The row's id, for bulk edit; rows without one are not selectable. */
   readonly id?: string;
+  /** The row's updated_at as read, which a bulk change is sent against (Section 11.7). */
+  readonly version?: string;
   /** Value of `?peek=` that opens this row; rows without one do not open. */
   readonly peek?: string;
   /** The short human key shown in the key column (an asset tag); a row id is never shown (A59-009). */
@@ -145,7 +147,10 @@ export function AssetsCollection(props: CollectionProps) {
     go({ q: null, filter: null, ...Object.fromEntries(conditions.map((name) => [name, null])) });
   };
   const refs = useMemo(
-    () => props.rows.flatMap((r) => (r.id ? [{ id: r.id, label: r.title }] : [])),
+    () =>
+      props.rows.flatMap((r) =>
+        r.id ? [{ id: r.id, label: r.title, ...(r.version ? { version: r.version } : {}) }] : [],
+      ),
     [props.rows],
   );
   const bulkKit = useBulk(NOT_ITEMS.has(props.view) ? null : props.bulk, refs);

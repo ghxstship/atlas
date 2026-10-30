@@ -333,7 +333,9 @@
     "none": "Ninguno",
     "notSet": "Sin definir",
     "unpriced": "Sin precio",
-    "gate": "Compuerta {gate} · {name}"
+    "gate": "Compuerta {gate} · {name}",
+    "yes": "Sí",
+    "no": "No"
   },
   "fields": {
     "title": "Título",
@@ -745,6 +747,17 @@
     "mitigation": "Mitigación",
     "baseline_locked_at": "Fijado en una línea base",
     "title": "Detalles de {kind}"
+  },
+  "undo": {
+    "edited": "Se editó {key}.",
+    "moved": "{key} pasó a {state}.",
+    "reason": "Se deshizo el último cambio de estado.",
+    "checked": "Se marcó {label}.",
+    "unchecked": "Se desmarcó {label}.",
+    "itemRemoved": "Se quitó {label} de la lista de verificación.",
+    "unassigned": "Se quitó la asignación de {name}.",
+    "recurrence": "Se cambió cómo se repite {key}.",
+    "changedSince": "Alguien cambió esto después de su edición; vuelva a cargar la página para ver el cambio."
   },
   "quickAdd": {
     "label": "Agregar un registro rápido",

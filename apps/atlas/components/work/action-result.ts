@@ -73,6 +73,18 @@ export function toActionError(error: DataError): ActionError {
   }
 }
 
+/**
+ * A save checked against the version the person edited (Section 11.7): saved, refused, or a conflict that carries
+ * the values someone else saved since and their version, so the page shows both and the person chooses.
+ */
+export type VersionedResult<V> =
+  | ActionResult<{ readonly version: string | null }>
+  | {
+      readonly ok: false;
+      readonly error: ActionError;
+      readonly conflict: { readonly theirs: V; readonly version: string | null };
+    };
+
 export function done<T>(data: T): ActionResult<T> {
   return { ok: true, data };
 }

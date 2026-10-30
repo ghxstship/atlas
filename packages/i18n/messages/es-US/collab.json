@@ -17,7 +17,12 @@
     "someRow": "Una fila seleccionada",
     "done": "{count, plural, one {Se cambió # fila.} other {Se cambiaron # filas.}}",
     "failed": "No se pudo guardar el cambio. Inténtelo de nuevo.",
-    "none": "Ninguno"
+    "none": "Ninguno",
+    "staleTitle": "{count, plural, one {# fila cambió} other {# filas cambiaron}} después de que cargó la página",
+    "staleBody": "Alguien guardó estas filas después de que usted abrió esta página. Conserve su cambio en ellas, o tome el suyo y déjelas fuera de este cambio.",
+    "staleRow": "{row}: usted eligió {mine}; otra persona guardó {theirs}.",
+    "keepMine": "Conservar el mío",
+    "takeTheirs": "Tomar el suyo"
   },
   "undo": {
     "notifications": "Avisos de deshacer",
@@ -75,6 +80,15 @@
     "offline": "Sin conexión. Sus cambios se quedan aquí y se envían al reconectarse.",
     "saved": "Guardado. Todas las personas en el documento ven los cambios mientras escribe.",
     "done": "Listo"
+  },
+  "conflict": {
+    "title": "{subject} cambió mientras lo editaba",
+    "sentence": "Alguien guardó los mismos campos después de que usted los abrió. Elija qué valores conservar; nada se sobrescribe hasta que elija.",
+    "field": "Campo",
+    "mineColumn": "Su cambio",
+    "theirsColumn": "Guardado por otra persona",
+    "mine": "Conservar el mío",
+    "theirs": "Tomar el suyo"
   },
   "presence": {
     "label": "También están viendo",

@@ -30,7 +30,7 @@ import { transitionRecordAction } from "./actions";
 import { formatScheduleTime, formatWhen, stateToken, withQuery } from "./format";
 import { useScheduleView } from "./use-schedule-view";
 import { displayTimeZone } from "@xos/ui/preferences";
-import { TransitionDialog } from "./record-panels";
+import { TransitionDialog, useStateUndo } from "./record-panels";
 import { CollectionViews } from "@/components/views/collection-views";
 import { isConditionParam } from "@/lib/views/query";
 import type { BulkConfig } from "@/components/bulk/types";
@@ -129,11 +129,15 @@ export function RecordCollection({
   const params = useSearchParams();
   const [search, setSearch] = useState(filters.q);
   const move = useAction();
+  const pushUndo = useStateUndo(org);
   const [pendingMove, setPendingMove] = useState<{ record: RecordSummary; next: string } | null>(
     null,
   );
 
-  const bulkRows = useMemo(() => records.map((r) => ({ id: r.id, label: r.key })), [records]);
+  const bulkRows = useMemo(
+    () => records.map((r) => ({ id: r.id, label: r.key, version: r.updatedAt })),
+    [records],
+  );
   const bulkKit = useBulk(ITEM_VIEWS.has(view) ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
@@ -410,13 +414,16 @@ export function RecordCollection({
               setPendingMove({ record, next });
               return;
             }
-            move.run(() =>
-              transitionRecordAction(org, {
-                recordId: record.id,
-                expected: record.state,
-                next,
-                reason: t("transition.boardReason", { state: stateLabel(next) }),
-              }),
+            const reason = t("transition.boardReason", { state: stateLabel(next) });
+            move.run(
+              () =>
+                transitionRecordAction(org, {
+                  recordId: record.id,
+                  expected: record.state,
+                  next,
+                  reason,
+                }),
+              () => pushUndo(record, next, { reason }),
             );
           }}
         />

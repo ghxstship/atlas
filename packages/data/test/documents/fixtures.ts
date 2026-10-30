@@ -90,6 +90,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       totalMinor: 1_284_000,
       appliedMinor: 500_000,
       createdAt: "2026-09-30T12:00:00Z",
+      updatedAt: "2026-10-01T12:00:00Z",
     },
     lines: [
       {

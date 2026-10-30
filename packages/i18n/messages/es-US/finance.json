@@ -55,7 +55,10 @@
     "unnamedCounterparty": "Contraparte sin nombre",
     "unpriced": "Sin precio",
     "vendor": "Proveedor",
-    "viewLabel": "Vista"
+    "viewLabel": "Vista",
+    "lineRemoved": "Se quitó {description}.",
+    "lineUndo": "Alguien cambió esta línea después de que usted la quitó; vuelva a cargar la página para ver el cambio.",
+    "editUndo": "Alguien cambió esta línea después de su edición; vuelva a cargar la página para ver el cambio."
   },
   "views": {
     "table": "Tabla",
@@ -481,7 +484,8 @@
     },
     "xyzCategory": "De la categoría",
     "xyzDeclare": "Las disciplinas necesitan una etiqueta declarada.",
-    "xyzFromCategory": "La etiqueta de la categoría es {tag}; elija otra solo para declarar una distinta."
+    "xyzFromCategory": "La etiqueta de la categoría es {tag}; elija otra solo para declarar una distinta.",
+    "edited": "Se editó la línea {number}."
   },
   "expenses": {
     "create": "Gasto nuevo",

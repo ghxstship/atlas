@@ -169,6 +169,8 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           totalMinor: total,
           appliedMinor: inv.applied_minor ?? 0,
           createdAt: inv.issued_at ?? inv.submitted_at ?? new Date(0).toISOString(),
+          // The external view carries no version; a rendered document never sends a change.
+          updatedAt: inv.issued_at ?? inv.submitted_at ?? new Date(0).toISOString(),
         },
         lines: mapped,
         counterpartyName: null,

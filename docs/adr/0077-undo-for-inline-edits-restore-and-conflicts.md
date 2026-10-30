@@ -1,0 +1,46 @@
+# ADR 0077: Undo for Inline Edits, Restore from Activity, and the Mine-or-Theirs Dialog
+
+- Status: Accepted
+- Date: 2026-10-24
+- Decider: A118 (RRR-163), trace rows S11.7-01, S11.7-02 and S11.7-10
+- Migrations: 2120 to 2122
+
+## Context
+
+ADR 0044 gave Atlas a per-tab undo stack (`components/undo/undo-stack.ts`) with Cmd or Ctrl+Z, but only bulk edits and moving a record to Trash went on it. A record's properties, its kind's attributes, its state moves and checklist, budget cells, pastes and deletes, and invoice and settlement line deletes had no Cmd or Ctrl+Z; line deletes had no Undo at all. A record moved to Trash could be restored from the record or the Trash page, never from Activity, because moving to Trash emitted no event. And a stale save was refused (bulk edit, state moves) or silently overwrote the other person's change (record properties), without showing both values. Only budget lines (journey 33) offered a choice.
+
+## Decisions
+
+### 1. Every inline edit is a stack entry with its inverse
+
+- `components/undo/entries.ts` defines the entry kinds: a property edit (undo writes the values before, expecting the values after; redo the reverse), a state change (undo moves back, compare-and-set on the new state), a delete to Trash (undo restores, redo deletes again) and a toggle. Each inverse goes back through the server, so an undo over a later change by someone else is refused and the entry stays (ADR 0044).
+- Saves send only the fields that changed. An undo compares only those fields, not the whole row, so undoing an earlier edit still works after the person's own later edit of another field.
+- A budget line's server check is its version alone (`updateBudgetLine` is compare-and-set on `updated_at`), so a cell edit's undo and redo save against the version that edit left, never against the newest version the grid knows: the grid reloads with someone else's version after any paste, delete or take-theirs, and saving against that would overwrite their change. `versionChain()` records each of the tab's own saves (the version sent and the version left), and an undo follows its entry's chain past the tab's own later saves of the line, so undoing two edits of one line in turn still works. A save by someone else breaks the chain, and the undo is refused with "Someone changed this line after your edit" and stays on the stack. Alternative: refresh the expected version from the grid. Rejected, because that is the newest version, whoever saved it.
+- Explicit saves (the record form, a state move, a line delete) show the shell's 8-second toast; budget cells and checklist items do not, because they are edited at spreadsheet speed. Budget pastes and deletes keep their own toast, which now acts on the stack entry.
+- Moving a record back to Blocked or Deferred names the blocker or replan reason it had, and writes its own ledger entry ("Undid the last move.").
+- Removing a checklist item or an assignee, and changing how a record repeats, are entries too, with the shell's toast. Undoing a removal brings the same row back by clearing its `deleted_at` (`restoreChecklistItem`, `restoreAssignment`), so an item keeps its tick and an assignee gets no second assignment notice; an item whose place an item added since now holds goes to the end, and an assignee assigned again since is a conflict. A recurrence undo or redo replaces the rule only while the record still has the rule its edit set (`replaceRecurrence`), so a rule someone else set or cleared since is refused. Alternative: undo a removal by adding the item or assignment again. Rejected, because a new row loses the tick and sends the person a second notice.
+
+### 2. Saves carry the version they edited, and a conflict carries both values
+
+- The rule is one for the bulk RPCs (2120) and for direct saves (`packages/data/src/versioned.ts`): a save carries the row's `updated_at` as the person loaded it and the values they started from. A matching version commits. A version that moved on is a conflict only for a field both people changed; someone else's change to another field merges. A version with nothing else expected refuses any later change.
+- A bulk row may put `updated_at` in `expect`, never in `set`. A stale row's refusal (`bulk_stale`) carries `current`: the row's values now for the fields it set or expected, and its version, read only after the row function's own capability checks passed. Atlas reads it; the API v1 bulk operations leave it out of their answer, because the frozen `BulkEditRefusal` describes only `id`, `rule` and `message`. A later additive OpenAPI change can document it for API callers.
+- Times compare by meaning (`private.bulk_same_value`, `sameFieldValue`), so a time read through the API never conflicts with the same instant in the row. In the database the instant test is A106's `private.bulk_same_instant` (2062, ADR 0044): 2120 restates `bulk_check_expect` from 2062's definition, so a date alone or a timestamp without an offset is never compared as an instant.
+- Record properties and kind attributes keep their direct writes under row level security; the version check is compare-and-set on `updated_at`, retried when other saves land between the check and the write. A write that matches no row while the row reads back at the version it was sent against was refused by the row's update policy, not by a later save, and comes back not-found rather than as a conflict that would be offered and sent again. Alternative: route the record form through `app.bulk_update_records`. Rejected, because the bulk row function invents a replan reason ("Changed in bulk.") for date changes and writes a bulk audit event for one edit.
+
+### 3. The mine-or-theirs dialog is shared
+
+- `components/undo/conflict-dialog.tsx` is the budget line dialog of journey 33 made shared. Its rows are only the fields both people changed to different values. Keeping mine saves again against the version that came back, and its undo writes back the row it replaced (the other person's), never the person's own pre-edit copy; taking theirs keeps their values for those fields, and the fields only the person changed still save. Closing the dialog takes theirs, so a dismissed conflict never writes. A conflict whose fields both people set alike needs no choice and saves at once.
+- In bulk edit, stale rows are listed with both values in the change dialog: keeping mine expects each row's new version, taking theirs leaves those rows out of the change.
+- While nothing is typed, the record and attribute forms follow the record as it changes (a live update, an undo); a form with typing keeps the values it started from, so its save meets the conflict. A field compares with what the form showed of it, not with the stored value: a time stored with seconds (from the API, an import or an integration) shows at the minute, and leaving it untouched is not an edit, so it is never sent, expected or offered as a conflict (`formBefore` in `components/undo/entries.ts`).
+
+### 4. Line deletes restore through Trash, and moving to Trash reaches Activity
+
+- Invoice, settlement and budget lines were already soft deleted. A restored line keeps its number when it is free and otherwise moves to the end of its parent (2121), so a line added after the delete never blocks the restore.
+- `app.restore_trash_item` (1031) failed every invoice line restore with permission denied, because its cascade updated child tables the caller may not update at all (the self-billing link tables). The cascade now walks only the tables whose `deleted_at` the caller may update (2122): a table granting UPDATE on `deleted_at` alone (project shares, applications, API keys) is walked as before, and a table the caller may not update at all is skipped.
+- `record.trashed`, `invoice_line.trashed`, `settlement_line.trashed` and `budget_line.trashed` are emitted when a row moves to Trash, with its project, so the Activity feed shows the deletion to the people who may read the project. Those include people without finance read, so a line's event carries none of the line's content: the feed names the line from `app.trash_items`, read under the reader's row level security, or as "an invoice line" when they cannot read it. A record's event carries its title, as `record.created` does. Activity offers Restore on the newest such entry of a row still listed in `app.trash_items`, until its `purge_after`, through `app.restore_trash_item`, as the Trash page does.
+
+## Consequences
+
+- The four new event codes join the webhook catalog (additive).
+- Every table with bulk edit (records, shifts, invoices and asset units) sends each row's `updated_at` as it was read, so a row someone changed since comes back stale with both values instead of being overwritten. A bulk dialog expects only the version, not the field's value per row, so a later change to another field of the row also asks mine or theirs.
+- Work orders and day sheets (A119, A121) and Gateway (A122) are outside this decision.
