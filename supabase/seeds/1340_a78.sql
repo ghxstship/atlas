@@ -63,9 +63,12 @@ begin
     insert into app.consent_records (id, org_id, person_id, purpose_code, notice_version, source)
     values (v_consent, v_org, v_crew, 'work_details_sharing', '1.0.0', 'Web')
     on conflict (id) do nothing;
-    insert into app.work_detail_shares (id, engagement_id, person_id, consent_record_id, categories)
-    values (v_share, v_engagement, v_crew, v_consent, v_categories);
-    perform private.log_work_detail_event(v_crew, 'work_details.shared', v_org, v_engagement, v_categories, '{}', null);
+    -- Shares key on the engaged person's self roster entry (R4, 2638).
+    insert into app.work_detail_shares (id, engagement_id, person_id, consent_record_id, categories, roster_entry_id)
+    values (v_share, v_engagement, v_crew, v_consent, v_categories,
+      (select r.id from app.engagement_roster_entries r where r.engagement_id = v_engagement and r.is_self and r.deleted_at is null));
+    perform private.log_work_detail_event(v_crew, 'work_details.shared', v_org, v_engagement, v_categories, '{}', null,
+      (select r.id from app.engagement_roster_entries r where r.engagement_id = v_engagement and r.is_self and r.deleted_at is null));
   end if;
 end;
 $$;

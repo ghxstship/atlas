@@ -66,6 +66,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -2272,6 +2282,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
           },
         ],
       },
