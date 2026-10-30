@@ -47,6 +47,8 @@ export function presenceState(
 
 /** Another person on a budget, and the line they have open (null while they only look). */
 export interface OtherEditor {
+  /** The person's presence key: two people can share a display name. */
+  readonly key: string;
   readonly name: string;
   readonly line: number | null;
 }
@@ -69,7 +71,7 @@ export function othersEditing(
     const raw = member["line"];
     const line = typeof raw === "number" && Number.isInteger(raw) && raw > 0 ? raw : null;
     const known = people.get(key);
-    people.set(key, { name: name.trim(), line: known?.line ?? line });
+    people.set(key, { key, name: name.trim(), line: known?.line ?? line });
   }
   return [...people.values()].sort((a, b) => a.name.localeCompare(b.name));
 }

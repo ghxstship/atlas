@@ -162,10 +162,20 @@ describe("presence", () => {
       { key: "p4", name: "Cy Park", line: "7" },
     ];
     expect(othersEditing(members, "me")).toEqual([
-      { name: "Ana Ruiz", line: 12 },
-      { name: "Ben Ortiz", line: 4 },
-      { name: "Cy Park", line: null },
+      { key: "p3", name: "Ana Ruiz", line: 12 },
+      { key: "p2", name: "Ben Ortiz", line: 4 },
+      { key: "p4", name: "Cy Park", line: null },
     ]);
+  });
+
+  it("keeps two people who share a name apart, by their presence key", () => {
+    const members = [
+      { key: "p2", name: "Sam Lee", line: 2 },
+      { key: "p3", name: "Sam Lee", line: 5 },
+    ];
+    const others = othersEditing(members, "me");
+    expect(others.map((o) => o.key).sort()).toEqual(["p2", "p3"]);
+    expect(new Set(others.map((o) => o.key)).size).toBe(others.length);
   });
 
   it("ignores members without a key or a name", () => {

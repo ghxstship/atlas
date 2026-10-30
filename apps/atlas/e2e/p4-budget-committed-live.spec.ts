@@ -10,7 +10,8 @@ import { expectAccessible, uniqueId } from "./support";
  *      someone other than its creator, fills Committed on that line and in the Committed figure of
  *      a grid already open, without a reload; the budget versus actual report and its CSV carry it;
  *   b  two people on one budget see each other, a description saved by one appears in the other's
- *      grid live, and an open cell shows the others who is editing which line;
+ *      grid live, an open cell shows the others who is editing which line, and a line one deletes
+ *      while the other has its cell open leaves that grid with a status, not silently;
  *   c  both pages pass axe.
  */
 
@@ -179,6 +180,24 @@ test("two people on one budget see each other, and each other's edits live", asy
   await page.keyboard.press("Escape");
   await expect(owner.getByText("Demo Producer is editing line 1")).toHaveCount(0);
   await expectAccessible(owner);
+
+  // The producer starts typing on the line; the owner deletes it. The producer's draft goes with
+  // the line, and the grid says so instead of dropping it silently.
+  await grid(page)
+    .getByRole("gridcell", { name: new RegExp(lineName) })
+    .dblclick();
+  await page.keyboard.type(" and a gate");
+  await expect(owner.getByText("Demo Producer is editing line 1")).toBeVisible();
+  await owner.getByRole("button", { name: "Delete lines" }).click();
+  const remove = owner.getByRole("dialog", { name: "Delete lines" });
+  await remove.getByRole("checkbox", { name: new RegExp(lineName) }).check();
+  await remove.getByRole("button", { name: "Delete 1 line" }).click();
+  await expect(remove).toBeHidden();
+  await expect(
+    page.getByText("Someone else removed line 1, so your change was not saved."),
+  ).toBeVisible();
+  await expect(grid(page)).toHaveCount(0);
+  expect(await stillLoaded(page)).toBe(true);
   await owner.context().close();
   await expect(present(page)).toHaveCount(0);
 });

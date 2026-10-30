@@ -10,13 +10,7 @@ import type {
   UridOption,
   XyzTag,
 } from "@xos/data/finance";
-import {
-  accountForUrid,
-  BUDGET_LINE_TYPES,
-  extendedMinor,
-  mergeSavedLine,
-  xyzFor,
-} from "@xos/data/finance";
+import { accountForUrid, BUDGET_LINE_TYPES, mergeSavedLine, xyzFor } from "@xos/data/finance";
 import {
   Button,
   Combobox,
@@ -42,6 +36,15 @@ import {
 } from "@/app/[org]/finance/actions";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import type { PresenceMe } from "@/components/presence/presence";
+import {
+  catchUpLine,
+  lineSaveOutcome,
+  LineSaves,
+  linesAfterSave,
+  mergeLines,
+  savedVersion,
+  typedLine,
+} from "@/lib/finance/live-lines";
 import { parsePastedLines } from "@/lib/finance/paste";
 import { BudgetPresence } from "./budget-presence";
 import { ActionFeedback } from "./kit-action-feedback";
@@ -121,30 +124,10 @@ async function submit<T extends Record<string, string>>(
   return action({}, form);
 }
 
-/**
- * Lines from a new page render merged into the editor's lines by id: rows added or removed elsewhere
- * come and go, and a line takes the page's version unless it is held (its cell is open or its save is
- * in flight) or the page's version is older than the one held, which a refresh that started before
- * this tab's own save can carry.
- */
-function mergeLines(
-  current: readonly BudgetLine[],
-  incoming: readonly BudgetLine[],
-  held: ReadonlySet<string>,
-): BudgetLine[] {
-  const mine = new Map(current.map((l) => [l.id, l]));
-  return incoming.map((line) => {
-    const known = mine.get(line.id);
-    if (!known) return line;
-    if (held.has(line.id) || line.updatedAt < known.updatedAt) return known;
-    return line;
-  });
-}
-
 export function BudgetEditor(props: Props) {
   const t = useFinanceT();
   const router = useRouter();
-  const [lines, setLines] = useState<BudgetLine[]>(() => [...props.lines]);
+  const [lines, setLines] = useState<readonly BudgetLine[]>(props.lines);
   const [gridKey, setGridKey] = useState(0);
   const [status, setStatus] = useState<ActionState>({});
   const [removedLine, setRemovedLine] = useState<number | null>(null);
@@ -160,7 +143,9 @@ export function BudgetEditor(props: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [, start] = useTransition();
   // Saves in flight per line, chained so a second edit saves against the version the first returns.
-  const inflight = useRef(new Map<string, Promise<string | null>>());
+  const saves = useRef(new LineSaves());
+  // Lines this tab deleted, which leave the page without a line-removed status.
+  const [deletedHere, setDeletedHere] = useState<ReadonlySet<string>>(() => new Set());
   const [savingIds, setSavingIds] = useState<ReadonlySet<string>>(() => new Set());
   const markSaving = (id: string, on: boolean) =>
     setSavingIds((current) => {
@@ -176,7 +161,12 @@ export function BudgetEditor(props: Props) {
     setSeenLines(props.lines);
     const held = new Set(savingIds);
     if (editingId) held.add(editingId);
-    setLines((current) => mergeLines(current, props.lines, held));
+    const merged = mergeLines(lines, props.lines, held, deletedHere);
+    setLines(merged.lines);
+    // A line someone else removed while this person had its cell open: the draft goes with it, and
+    // the status says so.
+    if (merged.removedRows.length > 0) setRemovedLine(merged.removedRows[0] ?? null);
+    if (editingId && !props.lines.some((l) => l.id === editingId)) setEditingId(null);
   }
 
   useLiveRefresh(
@@ -305,52 +295,31 @@ export function BudgetEditor(props: Props) {
    */
   const save = async (previous: BudgetLine, input: BudgetLineInput, expected: string) => {
     const id = previous.id;
-    setLines((current) =>
-      current.map((l) =>
-        l.id === id
-          ? { ...l, ...input, extendedMinor: extendedMinor(input.quantity, input.unitPriceMinor) }
-          : l,
-      ),
-    );
+    // Named by the grid row it showed on, as the presence and currency captions name lines.
+    const row = lines.findIndex((l) => l.id === id) + 1 || previous.lineNumber;
+    setLines((current) => typedLine(current, id, input));
     markSaving(id, true);
-    const before = inflight.current.get(id);
-    const run = (async (): Promise<string | null> => {
-      const version = before ? ((await before) ?? expected) : expected;
+    const last = await saves.current.run(id, expected, async (version) => {
       const result = await submit(updateBudgetLineAction, {
         org: props.org,
         id,
         expectedUpdatedAt: version,
         line: JSON.stringify(input),
       });
-      if (result.conflict) {
-        setConflict({ mine: input, theirs: result.conflict, previous });
-        return null;
-      }
-      if (result.error?.kind === "not-found") {
-        // Named by the grid row it showed on, as the presence and currency captions name lines.
-        setRemovedLine(lines.findIndex((l) => l.id === id) + 1 || previous.lineNumber);
-        setLines((current) => current.filter((l) => l.id !== id));
+      const outcome = lineSaveOutcome(result);
+      setLines((current) => linesAfterSave(current, previous, outcome));
+      if (outcome.kind === "conflict") {
+        setConflict({ mine: input, theirs: outcome.theirs, previous });
+      } else if (outcome.kind === "removed") {
+        setRemovedLine(row);
         setStatus({});
-        return null;
+      } else {
+        setStatus(result);
+        if (outcome.kind === "saved") start(() => router.refresh());
       }
-      setStatus(result);
-      if (result.line) {
-        const saved = result.line;
-        setLines((current) =>
-          current.map((l) => (l.id === saved.id ? mergeSavedLine(l, saved) : l)),
-        );
-        start(() => router.refresh());
-        return saved.updatedAt;
-      }
-      setLines((current) => current.map((l) => (l.id === id ? previous : l)));
-      return null;
-    })();
-    inflight.current.set(id, run);
-    await run;
-    if (inflight.current.get(id) === run) {
-      inflight.current.delete(id);
-      markSaving(id, false);
-    }
+      return savedVersion(outcome);
+    });
+    if (last) markSaving(id, false);
   };
 
   // Grid rows map to lines by id, never by position: rows can move while someone else adds or
@@ -397,13 +366,8 @@ export function BudgetEditor(props: Props) {
   const onEditingChange = (key: string | null) => {
     const closed = editingId;
     setEditingId(key);
-    if (key !== null || closed === null || inflight.current.has(closed)) return;
-    setLines((current) => {
-      const theirs = props.lines.find((l) => l.id === closed);
-      const mine = current.find((l) => l.id === closed);
-      if (!theirs || !mine || theirs.updatedAt < mine.updatedAt) return current;
-      return current.map((l) => (l.id === closed ? theirs : l));
-    });
+    if (key !== null || closed === null || saves.current.has(closed)) return;
+    setLines((current) => catchUpLine(current, props.lines, closed));
   };
 
   const gridError = status.fieldErrors?.["grid"];
@@ -508,6 +472,7 @@ export function BudgetEditor(props: Props) {
           lines={lines}
           onClose={() => setSheet(null)}
           onDeleted={(ids) => {
+            setDeletedHere((current) => new Set([...current, ...ids]));
             setSheet(null);
             setUndo({ ids, message: t("budgets.deleted", { count: ids.length }), restore: true });
           }}

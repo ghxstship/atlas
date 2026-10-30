@@ -128,8 +128,10 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
         ? v
         : convertMinor(v, rate, exponentOf(exponents, b.currency), exponentOf(exponents, target));
     const variance = b.revisedTotalMinor === null ? null : b.revisedTotalMinor - b.actualMinor;
-    // Committed is withheld, never partial, when any line's purchase orders are hidden from the viewer.
+    // Committed is withheld, never partial, when any line's purchase orders are hidden from the viewer,
+    // and Unpriced when a counted order line has no price (approval refuses those, so it is rare).
     const committed = budgetCommittedTotal(lines);
+    const committedWithheld = lines.some((l) => l.committedWithheld);
     return [
       {
         label: t("finance.budgets.figures.total"),
@@ -153,13 +155,17 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
         label: t("finance.budgets.figures.committed"),
         value: committed
           ? money(conv(committed.totalMinor), cur)
-          : t("finance.budgets.figures.withheld"),
+          : committedWithheld
+            ? t("finance.budgets.figures.withheld")
+            : t("finance.budgets.figures.unpriced"),
         caption: committed
           ? t("finance.budgets.figures.committedCaption", {
               count: committed.committedLineCount,
               other: committed.otherCurrencyLineCount,
             })
-          : t("finance.budgets.committedWithheld"),
+          : committedWithheld
+            ? t("finance.budgets.committedWithheld")
+            : t("finance.budgets.figures.committedUnpricedCaption"),
       },
       {
         label: t("finance.budgets.figures.actual"),

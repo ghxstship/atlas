@@ -102,7 +102,7 @@ export function BudgetPresence({
         {others
           .filter((o) => o.line !== null)
           .map((o) => (
-            <p key={o.name} className="m-0">
+            <p key={o.key} className="m-0">
               {t("editingLine", { name: o.name, line: o.line ?? 0 })}
             </p>
           ))}
