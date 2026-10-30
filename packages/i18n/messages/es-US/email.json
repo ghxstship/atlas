@@ -294,6 +294,12 @@
         "subject": "{subject, select, comment {Se eliminó tu comentario} message {Se eliminó tu mensaje} other {Se eliminó tu publicación}}",
         "body": "Los moderadores de tu organización eliminaron tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
       }
+    },
+    "credential_photo": {
+      "requested": {
+        "subject": "{orgName} te pide tu foto de credencial",
+        "body": "{actorName}, de {orgName}, pidió una foto para imprimir en tu credencial. Agrégala en Gateway, en Perfil, Fotos de credencial."
+      }
     }
   },
   "notification": {

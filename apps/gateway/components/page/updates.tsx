@@ -17,6 +17,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "onboarding.item_expiring": "onboardingExpiring",
   "certification.expiring": "certificationExpiring",
   "document.expiring": "documentExpiring",
+  // P5: an org asks for a badge photo (2822); the item opens Profile, Badge photos.
+  "credential_photo.requested": "badgePhotoRequested",
 };
 
 /**
