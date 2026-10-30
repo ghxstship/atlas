@@ -288,7 +288,17 @@ export function BudgetEditor(props: Props) {
     },
   ];
 
-  const save = async (index: number, input: BudgetLineInput, expected: string) => {
+  /**
+   * Saves a line's input against the version it was read at. `replaced` is the row the save overwrites when it is not
+   * this tab's copy (Keep mine overwrites the other person's row), so the undo writes back their values, not the
+   * person's stale pre-edit line.
+   */
+  const save = async (
+    index: number,
+    input: BudgetLineInput,
+    expected: string,
+    replaced?: BudgetLine,
+  ) => {
     const line = lines[index];
     if (!line) return;
     const result = await submit(updateBudgetLineAction, {
@@ -307,7 +317,7 @@ export function BudgetEditor(props: Props) {
       chain.record(saved.id, expected, saved.updatedAt);
       setLines((current) => current.map((l) => (l.id === saved.id ? { ...l, ...saved } : l)));
       start(() => router.refresh());
-      const before = inputOf(line);
+      const before = inputOf(replaced ?? line);
       undoStack.push(
         propertyEdit({
           label: t("budgets.edited", { number: line.lineNumber }),
@@ -411,7 +421,7 @@ export function BudgetEditor(props: Props) {
           onKeepMine={() => {
             const index = lines.findIndex((l) => l.id === conflict.theirs.id);
             setConflict(null);
-            void save(index, conflict.mine, conflict.theirs.updatedAt);
+            void save(index, conflict.mine, conflict.theirs.updatedAt, conflict.theirs);
           }}
           onTakeTheirs={() => {
             const theirs = conflict.theirs;
