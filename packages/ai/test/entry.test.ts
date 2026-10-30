@@ -54,6 +54,7 @@ describe("problem kinds", () => {
     expect(problemKind(p(422, "aurora_not_in_plan"))).toBe("not-in-plan");
     expect(problemKind(p(422, "aurora_feature_off"))).toBe("off");
     expect(problemKind(p(422, "aurora_not_configured"))).toBe("not-configured");
+    expect(problemKind(p(422, "aurora_draft_list_not_empty"))).toBe("list-not-empty");
     expect(problemKind(p(403, null))).toBe("forbidden");
     expect(problemKind(p(401, null))).toBe("forbidden");
     expect(problemKind(p(422, "scan_intake_resolved"))).toBe("refused");
