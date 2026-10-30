@@ -2,7 +2,7 @@
 
 import { CollabPanels } from "@/components/work/collab";
 import { RelatedRecords } from "@/components/work/related-records";
-import { Region } from "./region";
+import { RegionContent } from "./region-content";
 import type { ShellPeekRecord } from "@/lib/shell/peek-actions";
 
 export { RecordPeek } from "@/components/work/record-peek";
@@ -25,21 +25,23 @@ export function ShellPeekSections({
 }) {
   return (
     <>
-      <Region>
-        <CollabPanels
-          org={org}
-          subject={{ table: "app.records", id: record.id }}
-          threads={record.conversation.threads}
-          attachments={record.conversation.attachments}
-          names={record.conversation.names}
-          me={record.me}
-          canPost={!record.inTrash}
-          onChange={onChange}
-        />
-      </Region>
-      <Region>
-        <RelatedRecords org={org} recordId={record.id} relations={record.relations} />
-      </Region>
+      <RegionContent data={record.conversation} onRetry={onChange}>
+        {(conversation) => (
+          <CollabPanels
+            org={org}
+            subject={{ table: "app.records", id: record.id }}
+            threads={conversation.threads}
+            attachments={conversation.attachments}
+            names={conversation.names}
+            me={record.me}
+            canPost={!record.inTrash}
+            onChange={onChange}
+          />
+        )}
+      </RegionContent>
+      <RegionContent data={record.relations} onRetry={onChange}>
+        {(relations) => <RelatedRecords org={org} recordId={record.id} relations={relations} />}
+      </RegionContent>
     </>
   );
 }

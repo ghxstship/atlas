@@ -35,6 +35,8 @@ import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
 import { Region } from "@/components/shell/region";
+import { RegionContent } from "@/components/shell/region-content";
+import { regionOf, regionRead, type RegionData } from "@/lib/shell/region-data";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
@@ -60,6 +62,8 @@ import { RelatedRecords, type RecordRelations } from "./related-records";
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
  * once per request: the record, its kind's attributes, state ledger, replan log, checklist,
  * assignees, related records with its dependencies, actuals, recurrence, comments and attachments.
+ * Each panel's data is a RegionData (ADR 0118): a read that fails takes down only its panel, which
+ * shows Retry; the record, its properties and its state moves read for the whole page.
  */
 export interface RecordDetail {
   readonly record: RecordSummary;
@@ -67,27 +71,33 @@ export interface RecordDetail {
   readonly next: readonly string[];
   readonly scopeNodes: readonly ScopeNodeRef[];
   readonly fields: readonly KindField[];
-  readonly extension: ExtensionValues;
-  readonly currencies: readonly { code: string; exponent: number }[];
-  readonly checklist: readonly ChecklistItem[];
-  readonly assignments: readonly Assignment[];
-  readonly watchId: string | null;
-  readonly recurrence: Recurrence | null;
-  readonly history: readonly StateEntry[];
+  /** The kind's attribute values and the currencies a money attribute may be in. */
+  readonly attributes: RegionData<{
+    readonly values: ExtensionValues;
+    readonly currencies: readonly { code: string; exponent: number }[];
+  }>;
+  readonly checklist: RegionData<readonly ChecklistItem[]>;
+  readonly assignments: RegionData<readonly Assignment[]>;
+  readonly watchId: RegionData<string | null>;
+  readonly recurrence: RegionData<Recurrence | null>;
+  readonly history: RegionData<readonly StateEntry[]>;
   /** Who changed which field and when, from the audit ledger (Section 4.10); null when unreadable. */
   readonly fieldHistory: readonly HistoryEvent[] | null;
-  readonly replans: readonly ReplanEntry[];
-  readonly dependencies: readonly Dependency[];
-  /** Parent, sub-records, dependencies and linked custom object records (record-sections.ts). */
-  readonly relations: RecordRelations;
-  readonly siblings: readonly RecordSummary[];
-  readonly actual: Actual | null;
-  readonly punch: {
+  readonly replans: RegionData<readonly ReplanEntry[]>;
+  /** Parent, sub-records, linked custom object records (record-sections.ts), dependencies and the
+   * project's other records a dependency may point at. */
+  readonly related: RegionData<{
+    readonly relations: RecordRelations;
+    readonly dependencies: readonly Dependency[];
+    readonly siblings: readonly RecordSummary[];
+  }>;
+  readonly actual: RegionData<Actual | null>;
+  readonly punch: RegionData<{
     readonly sourceRecordId: string | null;
     readonly locationText: string | null;
-  } | null;
+  } | null>;
   /** Comments and files (record-sections.ts), the same the shell's peek shows. */
-  readonly conversation: Conversation;
+  readonly conversation: RegionData<Conversation>;
   readonly canWrite: boolean;
   readonly canSchedule: boolean;
   readonly canRecur: boolean;
@@ -140,11 +150,11 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     listRecurrences(db, [record.id]),
     listStateHistory(db, record.id),
     listReplans(db, record.id),
-    loadRelations(ctx, record.id),
+    regionRead("record.related", () => loadRelations(ctx, record.id)),
     listRecords(db, { orgId: ctx.org.id, projectId: record.projectId, limit: 500 }),
     getActual(db, record.id),
     getPunchItemForRecord(db, record.id),
-    loadConversation(ctx, subject),
+    regionRead("record.conversation", () => loadConversation(ctx, subject)),
     getFieldHistory(db, "app.records", record.id),
     getShellSettings(db, ctx.org.id, null),
     // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
@@ -156,20 +166,28 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     next: record.deletedAt ? [] : nextStates(meta.rules, meta.states, record.state),
     scopeNodes: must(scope, "scope nodes"),
     fields,
-    extension: must(extension, "record attributes"),
-    currencies: must(currencies, "currencies"),
-    checklist: must(checklist, "checklist"),
-    assignments: must(assignments, "assignees"),
-    watchId: must(watch, "watch")?.id ?? null,
-    recurrence: must(recurrences, "recurrence").get(record.id) ?? null,
-    history: must(history, "state history"),
+    attributes: regionOf("record.attributes", () => ({
+      values: must(extension, "record attributes"),
+      currencies: must(currencies, "currencies"),
+    })),
+    checklist: regionOf("record.checklist", () => must(checklist, "checklist")),
+    assignments: regionOf("record.assignments", () => must(assignments, "assignees")),
+    watchId: regionOf("record.watch", () => must(watch, "watch")?.id ?? null),
+    recurrence: regionOf(
+      "record.recurrence",
+      () => must(recurrences, "recurrence").get(record.id) ?? null,
+    ),
+    history: regionOf("record.history", () => must(history, "state history")),
     fieldHistory: fieldHistory.ok ? fieldHistory.data : null,
-    replans: must(replans, "replan log"),
-    dependencies: related.dependencies,
-    relations: related.relations,
-    siblings: must(siblings, "project records").filter((r) => r.id !== record.id),
-    actual: must(actual, "actuals"),
-    punch: must(punch, "punch item"),
+    replans: regionOf("record.replans", () => must(replans, "replan log")),
+    related: related.ok
+      ? regionOf("record.related", () => ({
+          ...related.data,
+          siblings: must(siblings, "project records").filter((r) => r.id !== record.id),
+        }))
+      : related,
+    actual: regionOf("record.actuals", () => must(actual, "actuals")),
+    punch: regionOf("record.punch", () => must(punch, "punch item")),
     conversation,
     canWrite: caps.has("work.record.write") && !record.deletedAt,
     canSchedule: caps.has("schedule.timeline.write") && !record.deletedAt,
@@ -279,12 +297,16 @@ export async function RecordBody({
   );
   const when = (v: string | null) =>
     formatScheduleTime(v, locale, tz, detail.scheduleView) ?? t("work.values.notSet");
-  const dated = record.startsAt || record.endsAt || record.dueAt || detail.dependencies.length > 0;
+  const dated =
+    record.startsAt ||
+    record.endsAt ||
+    record.dueAt ||
+    (detail.related.ok && detail.related.data.dependencies.length > 0);
   // What Summarize reads (A95): the record, its state ledger and its comments, newest last.
   const recordLabel = `${record.key} ${record.title}`;
   const activity = [
     { collection: "records", id: record.id, label: recordLabel },
-    ...detail.history.map((h) => ({
+    ...(detail.history.ok ? detail.history.data : []).map((h) => ({
       collection: "record-state-transitions",
       id: h.id,
       label:
@@ -295,7 +317,7 @@ export async function RecordBody({
               to: t(`work.states.${h.to}`),
             }),
     })),
-    ...detail.conversation.threads
+    ...(detail.conversation.ok ? detail.conversation.data.threads : [])
       .flatMap((th) => th.comments)
       .filter((c) => c.deletedAt === null)
       .map((c) => ({
@@ -306,6 +328,36 @@ export async function RecordBody({
         }),
       })),
   ].slice(0, 100);
+
+  // Worded on the server, so a change it cannot word fails the panel, not the page.
+  const { fieldHistory } = detail;
+  const fieldItems = fieldHistory
+    ? regionOf("record.field-history", () =>
+        historyItems(fieldHistory, {
+          t,
+          when: (iso) =>
+            format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
+          label: (field) => {
+            const key = RECORD_FIELD_LABELS[field];
+            return field === "deleted_at" ? t("collab.history.trash") : key ? t(key) : null;
+          },
+          value: (field, v) => {
+            const text = typeof v === "string" ? v : JSON.stringify(v);
+            if (field === "owner_party_id" || field === "accountable_party_id") {
+              return names[text] ?? t("work.values.unnamed");
+            }
+            if (field === "record_state") return t(`work.states.${text}`);
+            if (field === "phase_code") {
+              return meta.phases.find((p) => p.value === text)?.label ?? text;
+            }
+            if (field === "deleted_at") return when(text);
+            if (field === "starts_at" || field === "ends_at" || field === "due_at")
+              return when(text);
+            return text;
+          },
+        }),
+      )
+    : null;
 
   return (
     <div className="flex flex-col gap-24">
@@ -328,11 +380,15 @@ export async function RecordBody({
           {record.replanReason}
         </InlineAlert>
       ) : null}
-      {detail.punch ? (
-        <InlineAlert tone="info" title={t("work.punch.thisIs")}>
-          {detail.punch.locationText ?? t("work.punch.noLocation")}
-        </InlineAlert>
-      ) : null}
+      <RegionContent data={detail.punch}>
+        {(punch) =>
+          punch ? (
+            <InlineAlert tone="info" title={t("work.punch.thisIs")}>
+              {punch.locationText ?? t("work.punch.noLocation")}
+            </InlineAlert>
+          ) : null
+        }
+      </RegionContent>
       {detail.canWrite ? <TransitionControls org={org} record={record} next={detail.next} /> : null}
       {detail.canWrite ? (
         <EditRecordForm
@@ -345,192 +401,194 @@ export async function RecordBody({
           logsReplans={logsReplans}
         />
       ) : null}
-      <Region>
-        <ExtensionForm
-          org={org}
-          record={record}
-          fields={detail.fields}
-          values={detail.extension}
-          people={meta.people}
-          currencies={detail.currencies}
-          canEdit={detail.canWrite}
-        />
-      </Region>
-      <Region>
-        <CustomFieldsPanel org={org} table="app.records" id={record.id} editable={detail.canWrite} />
-      </Region>
-      <Region>
-        <ChecklistEditor
-          org={org}
-          recordId={record.id}
-          items={detail.checklist}
-          canEdit={detail.canWrite}
-        />
-      </Region>
-      <Region>
-        <AssignmentsEditor
-          org={org}
-          recordId={record.id}
-          assignments={detail.assignments}
-          people={meta.people}
-          canEdit={detail.canWrite}
-        />
-      </Region>
-      {record.deletedAt ? null : (
-        <WatchButton org={org} recordId={record.id} watchId={detail.watchId} />
-      )}
-      <Region>
-        <RelatedRecords
-          org={org}
-          recordId={record.id}
-          relations={detail.relations}
-          dependencies={
-            detail.canSchedule ? (
-              <DependencyEditor
-                org={org}
-                record={record}
-                dependencies={detail.dependencies}
-                candidates={detail.siblings}
-                canEdit
-              />
-            ) : undefined
-          }
-        />
-      </Region>
-      {dated ? (
-        <Region>
-          <ActualsForm
+      <RegionContent data={detail.attributes}>
+        {(attributes) => (
+          <ExtensionForm
             org={org}
             record={record}
-            actual={detail.actual}
-            canEdit={detail.canSchedule}
+            fields={detail.fields}
+            values={attributes.values}
+            people={meta.people}
+            currencies={attributes.currencies}
+            canEdit={detail.canWrite}
           />
-        </Region>
-      ) : null}
-      <Region>
-        <RecurrenceForm
-          org={org}
-          record={record}
-          recurrence={detail.recurrence}
-          canEdit={detail.canRecur}
-        />
-      </Region>
-      <section aria-labelledby={`history-${record.id}`} className="flex flex-col gap-8">
-        <h3 id={`history-${record.id}`} className="m-0 text-label-13 font-semibold">
-          {t("work.history.title")}
-        </h3>
-        <ol className="m-0 flex list-none flex-col gap-6 p-0">
-          {detail.history.map((h) => (
-            <li key={h.id} className="text-text-13">
-              <span className="font-medium">
-                {h.from
-                  ? t("work.history.moved", {
-                      from: t(`work.states.${h.from}`),
-                      to: t(`work.states.${h.to}`),
-                    })
-                  : t("work.history.created", { state: t(`work.states.${h.to}`) })}
-              </span>{" "}
-              <span className="text-text-secondary">
-                {format.dateTime(new Date(h.at), { dateStyle: "medium", timeStyle: "short" })}
-                {h.byName ? ` · ${h.byName}` : ""}
-              </span>
-              {h.from ? <p className="m-0 text-text-secondary">{h.reason}</p> : null}
-            </li>
-          ))}
-        </ol>
-      </section>
-      {detail.fieldHistory ? (
-        <Region>
-          <FieldHistoryList
-            id={record.id}
-            title={t("collab.history.title")}
-            empty={t("collab.history.empty")}
-            items={historyItems(detail.fieldHistory, {
-              t,
-              when: (iso) =>
-                format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
-              label: (field) => {
-                const key = RECORD_FIELD_LABELS[field];
-                return field === "deleted_at" ? t("collab.history.trash") : key ? t(key) : null;
-              },
-              value: (field, v) => {
-                const text = typeof v === "string" ? v : JSON.stringify(v);
-                if (field === "owner_party_id" || field === "accountable_party_id") {
-                  return names[text] ?? t("work.values.unnamed");
-                }
-                if (field === "record_state") return t(`work.states.${text}`);
-                if (field === "phase_code") {
-                  return meta.phases.find((p) => p.value === text)?.label ?? text;
-                }
-                if (field === "deleted_at") return when(text);
-                if (field === "starts_at" || field === "ends_at" || field === "due_at")
-                  return when(text);
-                return text;
-              },
-            })}
-          />
-        </Region>
-      ) : null}
-      <section aria-labelledby={`replans-${record.id}`} className="flex flex-col gap-8">
-        <h3 id={`replans-${record.id}`} className="m-0 text-label-13 font-semibold">
-          {t("work.replans.title")}
-        </h3>
-        {detail.replans.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">
-            {logsReplans ? t("work.replans.none") : t("work.replans.notYet")}
-          </p>
-        ) : (
-          <ol className="m-0 flex list-none flex-col gap-8 p-0">
-            {detail.replans.map((r) => {
-              const shift = replanShift(r);
-              const slip = slipAmount(shift.endShiftMs);
-              return (
-                <li key={r.id} className="flex flex-col gap-2 text-text-13">
-                  <span className="font-medium">
-                    {shift.moved
-                      ? slip
-                        ? t(
-                            `work.replans.${slip.late ? "slipped" : "pulledIn"}${slip.unit === "hours" ? "Hours" : ""}`,
-                            {
-                              n: slip.n,
-                            },
-                          )
-                        : t("work.replans.datesChanged")
-                      : t("work.replans.stateChanged", {
-                          from: t(`work.states.${r.fromState}`),
-                          to: t(`work.states.${r.toState}`),
-                        })}
-                  </span>
-                  {shift.moved ? (
-                    <span className="text-text-secondary">
-                      {t("work.replans.window", {
-                        before: when(r.oldEndsAt ?? r.oldDueAt ?? r.oldStartsAt),
-                        after: when(r.newEndsAt ?? r.newDueAt ?? r.newStartsAt),
-                      })}
-                    </span>
-                  ) : null}
-                  {r.reason ? <span className="text-text-secondary">{r.reason}</span> : null}
-                  <span className="text-text-12 text-text-tertiary">
-                    {format.dateTime(new Date(r.at), { dateStyle: "medium", timeStyle: "short" })}
-                    {r.byName ? ` · ${r.byName}` : ""}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
         )}
-      </section>
+      </RegionContent>
       <Region>
-        <CollabPanels
+        <CustomFieldsPanel
           org={org}
-          subject={{ table: "app.records", id: record.id }}
-          threads={detail.conversation.threads}
-          attachments={detail.conversation.attachments}
-          names={{ ...names, ...detail.conversation.names }}
-          me={me}
-          canPost={!record.deletedAt}
+          table="app.records"
+          id={record.id}
+          editable={detail.canWrite}
         />
       </Region>
+      <RegionContent data={detail.checklist}>
+        {(items) => (
+          <ChecklistEditor org={org} recordId={record.id} items={items} canEdit={detail.canWrite} />
+        )}
+      </RegionContent>
+      <RegionContent data={detail.assignments}>
+        {(assignments) => (
+          <AssignmentsEditor
+            org={org}
+            recordId={record.id}
+            assignments={assignments}
+            people={meta.people}
+            canEdit={detail.canWrite}
+          />
+        )}
+      </RegionContent>
+      {record.deletedAt ? null : (
+        <RegionContent data={detail.watchId}>
+          {(watchId) => <WatchButton org={org} recordId={record.id} watchId={watchId} />}
+        </RegionContent>
+      )}
+      <RegionContent data={detail.related}>
+        {(related) => (
+          <RelatedRecords
+            org={org}
+            recordId={record.id}
+            relations={related.relations}
+            dependencies={
+              detail.canSchedule ? (
+                <DependencyEditor
+                  org={org}
+                  record={record}
+                  dependencies={related.dependencies}
+                  candidates={related.siblings}
+                  canEdit
+                />
+              ) : undefined
+            }
+          />
+        )}
+      </RegionContent>
+      {dated ? (
+        <RegionContent data={detail.actual}>
+          {(actual) => (
+            <ActualsForm org={org} record={record} actual={actual} canEdit={detail.canSchedule} />
+          )}
+        </RegionContent>
+      ) : null}
+      <RegionContent data={detail.recurrence}>
+        {(recurrence) => (
+          <RecurrenceForm
+            org={org}
+            record={record}
+            recurrence={recurrence}
+            canEdit={detail.canRecur}
+          />
+        )}
+      </RegionContent>
+      <RegionContent data={detail.history}>
+        {(history) => (
+          <section aria-labelledby={`history-${record.id}`} className="flex flex-col gap-8">
+            <h3 id={`history-${record.id}`} className="m-0 text-label-13 font-semibold">
+              {t("work.history.title")}
+            </h3>
+            <ol className="m-0 flex list-none flex-col gap-6 p-0">
+              {history.map((h) => (
+                <li key={h.id} className="text-text-13">
+                  <span className="font-medium">
+                    {h.from
+                      ? t("work.history.moved", {
+                          from: t(`work.states.${h.from}`),
+                          to: t(`work.states.${h.to}`),
+                        })
+                      : t("work.history.created", { state: t(`work.states.${h.to}`) })}
+                  </span>{" "}
+                  <span className="text-text-secondary">
+                    {format.dateTime(new Date(h.at), { dateStyle: "medium", timeStyle: "short" })}
+                    {h.byName ? ` · ${h.byName}` : ""}
+                  </span>
+                  {h.from ? <p className="m-0 text-text-secondary">{h.reason}</p> : null}
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+      </RegionContent>
+      {fieldItems ? (
+        <RegionContent data={fieldItems}>
+          {(items) => (
+            <FieldHistoryList
+              id={record.id}
+              title={t("collab.history.title")}
+              empty={t("collab.history.empty")}
+              items={items}
+            />
+          )}
+        </RegionContent>
+      ) : null}
+      <RegionContent data={detail.replans}>
+        {(replans) => (
+          <section aria-labelledby={`replans-${record.id}`} className="flex flex-col gap-8">
+            <h3 id={`replans-${record.id}`} className="m-0 text-label-13 font-semibold">
+              {t("work.replans.title")}
+            </h3>
+            {replans.length === 0 ? (
+              <p className="m-0 text-text-13 text-text-secondary">
+                {logsReplans ? t("work.replans.none") : t("work.replans.notYet")}
+              </p>
+            ) : (
+              <ol className="m-0 flex list-none flex-col gap-8 p-0">
+                {replans.map((r) => {
+                  const shift = replanShift(r);
+                  const slip = slipAmount(shift.endShiftMs);
+                  return (
+                    <li key={r.id} className="flex flex-col gap-2 text-text-13">
+                      <span className="font-medium">
+                        {shift.moved
+                          ? slip
+                            ? t(
+                                `work.replans.${slip.late ? "slipped" : "pulledIn"}${slip.unit === "hours" ? "Hours" : ""}`,
+                                {
+                                  n: slip.n,
+                                },
+                              )
+                            : t("work.replans.datesChanged")
+                          : t("work.replans.stateChanged", {
+                              from: t(`work.states.${r.fromState}`),
+                              to: t(`work.states.${r.toState}`),
+                            })}
+                      </span>
+                      {shift.moved ? (
+                        <span className="text-text-secondary">
+                          {t("work.replans.window", {
+                            before: when(r.oldEndsAt ?? r.oldDueAt ?? r.oldStartsAt),
+                            after: when(r.newEndsAt ?? r.newDueAt ?? r.newStartsAt),
+                          })}
+                        </span>
+                      ) : null}
+                      {r.reason ? <span className="text-text-secondary">{r.reason}</span> : null}
+                      <span className="text-text-12 text-text-tertiary">
+                        {format.dateTime(new Date(r.at), {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                        {r.byName ? ` · ${r.byName}` : ""}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </section>
+        )}
+      </RegionContent>
+      <RegionContent data={detail.conversation}>
+        {(conversation) => (
+          <CollabPanels
+            org={org}
+            subject={{ table: "app.records", id: record.id }}
+            threads={conversation.threads}
+            attachments={conversation.attachments}
+            names={{ ...names, ...conversation.names }}
+            me={me}
+            canPost={!record.deletedAt}
+          />
+        )}
+      </RegionContent>
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}
     </div>
