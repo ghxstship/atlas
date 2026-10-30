@@ -49,6 +49,7 @@ export type Feature =
   | "show.read"
   | "scan.asset"
   | "scan.receiving"
+  | "scan.receiving.order"
   | "scan.credential.validate"
   | "scan.credential.badge"
   | "scan.lookup"
@@ -90,6 +91,8 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, CapabilityCode | null>> = {
   "show.read": "show.run_of_show.read",
   "scan.asset": "assets.custody.write",
   "scan.receiving": "procurement.receipt.write",
+  // Receiving against an order (R7a): app.receive_goods needs procurement.receipt.write on the project.
+  "scan.receiving.order": "procurement.receipt.write",
   "scan.credential.validate": "credentials.scan.write",
   "scan.credential.badge": null,
   "scan.lookup": "assets.asset.read",
@@ -116,6 +119,8 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   "show.read": ["client", "crew", "staff", "artist", "artist-representative"],
   "scan.asset": ["crew", "staff"],
   "scan.receiving": ["vendor"],
+  // Externals never receive against an order: the order, its lines and the receipt are internal records.
+  "scan.receiving.order": [],
   "scan.credential.validate": [],
   "scan.credential.badge": [
     "vendor",

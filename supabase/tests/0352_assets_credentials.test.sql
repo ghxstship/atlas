@@ -17,8 +17,8 @@ select throws_ok($$insert into app.asset_units (asset_class_id, asset_tag, condi
   'XR001', null, 'an asset condition comes from the Asset Condition enumeration');
 select throws_ok($$insert into app.asset_units (asset_class_id, asset_tag) values ((select id from world where key = 'acls'), 'NWL-DECK-001')$$, '23505', null, 'an asset tag is unique within the org');
 select is((select asset_state::text from app.asset_units where id = pg_temp.id('unit')), 'Proposed', 'a new asset is Proposed');
-select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'asset'), 17, 'the asset lifecycle declares seventeen moves');
-select is((select count(*)::int from unnest(enum_range(null::app.asset_state))), 9, 'the asset lifecycle has nine values');
+select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'asset'), 20, 'the asset lifecycle declares twenty moves, three of them to Returned (R7a, 2681)');
+select is((select count(*)::int from unnest(enum_range(null::app.asset_state))), 10, 'the asset lifecycle has ten values, Returned the tenth (R7a, 2680)');
 select throws_ok($$update app.asset_units set asset_state = 'Available' where id = (select id from world where key = 'unit')$$, 'XR001', null, 'the asset state changes only through its RPC');
 select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Proposed', 'Deployed', 'Skip.')$$, 'XR001', 'asset_transition_not_allowed: A asset cannot move from Proposed to Deployed.', 'a Proposed asset cannot jump to Deployed');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Proposed', 'Received', 'Delivered.')$$, 'Proposed to Received');

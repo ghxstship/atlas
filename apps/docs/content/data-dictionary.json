@@ -11475,9 +11475,23 @@
           "nullable": true,
           "references": "app.engagements.id",
           "type": "uuid"
+        },
+        {
+          "comment": "Receipt movements only: the receipt line whose quantity came into the lot.",
+          "name": "receipt_line_id",
+          "nullable": true,
+          "references": "app.receipt_lines.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "Vendor Return movements only: the return line whose quantity left the lot for the vendor.",
+          "name": "return_line_id",
+          "nullable": true,
+          "references": "app.return_lines.id",
+          "type": "uuid"
         }
       ],
-      "comment": "Append-only lot ledger: each row moves a lot quantity by a delta, for a recount, a check-out to a person or a check-in. On hand is the opening count plus the deltas (app.asset_lot_balances).",
+      "comment": "Append-only lot ledger: each row moves a lot quantity by a delta, for a recount, a check-out to a member or engagement, a check-in, a receipt against a purchase order line, or a return to the vendor. On hand is the opening count plus the deltas (app.asset_lot_balances).",
       "kind": "table",
       "name": "asset_lot_movements",
       "partitioned": false,
@@ -11752,6 +11766,161 @@
     {
       "columns": [
         {
+          "comment": "Asset unit.",
+          "name": "asset_unit_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Org.",
+          "name": "org_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Rental when the unit arrived on a rental order line; Purchase otherwise, including a unit with no receipt line.",
+          "name": "acquisition_kind",
+          "nullable": true,
+          "references": null,
+          "type": "app.acquisition_kind"
+        },
+        {
+          "comment": "Rental units: when the hire ends and the unit is due back to the vendor.",
+          "name": "hire_ends_at",
+          "nullable": true,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "True for a rental unit whose hire has ended and which has not been Returned.",
+          "name": "off_hire_due",
+          "nullable": true,
+          "references": null,
+          "type": "boolean"
+        }
+      ],
+      "comment": "Whether each live asset unit is hired in and when it goes back (R7a, G-96), read through the unit's receipt line and order line. Computed, never stored. Owner-rights view with its own row filter (assets.asset.read in the unit's org): it carries no vendor, cost, order number or order id, so a reader of assets who cannot read purchase orders learns only that a unit is hired in and when it is due back. app.asset_unit_provenance has the rest for procurement readers.",
+      "kind": "view",
+      "name": "asset_unit_hire",
+      "partitioned": false,
+      "primaryKey": [],
+      "rls": false,
+      "schema": "app"
+    },
+    {
+      "columns": [
+        {
+          "comment": "Asset unit.",
+          "name": "asset_unit_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Org.",
+          "name": "org_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Receipt line the unit arrived on.",
+          "name": "receipt_line_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Goods receipt of that line.",
+          "name": "goods_receipt_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "When the goods arrived.",
+          "name": "received_at",
+          "nullable": true,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "Purchase order line received.",
+          "name": "po_line_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Purchase order.",
+          "name": "purchase_order_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Order number from the project sequence.",
+          "name": "po_number",
+          "nullable": true,
+          "references": null,
+          "type": "bigint"
+        },
+        {
+          "comment": "Project that bought or hired the unit.",
+          "name": "project_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Vendor that supplied the unit.",
+          "name": "vendor_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Purchase or Rental.",
+          "name": "acquisition_kind",
+          "nullable": true,
+          "references": null,
+          "type": "app.acquisition_kind"
+        },
+        {
+          "comment": "Rental lines: when the hire starts and ends.",
+          "name": "hire_period",
+          "nullable": true,
+          "references": null,
+          "type": "tstzrange"
+        },
+        {
+          "comment": "Unit price in minor units of the order currency; NULL while unpriced.",
+          "name": "unit_price_minor",
+          "nullable": true,
+          "references": null,
+          "type": "bigint"
+        },
+        {
+          "comment": "ISO 4217 currency of the order.",
+          "name": "currency_code",
+          "nullable": true,
+          "references": null,
+          "type": "character(3)"
+        }
+      ],
+      "comment": "Where each asset unit came from (R7a, ADR 0104): the receipt, order line and purchase order it arrived on, with the vendor, the acquisition kind and the unit price. Derived through the unit's receipt line, never stored on the unit. Runs as the reader, so a person without procurement.po.read on the order's project reads no row and never sees cost.",
+      "kind": "view",
+      "name": "asset_unit_provenance",
+      "partitioned": false,
+      "primaryKey": [],
+      "rls": false,
+      "schema": "app"
+    },
+    {
+      "columns": [
+        {
           "comment": "Primary key, UUID v7.",
           "name": "id",
           "nullable": false,
@@ -11780,7 +11949,7 @@
           "type": "text"
         },
         {
-          "comment": "Lifecycle state. Changes only through app.transition_asset.",
+          "comment": "Lifecycle state. Changes only through app.transition_asset, except Returned, which only app.return_goods reaches.",
           "name": "asset_state",
           "nullable": false,
           "references": null,
@@ -11834,9 +12003,16 @@
           "nullable": true,
           "references": "app.people.id",
           "type": "uuid"
+        },
+        {
+          "comment": "Receipt line the unit arrived on; fixed once set. Its order line names the element, acquisition kind, hire period and price, and its order the vendor (app.asset_unit_provenance), so none of them is stored on the unit.",
+          "name": "receipt_line_id",
+          "nullable": true,
+          "references": "app.receipt_lines.id",
+          "type": "uuid"
         }
       ],
-      "comment": "Individual assets (Section 3.9 unit grain) tracked by asset tag, with the nine-value lifecycle.",
+      "comment": "Individual assets (Section 3.9 unit grain) tracked by asset tag, with the ten-value lifecycle (ADR 0104).",
       "kind": "table",
       "name": "asset_units",
       "partitioned": false,
@@ -27647,6 +27823,101 @@
       "comment": "Goods received against an approved or sent purchase order.",
       "kind": "table",
       "name": "goods_receipts",
+      "partitioned": false,
+      "primaryKey": ["id"],
+      "rls": true,
+      "schema": "app"
+    },
+    {
+      "columns": [
+        {
+          "comment": "Primary key, UUID v7.",
+          "name": "id",
+          "nullable": false,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Owning org, derived from app.purchase_orders on insert; never accepted from the caller and never changed.",
+          "name": "org_id",
+          "nullable": false,
+          "references": "app.organizations.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "Purchase order the goods were received on.",
+          "name": "purchase_order_id",
+          "nullable": false,
+          "references": "app.purchase_orders.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "When the goods went back.",
+          "name": "returned_at",
+          "nullable": false,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "Person who returned the goods, from the session.",
+          "name": "returned_by",
+          "nullable": true,
+          "references": "app.people.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "Why the goods went back. Off Hire only for rental lines.",
+          "name": "return_reason",
+          "nullable": false,
+          "references": null,
+          "type": "app.goods_return_reason"
+        },
+        {
+          "comment": "Condition or carrier noted at the return.",
+          "name": "note",
+          "nullable": true,
+          "references": null,
+          "type": "text"
+        },
+        {
+          "comment": "Soft delete time. A row with deleted_at set is ignored by every access helper.",
+          "name": "deleted_at",
+          "nullable": true,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "When the row was inserted. Set by the database.",
+          "name": "created_at",
+          "nullable": false,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "Person who inserted the row, or null for a platform process. Set by the database.",
+          "name": "created_by",
+          "nullable": true,
+          "references": "app.people.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "When the row last changed. Set by the database.",
+          "name": "updated_at",
+          "nullable": false,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "Person who last changed the row, or null for a platform process. Set by the database.",
+          "name": "updated_by",
+          "nullable": true,
+          "references": "app.people.id",
+          "type": "uuid"
+        }
+      ],
+      "comment": "Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Read like goods receipts; written only by app.return_goods, whose event id is the row id.",
+      "kind": "table",
+      "name": "goods_returns",
       "partitioned": false,
       "primaryKey": ["id"],
       "rls": true,
@@ -46778,6 +47049,182 @@
     {
       "columns": [
         {
+          "comment": "Rental purchase order line.",
+          "name": "po_line_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Org.",
+          "name": "org_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Project of the order.",
+          "name": "project_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Purchase order.",
+          "name": "purchase_order_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "When the hire starts and ends.",
+          "name": "hire_period",
+          "nullable": true,
+          "references": null,
+          "type": "tstzrange"
+        },
+        {
+          "comment": "The project's site window (private.project_site_window).",
+          "name": "site_window",
+          "nullable": true,
+          "references": null,
+          "type": "tstzrange"
+        },
+        {
+          "comment": "Which window rule the line breaks.",
+          "name": "warning",
+          "nullable": true,
+          "references": null,
+          "type": "text"
+        }
+      ],
+      "comment": "Delivery and return window conflicts of live rental lines on orders that are not Canceled (R7a, G-99), one row per warning: Delivery After Load In (the hire starts after the site window opens), Return Before Load Out (it ends before the window closes), Hire Beyond Site Window (it starts more than a day before or ends more than a day after the window), Delivery Docks Full and Return Docks Full (every dock the project books is taken at the hire's start or end). A NULL (unbounded) site-window bound gives no warning for the rules that use it. Warnings never refuse a line. Computed, never stored; runs as the reader, so procurement's row level security applies.",
+      "kind": "view",
+      "name": "po_line_hire_warnings",
+      "partitioned": false,
+      "primaryKey": [],
+      "rls": false,
+      "schema": "app"
+    },
+    {
+      "columns": [
+        {
+          "comment": "Purchase order line.",
+          "name": "po_line_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Org.",
+          "name": "org_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Project of the order.",
+          "name": "project_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Purchase order.",
+          "name": "purchase_order_id",
+          "nullable": true,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Order number from the project sequence.",
+          "name": "po_number",
+          "nullable": true,
+          "references": null,
+          "type": "bigint"
+        },
+        {
+          "comment": "Order state: Approved or Sent is Ordered.",
+          "name": "po_state",
+          "nullable": true,
+          "references": null,
+          "type": "app.po_state"
+        },
+        {
+          "comment": "Catalog element ordered, when one applies.",
+          "name": "element_id",
+          "nullable": true,
+          "references": null,
+          "type": "text"
+        },
+        {
+          "comment": "Purchase or Rental.",
+          "name": "acquisition_kind",
+          "nullable": true,
+          "references": null,
+          "type": "app.acquisition_kind"
+        },
+        {
+          "comment": "Rental lines: when the hire starts and ends.",
+          "name": "hire_period",
+          "nullable": true,
+          "references": null,
+          "type": "tstzrange"
+        },
+        {
+          "comment": "Quantity ordered.",
+          "name": "quantity_ordered",
+          "nullable": true,
+          "references": null,
+          "type": "numeric"
+        },
+        {
+          "comment": "True once the vendor acknowledged the order.",
+          "name": "acknowledged",
+          "nullable": true,
+          "references": null,
+          "type": "boolean"
+        },
+        {
+          "comment": "Quantity received on live receipt lines.",
+          "name": "quantity_received",
+          "nullable": true,
+          "references": null,
+          "type": "numeric"
+        },
+        {
+          "comment": "Quantity returned to the vendor against those receipt lines.",
+          "name": "quantity_returned",
+          "nullable": true,
+          "references": null,
+          "type": "numeric"
+        },
+        {
+          "comment": "Live asset units that arrived on the line's receipt lines.",
+          "name": "units_received",
+          "nullable": true,
+          "references": null,
+          "type": "integer"
+        },
+        {
+          "comment": "True for a rental line whose hire has ended while more was received than returned.",
+          "name": "off_hire_due",
+          "nullable": true,
+          "references": null,
+          "type": "boolean"
+        }
+      ],
+      "comment": "Supply progress of each purchase order line (R7a, ADR 0104), read from the tables that own each step: ordered (the line), acknowledged (app.po_acknowledgments), received (app.receipt_lines), returned (app.return_lines) and the units that came in. Computed, never stored, and without prices. Runs as the reader: procurement.po.read decides the rows, and units_received counts only units the reader may read.",
+      "kind": "view",
+      "name": "po_line_supply",
+      "partitioned": false,
+      "primaryKey": [],
+      "rls": false,
+      "schema": "app"
+    },
+    {
+      "columns": [
+        {
           "comment": "Primary key, UUID v7.",
           "name": "id",
           "nullable": false,
@@ -46881,6 +47328,20 @@
           "nullable": true,
           "references": "app.people.id",
           "type": "uuid"
+        },
+        {
+          "comment": "Purchase buys the item outright; Rental hires it for hire_period and returns it to the vendor at off-hire (ADR 0104).",
+          "name": "acquisition_kind",
+          "nullable": false,
+          "references": null,
+          "type": "app.acquisition_kind"
+        },
+        {
+          "comment": "Rental lines only: when the hire starts and ends (both bounds set). Off-hire is due at its upper bound; NULL on a Purchase line.",
+          "name": "hire_period",
+          "nullable": true,
+          "references": null,
+          "type": "tstzrange"
         }
       ],
       "comment": "Lines of a purchase order. A NULL price is unpriced and blocks approval. Lines change only while the order is Proposed.",
@@ -56541,6 +57002,94 @@
       "partitioned": false,
       "primaryKey": [],
       "rls": false,
+      "schema": "app"
+    },
+    {
+      "columns": [
+        {
+          "comment": "Primary key, UUID v7.",
+          "name": "id",
+          "nullable": false,
+          "references": null,
+          "type": "uuid"
+        },
+        {
+          "comment": "Owning org, derived from app.goods_returns on insert; never accepted from the caller and never changed.",
+          "name": "org_id",
+          "nullable": false,
+          "references": "app.organizations.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "Return the line belongs to.",
+          "name": "goods_return_id",
+          "nullable": false,
+          "references": "app.goods_returns.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "Receipt line of the same order that brought the goods in.",
+          "name": "receipt_line_id",
+          "nullable": false,
+          "references": "app.receipt_lines.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "Serialized unit returned, received on that receipt line; it becomes Returned. NULL for a quantity.",
+          "name": "asset_unit_id",
+          "nullable": true,
+          "references": "app.asset_units.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "Quantity returned; 1 for a unit.",
+          "name": "quantity_returned",
+          "nullable": false,
+          "references": null,
+          "type": "numeric"
+        },
+        {
+          "comment": "Soft delete time. A row with deleted_at set is ignored by every access helper.",
+          "name": "deleted_at",
+          "nullable": true,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "When the row was inserted. Set by the database.",
+          "name": "created_at",
+          "nullable": false,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "Person who inserted the row, or null for a platform process. Set by the database.",
+          "name": "created_by",
+          "nullable": true,
+          "references": "app.people.id",
+          "type": "uuid"
+        },
+        {
+          "comment": "When the row last changed. Set by the database.",
+          "name": "updated_at",
+          "nullable": false,
+          "references": null,
+          "type": "timestamp with time zone"
+        },
+        {
+          "comment": "Person who last changed the row, or null for a platform process. Set by the database.",
+          "name": "updated_by",
+          "nullable": true,
+          "references": "app.people.id",
+          "type": "uuid"
+        }
+      ],
+      "comment": "What went back in a goods return, per receipt line: one row per serialized unit (quantity 1), or a quantity. Returns never exceed what the receipt line brought in. Written only by app.return_goods.",
+      "kind": "table",
+      "name": "return_lines",
+      "partitioned": false,
+      "primaryKey": ["id"],
+      "rls": true,
       "schema": "app"
     },
     {

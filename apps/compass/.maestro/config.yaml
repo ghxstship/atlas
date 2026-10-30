@@ -27,6 +27,7 @@ executionOrder:
     - field-inspection-walk
     - field-gate-scan
     - field-receive-batch
+    - field-receive-order
     - field-asset-scan
     - field-nfc-scan
     - desk-asset-custody

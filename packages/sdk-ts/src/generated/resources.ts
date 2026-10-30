@@ -107,6 +107,7 @@ import type {
   AssetUnitBulkEditRequest,
   AssetUnitBulkEditResult,
   AssetUnitCreate,
+  AssetUnitHire,
   AssetUnitUpdate,
   AssignHelpDeskRequest,
   AssignTrainingRequest,
@@ -405,6 +406,7 @@ import type {
   GlAccountCode,
   GoodsReceipt,
   GoodsReceiptCreate,
+  GoodsReturn,
   GrainCode,
   GuestCheckIn,
   GuestCheckInCreate,
@@ -428,6 +430,7 @@ import type {
   HelpDeskTeamUpdate,
   HelpDeskTransitionRequest,
   HideFeedPostRequest,
+  HireWindowWarnings,
   HomeSummary,
   ImportBatch,
   ImportDryRun,
@@ -657,6 +660,7 @@ import type {
   PoChangeOrderUpdate,
   PoLine,
   PoLineCreate,
+  PoLineHireWarning,
   PoLineUpdate,
   Poll,
   PollPostRequest,
@@ -709,6 +713,10 @@ import type {
   PurchaseOrder,
   PurchaseOrderApproveRequest,
   PurchaseOrderCreate,
+  PurchaseOrderReceiveRequest,
+  PurchaseOrderReceiveResult,
+  PurchaseOrderReturnRequest,
+  PurchaseOrderReturnResult,
   PurchaseOrderTransitionRequest,
   PurchaseOrderUpdate,
   RFQTransitionRequest,
@@ -786,6 +794,7 @@ import type {
   RetentionPolicy,
   RetireCourseRequest,
   RetireFormRequest,
+  ReturnLine,
   Rfq,
   RfqCreate,
   RfqInvitation,
@@ -13931,6 +13940,46 @@ export class PurchaseOrdersResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Receive goods against a purchase order
+   *
+   * Records one receipt event in one transaction (app.receive_goods): the goods receipt, a receipt line per entry and, for an element with an asset class, Received units by asset tag or a Receipt movement into the lot at a venue. Needs procurement.receipt.write on the project, and assets.asset.write to bring stock in. The order must be Approved or Sent, and receipts never exceed the quantity ordered (422 receipt_order_state, receipt_exceeds_order). A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /purchase-orders/{id}/receive` (operation `purchaseOrders.receive`).
+   * Requires the capability `procurement.receipt.write`.
+   */
+  receive(
+    id: string,
+    body: PurchaseOrderReceiveRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PurchaseOrderReceiveResult>> {
+    return this.client.request<PurchaseOrderReceiveResult>(
+      $OPERATIONS["purchaseOrders.receive"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Return goods to the vendor
+   *
+   * Records one return event in one transaction (app.return_goods): return lines against the receipt lines that brought the goods in, never more than they received (422 return_exceeds_receipt). Serialized units must be Available, Damaged or In Maintenance and checked in; they become Returned. A quantity out of a lot writes a Vendor Return movement. Off Hire applies only to rental lines (422 return_off_hire_not_rental). Needs procurement.receipt.write on the project. A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /purchase-orders/{id}/returns` (operation `purchaseOrders.returnGoods`).
+   * Requires the capability `procurement.receipt.write`.
+   */
+  returnGoods(
+    id: string,
+    body: PurchaseOrderReturnRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PurchaseOrderReturnResult>> {
+    return this.client.request<PurchaseOrderReturnResult>(
+      $OPERATIONS["purchaseOrders.returnGoods"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -14026,6 +14075,38 @@ export class PoLinesResource extends $Resource {
    */
   delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
     return this.client.request<undefined>($OPERATIONS["poLines.delete"], { path: { id } }, options);
+  }
+
+  /**
+   * Window warnings for a hire
+   *
+   * The delivery and return window warnings a rental line with this hire would raise on the project before it is saved (app.hire_window_warnings, G-99): the same rules as `poLineHireWarnings`. Warnings never refuse a line. Needs procurement.po.read on the project; a hire that does not end after it starts is refused (422 hire_period_order). A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /po-lines/hire-window-warnings` (operation `poLines.hireWindowWarnings`).
+   * Requires the capability `procurement.po.read`.
+   */
+  hireWindowWarnings(
+    params: {
+      /**
+       * Identifier of the project the order is for.
+       */
+      readonly project_id: string;
+      /**
+       * When the hire starts.
+       */
+      readonly from: string;
+      /**
+       * When the hire ends.
+       */
+      readonly to: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<HireWindowWarnings>> {
+    return this.client.request<HireWindowWarnings>(
+      $OPERATIONS["poLines.hireWindowWarnings"],
+      { query: params },
+      options,
+    );
   }
 }
 
@@ -34616,6 +34697,53 @@ export class GuestListEntriesResource extends $Resource {
 }
 
 /**
+ * Operations on `assetUnitHire`, in the Assets module.
+ *
+ * Assets at class, unit and lot grain, custody, maintenance and damage (Section 4.2).
+ */
+export class AssetUnitHireResource extends $Resource {
+  /**
+   * List unit hire rows
+   *
+   * Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order. Returns a cursor page of unit hire rows the caller may see. The default order is `asset_unit_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /asset-unit-hire` (operation `assetUnitHire.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  list(
+    params?: $ListParams<AssetUnitHire>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AssetUnitHire>> {
+    return this.client.requestPage<AssetUnitHire>(
+      $OPERATIONS["assetUnitHire.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List unit hire rows
+   *
+   * Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order. Returns a cursor page of unit hire rows the caller may see. The default order is `asset_unit_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /asset-unit-hire` (operation `assetUnitHire.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AssetUnitHire>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AssetUnitHire, void, undefined> {
+    return this.client.paginate<AssetUnitHire>(
+      $OPERATIONS["assetUnitHire.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `form1099Nec`, in the Finance module.
  *
  * Budgets, expenses, change orders, ledger, periods and the Universal Posting Line (Sections 3.11 and 4.2).
@@ -34640,6 +34768,181 @@ export class Form1099NecResource extends $Resource {
   ): Promise<$ApiResponse<Form1099NecRowPage>> {
     return this.client.request<Form1099NecRowPage>(
       $OPERATIONS["form1099Nec.rows"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `goodsReturns`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class GoodsReturnsResource extends $Resource {
+  /**
+   * List goods return rows
+   *
+   * Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns a cursor page of goods return rows the caller may see. The default order is `returned_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /goods-returns` (operation `goodsReturns.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  list(params?: $ListParams<GoodsReturn>, options?: $RequestOptions): Promise<$Page<GoodsReturn>> {
+    return this.client.requestPage<GoodsReturn>(
+      $OPERATIONS["goodsReturns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List goods return rows
+   *
+   * Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns a cursor page of goods return rows the caller may see. The default order is `returned_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /goods-returns` (operation `goodsReturns.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  listAll(
+    params?: $ListAllParams<GoodsReturn>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<GoodsReturn, void, undefined> {
+    return this.client.paginate<GoodsReturn>(
+      $OPERATIONS["goodsReturns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a goods return
+   *
+   * Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns one goods return with its `ETag`. A goods return the caller may not see returns 404.
+   *
+   * `GET /goods-returns/{id}` (operation `goodsReturns.get`).
+   * Requires the capability `procurement.po.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<GoodsReturn>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<GoodsReturn>> {
+    return this.client.request<GoodsReturn>(
+      $OPERATIONS["goodsReturns.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `returnLines`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class ReturnLinesResource extends $Resource {
+  /**
+   * List return line rows
+   *
+   * What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns a cursor page of return line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /return-lines` (operation `returnLines.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  list(params?: $ListParams<ReturnLine>, options?: $RequestOptions): Promise<$Page<ReturnLine>> {
+    return this.client.requestPage<ReturnLine>(
+      $OPERATIONS["returnLines.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List return line rows
+   *
+   * What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns a cursor page of return line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /return-lines` (operation `returnLines.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ReturnLine>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ReturnLine, void, undefined> {
+    return this.client.paginate<ReturnLine>(
+      $OPERATIONS["returnLines.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a return line
+   *
+   * What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns one return line with its `ETag`. A return line the caller may not see returns 404.
+   *
+   * `GET /return-lines/{id}` (operation `returnLines.get`).
+   * Requires the capability `procurement.po.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ReturnLine>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReturnLine>> {
+    return this.client.request<ReturnLine>(
+      $OPERATIONS["returnLines.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `poLineHireWarnings`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class PoLineHireWarningsResource extends $Resource {
+  /**
+   * List hire warning rows
+   *
+   * A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line. Returns a cursor page of hire warning rows the caller may see. The default order is `po_line_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /po-line-hire-warnings` (operation `poLineHireWarnings.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  list(
+    params?: $ListParams<PoLineHireWarning>,
+    options?: $RequestOptions,
+  ): Promise<$Page<PoLineHireWarning>> {
+    return this.client.requestPage<PoLineHireWarning>(
+      $OPERATIONS["poLineHireWarnings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List hire warning rows
+   *
+   * A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line. Returns a cursor page of hire warning rows the caller may see. The default order is `po_line_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /po-line-hire-warnings` (operation `poLineHireWarnings.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  listAll(
+    params?: $ListAllParams<PoLineHireWarning>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<PoLineHireWarning, void, undefined> {
+    return this.client.paginate<PoLineHireWarning>(
+      $OPERATIONS["poLineHireWarnings.list"],
       { query: params },
       options,
     );

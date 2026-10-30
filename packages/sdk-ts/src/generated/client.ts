@@ -344,7 +344,11 @@ import {
   CueCallsResource,
   RosterEntriesResource,
   GuestListEntriesResource,
+  AssetUnitHireResource,
   Form1099NecResource,
+  GoodsReturnsResource,
+  ReturnLinesResource,
+  PoLineHireWarningsResource,
   InsuranceCertificateInsuredsResource,
   RequiredAdditionalInsuredsResource,
   CanonStdEmergencyProtocolsResource,
@@ -1201,8 +1205,16 @@ export class XosClient extends XosClientCore {
   readonly rosterEntries: RosterEntriesResource = new RosterEntriesResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Assets: operations on `assetUnitHire`. */
+  readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
   /** Finance: operations on `form1099Nec`. */
   readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
+  /** Procurement: operations on `goodsReturns`. */
+  readonly goodsReturns: GoodsReturnsResource = new GoodsReturnsResource(this);
+  /** Procurement: operations on `returnLines`. */
+  readonly returnLines: ReturnLinesResource = new ReturnLinesResource(this);
+  /** Procurement: operations on `poLineHireWarnings`. */
+  readonly poLineHireWarnings: PoLineHireWarningsResource = new PoLineHireWarningsResource(this);
   /** Vendors: operations on `insuranceCertificateInsureds`. */
   readonly insuranceCertificateInsureds: InsuranceCertificateInsuredsResource =
     new InsuranceCertificateInsuredsResource(this);

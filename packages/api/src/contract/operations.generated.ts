@@ -829,9 +829,11 @@ export interface Components {
       | "In Maintenance"
       | "Damaged"
       | "Lost"
-      | "Retired";
+      | "Retired"
+      | "Returned";
     condition_enum_id: string | null;
     home_venue_id: string | null;
+    receipt_line_id: string | null;
   };
   AssetUnitBulkEditRequest: { rows: Array<Components["AssetUnitBulkRow"]>; reason?: string };
   AssetUnitBulkEditResult: {
@@ -867,6 +869,13 @@ export interface Components {
     condition_enum_id?: string | null;
     home_venue_id?: string | null;
   };
+  AssetUnitHire: {
+    asset_unit_id: string;
+    acquisition_kind: "Purchase" | "Rental";
+    hire_ends_at: string | null;
+    off_hire_due: boolean;
+  };
+  AssetUnitHirePage: { data: Array<Components["AssetUnitHire"]>; next_cursor: string | null };
   AssetUnitPage: { data: Array<Components["AssetUnit"]>; next_cursor: string | null };
   AssetUnitUpdate: { condition_enum_id?: string | null; home_venue_id?: string | null };
   AssignHelpDeskRequest: { assignee_membership_id: string | null; help_desk_team_id?: string };
@@ -3487,6 +3496,20 @@ export interface Components {
   };
   GoodsReceiptCreate: { purchase_order_id: string; received_at?: string; note?: string | null };
   GoodsReceiptPage: { data: Array<Components["GoodsReceipt"]>; next_cursor: string | null };
+  GoodsReturn: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    purchase_order_id: string;
+    returned_at: string;
+    returned_by: string | null;
+    return_reason: "Off Hire" | "Defective" | "Wrong Item" | "Over Delivery";
+    note: string | null;
+  };
+  GoodsReturnPage: { data: Array<Components["GoodsReturn"]>; next_cursor: string | null };
   GrainCode: string;
   GuestCheckIn: {
     id: string;
@@ -3659,6 +3682,15 @@ export interface Components {
     reason: string;
   };
   HideFeedPostRequest: { reason: string };
+  HireWindowWarnings: {
+    data: Array<
+      | "Delivery After Load In"
+      | "Return Before Load Out"
+      | "Hire Beyond Site Window"
+      | "Delivery Docks Full"
+      | "Return Docks Full"
+    >;
+  };
   HomeSummary: {
     open_work_count: number;
     blocked_work_count: number;
@@ -5690,6 +5722,9 @@ export interface Components {
     unit_basis: Components["UnitCode"] | null;
     unit_price_minor: number | null;
     line_number: number;
+    acquisition_kind: "Purchase" | "Rental";
+    hire_starts_at: string | null;
+    hire_ends_at: string | null;
   };
   PoLineCreate: {
     purchase_order_id: string;
@@ -5700,6 +5735,28 @@ export interface Components {
     unit_basis?: Components["UnitCode"] | null;
     unit_price_minor?: number | null;
     line_number?: number;
+    acquisition_kind?: "Purchase" | "Rental";
+    hire_starts_at?: string | null;
+    hire_ends_at?: string | null;
+  };
+  PoLineHireWarning: {
+    po_line_id: string;
+    project_id: string;
+    purchase_order_id: string;
+    hire_starts_at: string;
+    hire_ends_at: string;
+    site_opens_at: string | null;
+    site_closes_at: string | null;
+    warning:
+      | "Delivery After Load In"
+      | "Return Before Load Out"
+      | "Hire Beyond Site Window"
+      | "Delivery Docks Full"
+      | "Return Docks Full";
+  };
+  PoLineHireWarningPage: {
+    data: Array<Components["PoLineHireWarning"]>;
+    next_cursor: string | null;
   };
   PoLinePage: { data: Array<Components["PoLine"]>; next_cursor: string | null };
   PoLineUpdate: {
@@ -5710,6 +5767,9 @@ export interface Components {
     unit_basis?: Components["UnitCode"] | null;
     unit_price_minor?: number | null;
     line_number?: number;
+    acquisition_kind?: "Purchase" | "Rental";
+    hire_starts_at?: string | null;
+    hire_ends_at?: string | null;
   };
   Poll: {
     id: string;
@@ -6226,6 +6286,40 @@ export interface Components {
     shipping_minor?: number | null;
   };
   PurchaseOrderPage: { data: Array<Components["PurchaseOrder"]>; next_cursor: string | null };
+  PurchaseOrderReceiveLine: {
+    po_line_id: string;
+    quantity: number;
+    asset_tags?: Array<string>;
+    venue_id?: string | null;
+    condition_enum_id?: string | null;
+  };
+  PurchaseOrderReceiveRequest: {
+    lines: Array<Components["PurchaseOrderReceiveLine"]>;
+    note?: string | null;
+  };
+  PurchaseOrderReceiveResult: {
+    outcome: "applied" | "duplicate";
+    goods_receipt_id: string;
+    receipt_line_ids: Array<string>;
+    asset_unit_ids: Array<string>;
+    lot_movement_ids: Array<string>;
+  };
+  PurchaseOrderReturnLine: {
+    receipt_line_id: string;
+    quantity: number;
+    asset_unit_ids?: Array<string>;
+    venue_id?: string | null;
+  };
+  PurchaseOrderReturnRequest: {
+    reason: "Off Hire" | "Defective" | "Wrong Item" | "Over Delivery";
+    lines: Array<Components["PurchaseOrderReturnLine"]>;
+    note?: string | null;
+  };
+  PurchaseOrderReturnResult: {
+    outcome: "applied" | "duplicate";
+    goods_return_id: string;
+    return_line_ids: Array<string>;
+  };
   PurchaseOrderTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   PurchaseOrderUpdate: {
     rfq_response_id?: string | null;
@@ -7030,6 +7124,19 @@ export interface Components {
   RetentionPolicyPage: { data: Array<Components["RetentionPolicy"]>; next_cursor: string | null };
   RetireCourseRequest: { reason: string };
   RetireFormRequest: { reason: string };
+  ReturnLine: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    goods_return_id: string;
+    receipt_line_id: string;
+    asset_unit_id: string | null;
+    quantity_returned: number;
+  };
+  ReturnLinePage: { data: Array<Components["ReturnLine"]>; next_cursor: string | null };
   Rfq: {
     id: string;
     org_id: string;
@@ -15595,6 +15702,24 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["FieldHistoryEventPage"] };
   };
+  "purchaseOrders.receive": {
+    module: "Procurement";
+    method: "post";
+    path: "/purchase-orders/{id}/receive";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PurchaseOrderReceiveRequest"];
+    responses: { 200: Components["PurchaseOrderReceiveResult"] };
+  };
+  "purchaseOrders.returnGoods": {
+    module: "Procurement";
+    method: "post";
+    path: "/purchase-orders/{id}/returns";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PurchaseOrderReturnRequest"];
+    responses: { 200: Components["PurchaseOrderReturnResult"] };
+  };
   "poLines.list": {
     module: "Procurement";
     method: "get";
@@ -15645,6 +15770,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "poLines.hireWindowWarnings": {
+    module: "Procurement";
+    method: "get";
+    path: "/po-lines/hire-window-warnings";
+    params: Record<string, never>;
+    query: { project_id: string; from: string; to: string };
+    body: undefined;
+    responses: { 200: Components["HireWindowWarnings"] };
   };
   "poChangeOrders.list": {
     module: "Procurement";
@@ -24076,6 +24210,21 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "assetUnitHire.list": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-unit-hire";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AssetUnitHirePage"] };
+  };
   "form1099Nec.rows": {
     module: "Finance";
     method: "get";
@@ -24084,6 +24233,69 @@ export interface Operations {
     query: { year: number };
     body: undefined;
     responses: { 200: Components["Form1099NecRowPage"] };
+  };
+  "goodsReturns.list": {
+    module: "Procurement";
+    method: "get";
+    path: "/goods-returns";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["GoodsReturnPage"] };
+  };
+  "goodsReturns.get": {
+    module: "Procurement";
+    method: "get";
+    path: "/goods-returns/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["GoodsReturn"] };
+  };
+  "returnLines.list": {
+    module: "Procurement";
+    method: "get";
+    path: "/return-lines";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ReturnLinePage"] };
+  };
+  "returnLines.get": {
+    module: "Procurement";
+    method: "get";
+    path: "/return-lines/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ReturnLine"] };
+  };
+  "poLineHireWarnings.list": {
+    module: "Procurement";
+    method: "get";
+    path: "/po-line-hire-warnings";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PoLineHireWarningPage"] };
   };
   "insuranceCertificateInsureds.list": {
     module: "Vendors";
@@ -27604,7 +27816,8 @@ export interface ModuleOperations {
     | "assetDamageReports.create"
     | "assetDamageReports.get"
     | "assetDamageReports.update"
-    | "assetDamageReports.delete";
+    | "assetDamageReports.delete"
+    | "assetUnitHire.list";
   Opportunities:
     | "opportunities.list"
     | "opportunities.create"
@@ -27972,11 +28185,14 @@ export interface ModuleOperations {
     | "purchaseOrders.transition"
     | "purchaseOrders.acknowledge"
     | "purchaseOrders.fieldHistory"
+    | "purchaseOrders.receive"
+    | "purchaseOrders.returnGoods"
     | "poLines.list"
     | "poLines.create"
     | "poLines.get"
     | "poLines.update"
     | "poLines.delete"
+    | "poLines.hireWindowWarnings"
     | "poChangeOrders.list"
     | "poChangeOrders.create"
     | "poChangeOrders.get"
@@ -28002,7 +28218,12 @@ export interface ModuleOperations {
     | "vendorProducts.create"
     | "vendorProducts.get"
     | "vendorProducts.update"
-    | "vendorProducts.delete";
+    | "vendorProducts.delete"
+    | "goodsReturns.list"
+    | "goodsReturns.get"
+    | "returnLines.list"
+    | "returnLines.get"
+    | "poLineHireWarnings.list";
   Vendors:
     | "vendors.list"
     | "vendors.create"
