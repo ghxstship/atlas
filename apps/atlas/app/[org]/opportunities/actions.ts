@@ -2,6 +2,7 @@
 
 import type { Result } from "@xos/data";
 import * as repo from "@xos/data/opportunities";
+import { applyQuestionTemplate } from "@xos/data/opportunity-templates";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -133,6 +134,7 @@ const opportunitySchema = z
       .string()
       .default("")
       .transform((s) => s === "true"),
+    questionTemplateId: z.union([uuid, z.literal("")]).default(""),
   })
   .transform((v, ctx) => {
     const min = parseMoney(v.payMin, v.currencyCode);
@@ -146,9 +148,9 @@ const opportunitySchema = z
     return { ...v, min, max };
   });
 
-export const createOpportunityAction: Action = action(opportunitySchema, (ctx, v) => {
+export const createOpportunityAction: Action = action(opportunitySchema, async (ctx, v) => {
   const posted = v.min !== null || v.max !== null;
-  return repo.createOpportunity(ctx.viewer.db, {
+  const created = await repo.createOpportunity(ctx.viewer.db, {
     projectId: v.projectId,
     title: v.title,
     roleType: v.roleType as repo.ExternalRoleType,
@@ -165,6 +167,11 @@ export const createOpportunityAction: Action = action(opportunitySchema, (ctx, v
     deadlineAt: v.deadlineAt,
     isRemote: v.isRemote,
   });
+  // The chosen question template is copied into the new draft (2290). The draft is already saved when the copy is
+  // refused, so the form says so instead of offering to save it again.
+  if (!created.ok || v.questionTemplateId === "") return created;
+  const applied = await applyQuestionTemplate(ctx.viewer.db, created.data.id, v.questionTemplateId);
+  return applied.ok ? created : { error: "questionsNotApplied" };
 });
 
 export const updateOpportunityAction: Action = action(

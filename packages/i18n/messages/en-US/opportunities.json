@@ -183,9 +183,12 @@
       "plan_limit_exceeded": "Your plan's monthly limit of external engagements is reached. Upgrade or wait for next month.",
       "transition_reason_required": "Give a reason for the change.",
       "insureds_none_required": "The organization requires no additional insureds for this project. Add them under Vendors, Insurance certificates, Required insureds.",
-      "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization."
+      "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization.",
+      "question_template_not_found": "That question template was deleted or is not available to you. Choose another template.",
+      "question_template_not_draft": "A question template applies only to a Draft posting. Add questions one at a time instead."
     },
-    "insuredsMissing": "Recorded as failed. No current certificate names: {rule}. Ask the vendor for an updated certificate."
+    "insuredsMissing": "Recorded as failed. No current certificate names: {rule}. Ask the vendor for an updated certificate.",
+    "questionsNotApplied": "The draft is saved, but the template's questions were not added. Open the draft and add them there."
   },
   "requisitions": {
     "title": "Requisitions",
@@ -234,7 +237,11 @@
     "noInvitations": "No invitations. Invite parties to make sure they see this posting.",
     "invitedParty": "Invited party",
     "invite": "Invite",
-    "noKnownParties": "Invitations go to people and accounts you have engaged or received applications from."
+    "noKnownParties": "Invitations go to people and accounts you have engaged or received applications from.",
+    "questionTemplate": "Question template",
+    "questionTemplateHelp": "Its questions are copied into the draft, where you can change or remove them.",
+    "noQuestionTemplate": "No template",
+    "questionTemplateOption": "{name} ({count, plural, one {# question} other {# questions}})"
   },
   "pipeline": {
     "title": "Pipeline",
@@ -671,5 +678,34 @@
       "PrimaryandNoncontributory": "Primary and Noncontributory",
       "WaiverofSubrogation": "Waiver of Subrogation"
     }
+  },
+  "templates": {
+    "title": "How new opportunities start",
+    "description": "New postings start from these defaults and the chosen question template. People creating a posting can change every value before they save it.",
+    "poolsLink": "Manage pools",
+    "onboardingLink": "Manage onboarding requirements",
+    "loadError": "The opportunity defaults could not be loaded. Reload the page.",
+    "defaultsTitle": "Opportunity defaults",
+    "defaultsForm": "Defaults for new postings",
+    "saveDefaults": "Save defaults",
+    "defaultsSaved": "Defaults saved. New postings start from them.",
+    "visibilityHelp": "Limited by your marketplace visibility above. Publishing to Public also needs the Pro plan or above.",
+    "payBasis": "Pay basis",
+    "currencyHelp": "A three-letter code, for example USD. Leave blank to start in USD.",
+    "window": "Application window in days",
+    "windowHelp": "Sets the application deadline this many days after a posting is created. Leave blank for no deadline.",
+    "noWindow": "No deadline",
+    "windowDays": "{count, plural, one {# day} other {# days}}",
+    "managersOnly": "Only people who manage marketplace settings can change these.",
+    "listTitle": "{count, plural, =0 {Question templates} one {# question template} other {# question templates}}",
+    "listHelp": "Reusable sets of application questions. Ask about the work only, never protected attributes. Changing a template never changes postings already created from it.",
+    "none": "No question templates yet. Create one for the questions you ask on most postings.",
+    "delete": "Delete template",
+    "noQuestions": "No questions yet. Add the first one below.",
+    "questionsOf": "Questions of {name}",
+    "new": "New question template",
+    "create": "Create template",
+    "created": "Template created. Add its questions next.",
+    "nameHelp": "A Title Case name, for example Crew Call Basics."
   }
 }
