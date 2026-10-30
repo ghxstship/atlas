@@ -154,6 +154,7 @@ describe("agent proposals", () => {
       {
         p_org_id: "o1",
         p_kind: "Claude",
+        p_name: "",
         p_redirect_uri: "https://claude.ai/api/mcp/auth_callback",
         p_default_scopes: ["home", "projects"],
       },

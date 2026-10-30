@@ -599,7 +599,9 @@
         "payment_failed": "Payment failed",
         "read_only": "Organization is read-only",
         "trial_ending": "Trial ending soon",
-        "trial_ended": "Trial ended"
+        "trial_ended": "Trial ended",
+        "paused": "Organization paused",
+        "resumed": "Organization resumed"
       },
       "comment": {
         "created": "New comment"
@@ -693,6 +695,9 @@
       },
       "content": {
         "removed": "Your content removed"
+      },
+      "agent": {
+        "change_proposed": "A connected app proposed a change"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

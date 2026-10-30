@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import type { Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -137,7 +138,7 @@ export async function registerMcpConnector(
   const { data, error } = await db.rpc("register_mcp_connector", {
     p_org_id: input.orgId,
     p_kind: input.kind,
-    ...(input.name ? { p_name: input.name } : {}),
+    p_name: input.name ?? "",
     p_redirect_uri: input.redirectUri,
     p_default_scopes: [...input.defaultScopes],
   });
@@ -213,11 +214,15 @@ export async function proposeAgentChange(
   const { data, error } = await db.rpc("propose_agent_change", {
     p_operation_id: input.operationId,
     p_operation_scopes: [...input.operationScopes],
-    ...(input.targetId ? { p_target_id: input.targetId } : {}),
+    // Both are nullable in SQL; the generator types every argument without a default as non-null.
+    p_target_id: input.targetId as string,
     p_summary: input.summary,
     p_path: input.path,
-    ...(input.ifMatch ? { p_if_match: input.ifMatch } : {}),
-    p_fields: input.fields.map((f) => ({ field_path: f.fieldPath, value: f.value ?? null })),
+    p_if_match: input.ifMatch as string,
+    p_fields: input.fields.map((f) => ({
+      field_path: f.fieldPath,
+      value: (f.value ?? null) as Json,
+    })),
   });
   if (error) return fail(toDataError(error));
   const row = data[0];

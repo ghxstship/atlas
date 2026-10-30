@@ -50,11 +50,11 @@ export interface ConnectionView {
    * For providers that sign in (Google Drive and OneDrive, B16): the Connect with Google or Connect with Microsoft
    * button, disabled with its reason while the platform app is not set up. It replaces the pasted credential.
    */
-  readonly oauth?: { readonly label: string; readonly disabledReason: string | null };
+  readonly oauth?: { readonly label: string; readonly disabledReason: string | null } | undefined;
   /** The provider account the connection signed in as. */
-  readonly accountName?: string | null;
+  readonly accountName?: string | null | undefined;
   /** What Atlas adds under the connection, such as the linking folder of a storage connection. */
-  readonly extra?: ReactNode;
+  readonly extra?: ReactNode | undefined;
 }
 
 export interface IntegrationsCopy {

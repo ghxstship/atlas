@@ -39,9 +39,10 @@ describe("fixture model gate", () => {
     }
   });
 
-  it("reaches the API route only behind a literal production check the build removes", () => {
+  it("reaches the API app only behind a literal production check the build removes", () => {
+    // B16 moved the app the v1 route and the hosted MCP endpoint share into lib/api/app.ts.
     const route = readFileSync(
-      fileURLToPath(new URL("../app/api/v1/[...path]/route.ts", import.meta.url)),
+      fileURLToPath(new URL("../lib/api/app.ts", import.meta.url)),
       "utf8",
     );
     const guard = route.indexOf('if (process.env.NODE_ENV === "production") return undefined;');

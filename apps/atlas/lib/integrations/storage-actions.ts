@@ -1,5 +1,6 @@
 "use server";
 
+import type { Route } from "next";
 import type { FileMeta } from "@xos/integrations";
 import type { IntegrationActionState } from "@xos/integrations/settings";
 import { authorizeUrl, isOAuthStorageProvider } from "@xos/integrations/storage-oauth";
@@ -79,7 +80,13 @@ export async function connectStorageAction(
     return { error: t(`errors.${KNOWN.has(rule) ? rule : "unexpected"}`) };
   }
   redirect(
-    authorizeUrl(provider, client.clientId, storageCallbackUrl(), row.state, row.code_challenge),
+    authorizeUrl(
+      provider,
+      client.clientId,
+      storageCallbackUrl(),
+      row.state,
+      row.code_challenge,
+    ) as Route,
   );
 }
 

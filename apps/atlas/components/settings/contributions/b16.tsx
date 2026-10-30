@@ -36,7 +36,7 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
 type T = (key: string, values?: Record<string, string | number>) => string;
 
 async function copy(namespace: string): Promise<T> {
-  return (await getTranslations(namespace)) as unknown as T;
+  return (await getTranslations(namespace as never)) as unknown as T;
 }
 
 function Section({

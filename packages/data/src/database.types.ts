@@ -5017,6 +5017,7 @@ export type Database = {
           feature: Database["app"]["Enums"]["ai_feature"];
           id: string;
           model: string;
+          oauth_app_id: string | null;
           org_id: string;
           outcome: Database["app"]["Enums"]["ai_request_outcome"];
           output_redacted: string | null;
@@ -5037,6 +5038,7 @@ export type Database = {
           feature: Database["app"]["Enums"]["ai_feature"];
           id?: string;
           model: string;
+          oauth_app_id?: string | null;
           org_id: string;
           outcome?: Database["app"]["Enums"]["ai_request_outcome"];
           output_redacted?: string | null;
@@ -5056,6 +5058,7 @@ export type Database = {
           feature?: Database["app"]["Enums"]["ai_feature"];
           id?: string;
           model?: string;
+          oauth_app_id?: string | null;
           org_id?: string;
           outcome?: Database["app"]["Enums"]["ai_request_outcome"];
           output_redacted?: string | null;
@@ -5072,6 +5075,13 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_requests_oauth_app_id_fkey";
+            columns: ["oauth_app_id"];
+            isOneToOne: false;
+            referencedRelation: "oauth_apps";
             referencedColumns: ["id"];
           },
           {
@@ -5333,6 +5343,7 @@ export type Database = {
           expires_at: string;
           id: string;
           operation_id: string;
+          operation_request: Json | null;
           org_id: string;
           request_id: string;
           suggestion_state: Database["app"]["Enums"]["ai_suggestion_state"];
@@ -5350,6 +5361,7 @@ export type Database = {
           expires_at?: string;
           id?: string;
           operation_id: string;
+          operation_request?: Json | null;
           org_id: string;
           request_id: string;
           suggestion_state?: Database["app"]["Enums"]["ai_suggestion_state"];
@@ -5366,6 +5378,7 @@ export type Database = {
           expires_at?: string;
           id?: string;
           operation_id?: string;
+          operation_request?: Json | null;
           org_id?: string;
           request_id?: string;
           suggestion_state?: Database["app"]["Enums"]["ai_suggestion_state"];
@@ -26310,6 +26323,75 @@ export type Database = {
           },
         ];
       };
+      mcp_connectors: {
+        Row: {
+          client_kind: Database["app"]["Enums"]["mcp_client_kind"];
+          created_at: string;
+          created_by: string | null;
+          default_scopes: string[];
+          deleted_at: string | null;
+          id: string;
+          oauth_app_id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_kind: Database["app"]["Enums"]["mcp_client_kind"];
+          created_at?: string;
+          created_by?: string | null;
+          default_scopes: string[];
+          deleted_at?: string | null;
+          id?: string;
+          oauth_app_id: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          client_kind?: Database["app"]["Enums"]["mcp_client_kind"];
+          created_at?: string;
+          created_by?: string | null;
+          default_scopes?: string[];
+          deleted_at?: string | null;
+          id?: string;
+          oauth_app_id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mcp_connectors_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mcp_connectors_oauth_app_id_fkey";
+            columns: ["oauth_app_id"];
+            isOneToOne: false;
+            referencedRelation: "oauth_apps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mcp_connectors_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mcp_connectors_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       medical_encounters: {
         Row: {
           created_at: string;
@@ -26375,6 +26457,68 @@ export type Database = {
           },
           {
             foreignKeyName: "medical_encounters_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      member_blocklist_entries: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          entry_kind: Database["app"]["Enums"]["blocklist_entry_kind"];
+          entry_value: string;
+          id: string;
+          org_id: string;
+          reason: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          entry_kind: Database["app"]["Enums"]["blocklist_entry_kind"];
+          entry_value: string;
+          id?: string;
+          org_id: string;
+          reason?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          entry_kind?: Database["app"]["Enums"]["blocklist_entry_kind"];
+          entry_value?: string;
+          id?: string;
+          org_id?: string;
+          reason?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "member_blocklist_entries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "member_blocklist_entries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "member_blocklist_entries_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -49177,6 +49321,110 @@ export type Database = {
           },
         ];
       };
+      subscription_pauses: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          end_reason: Database["app"]["Enums"]["subscription_pause_end"] | null;
+          ended_at: string | null;
+          ended_by: string | null;
+          id: string;
+          last_event_at: string | null;
+          org_id: string;
+          requested_by: string | null;
+          resumes_at: string | null;
+          source: Database["app"]["Enums"]["subscription_pause_source"];
+          started_notified_at: string | null;
+          starts_at: string;
+          stripe_subscription_link_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          end_reason?: Database["app"]["Enums"]["subscription_pause_end"] | null;
+          ended_at?: string | null;
+          ended_by?: string | null;
+          id?: string;
+          last_event_at?: string | null;
+          org_id: string;
+          requested_by?: string | null;
+          resumes_at?: string | null;
+          source: Database["app"]["Enums"]["subscription_pause_source"];
+          started_notified_at?: string | null;
+          starts_at: string;
+          stripe_subscription_link_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          end_reason?: Database["app"]["Enums"]["subscription_pause_end"] | null;
+          ended_at?: string | null;
+          ended_by?: string | null;
+          id?: string;
+          last_event_at?: string | null;
+          org_id?: string;
+          requested_by?: string | null;
+          resumes_at?: string | null;
+          source?: Database["app"]["Enums"]["subscription_pause_source"];
+          started_notified_at?: string | null;
+          starts_at?: string;
+          stripe_subscription_link_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subscription_pauses_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subscription_pauses_ended_by_fkey";
+            columns: ["ended_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subscription_pauses_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subscription_pauses_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subscription_pauses_stripe_subscription_link_id_fkey";
+            columns: ["stripe_subscription_link_id"];
+            isOneToOne: false;
+            referencedRelation: "stripe_subscription_links";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subscription_pauses_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       subscription_state_transition_rules: {
         Row: {
           from_state: Database["app"]["Enums"]["subscription_state"];
@@ -61117,6 +61365,20 @@ export type Database = {
         };
         Returns: string;
       };
+      add_blocklist_entry: {
+        Args: {
+          p_kind: Database["app"]["Enums"]["blocklist_entry_kind"];
+          p_org_id: string;
+          p_reason?: string;
+          p_value: string;
+        };
+        Returns: {
+          entry_id: string;
+          invites_revoked: number;
+          members_matching: number;
+          requests_declined: number;
+        }[];
+      };
       add_engagement_deliverable: {
         Args: { p_engagement_id: string; p_record_id: string };
         Returns: string;
@@ -61165,6 +61427,18 @@ export type Database = {
         Returns: string;
       };
       adopt_standard_library: { Args: { p_org_id: string }; Returns: Json };
+      agent_proposal_for_apply: {
+        Args: { p_suggestion_id: string };
+        Returns: {
+          fields: Json;
+          grant_scopes: string[];
+          operation_id: string;
+          operation_request: Json;
+          org_id: string;
+          suggestion_id: string;
+          target_id: string;
+        }[];
+      };
       agree_self_billing: { Args: { p_engagement_id: string }; Returns: string };
       ai_allowance: {
         Args: { p_org_id: string };
@@ -61337,6 +61611,11 @@ export type Database = {
           service_account_id: string;
         }[];
       };
+      authorize_storage_admin: { Args: { p_connection_id: string }; Returns: undefined };
+      authorize_storage_link: {
+        Args: { p_connection_id: string; p_document_id: string };
+        Returns: undefined;
+      };
       auto_join_offers: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -61389,6 +61668,28 @@ export type Database = {
           outcome: string;
           response_body: Json;
           response_status: number;
+        }[];
+      };
+      begin_integration_oauth: {
+        Args: { p_connection_id: string; p_redirect_uri: string };
+        Returns: {
+          code_challenge: string;
+          state: string;
+        }[];
+      };
+      begin_subscription_pause: {
+        Args: { p_livemode: boolean; p_months: number; p_org_id: string };
+        Returns: {
+          resumes_at: string;
+          starts_at: string;
+          stripe_subscription_id: string;
+        }[];
+      };
+      begin_subscription_resume: {
+        Args: { p_livemode: boolean; p_org_id: string };
+        Returns: {
+          started: boolean;
+          stripe_subscription_id: string;
         }[];
       };
       beo_display_key: {
@@ -62521,6 +62822,20 @@ export type Database = {
         Returns: string;
       };
       dispose_lost_item: { Args: { p_item_id: string; p_reason: string }; Returns: string };
+      document_file_links: {
+        Args: { p_document_id: string };
+        Returns: {
+          created_at: string;
+          external_modified_at: string;
+          file_name: string;
+          link_id: string;
+          link_mode: Database["app"]["Enums"]["file_link_mode"];
+          mime_type: string;
+          provider_code: string;
+          size_bytes: number;
+          web_url: string;
+        }[];
+      };
       domains_to_provision: {
         Args: { p_org_domain_ids: string[] };
         Returns: {
@@ -62811,6 +63126,16 @@ export type Database = {
         Returns: Database["app"]["Enums"]["scan_status"];
       };
       finish_import_batch: { Args: { p_import_batch_id: string }; Returns: undefined };
+      finish_integration_oauth: {
+        Args: { p_state: string };
+        Returns: {
+          code_verifier: string;
+          connection_id: string;
+          provider_code: string;
+          redirect_uri: string;
+          status: string;
+        }[];
+      };
       finish_job: {
         Args: { p_error?: string; p_job_id: string; p_succeeded: boolean };
         Returns: Database["app"]["Enums"]["job_status"];
@@ -63049,6 +63374,18 @@ export type Database = {
           longitude: number;
         }[];
       };
+      member_blocklist: {
+        Args: { p_org_id: string };
+        Returns: {
+          created_at: string;
+          created_by_name: string;
+          entry_id: string;
+          entry_kind: Database["app"]["Enums"]["blocklist_entry_kind"];
+          entry_value: string;
+          members_matching: number;
+          reason: string;
+        }[];
+      };
       message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
       minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
       my_access_paths: {
@@ -63087,6 +63424,21 @@ export type Database = {
           section_title: string;
           submission_id: string;
           submitted_at: string;
+        }[];
+      };
+      my_agent_proposals: {
+        Args: { p_org_id: string };
+        Returns: {
+          app_name: string;
+          created_at: string;
+          expires_at: string;
+          fields: Json;
+          oauth_app_id: string;
+          operation_id: string;
+          operation_request: Json;
+          suggestion_id: string;
+          summary: string;
+          target_id: string;
         }[];
       };
       my_auth_factor_labels: {
@@ -63381,6 +63733,7 @@ export type Database = {
           scopes: string[];
         }[];
       };
+      oauth_default_scopes: { Args: { p_client_id: string }; Returns: string[] };
       object_scan_status: {
         Args: { p_bucket_id: string; p_object_name: string };
         Returns: Database["app"]["Enums"]["scan_status"];
@@ -63457,6 +63810,8 @@ export type Database = {
           ownership_offered_by: string;
           ownership_transfer_id: string;
           past_due_since: string;
+          pause_resumes_at: string;
+          pause_starts_at: string;
           purge_after: string;
           read_only_field_seats: number;
           read_only_projects: number;
@@ -63686,6 +64041,22 @@ export type Database = {
           membership_id: string;
           person_id: string;
           role_type: Database["app"]["Enums"]["external_role_type"];
+        }[];
+      };
+      propose_agent_change: {
+        Args: {
+          p_fields: Json;
+          p_if_match: string;
+          p_operation_id: string;
+          p_operation_scopes: string[];
+          p_path: Json;
+          p_summary: string;
+          p_target_id: string;
+        };
+        Returns: {
+          expires_at: string;
+          org_slug: string;
+          suggestion_id: string;
         }[];
       };
       propose_representation: {
@@ -64194,6 +64565,19 @@ export type Database = {
           stripe_event_row_id: string;
         }[];
       };
+      record_subscription_pause: {
+        Args: {
+          p_livemode: boolean;
+          p_months: number;
+          p_org_id: string;
+          p_stripe_subscription_id: string;
+        };
+        Returns: string;
+      };
+      record_subscription_resume: {
+        Args: { p_livemode: boolean; p_org_id: string };
+        Returns: string;
+      };
       record_tracking_update: {
         Args: {
           p_delivered_at: string;
@@ -64266,6 +64650,19 @@ export type Database = {
           kiosk_device_id: string;
         }[];
       };
+      register_mcp_connector: {
+        Args: {
+          p_default_scopes: string[];
+          p_kind: Database["app"]["Enums"]["mcp_client_kind"];
+          p_name: string;
+          p_org_id: string;
+          p_redirect_uri: string;
+        };
+        Returns: {
+          client_id: string;
+          oauth_app_id: string;
+        }[];
+      };
       register_onboarding_upload: {
         Args: { p_checksum_sha256: string; p_object_name: string; p_title: string };
         Returns: string;
@@ -64290,6 +64687,7 @@ export type Database = {
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
+      remove_blocklist_entry: { Args: { p_entry_id: string }; Returns: undefined };
       reorder_favorites: { Args: { p_favorite_ids: string[]; p_org_id: string }; Returns: number };
       replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
@@ -64595,6 +64993,10 @@ export type Database = {
         Returns: string;
       };
       save_sidebar_layout: { Args: { p_items: Json; p_org_id: string }; Returns: number };
+      scim_email_blocked: {
+        Args: { p_email: string; p_identity_provider_id: string };
+        Returns: boolean;
+      };
       scim_provider_for_token: { Args: { p_token: string }; Returns: string };
       scim_provision: {
         Args: {
@@ -65040,6 +65442,15 @@ export type Database = {
         Returns: string;
       };
       start_report_run: { Args: { p_run_id: string }; Returns: undefined };
+      storage_connections_for_linking: {
+        Args: { p_org_id: string };
+        Returns: {
+          connection_id: string;
+          display_name: string;
+          external_account_name: string;
+          provider_code: string;
+        }[];
+      };
       store_integration_credential: {
         Args: {
           p_connection_id: string;
@@ -65152,6 +65563,17 @@ export type Database = {
         }[];
       };
       subscribe_external_account: { Args: { p_account_id: string }; Returns: string };
+      subscription_pause_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          months: number;
+          pause_id: string;
+          resumes_at: string;
+          source: Database["app"]["Enums"]["subscription_pause_source"];
+          started: boolean;
+          starts_at: string;
+        }[];
+      };
       supplier_diversity_programs: {
         Args: { p_account_id?: string };
         Returns: {
@@ -65174,9 +65596,12 @@ export type Database = {
         Args: {
           p_billing_interval: Database["app"]["Enums"]["billing_interval"];
           p_current_period_end: string;
+          p_event_created_at?: string;
           p_extra_seats?: number;
           p_livemode: boolean;
           p_org_id: string;
+          p_pause_collection?: boolean;
+          p_pause_resumes_at?: string;
           p_plan_code: string;
           p_stripe_customer_id: string;
           p_stripe_status: string;
@@ -65744,6 +66169,7 @@ export type Database = {
       background_check_result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
       billing_checkout_state: "Open" | "Completed" | "Expired";
       billing_interval: "Monthly" | "Annual";
+      blocklist_entry_kind: "Email" | "Domain";
       brand_radius_scale: "Compact" | "Default" | "Rounded";
       budget_line_type: "Cost" | "Labor" | "Fee" | "Contingency";
       calendar_conflict_policy: "XOS Wins" | "Provider Wins" | "Latest Wins";
@@ -65935,6 +66361,7 @@ export type Database = {
         "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
       lost_item_state: "Logged" | "Claimed" | "Returned" | "Disposed";
       loyalty_program_kind: "Airline" | "Hotel" | "Car Rental" | "Rail";
+      mcp_client_kind: "Claude" | "ChatGPT" | "Other";
       measurement_correction_kind: "Corrected" | "Withdrawn" | "Restored";
       measurement_source: "Manual" | "Import" | "Integration";
       merge_decision: "Pending" | "Merged" | "Kept Separate";
@@ -66114,6 +66541,9 @@ export type Database = {
       staffing_basis: "Ratio" | "Fixed" | "Declared";
       submittal_kind:
         "Shop Drawing" | "Product Data" | "Sample" | "Method Statement" | "Certificate" | "Other";
+      subscription_pause_end:
+        "Resumed by Owner" | "Resumed on schedule" | "Resumed in Stripe" | "Canceled";
+      subscription_pause_source: "Owner" | "Stripe";
       subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
       supplier_diversity_kind:
         | "Minority-Owned"
@@ -72330,6 +72760,7 @@ export const Constants = {
       background_check_result: ["Pending", "Clear", "Consider", "Suspended", "Canceled"],
       billing_checkout_state: ["Open", "Completed", "Expired"],
       billing_interval: ["Monthly", "Annual"],
+      blocklist_entry_kind: ["Email", "Domain"],
       brand_radius_scale: ["Compact", "Default", "Rounded"],
       budget_line_type: ["Cost", "Labor", "Fee", "Contingency"],
       calendar_conflict_policy: ["XOS Wins", "Provider Wins", "Latest Wins"],
@@ -72558,6 +72989,7 @@ export const Constants = {
       ],
       lost_item_state: ["Logged", "Claimed", "Returned", "Disposed"],
       loyalty_program_kind: ["Airline", "Hotel", "Car Rental", "Rail"],
+      mcp_client_kind: ["Claude", "ChatGPT", "Other"],
       measurement_correction_kind: ["Corrected", "Withdrawn", "Restored"],
       measurement_source: ["Manual", "Import", "Integration"],
       merge_decision: ["Pending", "Merged", "Kept Separate"],
@@ -72761,6 +73193,13 @@ export const Constants = {
         "Certificate",
         "Other",
       ],
+      subscription_pause_end: [
+        "Resumed by Owner",
+        "Resumed on schedule",
+        "Resumed in Stripe",
+        "Canceled",
+      ],
+      subscription_pause_source: ["Owner", "Stripe"],
       subscription_state: ["trialing", "active", "past_due", "read_only", "canceled"],
       supplier_diversity_kind: [
         "Minority-Owned",

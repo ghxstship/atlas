@@ -40,7 +40,7 @@ type T = ((key: string, values?: Record<string, string | number>) => string) & {
 };
 
 async function copy(namespace: string): Promise<T> {
-  return (await getTranslations(namespace)) as unknown as T;
+  return (await getTranslations(namespace as never)) as unknown as T;
 }
 
 function refusalKey(error: DataError, known: (rule: string) => boolean): string {
