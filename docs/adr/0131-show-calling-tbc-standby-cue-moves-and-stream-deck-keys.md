@@ -86,7 +86,7 @@ the call. Atlas took the current cue by position and Compass by the latest call,
 ## Consequences
 
 - Journey 15 keeps its "Call next cue" button and status lines; the console adds Go for the selected cue.
-- The run of show PDF ships version 2 from 2026-10-29 (ADR 0031 decision 3): TBC in Planned, a Department calls
+- The run of show PDF ships version 2 from 2026-10-31 (ADR 0031 decision 3): TBC in Planned, a Department calls
   column and the curfew; a show dated earlier re-renders with version 1.
 - The Live Activity and the home screen widgets show a TBC next cue as text with no countdown and never skip ahead to a
   later cue; showing its TBC label beside a running shift on the lock screen needs a Swift change, left for later.
