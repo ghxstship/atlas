@@ -11,7 +11,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(75);
+select plan(77);
 
 create function pg_temp.project(p_key text) returns uuid language sql stable as $$
   select p.id from app.projects p where p.org_id = pg_temp.id('lim_org') and p.project_key = p_key $$;
@@ -228,6 +228,12 @@ select ok(pg_temp.seat_read_only('quinn') and not pg_temp.seat_read_only('rosa')
 select pg_temp.as_platform();
 update app.memberships set valid_to = now() where id = pg_temp.id('omar@lim_org');
 select ok(not pg_temp.seat_read_only('omar') and pg_temp.seat_read_only('pia'), 'an ended membership leaves the read-only set');
+select pg_temp.as_user('pia');
+select lives_ok($$select app.leave_organization(pg_temp.id('lim_org'))$$,
+  'a member whose seat is read-only still leaves the org');
+select pg_temp.as_platform();
+select ok(exists (select 1 from app.offboardings o where o.membership_id = pg_temp.id('pia@lim_org') and o.deleted_at is null)
+  and not pg_temp.seat_read_only('pia'), 'leaving opens their offboarding and frees the seat');
 
 -- A console override --------------------------------------------------------------------------------------------------------
 insert into app.plan_overrides (org_id, override_kind, limit_code, limit_value, reason, expires_at) values

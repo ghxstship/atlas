@@ -550,9 +550,13 @@ declare
   v_membership uuid;
   v_audit constant text[] := array['archived_at', 'deleted_at', 'updated_at', 'updated_by'];
 begin
+  -- Only a seat held now counts: once a read-only seat leaves (app.leave_organization sets valid_to = now()), the
+  -- writes its leaving sets off in the same statement, such as the offboarding row of t81_open_offboarding, go through
+  -- before t93 drops the seat from the set.
   select x.limit_code into v_limit
   from app.over_limit_objects x join app.memberships m on m.id = x.membership_id
   where x.org_id = p_org_id and m.person_id = private.current_person_id()
+    and m.deleted_at is null and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now())
   order by x.limit_code
   limit 1;
   if v_limit is not null then
@@ -595,7 +599,7 @@ begin
 end;
 $$;
 
-comment on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) is 'Refuses a person''s write that touches what a plan limit made read-only (ADR 0081): any write of a person whose own seat is read-only, and any write to a read-only project or anything of it, however deep (private.row_project_id), except archiving or deleting that project. The personal tables (private.over_limit_personal_tables) stay writable; a read-only seat writes memberships and roles only to leave or drop its own roles. The refusal plan_limit_read_only names the limit and how to lift it.';
+comment on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) is 'Refuses a person''s write that touches what a plan limit made read-only (ADR 0081): any write of a person whose own seat is read-only, and any write to a read-only project or anything of it, however deep (private.row_project_id), except archiving or deleting that project. The personal tables (private.over_limit_personal_tables) stay writable; a read-only seat writes memberships and roles only to leave or drop its own roles, and once its membership has ended it is no longer a seat, so what leaving writes (its offboarding) goes through. The refusal plan_limit_read_only names the limit and how to lift it.';
 revoke all on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) from public, anon, authenticated;
 
 create or replace function private.refuse_read_only_org()
