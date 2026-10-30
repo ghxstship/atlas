@@ -125,7 +125,11 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/m
       when: due
         ? t("due", { when: stamp.format(new Date(due)) })
         : r.startsAt
-          ? t("starts", { when: stamp.format(new Date(r.startsAt)) })
+          ? t("starts", {
+              when: r.startTbc
+                ? w("work.values.tbcEstimate", { time: stamp.format(new Date(r.startsAt)) })
+                : stamp.format(new Date(r.startsAt)),
+            })
           : t("noDate"),
       due: at ? stamp.format(new Date(at)) : t("noDate"),
       dueState,

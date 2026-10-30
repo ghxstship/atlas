@@ -198,11 +198,14 @@ export function RunOfShowLive({
   showMode = false,
   nextLabel,
   countdownLabel,
+  next: nextIndex,
+  countdownText,
   testID,
 }: RunOfShowLiveProps): ReactElement {
   const theme = useTheme();
   const live = cues[current];
-  const next = cues[current + 1];
+  const next = cues[nextIndex ?? current + 1];
+  const shown = countdownText ?? clock(nextInSeconds);
   return (
     <View {...(testID === undefined ? {} : { testID })} style={{ gap: theme.space["12"] }}>
       {live ? (
@@ -235,12 +238,16 @@ export function RunOfShowLive({
               tone="secondary"
             >{`${nextLabel}: ${next.title}`}</Text>
           </View>
-          <View accessible aria-label={countdownLabel ?? clock(nextInSeconds)}>
+          <View accessible aria-label={countdownLabel ?? shown}>
             <Ink
               variant={showMode ? "heading32" : "heading24"}
-              color={nextInSeconds <= 10 ? theme.color.warningText : theme.color.textPrimary}
+              color={
+                countdownText === undefined && nextInSeconds <= 10
+                  ? theme.color.warningText
+                  : theme.color.textPrimary
+              }
             >
-              {clock(nextInSeconds)}
+              {shown}
             </Ink>
           </View>
         </View>
