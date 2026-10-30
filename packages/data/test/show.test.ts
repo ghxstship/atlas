@@ -26,11 +26,14 @@ import {
   saveDaySheet,
   shiftCuePlan,
   standbyCue,
+  unconfirmedCalls,
   unlinkCueEngagement,
   updateCue,
   updateRunOfShow,
+  withHeardCalls,
   zonedMidnight,
   type Cue,
+  type HeardCalls,
 } from "../src/show.ts";
 import { errorResponse, okResponse } from "./fake-client.ts";
 import { moduleClient, stepsOf } from "./module-client.ts";
@@ -360,6 +363,37 @@ describe("cues", () => {
     const done = cues.map((c) => ({ ...c, calledAt: "2027-06-05T22:00:00Z" }));
     expect(cueProgress(done, now)).toMatchObject({ current: 2, next: -1, complete: true });
     expect(cueProgress([cue()], now)).toMatchObject({ current: -1, next: 0, nextInSeconds: null });
+  });
+
+  it("keeps a heard call when a read that started before it lands after it", () => {
+    const now = new Date("2027-06-05T23:00:00Z");
+    const served = [
+      cue({ id: "a", calledAt: "2027-06-05T22:59:00Z" }),
+      cue({ id: "b", position: 2 }),
+      cue({ id: "c", position: 3 }),
+    ];
+    // Nothing heard: the read itself, so its progress can be reused.
+    expect(withHeardCalls(served, {})).toBe(served);
+    // B's call is heard (its Realtime row, or the console's answer): B is current, C is next.
+    let heard: HeardCalls = { ...unconfirmedCalls({}, served), b: "2027-06-05T22:59:58Z" };
+    const shown = withHeardCalls(served, heard);
+    expect(cueProgress(shown, now)).toMatchObject({ current: 1, next: 2 });
+    // A reread that began before B was called lands now: a new array, B still uncalled. B stays called.
+    const stale = served.map((c) => ({ ...c }));
+    expect(cueProgress(withHeardCalls(stale, heard), now)).toMatchObject({ current: 1, next: 2 });
+    // C's call is heard against that stale read: both calls are kept.
+    heard = { ...unconfirmedCalls(heard, stale), c: "2027-06-05T22:59:59Z" };
+    expect(Object.keys(heard)).toEqual(["b", "c"]);
+    // A read with B's call is B's source from then on; C's call is still only heard.
+    const fresh = stale.map((c) =>
+      c.id === "b" ? { ...c, calledAt: "2027-06-05T22:59:58.120Z", calledByName: "Sam" } : c,
+    );
+    heard = unconfirmedCalls(heard, fresh);
+    expect(heard).toEqual({ c: "2027-06-05T22:59:59Z" });
+    const merged = withHeardCalls(fresh, heard);
+    expect(merged[1]).toBe(fresh[1]);
+    expect(merged[2]?.calledAt).toBe("2027-06-05T22:59:59Z");
+    expect(cueProgress(merged, now)).toMatchObject({ current: 2, complete: true });
   });
 });
 

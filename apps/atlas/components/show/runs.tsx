@@ -10,7 +10,10 @@ import {
   type CueCallKind,
   type CueEngagement,
   type CueProgress,
+  type HeardCalls,
   type RunOfShow,
+  unconfirmedCalls,
+  withHeardCalls,
 } from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
 import {
@@ -656,26 +659,14 @@ export function RunBody({
   const view = useScheduleView();
   const time = (at: string | null) => formatScheduleTime(at, locale, tz, view, "time");
   const cueTime = useCueTime(tz);
-  // Calls heard from Realtime rows or from the caller's own answer (cue id to called_at), held only
-  // until the next server read: a device shows a call in the frame it arrives (Section 11.11, cue
-  // sync under 500 ms), and the reread that follows stays the source of truth (ADR 0119).
-  const [heard, setHeard] = useState<{
-    readonly base: readonly Cue[];
-    readonly calls: Readonly<Record<string, string>>;
-  } | null>(null);
-  const cues =
-    heard && heard.base === servedCues
-      ? servedCues.map((c) => {
-          const at = heard.calls[c.id];
-          return at && c.calledAt === null ? { ...c, calledAt: at } : c;
-        })
-      : servedCues;
+  // Calls heard from Realtime rows or from the caller's own answer (cue id to called_at), held until
+  // a server read carries them: a device shows a call in the frame it arrives (Section 11.11, cue
+  // sync under 500 ms), and a reread that started before the call cannot take it back (ADR 0119).
+  const [heard, setHeard] = useState<HeardCalls>({});
+  const cues = withHeardCalls(servedCues, heard);
   const progress = cues === servedCues ? served : cueProgress(cues);
   const onCalled = (cueId: string, calledAt: string) =>
-    setHeard((h) => ({
-      base: servedCues,
-      calls: { ...(h?.base === servedCues ? h.calls : {}), [cueId]: calledAt },
-    }));
+    setHeard((h) => ({ ...unconfirmedCalls(h, servedCues), [cueId]: calledAt }));
   const next = progress.next >= 0 ? cues[progress.next] : undefined;
   const current = progress.current >= 0 ? cues[progress.current] : undefined;
   const callsOf = (cueId: string) => calls.filter((c) => c.cueId === cueId);

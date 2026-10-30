@@ -461,6 +461,37 @@ export function cueProgress(cues: readonly Cue[], now: Date = new Date()): CuePr
   return progressOf(cues, now);
 }
 
+/**
+ * Cue calls a device heard before a server read showed them (ADR 0119): cue id to `called_at`, from the cue's
+ * Realtime row or from the caller's own answer.
+ */
+export type HeardCalls = Readonly<Record<string, string>>;
+
+/**
+ * The served cues with the calls heard since: a heard call fills a cue the read still shows uncalled. `called_at`
+ * is set once (app.call_cue refuses a second call) and never cleared, so a read that started before a call and
+ * lands after it cannot take the call back. Returns `served` itself when no heard call changes it.
+ */
+export function withHeardCalls(served: readonly Cue[], heard: HeardCalls): readonly Cue[] {
+  let changed = false;
+  const cues = served.map((c) => {
+    const at = heard[c.id];
+    if (at === undefined || c.calledAt !== null) return c;
+    changed = true;
+    return { ...c, calledAt: at };
+  });
+  return changed ? cues : served;
+}
+
+/**
+ * The heard calls a read does not show yet. Once a read carries a cue's call, that read is its source and the heard
+ * call is dropped; a read without it, however late it lands, keeps the heard call.
+ */
+export function unconfirmedCalls(heard: HeardCalls, served: readonly Cue[]): HeardCalls {
+  const confirmed = new Set(served.filter((c) => c.calledAt !== null).map((c) => c.id));
+  return Object.fromEntries(Object.entries(heard).filter(([id]) => !confirmed.has(id)));
+}
+
 // Department calls (app.cue_calls) ---------------------------------------------------------------------
 
 /** A department's instruction on a cue. */
