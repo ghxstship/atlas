@@ -3,7 +3,7 @@
 -- lock per engagement: outside teams name their crew before a deadline the producing org sets.
 --
 --   * app.engagements.roster_locks_at: after this instant the company side can no longer add, invite, edit Draft
---     entries or submit new names. NULL means no lock. Written only by app.set_roster_lock (t43 refuses the rest).
+--     entries or submit new names. NULL means no lock. Written only by app.set_roster_lock (t43 refuses the rest, on insert too).
 --   * t42_guard_roster_lock on app.engagement_roster_entries, after R4's t40: while locked it refuses roster_locked for
 --     a new non-self entry (every creator goes through R4's private.insert_roster_entry, so R10 and R12 inherit it), a
 --     Draft entry moving to Submitted, and a change of role or arrival on a non-self Draft entry. Returned entries stay
@@ -27,17 +27,19 @@ security definer
 set search_path = ''
 as $$
 begin
-  if new.roster_locks_at is distinct from old.roster_locks_at and not private.in_trusted_operation('roster_lock') then
+  if (case when tg_op = 'INSERT' then new.roster_locks_at is not null
+           else new.roster_locks_at is distinct from old.roster_locks_at end)
+     and not private.in_trusted_operation('roster_lock') then
     perform private.refuse('roster_lock_rpc', 'Set the names lock with app.set_roster_lock.');
   end if;
   return new;
 end;
 $$;
 
-comment on function private.guard_roster_lock_column() is 'Refuses roster_lock_rpc when app.engagements.roster_locks_at changes outside the roster_lock trusted operation of app.set_roster_lock.';
+comment on function private.guard_roster_lock_column() is 'Refuses roster_lock_rpc when app.engagements.roster_locks_at is set on insert, or changes on update, outside the roster_lock trusted operation of app.set_roster_lock.';
 revoke all on function private.guard_roster_lock_column() from public, anon, authenticated;
 
-create trigger t43_guard_roster_lock_column before update on app.engagements
+create trigger t43_guard_roster_lock_column before insert or update on app.engagements
   for each row execute function private.guard_roster_lock_column();
 
 create or replace function private.roster_locked(p_engagement_id uuid)

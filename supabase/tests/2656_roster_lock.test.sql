@@ -102,20 +102,24 @@ select throws_ok(format($$select app.add_roster_entry(%L, %L, null, null, null, 
   'roster_locked: Names are locked on this engagement. Ask the producing organization to change the roster.', 'a replacement is refused');
 select pg_temp.as_platform();
 
--- A new engaged person's self entry is still created under a lock (R4's t81 inserts it, and t42 lets a self entry through)
-select pg_temp.as_user('alice');
-with x as (insert into app.engagements (project_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
-    arrangement, start_date)
-  values (pg_temp.id('prj_a'), pg_temp.id('cp_v_a'), 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate', 'Per Engagement',
-    '2027-06-01') returning id)
+-- A new engaged person's self entry is still created under a lock. An engagement keeps its party, so the self entry is
+-- born with the engagement (R4's t81); the lock column is set on insert only inside the RPC's trusted operation (t43),
+-- which the test opens as the platform to put a lock in place before the self entry exists. t42 lets it through.
+-- (People insert engagements through definer RPCs only; t43 holds those to the RPC as well.)
+select throws_ok(format($$insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code,
+    worker_classification, pay_basis, arrangement, start_date, roster_locks_at)
+  values (%L, %L, %L, 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate', 'Per Engagement', '2027-06-01', now())$$,
+  pg_temp.id('prj_a'), pg_temp.id('pia'), pg_temp.id('cp_v_a')), 'XR001', 'roster_lock_rpc: Set the names lock with app.set_roster_lock.',
+  'a lock is not set on insert outside the RPC');
+select private.begin_trusted_operation('roster_lock');
+with x as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
+    pay_basis, arrangement, start_date, roster_locks_at)
+  values (pg_temp.id('prj_a'), pg_temp.id('pia'), pg_temp.id('cp_v_a'), 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate',
+    'Per Engagement', '2027-06-01', now() - interval '1 minute') returning id)
 insert into world select 'eng_vendor_a2', id from x;
-select app.set_roster_lock(pg_temp.id('eng_vendor_a2'), now() - interval '1 minute');
-select is(pg_temp.self_entry('eng_vendor_a2'), null, 'an engagement without a person has no self entry');
-select lives_ok(format($$update app.engagements set person_id = %L where id = %L$$, pg_temp.id('pia'), pg_temp.id('eng_vendor_a2')),
-  'naming the engaged person under a lock goes through');
-select pg_temp.as_platform();
-select isnt(pg_temp.self_entry('eng_vendor_a2'), null, 'and their self entry is created');
-select ok(private.roster_locked(pg_temp.id('eng_vendor_a2')), 'while the lock holds');
+select private.end_trusted_operation('roster_lock');
+select ok(private.roster_locked(pg_temp.id('eng_vendor_a2')), 'an engagement locked from the start');
+select isnt(pg_temp.self_entry('eng_vendor_a2'), null, 'still gets its engaged person''s self entry');
 
 -- Clearing the lock
 select pg_temp.lock('alice', null);
