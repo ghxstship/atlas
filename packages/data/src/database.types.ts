@@ -5654,6 +5654,65 @@ export type Database = {
           },
         ];
       };
+      application_question_templates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "application_question_templates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "application_question_templates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "application_question_templates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       application_state_transitions: {
         Row: {
           application_id: string;
@@ -5726,6 +5785,78 @@ export type Database = {
           },
           {
             foreignKeyName: "application_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      application_template_questions: {
+        Row: {
+          application_question_template_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          is_required: boolean;
+          org_id: string;
+          prompt: string;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          application_question_template_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          is_required?: boolean;
+          org_id: string;
+          prompt: string;
+          sort_order: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          application_question_template_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          is_required?: boolean;
+          org_id?: string;
+          prompt?: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "application_template_question_application_question_templat_fkey";
+            columns: ["application_question_template_id"];
+            isOneToOne: false;
+            referencedRelation: "application_question_templates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "application_template_questions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "application_template_questions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "application_template_questions_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -28556,6 +28687,88 @@ export type Database = {
           },
           {
             foreignKeyName: "opportunity_alerts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      opportunity_defaults: {
+        Row: {
+          application_question_template_id: string | null;
+          application_window_days: number | null;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          rate_type: Database["app"]["Enums"]["rate_type"] | null;
+          updated_at: string;
+          updated_by: string | null;
+          visibility: Database["app"]["Enums"]["opportunity_visibility"];
+        };
+        ComputedFields: never;
+        Insert: {
+          application_question_template_id?: string | null;
+          application_window_days?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          rate_type?: Database["app"]["Enums"]["rate_type"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          visibility?: Database["app"]["Enums"]["opportunity_visibility"];
+        };
+        Update: {
+          application_question_template_id?: string | null;
+          application_window_days?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          rate_type?: Database["app"]["Enums"]["rate_type"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          visibility?: Database["app"]["Enums"]["opportunity_visibility"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_defaults_application_question_template_id_fkey";
+            columns: ["application_question_template_id"];
+            isOneToOne: false;
+            referencedRelation: "application_question_templates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "opportunity_defaults_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "opportunity_defaults_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "opportunity_defaults_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: true;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "opportunity_defaults_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -61054,6 +61267,10 @@ export type Database = {
           p_starts_at: string;
         };
         Returns: boolean;
+      };
+      apply_question_template: {
+        Args: { p_opportunity_id: string; p_template_id: string };
+        Returns: number;
       };
       apply_sync_mutation: {
         Args: {
