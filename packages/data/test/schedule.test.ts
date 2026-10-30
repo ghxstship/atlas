@@ -18,8 +18,12 @@ import {
   lockedRecordIds,
   recordWindow,
   removeDependency,
+  placeRecord,
   rescheduleRecord,
+  scheduleWindow,
   setActual,
+  shiftRecords,
+  shiftUndoRows,
   updateBaseline,
 } from "../src/schedule.ts";
 import { errorResponse, okResponse } from "./fake-client.ts";
@@ -445,6 +449,8 @@ describe("reschedule", () => {
           isTarget: true,
           shiftStartDays: 1,
           shiftEndDays: 1,
+          shiftStartMinutes: 0,
+          shiftEndMinutes: 0,
           startsAt: "2027-06-02T12:00:00Z",
           endsAt: "2027-06-02T20:00:00Z",
           dueAt: null,
@@ -495,5 +501,178 @@ describe("reschedule", () => {
     expect((await lockedRecordIds(db, [summary({ id: "open" })])).ok).toBe(true);
     expect(calls).toHaveLength(1);
     expect((await lockedRecordIds(db, records)).ok).toBe(false);
+  });
+});
+
+describe("minute shifts, placements and their undo (P8)", () => {
+  const move = {
+    record_id: "a",
+    is_target: true,
+    shift_start_days: 0,
+    shift_end_days: 0,
+    shift_start_minutes: 30,
+    shift_end_minutes: 30,
+    starts_at: "2027-06-01T12:30:00+00:00",
+    ends_at: "2027-06-01T20:30:00+00:00",
+    due_at: null,
+    old_starts_at: "2027-06-01T12:00:00+00:00",
+    old_ends_at: "2027-06-01T20:00:00+00:00",
+    old_due_at: null,
+    baseline_starts_at: null,
+    baseline_ends_at: null,
+  };
+
+  it("sends minute offsets only when they are set, and reads the minutes each row moves", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:reschedule_record": [okResponse([move]), okResponse([])],
+    });
+    const preview = await rescheduleRecord(db, {
+      recordId: "a",
+      startDays: 0,
+      endDays: 0,
+      startMinutes: 30,
+      endMinutes: 30,
+    });
+    expect(preview.ok && preview.data[0]).toMatchObject({
+      shiftStartMinutes: 30,
+      shiftEndMinutes: 30,
+      startsAt: "2027-06-01T12:30:00+00:00",
+    });
+    expect(stepsOf(calls[0], "args")[0]?.[0]).toEqual({
+      p_record_id: "a",
+      p_start_days: 0,
+      p_end_days: 0,
+      p_commit: false,
+      p_start_minutes: 30,
+      p_end_minutes: 30,
+    });
+    await rescheduleRecord(db, { recordId: "a", startDays: 1, endDays: 1, startMinutes: 0 });
+    expect(stepsOf(calls[1], "args")[0]?.[0]).not.toHaveProperty("p_start_minutes");
+  });
+
+  it("shifts a selection, with each moved record's project", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:shift_records": [
+        okResponse([
+          { ...move, shift_start_minutes: null, shift_end_minutes: null, project_id: "p" },
+        ]),
+        errorResponse(
+          "XR001",
+          "shift_too_large: Shift at most 500 records at a time.",
+          "shift_too_large",
+        ),
+      ],
+    });
+    const shifted = await shiftRecords(db, {
+      recordIds: ["a", "b"],
+      minutes: 15,
+      commit: true,
+      reason: "Doors open late.",
+    });
+    expect(shifted.ok && shifted.data[0]).toMatchObject({
+      projectId: "p",
+      shiftStartMinutes: 0,
+      shiftEndMinutes: 0,
+    });
+    expect(stepsOf(calls[0], "args")[0]?.[0]).toEqual({
+      p_record_ids: ["a", "b"],
+      p_minutes: 15,
+      p_commit: true,
+      p_reason: "Doors open late.",
+    });
+    const refused = await shiftRecords(db, { recordIds: ["a"], minutes: 15 });
+    expect(refused.ok === false && refused.error).toMatchObject({ rule: "shift_too_large" });
+  });
+
+  it("places an undated record on a day", async () => {
+    const placed = { ...move, old_starts_at: null, old_ends_at: null };
+    const { db, calls } = moduleClient({
+      "rpc:place_record": [
+        okResponse([placed]),
+        errorResponse("XR001", "place_dated: This record already has dates.", "place_dated"),
+      ],
+    });
+    const result = await placeRecord(db, { recordId: "a", day: "2027-06-01" });
+    expect(result.ok && result.data[0]?.oldStartsAt).toBeNull();
+    expect(stepsOf(calls[0], "args")[0]?.[0]).toEqual({
+      p_record_id: "a",
+      p_day: "2027-06-01",
+      p_commit: false,
+    });
+    const refused = await placeRecord(db, {
+      recordId: "a",
+      day: "2027-06-01",
+      commit: true,
+      reason: "Placed.",
+    });
+    expect(refused.ok === false && refused.error).toMatchObject({ rule: "place_dated" });
+    expect(stepsOf(calls[1], "args")[0]?.[0]).toMatchObject({
+      p_commit: true,
+      p_reason: "Placed.",
+    });
+  });
+
+  it("undoes a move by setting the old dates back, expecting the new, null included", () => {
+    const moved = {
+      recordId: "a",
+      isTarget: true,
+      shiftStartDays: 0,
+      shiftEndDays: 0,
+      shiftStartMinutes: 0,
+      shiftEndMinutes: 0,
+      startsAt: "2027-06-01T13:00:00+00:00",
+      endsAt: "2027-06-01T21:00:00+00:00",
+      dueAt: null,
+      oldStartsAt: null,
+      oldEndsAt: null,
+      oldDueAt: null,
+      baselineStartsAt: null,
+      baselineEndsAt: null,
+    };
+    const still = { ...moved, recordId: "b", startsAt: null, endsAt: null };
+    expect(shiftUndoRows([moved, still])).toEqual([
+      {
+        id: "a",
+        set: { starts_at: null, ends_at: null, due_at: null },
+        expect: {
+          starts_at: "2027-06-01T13:00:00+00:00",
+          ends_at: "2027-06-01T21:00:00+00:00",
+          due_at: null,
+        },
+      },
+    ]);
+  });
+
+  it("draws a window of days when nothing is dated", async () => {
+    const empty = buildTimeline({ records: [], timeZone: "America/New_York", now: NOW });
+    expect(empty.days).toHaveLength(0);
+    const drawn = buildTimeline({
+      records: [],
+      timeZone: "America/New_York",
+      now: NOW,
+      window: { first: "2027-06-01", last: "2027-06-28" },
+    });
+    expect(drawn.days).toHaveLength(28);
+    expect(drawn.days[0]?.day).toBe("2027-06-01");
+    expect(drawn.today).toBe(1);
+    expect(drawn.bars).toEqual([]);
+
+    const { db } = moduleClient({
+      "from:projects": [
+        okResponse({ starts_on: "2027-07-01", ends_on: "2027-07-04" }),
+        okResponse({ starts_on: null, ends_on: null }),
+        errorResponse("XX000", "boom"),
+      ],
+    });
+    expect(await scheduleWindow(db, undefined, "2027-06-02")).toEqual({
+      ok: true,
+      data: { first: "2027-06-02", last: "2027-06-29" },
+    });
+    expect(await scheduleWindow(db, "p", "2027-06-02")).toEqual({
+      ok: true,
+      data: { first: "2027-07-01", last: "2027-07-04" },
+    });
+    expect((await scheduleWindow(db, "p", "2027-06-02")).ok && true).toBe(true);
+    expect((await scheduleWindow(db, "p", "2027-06-02")).ok).toBe(false);
   });
 });

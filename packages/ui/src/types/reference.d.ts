@@ -645,6 +645,11 @@ export interface TimelineProps {
    * change, so nothing is applied on the strength of the estimate alone.
    */
   awaitPreview?: boolean;
+  /**
+   * The day grid takes a dropped record (MIME type application/x-xos-record): called with the day
+   * index under the pointer, mirrored in right-to-left layouts, and the drag's payload.
+   */
+  onDayDrop?: (day: number, payload: string) => void;
 }
 export interface CalendarProps {
   /** First day of the month shown, as an ISO date such as 2026-11-01. */ month: string;

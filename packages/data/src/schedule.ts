@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import type { BulkRow } from "./bulk.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 import { listRecords, type RecordSummary } from "./work.ts";
@@ -170,10 +171,14 @@ export function intervalHours(text: string): number {
 
 /**
  * Lays dated records out on a day grid in a time zone, with dependency arrows and baseline
- * ghosts. Records without dates are left out; the caller lists them separately.
+ * ghosts. Records without dates are left out; the caller lists them separately (the schedule's
+ * Unscheduled list, P8). When nothing is dated, `window` still draws its days, so an undated record
+ * can be placed on one.
  */
 export function buildTimeline(input: {
   readonly records: readonly RecordSummary[];
+  /** First and last YYYY-MM-DD days drawn when no record is dated. */
+  readonly window?: { readonly first: string; readonly last: string };
   readonly dependencies?: readonly Dependency[];
   readonly baseline?: ReadonlyMap<string, { start: string | null; end: string | null }>;
   /** Ids of records that stay put when the schedule moves. */
@@ -193,23 +198,29 @@ export function buildTimeline(input: {
         r.window !== null,
     )
     .sort((a, b) => a.window.start.localeCompare(b.window.start));
-  if (dated.length === 0) return { days: [], bars: [] };
+  if (dated.length === 0 && !input.window) return { days: [], bars: [] };
   const pad = input.pad ?? 1;
-  const firstDay = addDays(
-    dated.reduce(
-      (m, r) => (localDay(r.window.start, tz) < m ? localDay(r.window.start, tz) : m),
-      "9999-12-31",
-    ),
-    -pad,
-  );
-  const lastDay = addDays(
-    dated.reduce(
-      (m, r) => (localDay(r.window.end, tz) > m ? localDay(r.window.end, tz) : m),
-      "0000-01-01",
-    ),
-    pad,
-  );
-  const count = Math.min(dayDiff(firstDay, lastDay) + 1, input.maxDays ?? 120);
+  const firstDay =
+    dated.length === 0 && input.window
+      ? input.window.first
+      : addDays(
+          dated.reduce(
+            (m, r) => (localDay(r.window.start, tz) < m ? localDay(r.window.start, tz) : m),
+            "9999-12-31",
+          ),
+          -pad,
+        );
+  const lastDay =
+    dated.length === 0 && input.window
+      ? input.window.last
+      : addDays(
+          dated.reduce(
+            (m, r) => (localDay(r.window.end, tz) > m ? localDay(r.window.end, tz) : m),
+            "0000-01-01",
+          ),
+          pad,
+        );
+  const count = Math.max(1, Math.min(dayDiff(firstDay, lastDay) + 1, input.maxDays ?? 120));
   const days: TimelineDay[] = Array.from({ length: count }, (_, i) => {
     const day = addDays(firstDay, i);
     const weekday = new Date(`${day}T00:00:00Z`).getUTCDay();
@@ -279,6 +290,27 @@ export function calendarEvents(
   return events.sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/**
+ * The days a timeline draws when no record is dated (P8): the project's start to end dates, or
+ * today and the 27 days after it when the project has none (or none is given).
+ */
+export async function scheduleWindow(
+  db: XosClient,
+  projectId: string | undefined,
+  today: string,
+): Promise<Result<{ first: string; last: string }>> {
+  const fallback = { first: today, last: addDays(today, 27) };
+  if (!projectId) return ok(fallback);
+  const { data, error } = await db
+    .from("projects")
+    .select("starts_on, ends_on")
+    .eq("id", projectId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data?.starts_on || !data.ends_on || data.ends_on < data.starts_on) return ok(fallback);
+  return ok({ first: data.starts_on, last: data.ends_on });
+}
+
 // Reschedule -----------------------------------------------------------------------------------------
 
 /** A record a reschedule moves, or the record rescheduled itself (`isTarget`). */
@@ -288,6 +320,9 @@ export interface RescheduleMove {
   /** Whole days of the project's calendar the start and the end move. */
   readonly shiftStartDays: number;
   readonly shiftEndDays: number;
+  /** Whole minutes of the project's wall clock the start and the end move, after the days (P8). */
+  readonly shiftStartMinutes: number;
+  readonly shiftEndMinutes: number;
   readonly startsAt: string | null;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
@@ -299,10 +334,47 @@ export interface RescheduleMove {
   readonly baselineEndsAt: string | null;
 }
 
+interface MoveRow {
+  readonly record_id: string;
+  readonly is_target: boolean;
+  readonly shift_start_days: number;
+  readonly shift_end_days: number;
+  readonly shift_start_minutes: number | null;
+  readonly shift_end_minutes: number | null;
+  readonly starts_at: string | null;
+  readonly ends_at: string | null;
+  readonly due_at: string | null;
+  readonly old_starts_at: string | null;
+  readonly old_ends_at: string | null;
+  readonly old_due_at: string | null;
+  readonly baseline_starts_at: string | null;
+  readonly baseline_ends_at: string | null;
+}
+
+function toMove(r: MoveRow): RescheduleMove {
+  return {
+    recordId: r.record_id,
+    isTarget: r.is_target,
+    shiftStartDays: r.shift_start_days,
+    shiftEndDays: r.shift_end_days,
+    shiftStartMinutes: r.shift_start_minutes ?? 0,
+    shiftEndMinutes: r.shift_end_minutes ?? 0,
+    startsAt: r.starts_at ?? null,
+    endsAt: r.ends_at ?? null,
+    dueAt: r.due_at ?? null,
+    oldStartsAt: r.old_starts_at ?? null,
+    oldEndsAt: r.old_ends_at ?? null,
+    oldDueAt: r.old_due_at ?? null,
+    baselineStartsAt: r.baseline_starts_at ?? null,
+    baselineEndsAt: r.baseline_ends_at ?? null,
+  };
+}
+
 /**
- * Moves or resizes a record by whole days and pushes the successors its dependencies need moved
- * (app.reschedule_record, migration 2260, ADR 0111). Without `commit` it only previews: the same
- * rows, nothing written. Cycles, locked records and impossible windows come back as refusals.
+ * Moves or resizes a record by whole days and then whole minutes, and pushes the successors its
+ * dependencies need moved (app.reschedule_record, migrations 2260 and 2850, ADR 0111): by whole days
+ * when the change has no minute part, else by whole minutes. Without `commit` it only previews: the
+ * same rows, nothing written. Cycles, locked records and impossible windows come back as refusals.
  */
 export async function rescheduleRecord(
   db: XosClient,
@@ -310,6 +382,8 @@ export async function rescheduleRecord(
     readonly recordId: string;
     readonly startDays: number;
     readonly endDays: number;
+    readonly startMinutes?: number;
+    readonly endMinutes?: number;
     readonly commit?: boolean;
     readonly reason?: string;
   },
@@ -319,25 +393,83 @@ export async function rescheduleRecord(
     p_start_days: input.startDays,
     p_end_days: input.endDays,
     p_commit: input.commit ?? false,
+    ...(input.startMinutes ? { p_start_minutes: input.startMinutes } : {}),
+    ...(input.endMinutes ? { p_end_minutes: input.endMinutes } : {}),
     ...(input.reason ? { p_reason: input.reason } : {}),
   });
   if (error) return fail(toDataError(error));
-  return ok(
-    (data ?? []).map((r) => ({
-      recordId: r.record_id,
-      isTarget: r.is_target,
-      shiftStartDays: r.shift_start_days,
-      shiftEndDays: r.shift_end_days,
-      startsAt: r.starts_at ?? null,
-      endsAt: r.ends_at ?? null,
-      dueAt: r.due_at ?? null,
-      oldStartsAt: r.old_starts_at ?? null,
-      oldEndsAt: r.old_ends_at ?? null,
-      oldDueAt: r.old_due_at ?? null,
-      baselineStartsAt: r.baseline_starts_at ?? null,
-      baselineEndsAt: r.baseline_ends_at ?? null,
-    })),
-  );
+  return ok((data ?? []).map(toMove));
+}
+
+/** A record a multi-record shift moves, with its project. */
+export interface ShiftMove extends RescheduleMove {
+  readonly projectId: string;
+}
+
+/**
+ * Shifts up to 500 records by the same minutes and pushes their successors outside the selection
+ * (app.shift_records, migration 2850). The selected records move rigidly together; undated and
+ * Canceled ones stay where they are and are not returned. Without `commit` it only previews.
+ */
+export async function shiftRecords(
+  db: XosClient,
+  input: {
+    readonly recordIds: readonly string[];
+    readonly minutes: number;
+    readonly commit?: boolean;
+    readonly reason?: string;
+  },
+): Promise<Result<ShiftMove[]>> {
+  const { data, error } = await db.rpc("shift_records", {
+    p_record_ids: [...input.recordIds],
+    p_minutes: input.minutes,
+    p_commit: input.commit ?? false,
+    ...(input.reason ? { p_reason: input.reason } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok((data ?? []).map((r) => ({ ...toMove(r), projectId: r.project_id })));
+}
+
+/**
+ * Places an undated record on a day of its project's calendar (app.place_record, migration 2851):
+ * a Milestone is due at 17:00, any other kind runs 09:00 to 17:00, and its successors are pushed by
+ * whole days. Without `commit` it only previews. A dated record is refused (place_dated).
+ */
+export async function placeRecord(
+  db: XosClient,
+  input: {
+    readonly recordId: string;
+    readonly day: string;
+    readonly commit?: boolean;
+    readonly reason?: string;
+  },
+): Promise<Result<RescheduleMove[]>> {
+  const { data, error } = await db.rpc("place_record", {
+    p_record_id: input.recordId,
+    p_day: input.day,
+    p_commit: input.commit ?? false,
+    ...(input.reason ? { p_reason: input.reason } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok((data ?? []).map(toMove));
+}
+
+/**
+ * The rows that undo a committed shift, placement or reschedule through app.bulk_update_records:
+ * each moved record's old dates set back, expecting the dates the move wrote, so an undo after
+ * someone else changed a record is refused (bulk_stale). A null old date sets the date back to
+ * null, which returns a placed record to the Unscheduled list.
+ */
+export function shiftUndoRows(moves: readonly RescheduleMove[]): BulkRow[] {
+  return moves
+    .filter(
+      (m) => m.startsAt !== m.oldStartsAt || m.endsAt !== m.oldEndsAt || m.dueAt !== m.oldDueAt,
+    )
+    .map((m) => ({
+      id: m.recordId,
+      set: { starts_at: m.oldStartsAt, ends_at: m.oldEndsAt, due_at: m.oldDueAt },
+      expect: { starts_at: m.startsAt, ends_at: m.endsAt, due_at: m.dueAt },
+    }));
 }
 
 /**

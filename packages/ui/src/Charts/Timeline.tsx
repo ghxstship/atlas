@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type DragEvent,
   type KeyboardEvent,
   type PointerEvent,
   type ReactElement,
@@ -37,6 +38,24 @@ interface Drag {
 /** Pointer travel, in pixels, before a press on a bar becomes a drag. */
 const DRAG_SLOP = 4;
 
+/** The drag payload type of a record dropped on the day grid (`onDayDrop`). */
+export const RECORD_MIME = "application/x-xos-record";
+
+/**
+ * The day index under a pointer on a day grid `count` days wide, counted from the inline start: from
+ * the left edge in left-to-right layouts and from the right edge in right-to-left ones.
+ */
+export function dayAtPointer(
+  clientX: number,
+  rect: { readonly left: number; readonly right: number },
+  dayWidth: number,
+  count: number,
+  rtl: boolean,
+): number {
+  const offset = rtl ? rect.right - clientX : clientX - rect.left;
+  return Math.max(0, Math.min(count - 1, Math.floor(offset / dayWidth)));
+}
+
 /**
  * The Gantt view: bars by state, baselines, dependencies, gate markers, today and the critical path.
  * The drawing is hidden from assistive technology; a table beside it carries every row.
@@ -47,6 +66,10 @@ const DRAG_SLOP = 4;
  * `links` show where they would land, a preview line says what moves and whether the critical path
  * changes, and a live region reads the same line. Apply takes the second interaction. With
  * `awaitPreview`, Apply and Enter wait for the page's own preview of the exact change.
+ *
+ * With `onDayDrop`, the day grid accepts a dragged record (MIME type application/x-xos-record) and
+ * reports the day under the pointer, mirrored in right-to-left layouts (P8, the schedule's
+ * Unscheduled list). The page offers a keyboard path of its own beside it.
  */
 export function Timeline({
   label,
@@ -60,6 +83,7 @@ export function Timeline({
   onPendingChange,
   preview = null,
   awaitPreview = false,
+  onDayDrop,
 }: TimelineProps): ReactElement {
   const t = useT();
   const format = useFormat();
@@ -68,7 +92,8 @@ export function Timeline({
   const markerId = `${uid}-arrow`;
   const rowH = 36;
   const width = days.length * dayWidth;
-  const height = rows.length * rowH;
+  // A grid with no rows still takes a drop: two rows high.
+  const height = Math.max(rows.length, onDayDrop ? 2 : 0) * rowH;
   const editable = onReschedule !== undefined;
   const [draft, setDraft] = useState<TimelineChange | null>(null);
   const [applying, setApplying] = useState(false);
@@ -372,6 +397,27 @@ export function Timeline({
             className="relative"
             style={{ inlineSize: width }}
             {...(editable ? {} : { "aria-hidden": true })}
+            {...(onDayDrop
+              ? {
+                  "data-day-drop": "",
+                  onDragOver: (e: DragEvent<HTMLDivElement>) => {
+                    if (e.dataTransfer.types.includes(RECORD_MIME)) {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }
+                  },
+                  onDrop: (e: DragEvent<HTMLDivElement>) => {
+                    const payload = e.dataTransfer.getData(RECORD_MIME);
+                    if (!payload) return;
+                    e.preventDefault();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    onDayDrop(
+                      dayAtPointer(e.clientX, rect, dayWidth, days.length, dir === "rtl"),
+                      payload,
+                    );
+                  },
+                }
+              : {})}
           >
             <div {...(editable ? { "aria-hidden": true } : {})}>
               <div

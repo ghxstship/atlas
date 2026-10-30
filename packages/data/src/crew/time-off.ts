@@ -84,7 +84,7 @@ interface RequestRow {
 }
 
 /** Days from first to last, both counted: the day count before any holiday is taken out. */
-export function daysBetween(startsOn: string, endsOn: string): number {
+export function dayCountBetween(startsOn: string, endsOn: string): number {
   return (
     Math.round(
       (Date.parse(`${endsOn}T00:00:00Z`) - Date.parse(`${startsOn}T00:00:00Z`)) / 86_400_000,
@@ -101,7 +101,7 @@ function toRequest(r: RequestRow): TimeOffRequest {
     startsOn: r.starts_on,
     endsOn: r.ends_on,
     hours: Number(r.hours),
-    dayCount: r.time_off_day_count ?? daysBetween(r.starts_on, r.ends_on),
+    dayCount: r.time_off_day_count ?? dayCountBetween(r.starts_on, r.ends_on),
     state: r.time_off_state,
     createdBy: r.created_by,
     createdAt: r.created_at,

@@ -1,4 +1,5 @@
 import type { XosClient } from "../client.ts";
+import type { Json } from "../database.types.ts";
 import { fail, ok, toDataError, type Result } from "../result.ts";
 import { landed } from "./shared.ts";
 
@@ -153,6 +154,11 @@ export interface HolidayCalendar {
   readonly subdivisionCode: string | null;
   /** Applies across the org (to work in its subdivision when it names one). */
   readonly appliesToOrg: boolean;
+  /**
+   * Work on one of its holidays pays this multiple of the rate, 1 to 3 (P8, 2854): an org pay policy,
+   * not jurisdictional overtime. Null pays no premium.
+   */
+  readonly workedHolidayMultiplier: number | null;
   /** Venues the calendar is assigned to, by name. */
   readonly venues: readonly {
     readonly assignmentId: string;
@@ -175,6 +181,7 @@ interface CalendarRow {
   name: string;
   subdivision_code: string | null;
   applies_to_org: boolean;
+  worked_holiday_multiplier: number | string | null;
   holidays:
     | {
         id: string;
@@ -202,7 +209,7 @@ export async function listHolidayCalendars(
   const { data, error } = await db
     .from("holiday_calendars")
     .select(
-      "id, name, subdivision_code, applies_to_org, holidays:holidays!holidays_holiday_calendar_id_fkey(id, observed_on, name, paid_hours, deleted_at), venues:holiday_calendar_venues!holiday_calendar_venues_holiday_calendar_id_fkey(id, venue_id, deleted_at, venue:venues!holiday_calendar_venues_venue_id_fkey(name))",
+      "id, name, subdivision_code, applies_to_org, worked_holiday_multiplier, holidays:holidays!holidays_holiday_calendar_id_fkey(id, observed_on, name, paid_hours, deleted_at), venues:holiday_calendar_venues!holiday_calendar_venues_holiday_calendar_id_fkey(id, venue_id, deleted_at, venue:venues!holiday_calendar_venues_venue_id_fkey(name))",
     )
     .eq("org_id", orgId)
     .is("deleted_at", null)
@@ -214,6 +221,8 @@ export async function listHolidayCalendars(
       name: c.name,
       subdivisionCode: c.subdivision_code,
       appliesToOrg: c.applies_to_org,
+      workedHolidayMultiplier:
+        c.worked_holiday_multiplier === null ? null : Number(c.worked_holiday_multiplier),
       venues: (c.venues ?? [])
         .filter((v) => v.deleted_at === null)
         .map((v) => ({ assignmentId: v.id, venueId: v.venue_id, name: v.venue?.name ?? "" }))
@@ -235,6 +244,8 @@ export interface HolidayCalendarInput {
   readonly name: string;
   readonly subdivisionCode: string | null;
   readonly appliesToOrg: boolean;
+  /** Left out keeps the calendar's multiplier; null clears it. */
+  readonly workedHolidayMultiplier?: number | null;
 }
 
 export async function createHolidayCalendar(
@@ -249,6 +260,9 @@ export async function createHolidayCalendar(
       name: input.name.trim(),
       subdivision_code: input.subdivisionCode,
       applies_to_org: input.appliesToOrg,
+      ...(input.workedHolidayMultiplier !== undefined
+        ? { worked_holiday_multiplier: input.workedHolidayMultiplier }
+        : {}),
     })
     .select("id")
     .single();
@@ -267,6 +281,9 @@ export async function updateHolidayCalendar(
       name: input.name.trim(),
       subdivision_code: input.subdivisionCode,
       applies_to_org: input.appliesToOrg,
+      ...(input.workedHolidayMultiplier !== undefined
+        ? { worked_holiday_multiplier: input.workedHolidayMultiplier }
+        : {}),
     })
     .eq("id", id)
     .is("deleted_at", null)
@@ -317,6 +334,48 @@ export async function addHoliday(
     .single();
   if (error) return fail(toDataError(error));
   return ok({ id: data.id });
+}
+
+/** The holiday presets app.add_holiday_preset knows (P8, 2854), with the codes of their holidays. */
+export const HOLIDAY_PRESETS = {
+  us_federal: [
+    "new_years_day",
+    "mlk_day",
+    "washingtons_birthday",
+    "memorial_day",
+    "juneteenth",
+    "independence_day",
+    "labor_day",
+    "columbus_day",
+    "veterans_day",
+    "thanksgiving",
+    "christmas_day",
+  ],
+} as const;
+export type HolidayPreset = keyof typeof HOLIDAY_PRESETS;
+
+/**
+ * Adds a preset's holidays for a year (2021 to 2100) to a calendar, 8 paid hours each, skipping the
+ * days it already holds; returns how many it added. `names` gives each holiday's name by code in the
+ * viewer's language; the database falls back to English.
+ */
+export async function addHolidayPreset(
+  db: XosClient,
+  input: {
+    readonly calendarId: string;
+    readonly preset: HolidayPreset;
+    readonly year: number;
+    readonly names?: Readonly<Record<string, string>>;
+  },
+): Promise<Result<{ added: number; total: number }>> {
+  const { data, error } = await db.rpc("add_holiday_preset", {
+    p_holiday_calendar_id: input.calendarId,
+    p_preset: input.preset,
+    p_year: input.year,
+    ...(input.names ? { p_names: input.names as unknown as Json } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ added: data, total: HOLIDAY_PRESETS[input.preset].length });
 }
 
 export async function removeHoliday(

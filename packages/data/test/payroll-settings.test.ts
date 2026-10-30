@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   addHoliday,
+  addHolidayPreset,
   assignHolidayCalendarVenue,
   createEarningCode,
   createHolidayCalendar,
   createTimeOffPolicy,
-  daysBetween,
+  dayCountBetween,
+  HOLIDAY_PRESETS,
   listHolidayCalendars,
   listTimeOffRequests,
   normalizeEarningCode,
@@ -129,6 +131,7 @@ describe("holiday calendars", () => {
             name: "United States",
             subdivision_code: null,
             applies_to_org: true,
+            worked_holiday_multiplier: "1.5",
             holidays: [
               {
                 id: "h2",
@@ -163,6 +166,7 @@ describe("holiday calendars", () => {
             name: "Empty",
             subdivision_code: "US-CA",
             applies_to_org: false,
+            worked_holiday_multiplier: null,
             holidays: null,
             venues: null,
           },
@@ -177,6 +181,7 @@ describe("holiday calendars", () => {
         name: "United States",
         subdivisionCode: null,
         appliesToOrg: true,
+        workedHolidayMultiplier: 1.5,
         venues: [
           { assignmentId: "a1", venueId: "v1", name: "Arena" },
           { assignmentId: "a2", venueId: "v2", name: "Pier" },
@@ -191,6 +196,7 @@ describe("holiday calendars", () => {
         name: "Empty",
         subdivisionCode: "US-CA",
         appliesToOrg: false,
+        workedHolidayMultiplier: null,
         venues: [],
         holidays: [],
       },
@@ -246,9 +252,9 @@ describe("holiday calendars", () => {
 
 describe("time off day counts", () => {
   it("counts both ends", () => {
-    expect(daysBetween("2027-07-02", "2027-07-06")).toBe(5);
-    expect(daysBetween("2027-07-02", "2027-07-02")).toBe(1);
-    expect(daysBetween("2027-03-13", "2027-03-15")).toBe(3);
+    expect(dayCountBetween("2027-07-02", "2027-07-06")).toBe(5);
+    expect(dayCountBetween("2027-07-02", "2027-07-02")).toBe(1);
+    expect(dayCountBetween("2027-03-13", "2027-03-15")).toBe(3);
   });
 
   it("reads the computed day count, falling back to the span", async () => {
@@ -276,5 +282,77 @@ describe("time off day counts", () => {
     const requests = await listTimeOffRequests(db, { orgId: "o1" });
     expect(requests.ok && requests.data.map((r) => r.dayCount)).toEqual([4, 5]);
     expect(String(calls[0]?.steps[0]?.[1]?.[0])).toContain("time_off_day_count");
+  });
+});
+
+describe("holiday presets and the worked-holiday multiplier (P8, 2854)", () => {
+  it("adds a preset's holidays with names by code, and says how many of the eleven were added", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:add_holiday_preset": [
+        okResponse(9),
+        errorResponse(
+          "XR001",
+          "holiday_preset_year: Choose a year from 2021 to 2100.",
+          "holiday_preset_year",
+        ),
+      ],
+    });
+    expect(HOLIDAY_PRESETS.us_federal).toHaveLength(11);
+    const added = await addHolidayPreset(db, {
+      calendarId: "c1",
+      preset: "us_federal",
+      year: 2027,
+      names: { christmas_day: "Navidad" },
+    });
+    expect(added).toEqual({ ok: true, data: { added: 9, total: 11 } });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_holiday_calendar_id: "c1",
+          p_preset: "us_federal",
+          p_year: 2027,
+          p_names: { christmas_day: "Navidad" },
+        },
+      ],
+    ]);
+    const refused = await addHolidayPreset(db, {
+      calendarId: "c1",
+      preset: "us_federal",
+      year: 2200,
+    });
+    expect(refused.ok === false && refused.error).toMatchObject({ rule: "holiday_preset_year" });
+  });
+
+  it("writes the multiplier only when the form gives one, and null clears it", async () => {
+    const { db, calls } = fakeClient({
+      "from:holiday_calendars": [okResponse({ id: "c1" }), okResponse([{ id: "c1" }])],
+    });
+    const input = { name: "US", subdivisionCode: null, appliesToOrg: true };
+    await createHolidayCalendar(db, "o1", { ...input, workedHolidayMultiplier: 1.5 });
+    expect(calls[0]?.steps[0]).toEqual([
+      "insert",
+      [
+        {
+          org_id: "o1",
+          name: "US",
+          subdivision_code: null,
+          applies_to_org: true,
+          worked_holiday_multiplier: 1.5,
+        },
+      ],
+    ]);
+    await updateHolidayCalendar(db, "c1", { ...input, workedHolidayMultiplier: null });
+    expect(calls[1]?.steps[0]).toEqual([
+      "update",
+      [
+        {
+          name: "US",
+          subdivision_code: null,
+          applies_to_org: true,
+          worked_holiday_multiplier: null,
+        },
+      ],
+    ]);
   });
 });

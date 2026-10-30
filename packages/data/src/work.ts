@@ -701,11 +701,17 @@ export async function restoreRecord(db: XosClient, id: string): Promise<Result<n
 /**
  * Copies a record into a new Proposed record of the same project (journey 70): kind, subtype,
  * title, scope, phase, URID, XYZ tag, people, dates and the kind's attributes. With children, the
- * checklist is copied too, every item open.
+ * checklist is copied too, every item open. `withoutDates` leaves the copy undated, so it waits in
+ * the schedule's Unscheduled list (P8).
  */
 export async function duplicateRecord(
   db: XosClient,
-  input: { readonly orgId: string; readonly recordId: string; readonly withChildren?: boolean },
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly withChildren?: boolean;
+    readonly withoutDates?: boolean;
+  },
 ): Promise<Result<{ id: string; number: number }>> {
   const source = await getRecord(db, input.recordId);
   if (!source.ok) return source;
@@ -724,9 +730,9 @@ export async function duplicateRecord(
     xyz: r.xyz,
     ownerId: r.ownerId,
     accountableId: r.accountableId,
-    startsAt: r.startsAt,
-    endsAt: r.endsAt,
-    dueAt: r.dueAt,
+    startsAt: input.withoutDates ? null : r.startsAt,
+    endsAt: input.withoutDates ? null : r.endsAt,
+    dueAt: input.withoutDates ? null : r.dueAt,
     timeZone: r.timeZone,
     extension: extension.data,
   });
