@@ -3,7 +3,7 @@
 -- users while app.record_asset_custody works through the scan and sets Deployed, app.apply_asset_scan keeps one
 -- signature and stays a sync RPC and moves a lot quantity out and back for an engagement with the entry and the hold,
 -- a roster per diem once a day, and a mismatched allocation refused on credentials, fulfillment lines, rooms, travel
--- and per diems.
+-- and per diems, and re-installed tenant guards that keep the references the tables already had.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -162,6 +162,16 @@ select lives_ok(format($$insert into app.credentials (credential_category_id, ho
   pg_temp.id('cat_crew'), pg_temp.id('kai'), pg_temp.id('eng_vendor_a')), 'a rostered person passes credential_engagement_holder');
 select throws_ok(format($$insert into app.credentials (credential_category_id, holder_person_id, engagement_id) values (%L, %L, %L)$$,
   pg_temp.id('cat_crew'), pg_temp.id('una'), pg_temp.id('eng_vendor_a')), 'XR001', null, 'a Draft entry''s person does not');
+
+-- Re-installing the tenant guards keeps the references the tables already had.
+select ok((select encode(t.tgargs, 'escape') like '%app.fulfillments%app.engagements%engagement_id%app.advance_allocations%'
+           from pg_catalog.pg_trigger t
+           where t.tgrelid = 'app.travel_segments'::regclass and t.tgname = 't30_refuse_cross_org_reference'),
+  'travel_segments keeps the engagement reference from 0971 in its cross-org guard');
+select ok((select encode(t.tgargs, 'escape') like '%app.memberships%app.engagements%engagement_roster_entries%advance_allocations%'
+           from pg_catalog.pg_trigger t
+           where t.tgrelid = 'app.per_diems'::regclass and t.tgname = 't30_refuse_cross_org_reference'),
+  'per_diems keeps the membership and engagement references from 0981');
 
 select * from finish();
 rollback;

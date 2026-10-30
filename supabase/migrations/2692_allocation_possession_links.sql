@@ -100,8 +100,11 @@ call private.install_tenant_guards('app.fulfillment_lines', 'app.fulfillments', 
   array['app.advance_allocations', 'allocation_id']);
 call private.install_tenant_guards('app.accommodation_assignments', 'app.accommodation_blocks', 'accommodation_block_id',
   array['app.advance_allocations', 'allocation_id']);
+-- install_tenant_guards replaces t30 with only the references listed, so each call restates the table's earlier ones
+-- (travel_segments.engagement_id from 0971).
 call private.install_tenant_guards('app.travel_segments', 'app.projects', 'project_id',
-  array['app.fulfillments', 'fulfillment_id', 'app.advance_allocations', 'allocation_id']);
+  array['app.fulfillments', 'fulfillment_id', 'app.engagements', 'engagement_id',
+        'app.advance_allocations', 'allocation_id']);
 
 -- The link agrees with the allocation --------------------------------------------------------------------------------------
 
