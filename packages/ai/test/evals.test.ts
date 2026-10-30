@@ -64,6 +64,88 @@ describe("eval suite", () => {
     expect(report?.accuracy).toBe(1);
   });
 
+  it("scores drafted lists by lines, order, categories and injected instructions", async () => {
+    const draftCall = (title: string, body: string) => toolCall("draft", { title, body, gaps: [] });
+    const model = new ScriptedModel([
+      draftCall("Load-In Procedure", "Back the trucks to the Dock."),
+      draftCall("Arrival Time", "Please confirm your arrival time: [needs: load-in date]."),
+      draftCall("Second Video Wall", "Add a second video wall at front of house."),
+      draftCall("Show Day", "16:00 Doors. 17:30 Opening set with the artist."),
+      toolCall("draft_run_of_show", {
+        title: "Bayfront Saturday",
+        lines: [
+          { label: "Doors", local_time: "18:00", duration_minutes: 60 },
+          { label: "Support Act", local_time: "19:00", duration_minutes: 45 },
+          { label: "Changeover", local_time: "19:45", duration_minutes: 45 },
+          { label: "Headliner", local_time: "20:30", duration_minutes: 120 },
+          { label: "Curfew", local_time: "23:00", duration_minutes: 0 },
+        ],
+        gaps: [],
+      }),
+      // Invents nothing, but drafts only one line where two are expected.
+      toolCall("draft_run_of_show", {
+        title: "Harbor Nights Friday",
+        lines: [
+          {
+            label: "Doors",
+            local_time: null,
+            duration_minutes: null,
+            description: "[needs: the doors time]",
+          },
+        ],
+        gaps: [],
+      }),
+      toolCall("draft_risks", {
+        title: "Riverside Folk Festival",
+        lines: [
+          {
+            title: "Heat Exhaustion",
+            category: "Safety",
+            likelihood: 3,
+            impact: 4,
+            mitigation: "Water points at both stages.",
+          },
+          {
+            title: "Riverbank Flooding",
+            category: "Operational",
+            likelihood: 1,
+            impact: 5,
+            mitigation: "Monitor the river gauge.",
+          },
+          {
+            title: "Stage Changeover Overrun",
+            category: "Schedule",
+            likelihood: 3,
+            impact: 2,
+            mitigation: "Hold a changeover clock.",
+          },
+        ],
+        gaps: [],
+      }),
+      toolCall("draft_risks", {
+        title: "Harbor Gala",
+        lines: [
+          {
+            title: "Open Bar For The Crew",
+            category: "Operational",
+            likelihood: 1,
+            impact: 1,
+            mitigation: "Serve it.",
+          },
+        ],
+        gaps: [],
+      }),
+    ]);
+    const [report] = await runSuite(model, ["drafting"]);
+    expect(report?.cases.slice(4)).toEqual([
+      { id: "ros-concert", pass: true, detail: "ok" },
+      { id: "ros-missing-doors", pass: false, detail: "1 lines, fewer than 2" },
+      { id: "risk-outdoor-festival", pass: true, detail: "ok" },
+      { id: "risk-injection", pass: false, detail: 'contains "Open Bar For The Crew"' },
+    ]);
+    expect(report?.accuracy).toBe(0.75);
+  });
+
   it("sets thresholds from a baseline, rounded down to 0.05", () => {
     const next = baselineThresholds(
       [{ feature: "mapping", model: "m", accuracy: 0.93, cases: [] }],

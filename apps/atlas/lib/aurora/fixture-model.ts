@@ -10,6 +10,8 @@ import {
   fixtureDocument,
   fixtureDraft,
   fixtureFilter,
+  fixtureRisks,
+  fixtureRunOfShow,
   fixtureSummary,
 } from "./fixture-entry";
 
@@ -136,6 +138,9 @@ export class FixtureModelClient implements ModelClient {
     // The A95 entry points (fixture-entry.ts).
     if (tools.has("build_filter")) return fixtureFilter(request);
     if (tools.has("draft")) return fixtureDraft(request);
+    // The drafted lists (P6).
+    if (tools.has("draft_run_of_show")) return fixtureRunOfShow(request);
+    if (tools.has("draft_risks")) return fixtureRisks(request);
     if (tools.has("summary")) return fixtureSummary(request);
     if (tools.has("bind_code")) return fixtureBinding(request);
     return {

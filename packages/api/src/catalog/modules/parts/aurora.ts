@@ -351,12 +351,42 @@ const ExtractBody = z
   })
   .meta({ id: "AuroraExtractRequest", description: "A document to extract into proposed fields." });
 
+/** The most lines one drafted list proposes or applies (`@xos/ai/lists` MAX_CUES, P6). */
+const MAX_DRAFTED_LINES = 60;
+
+const ListDraftKind = z.enum(["run_of_show", "risk_assessment"]);
+
+const DraftTarget = z
+  .object({
+    collection: z
+      .string()
+      .regex(/^[a-z][a-z0-9-]*$/)
+      .meta({ description: "Collection of the list's record.", example: "run-of-show" }),
+    id: z.uuid().meta({
+      description: "The running order or project.",
+      example: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+    }),
+  })
+  .meta({
+    description:
+      "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.",
+    example: { collection: "run-of-show", id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+  });
+
 const DraftBody = z
   .object({
     kind: z
-      .enum(["sop", "advance_packet", "email", "day_sheet", "change_order_description"])
+      .enum([
+        "sop",
+        "advance_packet",
+        "email",
+        "day_sheet",
+        "change_order_description",
+        ...ListDraftKind.options,
+      ])
       .meta({ description: "What to draft.", example: "sop" }),
     instructions: text("What the draft should say.", "Write the load-in SOP for the main stage."),
+    target: DraftTarget.optional(),
     context: z
       .array(z.object({ collection: z.string().regex(/^[a-z][a-z0-9-]*$/), id: z.uuid() }))
       .max(20)
@@ -459,6 +489,12 @@ const PreviewBody = z
     feature: z
       .enum(["drafting", "summaries"])
       .meta({ description: "The feature whose request is previewed.", example: "drafting" }),
+    draft_kind: ListDraftKind.optional().meta({
+      description:
+        "For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.",
+      example: "run_of_show",
+    }),
+    target: DraftTarget.optional(),
     kind: z
       .enum(["record_activity", "project_week", "gate_readiness"])
       .optional()
@@ -518,12 +554,67 @@ const AuroraPreview = z
       example: [],
     }),
     vocabulary_terms: fields.int("Verbiage library terms a draft follows.", 12),
+    categories: z
+      .array(z.string())
+      .optional()
+      .meta({
+        description: "For a risk assessment, the canon Risk categories the draft may use.",
+        example: ["Operational", "Commercial", "Safety", "Reputational", "Schedule"],
+      }),
   })
   .meta({
     id: "AuroraPreview",
     description:
       "What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered.",
   });
+
+const ApplyDraftBody = z
+  .object({
+    request_id: fields.ref("drafting request whose list is confirmed"),
+    items: z
+      .array(
+        z.object({
+          suggestion_id: fields.ref("suggestion holding the line"),
+          values: z
+            .record(z.string(), z.unknown())
+            .optional()
+            .meta({
+              description:
+                "Values the person changed, overriding the proposed ones key by key. Cues take label, planned_at, duration, segment and description; risks take record_subtype, title, risk.likelihood, risk.impact and risk.mitigation.",
+              example: { label: "Doors Open" },
+            }),
+        }),
+      )
+      .min(1)
+      .max(MAX_DRAFTED_LINES)
+      .meta({
+        description: "The kept lines in list order: at most 60 cues or 40 risks.",
+        example: [{ suggestion_id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }],
+      }),
+  })
+  .meta({ id: "AuroraApplyDraftRequest", description: "The lines of a drafted list to add." });
+
+const AppliedDraft = z
+  .object({
+    written: z
+      .array(
+        z.object({
+          suggestion_id: fields.ref("suggestion applied"),
+          id: fields.ref("cue or Risk record written"),
+        }),
+      )
+      .meta({
+        description: "Each kept line with the row it wrote, in list order.",
+        example: [
+          {
+            suggestion_id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+            id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e70",
+          },
+        ],
+      }),
+    rejected: fields.int("Lines of the draft left out and rejected.", 2),
+  })
+  .meta({ id: "AuroraAppliedDraft", description: "What a confirmed drafted list wrote." });
 
 const action = (verb: string, summary: string, description: string, body: z.ZodType): ActionSpec =>
   collectionAction(verb, { summary, description, body, response: AuroraResult });
@@ -572,9 +663,16 @@ export const auroraResources: readonly ResourceSpec[] = [
       action(
         "draft",
         "Draft text",
-        "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent.",
+        "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`.",
         DraftBody,
       ),
+      collectionAction("applyDraft", {
+        summary: "Add a drafted list",
+        description:
+          "Adds the kept lines of a drafted run of show or risk assessment in one transaction, with the values the person changed, only while the list is still empty (aurora_draft_list_not_empty otherwise, with nothing written). Every other line of the draft is rejected. A line the database refuses names its line number and nothing is written. Calls no model and meters nothing.",
+        body: ApplyDraftBody,
+        response: AppliedDraft,
+      }),
       action(
         "summarize",
         "Summarize activity",

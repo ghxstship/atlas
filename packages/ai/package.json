@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./entry": "./src/entry.ts",
+    "./lists": "./src/lists.ts",
     "./conversation": "./src/conversation.ts",
     "./embeddings": "./src/embeddings.ts",
     "./anthropic": "./src/anthropic.ts",

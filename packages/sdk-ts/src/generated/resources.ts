@@ -112,6 +112,8 @@ import type {
   AssignTrainingRequest,
   AssignTrainingResult,
   AuditEvent,
+  AuroraAppliedDraft,
+  AuroraApplyDraftRequest,
   AuroraAskRequest,
   AuroraBindCodeRequest,
   AuroraDraftRequest,
@@ -34950,13 +34952,32 @@ export class AuroraResource extends $Resource {
   /**
    * Draft text
    *
-   * Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /aurora/draft` (operation `aurora.draft`).
    * Requires the capability `home.dashboard.read`.
    */
   draft(body: AuroraDraftRequest, options?: $MutationOptions): Promise<$ApiResponse<AuroraResult>> {
     return this.client.request<AuroraResult>($OPERATIONS["aurora.draft"], { body }, options);
+  }
+
+  /**
+   * Add a drafted list
+   *
+   * Adds the kept lines of a drafted run of show or risk assessment in one transaction, with the values the person changed, only while the list is still empty (aurora_draft_list_not_empty otherwise, with nothing written). Every other line of the draft is rejected. A line the database refuses names its line number and nothing is written. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/apply-draft` (operation `aurora.applyDraft`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  applyDraft(
+    body: AuroraApplyDraftRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraAppliedDraft>> {
+    return this.client.request<AuroraAppliedDraft>(
+      $OPERATIONS["aurora.applyDraft"],
+      { body },
+      options,
+    );
   }
 
   /**

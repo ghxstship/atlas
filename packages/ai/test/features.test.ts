@@ -6,7 +6,7 @@ import {
   writableOperationsFromOpenApi,
   type PublicApi,
 } from "../src/features/assistant.ts";
-import { draft, findVerbiageMisses } from "../src/features/drafting.ts";
+import { draft, draftList, findVerbiageMisses } from "../src/features/drafting.ts";
 import { excerptSupports, extractDocument, settleField } from "../src/features/extraction.ts";
 import {
   buildFilter,
@@ -568,6 +568,284 @@ describe("drafting", () => {
     expect(
       findVerbiageMisses("Meet at the Stage.", [{ term: "stage", preferred: "Deck" }]),
     ).toEqual(["stage"]);
+  });
+});
+
+describe("drafted lists", () => {
+  const run = { runOfShowId: "ros-1", showDate: "2027-06-05", timeZone: "America/New_York" };
+  const runInput = {
+    kind: "run_of_show" as const,
+    instructions: "Draft the running order for opening night.",
+    target: { table: "app.run_of_show", id: "ros-1" },
+    context: [
+      {
+        table: "app.run_of_show",
+        id: "ros-1",
+        data: { id: "ros-1", name: "Opening Night", show_date: "2027-06-05" },
+      },
+      { table: "app.medical_encounters", id: "m1", data: { id: "m1" } },
+    ],
+    verbiage: [{ term: "talent", preferred: "artist" }],
+    neverSend,
+    runOfShow: run,
+  };
+  const categories = ["Operational", "Commercial", "Safety", "Reputational", "Schedule"];
+  const riskInput = {
+    kind: "risk_assessment" as const,
+    instructions: "Assess the outdoor festival.",
+    target: { table: "app.projects", id: "prj-1" },
+    context: [{ table: "app.projects", id: "prj-1", data: { id: "prj-1", name: "Bayfront" } }],
+    verbiage: [],
+    neverSend,
+    risks: { projectId: "prj-1", categories },
+  };
+
+  it("orders a run of show, flags clashes and proposes one cue per line with its field paths", async () => {
+    const model = new ScriptedModel([
+      toolCall("draft_run_of_show", {
+        title: "Opening Night",
+        lines: [
+          { label: "Headliner", local_time: "21:00", day_offset: 0, duration_minutes: 90 },
+          { label: "Doors", local_time: "19:00", day_offset: 0, duration_minutes: 60 },
+          {
+            label: "Support Act",
+            local_time: "19:45",
+            day_offset: 0,
+            duration_minutes: 30,
+            segment: "Act I",
+            confidence: 0.9,
+          },
+          {
+            label: "Walk-In Music",
+            local_time: null,
+            duration_minutes: null,
+            description: "Starts at doors. [needs: the doors music cue time]",
+          },
+          { label: "Curfew", local_time: "00:30", day_offset: 1, duration_minutes: 0 },
+          { label: "Meet the talent", local_time: "02:00", day_offset: 1, duration_minutes: 10 },
+          { label: "Late", local_time: "07:00", day_offset: 1, duration_minutes: 10 },
+          { label: " ", local_time: "20:00", duration_minutes: 5 },
+          { label: "Long", local_time: "20:00", duration_minutes: 2000 },
+        ],
+        gaps: [],
+      }),
+    ]);
+    const { store, log } = memoryStore();
+    const result = await draftList(context(model, store), runInput);
+    if (result.kind !== "answer" || result.value.kind !== "run_of_show")
+      throw new Error("no draft");
+    const value = result.value;
+    expect(value.items.map((c) => [c.position, c.label, c.local_time])).toEqual([
+      [1, "Doors", "19:00"],
+      [2, "Support Act", "19:45"],
+      [3, "Headliner", "21:00"],
+      [4, "Curfew", "00:30"],
+      [5, "Meet the talent", "02:00"],
+      [6, "Walk-In Music", null],
+    ]);
+    expect(value.items[0]).toMatchObject({
+      planned_at: "2027-06-05T23:00:00.000Z",
+      duration: "01:00:00",
+    });
+    expect(value.items[3]).toMatchObject({ planned_at: "2027-06-06T04:30:00.000Z", day_offset: 1 });
+    expect(value.dropped).toEqual([
+      { line: 7, reason: "time" },
+      { line: 8, reason: "label" },
+      { line: 9, reason: "duration" },
+    ]);
+    expect(value.flags).toEqual([
+      { type: "overlap", positions: [1, 2], minutes: 15 },
+      { type: "gap", positions: [2, 3], minutes: 45 },
+      { type: "gap", positions: [3, 4], minutes: 120 },
+      { type: "gap", positions: [4, 5], minutes: 90 },
+      { type: "untimed", positions: [6] },
+    ]);
+    expect(value.gaps).toEqual(["the doors music cue time"]);
+    expect(value.verbiageMisses).toEqual(["talent"]);
+    expect(value.body.split("\n")[0]).toBe("1. 19:00 · Doors · 01:00");
+
+    expect(log.begun).toEqual([
+      {
+        orgId: "org-1",
+        feature: "drafting",
+        model: expect.any(String),
+        subject: { table: "app.run_of_show", id: "ros-1" },
+      },
+    ]);
+    expect(log.proposed.map((p) => p.change.summary)).toEqual([
+      "Add cue 1: Doors",
+      "Add cue 2: Support Act",
+      "Add cue 3: Headliner",
+      "Add cue 4: Curfew",
+      "Add cue 5: Meet the talent",
+      "Add cue 6: Walk-In Music",
+    ]);
+    const first = log.proposed[0]?.change;
+    expect(first?.operationId).toBe("cues.create");
+    expect(first?.fields.map((f) => f.field_path)).toEqual([
+      "run_of_show_id",
+      "position",
+      "label",
+      "planned_at",
+      "duration",
+      "segment",
+      "description",
+    ]);
+    expect(first?.fields[0]).toEqual({
+      field_path: "run_of_show_id",
+      value: "ros-1",
+      confidence: 1,
+    });
+    expect(first?.fields[5]).toMatchObject({ field_path: "segment", refusal: "NO_ANSWER" });
+    expect(log.proposed[1]?.change.fields[2]).toEqual({
+      field_path: "label",
+      value: "Support Act",
+      confidence: 0.9,
+    });
+    // A time the context does not give is never invented: NO_ANSWER, with what is missing.
+    expect(log.proposed[5]?.change.fields[3]).toEqual({
+      field_path: "planned_at",
+      refusal: "NO_ANSWER",
+      missing: "the doors music cue time",
+    });
+    expect(result.proposals.map((p) => p.suggestionId)).toEqual([
+      "sug-1",
+      "sug-2",
+      "sug-3",
+      "sug-4",
+      "sug-5",
+      "sug-6",
+    ]);
+    const sent = JSON.stringify(model.requests[0]?.messages);
+    expect(sent).not.toContain("m1");
+    expect(model.requests[0]?.toolChoice).toEqual({ type: "tool", name: "draft_run_of_show" });
+    expect(model.requests[0]?.system).toContain("2027-06-05 in the America/New_York time zone");
+  });
+
+  it("keeps only canon categories and ratings from 1 to 5, and proposes records.create", async () => {
+    const model = new ScriptedModel([
+      toolCall("draft_risks", {
+        title: "Bayfront Risk Assessment",
+        lines: [
+          {
+            title: "Crowd Surge at the Barricade",
+            category: "Safety",
+            likelihood: 2,
+            impact: 5,
+            mitigation: "Staff the barricade with trained crowd managers.",
+          },
+          {
+            title: "Afternoon Thunderstorm",
+            category: "Operational",
+            likelihood: null,
+            impact: 4,
+            mitigation: "Hold a weather call at noon. [needs: the weather call owner]",
+          },
+          { title: "Bad Weather", category: "Weather", likelihood: 3, impact: 3, mitigation: "x" },
+          { title: "Overrun", category: "Schedule", likelihood: 6, impact: 3, mitigation: "x" },
+          {
+            title: "Sponsor Exit",
+            category: "Commercial",
+            likelihood: 2,
+            impact: 2,
+            mitigation: "",
+          },
+          { title: "", category: "Commercial", likelihood: 1, impact: 1, mitigation: "Plan." },
+        ],
+        gaps: [],
+      }),
+    ]);
+    const { store, log } = memoryStore();
+    const result = await draftList(context(model, store), riskInput);
+    if (result.kind !== "answer" || result.value.kind !== "risk_assessment")
+      throw new Error("no draft");
+    expect(result.value.items.map((r) => r.title)).toEqual([
+      "Crowd Surge at the Barricade",
+      "Afternoon Thunderstorm",
+    ]);
+    expect(result.value.dropped).toEqual([
+      { line: 3, reason: "category" },
+      { line: 4, reason: "rating" },
+      { line: 5, reason: "mitigation" },
+      { line: 6, reason: "title" },
+    ]);
+    expect(result.value.flags).toEqual([]);
+    expect(result.value.gaps).toEqual(["the weather call owner"]);
+    expect(log.begun[0]?.subject).toEqual({ table: "app.projects", id: "prj-1" });
+    expect(JSON.stringify(model.requests[0]?.messages)).toContain('source=\\"categories\\"');
+    const change = log.proposed[1]?.change;
+    expect(change?.operationId).toBe("records.create");
+    expect(change?.summary).toBe("Add risk: Afternoon Thunderstorm");
+    expect(change?.fields.map((f) => f.field_path)).toEqual([
+      "record_kind",
+      "record_subtype",
+      "title",
+      "risk.likelihood",
+      "risk.impact",
+      "risk.mitigation",
+    ]);
+    expect(change?.fields[3]).toMatchObject({
+      field_path: "risk.likelihood",
+      refusal: "NO_ANSWER",
+    });
+    expect(change?.fields[4]).toEqual({ field_path: "risk.impact", value: 4, confidence: 0.5 });
+    for (const f of log.proposed.flatMap((p) => p.change.fields)) {
+      expect(f.field_path).toMatch(/^[a-z][a-z0-9_]*(\.[a-z0-9_]+)*$/);
+    }
+  });
+
+  it("answers NO ANSWER and proposes nothing when no line survives", async () => {
+    const model = new ScriptedModel([
+      toolCall("draft_risks", {
+        title: "Risks",
+        lines: [{ title: "Riot", category: "Weather", likelihood: 1, impact: 1, mitigation: "x" }],
+        gaps: ["the venue's capacity"],
+      }),
+    ]);
+    const { store, log } = memoryStore();
+    const result = await draftList(context(model, store), riskInput);
+    expect(result).toMatchObject({
+      kind: "no-answer",
+      requestId: "req-1",
+      missing: "The context does not hold enough to draft a line: the venue's capacity.",
+    });
+    expect(log.completed[0]?.outcome).toBe("No Answer");
+    expect(log.proposed).toHaveLength(0);
+  });
+
+  it("fails as model_output_invalid and stores nothing when the answer stops at max_tokens", async () => {
+    const cut = toolCall("draft_run_of_show", {
+      title: "Opening Night",
+      lines: [{ label: "Doors", local_time: "19:00", duration_minutes: 60 }],
+      gaps: [],
+    });
+    const model = new ScriptedModel([{ ...cut, stopReason: "max_tokens" }]);
+    const { store, log } = memoryStore();
+    const result = await draftList(context(model, store), runInput);
+    expect(result).toMatchObject({ kind: "failed", code: "model_output_invalid" });
+    expect(log.completed[0]).toMatchObject({
+      outcome: "Failed",
+      failureCode: "model_output_invalid",
+    });
+    expect(log.proposed).toHaveLength(0);
+  });
+
+  it("is refused before the model when the drafting switch is off", async () => {
+    const model = new ScriptedModel([]);
+    const { store, log } = memoryStore({
+      begin: {
+        ok: false,
+        error: {
+          kind: "refusal",
+          rule: "aurora_feature_off",
+          message: "An Admin has not turned on drafting in Settings, AI Features.",
+        },
+      },
+    });
+    const result = await draftList(context(model, store), runInput);
+    expect(result).toMatchObject({ kind: "refused", rule: "aurora_feature_off" });
+    expect(model.requests).toHaveLength(0);
+    expect(log.proposed).toHaveLength(0);
   });
 });
 
