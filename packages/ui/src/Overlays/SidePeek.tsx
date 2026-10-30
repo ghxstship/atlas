@@ -98,13 +98,13 @@ export function SidePeek({
           <div className="flex flex-col gap-16 p-20">
             <RDialog.Title className="m-0 text-heading-20 font-semibold">{title}</RDialog.Title>
             <div className="flex flex-wrap items-center gap-8">
-              {onStateClick ? (
-                <span data-shortcut="record.state" className="contents">
-                  <StateChip state={state} label={stateLabel} onClick={onStateClick} />
-                </span>
-              ) : (
-                <StateChip state={state} label={stateLabel} />
-              )}
+              <span data-shortcut={onStateClick ? "record.state" : undefined} className="contents">
+                <StateChip
+                  state={state}
+                  label={stateLabel}
+                  {...(onStateClick ? { onClick: onStateClick } : {})}
+                />
+              </span>
               {chips}
             </div>
             {properties ? <PropertyList items={properties} /> : null}

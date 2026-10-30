@@ -2,9 +2,9 @@ import type { ReactElement } from "react";
 import { type TemplateCollectionProps } from "./Templates.types.ts";
 
 /**
- * Every list, board, timeline, calendar and table. The page is a view region for the shell's view
- * shortcuts (data-shortcut-scope, lib/shortcut-targets.ts); Open the filters focuses the filter row
- * unless a control in the header carries data-shortcut="view.filters" first.
+ * Every list, board, timeline, calendar and table. The root (data-template) is the view region of the
+ * shell's view shortcuts (lib/shortcut-targets.ts); Open the filters focuses the filter row unless a
+ * control in the header, such as the filter builder's Add filter, carries data-shortcut="view.filters".
  */
 export function TemplateCollection({
   header,
@@ -14,7 +14,7 @@ export function TemplateCollection({
   bulk,
 }: TemplateCollectionProps): ReactElement {
   return (
-    <div data-template="collection" data-shortcut-scope="view" className="flex flex-col gap-12 min-w-0">
+    <div data-template="collection" className="flex flex-col gap-12 min-w-0">
       {header}
       {filters ? (
         <div

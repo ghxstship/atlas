@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SidePeek, TemplateCollection, TemplateRecord } from "../src/index.ts";
+import { FilterBuilder, SidePeek, TemplateCollection, TemplateRecord } from "../src/index.ts";
 import {
+  SHORTCUT_REGION,
   regionScope,
   runShortcut,
   shortcutControl,
@@ -107,20 +108,19 @@ describe("shortcut targets (Section 11.2)", () => {
   it("prefers the selected option, skips disabled and hidden controls, and keeps a region's own", () => {
     const save = vi.fn();
     const exportView = vi.fn();
+    const addFilter = vi.fn();
     const opened: string[] = [];
     render(
       <TemplateCollection
         header={
-          <div>
-            <span data-shortcut="view.switch" data-shortcut-focus="" className="contents">
-              <span role="radiogroup" aria-label="Views">
-                <button type="button" role="radio" aria-checked="false">
-                  Table
-                </button>
-                <button type="button" role="radio" aria-checked="true">
-                  Board
-                </button>
-              </span>
+          <div data-shortcut="view.switch">
+            <span role="radiogroup" aria-label="Views">
+              <button type="button" role="radio" aria-checked="false">
+                Table
+              </button>
+              <button type="button" role="radio" aria-checked="true">
+                Board
+              </button>
             </span>
             <button type="button" hidden data-shortcut="view.save" onClick={save} />
             <button
@@ -140,9 +140,10 @@ describe("shortcut targets (Section 11.2)", () => {
                 Export (hidden)
               </button>
             </span>
+            <FilterBuilder filters={[]} addLabel="Add filter" onAdd={addFilter} />
           </div>
         }
-        filters={<input aria-label="Filter" />}
+        filters={<input aria-label="Search" />}
       >
         <div data-shortcut-scope="record">
           <button type="button" data-shortcut="view.filters">
@@ -151,8 +152,14 @@ describe("shortcut targets (Section 11.2)", () => {
         </div>
       </TemplateCollection>,
     );
-    const region = screen.getByRole("radiogroup").closest("[data-shortcut-scope]") as Element;
+    // The collection template's root is the view region; nothing on it names the scope.
+    const region = screen.getByRole("radiogroup").closest(SHORTCUT_REGION) as Element;
+    expect(region.hasAttribute("data-shortcut-scope")).toBe(false);
     expect(regionScope(region)).toBe("view");
+    expect(regionScope(shortcutRegion(screen.getByRole("textbox", { name: "Search" })))).toBe(
+      "view",
+    );
+    // The selected option is focused, not clicked, so the arrow keys switch from there.
     expect(runShortcut(region, "view.switch")).toBe(true);
     expect(document.activeElement).toBe(screen.getByRole("radio", { name: "Board" }));
     expect(runShortcut(region, "view.save")).toBe(true);
@@ -164,8 +171,34 @@ describe("shortcut targets (Section 11.2)", () => {
     expect(runShortcut(region, "view.menu")).toBe(true);
     expect(opened).toEqual(["ArrowDown"]);
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Saved views" }));
-    // The filter row is the view's filters control; the nested record's button is its own.
+    // Open the filters presses the filter builder's Add filter; the nested record's button is its own.
     expect(runShortcut(region, "view.filters")).toBe(true);
-    expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Filter" }));
+    expect(addFilter).toHaveBeenCalledTimes(1);
+  });
+
+  it("focuses the filter row of a view without a filter builder, and leaves a view without either alone", () => {
+    render(
+      <>
+        <TemplateCollection
+          header={<h1>Projects</h1>}
+          filters={
+            <select aria-label="Phase">
+              <option>Any</option>
+            </select>
+          }
+        >
+          <p>Rows</p>
+        </TemplateCollection>
+        <TemplateCollection header={<h1>Runs</h1>}>
+          <button type="button">Row</button>
+        </TemplateCollection>
+      </>,
+    );
+    const region = shortcutRegion(screen.getByRole("combobox", { name: "Phase" })) as Element;
+    expect(runShortcut(region, "view.filters")).toBe(true);
+    expect(document.activeElement).toBe(screen.getByRole("combobox", { name: "Phase" }));
+    const bare = shortcutRegion(screen.getByRole("button", { name: "Row" })) as Element;
+    expect(regionScope(bare)).toBe("view");
+    expect(runShortcut(bare, "view.filters")).toBe(false);
   });
 });

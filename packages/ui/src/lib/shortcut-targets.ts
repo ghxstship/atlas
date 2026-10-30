@@ -1,9 +1,12 @@
 /**
  * Shortcut targets (Section 11.2 principle 1): how a shell's key handler finds what a record or view
- * shortcut acts on. A region of the page carries data-shortcut-scope (`record` on the record full page
- * and the side peek, `view` on a collection), and the control that does an action carries
- * data-shortcut="<registry id>". The handler clicks that control, or focuses it when it is a field or
- * carries data-shortcut-focus, so a feature binds its control to a shortcut by carrying the attribute.
+ * shortcut acts on. A region of the page answers for a scope: the record full page and the side peek
+ * for `record`, a collection for `view`. The record and collection templates are regions by their
+ * template root (data-template), so no page carries anything more for them; any other region carries
+ * data-shortcut-scope, as the side peek does. The control that does an action carries
+ * data-shortcut="<registry id>". The handler clicks that control, or focuses it when it is a field,
+ * an option of a radio group or tab list, or carries data-shortcut-focus, so a feature binds its
+ * control to a shortcut by carrying the attribute.
  *
  * - The attribute may sit on the control itself or on a wrapper around it; in a wrapper, the selected
  *   option of a radio group or tab list wins, else the first control.
@@ -12,13 +15,19 @@
  *   itself: a page keeps such a button for an action that has no control of its own on screen.
  */
 
-export const SHORTCUT_REGION = "[data-shortcut-scope]";
+export const SHORTCUT_REGION =
+  '[data-shortcut-scope], [data-template="record"], [data-template="collection"]';
+
+/** The scope of each template root that is a region. */
+const TEMPLATE_SCOPE: Readonly<Record<string, string>> = { record: "record", collection: "view" };
 
 const CONTROL =
   'button, a[href], input, select, textarea, summary, [contenteditable="true"], [role="button"], [role="radio"], [role="tab"], [role="combobox"], [role="menuitem"]';
 const SELECTED = '[aria-checked="true"], [aria-selected="true"], [aria-pressed="true"]';
 /** Menu and list triggers open on a key or pointer press, not on a click. */
 const POPUP = '[aria-haspopup="menu"], [aria-haspopup="true"], [aria-haspopup="listbox"]';
+/** Options are focused, not clicked: the selected one is already on, and the arrow keys move on. */
+const OPTION = '[role="radio"], [role="tab"]';
 const FIELD =
   'input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]), select, textarea, [contenteditable="true"]';
 
@@ -34,7 +43,12 @@ export function shortcutRegion(target: EventTarget | null): Element | null {
 
 /** The scope a region answers for, such as `record` or `view`. */
 export function regionScope(region: Element | null): string | null {
-  return region?.getAttribute("data-shortcut-scope") || null;
+  if (!region) return null;
+  return (
+    region.getAttribute("data-shortcut-scope") ||
+    TEMPLATE_SCOPE[region.getAttribute("data-template") ?? ""] ||
+    null
+  );
 }
 
 function usable(control: HTMLElement): boolean {
@@ -87,13 +101,14 @@ function openPicker(select: HTMLSelectElement): void {
 /**
  * Does the shortcut's action in a region: clicks its control, or focuses it (selecting a text
  * input's text, such as a title). A menu trigger opens as the arrow key opens it, with focus on its
- * first item, since menus open on a press rather than a click. Returns false when nothing in the region does the action, so the key goes on.
+ * first item, since menus open on a press rather than a click. Returns false when nothing in the
+ * region does the action, so the key goes on.
  */
 export function runShortcut(region: Element, id: string): boolean {
   const target = targetIn(region, id);
   if (!target) return false;
   const { control } = target;
-  if (target.focus || control.matches(FIELD)) {
+  if (target.focus || control.matches(FIELD) || control.matches(OPTION)) {
     control.focus();
     if (control instanceof HTMLInputElement) control.select();
     // A list to pick from opens where the browser allows it, as assigning an owner expects.
