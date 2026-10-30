@@ -2084,6 +2084,20 @@ export type Database = {
             foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_offerings";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_up_next";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagements";
             referencedColumns: ["id"];
           },
@@ -2649,6 +2663,7 @@ export type Database = {
           fulfilled_at: string | null;
           id: string | null;
           is_overdue: boolean | null;
+          keep_photo_location: boolean | null;
           project_id: string | null;
           project_name: string | null;
           quantity: number | null;
