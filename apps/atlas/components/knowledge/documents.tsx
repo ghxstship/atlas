@@ -1,4 +1,9 @@
-import { lastChange, listDocuments, type KnowledgeDocument } from "@xos/data/knowledge";
+import {
+  getDocument,
+  lastChange,
+  listDocuments,
+  type KnowledgeDocument,
+} from "@xos/data/knowledge";
 import { listProjectOptions } from "@xos/data/procurement";
 import { getFormatter } from "next-intl/server";
 import {
@@ -13,6 +18,7 @@ import { CollectionView } from "@/components/collection-kit/collection-view";
 import { ArchiveControls } from "@/components/archive/archive-controls";
 import { ArchivedFilter } from "@/components/archive/archived-filter";
 import { archivedOf } from "@/lib/archive/param";
+import { peekedRow } from "@/lib/archive/peek";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { emptyFor } from "@/components/collection-kit/empty";
 import {
@@ -78,7 +84,14 @@ export async function DocumentsSection({
   const canWrite = canWriteProject ?? ctx.capabilities.has("knowledge.document.write");
   const when = (d: string) =>
     format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
-  const selected = state.peek ? docs.find((d) => d.id === state.peek) : undefined;
+  // A peek the list leaves out, such as an archived document a Favorite names, is read by its id;
+  // a project's tab opens only that project's documents.
+  const selected = await peekedRow(
+    docs,
+    state.peek,
+    (id) => getDocument(db, id),
+    (d) => !projectId || d.projectId === projectId,
+  );
   // The command menu's recent items (Section 11.7).
   if (selected) await rememberView(ctx, "documents", selected.id);
   const scopeOf = (d: KnowledgeDocument) => d.projectKey ?? t("documents.orgWide");

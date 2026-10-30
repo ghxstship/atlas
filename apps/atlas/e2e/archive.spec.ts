@@ -4,8 +4,8 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
 /**
  * A124 archive (Section 4.10, RRR-169): an archived record leaves its collection and search, shows
  * under the Archived filter with when it was archived, and returns to both when unarchived; a
- * document does the same on Knowledge > Documents, and an archived custom object record still opens
- * from a link to it. Each run signs up a new owner in a new org.
+ * document does the same on Knowledge > Documents and still opens from a Favorite's link, and an
+ * archived custom object record still opens from a link to it. Each run signs up a new owner in a new org.
  */
 test.use({ reducedMotion: "reduce" });
 // Sign-up, a new org, a project and a first visit to each page take a while under next dev.
@@ -99,12 +99,20 @@ test("a document is archived from its peek and unarchived from the Archived list
   });
   await drawer.getByRole("button", { name: "Add document" }).click();
   await page.waitForURL(/peek=/);
+  const documentId = new URL(page.url()).searchParams.get("peek");
 
   const peek = page.getByRole("dialog", { name: "Zephyr Rigging Plan" });
   await peek.getByRole("button", { name: "Archive", exact: true }).click();
   await expect(page).not.toHaveURL(/peek=/);
   const list = page.getByRole("main");
   await expect(list.getByText("Zephyr Rigging Plan")).toHaveCount(0);
+
+  // A Favorite pinned to the peek links here: the archived document still opens, ready to unarchive.
+  await page.goto(`/${slug}/knowledge/documents?peek=${documentId}`);
+  const pinned = page.getByRole("dialog", { name: "Zephyr Rigging Plan" });
+  await expect(pinned.getByText(/^Archived on /)).toBeVisible();
+  await expect(pinned.getByRole("button", { name: "Unarchive" })).toBeVisible();
+  await page.goto(`/${slug}/knowledge/documents`);
 
   await page.getByLabel("Archived", { exact: true }).selectOption("include");
   await list.getByText("Zephyr Rigging Plan").first().click();

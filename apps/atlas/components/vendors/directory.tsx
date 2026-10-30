@@ -48,6 +48,7 @@ import { EmptyStateLink } from "@/components/ui";
 import { ArchiveControls } from "@/components/archive/archive-controls";
 import { ArchivedFilter } from "@/components/archive/archived-filter";
 import { archivedOf } from "@/lib/archive/param";
+import { peekedRow } from "@/lib/archive/peek";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { customFieldList } from "@/lib/custom-fields/server";
 import { CollectionPage } from "@/components/platform/collection-page";
@@ -131,7 +132,8 @@ export async function VendorDirectory({
   if (state.create && canWrite) {
     drawer = <CreateVendor ctx={ctx} closeHref={withQuery(path, state)} path={path} />;
   } else if (state.peek) {
-    const vendor = vendors.data.find((v) => v.id === state.peek);
+    // A vendor the list leaves out, such as an archived one a Favorite names, is read by its id.
+    const vendor = await peekedRow(vendors.data, state.peek, (id) => getVendor(db, id));
     if (vendor) {
       drawer = (
         <PeekDrawer
