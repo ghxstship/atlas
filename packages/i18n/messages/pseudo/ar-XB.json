@@ -494,7 +494,31 @@
       "record": "‮ꓤǝɔoɹp‬",
       "start": "‮Sʇɐɹʇ‬",
       "state": "‮Sʇɐʇǝ‬",
-      "scroll": "‮{label}, pɐʎs‬"
+      "scroll": "‮{label}, pɐʎs‬",
+      "bar": "‮{key} {title}, {start} ʇo {end}‬",
+      "controls": "‮ꓤǝsɔɥǝpnlǝ {label}‬",
+      "locked": "‮loɔʞǝp‬",
+      "moveHint": "‮∀ɹɹoʍ ʞǝʎs ɯoʌǝ ʇɥǝ qɐɹ ɐ pɐʎ. Sɥıɟʇ ʍıʇɥ ɐu ɐɹɹoʍ ʞǝʎ ɯoʌǝs ıʇs ǝup. Ǝuʇǝɹ ɐddlıǝs ʇɥǝ ɔɥɐuƃǝ, Ǝsɔɐdǝ ɔɐuɔǝls ıʇ.‬",
+      "preview": {
+        "applied": "‮{key} ɹǝsɔɥǝpnlǝp.‬",
+        "apply": "‮∀ddlʎ‬",
+        "cancel": "‮Ɔɐuɔǝl‬",
+        "canceled": "‮Ɔɥɐuƃǝ ɔɐuɔǝlǝp.‬",
+        "change": "‮{key} ɯoʌǝs ʇo {start} ʇɥɹonƃɥ {end}.‬",
+        "checking": "‮Ɔɥǝɔʞıuƃ ǝʌǝɹʎ pǝdǝupǝuɔʎ qǝɟoɹǝ ʇɥǝ ɔɥɐuƃǝ ɔɐu qǝ ɐddlıǝp.‬",
+        "criticalChanges": "‮⊥ɥǝ ɔɹıʇıɔɐl dɐʇɥ ɔɥɐuƃǝs.‬",
+        "criticalSame": "‮⊥ɥǝ ɔɹıʇıɔɐl dɐʇɥ sʇɐʎs ʇɥǝ sɐɯǝ.‬",
+        "cycle": "‮⊥ɥǝ pǝdǝupǝuɔıǝs ɐɹǝ ɔıɹɔnlɐɹ, so ʇɥıs ɔɥɐuƃǝ ɔɐuuoʇ qǝ ɯɐpǝ.‬",
+        "finishEarlierMany": "‮⊥ɥǝ lɐsʇ ɟıuısɥ ɯoʌǝs {count} pɐʎs ǝɐɹlıǝɹ.‬",
+        "finishEarlierOne": "‮⊥ɥǝ lɐsʇ ɟıuısɥ ɯoʌǝs 1 pɐʎ ǝɐɹlıǝɹ.‬",
+        "finishLaterMany": "‮⊥ɥǝ lɐsʇ ɟıuısɥ ɯoʌǝs {count} pɐʎs lɐʇǝɹ.‬",
+        "finishLaterOne": "‮⊥ɥǝ lɐsʇ ɟıuısɥ ɯoʌǝs 1 pɐʎ lɐʇǝɹ.‬",
+        "label": "‮ꓤǝsɔɥǝpnlǝ dɹǝʌıǝʍ‬",
+        "locked": "‮{keys} ɔɐuuoʇ ɯoʌǝ: loɔʞǝp.‬",
+        "movesMany": "‮{count} snɔɔǝssoɹs ɯoʌǝ: {keys}.‬",
+        "movesNone": "‮No oʇɥǝɹ ɹǝɔoɹp ɯoʌǝs.‬",
+        "movesOne": "‮1 snɔɔǝssoɹ ɯoʌǝs: {keys}.‬"
+      }
     },
     "tooltip": {
       "withShortcut": "‮{label} ({shortcut})‬"

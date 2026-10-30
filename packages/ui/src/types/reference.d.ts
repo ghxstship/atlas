@@ -592,14 +592,59 @@ export interface TimelineRow {
   dependsOn?: number;
   baselineStart?: number;
   baselineEnd?: number;
+  /** The row stays put when the schedule moves: it cannot be dragged, and a change that would push it is refused. */
+  locked?: boolean;
+}
+/** A dependency between two rows, by row index, for the reschedule preview. */
+export interface TimelineLink {
+  from: number;
+  to: number;
+  /** Finish to Start (the default), Start to Start, Finish to Finish or Start to Finish. */
+  type?: string;
+  /** Days of lag; negative for lead. */
+  lagDays?: number;
+}
+/** A row's new first and last day. */
+export interface TimelineChange {
+  row: number;
+  start: number;
+  end: number;
+}
+export type TimelineMove = TimelineChange;
+/** The page's own preview of a pending change, such as the server's answer. */
+export interface TimelinePreview {
+  change: TimelineChange;
+  /** The other rows the change moves. */
+  moves: TimelineMove[];
+  /** Why the change cannot be applied, when it cannot. */
+  refusal?: string;
+  /** A sentence the preview adds, such as records the change moves that the timeline does not show. */
+  note?: string;
 }
 export interface TimelineProps {
   label: string;
-  days: { dow: string; date: number; weekend?: boolean }[];
+  /** `label` names the day in full (Wednesday, June 3) for the table and announcements. */
+  days: { dow: string; date: number; weekend?: boolean; label?: string }[];
   rows: TimelineRow[];
   gates?: { day: number; label: string }[];
   today?: number;
   dayWidth?: number;
+  /** Dependencies by row index: the preview pushes successors along them and reports the critical path. */
+  links?: TimelineLink[];
+  /**
+   * Bars move and resize, by pointer or keyboard, when given. Called with the change to apply; a
+   * promise that resolves to false keeps the change pending.
+   */
+  onReschedule?: (change: TimelineChange) => void | boolean | Promise<void | boolean>;
+  /** Called when a pending change starts, changes or ends (null), so the page can preview it itself. */
+  onPendingChange?: (change: TimelineChange | null) => void;
+  /** The page's preview of the pending change; it replaces the estimate from `links` while it matches. */
+  preview?: TimelinePreview | null;
+  /**
+   * The page previews every pending change itself: Apply and Enter wait until `preview` matches the
+   * change, so nothing is applied on the strength of the estimate alone.
+   */
+  awaitPreview?: boolean;
 }
 export interface CalendarProps {
   /** First day of the month shown, as an ISO date such as 2026-11-01. */ month: string;
