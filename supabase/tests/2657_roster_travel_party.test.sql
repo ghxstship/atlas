@@ -108,6 +108,13 @@ insert into world select 'pass', id from x;
 select is(pg_temp.member('hops', 'e_kai') -> 'room', jsonb_build_object('assigned', true, 'check_in_on', '2027-06-01',
   'check_out_on', '2027-06-04', 'block_name', 'Hotel Cadillac'), 'a live assignment on the project''s block assigns the room');
 select is(pg_temp.member('hops', 'e_kai') -> 'pickup' ->> 'booked', 'true', 'a Ground segment on the arrival day books the pickup');
+select pg_temp.as_user('kai');
+select app.save_roster_travel_request(pg_temp.id('e_kai'), 'MIA', 'JFK', null, '2027-06-04', 'Aisle', null, true, true, null);
+select pg_temp.as_platform();
+select is(pg_temp.member('hops', 'e_kai') -> 'pickup' ->> 'booked', 'false', 'without an arrival date no segment books the pickup');
+select pg_temp.as_user('kai');
+select app.save_roster_travel_request(pg_temp.id('e_kai'), 'MIA', 'JFK', '2027-06-01', '2027-06-04', 'Aisle', null, true, true, null);
+select pg_temp.as_platform();
 select is(pg_temp.member('hops', 'e_mo') -> 'room' ->> 'assigned', 'false', 'mo still has no room');
 select pg_temp.as_user('alice');
 select is((select m -> 'pass' ->> 'issued' from app.roster_travel_party(pg_temp.id('prj_a')) m

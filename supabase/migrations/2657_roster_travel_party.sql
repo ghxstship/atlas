@@ -106,10 +106,10 @@ begin
       'travel', private.roster_travel_value(v_travel),
       'room', jsonb_build_object('assigned', v_room.check_in_on is not null, 'check_in_on', v_room.check_in_on,
         'check_out_on', v_room.check_out_on, 'block_name', v_room.title),
-      'pickup', jsonb_build_object('booked', exists (
+      'pickup', jsonb_build_object('booked', v_travel.inbound_on is not null and exists (
         select 1 from app.travel_segments s
         where s.person_id = v_row.person_id and s.project_id = p_project_id and s.deleted_at is null and s.travel_mode = 'Ground'
-          and (v_travel.inbound_on is null or (s.departs_at at time zone v_zone)::date = v_travel.inbound_on))),
+          and (s.departs_at at time zone v_zone)::date = v_travel.inbound_on)),
       'pass', case when v_passes then jsonb_build_object('issued', exists (
         select 1 from app.credentials k
         where k.holder_person_id = v_row.person_id and k.engagement_id = v_row.engagement_id
@@ -118,7 +118,7 @@ begin
 end;
 $$;
 
-comment on function app.roster_travel_party(uuid) is 'The travel party of a project (R5, G-175), for hospitality.fulfillment.read holders (else 42501): one object per entry of private.travel_party_entries with the party, person, role and arrival, the travel request (airport names included) or NULL, room {assigned, check_in_on, check_out_on, block_name} from live accommodation assignments of the person on the project''s blocks, pickup {booked} from a live Ground travel segment of the person on the project departing on the inbound date in the project zone (any, while no inbound date), and pass {issued} from a live unrevoked credential of the engagement, NULL without credentials.credential.read. Each entry returned with a travel request writes project_facts.viewed (Travel) in the person''s access log and the producing org''s audit ledger.';
+comment on function app.roster_travel_party(uuid) is 'The travel party of a project (R5, G-175), for hospitality.fulfillment.read holders (else 42501): one object per entry of private.travel_party_entries with the party, person, role and arrival, the travel request (airport names included) or NULL, room {assigned, check_in_on, check_out_on, block_name} from live accommodation assignments of the person on the project''s blocks, pickup {booked} from a live Ground travel segment of the person on the project departing on the inbound date in the project zone (false while there is no inbound date), and pass {issued} from a live unrevoked credential of the engagement, NULL without credentials.credential.read. Each entry returned with a travel request writes project_facts.viewed (Travel) in the person''s access log and the producing org''s audit ledger.';
 
 create or replace function private.travel_party_dates(p_project_id uuid)
 returns table (roster_entry_id uuid, engagement_id uuid, org_id uuid, person_id uuid, inbound_on date, outbound_on date,
