@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(48);
+select plan(50);
 
 create function pg_temp.search(p_query jsonb) returns setof uuid
 language sql as $$ select s.result_id from app.global_search(pg_temp.id('org_a'), p_query) s $$;
@@ -135,6 +135,12 @@ select is(pg_temp.audits('records.unarchived', pg_temp.id('rec')), 1, 'unarchivi
 select pg_temp.as_user('alice');
 select lives_ok($$insert into app.venues (org_id, name, jurisdiction_id, time_zone) values ((select id from world where key = 'org_a'), 'Zephyr Hall', 'US-FL-MIAMI-DADE', 'America/New_York')$$,
   'an archived venue''s name is free for a new venue');
+select pg_temp.as_platform();
+select ok(pg_temp.id('venue') not in (select candidate_id from private.fuzzy_candidates(pg_temp.id('org_a'), 'venues', 'Zephyr Hall')),
+  'import duplicate review leaves the archived venue out (2182)');
+select is((select count(*)::int from private.fuzzy_candidates(pg_temp.id('org_a'), 'venues', 'Zephyr Hall')), 1,
+  'and offers only the live venue of that name');
+select pg_temp.as_user('alice');
 select throws_ok($$select app.unarchive_row('venues', (select id from world where key = 'venue'))$$,
   'XR001', 'archive_name_taken: A live venue already has this name; rename one of them first.', 'so the archived one is unarchived only after a rename');
 update app.venues set name = 'Zephyr Hall Annex' where id = pg_temp.id('venue');

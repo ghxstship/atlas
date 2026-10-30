@@ -400,7 +400,7 @@ export async function getBaselineVariance(
   const records =
     items.length === 0
       ? ok<RecordSummary[]>([])
-      : await listRecords(db, { orgId, ids: items.map((i) => i.recordId) });
+      : await listRecords(db, { orgId, ids: items.map((i) => i.recordId), archived: "include" });
   if (!records.ok) return records;
   return ok({
     baseline: {

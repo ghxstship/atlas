@@ -35,6 +35,11 @@ describe("archive (A124)", () => {
       "rpc:archive_row": [
         okResponse("2027-01-01T00:00:00Z"),
         errorResponse("42501", "work.record.write is required"),
+        errorResponse(
+          "XR001",
+          "archive_row_not_found: This row no longer exists or is not available to you.",
+          "archive_row_not_found",
+        ),
       ],
       "rpc:unarchive_row": [
         okResponse(null),
@@ -51,6 +56,11 @@ describe("archive (A124)", () => {
     });
     expect(calls[0]?.steps[0]).toEqual(["args", [{ p_entity: "records", p_id: "r1" }]]);
     expect(await setArchived(db, "records", "r1", true)).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
+    // A row the caller cannot see is refused by name and comes back as not-found, like one they cannot edit.
+    expect(await setArchived(db, "records", "r2", true)).toEqual({
       ok: false,
       error: { kind: "not-found" },
     });

@@ -52,8 +52,9 @@ export function inArchived(filter: ArchivedFilter, archivedAt: string | null): b
 
 /**
  * Archives or unarchives one row. Answers when it was archived (null once unarchived). Refusals come
- * back typed: a row the caller cannot see or edit is not-found (ADR 0003), and unarchiving a venue
- * whose name a live venue took is the refusal `archive_name_taken`.
+ * back typed: a row the caller cannot see (the refusal `archive_row_not_found`) or may read but not
+ * edit (42501) is not-found (ADR 0003), and unarchiving a venue whose name a live venue took is the
+ * refusal `archive_name_taken`.
  */
 export async function setArchived(
   db: XosClient,
@@ -65,6 +66,13 @@ export async function setArchived(
     p_entity: entity,
     p_id: id,
   });
-  if (error) return fail(toDataError(error));
+  if (error) {
+    const failure = toDataError(error);
+    return fail(
+      failure.kind === "refusal" && failure.rule === "archive_row_not_found"
+        ? { kind: "not-found" }
+        : failure,
+    );
+  }
   return ok({ archivedAt: (data as string | null) ?? null });
 }

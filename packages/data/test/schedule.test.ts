@@ -293,7 +293,7 @@ describe("baselines", () => {
         { record_id: "r1", planned_starts_at: null, planned_ends_at: "2027-06-01T00:00:00Z" },
       ],
     };
-    const { db } = moduleClient({
+    const { db, calls } = moduleClient({
       "from:schedule_baselines": [
         okResponse(baseline),
         okResponse({ ...baseline, project: null, items: null }),
@@ -308,6 +308,13 @@ describe("baselines", () => {
     });
     const result = await getBaselineVariance(db, "o1", "b1");
     expect(result.ok && result.data.variance[0]?.endSlipMs).toBe(86_400_000);
+    // An archived record stays in its baseline's variance (A124).
+    expect(
+      stepsOf(
+        calls.find((c) => c.target === "from:records"),
+        "is",
+      ),
+    ).toEqual([["deleted_at", null]]);
     const empty = await getBaselineVariance(db, "o1", "b1");
     expect(empty.ok && empty.data.baseline.itemCount).toBe(0);
     expect(await getBaselineVariance(db, "o1", "b1")).toEqual({
