@@ -85,3 +85,4 @@ and added again in the template, and the defaults row is edited in place, so bot
 - Settings, Gateway and Marketplace gains a panel for the defaults and templates, with links to Pools and Onboarding.
 - New postings start from the org's defaults and its default template; the trace row S4.5.6-27 records it.
 - The API and imports create opportunities as before, from what the caller sends.
+- The defaults gain `hide_client_until_booked` (P10, migration 2870): new postings can start with the client and event hidden from crew until they are booked, editable on each posting before it is published.

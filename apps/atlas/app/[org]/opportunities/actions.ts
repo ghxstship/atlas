@@ -134,6 +134,10 @@ const opportunitySchema = z
       .string()
       .default("")
       .transform((s) => s === "true"),
+    hideClientUntilBooked: z
+      .string()
+      .default("")
+      .transform((s) => s === "true"),
     questionTemplateId: z.union([uuid, z.literal("")]).default(""),
   })
   .transform((v, ctx) => {
@@ -166,6 +170,7 @@ export const createOpportunityAction: Action = action(opportunitySchema, async (
     endsOn: v.endsOn,
     deadlineAt: v.deadlineAt,
     isRemote: v.isRemote,
+    hideClientUntilBooked: v.hideClientUntilBooked,
   });
   // The chosen question template is copied into the new draft (2290). The draft is already saved when the copy is
   // refused, so the form says so instead of offering to save it again.
@@ -182,6 +187,10 @@ export const updateOpportunityAction: Action = action(
     startsOn: optionalDate,
     endsOn: optionalDate,
     deadlineAt: optionalInstant,
+    hideClientUntilBooked: z
+      .string()
+      .default("")
+      .transform((s) => s === "true"),
   }),
   (ctx, v) =>
     repo.updateOpportunity(ctx.viewer.db, v.opportunityId, {
@@ -190,6 +199,22 @@ export const updateOpportunityAction: Action = action(
       startsOn: v.startsOn,
       endsOn: v.endsOn,
       deadlineAt: v.deadlineAt,
+      hideClientUntilBooked: v.hideClientUntilBooked,
+    }),
+);
+
+/** Turns the hidden client and event off on a posted listing; turning it on after publishing is refused (2870). */
+export const updateHiddenClientAction: Action = action(
+  z.object({
+    opportunityId: uuid,
+    hideClientUntilBooked: z
+      .string()
+      .default("")
+      .transform((s) => s === "true"),
+  }),
+  (ctx, v) =>
+    repo.updateOpportunity(ctx.viewer.db, v.opportunityId, {
+      hideClientUntilBooked: v.hideClientUntilBooked,
     }),
 );
 

@@ -58,6 +58,7 @@ export function OpportunityLinkCard({
       </p>
       <div className="mt-auto flex flex-wrap items-center gap-6 pt-4">
         <Tag>{t(enumLabelKey("externalRoleType", o.roleType))}</Tag>
+        {o.clientHidden ? <Tag>{t("gateway.explore.clientHidden.tag")}</Tag> : null}
         {o.deadlineAt ? (
           <span className="text-text-12 text-text-secondary">
             {t("gateway.explore.deadline", { date: formatDate(locale, o.deadlineAt) })}

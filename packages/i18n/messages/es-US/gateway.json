@@ -1047,6 +1047,10 @@
       "removed": "Se quitó {title}.",
       "undo": "Deshacer",
       "failed": "No se completó. Vuelva a cargar la página e inténtelo de nuevo."
+    },
+    "clientHidden": {
+      "tag": "Cliente confidencial",
+      "notice": "El cliente y el evento se comparten cuando te contratan."
     }
   },
   "home": {

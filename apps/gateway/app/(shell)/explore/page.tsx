@@ -445,8 +445,17 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
                           {o.orgName} ·{" "}
                           {formatDateRange(locale, o.startsOn, o.endsOn) ||
                             t("gateway.common.noDate")}
-                          {o.venueName ? ` · ${o.venueName}` : ""}
+                          {o.venueName
+                            ? ` · ${o.venueName}`
+                            : o.clientHidden && o.venueLocality
+                              ? ` · ${o.venueLocality}`
+                              : ""}
                         </span>
+                        {o.clientHidden ? (
+                          <span>
+                            <Tag>{t("gateway.explore.clientHidden.tag")}</Tag>
+                          </span>
+                        ) : null}
                         <Reasons o={o} t={t} />
                       </div>
                       <strong className="tabular-nums">

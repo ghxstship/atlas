@@ -20,7 +20,8 @@ import type { OrgContext } from "@/lib/shell/context";
 type Action = (state: OpportunityActionState, form: FormData) => Promise<OpportunityActionState>;
 
 const uuid = z.uuid();
-const required = z
+/** A checkbox: "true" when ticked, absent otherwise. */
+const checked = z
   .string()
   .default("")
   .transform((s) => s === "true");
@@ -80,6 +81,7 @@ export const saveOpportunityDefaultsAction: Action = settingsAction(
     ),
     applicationWindowDays: blank.pipe(z.coerce.number<string>().int().min(1).max(365).nullable()),
     questionTemplateId: blank.pipe(uuid.nullable()),
+    hideClientUntilBooked: checked,
   }),
   (ctx, v) =>
     repo.saveOpportunityDefaults(ctx.viewer.db, ctx.org.id, {
@@ -88,6 +90,7 @@ export const saveOpportunityDefaultsAction: Action = settingsAction(
       currencyCode: v.currencyCode,
       applicationWindowDays: v.applicationWindowDays,
       questionTemplateId: v.questionTemplateId,
+      hideClientUntilBooked: v.hideClientUntilBooked,
     }),
 );
 
@@ -114,7 +117,7 @@ export const addTemplateQuestionAction: Action = settingsAction(
     templateId: uuid,
     prompt: z.string().trim().min(1).max(500),
     sortOrder: z.coerce.number().int().min(1).max(999),
-    required,
+    required: checked,
   }),
   (ctx, v) =>
     repo.addTemplateQuestion(ctx.viewer.db, v.templateId, {

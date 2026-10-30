@@ -162,6 +162,13 @@ function Defaults({
                 ...templates.map((tpl) => ({ value: tpl.id, label: tpl.name })),
               ],
             },
+            {
+              name: "hideClientUntilBooked",
+              label: t("fields.hideClientUntilBooked"),
+              kind: "checkbox",
+              defaultValue: defaults.hideClientUntilBooked ? "true" : "",
+              help: t("templates.hideClientHelp"),
+            },
           ]}
         />
       ) : (
@@ -181,6 +188,8 @@ function Defaults({
           </dd>
           <dt className="text-text-secondary">{t("postings.questionTemplate")}</dt>
           <dd className="m-0">{template?.name ?? t("postings.noQuestionTemplate")}</dd>
+          <dt className="text-text-secondary">{t("fields.hideClientUntilBooked")}</dt>
+          <dd className="m-0">{defaults.hideClientUntilBooked ? t("yes") : t("no")}</dd>
         </dl>
       )}
       {!canManage ? <Muted>{t("templates.managersOnly")}</Muted> : null}
