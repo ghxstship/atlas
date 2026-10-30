@@ -4,6 +4,7 @@ import { getFieldHistory } from "@xos/data/field-history";
 import {
   boardField,
   calendarField,
+  getObjectRecord,
   getObjectType,
   listObjectRecords,
   type FieldValue,
@@ -100,6 +101,17 @@ function historyValue(f: ObjectField | undefined, v: Json, fmt: Formatters): str
   }
 }
 
+/** The key of an object's n-th record by when it was created, OBJECT-n. */
+function keyAt(object: ObjectType, n: number): string {
+  return `${object.key.toUpperCase().replaceAll("_", "-")}-${n}`;
+}
+
+/** Each record's key, OBJECT-n by when it was created among these records. */
+function keysOf(object: ObjectType, records: readonly ObjectRecord[]): Map<string, string> {
+  const ordered = [...records].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return new Map(ordered.map((r, i) => [r.id, keyAt(object, i + 1)]));
+}
+
 /**
  * Records of a custom object (Section 4.6.3): list, board (by its first Choice field), table and
  * calendar (by its first date field) views, only those the object's fields support; a create drawer
@@ -165,10 +177,7 @@ async function ObjectRecords({
       </TemplateCollection>
     );
   }
-  const ordered = [...records.data].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const keyOf = new Map(
-    ordered.map((r, i) => [r.id, `${object.key.toUpperCase().replaceAll("_", "-")}-${i + 1}`]),
-  );
+  const keyOf = keysOf(object, records.data);
   const columns: KitColumn[] = [
     { key: "title", label: t("objects.titleColumn") },
     ...object.fields.map((f) => ({ key: f.id, label: f.label })),
@@ -203,7 +212,17 @@ async function ObjectRecords({
 
   const canWrite =
     ctx.role !== null && ["owner", "admin", "manager", "member", "collaborator"].includes(ctx.role);
-  const peeked = state.peek ? (records.data.find((r) => r.id === state.peek) ?? null) : null;
+  let peeked = state.peek ? (records.data.find((r) => r.id === state.peek) ?? null) : null;
+  if (state.peek && !peeked) {
+    // A link names a record the list leaves out, such as an archived one from a record's Related
+    // links or a Favorite (A124): it is read by its id, keyed as it is among every record of the
+    // object.
+    const found = await getObjectRecord(ctx.viewer.db, object, state.peek);
+    if (found.ok) {
+      peeked = found.data.record;
+      keyOf.set(peeked.id, keyAt(object, found.data.ordinal));
+    }
+  }
   let paths: AccessPath[] | null = null;
   let conversation: Conversation | null = null;
   let activity: HistoryItem[] | null = null;

@@ -2,6 +2,7 @@ import { getMessages } from "@xos/i18n";
 import { describe, expect, it } from "vitest";
 import { errorKey } from "../components/places/kit/action-state";
 import { archivedOf } from "../lib/archive/param";
+import { peekedRow } from "../lib/archive/peek";
 import { archiveOf, legacyArchiveChanges } from "../components/places/venues/archive-param";
 
 /** Archive and unarchive in Atlas (A124): the query parameter and the refusals Places explains. */
@@ -49,5 +50,26 @@ describe("archive (A124)", () => {
       const places = getMessages(locale)["places"] as { errors: Record<string, string> };
       expect(places.errors["archive_name_taken"], locale).toBeTruthy();
     }
+  });
+
+  it("opens a peek the list leaves out by reading it by id, only on a miss", async () => {
+    const live = { id: "d1", projectId: "p1" };
+    const archived = { id: "d2", projectId: "p1" };
+    const reads: string[] = [];
+    const read = async (id: string) => {
+      reads.push(id);
+      return id === archived.id
+        ? ({ ok: true, data: archived } as const)
+        : ({ ok: false, error: { kind: "not-found" } } as const);
+    };
+    expect(await peekedRow([live], undefined, read)).toBeNull();
+    expect(await peekedRow([live], "d1", read)).toBe(live);
+    expect(reads).toEqual([]);
+    // An archived document a Favorite names is not in the default list, and still opens.
+    expect(await peekedRow([live], "d2", read)).toBe(archived);
+    expect(await peekedRow([live], "d3", read)).toBeNull();
+    // A project's tab keeps only that project's documents.
+    expect(await peekedRow([live], "d2", read, (d) => d.projectId === "p2")).toBeNull();
+    expect(reads).toEqual(["d2", "d3", "d2"]);
   });
 });

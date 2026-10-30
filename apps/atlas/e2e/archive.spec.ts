@@ -4,7 +4,8 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
 /**
  * A124 archive (Section 4.10, RRR-169): an archived record leaves its collection and search, shows
  * under the Archived filter with when it was archived, and returns to both when unarchived; a
- * document does the same on Knowledge > Documents. Each run signs up a new owner in a new org.
+ * document does the same on Knowledge > Documents and still opens from a Favorite's link, and an
+ * archived custom object record still opens from a link to it. Each run signs up a new owner in a new org.
  */
 test.use({ reducedMotion: "reduce" });
 // Sign-up, a new org, a project and a first visit to each page take a while under next dev.
@@ -33,12 +34,19 @@ test("an archived record leaves the list and search, shows under Archived, and r
   page,
 }) => {
   const slug = await newOrgWithProject(page);
-  await page.goto(`/${slug}/work/all-records?create=1`);
-  const sheet = page.getByRole("dialog", { name: "New record" });
-  await sheet.getByLabel("Kind").selectOption("Task");
-  await sheet.getByLabel("Title").fill("Install the zephyr truss");
-  await sheet.getByRole("button", { name: "Create record" }).click();
-  await page.waitForURL(new RegExp(`peek=${KEY}-1`));
+  // A live record that shares the search word, so search shows it has answered before the archived
+  // record's absence is checked.
+  for (const [n, title] of [
+    [1, "Inspect the zephyr hoist"],
+    [2, "Install the zephyr truss"],
+  ] as const) {
+    await page.goto(`/${slug}/work/all-records?create=1`);
+    const sheet = page.getByRole("dialog", { name: "New record" });
+    await sheet.getByLabel("Kind").selectOption("Task");
+    await sheet.getByLabel("Title").fill(title);
+    await sheet.getByRole("button", { name: "Create record" }).click();
+    await page.waitForURL(new RegExp(`peek=${KEY}-${n}`));
+  }
 
   // Archive from the peek: it closes, and the record leaves the list.
   const peek = page.getByRole("dialog", { name: "Install the zephyr truss" });
@@ -51,6 +59,7 @@ test("an archived record leaves the list and search, shows under Archived, and r
   await page.keyboard.press("ControlOrMeta+k");
   const menu = page.getByRole("dialog").filter({ has: page.getByRole("combobox") });
   await menu.getByRole("combobox").fill("zephyr");
+  await expect(menu.getByRole("option", { name: /Inspect the zephyr hoist/ })).toBeVisible();
   await expect(menu.getByRole("option", { name: /Install the zephyr truss/ })).toHaveCount(0);
   await menu.getByRole("combobox").fill("zephyr is:archived");
   await expect(menu.getByRole("option", { name: /Install the zephyr truss/ })).toBeVisible();
@@ -90,6 +99,7 @@ test("a document is archived from its peek and unarchived from the Archived list
   });
   await drawer.getByRole("button", { name: "Add document" }).click();
   await page.waitForURL(/peek=/);
+  const documentId = new URL(page.url()).searchParams.get("peek");
 
   const peek = page.getByRole("dialog", { name: "Zephyr Rigging Plan" });
   await peek.getByRole("button", { name: "Archive", exact: true }).click();
@@ -97,10 +107,59 @@ test("a document is archived from its peek and unarchived from the Archived list
   const list = page.getByRole("main");
   await expect(list.getByText("Zephyr Rigging Plan")).toHaveCount(0);
 
+  // A Favorite pinned to the peek links here: the archived document still opens, ready to unarchive.
+  await page.goto(`/${slug}/knowledge/documents?peek=${documentId}`);
+  const pinned = page.getByRole("dialog", { name: "Zephyr Rigging Plan" });
+  await expect(pinned.getByText(/^Archived on /)).toBeVisible();
+  await expect(pinned.getByRole("button", { name: "Unarchive" })).toBeVisible();
+  await page.goto(`/${slug}/knowledge/documents`);
+
   await page.getByLabel("Archived", { exact: true }).selectOption("include");
   await list.getByText("Zephyr Rigging Plan").first().click();
   const archived = page.getByRole("dialog", { name: "Zephyr Rigging Plan" });
   await archived.getByRole("button", { name: "Unarchive" }).click();
   await page.getByLabel("Archived", { exact: true }).selectOption("");
   await expect(list.getByText("Zephyr Rigging Plan").first()).toBeVisible();
+});
+
+test("an archived custom object record still opens from a link to it", async ({ page }) => {
+  const slug = await newOrgWithProject(page);
+  const id = uniqueId();
+  const label = `Zephyr Props ${id.toUpperCase()}`;
+  const key = `zephyr_props_${id}`;
+  await page.goto(`/${slug}/settings/custom-objects`);
+  await page.getByLabel("Name", { exact: true }).fill(label);
+  await page.getByRole("button", { name: "Define the object" }).click();
+  await expect(page.getByText("Object defined. Add its fields next.")).toBeVisible();
+  const card = page
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("heading", { name: label }) });
+  await expect(card.getByText(`/api/v1/objects/${key}`)).toBeVisible();
+  await card.getByRole("link", { name: `Open ${label} records` }).click();
+  await page
+    .getByRole("link", { name: `New ${label} record` })
+    .first()
+    .click();
+  const drawer = page.getByRole("dialog", { name: `New ${label} record` });
+  await drawer.getByLabel("Title").fill("Zephyr breakaway chair");
+  await drawer.getByRole("button", { name: "Create the record" }).click();
+  await expect(drawer).toBeHidden();
+
+  // Archive it from its peek: it leaves the list.
+  const list = page.getByRole("main");
+  await list.getByText("Zephyr breakaway chair").first().click();
+  await expect(page).toHaveURL(/peek=/);
+  const recordId = new URL(page.url()).searchParams.get("peek");
+  const peek = page.getByRole("dialog", { name: /Zephyr breakaway chair/ });
+  await peek.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(page).not.toHaveURL(/peek=/);
+  await expect(list.getByText("Zephyr breakaway chair")).toHaveCount(0);
+
+  // The link a record's Related section gives it opens the archived record, ready to unarchive.
+  await page.goto(`/${slug}/objects/${key}?peek=${recordId}`);
+  const archived = page.getByRole("dialog", { name: /Zephyr breakaway chair/ });
+  await expect(archived.getByText(/^Archived on /)).toBeVisible();
+  await archived.getByRole("button", { name: "Unarchive" }).click();
+  await expect(page).not.toHaveURL(/peek=/);
+  await expect(list.getByText("Zephyr breakaway chair").first()).toBeVisible();
 });
