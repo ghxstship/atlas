@@ -6,9 +6,14 @@ import {
   DOCUMENT_KINDS,
   isDocumentKind,
   isPaper,
+  isPrintSizeFor,
+  printSizesFor,
   type DocumentKind,
+  type PrintSize,
 } from "../../src/documents/model.ts";
 import {
+  BADGE_V2_FROM,
+  badgeScanPayload,
   DESCRIBE,
   TEMPLATES,
   keyOf,
@@ -16,7 +21,7 @@ import {
   type TemplateRegistry,
   type TemplateVersion,
 } from "../../src/documents/templates.ts";
-import { BRAND, FIXTURES, NOW } from "./fixtures.ts";
+import { BADGE_V2, BRAND, FIXTURES, NOW, PHOTO_JPEG } from "./fixtures.ts";
 
 const messages = (locale: string): unknown =>
   JSON.parse(
@@ -287,5 +292,132 @@ describe("helpers", () => {
     expect(f.time("garbage")).toBe("garbage");
     expect(sp(f.money(150, "JPY"))).toBe("JPY 150");
     expect(f.money(150, "ZZ")).toBe("1.50 ZZ");
+  });
+});
+
+describe("the credential badge on four sizes (P5)", () => {
+  const badge = (data: (typeof FIXTURES)["credential-badge"], paper: PrintSize, locale = "en-US") =>
+    buildDocumentModel("credential-badge", data, {
+      locale,
+      messages: locale === "en-US" ? EN : ES,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/r",
+      now: NOW,
+      paper,
+    });
+  const before = {
+    ...FIXTURES["credential-badge"],
+    credential: {
+      ...FIXTURES["credential-badge"].credential,
+      createdAt: new Date(Date.parse(BADGE_V2_FROM) - 1000).toISOString(),
+    },
+  };
+  const after = {
+    ...FIXTURES["credential-badge"],
+    credential: { ...FIXTURES["credential-badge"].credential, createdAt: BADGE_V2_FROM },
+  };
+
+  it("prints the badge on Letter, A4, A6 and CR80, and every other kind on Letter and A4 only", () => {
+    expect(printSizesFor("credential-badge")).toEqual(["letter", "a4", "a6", "cr80"]);
+    expect(printSizesFor("invoice")).toEqual(["letter", "a4"]);
+    expect(isPrintSizeFor("credential-badge", "cr80")).toBe(true);
+    expect(isPrintSizeFor("invoice", "cr80")).toBe(false);
+    expect(isPaper("cr80")).toBe(false);
+  });
+
+  it("keeps version 1 on Letter and A4 for a credential issued before version 2, and version 2 on the cards", () => {
+    for (const paper of ["letter", "a4"] as const) {
+      const old = badge(before, paper);
+      expect(old.facts.templateVersion).toBe(1);
+      expect(old.blocks.some((b) => b.kind === "portrait")).toBe(false);
+    }
+    for (const paper of ["a6", "cr80"] as const) {
+      expect(badge(before, paper).facts.templateVersion).toBe(2);
+    }
+  });
+
+  it("renders version 2 on every size for a credential issued from version 2 on", () => {
+    for (const paper of ["letter", "a4", "a6", "cr80"] as const) {
+      expect(badge(after, paper).facts.templateVersion).toBe(2);
+    }
+  });
+
+  it("chooses among the versions that print on the paper", () => {
+    const versions = TEMPLATES["credential-badge"];
+    expect(templateFor(versions, "2020-01-01T00:00:00Z", "cr80").version).toBe(2);
+    expect(templateFor(versions, "2020-01-01T00:00:00Z", "letter").version).toBe(1);
+    expect(() => templateFor([versions[0] as never], "2026-01-01T00:00:00Z", "cr80")).toThrow(
+      /No template version prints on cr80/,
+    );
+  });
+
+  it("puts the portrait, the name, the gate code and the details on Letter and A4", () => {
+    const model = badge(BADGE_V2, "letter");
+    expect(model.blocks.map((b) => b.kind)).toEqual([
+      "portrait",
+      "paragraph",
+      "scan-code",
+      "fields",
+      "paragraph",
+    ]);
+    const portrait = model.blocks[0];
+    expect(portrait).toMatchObject({
+      kind: "portrait",
+      bytes: PHOTO_JPEG,
+      alt: `Photo of ${BADGE_V2.credential.holderName}, the credential holder`,
+      placeholder: "No photo on file",
+    });
+    expect(model.blocks[2]).toMatchObject({
+      kind: "scan-code",
+      payload: "XOSCR1:CR-000042",
+      alt: "Gate code for credential CR-000042",
+    });
+    // The record link QR stays in the header on Letter and A4 (Section 11.9).
+    expect(model.facts.recordUrl).toBe("https://atlas.example.test/r");
+  });
+
+  it("builds the cards in card order, with the fields table on A6 only", () => {
+    expect(badge(BADGE_V2, "cr80").blocks.map((b) => b.kind)).toEqual([
+      "portrait",
+      "heading",
+      "scan-code",
+      "paragraph",
+      "paragraph",
+      "paragraph",
+    ]);
+    expect(badge(BADGE_V2, "a6").blocks.map((b) => b.kind)).toEqual([
+      "portrait",
+      "heading",
+      "scan-code",
+      "paragraph",
+      "paragraph",
+      "paragraph",
+      "fields",
+    ]);
+    const card = badge(BADGE_V2, "cr80");
+    expect(card.blocks[1]).toEqual({ kind: "heading", text: BADGE_V2.credential.holderName });
+    expect(card.title).toBe(badge(BADGE_V2, "letter").title);
+  });
+
+  it("prints the placeholder when the holder has no photo, in both languages", () => {
+    const none = { ...BADGE_V2, photo: null };
+    expect(badge(none, "cr80").blocks[0]).toMatchObject({
+      bytes: null,
+      placeholder: "No photo on file",
+    });
+    expect(badge(none, "cr80", "es-US").blocks[0]).toMatchObject({
+      bytes: null,
+      placeholder: "No hay foto registrada",
+    });
+  });
+
+  it("encodes the gate code as the wallet pass form Compass reads", () => {
+    expect(badgeScanPayload("CR-000123")).toBe("XOSCR1:CR-000123");
+  });
+
+  it("names the badge files by size", () => {
+    expect(documentFileName("credential-badge", "CR-000042", "cr80")).toBe(
+      "credential-badge-CR-000042-cr80.pdf",
+    );
   });
 });

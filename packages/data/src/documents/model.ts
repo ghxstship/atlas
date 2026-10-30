@@ -96,6 +96,33 @@ export function isPaper(value: string): value is Paper {
   return (PAPERS as readonly string[]).includes(value);
 }
 
+/**
+ * Card sizes, for the credential badge only (P5, ADR 0031 amendment): A6 (105 by 148 mm) and the ID-1 card CR80
+ * (53.98 by 85.60 mm), both portrait. Paper and isPaper keep meaning Letter or A4, so compliance forms and Gateway
+ * still accept only those.
+ */
+export type CardPaper = "a6" | "cr80";
+
+export const CARD_PAPERS: readonly CardPaper[] = ["a6", "cr80"];
+
+/** Every size a document can print on. */
+export type PrintSize = Paper | CardPaper;
+
+export function isCardPaper(value: string): value is CardPaper {
+  return (CARD_PAPERS as readonly string[]).includes(value);
+}
+
+const BADGE_SIZES: readonly PrintSize[] = ["letter", "a4", "a6", "cr80"];
+
+/** The sizes a kind prints on: the credential badge also prints on A6 and CR80 cards, every other kind on Letter and A4. */
+export function printSizesFor(kind: string): readonly PrintSize[] {
+  return kind === "credential-badge" ? BADGE_SIZES : PAPERS;
+}
+
+export function isPrintSizeFor(kind: string, value: string): value is PrintSize {
+  return (printSizesFor(kind) as readonly string[]).includes(value);
+}
+
 /** A label and its value, read as a row header and its cell. */
 export interface DocumentField {
   readonly label: string;
@@ -115,6 +142,23 @@ export type DocumentBlock =
   /** A PNG or JPEG image, read as a Figure with its alternative text, fitted to the page. */
   | { readonly kind: "image"; readonly bytes: Uint8Array; readonly alt: string }
   | { readonly kind: "paragraph"; readonly text: string; readonly size?: "body" | "large" }
+  /**
+   * A holder's portrait (the credential badge, P5): a PNG or JPEG fitted into a fixed frame, never cropped, as a
+   * Figure with its alternative text; with no photo, a ruled frame and the placeholder text.
+   */
+  | {
+      readonly kind: "portrait";
+      readonly bytes: Uint8Array | null;
+      readonly alt: string;
+      readonly placeholder: string;
+    }
+  /** A code a scanner reads (the badge's gate code), drawn as a QR Figure with its alternative text and a caption. */
+  | {
+      readonly kind: "scan-code";
+      readonly payload: string;
+      readonly alt: string;
+      readonly caption: string;
+    }
   | { readonly kind: "fields"; readonly caption: string; readonly fields: readonly DocumentField[] }
   | {
       readonly kind: "table";
