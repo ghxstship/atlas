@@ -19,6 +19,7 @@ import { cache } from "react";
 import { engagementNav, offeringConditions, visibleEngagementTabs } from "./engagement-offerings";
 import type { ScheduleView } from "./format";
 import type { GatewayContext } from "./shell/context";
+import { rosterConditions } from "./roster";
 import { getScheduleView } from "./time-zone";
 import { requireNode, sitemap } from "./shell/sitemap";
 
@@ -43,7 +44,7 @@ export interface EngagementView {
   readonly scopes: readonly string[];
   /** What the producing org offers on the engagement (R3), one row per offering. */
   readonly offerings: readonly EngagementOffering[];
-  /** Sitemap conditions the offerings meet (offeringConditions), on top of the shell's. */
+  /** Sitemap conditions the offerings (offeringConditions) and the roster (rosterConditions, R4) meet, on top of the shell's. */
   readonly conditions: readonly Condition[];
   readonly tabs: readonly string[];
   /** Today on the engagement's project calendar (its time zone, 1390), as `YYYY-MM-DD`; never UTC's date. */
@@ -105,7 +106,7 @@ export const loadEngagementView = cache(async (engagementKey: string): Promise<E
     ? "artist-representative"
     : sitemapRoleType(engagement.data.roleType);
   const scopes = representation ? representation.scopes.map((s) => s.toLowerCase()) : [];
-  const conditions = offeringConditions(offerings.data);
+  const conditions = [...offeringConditions(offerings.data), ...rosterConditions(engagement.data)];
   return {
     ctx,
     engagement: engagement.data,

@@ -438,7 +438,31 @@
     "enterCode": "Type a code",
     "submitCode": "Look Up",
     "vendorEmpty": "No deliveries booked for you on this project yet. Dock slots appear here once booked.",
-    "assignedEmpty": "No gear is assigned to you yet. Items appear here when your crew lead hands them over."
+    "assignedEmpty": "No gear is assigned to you yet. Items appear here when your crew lead hands them over.",
+    "receiveOrder": {
+      "title": "Receive Against an Order",
+      "close": "Close",
+      "open": "Receive Against an Order",
+      "resume": "Review Order Receipt",
+      "scanHint": "Choose a tagged line, then scan each unit. Use the steppers for the other lines.",
+      "tagged": "{count} of {open} tagged",
+      "removeTag": "Remove {tag}",
+      "counted": "{count} of {open} counted",
+      "less": "One fewer {line}",
+      "more": "One more {line}",
+      "note": "Condition or exceptions",
+      "submit": "Receive",
+      "otherOrder": "Choose Another Order",
+      "loading": "Loading orders.",
+      "offline": "Orders load only online. Scans still queue to intake.",
+      "retry": "Try Again",
+      "none": "No approved or sent order on this project has lines left to receive.",
+      "order": "PO {number}",
+      "unnamedVendor": "Unnamed vendor",
+      "tagAdded": "Tag added",
+      "tagSkipped": "Already tagged, or the line is full",
+      "queued": "{count} received; it syncs when you are online"
+    }
   },
   "incidents": {
     "title": "Incidents",
