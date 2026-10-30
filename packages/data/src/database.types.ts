@@ -3353,6 +3353,13 @@ export type Database = {
             foreignKeyName: "access_scans_credential_id_fkey";
             columns: ["credential_id"];
             isOneToOne: false;
+            referencedRelation: "credential_photo_states";
+            referencedColumns: ["credential_id"];
+          },
+          {
+            foreignKeyName: "access_scans_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
             referencedRelation: "credentials";
             referencedColumns: ["id"];
           },
@@ -13048,6 +13055,111 @@ export type Database = {
           },
         ];
       };
+      credential_photos: {
+        Row: {
+          consent_record_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          person_id: string;
+          photo_path: string | null;
+          provided_at: string | null;
+          provided_by: string | null;
+          requested_at: string | null;
+          requested_by: string | null;
+          source: Database["app"]["Enums"]["credential_photo_source"] | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          consent_record_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          person_id: string;
+          photo_path?: string | null;
+          provided_at?: string | null;
+          provided_by?: string | null;
+          requested_at?: string | null;
+          requested_by?: string | null;
+          source?: Database["app"]["Enums"]["credential_photo_source"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          consent_record_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          photo_path?: string | null;
+          provided_at?: string | null;
+          provided_by?: string | null;
+          requested_at?: string | null;
+          requested_by?: string | null;
+          source?: Database["app"]["Enums"]["credential_photo_source"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "credential_photos_consent_record_id_fkey";
+            columns: ["consent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "consent_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_provided_by_fkey";
+            columns: ["provided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       credentials: {
         Row: {
           created_at: string;
@@ -20065,6 +20177,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_check_ins_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_photo_states";
+            referencedColumns: ["credential_id"];
           },
           {
             foreignKeyName: "guest_check_ins_credential_id_fkey";
@@ -57776,6 +57895,34 @@ export type Database = {
         };
         Relationships: [];
       };
+      credential_photo_states: {
+        Row: {
+          credential_id: string | null;
+          holder_person_id: string | null;
+          org_id: string | null;
+          photo_state: Database["app"]["Enums"]["credential_photo_state"] | null;
+          provided_at: string | null;
+          requested_at: string | null;
+          source: Database["app"]["Enums"]["credential_photo_source"] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "credentials_holder_person_id_fkey";
+            columns: ["holder_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       currencies: {
         Row: {
           currency_code: string | null;
@@ -62184,6 +62331,19 @@ export type Database = {
           webhook_endpoint_id: string;
         }[];
       };
+      credential_badge_photos: {
+        Args: { p_credential_ids: string[] };
+        Returns: {
+          bucket_id: string;
+          credential_id: string;
+          holder_person_id: string;
+          photo_path: string;
+          photo_state: Database["app"]["Enums"]["credential_photo_state"];
+          provided_at: string;
+          requested_at: string;
+          source: Database["app"]["Enums"]["credential_photo_source"];
+        }[];
+      };
       decide_approval: {
         Args: { p_approval_instance_id: string; p_approved: boolean; p_comment?: string };
         Returns: string;
@@ -62912,6 +63072,18 @@ export type Database = {
           unread_count: number;
         }[];
       };
+      my_credential_photos: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          has_profile_photo: boolean;
+          org_id: string;
+          org_name: string;
+          photo_path: string;
+          photo_state: Database["app"]["Enums"]["credential_photo_state"];
+          provided_at: string;
+          source: Database["app"]["Enums"]["credential_photo_source"];
+        }[];
+      };
       my_mandatory_reads: {
         Args: { p_org_id: string };
         Returns: {
@@ -63609,6 +63781,18 @@ export type Database = {
         };
         Returns: string;
       };
+      record_credential_photo: {
+        Args: {
+          p_notice_version: string;
+          p_org_id: string;
+          p_photo_path: string;
+          p_source: Database["app"]["Enums"]["credential_photo_source"];
+        };
+        Returns: {
+          credential_photo_id: string;
+          replaced_path: string;
+        }[];
+      };
       record_deletion_certificate_delivered: {
         Args: { p_certificate_id: string; p_message_id: string };
         Returns: undefined;
@@ -64048,6 +64232,7 @@ export type Database = {
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
+      remove_credential_photo: { Args: { p_org_id: string; p_person_id: string }; Returns: string };
       reorder_favorites: { Args: { p_favorite_ids: string[]; p_org_id: string }; Returns: number };
       replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
@@ -64127,6 +64312,13 @@ export type Database = {
           p_record_id: string;
         };
         Returns: string;
+      };
+      request_credential_photos: {
+        Args: { p_credential_ids: string[] };
+        Returns: {
+          credential_id: string;
+          outcome: string;
+        }[];
       };
       request_domain_check: { Args: { p_org_domain_id: string }; Returns: string };
       request_engaged_guest: {
@@ -65412,6 +65604,13 @@ export type Database = {
         Args: { p_document_slug: string; p_document_version: string };
         Returns: boolean;
       };
+      withdraw_my_credential_photos: {
+        Args: { p_org_id?: string };
+        Returns: {
+          org_id: string;
+          photo_path: string;
+        }[];
+      };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
       work_order_display_key: {
@@ -65526,6 +65725,9 @@ export type Database = {
       cost_center_kind: "Standing" | "Overhead" | "Event";
       coverage_medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
       coverage_tone: "Positive" | "Neutral" | "Negative";
+      credential_photo_source: "Holder Upload" | "Holder Profile Photo";
+      credential_photo_state:
+        "Provided" | "Scanning" | "Refused" | "Profile" | "Requested" | "Missing";
       cue_call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
       custom_data_type:
         | "Text"
@@ -72111,6 +72313,15 @@ export const Constants = {
       cost_center_kind: ["Standing", "Overhead", "Event"],
       coverage_medium: ["Online", "Print", "Broadcast", "Podcast", "Social"],
       coverage_tone: ["Positive", "Neutral", "Negative"],
+      credential_photo_source: ["Holder Upload", "Holder Profile Photo"],
+      credential_photo_state: [
+        "Provided",
+        "Scanning",
+        "Refused",
+        "Profile",
+        "Requested",
+        "Missing",
+      ],
       cue_call_kind: ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
       custom_data_type: [
         "Text",

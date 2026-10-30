@@ -515,6 +515,10 @@ restated:
     parent: app.time_entry_corrections.reason
     kind: own
     note: Why the state changed; the correction's reason is why the entry is wrong.
+  - column: app.credential_photos.person_id
+    parent: app.consent_records.person_id
+    kind: own
+    note: The holder the badge photo shows, required on every row; the consent is set only once a photo is stored, and `app.record_credential_photo` writes it for the same person (P5).
   - column: app.credentials.project_id
     parent: app.credential_categories.project_id
     kind: registered
