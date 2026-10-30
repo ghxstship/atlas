@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { SettingDefinition } from "@xos/schemas/settings";
 import { saveSettingsAction, type SettingsFormState } from "@/app/[org]/settings/registry-actions";
+import { splitVisibleFields } from "@/lib/settings/visible-fields";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -49,9 +50,6 @@ export interface SettingsFormProps {
   readonly scopeKind?: "Workspace" | "Team" | "Project";
   readonly scopeId?: string;
 }
-
-/** Fields shown before More fields (Section 11.10, gate 27). */
-const VISIBLE = 7;
 
 const INITIAL: SettingsFormState = {};
 
@@ -299,8 +297,8 @@ export function SettingsForm(props: SettingsFormProps) {
     );
   };
 
-  const shown = props.fields.slice(0, VISIBLE);
-  const more = props.fields.slice(VISIBLE);
+  // A value the org locked stays above More fields, with the line saying why it is locked.
+  const { shown, more } = splitVisibleFields(props.fields);
   const savedNow = (state.saved?.length ?? 0) > 0 && failed.length === 0 && dirty.size === 0;
 
   return (

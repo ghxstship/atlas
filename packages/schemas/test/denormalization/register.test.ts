@@ -95,6 +95,7 @@ describe("denormalization register", () => {
     );
   });
 
+  // Prettier formats the whole register (about 190 KB of Markdown tables): 11.6 s on a CI runner.
   it("matches the generated Markdown view", async () => {
     const target = join(repoRoot, MARKDOWN_PATH);
     const expected = await format(renderRegisterMarkdown(register), {
@@ -102,7 +103,7 @@ describe("denormalization register", () => {
       filepath: target,
     });
     expect(readFileSync(target, "utf8")).toBe(expected);
-  });
+  }, 60_000);
 
   it("names an existing finding file for every finding entry", () => {
     for (const e of [

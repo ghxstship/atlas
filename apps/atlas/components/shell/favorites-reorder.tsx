@@ -257,7 +257,9 @@ export function ReorderableFavorites({
               }}
             >
               <Icon name={f.icon} />
-              <span className="min-w-0 flex-1 truncate">{f.label}</span>
+              <span className="min-w-0 flex-1 truncate" title={f.label}>
+                {f.label}
+              </span>
             </a>
             <button
               type="button"
