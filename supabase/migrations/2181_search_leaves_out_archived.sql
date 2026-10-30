@@ -1,8 +1,9 @@
 -- 2181_search_leaves_out_archived.sql
 -- A124 (RRR-169), trace row S4.10-02. Global search (1440) and the command menu's recent items leave archived records
 -- and documents out (2180). The filter is:archived (es: archivado) searches only the archived ones, so an archived row
--- can still be found and unarchived. Both functions restate their latest definition (1440) with that one change;
--- the other archivable rows (work orders, vendors, venues, custom object records) are not searched by 1440.
+-- can still be found and unarchived; an exact key (NWL-12) finds its record either way. Both functions restate their
+-- latest definition (1440) with that one change; the other archivable rows (work orders, vendors, venues, custom
+-- object records) are not searched by 1440.
 
 create or replace function app.global_search(
   p_org_id uuid,
@@ -273,10 +274,11 @@ begin
            else least(1.0, ts_rank_cd(to_tsvector('simple', r.title), v_text, 32) * 4) end::real as relevance,
       case when r.id = any (v_key_record_ids) then 'key' when v_text is null then 'filter' else 'text' end as matched
     from (
-      -- Words and keys: the candidates, by primary key.
+      -- Words and keys: the candidates, by primary key. An exact key finds its record archived or not, as a link
+      -- opens it (A124); is:archived still keeps a live record out.
       select r.* from app.records r
       where r.id = any (v_record_ids || v_key_record_ids) and r.org_id = p_org_id and r.deleted_at is null
-        and (r.archived_at is not null) = v_archived
+        and ((r.archived_at is not null) = v_archived or (not v_archived and r.id = any (v_key_record_ids)))
       union all
       -- Filters alone: newest first through records_org_updated_idx, stopping at the limit.
       (select r.* from app.records r
@@ -502,7 +504,7 @@ begin
 end;
 $$;
 
-comment on function app.global_search(uuid, jsonb, extensions.vector, integer, real) is 'Global search (Section 11.7, Section 11.10 item 1, A87): records, incidents, people, documents, SOPs and handbook articles of an org, read with the caller''s own row level security (SECURITY INVOKER). p_query is the request @xos/data builds from the operator grammar: terms (prefix words), phrases, exclude_terms, exclude_phrases, types, exclude_types, kinds, exclude_kinds, projects, exclude_projects, assignees (me or a name), exclude_assignees, statuses (a state, open or closed), exclude_statuses, phases, urids, depts, is (blocked, open, closed, overdue, mine, archived), after, before, due_after and due_before (a date or days from today on the org''s calendar) and model (the embedding model of p_embedding). Ranked by text relevance times recency; with p_embedding and search.semantic_enabled on, the nearest documents, SOPs and articles at or above p_min_similarity blend in. Archived records and documents are left out unless is names archived, which searches only them (A124). Up to p_limit results of each type (at most 50).';
+comment on function app.global_search(uuid, jsonb, extensions.vector, integer, real) is 'Global search (Section 11.7, Section 11.10 item 1, A87): records, incidents, people, documents, SOPs and handbook articles of an org, read with the caller''s own row level security (SECURITY INVOKER). p_query is the request @xos/data builds from the operator grammar: terms (prefix words), phrases, exclude_terms, exclude_phrases, types, exclude_types, kinds, exclude_kinds, projects, exclude_projects, assignees (me or a name), exclude_assignees, statuses (a state, open or closed), exclude_statuses, phases, urids, depts, is (blocked, open, closed, overdue, mine, archived), after, before, due_after and due_before (a date or days from today on the org''s calendar) and model (the embedding model of p_embedding). Ranked by text relevance times recency; with p_embedding and search.semantic_enabled on, the nearest documents, SOPs and articles at or above p_min_similarity blend in. Archived records and documents are left out unless is names archived, which searches only them; an exact record key finds its record archived or not (A124). Up to p_limit results of each type (at most 50).';
 revoke all on function app.global_search(uuid, jsonb, extensions.vector, integer, real) from public, anon;
 grant execute on function app.global_search(uuid, jsonb, extensions.vector, integer, real) to authenticated, service_role;
 

@@ -2,13 +2,14 @@
 -- archived_at on records (a punch item through its Task record), work orders, custom object records, vendors, venues
 -- and documents, only with the capability that edits the row, and write one audit event each way. The columns change
 -- through nothing else. Global search and recent items leave archived records and documents out; is:archived finds
--- only them; unarchiving brings them back. Venues archive through archived_at now, with their venue events.
+-- only them, and an exact key finds an archived record either way; unarchiving brings them back. Venues archive
+-- through archived_at now, with their venue events.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(50);
+select plan(52);
 
 create function pg_temp.search(p_query jsonb) returns setof uuid
 language sql as $$ select s.result_id from app.global_search(pg_temp.id('org_a'), p_query) s $$;
@@ -113,6 +114,9 @@ select ok(pg_temp.id('rec') not in (select pg_temp.search('{"types":["record"]}'
 select ok(pg_temp.id('rec') in (select pg_temp.search('{"terms":["zephyr"],"is":["archived"]}')), 'is:archived finds the archived record');
 select ok(pg_temp.id('doc') in (select pg_temp.search('{"terms":["zephyr"],"is":["archived"]}')), 'and the archived document');
 select ok(pg_temp.id('rec') in (select pg_temp.search('{"is":["archived"]}')), 'is:archived alone lists archived records');
+select ok(pg_temp.id('rec') in (select pg_temp.search(jsonb_build_object('terms', jsonb_build_array(
+    (select p.project_key || '-' || r.record_number from app.records r join app.projects p on p.id = r.project_id where r.id = pg_temp.id('rec')))))),
+  'an exact key finds the archived record without is:archived, as its link opens it');
 select is((select count(*)::int from app.recent_items(pg_temp.id('org_a')) where result_id in (pg_temp.id('rec'), pg_temp.id('doc'))), 0,
   'recent items leave archived rows out');
 
@@ -124,6 +128,10 @@ select pg_temp.as_user('dave');
 select is(app.unarchive_row('records', pg_temp.id('rec')), null, 'a project member unarchives the record');
 select is((select archived_at::text || archived_by::text from app.records where id = pg_temp.id('rec')), null, 'it is live again and names no archiver');
 select ok(pg_temp.id('rec') in (select pg_temp.search('{"terms":["zephyr"]}')), 'search finds it again');
+select ok(pg_temp.id('rec') not in (select pg_temp.search(jsonb_build_object('terms', jsonb_build_array(
+    (select p.project_key || '-' || r.record_number from app.records r join app.projects p on p.id = r.project_id where r.id = pg_temp.id('rec'))),
+    'is', jsonb_build_array('archived')))),
+  'and is:archived leaves the live record out even by its exact key');
 select is(app.unarchive_row('documents', pg_temp.id('doc')), null, 'the document is unarchived');
 select ok(pg_temp.id('doc') in (select pg_temp.search('{"terms":["zephyr"]}')), 'and found again');
 select is((select count(*)::int from app.recent_items(pg_temp.id('org_a')) where result_id in (pg_temp.id('rec'), pg_temp.id('doc'))), 2,
