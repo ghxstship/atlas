@@ -3,7 +3,7 @@ import { addCalendarDays } from "./calendar.ts";
 /**
  * The global search query grammar (Section 11.7 Search, Section 11.10 item 1; finding A65-005). One
  * parser for every surface: the command menu shows the operators it recognized as chips, and the
- * search RPC (`app.global_search`, migration 1440) receives the structured request this module
+ * search RPC (`app.global_search`, migrations 1440, 2181 and 2841) receives the structured request this module
  * builds, never the raw text. Pure and dependency free, so it runs in the browser and on the server.
  *
  * Grammar, tokens separated by spaces:
@@ -14,7 +14,8 @@ import { addCalendarDays } from "./calendar.ts";
  *   -op:value         results the filter does not match
  *
  * Operators (English, with the Section 11.7 names and Spanish aliases):
- *   type: kind: tipo:            record, incident, person, document, sop, article, or a record kind (task, permit)
+ *   type: kind: tipo:            record, incident, person, document, sop, article, asset (an asset unit),
+ *                                asset class, or a record kind (task, permit)
  *   project: proyecto:           project key (NWS) or the start of its name
  *   assignee: owner: asignado:   me, or part of a person's name
  *   status: state: estado:       a record or incident state (blocked, in-review), open or closed
@@ -33,7 +34,16 @@ import { addCalendarDays } from "./calendar.ts";
  */
 
 /** Result types the search returns. */
-export const SEARCH_TYPES = ["record", "incident", "person", "document", "sop", "article"] as const;
+export const SEARCH_TYPES = [
+  "record",
+  "incident",
+  "person",
+  "document",
+  "sop",
+  "article",
+  "asset",
+  "asset_class",
+] as const;
 export type SearchType = (typeof SEARCH_TYPES)[number];
 
 /** Filter operators, by their canonical name. */
@@ -114,6 +124,25 @@ const TYPE_WORDS: Readonly<Record<string, SearchType>> = {
   articulo: "article",
   artículo: "article",
   manual: "article",
+  asset: "asset",
+  assets: "asset",
+  unit: "asset",
+  units: "asset",
+  gear: "asset",
+  activo: "asset",
+  activos: "asset",
+  unidad: "asset",
+  unidades: "asset",
+  "asset class": "asset_class",
+  "asset-class": "asset_class",
+  asset_class: "asset_class",
+  assetclass: "asset_class",
+  class: "asset_class",
+  classes: "asset_class",
+  "clase de activo": "asset_class",
+  "clase-de-activo": "asset_class",
+  clase: "asset_class",
+  clases: "asset_class",
 };
 
 /** `is:` values, with Spanish aliases. */
