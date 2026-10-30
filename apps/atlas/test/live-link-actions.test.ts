@@ -37,6 +37,7 @@ vi.mock("@xos/data/live-links", async (importOriginal) => ({
 }));
 
 const actions = await import("@/lib/live-links/actions");
+const { expiryFor } = await import("@/lib/live-links/expiry");
 
 const VIEW = "0192f3a0-0000-7000-8000-000000000002";
 const RUN = "0192f3a0-0000-7000-8000-000000000003";
@@ -111,8 +112,8 @@ describe("live link actions", () => {
 
   it("keeps a picked expiry inside the 90 days the database allows", async () => {
     const now = new Date("2026-10-28T12:00:00Z");
-    expect(await actions.expiryFor("2026-11-27", now)).toBe("2026-11-27T23:59:59.000Z");
-    const last = Date.parse(await actions.expiryFor("2027-01-26", now));
+    expect(expiryFor("2026-11-27", now)).toBe("2026-11-27T23:59:59.000Z");
+    const last = Date.parse(expiryFor("2027-01-26", now));
     expect(last).toBeLessThan(now.getTime() + 90 * 86_400_000);
   });
 

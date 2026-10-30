@@ -6,7 +6,6 @@ import {
   isDisplayMode,
   listLiveLinks,
   liveLinkPath,
-  MAX_LIVE_LINK_DAYS,
   regenerateLiveLink,
   revokeLiveLink,
   type LiveLink,
@@ -15,6 +14,7 @@ import {
 import { listProjectRefs, type ProjectRef } from "@xos/data/work";
 import { z } from "zod";
 import { env } from "@/lib/env";
+import { expiryFor } from "@/lib/live-links/expiry";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
@@ -36,16 +36,6 @@ function refused(error: { kind: string; rule?: string }): { ok: false; error: st
 /** The link's public address, on the Atlas origin. */
 function linkUrl(kind: LiveLinkKind, token: string): string {
   return new URL(liveLinkPath(kind, token), env().ATLAS_SITE_URL).toString();
-}
-
-/**
- * The instant a link picked for a calendar day expires: the end of that day in UTC, kept inside the
- * 90 days the database allows, so the last day offered is never refused.
- */
-export async function expiryFor(day: string, now: Date = new Date()): Promise<string> {
-  const end = Date.parse(`${day}T23:59:59Z`);
-  const ceiling = now.getTime() + MAX_LIVE_LINK_DAYS * 86_400_000 - 60_000;
-  return new Date(Math.min(end, ceiling)).toISOString();
 }
 
 export interface CreatedLiveLinkView {
@@ -116,7 +106,7 @@ export async function createViewLinkAction(
   const created = await createViewLink(ctx.viewer.db, {
     savedViewId: p.savedViewId,
     projectId: project.id,
-    expiresAt: await expiryFor(p.expiresOn),
+    expiresAt: expiryFor(p.expiresOn),
     note: p.note === "" ? null : p.note,
   });
   if (!created.ok) return refused(created.error);
@@ -150,7 +140,7 @@ export async function createDisplayLinkAction(
   const p = parsed.data;
   const created = await createDisplayLink(ctx.viewer.db, {
     runOfShowId: p.runOfShowId,
-    expiresAt: p.expiresOn === "" ? null : await expiryFor(p.expiresOn),
+    expiresAt: p.expiresOn === "" ? null : expiryFor(p.expiresOn),
     defaultMode: isDisplayMode(p.defaultMode) ? p.defaultMode : "Backstage",
     note: p.note === "" ? null : p.note,
   });
