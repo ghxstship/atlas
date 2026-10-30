@@ -68,6 +68,10 @@ test("journey 46: the client approves a change order and reads the run of show, 
   // The shared run of show, with its cues.
   await page.goto(`/work/engagements/${engagement.key}/run-of-show`);
   await expect(page.getByRole("heading", { name: /Opening Night Running Order/ })).toBeVisible();
+  // A cue whose time is to be confirmed reads TBC, never a firm time (G-40, ADR 0131; seed 2790).
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "House Lights Up" }).first(),
+  ).toContainText("TBC");
   await expectAccessible(page);
 
   // Nothing internal reaches the client: not the change order's reason or budget link, not the

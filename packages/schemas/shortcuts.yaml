@@ -12,7 +12,8 @@
 #   Shift  Only with letters and named keys; a symbol such as ? already carries it.
 # A key is a letter A to Z, a digit, a symbol other than + (write Plus), or a named key: Enter, Escape,
 # Tab, Space, Backspace, Delete, Insert, Home, End, PageUp, PageDown, ArrowUp, ArrowDown, ArrowLeft,
-# ArrowRight, CapsLock or F1 to F12. A sequence starts with one letter and no modifiers.
+# ArrowRight, CapsLock, F1 to F12 or F13 to F20 (no browser or system default; a Stream Deck or similar
+# keypad sends them). A sequence starts with one letter and no modifiers.
 #
 # Each shortcut has:
 #   id      Stable id. Personal bindings (app.shortcut_bindings) store it, so never rename one.
@@ -33,8 +34,10 @@
 # default and no personal binding may use them; fixed shortcuts may name the keys of keyboard operation
 # (Escape, Enter) that they document. `+*` stands for any key while holding at least those modifiers.
 #
-# Single-key shortcuts (no Mod, Ctrl or Alt) obey the personal setting me.shortcuts_enabled, and every
-# rebindable shortcut can take a modifier, which meets WCAG 2.1.4 Character Key Shortcuts.
+# Single character-key shortcuts (a letter, digit or symbol with no Mod, Ctrl or Alt) obey the personal
+# setting me.shortcuts_enabled; function keys F13 to F20 do not, because WCAG 2.1.4 Character Key
+# Shortcuts covers character keys only. Every rebindable shortcut can take a modifier, which meets
+# WCAG 2.1.4.
 #
 # Run `pnpm --filter @xos/schemas generate:shortcuts` after editing. `check:shortcuts` and the package
 # tests fail while src/shortcuts/registry.generated.ts is out of date or two defaults conflict.
@@ -122,12 +125,14 @@ reserved:
 
 shells:
   atlas:
-    scopes: [global, list, inbox]
+    scopes: [global, list, inbox, show]
     groups:
       - { id: general, label: help.shortcuts.groups.general }
       - { id: go, label: help.shortcuts.groups.go }
       - { id: lists, label: help.shortcuts.groups.lists }
       - { id: inbox, label: help.shortcuts.groups.inbox }
+      - { id: show, label: help.shortcuts.groups.show }
+      - { id: show-deck, label: help.shortcuts.groups.showDeck }
     shortcuts:
       # General: the shell answers these on every page.
       - id: command-menu
@@ -397,6 +402,90 @@ shells:
         group: inbox
         keys: H
         label: help.shortcuts.inbox.snooze
+      # Show calling: the showcaller console in a running order's live mode (ADR 0131). RunOfShowLive
+      # owns Space; the letters and symbols obey me.shortcuts_enabled.
+      - id: show.go
+        scope: show
+        group: show
+        keys: Space
+        fixed: true
+        label: help.shortcuts.show.go
+      - id: show.next
+        scope: show
+        group: show
+        keys: J
+        label: help.shortcuts.show.next
+      - id: show.previous
+        scope: show
+        group: show
+        keys: K
+        label: help.shortcuts.show.previous
+      - id: show.standby
+        scope: show
+        group: show
+        keys: S
+        label: help.shortcuts.show.standby
+      - id: show.jump
+        scope: show
+        group: show
+        keys: T
+        label: help.shortcuts.show.jump
+      - id: show.nudge-later
+        scope: show
+        group: show
+        keys: "]"
+        label: help.shortcuts.show.nudgeLater
+      - id: show.nudge-earlier
+        scope: show
+        group: show
+        keys: "["
+        label: help.shortcuts.show.nudgeEarlier
+      - id: show.department
+        scope: show
+        group: show
+        keys: D
+        label: help.shortcuts.show.department
+      # Stream Deck: Hotkey actions send F13 to F20, which answer even with single-key shortcuts off.
+      - id: show.deck.go
+        scope: show
+        group: show-deck
+        keys: F13
+        label: help.shortcuts.show.go
+      - id: show.deck.standby
+        scope: show
+        group: show-deck
+        keys: F14
+        label: help.shortcuts.show.standby
+      - id: show.deck.previous
+        scope: show
+        group: show-deck
+        keys: F15
+        label: help.shortcuts.show.previous
+      - id: show.deck.next
+        scope: show
+        group: show-deck
+        keys: F16
+        label: help.shortcuts.show.next
+      - id: show.deck.nudge-later
+        scope: show
+        group: show-deck
+        keys: F17
+        label: help.shortcuts.show.nudgeLater
+      - id: show.deck.nudge-earlier
+        scope: show
+        group: show-deck
+        keys: F18
+        label: help.shortcuts.show.nudgeEarlier
+      - id: show.deck.jump
+        scope: show
+        group: show-deck
+        keys: F19
+        label: help.shortcuts.show.jump
+      - id: show.deck.department
+        scope: show
+        group: show-deck
+        keys: F20
+        label: help.shortcuts.show.department
 
   gateway:
     scopes: [global]

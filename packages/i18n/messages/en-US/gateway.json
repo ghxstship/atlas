@@ -81,7 +81,8 @@
     },
     "mapAlternative": "Map locations are not available yet, so places are listed below in date order.",
     "orgFilter": "Showing {org} only",
-    "clearFilter": "Show every organization"
+    "clearFilter": "Show every organization",
+    "tbc": "TBC"
   },
   "engagement": {
     "tabs": "Engagement sections",

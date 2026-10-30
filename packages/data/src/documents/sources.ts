@@ -18,7 +18,14 @@ import {
   listInspectionTemplates,
   listInspections,
 } from "../safety-permits.ts";
-import { getRunOfShow, listCallSheets, listCalls, listCues, listDaySheets } from "../show.ts";
+import {
+  getRunOfShow,
+  listCallSheets,
+  listCalls,
+  listCueCalls,
+  listCues,
+  listDaySheets,
+} from "../show.ts";
 import type { DocumentKind } from "./model.ts";
 import type { BadgePhoto, DocumentDataMap, DocumentProject } from "./templates.ts";
 
@@ -171,9 +178,10 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     if (!run.ok) return run;
     const project = await documentProject(db, orgId, run.data.projectId);
     if (!project.ok) return project;
-    const cues = await listCues(db, id);
+    const [cues, calls] = await Promise.all([listCues(db, id), listCueCalls(db, id)]);
     if (!cues.ok) return cues;
-    return ok({ project: project.data, run: run.data, cues: cues.data });
+    if (!calls.ok) return calls;
+    return ok({ project: project.data, run: run.data, cues: cues.data, calls: calls.data });
   },
 
   beo: async (db, orgId, id) => {

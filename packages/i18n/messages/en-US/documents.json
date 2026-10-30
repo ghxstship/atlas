@@ -134,7 +134,18 @@
     "calledAt": "Called",
     "calledBy": "Called by",
     "notCalled": "Not called",
-    "noCues": "This running order has no cues."
+    "noCues": "This running order has no cues.",
+    "curfew": "Curfew",
+    "tbc": "TBC",
+    "departmentCalls": "Department calls",
+    "departmentCall": "{department}: {instruction}",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Lighting",
+      "video": "Video",
+      "sfx": "Special Effects",
+      "stage": "Stage"
+    }
   },
   "beo": {
     "title": "Banquet event order {key}",
