@@ -197,7 +197,10 @@ function lineColumns(t: Translate) {
 }
 
 const V1 = "2026-01-01T00:00:00Z";
-/** Run of show version 2 (ADR 0131): TBC planned times, department calls and the curfew. */
+/**
+ * Run of show version 2 (ADR 0131): TBC planned times, department calls and the curfew. It takes effect on the day
+ * the release carrying it reaches production (00:00Z), which is set here when the release is cut.
+ */
 const RUN_OF_SHOW_V2 = "2026-10-31T00:00:00Z";
 
 export const TEMPLATES: TemplateRegistry = {
