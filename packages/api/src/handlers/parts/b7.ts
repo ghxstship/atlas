@@ -18,11 +18,14 @@ type Audience = {
   department_code?: unknown;
 } | null;
 
-/** The configure RPC's arguments from the request body; a field left out is cleared. */
+/**
+ * The configure RPC's arguments from the request body; a field left out is cleared. A name is passed as sent, so a
+ * blank one is refused by the RPC (calendar_feed_name) rather than read as the default name, which is null.
+ */
 function configurationArgs(body: Row): Record<string, unknown> {
   const audience = (body["audience"] ?? null) as Audience;
   return {
-    p_name: typeof body["name"] === "string" && body["name"].trim() !== "" ? body["name"] : null,
+    p_name: typeof body["name"] === "string" ? body["name"] : null,
     p_sources: Array.isArray(body["sources"]) ? body["sources"] : null,
     p_person_ids:
       audience?.kind === "people" && Array.isArray(audience.person_ids)
@@ -111,8 +114,7 @@ export const b7PlatformHandlers: Readonly<Record<string, ErasedHandler>> = {
     await run(
       rpc(context.db, "configure_person_calendar_feed", {
         p_calendar_feed_id: id,
-        p_name:
-          typeof body["name"] === "string" && body["name"].trim() !== "" ? body["name"] : null,
+        p_name: typeof body["name"] === "string" ? body["name"] : null,
         p_sources: Array.isArray(body["sources"]) ? body["sources"] : null,
       }),
     );

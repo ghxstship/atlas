@@ -67,6 +67,9 @@ select throws_ok(format($$update app.document_book_sections set deleted_at = now
   'XR001', 'document_book_sections: A book''s sections change only when the book is saved.', 'nor a section soft-deleted directly');
 select throws_ok(format($$delete from app.document_book_sections where book_id = %L$$, (select id from k where key = 'tour')),
   '42501', null, 'nor a section deleted');
+select throws_ok(format($$update app.document_book_sections set deleted_at = null where book_id = %L and deleted_at is not null and document_kind = 'call-sheet'$$,
+  (select id from k where key = 'tour')), 'XR001', 'document_book_sections: A book''s sections change only when the book is saved.',
+  'nor a section the last save replaced brought back');
 
 -- Reading -------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('frank');

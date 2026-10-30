@@ -16,7 +16,7 @@ A project's **Reports** tab starts with its wrap-up: the debrief and a managemen
 
 - Add debrief points by area: what went well, what to improve, and actions, each action with an owner.
 - Write the management summary, or choose **Summarize** to have Aurora draft one from the project's figures and debrief points. **Use as management summary** puts the draft in the box; nothing is saved until you choose **Save summary**. A saved draft prints as "Drafted with Aurora and reviewed by" you, with the date.
-- **Complete debrief** locks the points and the summary. **Reopen debrief** unlocks them; a point deleted while the debrief is completed cannot be restored until you reopen it.
+- **Complete debrief** locks the points and the summary. **Reopen debrief** unlocks them. While the debrief is completed, a deleted point cannot be restored from Trash either; reopen the debrief first.
 
 Each section of the report shows only what you may read; the others say "Not included". A figure that was not measured reads Unmeasured, never 0.
 

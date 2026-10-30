@@ -1594,7 +1594,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Reopen debrief" },
             {
               t: "text",
-              v: " unlocks them; a point deleted while the debrief is completed cannot be restored until you reopen it.",
+              v: " unlocks them. While the debrief is completed, a deleted point cannot be restored from Trash either; reopen the debrief first.",
             },
           ],
         ],
@@ -4098,7 +4098,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Reabrir balance" },
             {
               t: "text",
-              v: " los desbloquea; un punto eliminado mientras el balance está completado no se puede recuperar hasta que lo reabra.",
+              v: " los desbloquea. Mientras el balance está completado, tampoco se puede restaurar desde la Papelera un punto eliminado; primero reabra el balance.",
             },
           ],
         ],

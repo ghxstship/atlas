@@ -298,7 +298,8 @@ const BUDGET_SOURCES = [
  * What a summary reads: the named items; for a project's gate readiness the criteria of its next gate with
  * whether evidence satisfies each (projects.gateReadiness); and for a project's wrap-up (B7) the final cost report,
  * the incident counts and the measurement summary, each cited by the project's id under its real relation, so the
- * org's never-send list applies to it, and each only when the caller may read it (200).
+ * org's never-send list applies to it, and each only when the caller may read it (200; the budget also needs the
+ * ledger, see readBudget).
  */
 async function summaryItems(
   api: PublicApi,
@@ -333,7 +334,7 @@ async function summaryItems(
     const [budget, incidents, measurements] = await Promise.all([
       BUDGET_SOURCES.some((t) => neverSend.excludesTable(t))
         ? Promise.resolve(null)
-        : api.get("/reports/final-cost-report", { project_id: project }),
+        : readBudget(api, project),
       api.get("/reports/incident-rates", { project_id: project }),
       api.get("/project-measurement-summary", { "filter[project_id][eq]": project, limit: "100" }),
     ]);
@@ -356,6 +357,20 @@ async function summaryItems(
     add("app.project_measurement_summary", "measurements", measurements);
   }
   return items;
+}
+
+/**
+ * The final cost report for a wrap-up, or null when the caller cannot also read the ledger. The report needs only
+ * finance.budget.read, but its actuals come from app.posting_lines (finance.journal.read in the org): without that,
+ * actual reads 0 and the variance is the whole revised budget, so the figures are left out instead.
+ */
+async function readBudget(
+  api: PublicApi,
+  project: string,
+): Promise<{ status: number; body: unknown } | null> {
+  const ledger = await api.get("/posting-lines", { limit: "1" });
+  if (ledger.status !== 200) return null;
+  return api.get("/reports/final-cost-report", { project_id: project });
 }
 
 /** The org's verbiage library, read as the caller (knowledge.verbiage.read); none when unreadable. */

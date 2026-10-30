@@ -172,6 +172,17 @@ describe("Calendar feed configuration", () => {
     await expectContract(refused, "calendarFeeds.configure");
   });
 
+  it("refuses a blank name instead of resetting it to the default", async () => {
+    const { api, calls } = app({
+      "from:calendar_feeds": [ok(feed)],
+      "rpc:configure_calendar_feed": [refusal("calendar_feed_name")],
+    });
+    const refused = await api.request(`/calendar-feeds/${feed.id}/configure`, post({ name: "  " }));
+    expect(refused.status).toBe(422);
+    await expectContract(refused, "calendarFeeds.configure");
+    expect(argsOf(calls, "rpc:configure_calendar_feed")).toMatchObject({ p_name: "  " });
+  });
+
   it("configures a personal feed's name and sources", async () => {
     const personal = { id: id(3), name: "My gigs", sources: null };
     const { api, calls } = app({
@@ -342,8 +353,9 @@ const summaryTool = (input: unknown): ModelResponse => ({
 });
 
 /** The wrap-up's facts as the in-process API answers them for a reader who may read them all. */
-const factsApi: PublicApi = {
+const factsApi = (ledger = true): PublicApi => ({
   async get(path) {
+    if (path === "/posting-lines") return ledger ? { status: 200, body: { data: [] } } : { status: 403, body: {} };
     if (path === "/reports/final-cost-report")
       return { status: 200, body: { data: [{ currency: "USD", actual_minor: 10_500_000 }] } };
     if (path === "/reports/incident-rates")
@@ -353,15 +365,15 @@ const factsApi: PublicApi = {
     if (path === `/project-debrief-items/${point.id}`) return { status: 200, body: point };
     return { status: 404, body: {} };
   },
-};
+});
 
-function aurora(neverSend: unknown[], script: ModelResponse[] = []) {
+function aurora(neverSend: unknown[], script: ModelResponse[] = [], ledger = true) {
   const model = new Scripted(script);
   const handlers = defineHandlers(
     "Settings",
     auroraHandlers({
       model: () => model,
-      readApi: () => factsApi,
+      readApi: () => factsApi(ledger),
       today: () => "2026-10-28",
       timeZone: () => "America/New_York",
     }) as unknown as HandlerSet<"Settings">,
@@ -417,6 +429,27 @@ describe("The wrap-up summary", () => {
       records: { collection: string; sent: boolean }[];
     };
     expect(body.records.filter((r) => r.sent).map((r) => r.collection)).toEqual([
+      "project-measurement-summary",
+    ]);
+  });
+
+  it("leaves out the budget when the caller cannot read the ledger", async () => {
+    const { api } = aurora([], [], false);
+    const res = await api.request(
+      "/aurora/preview",
+      post({
+        feature: "summaries",
+        kind: "project_wrap_up",
+        subject_collection: "projects",
+        subject_id: PROJECT,
+        items: [],
+      }),
+    );
+    const body = (await expectContract(res, "aurora.preview")) as {
+      records: { collection: string }[];
+    };
+    expect(body.records.map((r) => r.collection)).toEqual([
+      "incidents",
       "project-measurement-summary",
     ]);
   });

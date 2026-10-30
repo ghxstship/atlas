@@ -16,7 +16,7 @@ La pestaña **Informes** de un proyecto empieza con su cierre: el balance y un r
 
 - Agregue puntos del balance por área: lo que salió bien, lo que hay que mejorar y acciones, cada acción con un responsable.
 - Escriba el resumen para la dirección, o elija **Resumir** para que Aurora redacte uno con las cifras y los puntos del balance del proyecto. **Usar como resumen para la dirección** pone el borrador en el cuadro; no se guarda nada hasta que elija **Guardar resumen**. Un borrador guardado se imprime como "Redactado con Aurora y revisado por" usted, con la fecha.
-- **Completar balance** bloquea los puntos y el resumen. **Reabrir balance** los desbloquea; un punto eliminado mientras el balance está completado no se puede recuperar hasta que lo reabra.
+- **Completar balance** bloquea los puntos y el resumen. **Reabrir balance** los desbloquea. Mientras el balance está completado, tampoco se puede restaurar desde la Papelera un punto eliminado; primero reabra el balance.
 
 Cada sección del informe muestra solo lo que usted puede leer; las demás dicen "No incluido". Una cifra que no se midió dice Sin medir, nunca 0.
 

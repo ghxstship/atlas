@@ -82,24 +82,15 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
-declare
-  v_kind app.document_book_kind;
 begin
   if private.in_trusted_operation('document_book_save') then
-    return new;
-  end if;
-  select b.book_kind into v_kind from app.document_books b where b.id = new.book_id and b.deleted_at is null;
-  if tg_op = 'UPDATE' and old.deleted_at is not null and new.deleted_at is null
-     and (to_jsonb(new) - 'deleted_at' - 'updated_at' - 'updated_by') = (to_jsonb(old) - 'deleted_at' - 'updated_at' - 'updated_by')
-     and v_kind is not null
-     and not (v_kind = 'Tour Book' and new.document_kind in ('final-cost-report', 'wrap-up-report')) then
     return new;
   end if;
   perform private.refuse('document_book_sections', 'A book''s sections change only when the book is saved.');
   return new;
 end;
 $$;
-comment on function private.guard_document_book_section() is 'Before update on app.document_book_sections: outside app.save_document_book (trusted operation document_book_save) a section may only come back from Trash with its live book, and never as a kind its book does not allow.';
+comment on function private.guard_document_book_section() is 'Before update on app.document_book_sections: only app.save_document_book (trusted operation document_book_save) changes a section, a superseded one included. Members hold update (deleted_at) only because app.restore_trash_item, run as the caller, updates the rows that reference a restored book; a book''s soft delete leaves its sections live, so that update matches none.';
 revoke all on function private.guard_document_book_section() from public, anon, authenticated;
 create trigger t40_guard_document_book_section before update on app.document_book_sections
   for each row execute function private.guard_document_book_section();
