@@ -19,6 +19,8 @@ const ACTION_KEY: Record<ScanAction, string> = {
 
 export interface CustodyPickers {
   readonly members: readonly Option[];
+  /** Engagements of the org's projects (R1); the dialog offers those of the chosen project. */
+  readonly engagements: readonly (Option & { readonly projectId: string })[];
   readonly projects: readonly Option[];
   readonly venues: readonly Option[];
 }
@@ -53,7 +55,17 @@ export function CustodyMoveDialog({
 }) {
   const t = useAssetsCopy();
   const [eventId] = useState(() => crypto.randomUUID());
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const key = ACTION_KEY[action];
+  // One Custodian select: members as m:<membership>, and the engagements of the chosen project (or,
+  // with Keep project, of the project the item is out for) as e:<engagement>.
+  const custodyProject = projectId || defaultProjectId || "";
+  const custodians = [
+    ...pickers.members.map((m) => ({ value: `m:${m.value}`, label: m.label })),
+    ...pickers.engagements
+      .filter((e) => custodyProject !== "" && e.projectId === custodyProject)
+      .map((e) => ({ value: `e:${e.value}`, label: e.label })),
+  ];
   return (
     <ActionDialog
       title={t(`custody.${key}.title`, { code: label ?? code })}
@@ -67,12 +79,14 @@ export function CustodyMoveDialog({
       {...(onDone ? { onSuccess: () => onDone() } : {})}
     >
       {action === "check-in" ? null : (
+        // Not keyed by the project: changing the project keeps a chosen member, and the browser falls back
+        // to the first option only when the chosen engagement leaves the list.
         <Select
-          id="custody-member"
-          name="membershipId"
-          label={t("fields.membershipId")}
-          value={pickers.members[0]?.value ?? ""}
-          options={[...pickers.members]}
+          id="custody-custodian"
+          name="custodian"
+          label={t("fields.custodian")}
+          value={custodians[0]?.value ?? ""}
+          options={custodians}
         />
       )}
       {action === "check-in" ? (
@@ -92,6 +106,7 @@ export function CustodyMoveDialog({
           help={t("custody.projectHelp")}
           value={defaultProjectId ?? ""}
           options={[{ value: "", label: t("common.keepProject") }, ...pickers.projects]}
+          onChange={(e) => setProjectId(e.target.value)}
         />
       )}
       {lot ? (

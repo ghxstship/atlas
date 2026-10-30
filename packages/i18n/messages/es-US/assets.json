@@ -110,13 +110,15 @@
     "transition_reason_required": "Cada cambio de estado lleva un motivo. Indica por qué se mueve el activo.",
     "asset_code_unknown": "Ningún activo ni lote de esta organización tiene ese código. Revisa la etiqueta y escanea de nuevo.",
     "asset_code_ambiguous": "Más de un activo tiene ese identificador, así que no se pueden distinguir. Escanea la etiqueta de activo.",
-    "asset_scan_custodian_required": "Elige el único miembro que recibe el activo.",
+    "asset_scan_custodian_required": "Elige el único miembro o contratación que lo recibe.",
     "asset_scan_lot_transfer": "La cantidad de un lote no se pasa de mano en mano. Devuélvela y luego entrégala a la siguiente persona.",
     "asset_scan_place_required": "Este activo no tiene sede de origen. Elige el lugar al que regresa.",
     "asset_scan_quantity_required": "Escribe cuántas unidades del lote se mueven.",
     "asset_scan_state_conflict": "Alguien movió este activo desde que lo buscaste. Búscalo de nuevo para ver dónde está.",
     "asset_scan_unavailable": "Este activo no está en servicio, así que no se puede entregar ni devolver. Primero pásalo a Disponible.",
-    "asset_scan_event_reused": "Ese escaneo ya se usó para otro elemento. Cierra esta ventana y escanea de nuevo."
+    "asset_scan_event_reused": "Ese escaneo ya se usó para otro elemento. Cierra esta ventana y escanea de nuevo.",
+    "asset_scan_engagement_closed": "Esa contratación está Completa o Cancelada. El equipo se entrega a una contratación que siga abierta.",
+    "asset_scan_engagement_project": "Esa contratación pertenece a otro proyecto. Elige su proyecto o mantén el actual."
   },
   "load": {
     "loading": "Cargando activos",

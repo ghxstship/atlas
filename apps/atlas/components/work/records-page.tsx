@@ -15,6 +15,8 @@ import { getTranslate } from "@/lib/shell/translate";
 import type { BulkConfig } from "@/components/bulk/types";
 import { LiveRefresh } from "@/components/live/live-refresh";
 import { collectionPeek } from "@/components/shell/collection-peek";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { CreateRecordDialog } from "./create-record";
 import {
   capabilitySet,
@@ -65,7 +67,11 @@ export async function RecordsPage({
 }) {
   const t = await getTranslate();
   const db = ctx.viewer.db;
-  const [meta, caps] = await Promise.all([loadRecordMeta(ctx), capabilitySet(ctx)]);
+  const [meta, caps, custom] = await Promise.all([
+    loadRecordMeta(ctx),
+    capabilitySet(ctx),
+    customFieldList(ctx, "app.records", search),
+  ]);
   const { views, defaultView } = nodeViews(node);
   const requested = param(search, "view");
   const view = requested && views.includes(requested) ? requested : defaultView;
@@ -98,7 +104,11 @@ export async function RecordsPage({
       ...(q ? { search: q } : {}),
     }),
   ]);
-  const records = sortRecords(must(filtered, "records"), sort, meta.states);
+  const records = sortRecords(
+    must(filtered, "records").filter((r) => custom.keep(r.id)),
+    sort,
+    meta.states,
+  );
   const total = must(all, "records").length;
 
   const timeZone =
@@ -176,7 +186,7 @@ export async function RecordsPage({
   ];
 
   return (
-    <>
+    <CustomFieldList value={await custom.view(records.map((r) => r.id))}>
       <LiveRefresh topics={live} />
       <RecordCollection
         org={ctx.org.slug}
@@ -223,6 +233,6 @@ export async function RecordsPage({
         }
         peek={collectionPeek(peekKey, peek)}
       />
-    </>
+    </CustomFieldList>
   );
 }
