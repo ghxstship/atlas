@@ -35667,6 +35667,79 @@ export interface CalendarFeedCreate {
 }
 
 /**
+ * A calendar feed's name, content sources, audience and show department (ADR 0146). A member feed takes only a name and sources without Cues.
+ */
+export interface CalendarFeedConfiguration {
+  /**
+   * Identifier of the calendar feed.
+   * Format: `uuid`.
+   */
+  readonly calendar_feed_id: string;
+  /**
+   * Name of the feed and of the subscribed calendar; null for the default name.
+   * Length: 1 to 80.
+   */
+  readonly name: string | null;
+  /**
+   * What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.
+   */
+  readonly sources: ReadonlyArray<
+    "Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"
+  > | null;
+  readonly audience: CalendarFeedAudience | null;
+  /**
+   * Show department filter: only cues with this department's call, and its instruction.
+   */
+  readonly cue_call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage" | null;
+}
+
+/**
+ * A project feed's audience: only these people's, this team's or this department's shifts and records, never more than the feed's owner may see.
+ */
+export interface CalendarFeedAudience {
+  /**
+   * Who the feed follows.
+   */
+  readonly kind: "people" | "team" | "department";
+  /**
+   * With kind people: 1 to 50 members of the feed's org.
+   */
+  readonly person_ids?: ReadonlyArray<string>;
+  /**
+   * Identifier of the team the feed follows.
+   * Format: `uuid`.
+   */
+  readonly team_id?: string;
+  /**
+   * With kind department: a canon department code.
+   * Pattern: `^[0-9]000$`.
+   */
+  readonly department_code?: string;
+}
+
+/**
+ * The whole configuration of a feed; a field left out is cleared. Refusals answer 422 with their rule: calendar_feed_name, calendar_feed_filter_scope, calendar_feed_audience, calendar_feed_people_limit and calendar_feed_sources.
+ */
+export interface CalendarFeedConfigureRequest {
+  /**
+   * Name of the feed and of the subscribed calendar; null for the default name.
+   * Length: 1 to 80.
+   */
+  readonly name?: string | null;
+  /**
+   * What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.
+   */
+  readonly sources?: ReadonlyArray<
+    "Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"
+  > | null;
+  readonly audience?: CalendarFeedAudience | null;
+  /**
+   * Show department filter: only cues with this department's call, and its instruction.
+   */
+  readonly cue_call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage" | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface TrashItemPage {
@@ -36925,6 +36998,236 @@ export interface ProjectMeasurementSummary {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface ProjectDebriefPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectDebrief>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from.
+ */
+export interface ProjectDebrief {
+  /**
+   * Identifier of the project debrief.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project the debrief wraps up.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * When the debrief was completed; points and summary lock until reopened.
+   * Format: `date-time`.
+   */
+  readonly completed_at: string | null;
+  /**
+   * Identifier of the person who completed the debrief.
+   * Format: `uuid`.
+   */
+  readonly completed_by: string | null;
+}
+
+/**
+ * Starts the project's debrief when there is none and saves its management summary. Refusals answer 422: debrief_completed, debrief_ai_request and debrief_summary.
+ */
+export interface ProjectDebriefSaveRequest {
+  /**
+   * Identifier of the project whose debrief to start or save.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * The management summary: text to save it, blank to clear it, null or left out to leave it as it is.
+   * Length: 0 to 4000.
+   */
+  readonly management_summary?: string | null;
+  /**
+   * Identifier of the the caller's own Answered Aurora summaries request about this project the summary was drafted from (debrief_ai_request: 422 otherwise).
+   * Format: `uuid`.
+   */
+  readonly ai_request_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectDebriefItemPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectDebriefItem>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash.
+ */
+export interface ProjectDebriefItem {
+  /**
+   * Identifier of the project debrief item.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the debrief the point belongs to.
+   * Format: `uuid`.
+   */
+  readonly debrief_id: string;
+  /**
+   * Area of the project the point is about.
+   */
+  readonly area:
+    "Schedule" | "Budget" | "Safety" | "Audience" | "Sustainability" | "Crew" | "Vendors" | "Other";
+  /**
+   * Kind of point.
+   */
+  readonly item_kind: "Went Well" | "To Improve" | "Action";
+  /**
+   * The point.
+   * Length: 1 to 2000.
+   */
+  readonly body: string;
+  /**
+   * Order in the debrief, from 1; the next free one when omitted.
+   * Range: 1 to unbounded.
+   */
+  readonly position: number;
+  /**
+   * Identifier of the member who owns an Action; only Actions have an owner.
+   * Format: `uuid`.
+   */
+  readonly owner_membership_id: string | null;
+}
+
+/**
+ * Fields accepted when creating a ProjectDebriefItem.
+ */
+export interface ProjectDebriefItemCreate {
+  /**
+   * Identifier of the debrief the point belongs to.
+   * Format: `uuid`.
+   */
+  readonly debrief_id: string;
+  /**
+   * Area of the project the point is about.
+   */
+  readonly area:
+    "Schedule" | "Budget" | "Safety" | "Audience" | "Sustainability" | "Crew" | "Vendors" | "Other";
+  /**
+   * Kind of point.
+   */
+  readonly item_kind: "Went Well" | "To Improve" | "Action";
+  /**
+   * The point.
+   * Length: 1 to 2000.
+   */
+  readonly body: string;
+  /**
+   * Order in the debrief, from 1; the next free one when omitted.
+   * Range: 1 to unbounded.
+   */
+  readonly position: number;
+  /**
+   * Identifier of the member who owns an Action; only Actions have an owner.
+   * Format: `uuid`.
+   */
+  readonly owner_membership_id?: string | null;
+}
+
+/**
+ * Fields accepted when updating a ProjectDebriefItem. Omitted fields are unchanged.
+ */
+export interface ProjectDebriefItemUpdate {
+  /**
+   * Area of the project the point is about.
+   */
+  readonly area?:
+    "Schedule" | "Budget" | "Safety" | "Audience" | "Sustainability" | "Crew" | "Vendors" | "Other";
+  /**
+   * Kind of point.
+   */
+  readonly item_kind?: "Went Well" | "To Improve" | "Action";
+  /**
+   * The point.
+   * Length: 1 to 2000.
+   */
+  readonly body?: string;
+  /**
+   * Order in the debrief, from 1; the next free one when omitted.
+   * Range: 1 to unbounded.
+   */
+  readonly position?: number;
+  /**
+   * Identifier of the member who owns an Action; only Actions have an owner.
+   * Format: `uuid`.
+   */
+  readonly owner_membership_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface CueCallPage {
   /**
    * Items on this page, in the documented default order.
@@ -37942,7 +38245,7 @@ export interface AuroraSummarizeRequest {
   /**
    * What to summarize.
    */
-  readonly kind: "record_activity" | "project_week" | "gate_readiness";
+  readonly kind: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
   /**
    * Collection of the record or project summarized.
    * Pattern: `^[a-z][a-z0-9-]*$`.
@@ -38092,7 +38395,7 @@ export interface AuroraPreviewRequest {
   /**
    * For summaries, what is summarized.
    */
-  readonly kind?: "record_activity" | "project_week" | "gate_readiness";
+  readonly kind?: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
   /**
    * For summaries, the collection summarized.
    * Pattern: `^[a-z][a-z0-9-]*$`.
@@ -41438,6 +41741,45 @@ export interface PersonCalendarFeed {
    * Format: `date-time`.
    */
   readonly rotated_at: string | null;
+}
+
+/**
+ * A personal feed's name and content sources (ADR 0146).
+ */
+export interface PersonCalendarFeedConfiguration {
+  /**
+   * Identifier of the calendar feed.
+   * Format: `uuid`.
+   */
+  readonly calendar_feed_id: string;
+  /**
+   * Name of the feed and of the subscribed calendar; null for the default name.
+   * Length: 1 to 80.
+   */
+  readonly name: string | null;
+  /**
+   * What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.
+   */
+  readonly sources: ReadonlyArray<
+    "Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"
+  > | null;
+}
+
+/**
+ * The name and sources of a personal feed; a field left out is cleared. Refusals answer 422: calendar_feed_name and calendar_feed_sources.
+ */
+export interface PersonCalendarFeedConfigureRequest {
+  /**
+   * Name of the feed and of the subscribed calendar; null for the default name.
+   * Length: 1 to 80.
+   */
+  readonly name?: string | null;
+  /**
+   * What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.
+   */
+  readonly sources?: ReadonlyArray<
+    "Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"
+  > | null;
 }
 
 /**

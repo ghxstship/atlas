@@ -1,7 +1,9 @@
 {
   "actions": {
     "download": "Download PDF",
-    "downloadA4": "PDF (A4)"
+    "downloadA4": "PDF (A4)",
+    "size": "Paper size",
+    "downloadSize": "Download PDF"
   },
   "kinds": {
     "purchase-order": "Purchase order",
@@ -16,7 +18,9 @@
     "incident-report": "Incident report",
     "final-cost-report": "Final cost report",
     "agreement-certificate": "Signature certificate",
-    "deletion-certificate": "Deletion certificate"
+    "deletion-certificate": "Deletion certificate",
+    "wrap-up-report": "Wrap-up report",
+    "document-book": "Book"
   },
   "facts": {
     "recordKey": "Record key",
@@ -108,7 +112,28 @@
   "daySheet": {
     "title": "Day sheet {project}, {day}",
     "body": "Notes for the day",
-    "emptyBody": "This day sheet has no notes yet."
+    "emptyBody": "This day sheet has no notes yet.",
+    "titleFor": "Day sheet {project}, {day}, for {audience}",
+    "for": "For",
+    "department": "Show department",
+    "notes": "Notes for the day",
+    "calls": "Calls",
+    "schedule": "Schedule",
+    "cues": "Cues",
+    "cuesOf": "Cues: {name}",
+    "open": "Open",
+    "noCalls": "No calls on this day.",
+    "noRecords": "No meetings, milestones or deadlines on this day.",
+    "noCues": "No cues on this day.",
+    "time": "Time",
+    "kind": "Kind",
+    "item": "Item",
+    "canceled": "{title} (Canceled)",
+    "kinds": {
+      "Meeting": "Meeting",
+      "Milestone": "Milestone",
+      "Deadline": "Deadline"
+    }
   },
   "callSheet": {
     "title": "Call sheet {project}, {day}",
@@ -132,7 +157,18 @@
     "calledAt": "Called",
     "calledBy": "Called by",
     "notCalled": "Not called",
-    "noCues": "This running order has no cues."
+    "noCues": "This running order has no cues.",
+    "curfew": "Curfew",
+    "tbc": "TBC",
+    "departmentCalls": "Department calls",
+    "departmentCall": "{department}: {instruction}",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Lighting",
+      "video": "Video",
+      "sfx": "Special Effects",
+      "stage": "Stage"
+    }
   },
   "beo": {
     "title": "Banquet event order {key}",
@@ -157,7 +193,14 @@
       "active": "Active",
       "expired": "Expired",
       "revoked": "Revoked"
-    }
+    },
+    "photoAlt": "Photo of {name}, the credential holder",
+    "noPhoto": "No photo on file",
+    "scanAlt": "Entry code for credential {number}",
+    "scanCaption": "Scan at entry",
+    "scanNoteV2": "Scan the entry code to check this credential. A scan decides access at the time of the scan, so a printed badge never outlives a revocation. The code in the header opens the record.",
+    "window": "Valid {from} to {to}",
+    "batchTitle": "Credential badges ({count})"
   },
   "inspectionReport": {
     "title": "Inspection report: {template}",
@@ -451,6 +494,124 @@
       "fringe": "Fringe benefits have been paid in cash and/or to bona fide fringe benefit plans, funds, or programs.",
       "wages": "All workers on the project have been paid the full weekly wages earned, and no rebates or deductions have been or will be made either directly or indirectly, other than permissible deductions as defined in 29 CFR part 3.",
       "warning": "The willful falsification of any of the above statements may subject the contractor or subcontractor to civil or criminal prosecution (see section 1001 of title 18 and section 3729 of title 31 of the United States Code), as well as debarment from future federal and federally-assisted contracts."
+    }
+  },
+  "paper": {
+    "letter": "US Letter",
+    "a4": "A4",
+    "a6": "A6",
+    "cr80": "CR80 card"
+  },
+  "book": {
+    "contents": "Contents",
+    "kind": "Kind",
+    "dates": "Dates",
+    "range": "{from} to {to}",
+    "wholeProject": "Whole project",
+    "sections": "Sections",
+    "documents": "Documents",
+    "noDocuments": "This book holds no documents.",
+    "leftOutUnreadable": "Records you cannot open, left out: {count}.",
+    "leftOutUnpublished": "Day and call sheets not yet published, left out: {count}.",
+    "kinds": {
+      "TourBook": "Tour Book",
+      "ProductionBook": "Production Book"
+    },
+    "sectionKinds": {
+      "daysheet": "Day sheets",
+      "callsheet": "Call sheets",
+      "runofshow": "Runs of show",
+      "beo": "Banquet event orders",
+      "inspectionreport": "Inspection reports",
+      "incidentreport": "Incident reports",
+      "finalcostreport": "Final cost report",
+      "wrapupreport": "Wrap-up report"
+    }
+  },
+  "wrapUp": {
+    "title": "Wrap-up report {project}",
+    "state": "Debrief",
+    "states": {
+      "notStarted": "Not started",
+      "open": "Open",
+      "completed": "Completed"
+    },
+    "completedBy": "Completed by",
+    "completedOn": "Completed on",
+    "sections": {
+      "summary": "Management summary",
+      "budget": "Budget against actuals",
+      "attendance": "Attendance",
+      "sustainability": "Sustainability and carbon",
+      "incidents": "Incidents",
+      "debrief": "Debrief"
+    },
+    "aiReviewed": "Drafted with Aurora and reviewed by {name} on {date}",
+    "writtenBy": "Written by {name} on {date}",
+    "noSummary": "No management summary yet.",
+    "notIncluded": "Not included: you cannot read {section}.",
+    "unmeasured": "Unmeasured",
+    "figure": "{value} {unit}",
+    "metric": "Measure",
+    "target": "Target",
+    "measured": "Measured",
+    "outcome": "Outcome",
+    "noMeasurements": "No measures in this family.",
+    "severity": "Severity",
+    "count": "Count",
+    "totalIncidents": "Total",
+    "openIncidents": "Open",
+    "noIncidents": "No incidents were reported.",
+    "area": "Area",
+    "kind": "Kind",
+    "point": "Point",
+    "owner": "Owner",
+    "noOwner": "No owner",
+    "noPoints": "No debrief points yet.",
+    "outcomes": {
+      "Met": "Met",
+      "NotMet": "Not met",
+      "Incomplete": "Incomplete",
+      "Unmeasured": "Unmeasured"
+    },
+    "metrics": {
+      "waste_generated": "Waste generated",
+      "waste_diverted": "Waste diverted",
+      "energy_used": "Energy used",
+      "water_used": "Water used",
+      "transport_emissions": "Transport emissions",
+      "attendance": "Attendance",
+      "online_audience": "Online audience"
+    },
+    "units": {
+      "kg": "kg",
+      "t": "t",
+      "lb": "lb",
+      "short_ton": "short tons",
+      "l": "L",
+      "m3": "m³",
+      "gal": "gal",
+      "kwh": "kWh",
+      "mwh": "MWh",
+      "kg_co2e": "kg CO2e",
+      "t_co2e": "t CO2e",
+      "count": "people",
+      "percent": "%"
+    },
+    "areas": {
+      "schedule": "Schedule",
+      "budget": "Budget",
+      "safety": "Safety",
+      "audience": "Audience",
+      "sustainability": "Sustainability",
+      "crew": "Crew",
+      "vendors": "Vendors",
+      "other": "Other"
+    },
+    "kinds": {
+      "wentWell": "Went well",
+      "toImprove": "To improve",
+      "action": "Action"
     }
   }
 }

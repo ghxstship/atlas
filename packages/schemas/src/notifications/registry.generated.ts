@@ -777,6 +777,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "credential_photo.requested",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.credential_photo.requested.subject",
+      body: "kinds.credential_photo.requested.body",
+    },
+  },
+  {
     kind: "opportunity.matched",
     category: "opportunities",
     emailTemplate: "notification",

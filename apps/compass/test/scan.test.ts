@@ -1,3 +1,4 @@
+import { badgeScanPayload } from "@xos/data/documents/templates";
 import { describe, expect, it } from "vitest";
 import {
   buildAccessScan,
@@ -138,6 +139,15 @@ describe("classifying scans", () => {
     expect(ndefText(payload)).toBe("AUD-0042");
     expect(ndefText([])).toBeNull();
     expect(ndefText([0x02, 0x65, 0x6e])).toBeNull();
+  });
+});
+
+describe("printed badges (P5)", () => {
+  it("reads the gate code of a printed badge as the credential", () => {
+    expect(classify(badgeScanPayload("CR-000042"), "qr")).toEqual({
+      kind: "credential",
+      credentialNumber: "CR-000042",
+    });
   });
 });
 

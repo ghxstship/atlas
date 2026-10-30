@@ -9,7 +9,10 @@
         {
           "id": "e1",
           "table": "app.activity_events",
-          "data": { "at": "2026-10-12", "summary": "Fire permit submitted to Miami-Dade." }
+          "data": {
+            "at": "2026-10-12",
+            "summary": "Fire permit submitted to Miami-Dade."
+          }
         },
         {
           "id": "e2",
@@ -22,7 +25,10 @@
         {
           "id": "e3",
           "table": "app.activity_events",
-          "data": { "at": "2026-10-13", "summary": "Load-in crew call set for 06:00 Friday." }
+          "data": {
+            "at": "2026-10-13",
+            "summary": "Load-in crew call set for 06:00 Friday."
+          }
         }
       ],
       "mustCite": ["e1", "e2"],
@@ -61,7 +67,10 @@
         {
           "id": "a1",
           "table": "app.activity_events",
-          "data": { "at": "2026-10-01", "summary": "Record created as Proposed." }
+          "data": {
+            "at": "2026-10-01",
+            "summary": "Record created as Proposed."
+          }
         },
         {
           "id": "a2",
@@ -82,7 +91,96 @@
         {
           "id": "n1",
           "table": "app.activity_events",
-          "data": { "at": "2026-10-12", "summary": "" }
+          "data": {
+            "at": "2026-10-12",
+            "summary": ""
+          }
+        }
+      ],
+      "noAnswer": true
+    },
+    {
+      "id": "wrap-up-budget-incidents-debrief",
+      "kind": "project_wrap_up",
+      "items": [
+        {
+          "id": "prj",
+          "table": "app.budgets",
+          "data": {
+            "final_cost_report": {
+              "currency": "USD",
+              "revised_minor": 42000000,
+              "actual_minor": 40150000,
+              "variance_minor": 1850000
+            }
+          }
+        },
+        {
+          "id": "prj",
+          "table": "app.incidents",
+          "data": {
+            "incident_counts": [
+              {
+                "severity": "Minor",
+                "state": "Closed",
+                "count": 2
+              }
+            ]
+          }
+        },
+        {
+          "id": "prj",
+          "table": "app.project_measurement_summary",
+          "data": {
+            "measurements": [
+              {
+                "metric_code": "attendance",
+                "target_base": 9000,
+                "measured_base": 9800,
+                "outcome": "Met"
+              },
+              {
+                "metric_code": "transport_emissions",
+                "measured_base": null,
+                "outcome": "Unmeasured"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d1",
+          "table": "app.project_debrief_items",
+          "data": {
+            "area": "Schedule",
+            "item_kind": "Went Well",
+            "body": "Load-in finished an hour ahead of the plan."
+          }
+        },
+        {
+          "id": "d2",
+          "table": "app.project_debrief_items",
+          "data": {
+            "area": "Safety",
+            "item_kind": "Action",
+            "body": "Add a second spotter on the downstage truss for load-out."
+          }
+        }
+      ],
+      "mustCite": ["prj", "d2"],
+      "mustNotContain": ["0 kg CO2e", "approved"]
+    },
+    {
+      "id": "wrap-up-nothing-supplied",
+      "kind": "project_wrap_up",
+      "items": [
+        {
+          "id": "x1",
+          "table": "app.project_debrief_items",
+          "data": {
+            "area": "Other",
+            "item_kind": "To Improve",
+            "body": ""
+          }
         }
       ],
       "noAnswer": true

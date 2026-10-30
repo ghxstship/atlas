@@ -435,6 +435,13 @@ kinds:
         test: supabase/tests/0805_workforce_recognition_help_desk.test.sql
       - emitter: supabase/migrations/0805_workforce_recognition_help_desk.sql#app.assign_help_desk_request
         test: supabase/tests/0805_workforce_recognition_help_desk.test.sql
+  # P5 (G-144): an issuer asks a credential holder for a badge photo; the Inbox item, email and push open
+  # /profile/badge-photos in Gateway (gatewayPath).
+  - kind: credential_photo.requested
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2822_credential_photo_functions.sql#app.request_credential_photos
+        test: supabase/tests/2822_credential_photo_functions.test.sql
   # Marketplace alerts and expiry reminders (A89: 1462 matcher, 1463 reminder job)
   - kind: opportunity.matched
     category: opportunities

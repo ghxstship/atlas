@@ -294,6 +294,12 @@
         "subject": "{subject, select, comment {Your comment was removed} message {Your message was removed} other {Your post was removed}}",
         "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
       }
+    },
+    "credential_photo": {
+      "requested": {
+        "subject": "{orgName} asks for your badge photo",
+        "body": "{actorName} at {orgName} asked for a photo to print on your credential badge. Add it in Gateway, under Profile, Badge photos."
+      }
     }
   },
   "notification": {

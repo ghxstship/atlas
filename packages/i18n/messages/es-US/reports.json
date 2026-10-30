@@ -204,5 +204,64 @@
     "visibility": "Visibilidad",
     "when": "Iniciado",
     "you": "Usted"
+  },
+  "wrapUp": {
+    "title": "Cierre",
+    "description": "El balance y el resumen para la dirección del proyecto, impresos con el presupuesto frente a los costos reales, la asistencia, el carbono y los incidentes como informe de cierre.",
+    "debrief": "Balance",
+    "states": {
+      "notStarted": "Sin empezar",
+      "open": "Abierto",
+      "completed": "Completado"
+    },
+    "completed": "Completado por {name} el {date}",
+    "aiReviewed": "Redactado con Aurora y revisado por {name} el {date}",
+    "writtenBy": "Escrito por {name} el {date}",
+    "summaryNotIncluded": "No incluido: el resumen para la dirección se redacta con datos de presupuesto, contabilidad, compuertas e incidentes que usted no puede leer.",
+    "summaryLabel": "Resumen para la dirección",
+    "summaryHelp": "Hasta 4000 caracteres. No se guarda nada hasta que elija Guardar resumen.",
+    "saveSummary": "Guardar resumen",
+    "summarySaved": "Resumen guardado.",
+    "useSummary": "Usar como resumen para la dirección",
+    "aiPending": "Redactado con Aurora. Revíselo y guárdelo a su nombre.",
+    "points": "Puntos del balance",
+    "areaLabel": "Área",
+    "kindLabel": "Tipo",
+    "point": "Punto",
+    "owner": "Responsable",
+    "noOwner": "Sin responsable",
+    "addPoint": "Agregar un punto",
+    "savePoint": "Guardar punto",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "trashed": "El punto del balance se movió a la papelera.",
+    "noPoints": "Aún no hay puntos del balance.",
+    "complete": "Completar balance",
+    "reopen": "Reabrir balance",
+    "area": {
+      "schedule": "Calendario",
+      "budget": "Presupuesto",
+      "safety": "Seguridad",
+      "audience": "Público",
+      "sustainability": "Sostenibilidad",
+      "crew": "Equipo",
+      "vendors": "Proveedores",
+      "other": "Otro"
+    },
+    "kind": {
+      "wentWell": "Salió bien",
+      "toImprove": "Por mejorar",
+      "action": "Acción"
+    },
+    "errors": {
+      "debrief_completed": "Este balance está completado. Reábralo para cambiar sus puntos o su resumen.",
+      "debrief_ai_request": "Ese borrador no es su propio resumen de Aurora de este proyecto. Redáctelo de nuevo y luego guárdelo.",
+      "debrief_summary": "Escriba un resumen para la dirección de hasta 4000 caracteres.",
+      "refused": "Se rechazó este cambio.",
+      "notFound": "Ese balance o punto no está disponible para usted.",
+      "invalid": "Revise los campos e inténtelo de nuevo.",
+      "unexpected": "Algo salió mal. Inténtelo de nuevo."
+    }
   }
 }

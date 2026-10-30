@@ -83,8 +83,9 @@ async function sendAct(org: string, id: string, action: Quick): Promise<Platform
 /**
  * The Inbox list (Section 11.10 rule 5). Keyboard: J or Down and K or Up move between items, A approves,
  * R rejects with a reason, E marks Done, H snoozes until tomorrow and Enter opens the item, as the
- * person's shortcuts say (Personal settings, Keyboard Shortcuts). Single keys obey me.shortcuts_enabled;
- * the arrow keys and Enter always work. Acting removes the item at once and moves to the next, so a queue
+ * person's shortcuts say (Personal settings, Keyboard Shortcuts). Single character-key shortcuts obey
+ * me.shortcuts_enabled; function keys F13 to F20 do not, because WCAG 2.1.4 covers character keys only.
+ * The arrow keys and Enter always work. Acting removes the item at once and moves to the next, so a queue
  * is cleared without waiting; a refusal puts the item back and says why.
  *
  * The selection is held by item id, not by position, and the focus moves to the neighbour before the
@@ -446,7 +447,7 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
                           // Shift+click selects a range, not the text between.
                           if (event.shiftKey) event.preventDefault();
                         }}
-                        className={`flex flex-wrap items-start justify-between gap-12 rounded-card border p-12 focus-visible:outline-(length:--stroke-width-focus) focus-visible:outline-focus-ring ${
+                        className={`flex items-start gap-12 rounded-card border p-12 focus-visible:outline-(length:--stroke-width-focus) focus-visible:outline-focus-ring ${
                           isCurrent ? "border-border-strong bg-bg-selected" : "border-border-subtle"
                         } ${isPicked ? "ring-(length:--stroke-width-focus) ring-inset ring-accent" : ""}`}
                       >
@@ -459,47 +460,51 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
                           onClick={(event) => toggle(row.id, event.shiftKey)}
                           onChange={() => undefined}
                         />
-                        <div className="flex min-w-0 flex-1 flex-col gap-2">
-                          <p className={`m-0 text-text-14 ${row.unread ? "font-semibold" : ""}`}>
-                            {row.summary}
-                          </p>
-                          <p className="m-0 text-text-13 text-text-secondary">{row.detail}</p>
-                          <p className="m-0 text-text-12 text-text-tertiary">{row.when}</p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-4">
-                          {row.href ? (
-                            <NextLink
-                              href={row.href as Route}
-                              tabIndex={isCurrent ? 0 : -1}
-                              className="xos-hit inline-flex items-center px-8 text-text-13 font-medium text-accent-text no-underline hover:underline"
-                            >
-                              {t("inbox.open")}
-                            </NextLink>
-                          ) : null}
-                          {row.approvable ? (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="primary"
-                                onClick={() => act(row, "approve")}
+                        {/* The checkbox keeps its place beside the text, and the actions wrap below
+                            the text when both do not fit on one line, as on a phone. */}
+                        <div className="flex min-w-0 flex-1 flex-wrap items-start justify-between gap-12">
+                          <div className="flex min-w-0 grow flex-col gap-2">
+                            <p className={`m-0 text-text-14 ${row.unread ? "font-semibold" : ""}`}>
+                              {row.summary}
+                            </p>
+                            <p className="m-0 text-text-13 text-text-secondary">{row.detail}</p>
+                            <p className="m-0 text-text-12 text-text-tertiary">{row.when}</p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-4">
+                            {row.href ? (
+                              <NextLink
+                                href={row.href as Route}
+                                tabIndex={isCurrent ? 0 : -1}
+                                className="xos-hit inline-flex items-center px-8 text-text-13 font-medium text-accent-text no-underline hover:underline"
                               >
-                                {t("inbox.approve")}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => setRejecting(row)}
-                              >
-                                {t("inbox.reject")}
-                              </Button>
-                            </>
-                          ) : null}
-                          <Button size="sm" variant="ghost" onClick={() => act(row, "done")}>
-                            {t("inbox.done")}
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => act(row, "snooze")}>
-                            {t("inbox.snooze")}
-                          </Button>
+                                {t("inbox.open")}
+                              </NextLink>
+                            ) : null}
+                            {row.approvable ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="primary"
+                                  onClick={() => act(row, "approve")}
+                                >
+                                  {t("inbox.approve")}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => setRejecting(row)}
+                                >
+                                  {t("inbox.reject")}
+                                </Button>
+                              </>
+                            ) : null}
+                            <Button size="sm" variant="ghost" onClick={() => act(row, "done")}>
+                              {t("inbox.done")}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => act(row, "snooze")}>
+                              {t("inbox.snooze")}
+                            </Button>
+                          </div>
                         </div>
                       </article>
                     </li>

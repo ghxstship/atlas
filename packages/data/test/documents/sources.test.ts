@@ -190,9 +190,14 @@ describe("loaders read each record as the caller", () => {
     const day = fakeClient({
       "from:day_sheets": [okResponse([sheet])],
       "from:projects": [project],
+      "from:shifts": [okResponse([])],
+      "from:records": [okResponse([])],
+      "from:run_of_show": [okResponse([])],
     });
     const d = await loadDocumentData(day.db, ORG, "day-sheet", "s1");
     expect(d.ok && d.data.sheet.body).toBe("Gates at 16:00");
+    expect(d.ok && d.data.schedule).toEqual({ calls: [], records: [], runs: [] });
+    expect(d.ok && d.data.audience).toBeUndefined();
 
     const call = fakeClient({
       "from:call_sheets": [okResponse([sheet])],
@@ -233,8 +238,15 @@ describe("loaders read each record as the caller", () => {
       ],
       "from:projects": [project],
       "from:cues": [okResponse([])],
+      "from:cue_calls": [
+        okResponse([{ id: "k1", cue_id: "q1", call_kind: "Lighting", instruction: "LX 14 GO" }]),
+      ],
     });
-    expect((await loadDocumentData(run.db, ORG, "run-of-show", "r1")).ok).toBe(true);
+    const loaded = await loadDocumentData(run.db, ORG, "run-of-show", "r1");
+    // Version 2 lists department calls, so the internal loader reads them with the cues (ADR 0131).
+    expect(loaded.ok && "calls" in loaded.data && loaded.data.calls).toEqual([
+      { id: "k1", cueId: "q1", kind: "Lighting", instruction: "LX 14 GO" },
+    ]);
 
     const beo = fakeClient({
       "from:beos": [
@@ -277,9 +289,42 @@ describe("loaders read each record as the caller", () => {
         }),
       ],
       "from:projects": [project],
+      "rpc:credential_badge_photos": [
+        okResponse([
+          {
+            credential_id: "c1",
+            holder_person_id: "p",
+            photo_state: "Provided",
+            bucket_id: "credential-photos",
+            photo_path: "org-1/p/photo.jpg",
+            requested_at: null,
+            provided_at: "2026-10-16T00:00:00Z",
+            source: "Holder Upload",
+          },
+        ]),
+      ],
     });
-    const c = await loadDocumentData(credential.db, ORG, "credential-badge", "c1");
+    const downloads: string[] = [];
+    const jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10]);
+    const withStorage = {
+      ...credential.db,
+      storage: {
+        from: (bucket: string) => ({
+          download: async (path: string) => {
+            downloads.push(`${bucket}:${path}`);
+            return { data: new Blob([jpeg]), error: null };
+          },
+        }),
+      },
+    } as unknown as typeof credential.db;
+    const c = await loadDocumentData(withStorage, ORG, "credential-badge", "c1");
     expect(c.ok && c.data.credential.holderName).toBe("Ana");
+    // The badge photo is read as the caller from the private bucket (P5).
+    expect(c.ok && c.data.photo).toEqual({ bytes: jpeg, source: "Badge" });
+    expect(downloads).toEqual(["credential-photos:org-1/p/photo.jpg"]);
+    expect(credential.calls.find((x) => x.target === "rpc:credential_badge_photos")?.steps).toEqual(
+      [["args", [{ p_credential_ids: ["c1"] }]]],
+    );
 
     const missing = fakeClient({ "from:beos": [okResponse(null)] });
     expect((await loadDocumentData(missing.db, ORG, "beo", "b1")).ok).toBe(false);

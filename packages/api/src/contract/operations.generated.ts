@@ -937,7 +937,7 @@ export interface Components {
   };
   AuroraPreviewRequest: {
     feature: "drafting" | "summaries";
-    kind?: "record_activity" | "project_week" | "gate_readiness";
+    kind?: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
     subject_collection?: string;
     subject_id?: string;
     items: Array<{ collection: string; id: string }>;
@@ -960,7 +960,7 @@ export interface Components {
     plan_includes_aurora: boolean;
   };
   AuroraSummarizeRequest: {
-    kind: "record_activity" | "project_week" | "gate_readiness";
+    kind: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
     subject_collection: string;
     subject_id: string;
     items: Array<{ collection: string; id: string }>;
@@ -1427,6 +1427,25 @@ export interface Components {
     revoked_at: string | null;
     membership_id: string;
     last_accessed_at: string | null;
+  };
+  CalendarFeedAudience: {
+    kind: "people" | "team" | "department";
+    person_ids?: Array<string>;
+    team_id?: string;
+    department_code?: string;
+  };
+  CalendarFeedConfiguration: {
+    calendar_feed_id: string;
+    name: string | null;
+    sources: Array<"Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"> | null;
+    audience: Components["CalendarFeedAudience"] | null;
+    cue_call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage" | null;
+  };
+  CalendarFeedConfigureRequest: {
+    name?: string | null;
+    sources?: Array<"Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"> | null;
+    audience?: Components["CalendarFeedAudience"] | null;
+    cue_call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage" | null;
   };
   CalendarFeedCreate: { project_id?: string | null };
   CalendarFeedPage: { data: Array<Components["CalendarFeed"]>; next_cursor: string | null };
@@ -5586,6 +5605,15 @@ export interface Components {
     last_accessed_at: string | null;
     rotated_at: string | null;
   };
+  PersonCalendarFeedConfiguration: {
+    calendar_feed_id: string;
+    name: string | null;
+    sources: Array<"Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"> | null;
+  };
+  PersonCalendarFeedConfigureRequest: {
+    name?: string | null;
+    sources?: Array<"Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"> | null;
+  };
   PersonCalendarFeedPage: {
     data: Array<Components["PersonCalendarFeed"]>;
     next_cursor: string | null;
@@ -5995,6 +6023,80 @@ export interface Components {
     project_key: string;
     time_zone: string;
     venue_id?: string | null;
+  };
+  ProjectDebrief: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    completed_at: string | null;
+    completed_by: string | null;
+  };
+  ProjectDebriefItem: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    debrief_id: string;
+    area:
+      | "Schedule"
+      | "Budget"
+      | "Safety"
+      | "Audience"
+      | "Sustainability"
+      | "Crew"
+      | "Vendors"
+      | "Other";
+    item_kind: "Went Well" | "To Improve" | "Action";
+    body: string;
+    position: number;
+    owner_membership_id: string | null;
+  };
+  ProjectDebriefItemCreate: {
+    debrief_id: string;
+    area:
+      | "Schedule"
+      | "Budget"
+      | "Safety"
+      | "Audience"
+      | "Sustainability"
+      | "Crew"
+      | "Vendors"
+      | "Other";
+    item_kind: "Went Well" | "To Improve" | "Action";
+    body: string;
+    position: number;
+    owner_membership_id?: string | null;
+  };
+  ProjectDebriefItemPage: {
+    data: Array<Components["ProjectDebriefItem"]>;
+    next_cursor: string | null;
+  };
+  ProjectDebriefItemUpdate: {
+    area?:
+      | "Schedule"
+      | "Budget"
+      | "Safety"
+      | "Audience"
+      | "Sustainability"
+      | "Crew"
+      | "Vendors"
+      | "Other";
+    item_kind?: "Went Well" | "To Improve" | "Action";
+    body?: string;
+    position?: number;
+    owner_membership_id?: string | null;
+  };
+  ProjectDebriefPage: { data: Array<Components["ProjectDebrief"]>; next_cursor: string | null };
+  ProjectDebriefSaveRequest: {
+    project_id: string;
+    management_summary?: string | null;
+    ai_request_id?: string | null;
   };
   ProjectInbox: {
     id: string;
@@ -23319,6 +23421,24 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["CalendarFeedToken"] };
   };
+  "calendarFeeds.configure": {
+    module: "Platform";
+    method: "post";
+    path: "/calendar-feeds/{id}/configure";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["CalendarFeedConfigureRequest"];
+    responses: { 200: Components["CalendarFeedConfiguration"] };
+  };
+  "calendarFeeds.configuration": {
+    module: "Platform";
+    method: "get";
+    path: "/calendar-feeds/{id}/configuration";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedConfiguration"] };
+  };
   "trashItems.list": {
     module: "Platform";
     method: "get";
@@ -23687,6 +23807,108 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["ProjectMeasurementSummaryPage"] };
+  };
+  "projectDebriefs.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-debriefs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectDebriefPage"] };
+  };
+  "projectDebriefs.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-debriefs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectDebrief"] };
+  };
+  "projectDebriefs.save": {
+    module: "Projects";
+    method: "post";
+    path: "/project-debriefs/save";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectDebriefSaveRequest"];
+    responses: { 200: Components["ProjectDebrief"] };
+  };
+  "projectDebriefs.complete": {
+    module: "Projects";
+    method: "post";
+    path: "/project-debriefs/{id}/complete";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectDebrief"] };
+  };
+  "projectDebriefs.reopen": {
+    module: "Projects";
+    method: "post";
+    path: "/project-debriefs/{id}/reopen";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectDebrief"] };
+  };
+  "projectDebriefItems.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-debrief-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectDebriefItemPage"] };
+  };
+  "projectDebriefItems.create": {
+    module: "Projects";
+    method: "post";
+    path: "/project-debrief-items";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectDebriefItemCreate"];
+    responses: { 201: Components["ProjectDebriefItem"] };
+  };
+  "projectDebriefItems.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-debrief-items/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectDebriefItem"] };
+  };
+  "projectDebriefItems.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/project-debrief-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProjectDebriefItemUpdate"];
+    responses: { 200: Components["ProjectDebriefItem"] };
+  };
+  "projectDebriefItems.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/project-debrief-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
   };
   "cueCalls.list": {
     module: "Show";
@@ -25199,6 +25421,24 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["CalendarFeedToken"] };
+  };
+  "personCalendarFeeds.configure": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds/{id}/configure";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PersonCalendarFeedConfigureRequest"];
+    responses: { 200: Components["PersonCalendarFeedConfiguration"] };
+  };
+  "personCalendarFeeds.configuration": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds/{id}/configuration";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeedConfiguration"] };
   };
   "projectInboxes.list": {
     module: "Platform";
@@ -27041,7 +27281,17 @@ export interface ModuleOperations {
     | "earnedMediaItems.get"
     | "earnedMediaItems.update"
     | "earnedMediaItems.delete"
-    | "projectMeasurementSummary.list";
+    | "projectMeasurementSummary.list"
+    | "projectDebriefs.list"
+    | "projectDebriefs.get"
+    | "projectDebriefs.save"
+    | "projectDebriefs.complete"
+    | "projectDebriefs.reopen"
+    | "projectDebriefItems.list"
+    | "projectDebriefItems.create"
+    | "projectDebriefItems.get"
+    | "projectDebriefItems.update"
+    | "projectDebriefItems.delete";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:
     | "scheduleBaselines.list"
@@ -28413,6 +28663,8 @@ export interface ModuleOperations {
     | "calendarFeeds.get"
     | "calendarFeeds.delete"
     | "calendarFeeds.rotate"
+    | "calendarFeeds.configure"
+    | "calendarFeeds.configuration"
     | "trashItems.list"
     | "trashItems.restore"
     | "templates.list"
@@ -28497,6 +28749,8 @@ export interface ModuleOperations {
     | "personCalendarFeeds.get"
     | "personCalendarFeeds.delete"
     | "personCalendarFeeds.rotate"
+    | "personCalendarFeeds.configure"
+    | "personCalendarFeeds.configuration"
     | "projectInboxes.list"
     | "projectInboxes.create"
     | "projectInboxes.get"

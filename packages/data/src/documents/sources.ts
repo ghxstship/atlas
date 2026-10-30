@@ -1,5 +1,13 @@
 import type { XosClient } from "../client.ts";
 import { getIssuedCredential } from "../credentials.ts";
+import type { CueCallKind } from "../cue-calls.ts";
+import { getDebriefSummary, getProjectDebrief, listDebriefItems } from "../debriefs.ts";
+import {
+  listMeasurementCatalog,
+  listMeasurementSummary,
+  type UnitPreference,
+} from "../measurements.ts";
+import { badgePhotos, loadBadgePhotoBytes } from "../credential-photos.ts";
 import {
   listChangeOrderLines,
   listChangeOrders,
@@ -10,16 +18,57 @@ import { getBeo } from "../hospitality.ts";
 import { getIncident, listIncidentHistory, listIncidentSeverities } from "../incidents.ts";
 import { getAgreement } from "../people.ts";
 import { getPurchaseOrder, getPurchaseOrderTotals, listPoLines } from "../procurement.ts";
-import { finalCostReport } from "../reports.ts";
+import { finalCostReport, incidentsReport } from "../reports.ts";
 import { fail, ok, toDataError, type Result } from "../result.ts";
 import {
   listInspectionResultValues,
   listInspectionTemplates,
   listInspections,
 } from "../safety-permits.ts";
-import { getRunOfShow, listCallSheets, listCalls, listCues, listDaySheets } from "../show.ts";
+import {
+  getRunOfShow,
+  listCallSheets,
+  listCalls,
+  listCueCalls,
+  listCues,
+  listDayRecords,
+  listDaySheets,
+  listRunsOfShow,
+  readDaySheetSchedule,
+  type DaySheet,
+} from "../show.ts";
 import type { DocumentKind } from "./model.ts";
-import type { DocumentDataMap, DocumentProject } from "./templates.ts";
+import type {
+  BadgePhoto,
+  DaySheetAudience,
+  DaySheetSchedule,
+  DocumentDataMap,
+  DocumentProject,
+} from "./templates.ts";
+
+/** What a loader needs beyond the record's id (B7). */
+export interface LoadOptions {
+  /** day-sheet: a copy for one team or one department, and the show department of its cues. */
+  readonly audience?: {
+    readonly teamId?: string | null;
+    readonly departmentCode?: string | null;
+    readonly showDepartment?: CueCallKind | null;
+  } | null;
+  /**
+   * wrap-up-report: whether the reader holds finance.journal.read in the org (the org capability check). Posted
+   * actuals come from the ledger, so without it the budget section, and the summary drafted from it, are left out.
+   */
+  readonly ledgerRead?: boolean;
+  /** wrap-up-report: the reader's units (locale.units); imperial when not given. */
+  readonly unitPreference?: UnitPreference;
+}
+
+/** The capabilities that decide the wrap-up report's sections (app.my_capabilities_on_project, 2965). */
+export const WRAP_UP_CAPABILITIES = [
+  "finance.budget.read",
+  "projects.gate.read",
+  "safety.incident.read",
+] as const;
 
 /**
  * Loads the data of one document from the existing records, through the caller's own client, so
@@ -50,6 +99,19 @@ export async function documentProject(
   });
 }
 
+/**
+ * The photo a badge prints, read as the caller (P5): the org's badge photo once Clean, else a profile photo the
+ * caller may see. A credential that is no longer live, or a photo that cannot be read, prints the placeholder.
+ */
+export async function credentialBadgePhoto(
+  db: XosClient,
+  credentialId: string,
+): Promise<BadgePhoto | null> {
+  const rows = await badgePhotos(db, [credentialId]);
+  if (!rows.ok) return null;
+  return (await loadBadgePhotoBytes(db, rows.data)).get(credentialId) ?? null;
+}
+
 async function personNames(
   db: XosClient,
   ids: readonly (string | null)[],
@@ -65,7 +127,66 @@ type Loader<K extends DocumentKind> = (
   db: XosClient,
   orgId: string,
   id: string,
+  options: LoadOptions,
 ) => Promise<Result<DocumentDataMap[K]>>;
+
+/**
+ * A day sheet's day as the caller reads it (B7): the shifts that start that local day, the records that start or
+ * fall due on it, and the cues of that show date's runs with their department calls. With an audience, only what
+ * app.day_sheet_schedule says belongs to it.
+ */
+export async function daySheetSchedule(
+  db: XosClient,
+  orgId: string,
+  project: DocumentProject,
+  sheet: DaySheet,
+  audience: LoadOptions["audience"],
+): Promise<Result<{ schedule: DaySheetSchedule; audience: DaySheetAudience | null }>> {
+  const day = { projectId: project.id, day: sheet.day, timeZone: project.timeZone };
+  const [calls, records, runs] = await Promise.all([
+    listCalls(db, day),
+    listDayRecords(db, day),
+    listRunsOfShow(db, { orgId, projectId: project.id, from: sheet.day, to: sheet.day }),
+  ]);
+  if (!calls.ok) return calls;
+  if (!records.ok) return records;
+  if (!runs.ok) return runs;
+  const cueSets = await Promise.all(
+    runs.data.map(async (run) => {
+      const [cues, cueCalls] = await Promise.all([listCues(db, run.id), listCueCalls(db, run.id)]);
+      return cues.ok && cueCalls.ok ? { run, cues: cues.data, calls: cueCalls.data } : null;
+    }),
+  );
+  const full: DaySheetSchedule = {
+    calls: calls.data,
+    records: records.data,
+    runs: cueSets.filter((r): r is NonNullable<typeof r> => r !== null),
+  };
+  const showDepartment = audience?.showDepartment ?? null;
+  const target = audience?.teamId
+    ? { teamId: audience.teamId }
+    : audience?.departmentCode
+      ? { departmentCode: audience.departmentCode }
+      : null;
+  if (target === null) {
+    return ok({
+      schedule: full,
+      audience: showDepartment ? { label: null, showDepartment } : null,
+    });
+  }
+  const scoped = await readDaySheetSchedule(db, sheet.id, target);
+  if (!scoped.ok) return scoped;
+  const shifts = new Set(scoped.data.shiftIds);
+  const recordIds = new Set(scoped.data.recordIds);
+  return ok({
+    schedule: {
+      calls: full.calls.filter((c) => shifts.has(c.shiftId)),
+      records: full.records.filter((r) => recordIds.has(r.id)),
+      runs: full.runs,
+    },
+    audience: { label: scoped.data.audienceName, showDepartment },
+  });
+}
 
 const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
   "purchase-order": async (db, orgId, id) => {
@@ -126,14 +247,21 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     });
   },
 
-  "day-sheet": async (db, orgId, id) => {
+  "day-sheet": async (db, orgId, id, options) => {
     const found = await listDaySheets(db, { orgId, id });
     if (!found.ok) return found;
     const sheet = found.data[0];
     if (!sheet) return fail({ kind: "not-found" });
     const project = await documentProject(db, orgId, sheet.projectId);
     if (!project.ok) return project;
-    return ok({ project: project.data, sheet });
+    const day = await daySheetSchedule(db, orgId, project.data, sheet, options.audience);
+    if (!day.ok) return day;
+    return ok({
+      project: project.data,
+      sheet,
+      schedule: day.data.schedule,
+      ...(day.data.audience ? { audience: day.data.audience } : {}),
+    });
   },
 
   "call-sheet": async (db, orgId, id) => {
@@ -157,9 +285,10 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     if (!run.ok) return run;
     const project = await documentProject(db, orgId, run.data.projectId);
     if (!project.ok) return project;
-    const cues = await listCues(db, id);
+    const [cues, calls] = await Promise.all([listCues(db, id), listCueCalls(db, id)]);
     if (!cues.ok) return cues;
-    return ok({ project: project.data, run: run.data, cues: cues.data });
+    if (!calls.ok) return calls;
+    return ok({ project: project.data, run: run.data, cues: cues.data, calls: calls.data });
   },
 
   beo: async (db, orgId, id) => {
@@ -175,7 +304,11 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     if (!credential.ok) return credential;
     const project = await documentProject(db, orgId, credential.data.projectId);
     if (!project.ok) return project;
-    return ok({ project: project.data, credential: credential.data });
+    return ok({
+      project: project.data,
+      credential: credential.data,
+      photo: await credentialBadgePhoto(db, id),
+    });
   },
 
   "inspection-report": async (db, orgId, id) => {
@@ -237,6 +370,60 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     return ok({ project: project.data, report: report.data });
   },
 
+  /**
+   * The wrap-up of a project (B7, ADR 0146 decision 5); its id is the project id. Each section is read only when
+   * the reader holds its capability, and is "unavailable" otherwise: the budget needs finance.budget.read on the
+   * project and finance.journal.read in the org (posted actuals are ledger rows), the measurements
+   * projects.gate.read, the incidents safety.incident.read, and the summary all of them.
+   */
+  "wrap-up-report": async (db, orgId, id, options) => {
+    const project = await documentProject(db, orgId, id);
+    if (!project.ok) return project;
+    const { data: held, error } = await db.rpc("my_capabilities_on_project", {
+      p_project_id: id,
+      p_capabilities: [...WRAP_UP_CAPABILITIES],
+    });
+    if (error) return fail(toDataError(error));
+    const can = new Set((held ?? []) as string[]);
+    const budgetRead = can.has("finance.budget.read") && options.ledgerRead === true;
+    const gateRead = can.has("projects.gate.read");
+    const incidentRead = can.has("safety.incident.read");
+    const debrief = await getProjectDebrief(db, id);
+    if (!debrief.ok) return debrief;
+    const [items, summary, budget, summaryRows, catalog, incidents] = await Promise.all([
+      debrief.data ? listDebriefItems(db, debrief.data.id) : Promise.resolve(ok([])),
+      debrief.data && budgetRead && gateRead && incidentRead
+        ? getDebriefSummary(db, debrief.data.id)
+        : Promise.resolve(ok(null)),
+      budgetRead ? finalCostReport(db, { orgId, projectId: id }) : Promise.resolve(null),
+      gateRead ? listMeasurementSummary(db, { orgId, projectId: id }) : Promise.resolve(null),
+      gateRead ? listMeasurementCatalog(db) : Promise.resolve(null),
+      incidentRead ? incidentsReport(db, { orgId, projectId: id }) : Promise.resolve(null),
+    ]);
+    if (!items.ok) return items;
+    if (!summary.ok) return summary;
+    if (budget && !budget.ok) return budget;
+    if (summaryRows && !summaryRows.ok) return summaryRows;
+    if (catalog && !catalog.ok) return catalog;
+    if (incidents && !incidents.ok) return incidents;
+    return ok({
+      project: project.data,
+      debrief: debrief.data,
+      items: items.data,
+      summary: budgetRead && gateRead && incidentRead ? summary.data : "unavailable",
+      budget: budget ? budget.data : "unavailable",
+      measurements:
+        summaryRows && catalog
+          ? {
+              rows: summaryRows.data,
+              catalog: catalog.data,
+              preference: options.unitPreference ?? "imperial",
+            }
+          : "unavailable",
+      incidents: incidents ? incidents.data : "unavailable",
+    });
+  },
+
   /** Only a signed agreement has a certificate; any other state answers not found. */
   "agreement-certificate": async (db, orgId, id) => {
     const owner = await db
@@ -265,6 +452,7 @@ export function loadDocumentData<K extends DocumentKind>(
   orgId: string,
   kind: K,
   id: string,
+  options: LoadOptions = {},
 ): Promise<Result<DocumentDataMap[K]>> {
-  return (LOADERS[kind] as Loader<K>)(db, orgId, id);
+  return (LOADERS[kind] as Loader<K>)(db, orgId, id, options);
 }

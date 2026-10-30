@@ -121,7 +121,7 @@ export interface AuroraCodeBinding {
 /** `AuroraPreviewRequest` in the OpenAPI document. */
 export interface AuroraPreviewRequest {
   readonly feature: "drafting" | "summaries";
-  readonly kind?: "record_activity" | "project_week" | "gate_readiness";
+  readonly kind?: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
   readonly subject_collection?: string;
   readonly subject_id?: string;
   readonly items: readonly { readonly collection: string; readonly id: string }[];
@@ -210,7 +210,7 @@ export interface AuroraClient {
     verbiage?: readonly { term: string; preferred: string }[];
   }): Promise<AuroraCall<AuroraApiResult<AuroraDraft>>>;
   summarize(input: {
-    kind: "record_activity" | "project_week" | "gate_readiness";
+    kind: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
     subject_collection: string;
     subject_id: string;
     items: readonly { collection: string; id: string }[];

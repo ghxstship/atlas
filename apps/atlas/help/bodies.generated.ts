@@ -980,6 +980,38 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " to put it back." },
         ],
       },
+      { t: "h2", v: "In the showcaller console" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "While you call a show live, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " puts the selected cue on standby, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps to a cue, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge the remaining plan by a minute and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department. " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list calls the cue. A Stream Deck sends " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, Standby, Previous, Next, Nudge later, Nudge earlier, Jump and Department); set each key to a ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action." },
+        ],
+      },
       { t: "h2", v: "Make the keys your own" },
       {
         t: "p",
@@ -995,13 +1027,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Reset" },
           { t: "text", v: " brings back the default. Turn off " },
           { t: "strong", v: "Keyboard shortcuts" },
-          { t: "text", v: " there to stop every shortcut without " },
+          { t: "text", v: " there to stop every character-key shortcut without " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " or " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; function keys " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " keep working, since they type no character." },
         ],
       },
       {
@@ -1516,6 +1552,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Wrap-up" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A project's " },
+          { t: "strong", v: "Reports" },
+          {
+            t: "text",
+            v: " tab starts with its wrap-up: the debrief and a management summary, printed with budget against actuals, attendance, sustainability and carbon, and incidents as the wrap-up report PDF.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Add debrief points by area: what went well, what to improve, and actions, each action with an owner.",
+            },
+          ],
+          [
+            { t: "text", v: "Write the management summary, or choose " },
+            { t: "strong", v: "Summarize" },
+            {
+              t: "text",
+              v: " to have Aurora draft one from the project's figures and debrief points. ",
+            },
+            { t: "strong", v: "Use as management summary" },
+            { t: "text", v: " puts the draft in the box; nothing is saved until you choose " },
+            { t: "strong", v: "Save summary" },
+            {
+              t: "text",
+              v: '. A saved draft prints as "Drafted with Aurora and reviewed by" you, with the date.',
+            },
+          ],
+          [
+            { t: "strong", v: "Complete debrief" },
+            { t: "text", v: " locks the points and the summary. " },
+            { t: "strong", v: "Reopen debrief" },
+            {
+              t: "text",
+              v: " unlocks them. While the debrief is completed, a deleted point cannot be restored from Trash either; reopen the debrief first.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: 'Each section of the report shows only what you may read; the others say "Not included". A figure that was not measured reads Unmeasured, never 0.',
+          },
+        ],
+      },
       { t: "h2", v: "Objectives and measurement" },
       {
         t: "p",
@@ -1971,6 +2063,156 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Build the running order" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Add each cue with its planned time and length. When a time is still an estimate, check ",
+            },
+            { t: "strong", v: "Time to be confirmed" },
+            { t: "text", v: ": Atlas shows " },
+            { t: "strong", v: "TBC · est." },
+            { t: "text", v: " with the estimate, Compass, Gateway and the PDF show " },
+            { t: "strong", v: "TBC" },
+            {
+              t: "text",
+              v: ", and calendar subscriptions mark it tentative. Records offer the same box, ",
+            },
+            { t: "strong", v: "Start time to be confirmed" },
+            { t: "text", v: ", beside " },
+            { t: "strong", v: "Starts" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Choose the pencil on a cue to edit it in place: label, time, length and one call for each department (Audio, Lighting, Video, Special Effects and Stage). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancels." },
+          ],
+          [
+            { t: "text", v: "Use the arrows to move a cue one place, or " },
+            { t: "strong", v: "Move to position…" },
+            {
+              t: "text",
+              v: " to put it anywhere after the last called cue in one step. Called cues keep their places, and the cues are renumbered 1, 2, 3 after a move.",
+            },
+          ],
+          [
+            { t: "text", v: "Choose a " },
+            { t: "strong", v: "Department" },
+            {
+              t: "text",
+              v: " to see only that department's calls. Cues that have one are marked; the others say there is no call. The choice stays in the page address, so you can share it.",
+            },
+          ],
+          [
+            { t: "text", v: "Set a " },
+            { t: "strong", v: "Curfew" },
+            { t: "text", v: " in the details when the show has a hard stop." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Call the show" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Run live" },
+          {
+            t: "text",
+            v: ". If you may call cues, the showcaller console opens with the show clock, the time of day, how far the show runs behind or ahead of the plan and, when a curfew is set, the projected end against it.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Call next cue" },
+            { t: "text", v: " calls the cue on standby, or else the next cue. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " calls the cue you selected." },
+          ],
+          [
+            { t: "strong", v: "Standby" },
+            {
+              t: "text",
+              v: " puts the selected cue on standby; everyone following sees it within a second or two. ",
+            },
+            { t: "strong", v: "Previous cue" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Next cue" },
+            { t: "text", v: " move the standby, and " },
+            { t: "strong", v: "Jump to cue" },
+            { t: "text", v: " picks any uncalled cue. Cues you jump past are marked " },
+            { t: "strong", v: "Skipped" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Nudge −1 min" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Nudge +1 min" },
+            { t: "text", v: " move every remaining planned time." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "With focus in the console, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " stands by, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department; " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list goes." },
+        ],
+      },
+      { t: "h3", v: "Set Stream Deck Hotkey actions to F13 to F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Give each Stream Deck key a " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action: " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " Standby, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Previous cue, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Next cue, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Nudge +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Nudge −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Jump to cue and " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Department. They work while the console has focus, even with single-key shortcuts turned off, and you can change them in ",
+          },
+          { t: "strong", v: "Me, Keyboard shortcuts" },
+          { t: "text", v: "." },
+        ],
+      },
       { t: "h2", v: "Day sheets" },
       {
         t: "p",
@@ -1979,6 +2221,66 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "A day sheet summarizes one day of a project: times, locations, contacts and notes. Publish it when it is ready; people see the latest published version.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The day sheet PDF lists the day's notes, its calls, its meetings, milestones and deadlines, and the cues of that show date. ",
+          },
+          { t: "strong", v: "Download for…" },
+          {
+            t: "text",
+            v: " prints a copy for one team or one department: only their calls and the records assigned to, owned by or accountable to them, never more than you can see. Pick a show department to keep only the cues with that department's call, and choose Letter or A4.",
+          },
+        ],
+      },
+      { t: "h3", v: "Books" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A book prints a project's show documents as one PDF with a cover and contents. Open the project's ",
+          },
+          { t: "strong", v: "Documents" },
+          { t: "text", v: " tab and choose " },
+          { t: "strong", v: "New book" },
+          { t: "text", v: ":" },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "A " },
+            { t: "strong", v: "Tour Book" },
+            {
+              t: "text",
+              v: " covers dated show days: day sheets, call sheets, runs of show, banquet event orders, inspections and incidents, in day order.",
+            },
+          ],
+          [
+            { t: "text", v: "A " },
+            { t: "strong", v: "Production Book" },
+            {
+              t: "text",
+              v: " covers the whole project or a period and can also hold the final cost report and the wrap-up report.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Day sheets and call sheets go in once they are published, and records you cannot open are left out; the cover says how many. A book holds up to 100 documents: narrow its dates to download a longer one. Deleting a book moves it to Trash, and ",
+          },
+          { t: "strong", v: "Undo" },
+          { t: "text", v: " brings it back." },
         ],
       },
       { t: "h2", v: "Call sheets" },
@@ -2199,6 +2501,19 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Set your language, time zone, theme and reduced motion. In " },
           { t: "strong", v: "Preferences" },
           { t: "text", v: ", you can replay any guided tour and show the contextual tips again." },
+        ],
+      },
+      { t: "h2", v: "Calendar feeds" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Me, Calendar Feeds" },
+          {
+            t: "text",
+            v: " subscribes your calendar app to your schedule in this organization, or to a project's. Give each feed a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and, on a project feed, cues. A project feed can also follow only some people, one team or one department, and only the cues with one show department's call. A feed never shows more than you may see. ",
+          },
+          { t: "strong", v: "Edit" },
+          { t: "text", v: " changes a feed without changing its link." },
         ],
       },
       { t: "h2", v: "Notifications" },
@@ -3205,6 +3520,38 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " para devolverla." },
         ],
       },
+      { t: "h2", v: "En la consola de llamado" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Mientras llama un espectáculo en vivo, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera la señal seleccionada, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta a una señal, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan un minuto el plan restante y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento. " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama la señal. Un Stream Deck envía " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, En espera, Anterior, Siguiente, Retrasar, Adelantar, Saltar y Departamento); asigne a cada tecla una acción ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: "." },
+        ],
+      },
       { t: "h2", v: "Adapte las teclas" },
       {
         t: "p",
@@ -3220,13 +3567,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Restablecer" },
           { t: "text", v: " devuelve el valor predeterminado. Desactive allí " },
           { t: "strong", v: "Atajos de teclado" },
-          { t: "text", v: " para detener todos los atajos sin " },
+          { t: "text", v: " para detener todos los atajos de teclas de carácter sin " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " o " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; las teclas de función " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " siguen funcionando, porque no escriben ningún carácter." },
         ],
       },
       {
@@ -3705,6 +4056,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Cierre" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La pestaña " },
+          { t: "strong", v: "Informes" },
+          {
+            t: "text",
+            v: " de un proyecto empieza con su cierre: el balance y un resumen para la dirección, impresos con el presupuesto frente a los costos reales, la asistencia, la sostenibilidad y el carbono, y los incidentes como el PDF del informe de cierre.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Agregue puntos del balance por área: lo que salió bien, lo que hay que mejorar y acciones, cada acción con un responsable.",
+            },
+          ],
+          [
+            { t: "text", v: "Escriba el resumen para la dirección, o elija " },
+            { t: "strong", v: "Resumir" },
+            {
+              t: "text",
+              v: " para que Aurora redacte uno con las cifras y los puntos del balance del proyecto. ",
+            },
+            { t: "strong", v: "Usar como resumen para la dirección" },
+            { t: "text", v: " pone el borrador en el cuadro; no se guarda nada hasta que elija " },
+            { t: "strong", v: "Guardar resumen" },
+            {
+              t: "text",
+              v: '. Un borrador guardado se imprime como "Redactado con Aurora y revisado por" usted, con la fecha.',
+            },
+          ],
+          [
+            { t: "strong", v: "Completar balance" },
+            { t: "text", v: " bloquea los puntos y el resumen. " },
+            { t: "strong", v: "Reabrir balance" },
+            {
+              t: "text",
+              v: " los desbloquea. Mientras el balance está completado, tampoco se puede restaurar desde la Papelera un punto eliminado; primero reabra el balance.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: 'Cada sección del informe muestra solo lo que usted puede leer; las demás dicen "No incluido". Una cifra que no se midió dice Sin medir, nunca 0.',
+          },
+        ],
+      },
       { t: "h2", v: "Objetivos y medición" },
       {
         t: "p",
@@ -4148,6 +4555,159 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Arme el orden" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Agregue cada señal con su hora planificada y su duración. Cuando una hora todavía es una estimación, marque ",
+            },
+            { t: "strong", v: "Hora por confirmar" },
+            { t: "text", v: ": Atlas muestra " },
+            { t: "strong", v: "Por confirmar · aprox." },
+            { t: "text", v: " con la estimación, Compass, Gateway y el PDF muestran " },
+            { t: "strong", v: "Por confirmar" },
+            {
+              t: "text",
+              v: ", y las suscripciones de calendario la marcan como provisional. Los registros ofrecen la misma casilla, ",
+            },
+            { t: "strong", v: "Hora de inicio por confirmar" },
+            { t: "text", v: ", junto a " },
+            { t: "strong", v: "Inicio" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Elija el lápiz de una señal para editarla en su lugar: nombre, hora, duración y una llamada por departamento (Audio, Iluminación, Video, Efectos especiales y Escenario). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancela." },
+          ],
+          [
+            { t: "text", v: "Use las flechas para mover una señal un lugar, o " },
+            { t: "strong", v: "Mover a la posición…" },
+            {
+              t: "text",
+              v: " para ponerla en cualquier lugar después de la última señal llamada en un solo paso. Las señales llamadas conservan su lugar, y las señales se numeran de nuevo 1, 2, 3 después de mover una.",
+            },
+          ],
+          [
+            { t: "text", v: "Elija un " },
+            { t: "strong", v: "Departamento" },
+            {
+              t: "text",
+              v: " para ver solo sus llamadas. Las señales que tienen una quedan marcadas; las demás indican que no hay llamada. La elección queda en la dirección de la página, así que puede compartirla.",
+            },
+          ],
+          [
+            { t: "text", v: "Fije una " },
+            { t: "strong", v: "Hora límite" },
+            { t: "text", v: " en los detalles cuando el espectáculo tenga un final obligatorio." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Llame el espectáculo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elija " },
+          { t: "strong", v: "Ejecutar en vivo" },
+          {
+            t: "text",
+            v: ". Si puede llamar señales, se abre la consola de llamado con el reloj del show, la hora del día, cuánto va atrasado o adelantado frente al plan y, cuando hay hora límite, el final proyectado frente a ella.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Llamar siguiente cue" },
+            { t: "text", v: " llama la señal en espera o, si no hay, la siguiente. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " llama la señal seleccionada." },
+          ],
+          [
+            { t: "strong", v: "En espera" },
+            {
+              t: "text",
+              v: " pone en espera la señal seleccionada; quienes siguen el show la ven en uno o dos segundos. ",
+            },
+            { t: "strong", v: "Cue anterior" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Cue siguiente" },
+            { t: "text", v: " mueven la espera, y " },
+            { t: "strong", v: "Saltar a un cue" },
+            {
+              t: "text",
+              v: " elige cualquier señal sin llamar. Las señales que salte quedan marcadas como ",
+            },
+            { t: "strong", v: "Omitido" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Ajustar −1 min" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Ajustar +1 min" },
+            { t: "text", v: " mueven todas las horas planificadas que quedan." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Con el foco en la consola, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan el plan y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento; " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama." },
+        ],
+      },
+      { t: "h3", v: "Configure acciones Hotkey de Stream Deck con F13 a F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Asigne a cada tecla del Stream Deck una acción " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: ": " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " En espera, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Cue anterior, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Cue siguiente, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Ajustar +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Ajustar −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Saltar a un cue y " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Departamento. Funcionan mientras la consola tiene el foco, aunque los atajos de una tecla estén desactivados, y puede cambiarlas en ",
+          },
+          { t: "strong", v: "Yo, Atajos de teclado" },
+          { t: "text", v: "." },
+        ],
+      },
       { t: "h2", v: "Hojas del día" },
       {
         t: "p",
@@ -4156,6 +4716,66 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Una hoja del día resume una jornada del proyecto: horarios, lugares, contactos y notas. Publíquela cuando esté lista; las personas ven la última versión publicada.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El PDF de la hoja del día muestra las notas del día, sus llamados, sus reuniones, hitos y plazos, y los cues de esa fecha de show. ",
+          },
+          { t: "strong", v: "Descargar para…" },
+          {
+            t: "text",
+            v: " imprime una copia para un equipo o un departamento: solo sus llamados y los registros asignados a ellos, de su propiedad o bajo su responsabilidad, nunca más de lo que usted puede ver. Elija un departamento del show para dejar solo los cues con un llamado de ese departamento, y elija carta o A4.",
+          },
+        ],
+      },
+      { t: "h3", v: "Libros" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un libro imprime los documentos del show de un proyecto en un solo PDF con portada y contenido. Abra la pestaña ",
+          },
+          { t: "strong", v: "Documentos" },
+          { t: "text", v: " del proyecto y elija " },
+          { t: "strong", v: "Nuevo libro" },
+          { t: "text", v: ":" },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Un " },
+            { t: "strong", v: "libro de gira" },
+            {
+              t: "text",
+              v: " cubre días de show con fecha: hojas del día, hojas de llamado, guiones, órdenes de evento de banquete, inspecciones e incidentes, por día.",
+            },
+          ],
+          [
+            { t: "text", v: "Un " },
+            { t: "strong", v: "libro de producción" },
+            {
+              t: "text",
+              v: " cubre todo el proyecto o un período y también puede contener el informe de costo final y el informe de cierre.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las hojas del día y de llamado entran una vez publicadas, y se omiten los registros que usted no puede abrir; la portada dice cuántos. Un libro contiene hasta 100 documentos: acote sus fechas para descargar uno más largo. Eliminar un libro lo mueve a la papelera, y ",
+          },
+          { t: "strong", v: "Deshacer" },
+          { t: "text", v: " lo recupera." },
         ],
       },
       { t: "h2", v: "Hojas de llamado" },
@@ -4370,6 +4990,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: " puede repetir cualquier recorrido guiado y volver a mostrar los consejos.",
           },
+        ],
+      },
+      { t: "h2", v: "Calendarios suscritos" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Yo, Calendarios suscritos" },
+          {
+            t: "text",
+            v: " suscribe su aplicación de calendario a su horario en esta organización, o al de un proyecto. Dé a cada calendario un nombre, que su aplicación muestra, y elija qué muestra: turnos, reuniones, hitos, fechas límite y, en un calendario de proyecto, cues. Un calendario de proyecto también puede seguir solo a algunas personas, un equipo o un departamento, y solo los cues con un llamado de un departamento del show. Un calendario nunca muestra más de lo que usted puede ver. ",
+          },
+          { t: "strong", v: "Editar" },
+          { t: "text", v: " lo cambia sin cambiar su enlace." },
         ],
       },
       { t: "h2", v: "Notificaciones" },

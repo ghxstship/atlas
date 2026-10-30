@@ -1201,6 +1201,9 @@ __all__ = [
     "CalendarFeed",
     "CalendarFeedToken",
     "CalendarFeedCreate",
+    "CalendarFeedConfiguration",
+    "CalendarFeedAudience",
+    "CalendarFeedConfigureRequest",
     "TrashItemPage",
     "TrashItem",
     "TrashRestoreResult",
@@ -1237,6 +1240,13 @@ __all__ = [
     "EarnedMediaItemUpdate",
     "ProjectMeasurementSummaryPage",
     "ProjectMeasurementSummary",
+    "ProjectDebriefPage",
+    "ProjectDebrief",
+    "ProjectDebriefSaveRequest",
+    "ProjectDebriefItemPage",
+    "ProjectDebriefItem",
+    "ProjectDebriefItemCreate",
+    "ProjectDebriefItemUpdate",
     "CueCallPage",
     "CueCall",
     "CueCallCreate",
@@ -1382,6 +1392,8 @@ __all__ = [
     "ShareLinkCreate",
     "PersonCalendarFeedPage",
     "PersonCalendarFeed",
+    "PersonCalendarFeedConfiguration",
+    "PersonCalendarFeedConfigureRequest",
     "ProjectInboxPage",
     "ProjectInbox",
     "ProjectInboxCreate",
@@ -19799,6 +19811,48 @@ class CalendarFeedCreate(TypedDict, total=False):
     project_id: Optional[str]
 
 
+class CalendarFeedConfiguration(TypedDict):
+    """A calendar feed's name, content sources, audience and show department (ADR 0146). A member feed takes only a name and sources without Cues."""
+
+    #: Identifier of the calendar feed.
+    calendar_feed_id: str
+    #: Name of the feed and of the subscribed calendar; null for the default name.
+    name: Optional[str]
+    #: What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.
+    sources: Optional[List[Literal["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"]]]
+    audience: Optional[CalendarFeedAudience]
+    #: Show department filter: only cues with this department's call, and its instruction.
+    cue_call_kind: Optional[Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]]
+
+
+class _CalendarFeedAudienceRequired(TypedDict):
+    #: Who the feed follows.
+    kind: Literal["people", "team", "department"]
+
+
+class CalendarFeedAudience(_CalendarFeedAudienceRequired, total=False):
+    """A project feed's audience: only these people's, this team's or this department's shifts and records, never more than the feed's owner may see."""
+
+    #: With kind people: 1 to 50 members of the feed's org.
+    person_ids: List[str]
+    #: Identifier of the team the feed follows.
+    team_id: str
+    #: With kind department: a canon department code.
+    department_code: str
+
+
+class CalendarFeedConfigureRequest(TypedDict, total=False):
+    """The whole configuration of a feed; a field left out is cleared. Refusals answer 422 with their rule: calendar_feed_name, calendar_feed_filter_scope, calendar_feed_audience, calendar_feed_people_limit and calendar_feed_sources."""
+
+    #: Name of the feed and of the subscribed calendar; null for the default name.
+    name: Optional[str]
+    #: What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.
+    sources: Optional[List[Literal["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"]]]
+    audience: Optional[CalendarFeedAudience]
+    #: Show department filter: only cues with this department's call, and its instruction.
+    cue_call_kind: Optional[Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]]
+
+
 class TrashItemPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -20442,6 +20496,125 @@ class ProjectMeasurementSummary(TypedDict):
     outcome: Optional[Literal["Met", "Not Met", "Incomplete", "Unmeasured"]]
 
 
+class ProjectDebriefPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectDebrief]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectDebrief(TypedDict):
+    """The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from."""
+
+    #: Identifier of the project debrief.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the debrief wraps up.
+    project_id: str
+    #: When the debrief was completed; points and summary lock until reopened.
+    completed_at: Optional[str]
+    #: Identifier of the person who completed the debrief.
+    completed_by: Optional[str]
+
+
+class _ProjectDebriefSaveRequestRequired(TypedDict):
+    #: Identifier of the project whose debrief to start or save.
+    project_id: str
+
+
+class ProjectDebriefSaveRequest(_ProjectDebriefSaveRequestRequired, total=False):
+    """Starts the project's debrief when there is none and saves its management summary. Refusals answer 422: debrief_completed, debrief_ai_request and debrief_summary."""
+
+    #: The management summary: text to save it, blank to clear it, null or left out to leave it as it is.
+    management_summary: Optional[str]
+    #: Identifier of the the caller's own Answered Aurora summaries request about this project the summary was drafted from (debrief_ai_request: 422 otherwise).
+    ai_request_id: Optional[str]
+
+
+class ProjectDebriefItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectDebriefItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectDebriefItem(TypedDict):
+    """A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash."""
+
+    #: Identifier of the project debrief item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the debrief the point belongs to.
+    debrief_id: str
+    #: Area of the project the point is about.
+    area: Literal["Schedule", "Budget", "Safety", "Audience", "Sustainability", "Crew", "Vendors", "Other"]
+    #: Kind of point.
+    item_kind: Literal["Went Well", "To Improve", "Action"]
+    #: The point.
+    body: str
+    #: Order in the debrief, from 1; the next free one when omitted.
+    position: int
+    #: Identifier of the member who owns an Action; only Actions have an owner.
+    owner_membership_id: Optional[str]
+
+
+class _ProjectDebriefItemCreateRequired(TypedDict):
+    #: Identifier of the debrief the point belongs to.
+    debrief_id: str
+    #: Area of the project the point is about.
+    area: Literal["Schedule", "Budget", "Safety", "Audience", "Sustainability", "Crew", "Vendors", "Other"]
+    #: Kind of point.
+    item_kind: Literal["Went Well", "To Improve", "Action"]
+    #: The point.
+    body: str
+    #: Order in the debrief, from 1; the next free one when omitted.
+    position: int
+
+
+class ProjectDebriefItemCreate(_ProjectDebriefItemCreateRequired, total=False):
+    """Fields accepted when creating a ProjectDebriefItem."""
+
+    #: Identifier of the member who owns an Action; only Actions have an owner.
+    owner_membership_id: Optional[str]
+
+
+class ProjectDebriefItemUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProjectDebriefItem. Omitted fields are unchanged."""
+
+    #: Area of the project the point is about.
+    area: Literal["Schedule", "Budget", "Safety", "Audience", "Sustainability", "Crew", "Vendors", "Other"]
+    #: Kind of point.
+    item_kind: Literal["Went Well", "To Improve", "Action"]
+    #: The point.
+    body: str
+    #: Order in the debrief, from 1; the next free one when omitted.
+    position: int
+    #: Identifier of the member who owns an Action; only Actions have an owner.
+    owner_membership_id: Optional[str]
+
+
 class CueCallPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -20953,7 +21126,7 @@ class AuroraSummarizeRequest(TypedDict):
     """What to summarize."""
 
     #: What to summarize.
-    kind: Literal["record_activity", "project_week", "gate_readiness"]
+    kind: Literal["record_activity", "project_week", "gate_readiness", "project_wrap_up"]
     #: Collection of the record or project summarized.
     subject_collection: str
     #: Identifier of the record or project summarized.
@@ -21021,7 +21194,7 @@ class AuroraPreviewRequest(_AuroraPreviewRequestRequired, total=False):
     """A drafting or summary request to preview before it is sent."""
 
     #: For summaries, what is summarized.
-    kind: Literal["record_activity", "project_week", "gate_readiness"]
+    kind: Literal["record_activity", "project_week", "gate_readiness", "project_wrap_up"]
     #: For summaries, the collection summarized.
     subject_collection: str
     #: Identifier of the record or project summarized.
@@ -22667,6 +22840,26 @@ class PersonCalendarFeed(TypedDict):
     last_accessed_at: Optional[str]
     #: When the token was last replaced.
     rotated_at: Optional[str]
+
+
+class PersonCalendarFeedConfiguration(TypedDict):
+    """A personal feed's name and content sources (ADR 0146)."""
+
+    #: Identifier of the calendar feed.
+    calendar_feed_id: str
+    #: Name of the feed and of the subscribed calendar; null for the default name.
+    name: Optional[str]
+    #: What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.
+    sources: Optional[List[Literal["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"]]]
+
+
+class PersonCalendarFeedConfigureRequest(TypedDict, total=False):
+    """The name and sources of a personal feed; a field left out is cleared. Refusals answer 422: calendar_feed_name and calendar_feed_sources."""
+
+    #: Name of the feed and of the subscribed calendar; null for the default name.
+    name: Optional[str]
+    #: What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.
+    sources: Optional[List[Literal["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"]]]
 
 
 class ProjectInboxPage(TypedDict):

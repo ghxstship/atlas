@@ -39,7 +39,10 @@
       "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York.",
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
-      "submittal_note_length": "Write a note of 1 to 500 characters."
+      "submittal_note_length": "Write a note of 1 to 500 characters.",
+      "credential_photo_path": "That photo did not reach your own folder. Upload it again.",
+      "credential_photo_no_credential": "You hold no live credential with this organization, so it takes no badge photo from you.",
+      "credential_photo_notice": "Reload the page to see the current notice, then save your photo again."
     }
   },
   "common": {
@@ -78,7 +81,8 @@
     },
     "mapAlternative": "Map locations are not available yet, so places are listed below in date order.",
     "orgFilter": "Showing {org} only",
-    "clearFilter": "Show every organization"
+    "clearFilter": "Show every organization",
+    "tbc": "TBC"
   },
   "engagement": {
     "tabs": "Engagement sections",
@@ -1108,7 +1112,8 @@
         "opportunityMatched": "New match for {searchName}: {title}",
         "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
         "certificationExpiring": "Your {title} certification expires on {expiresOn}",
-        "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}"
+        "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}",
+        "badgePhotoRequested": "{orgName} asks for your badge photo"
       }
     }
   },
@@ -1566,10 +1571,27 @@
       "copied": "Link copied.",
       "openInCalendar": "Open in my calendar app",
       "subscribe": "Subscribe in a calendar app",
+      "nameLabel": "Name",
+      "nameHelp": "Up to 80 characters. Your calendar app shows the feed under this name.",
+      "contentLabel": "Shows",
+      "sources": {
+        "shifts": "Shifts",
+        "meetings": "Meetings",
+        "milestones": "Milestones",
+        "deadlines": "Deadlines",
+        "cues": "Cues"
+      },
+      "filterSummary": "Shows {sources}",
+      "edit": "Edit",
+      "editLabel": "Edit the feed ending in {hint}",
+      "editTitle": "Edit feed",
+      "save": "Save",
       "errors": {
         "calendar_feed_limit": "You have 20 feeds. Revoke one before you add another.",
         "denied": "That feed is not available to you.",
-        "unexpected": "Something went wrong. Try again."
+        "unexpected": "Something went wrong. Try again.",
+        "calendar_feed_name": "Give the feed a name of 1 to 80 characters that none of your other feeds uses.",
+        "calendar_feed_sources": "Choose at least one thing for the feed to show."
       }
     },
     "surfaces": {
@@ -1924,5 +1946,47 @@
       "nothingToRedo": "Nothing to redo.",
       "dismiss": "Dismiss"
     }
+  },
+  "badgePhotos": {
+    "title": "Badge photos",
+    "lead": "The photo each organization prints on your credential badge.",
+    "none": "No organization holds a live credential for you, so none asks for a badge photo.",
+    "notice": "{org}'s credential staff see this photo, and so does anyone who sees your badge: it prints on it. Choose Remove at any time to take it back; the organization then prints your badge without it.",
+    "noticeVersion": "Notice {version}",
+    "stateLabel": "Photo",
+    "states": {
+      "Provided": "On your badge",
+      "Scanning": "Being checked",
+      "Refused": "Not accepted",
+      "Profile": "Your profile photo",
+      "Requested": "Requested",
+      "Missing": "None yet"
+    },
+    "stateHelp": {
+      "Provided": "Your photo prints on this badge.",
+      "Scanning": "Your photo is being checked and prints in a few minutes.",
+      "Refused": "Your photo did not pass the virus check. Upload another.",
+      "Profile": "You gave no badge photo, so your profile photo prints.",
+      "Requested": "The organization asked for your photo.",
+      "Missing": "Your badge prints without a photo."
+    },
+    "providedOn": "Given {date}",
+    "thumbnailAlt": "Your badge photo for {org}",
+    "upload": "Upload or take photo",
+    "choose": "Choose a photo",
+    "cropHelp": "Drag the photo to choose what shows. The badge prints a 3 by 4 portrait.",
+    "cropLabel": "Crop the photo",
+    "save": "Save photo",
+    "cancel": "Cancel",
+    "saved": "Photo saved. It prints once it is checked, in a few minutes.",
+    "useProfile": "Use my profile photo",
+    "remove": "Remove",
+    "removed": "Photo removed and your consent withdrawn.",
+    "lapsed": "You no longer hold a live credential with {org}, so your badges there print no photo. The organization still keeps this photo until you remove it.",
+    "fileType": "Choose a JPEG or PNG photo.",
+    "fileSize": "That photo is too large. Choose one under 25 MB.",
+    "section": "Badge photos",
+    "sectionLead": "Give the organizations you work with a photo for your credential badge.",
+    "open": "Open badge photos"
   }
 }

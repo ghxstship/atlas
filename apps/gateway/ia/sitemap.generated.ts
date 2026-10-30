@@ -604,6 +604,14 @@ export const sitemap: Sitemap = {
             "account-finance": "full",
             "account-member": "full",
           },
+          children: [
+            {
+              id: "profile.badge-photos",
+              kind: "page",
+              label: "nav.gateway.profile.badgePhotos",
+              route: "/profile/badge-photos",
+            },
+          ],
         },
         {
           id: "documents",

@@ -29,7 +29,9 @@
       "general": "General",
       "go": "Go to",
       "lists": "Lists",
-      "inbox": "Inbox"
+      "inbox": "Inbox",
+      "show": "Show calling",
+      "showDeck": "Show calling: Stream Deck"
     },
     "command": "Open the command menu",
     "search": "Search pages and settings",
@@ -82,7 +84,17 @@
     "selectRange": "Select the rows from the last selected one to the focused one",
     "selectAll": "Select every loaded row",
     "menu": "Open the focused row's actions",
-    "askFilter": "Filter in plain language"
+    "askFilter": "Filter in plain language",
+    "show": {
+      "go": "Call the selected cue",
+      "next": "Move the standby to the next cue",
+      "previous": "Move the standby to the previous cue",
+      "standby": "Put the selected cue on standby",
+      "jump": "Jump to a cue",
+      "nudgeLater": "Nudge the remaining plan one minute later",
+      "nudgeEarlier": "Nudge the remaining plan one minute earlier",
+      "department": "Show the next department's calls"
+    }
   },
   "whatsNew": {
     "title": "What's new",

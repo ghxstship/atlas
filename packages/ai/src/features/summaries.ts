@@ -11,13 +11,18 @@ import {
 import { callTool, dataBlock, GUARDRAILS } from "./shared.ts";
 
 /**
- * Summaries (Section 4.7): a record's activity, a project's week and gate readiness. Every bullet
- * cites the items it came from; a bullet without a citation to a supplied item is dropped, and a
- * summary with no supported bullet is NO ANSWER. With nothing to summarize no model call is made
- * and nothing is metered.
+ * Summaries (Section 4.7): a record's activity, a project's week, gate readiness and a project's
+ * wrap-up (B7). Every bullet cites the items it came from; a bullet without a citation to a
+ * supplied item is dropped, and a summary with no supported bullet is NO ANSWER. With nothing to
+ * summarize no model call is made and nothing is metered.
  */
 
-export const SUMMARY_KINDS = ["record_activity", "project_week", "gate_readiness"] as const;
+export const SUMMARY_KINDS = [
+  "record_activity",
+  "project_week",
+  "gate_readiness",
+  "project_wrap_up",
+] as const;
 export type SummaryKind = (typeof SUMMARY_KINDS)[number];
 
 export interface SummaryItem {
@@ -55,6 +60,8 @@ const FOCUS: Readonly<Record<SummaryKind, string>> = {
     "Summarize the project's week: what moved, what is blocked, and what is due next week.",
   gate_readiness:
     "Summarize gate readiness: which criteria have evidence, which are missing, and which block the gate. Never call a gate ready when a blocking criterion lacks evidence.",
+  project_wrap_up:
+    "Summarize the project's wrap-up for management: budget against actuals, attendance, carbon, incidents and the debrief. Name what went well, what to improve and open actions. An unmeasured figure stays unmeasured; never invent a figure.",
 };
 
 export interface SummaryInput {

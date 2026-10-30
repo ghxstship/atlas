@@ -31,8 +31,12 @@ Shortcuts never act while you type in a field, except the ones with **Mod**.
 
 Focus a card and press **Space** to pick it up, the arrow keys to carry it to another column, **Space** to drop it, and **Esc** to put it back.
 
+## In the showcaller console
+
+While you call a show live, **J** and **K** move the standby, **S** puts the selected cue on standby, **T** jumps to a cue, **[** and **]** nudge the remaining plan by a minute and **D** changes the department. **Space** on the cue list calls the cue. A Stream Deck sends **F13** to **F20** (Go, Standby, Previous, Next, Nudge later, Nudge earlier, Jump and Department); set each key to a **Hotkey** action.
+
 ## Make the keys your own
 
-In **Me, Keyboard shortcuts**, choose **Change** next to a shortcut and press the new keys; for a sequence, press a letter and then a second key. Atlas refuses keys another shortcut already uses and keys that belong to your browser, your computer or a screen reader. **Reset** brings back the default. Turn off **Keyboard shortcuts** there to stop every shortcut without **Mod**, **Ctrl** or **Alt**.
+In **Me, Keyboard shortcuts**, choose **Change** next to a shortcut and press the new keys; for a sequence, press a letter and then a second key. Atlas refuses keys another shortcut already uses and keys that belong to your browser, your computer or a screen reader. **Reset** brings back the default. Turn off **Keyboard shortcuts** there to stop every character-key shortcut without **Mod**, **Ctrl** or **Alt**; function keys **F13** to **F20** keep working, since they type no character.
 
 In **Me, Preferences**, the **Sidebar** section hides the items you never use and puts the groups and items in your own order. Move one by dragging it, or focus its handle and press **Space**, the arrow keys, then **Space** again. **Reset to role default** brings back the starting layout.

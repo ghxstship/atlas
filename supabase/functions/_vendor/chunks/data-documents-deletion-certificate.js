@@ -143,6 +143,12 @@ function formatter(locale, timeZone, t) {
   };
 }
 //#endregion
+//#region ../data/src/documents/model.ts
+var CARD_PAPERS = ["a6", "cr80"];
+function isCardPaper(value) {
+  return CARD_PAPERS.includes(value);
+}
+//#endregion
 //#region ../data/src/documents/qr.ts
 var import_qrcode = /* @__PURE__ */ __toESM(
   /* @__PURE__ */ __commonJSMin((exports, module) => {
@@ -1664,10 +1670,22 @@ var TEXT = "black";
 var MUTED = "dimgray";
 var RULE = "silver";
 var QR_SIZE = 72;
+/** The badge portrait and gate code on Letter and A4 (P5). */
+var PORTRAIT_WIDTH = 90;
+var PORTRAIT_HEIGHT = 112;
+var SCAN_SIZE = 108;
+/**
+ * Page sizes in points. A6 is pdfkit's 297.64 by 419.53; CR80 is the ID-1 card, 53.98 by 85.60 mm, portrait
+ * (P5). The card sizes are for the credential badge only (printSizesFor).
+ */
 var SIZES = {
   letter: "LETTER",
   a4: "A4",
+  a6: "A6",
+  cr80: [153.01, 242.65],
 };
+/** The fixed width of a contents entry's page column, so a page number never changes a line break. */
+var CONTENTS_PAGE_WIDTH = 40;
 var fontCache = null;
 async function fonts() {
   if (!fontCache) {
@@ -1766,36 +1784,52 @@ function printable(text, has) {
   }
   return out;
 }
-async function renderDocumentPdf(model, options) {
+/**
+ * A tagged PDF/UA-1 document with the embedded fonts registered (ADR 0031). Pages stay buffered until the caller
+ * flushes them, so footers can be drawn once a document's page count is known.
+ */
+async function openPdf(setup) {
   const [{ default: PDFDocument }, font] = await Promise.all([import("pdfkit"), fonts()]);
+  const doc = new PDFDocument({
+    size: SIZES[setup.paper],
+    layout: setup.orientation,
+    margins: setup.margins,
+    pdfVersion: "1.7",
+    subset: "PDF/UA",
+    tagged: true,
+    lang: setup.lang,
+    displayTitle: true,
+    bufferPages: true,
+    font: font.regular,
+    info: {
+      Title: setup.title,
+      Author: setup.author,
+      Subject: setup.subject,
+      ...(setup.keywords ? { Keywords: setup.keywords } : {}),
+      Creator: "XOS",
+      Producer: "XOS",
+      CreationDate: new Date(setup.createdAt),
+    },
+  });
+  doc.subset = "1";
+  const addInfo = doc._addInfo.bind(doc);
+  doc._addInfo = () => {
+    const plain = { ...doc.info };
+    for (const key of ["Title", "Author", "Subject", "Creator", "Producer"])
+      if (typeof doc.info[key] === "string") doc.info[key] = xmlText(doc.info[key]);
+    try {
+      addInfo();
+    } finally {
+      doc.info = plain;
+    }
+  };
+  doc.registerFont("regular", font.regular);
+  doc.registerFont("semibold", font.semibold);
+  return doc;
+}
+/** Every chunk pdfkit writes, joined once the document ends. */
+function collect(doc) {
   return new Promise((resolve, reject) => {
-    const pdfOptions = {
-      size: SIZES[options.paper],
-      layout: options.orientation ?? "portrait",
-      margins: {
-        top: MARGIN,
-        left: MARGIN,
-        right: MARGIN,
-        bottom: 82,
-      },
-      pdfVersion: "1.7",
-      subset: "PDF/UA",
-      tagged: true,
-      lang: model.lang,
-      displayTitle: true,
-      bufferPages: true,
-      font: font.regular,
-      info: {
-        Title: model.title,
-        Author: model.brand.legalEntity ?? model.brand.name,
-        Subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
-        ...(model.watermark ? { Keywords: model.watermark.text } : {}),
-        Creator: "XOS",
-        Producer: "XOS",
-        CreationDate: new Date(model.facts.generatedAtIso),
-      },
-    };
-    const doc = new PDFDocument(pdfOptions);
     const chunks = [];
     doc.on("data", (chunk) => chunks.push(chunk));
     doc.on("error", reject);
@@ -1808,38 +1842,85 @@ async function renderDocumentPdf(model, options) {
       }
       resolve(out);
     });
-    doc.subset = "1";
-    const addInfo = doc._addInfo.bind(doc);
-    doc._addInfo = () => {
-      const plain = { ...doc.info };
-      for (const key of ["Title", "Author", "Subject", "Creator", "Producer"])
-        if (typeof doc.info[key] === "string") doc.info[key] = xmlText(doc.info[key]);
-      try {
-        addInfo();
-      } finally {
-        doc.info = plain;
-      }
-    };
-    try {
-      doc.registerFont("regular", font.regular);
-      doc.registerFont("semibold", font.semibold);
-      new Renderer(doc, model).render();
-      doc.end();
-    } catch (error) {
-      reject(error instanceof Error ? error : new Error(String(error)));
-    }
   });
 }
-var Renderer = class {
+/** Page margins: cards keep a narrow edge and print no footer; Letter and A4 leave room for the footer. */
+function marginsFor(paper) {
+  if (paper === "cr80")
+    return {
+      top: 8,
+      left: 8,
+      right: 8,
+      bottom: 8,
+    };
+  if (paper === "a6")
+    return {
+      top: 18,
+      left: 18,
+      right: 18,
+      bottom: 18,
+    };
+  return {
+    top: MARGIN,
+    left: MARGIN,
+    right: MARGIN,
+    bottom: 82,
+  };
+}
+/** Card papers print only the credential badge; the routes check isPrintSizeFor first. */
+function assertPrintable(model, paper) {
+  if (isCardPaper(paper) && model.kind !== "credential-badge")
+    throw new Error(`A ${model.kind} prints on Letter or A4, not ${paper}.`);
+}
+/** Draws one model under a parent structure element, starting on the current page. */
+async function drawModel(doc, parent, model, paper, pagination) {
+  if (isCardPaper(paper)) {
+    const { CardRenderer } = await import("./data-documents-render-card.js");
+    new CardRenderer(doc, model, parent, paper).render();
+  } else new Renderer(doc, model, parent, pagination).render();
+}
+async function renderDocumentPdf(model, options) {
+  assertPrintable(model, options.paper);
+  const doc = await openPdf({
+    paper: options.paper,
+    orientation: options.orientation ?? "portrait",
+    margins: marginsFor(options.paper),
+    lang: model.lang,
+    title: model.title,
+    author: model.brand.legalEntity ?? model.brand.name,
+    subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
+    ...(model.watermark ? { keywords: model.watermark.text } : {}),
+    createdAt: model.facts.generatedAtIso,
+  });
+  const done = collect(doc);
+  try {
+    const root = doc.struct("Document");
+    doc.addStructure(root);
+    await drawModel(doc, root, model, options.paper);
+    root.end();
+    doc.end();
+  } catch (error) {
+    throw error instanceof Error ? error : new Error(String(error));
+  }
+  return done;
+}
+/**
+ * Drawing shared by the page and card layouts: text the embedded font can draw, tagged text elements, artifacts,
+ * and the two Figures every badge carries, the portrait and the scan code (P5).
+ */
+var TaggedWriter = class {
   root;
   glyphs = /* @__PURE__ */ new Map();
   doc;
   model;
-  constructor(doc, model) {
+  /** The index of the page this model starts on, so its footers number its own pages in a batch. */
+  firstPage;
+  constructor(doc, model, parent) {
     this.doc = doc;
     this.model = model;
-    this.root = doc.struct("Document");
-    doc.addStructure(this.root);
+    this.root = parent;
+    const range = doc.bufferedPageRange();
+    this.firstPage = range.start + range.count - 1;
   }
   get left() {
     return this.doc.page.margins.left;
@@ -1865,13 +1946,6 @@ var Renderer = class {
   style(weight, size, color = TEXT) {
     this.doc.font(weight).fontSize(size).fillColor(color);
   }
-  ensure(height) {
-    if (this.doc.y + height > this.bottom) {
-      this.doc.addPage();
-      this.doc.x = this.left;
-      this.doc.y = this.doc.page.margins.top;
-    }
-  }
   /** One tagged text element (P, H1, H2, Caption) added to a parent. */
   text(parent, type, text, opts = {}) {
     const value = this.safe(text) || " ";
@@ -1892,10 +1966,84 @@ var Renderer = class {
     draw();
     this.doc.endMarkedContent();
   }
+  /** A QR code as vector squares inside a tagged Figure; the space around it is the quiet zone. */
+  qr(payload, x, y, size, alt) {
+    const { doc } = this;
+    const matrix = qrMatrix(payload);
+    const cell = size / matrix.length;
+    this.root.add(
+      doc.struct("Figure", { alt: this.safe(alt) }, () => {
+        doc.save();
+        matrix.forEach((row, r) =>
+          row.forEach((dark, c) => {
+            if (dark) doc.rect(x + c * cell, y + r * cell, cell, cell);
+          }),
+        );
+        doc.fillColor(TEXT).fill();
+        doc.restore();
+      }),
+    );
+  }
+  /**
+   * The holder's portrait in a fixed frame: the image fitted and centered, never cropped, as a Figure with its
+   * alternative text. A missing photo, or one pdfkit cannot embed, draws a ruled frame as an artifact and the
+   * placeholder text inside it.
+   */
+  portrait(block, x, y, width, height, placeholderSize) {
+    const { doc } = this;
+    if (block.bytes && isEmbeddableImage(block.bytes)) {
+      const buffer = Buffer.from(block.bytes);
+      let opened;
+      try {
+        opened = doc.openImage(buffer);
+      } catch {
+        opened = null;
+      }
+      if (opened && opened.width > 0 && opened.height > 0) {
+        const scale = Math.min(width / opened.width, height / opened.height);
+        const w = opened.width * scale;
+        const h = opened.height * scale;
+        this.root.add(
+          doc.struct("Figure", { alt: this.safe(block.alt) }, () => {
+            doc.image(buffer, x + (width - w) / 2, y + (height - h) / 2, {
+              width: w,
+              height: h,
+            });
+          }),
+        );
+        return;
+      }
+    }
+    this.artifact(() => {
+      doc.rect(x, y, width, height).lineWidth(0.6).strokeColor(RULE).stroke();
+    });
+    this.style("regular", placeholderSize, MUTED);
+    const pad = Math.max(3, width * 0.08);
+    const textHeight = doc.heightOfString(this.safe(block.placeholder), { width: width - pad * 2 });
+    this.text(this.root, "P", block.placeholder, {
+      x: x + pad,
+      y: y + Math.max(pad, (height - textHeight) / 2),
+      width: width - pad * 2,
+      align: "center",
+    });
+  }
+};
+var Renderer = class extends TaggedWriter {
+  pagination;
+  constructor(doc, model, parent, pagination) {
+    super(doc, model, parent);
+    this.pagination = pagination;
+  }
+  ensure(height) {
+    if (this.doc.y + height > this.bottom) {
+      this.doc.addPage();
+      this.doc.x = this.left;
+      this.doc.y = this.doc.page.margins.top;
+    }
+  }
   render() {
     this.header();
     for (const block of this.model.blocks) this.block(block);
-    this.root.end();
     this.footers();
   }
   header() {
@@ -1984,20 +2132,7 @@ var Renderer = class {
       });
     }
     const factsBottom = doc.y;
-    const qrX = this.left + this.width - QR_SIZE;
-    const matrix = qrMatrix(facts.recordUrl);
-    const cell = QR_SIZE / matrix.length;
-    const qr = doc.struct("Figure", { alt: this.safe(facts.labels.qrAlt) }, () => {
-      doc.save();
-      matrix.forEach((row, r) =>
-        row.forEach((dark, c) => {
-          if (dark) doc.rect(qrX + c * cell, top + r * cell, cell, cell);
-        }),
-      );
-      doc.fillColor(TEXT).fill();
-      doc.restore();
-    });
-    this.root.add(qr);
+    this.qr(facts.recordUrl, this.left + this.width - QR_SIZE, top, QR_SIZE, facts.labels.qrAlt);
     const headerBottom = Math.max(titleBottom, factsBottom, top + QR_SIZE) + GAP;
     const accent = /^#[0-9a-f]{6}$/i.test(model.brand.accentHex ?? "")
       ? model.brand.accentHex
@@ -2026,6 +2161,26 @@ var Renderer = class {
       case "image":
         this.image(block.bytes, block.alt);
         return;
+      case "portrait": {
+        this.ensure(122);
+        const y = doc.y;
+        this.portrait(block, this.left, y, PORTRAIT_WIDTH, PORTRAIT_HEIGHT, SMALL);
+        doc.x = this.left;
+        doc.y = y + PORTRAIT_HEIGHT + GAP;
+        return;
+      }
+      case "scan-code": {
+        this.style("regular", SMALL, MUTED);
+        const captionHeight = doc.heightOfString(this.safe(block.caption), { width: this.width });
+        this.ensure(SCAN_SIZE + captionHeight + 20);
+        const y = doc.y;
+        this.qr(block.payload, this.left, y, SCAN_SIZE, block.alt);
+        this.style("regular", SMALL, MUTED);
+        this.text(this.root, "P", block.caption, { y: y + SCAN_SIZE + 4 });
+        doc.x = this.left;
+        doc.y += GAP;
+        return;
+      }
       case "paragraph": {
         const size = block.size === "large" ? 22 : BODY;
         this.style(block.size === "large" ? "semibold" : "regular", size);
@@ -2056,6 +2211,9 @@ var Renderer = class {
           true,
         );
         return;
+      case "contents":
+        this.contents(block);
+        return;
       case "table":
         if (block.rows.length === 0) {
           this.style("semibold", 10);
@@ -2069,6 +2227,65 @@ var Renderer = class {
         this.table(block.caption, block.columns, block.rows, block.footer ?? [], false);
         return;
     }
+  }
+  /**
+   * A book's contents (B7) as a TOC with one TOCI per entry, each a P holding the title and record key and the page
+   * number in a fixed-width column at the end of its first line; dot leaders between them are artifacts.
+   */
+  contents(block) {
+    const { doc } = this;
+    this.style("semibold", 12);
+    this.ensure(48);
+    doc.y += 4;
+    this.text(this.root, "H2", block.caption);
+    doc.y += 4;
+    if (block.entries.length === 0) {
+      this.style("regular", BODY, MUTED);
+      this.text(this.root, "P", block.empty);
+      doc.y += GAP;
+      return;
+    }
+    const toc = doc.struct("TOC");
+    this.root.add(toc);
+    const textWidth = this.width - CONTENTS_PAGE_WIDTH - GAP;
+    const pageX = this.left + this.width - CONTENTS_PAGE_WIDTH;
+    for (const entry of block.entries) {
+      this.style("regular", BODY);
+      const label = this.safe(`${entry.title}  ${entry.recordKey}`) || " ";
+      const height = doc.heightOfString(label, { width: textWidth });
+      this.ensure(height + 4);
+      const y = doc.y;
+      const item = doc.struct("TOCI");
+      toc.add(item);
+      item.add(
+        doc.struct("P", () => {
+          doc.text(label, this.left, y, { width: textWidth });
+          doc.text(String(entry.page), pageX, y, {
+            width: CONTENTS_PAGE_WIDTH,
+            align: "right",
+            lineBreak: false,
+          });
+        }),
+      );
+      item.end();
+      const firstLine = doc.widthOfString(label);
+      if (firstLine < textWidth - 8)
+        this.artifact(() => {
+          const lineY = y + BODY * 0.95;
+          doc
+            .moveTo(this.left + firstLine + 4, lineY)
+            .lineTo(pageX - 4, lineY)
+            .lineWidth(0.6)
+            .dash(0.6, { space: 2.4 })
+            .strokeColor(RULE)
+            .stroke()
+            .undash();
+        });
+      doc.x = this.left;
+      doc.y = y + height + 4;
+    }
+    toc.end();
+    doc.y += GAP;
   }
   /** A PNG or JPEG fitted to the page width and the space left, as a Figure with alternative text. */
   image(bytes, alt) {
@@ -2216,7 +2433,8 @@ var Renderer = class {
   footers() {
     const { doc, model } = this;
     const range = doc.bufferedPageRange();
-    for (let i = range.start; i < range.start + range.count; i += 1) {
+    const end = range.start + range.count;
+    for (let i = this.firstPage; i < end; i += 1) {
       doc.switchToPage(i);
       const y = doc.page.height - MARGIN - SMALL;
       const bottomMargin = doc.page.margins.bottom;
@@ -2227,8 +2445,13 @@ var Renderer = class {
           width: this.width / 2,
           lineBreak: false,
         });
+        const local = i - this.firstPage + 1;
         doc.text(
-          this.safe(model.facts.labels.page(i - range.start + 1, range.count)),
+          this.safe(
+            this.pagination
+              ? model.facts.labels.page(this.pagination.offset + local - 1, this.pagination.total)
+              : model.facts.labels.page(local, end - this.firstPage),
+          ),
           this.left + this.width / 2,
           y,
           {
@@ -2411,4 +2634,4 @@ async function renderDeletionCertificate(data, options) {
   };
 }
 //#endregion
-export { renderDeletionCertificate };
+export { MUTED, RULE, TEXT, TaggedWriter, isEmbeddableImage, renderDeletionCertificate };

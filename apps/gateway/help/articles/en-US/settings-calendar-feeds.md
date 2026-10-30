@@ -10,4 +10,6 @@ Put your work in your own calendar from [Upcoming](help:work-upcoming): **Add al
 
 To add one item, use **Add to calendar** on the Up next card on Home.
 
+To keep your calendar up to date instead, **Add a feed** here. Give it a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and cues, such as your set times. **Edit** changes a feed's name and content without changing its link.
+
 Choose **Open Upcoming** to go there.

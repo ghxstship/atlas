@@ -643,6 +643,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "credential_photo.requested",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.credential_photo.requested.subject",
+      body: "kinds.credential_photo.requested.body",
+    },
+  },
+  {
     kind: "opportunity.matched",
     category: "opportunities",
     emailTemplate: "notification",
@@ -744,7 +756,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1639_notification_kind_seed.sql"
+"supabase/migrations/2829_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

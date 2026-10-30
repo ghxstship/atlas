@@ -10,9 +10,12 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
  *
  * - Keys never fire while the person types in a field, except shortcuts the registry marks `fields`
  *   (modifier chords such as Mod+K).
- * - Single keys (no Mod, Ctrl or Alt) obey me.shortcuts_enabled, read as the shell applies it to the
- *   document (singleKeyShortcutsEnabled, @xos/ui/preferences), and stay quiet inside dialogs and
- *   menus, so they never act behind an open panel or clash with a screen reader's dialog keys.
+ * - Single character-key shortcuts (a letter, digit or symbol with no Mod, Ctrl or Alt) obey
+ *   me.shortcuts_enabled, read as the shell applies it to the document (singleKeyShortcutsEnabled,
+ *   @xos/ui/preferences); function keys F13 to F20 do not, because WCAG 2.1.4 covers character keys
+ *   only (the showcaller console answers them, ADR 0131). Keys without a modifier stay quiet inside
+ *   dialogs and menus, so they never act behind an open panel or clash with a screen reader's dialog
+ *   keys.
  * - G, then a letter, goes to a section: the first key shows the hint, the next key either goes or
  *   cancels, Esc cancels, and the hint closes after four seconds.
  * - A key a component already handled (preventDefault) and keys pressed while composing text are

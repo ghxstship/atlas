@@ -3,6 +3,7 @@ import { readView } from "../gateway-operations.ts";
 import { fail, ok, type Result } from "../result.ts";
 import { intervalSeconds } from "../show.ts";
 import type { DocumentKind } from "./model.ts";
+import { credentialBadgePhoto } from "./sources.ts";
 import type { DocumentDataMap, DocumentProject } from "./templates.ts";
 
 /**
@@ -249,6 +250,8 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       durationSeconds: intervalSeconds(c.duration === null ? null : String(c.duration)),
       calledAt: c.called_at,
       calledByName: null,
+      startTbc: c.start_tbc === true,
+      standbyAt: null,
     }));
     return ok({
       orgId: project.data.orgId,
@@ -266,8 +269,11 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           showDate: run.show_date ?? "",
           cueCount: mapped.length,
           calledCount: mapped.filter((c) => c.calledAt !== null).length,
+          curfewAt: null,
         },
         cues: mapped,
+        // Department calls stay internal: no api_external view shows them (ADR 0131).
+        calls: [],
       },
     });
   },
@@ -303,6 +309,9 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           createdAt: c.valid_from,
           updatedAt: c.valid_from,
         },
+        // The holder sees their own photo; anyone else reading the badge (an account principal) gets the placeholder,
+        // since app.credential_badge_photos answers only the holder and the org's credential readers.
+        photo: await credentialBadgePhoto(db, id),
       },
     });
   },

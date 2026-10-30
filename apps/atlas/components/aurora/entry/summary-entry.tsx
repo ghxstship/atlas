@@ -6,7 +6,7 @@ import { AiButton, onDemand, useEntryPanel } from "./ai-button";
 
 const dialog = onDemand(() => import("./summary-dialog"));
 
-export type SummaryKind = "record_activity" | "project_week" | "gate_readiness";
+export type SummaryKind = "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
 
 export interface SummaryItem {
   readonly collection: string;
@@ -23,6 +23,14 @@ export interface SummaryEntryProps {
   readonly items?: Partial<Record<SummaryKind, readonly SummaryItem[]>>;
   /** For a project, where the panel reads the week's activity when it opens. */
   readonly project?: { readonly org: string; readonly key: string };
+  /**
+   * Offers "Use" on an answer (B7: "Use as management summary"): hands the edited text and the request it came
+   * from to the page, which writes nothing until its own Save.
+   */
+  readonly use?: {
+    readonly label: string;
+    readonly onUse: (text: string, requestId: string | null) => void;
+  };
 }
 
 /**

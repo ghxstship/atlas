@@ -692,6 +692,9 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "credential_photo": {
+        "requested": "Foto de credencial solicitada"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",
@@ -863,12 +866,54 @@
     "copied": "Enlace copiado.",
     "openInCalendar": "Abrir en mi aplicación de calendario",
     "revoked": "Calendario revocado.",
+    "nameLabel": "Nombre",
+    "nameHelp": "Hasta 80 caracteres. Su aplicación de calendario lo muestra con este nombre.",
+    "contentLabel": "Muestra",
+    "sources": {
+      "shifts": "Turnos",
+      "meetings": "Reuniones",
+      "milestones": "Hitos",
+      "deadlines": "Fechas límite",
+      "cues": "Cues"
+    },
+    "audienceLabel": "Audiencia",
+    "audienceHelp": "Un calendario nunca muestra más de lo que usted puede ver.",
+    "audience": {
+      "everyone": "Todo lo que puedo ver",
+      "people": "Personas",
+      "team": "Equipo",
+      "department": "Departamento"
+    },
+    "peopleLabel": "Personas",
+    "peopleHelp": "Hasta 50 miembros de esta organización.",
+    "teamLabel": "Equipo",
+    "departmentLabel": "Departamento",
+    "showDepartmentLabel": "Departamento del show",
+    "showDepartmentHelp": "Solo los cues con un llamado para este departamento, con su instrucción.",
+    "showDepartmentAny": "Cualquier departamento",
+    "showDepartments": {
+      "audio": "Llamados de audio",
+      "lighting": "Llamados de iluminación",
+      "video": "Llamados de video",
+      "sfx": "Llamados de efectos especiales",
+      "stage": "Llamados de escenario"
+    },
+    "edit": "Editar",
+    "editLabel": "Editar {feed}",
+    "editTitle": "Editar calendario",
+    "save": "Guardar",
+    "filterSummary": "Muestra {sources}",
     "errors": {
       "calendar_feed_limit": "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
       "calendar_feed_revoked": "Este calendario fue revocado. Agregue uno nuevo.",
       "denied": "Ese calendario o proyecto no está disponible para usted.",
       "invalid": "Elija un proyecto para un calendario de proyecto.",
-      "unexpected": "Algo salió mal. Inténtelo de nuevo."
+      "unexpected": "Algo salió mal. Inténtelo de nuevo.",
+      "calendar_feed_name": "Dé al calendario un nombre de 1 a 80 caracteres que no use ninguno de sus otros calendarios.",
+      "calendar_feed_filter_scope": "Los cues, la audiencia y el departamento del show son solo para calendarios de proyecto.",
+      "calendar_feed_audience": "Elija una audiencia: personas, un equipo o un departamento de esta organización.",
+      "calendar_feed_people_limit": "Un calendario puede seguir a 50 personas como máximo.",
+      "calendar_feed_sources": "Elija al menos una cosa para que el calendario la muestre."
     }
   },
   "projectInbox": {

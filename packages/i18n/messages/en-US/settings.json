@@ -271,7 +271,7 @@
     },
     "shortcutsEnabled": {
       "label": "Keyboard shortcuts",
-      "help": "Single-key shortcuts such as J, K and ? on desktop."
+      "help": "Single character-key shortcuts such as J, K and ? on desktop. Function keys F13 to F20, such as Stream Deck keys, always work."
     },
     "messageTranslation": {
       "label": "Translate chat messages",
@@ -786,7 +786,7 @@
     "resetOne": "{action} uses its default keys again.",
     "resetAll": "Reset all shortcuts",
     "resetAllDone": "Every shortcut uses its default keys again.",
-    "singleKeysOff": "Single-key shortcuts are off, so shortcuts without Ctrl, Cmd or Alt do nothing. Turn on Keyboard shortcuts above to use them.",
+    "singleKeysOff": "Single-key shortcuts are off, so character keys without Ctrl, Cmd or Alt do nothing. Function keys F13 to F20 still work. Turn on Keyboard shortcuts above to use them.",
     "fixed": "Esc, Enter and the list keys J, K and X belong to every list and dialog, so they stay as they are. Help lists every shortcut.",
     "problems": {
       "conflict": "{keys} already does {action}. Change that shortcut first, or choose other keys.",

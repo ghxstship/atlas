@@ -4,6 +4,9 @@ import {
   calendarFeedName,
   calendarFeedResponse,
   calendarFeedUrl,
+  configureCalendarFeed,
+  configurePersonCalendarFeed,
+  configurationArgs,
   createCalendarFeed,
   createPersonCalendarFeed,
   feedEvents,
@@ -288,6 +291,7 @@ describe("calendarFeedName", () => {
     projectKey: "NWL",
     timeZone: "UTC",
     locale: "en-US",
+    name: null,
   });
   it("names each scope", () => {
     expect(calendarFeedName(meta("member"), t)).toBe('member:{"org":"Northwind Live"}');
@@ -324,6 +328,7 @@ describe("feed repository", () => {
       "from:projects": [
         okResponse([{ id: "p1", name: "Northwind Summer Series", project_key: "NWL" }]),
       ],
+      "from:calendar_feed_members": [okResponse([])],
     });
     const result = await listMyCalendarFeeds(db, "org-1");
     expect(result.ok && result.data.map((f) => [f.id, f.projectKey, f.tokenHint])).toEqual([
@@ -388,3 +393,214 @@ describe("feed repository", () => {
     expect((await revokePersonCalendarFeed(db, "g1")).ok).toBe(false);
   });
 });
+
+describe("named and filtered feeds (B7)", () => {
+  const CUE = {
+    ...EVENT,
+    id: "0192a000-0000-7000-8000-00000000000d",
+    kind: "cue",
+    title: "House to Half",
+    ends_at: "2027-06-01T12:02:00+00:00",
+    status: "tentative",
+    scope_node_name: null,
+    run_id: "0192a000-0000-7000-8000-00000000000e",
+    run_name: "Opening Night",
+    call_instruction: "LX 12 go, house to half",
+  };
+  const PROJECT_FEED = {
+    ...FEED,
+    scope: "project",
+    project_name: "Northwind Summer Series",
+    project_key: "NWL",
+    name: "Lighting crew",
+  };
+
+  it("reads cue events and the feed's name", () => {
+    const doc = parseCalendarFeedDocument({
+      status: "ok",
+      feed: PROJECT_FEED,
+      events: [CUE, EVENT],
+    });
+    if (doc?.status !== "ok") throw new Error("parse");
+    expect(doc.feed.name).toBe("Lighting crew");
+    expect(doc.events[0]).toMatchObject({
+      kind: "cue",
+      runId: CUE.run_id,
+      runName: "Opening Night",
+      callInstruction: "LX 12 go, house to half",
+    });
+    expect(doc.events[1]).toMatchObject({
+      kind: "shift",
+      runId: null,
+      runName: null,
+      callInstruction: null,
+    });
+  });
+
+  it("writes a cue as run and label, with the call, a tentative status and a link to its run", async () => {
+    const doc = parseCalendarFeedDocument({ status: "ok", feed: PROJECT_FEED, events: [CUE] });
+    if (doc?.status !== "ok") throw new Error("parse");
+    const [cue] = feedEvents(doc.feed, doc.events, { atlasOrigin: "https://atlas.example.test" });
+    expect(cue).toMatchObject({
+      summary: "Opening Night · House to Half",
+      status: "tentative",
+      transparent: false,
+      url: `https://atlas.example.test/northwind/show/run-of-show?peek=${CUE.run_id}`,
+    });
+    expect(cue?.description).toContain("LX 12 go, house to half");
+    const member = feedEvents({ ...doc.feed, scope: "member" }, doc.events, {});
+    expect(member[0]?.summary).toBe("Opening Night · House to Half · Northwind Summer Series");
+    const { db } = publicClient({
+      data: { status: "ok", feed: PROJECT_FEED, events: [CUE] },
+      error: null,
+    });
+    const body = await (
+      await calendarFeedResponse({
+        db,
+        feedFile: `${token("7")}.ics`,
+        clientAddress: null,
+        links: {},
+        calendarName: (feed) => calendarFeedName(feed, () => "default"),
+      })
+    ).text();
+    expect(body).toContain("X-WR-CALNAME:Lighting crew");
+    expect(body).toContain("STATUS:TENTATIVE");
+  });
+
+  it("names the calendar by the feed's name, else the default", () => {
+    const t = (key: string) => `default:${key}`;
+    expect(calendarFeedName({ ...parseFeed(PROJECT_FEED), name: "Show calls" }, t)).toBe(
+      "Show calls",
+    );
+    expect(calendarFeedName({ ...parseFeed(PROJECT_FEED), name: null }, t)).toBe("default:project");
+  });
+
+  it("sends a configuration as the RPC's arguments", async () => {
+    expect(
+      configurationArgs({
+        name: "  Show calls ",
+        sources: ["Shifts", "Cues"],
+        audience: { kind: "team", teamId: "t1" },
+        cueCallKind: "Lighting",
+      }),
+    ).toEqual({
+      p_name: "Show calls",
+      p_sources: ["Shifts", "Cues"],
+      p_person_ids: null,
+      p_team_id: "t1",
+      p_department_code: null,
+      p_cue_call_kind: "Lighting",
+    });
+    expect(
+      configurationArgs({
+        name: " ",
+        sources: null,
+        audience: { kind: "people", personIds: ["a", "b"] },
+        cueCallKind: null,
+      }),
+    ).toMatchObject({
+      p_name: null,
+      p_sources: null,
+      p_person_ids: ["a", "b"],
+    });
+    const { db, calls } = fakeClient({
+      "rpc:create_calendar_feed": [
+        okResponse([{ calendar_feed_id: "f9", feed_token: token("8") }]),
+      ],
+      "rpc:configure_calendar_feed": [
+        errorResponse(
+          "XR001",
+          "calendar_feed_people_limit: A feed can follow at most 50 people.",
+          "calendar_feed_people_limit",
+        ),
+      ],
+      "rpc:configure_person_calendar_feed": [okResponse(null)],
+    });
+    await createCalendarFeed(db, "org-1", "p1", {
+      name: "Production",
+      sources: null,
+      audience: { kind: "department", departmentCode: "5000" },
+      cueCallKind: null,
+    });
+    expect(calls[0]?.steps[0]?.[1][0]).toMatchObject({
+      p_org_id: "org-1",
+      p_project_id: "p1",
+      p_department_code: "5000",
+    });
+    const refused = await configureCalendarFeed(db, "f9", {
+      name: null,
+      sources: null,
+      audience: { kind: "people", personIds: [] },
+      cueCallKind: null,
+    });
+    expect(refused).toEqual({
+      ok: false,
+      error: {
+        kind: "refusal",
+        rule: "calendar_feed_people_limit",
+        message: "A feed can follow at most 50 people.",
+      },
+    });
+    expect(
+      await configurePersonCalendarFeed(db, "f1", { name: "My gigs", sources: ["Cues"] }),
+    ).toEqual({ ok: true, data: undefined });
+    expect(calls.at(-1)?.steps[0]?.[1][0]).toEqual({
+      p_calendar_feed_id: "f1",
+      p_name: "My gigs",
+      p_sources: ["Cues"],
+    });
+  });
+
+  it("lists a feed's configuration, with a people audience read back as people", async () => {
+    const { db } = fakeClient({
+      "from:calendar_feeds": [
+        okResponse([
+          {
+            id: "f1",
+            project_id: "p1",
+            token_hint: "a1b2",
+            created_at: "2026-10-20T10:00:00Z",
+            rotated_at: null,
+            last_accessed_at: null,
+            name: "Just us",
+            sources: ["Shifts", "Cues", "Bogus"],
+            team_id: null,
+            department_code: null,
+            cue_call_kind: "Audio",
+          },
+          {
+            id: "f2",
+            project_id: "p1",
+            token_hint: "c3d4",
+            created_at: "2026-10-19T10:00:00Z",
+            rotated_at: null,
+            last_accessed_at: null,
+            name: null,
+            sources: null,
+            team_id: "t1",
+            department_code: null,
+            cue_call_kind: null,
+          },
+        ]),
+      ],
+      "from:projects": [
+        okResponse([{ id: "p1", name: "Northwind Summer Series", project_key: "NWL" }]),
+      ],
+      "from:calendar_feed_members": [
+        okResponse([{ calendar_feed_id: "f1", membership: { person_id: "u1" } }]),
+      ],
+    });
+    const result = await listMyCalendarFeeds(db, "org-1");
+    if (!result.ok) throw new Error("list");
+    expect(result.data.map((f) => [f.name, f.sources, f.audience, f.cueCallKind])).toEqual([
+      ["Just us", ["Shifts", "Cues"], { kind: "people", personIds: ["u1"] }, "Audio"],
+      [null, null, { kind: "team", teamId: "t1" }, null],
+    ]);
+  });
+});
+
+function parseFeed(feed: Record<string, unknown>): FeedMeta {
+  const doc = parseCalendarFeedDocument({ status: "ok", feed, events: [] });
+  if (doc?.status !== "ok") throw new Error("parse");
+  return doc.feed;
+}

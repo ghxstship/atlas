@@ -4,10 +4,12 @@ import { getMessages } from "@xos/i18n";
 import { describe, expect, it } from "vitest";
 import {
   CALENDAR_FEEDS_MIRROR,
+  feedConfiguration,
   feedErrorKey,
   feedItems,
   issuedLink,
   readMyFeeds,
+  shownSources,
   type FeedRow,
 } from "../src/settings/calendar-feeds";
 import {
@@ -447,6 +449,8 @@ describe("Calendar Feeds", () => {
         createdAt: "2026-10-01T00:00:00Z",
         rotatedAt: null,
         lastAccessedAt: "2026-10-20T00:00:00Z",
+        name: null,
+        sources: null,
       },
     ]);
     expect(calls.some((c) => c.startsWith('person_calendar_feeds.is("revoked_at"'))).toBe(true);
@@ -494,6 +498,29 @@ describe("Calendar Feeds", () => {
       other,
     );
     for (const key of [limit, denied, other]) expectMessage(key);
+  });
+
+  it("sends a name and the content picked, the default four as the default (B7)", () => {
+    expect(
+      feedConfiguration("  ", new Set(["Shifts", "Meetings", "Milestones", "Deadlines"])),
+    ).toEqual({
+      name: null,
+      sources: null,
+    });
+    expect(feedConfiguration("My sets", new Set(["Cues", "Shifts"]))).toEqual({
+      name: "My sets",
+      sources: ["Shifts", "Cues"],
+    });
+    expect(feedConfiguration("x", new Set())).toEqual({ name: "x", sources: [] });
+    expect(shownSources({ sources: null })).toEqual([
+      "Shifts",
+      "Meetings",
+      "Milestones",
+      "Deadlines",
+    ]);
+    const name = feedErrorKey({ kind: "refusal", rule: "calendar_feed_name", message: "" });
+    const sources = feedErrorKey({ kind: "refusal", rule: "calendar_feed_sources", message: "" });
+    for (const key of [name, sources]) expectMessage(key);
   });
 });
 

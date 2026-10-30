@@ -62,6 +62,10 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA (Section 11.9, ADR 0031).",
+  "/{org}/documents/badges":
+    "Route handler: up to 100 credential badges in one streamed PDF/UA file, on Letter, A4, A6 or CR80 (P5, ADR 0031 amendment).",
+  "/{org}/documents/books/{id}":
+    "Route handler: a tour or production book, its cover, contents and up to 100 documents, in one streamed PDF/UA file on Letter or A4 (B7, ADR 0146).",
   "/{org}/deletion-certificates/{id}":
     "Route handler: a deletion certificate PDF for the former Owner it was issued to (A79, Section 14.7).",
   "/{org}/forms/{form}/{id}":

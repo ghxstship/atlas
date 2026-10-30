@@ -171,6 +171,8 @@ import type {
   Calendar,
   CalendarCreate,
   CalendarFeed,
+  CalendarFeedConfiguration,
+  CalendarFeedConfigureRequest,
   CalendarFeedCreate,
   CalendarFeedToken,
   CalendarUpdate,
@@ -640,6 +642,8 @@ import type {
   PermitTransitionRequest,
   Person,
   PersonCalendarFeed,
+  PersonCalendarFeedConfiguration,
+  PersonCalendarFeedConfigureRequest,
   PersonProfile,
   PersonProfileCreate,
   PersonProfileUpdate,
@@ -686,6 +690,11 @@ import type {
   ProjectAssignmentUpdate,
   ProjectAuthority,
   ProjectCreate,
+  ProjectDebrief,
+  ProjectDebriefItem,
+  ProjectDebriefItemCreate,
+  ProjectDebriefItemUpdate,
+  ProjectDebriefSaveRequest,
   ProjectInbox,
   ProjectInboxCreate,
   ProjectMeasurement,
@@ -33164,6 +33173,45 @@ export class CalendarFeedsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Configure a calendar feed
+   *
+   * Replaces the name, sources, audience and show department of one of the caller's live feeds (app.configure_calendar_feed). The subscription URL stays. Another member's or a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /calendar-feeds/{id}/configure` (operation `calendarFeeds.configure`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  configure(
+    id: string,
+    body: CalendarFeedConfigureRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<CalendarFeedConfiguration>> {
+    return this.client.request<CalendarFeedConfiguration>(
+      $OPERATIONS["calendarFeeds.configure"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Read a calendar feed's configuration
+   *
+   * The name, sources, audience and show department of one of the caller's live feeds. Another member's feed is not found. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /calendar-feeds/{id}/configuration` (operation `calendarFeeds.configuration`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  configuration(
+    id: string,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<CalendarFeedConfiguration>> {
+    return this.client.request<CalendarFeedConfiguration>(
+      $OPERATIONS["calendarFeeds.configuration"],
+      { path: { id } },
+      options,
+    );
+  }
 }
 
 /**
@@ -34109,6 +34157,246 @@ export class ProjectMeasurementSummaryResource extends $Resource {
     return this.client.paginate<ProjectMeasurementSummary>(
       $OPERATIONS["projectMeasurementSummary.list"],
       { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectDebriefs`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectDebriefsResource extends $Resource {
+  /**
+   * List project debrief rows
+   *
+   * The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns a cursor page of project debrief rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-debriefs` (operation `projectDebriefs.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<ProjectDebrief>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectDebrief>> {
+    return this.client.requestPage<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project debrief rows
+   *
+   * The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns a cursor page of project debrief rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-debriefs` (operation `projectDebriefs.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectDebrief>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectDebrief, void, undefined> {
+    return this.client.paginate<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a project debrief
+   *
+   * The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns one project debrief with its `ETag`. A project debrief the caller may not see returns 404.
+   *
+   * `GET /project-debriefs/{id}` (operation `projectDebriefs.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectDebrief>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectDebrief>> {
+    return this.client.request<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Start or save a project debrief
+   *
+   * Creates the project's debrief when there is none and saves its management summary (app.save_project_debrief). Answers the debrief. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-debriefs/save` (operation `projectDebriefs.save`).
+   * Requires the capability `projects.project.write`.
+   */
+  save(
+    body: ProjectDebriefSaveRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectDebrief>> {
+    return this.client.request<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.save"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Complete a project debrief
+   *
+   * Stamps completion once (app.complete_project_debrief); points and the summary lock until it is reopened. An already completed debrief answers debrief_completed (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-debriefs/{id}/complete` (operation `projectDebriefs.complete`).
+   * Requires the capability `projects.project.write`.
+   */
+  complete(id: string, options?: $MutationOptions): Promise<$ApiResponse<ProjectDebrief>> {
+    return this.client.request<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.complete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Reopen a project debrief
+   *
+   * Clears completion (app.reopen_project_debrief) so the points and summary can change again. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-debriefs/{id}/reopen` (operation `projectDebriefs.reopen`).
+   * Requires the capability `projects.project.write`.
+   */
+  reopen(id: string, options?: $MutationOptions): Promise<$ApiResponse<ProjectDebrief>> {
+    return this.client.request<ProjectDebrief>(
+      $OPERATIONS["projectDebriefs.reopen"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectDebriefItems`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectDebriefItemsResource extends $Resource {
+  /**
+   * List project debrief item rows
+   *
+   * A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns a cursor page of project debrief item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-debrief-items` (operation `projectDebriefItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<ProjectDebriefItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectDebriefItem>> {
+    return this.client.requestPage<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project debrief item rows
+   *
+   * A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns a cursor page of project debrief item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-debrief-items` (operation `projectDebriefItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectDebriefItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectDebriefItem, void, undefined> {
+    return this.client.paginate<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a project debrief item
+   *
+   * A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Creates a project debrief item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /project-debrief-items` (operation `projectDebriefItems.create`).
+   * Requires the capability `projects.project.write`.
+   */
+  create(
+    body: ProjectDebriefItemCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectDebriefItem>> {
+    return this.client.request<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a project debrief item
+   *
+   * A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns one project debrief item with its `ETag`. A project debrief item the caller may not see returns 404.
+   *
+   * `GET /project-debrief-items/{id}` (operation `projectDebriefItems.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectDebriefItem>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectDebriefItem>> {
+    return this.client.request<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a project debrief item
+   *
+   * A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /project-debrief-items/{id}` (operation `projectDebriefItems.update`).
+   * Requires the capability `projects.project.write`.
+   */
+  update(
+    id: string,
+    body: ProjectDebriefItemUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ProjectDebriefItem>> {
+    return this.client.request<ProjectDebriefItem>(
+      $OPERATIONS["projectDebriefItems.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a project debrief item
+   *
+   * A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Soft-deletes the project debrief item: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /project-debrief-items/{id}` (operation `projectDebriefItems.delete`).
+   * Requires the capability `projects.project.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["projectDebriefItems.delete"],
+      { path: { id } },
       options,
     );
   }
@@ -37692,6 +37980,45 @@ export class PersonCalendarFeedsResource extends $Resource {
   rotate(id: string, options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
     return this.client.request<CalendarFeedToken>(
       $OPERATIONS["personCalendarFeeds.rotate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Configure a personal calendar feed
+   *
+   * Replaces the name and sources of one of the caller's own live feeds (app.configure_person_calendar_feed). The subscription URL stays. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /person-calendar-feeds/{id}/configure` (operation `personCalendarFeeds.configure`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  configure(
+    id: string,
+    body: PersonCalendarFeedConfigureRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PersonCalendarFeedConfiguration>> {
+    return this.client.request<PersonCalendarFeedConfiguration>(
+      $OPERATIONS["personCalendarFeeds.configure"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Read a personal calendar feed's configuration
+   *
+   * The name and sources of one of the caller's own live feeds. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /person-calendar-feeds/{id}/configuration` (operation `personCalendarFeeds.configuration`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  configuration(
+    id: string,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<PersonCalendarFeedConfiguration>> {
+    return this.client.request<PersonCalendarFeedConfiguration>(
+      $OPERATIONS["personCalendarFeeds.configuration"],
       { path: { id } },
       options,
     );

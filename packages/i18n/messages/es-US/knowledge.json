@@ -107,5 +107,60 @@
     "sop_version_managed": "La versión solo sube cuando se publica el procedimiento.",
     "append_only": "Las versiones y confirmaciones no cambian una vez registradas.",
     "cross_org_reference": "Ese elemento pertenece a otra organización."
+  },
+  "books": {
+    "title": "Libros",
+    "description": "Un libro imprime los documentos del show de un proyecto en un PDF con portada y contenido: un libro de gira para los días de show y un libro de producción para todo el proyecto o un período. Las hojas del día y de llamado entran una vez publicadas.",
+    "none": "Este proyecto aún no tiene libros.",
+    "listLabel": "Libros de este proyecto",
+    "new": "Nuevo libro",
+    "newTitle": "Nuevo libro",
+    "edit": "Editar",
+    "editLabel": "Editar {name}",
+    "editTitle": "Editar libro",
+    "delete": "Eliminar",
+    "deleteLabel": "Eliminar {name}",
+    "trashed": "{name} se movió a la papelera.",
+    "name": "Nombre",
+    "kind": "Tipo",
+    "startsOn": "Primer día",
+    "endsOn": "Último día",
+    "datesHelp": "Un libro de gira necesita ambos días. Déjelos vacíos para un libro de producción de todo el proyecto.",
+    "sections": "Secciones",
+    "sectionsHelp": "Marque lo que contiene el libro y ordénelo.",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "save": "Guardar libro",
+    "cancel": "Cancelar",
+    "range": "Del {from} al {to}",
+    "wholeProject": "Todo el proyecto",
+    "documents": "{count, plural, one {# documento} other {# documentos}}",
+    "tooMany": "Más de {max} documentos. Acote las fechas para descargarlo.",
+    "download": "Descargar PDF",
+    "downloadA4": "PDF (A4)",
+    "kinds": {
+      "TourBook": "Libro de gira",
+      "ProductionBook": "Libro de producción"
+    },
+    "sectionKinds": {
+      "daysheet": "Hojas del día",
+      "callsheet": "Hojas de llamado",
+      "runofshow": "Escaletas",
+      "beo": "Órdenes de evento de banquete",
+      "inspectionreport": "Informes de inspección",
+      "incidentreport": "Informes de incidentes",
+      "finalcostreport": "Informe de costo final",
+      "wrapupreport": "Informe de cierre"
+    },
+    "errors": {
+      "document_book_name": "Dé al libro un nombre de 1 a 120 caracteres.",
+      "document_book_sections": "Elija al menos una sección.",
+      "document_book_kind_sections": "Un libro de gira contiene documentos de los días de show. Ponga el informe de costo final y el cierre en un libro de producción.",
+      "document_book_dates": "Un libro de gira necesita un primer y un último día, el último igual o posterior al primero. Un libro de producción lleva ambos o ninguno.",
+      "refused": "Se rechazó este cambio.",
+      "notFound": "Ese libro no está disponible para usted.",
+      "invalid": "Revise los campos del libro e inténtelo de nuevo.",
+      "unexpected": "Algo salió mal. Inténtelo de nuevo."
+    }
   }
 }

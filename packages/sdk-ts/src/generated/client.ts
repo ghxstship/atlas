@@ -341,6 +341,8 @@ import {
   ProjectMeasurementCorrectionsResource,
   EarnedMediaItemsResource,
   ProjectMeasurementSummaryResource,
+  ProjectDebriefsResource,
+  ProjectDebriefItemsResource,
   CueCallsResource,
   GuestListEntriesResource,
   Form1099NecResource,
@@ -1194,6 +1196,10 @@ export class XosClient extends XosClientCore {
   /** Projects: operations on `projectMeasurementSummary`. */
   readonly projectMeasurementSummary: ProjectMeasurementSummaryResource =
     new ProjectMeasurementSummaryResource(this);
+  /** Projects: operations on `projectDebriefs`. */
+  readonly projectDebriefs: ProjectDebriefsResource = new ProjectDebriefsResource(this);
+  /** Projects: operations on `projectDebriefItems`. */
+  readonly projectDebriefItems: ProjectDebriefItemsResource = new ProjectDebriefItemsResource(this);
   /** Show: operations on `cueCalls`. */
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
   /** Advancing: operations on `guestListEntries`. */

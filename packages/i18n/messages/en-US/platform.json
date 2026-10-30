@@ -692,6 +692,9 @@
       },
       "content": {
         "removed": "Your content removed"
+      },
+      "credential_photo": {
+        "requested": "Badge photo requested"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",
@@ -863,12 +866,54 @@
     "copied": "Link copied.",
     "openInCalendar": "Open in my calendar app",
     "revoked": "Feed revoked.",
+    "nameLabel": "Name",
+    "nameHelp": "Up to 80 characters. Your calendar app shows the feed under this name.",
+    "contentLabel": "Shows",
+    "sources": {
+      "shifts": "Shifts",
+      "meetings": "Meetings",
+      "milestones": "Milestones",
+      "deadlines": "Deadlines",
+      "cues": "Cues"
+    },
+    "audienceLabel": "Audience",
+    "audienceHelp": "A feed never shows more than you may see.",
+    "audience": {
+      "everyone": "Everyone I can see",
+      "people": "People",
+      "team": "Team",
+      "department": "Department"
+    },
+    "peopleLabel": "People",
+    "peopleHelp": "Up to 50 members of this organization.",
+    "teamLabel": "Team",
+    "departmentLabel": "Department",
+    "showDepartmentLabel": "Show department",
+    "showDepartmentHelp": "Only cues with a call for this department, with its instruction.",
+    "showDepartmentAny": "Any department",
+    "showDepartments": {
+      "audio": "Audio calls",
+      "lighting": "Lighting calls",
+      "video": "Video calls",
+      "sfx": "Special effects calls",
+      "stage": "Stage calls"
+    },
+    "edit": "Edit",
+    "editLabel": "Edit {feed}",
+    "editTitle": "Edit feed",
+    "save": "Save",
+    "filterSummary": "Shows {sources}",
     "errors": {
       "calendar_feed_limit": "You have 20 feeds. Revoke one before you add another.",
       "calendar_feed_revoked": "This feed was revoked. Add a new feed instead.",
       "denied": "That feed or project is not available to you.",
       "invalid": "Choose a project for a project feed.",
-      "unexpected": "Something went wrong. Try again."
+      "unexpected": "Something went wrong. Try again.",
+      "calendar_feed_name": "Give the feed a name of 1 to 80 characters that none of your other feeds uses.",
+      "calendar_feed_filter_scope": "Cues, an audience and a show department are for project feeds only.",
+      "calendar_feed_audience": "Choose one audience: people, a team or a department of this organization.",
+      "calendar_feed_people_limit": "A feed can follow at most 50 people.",
+      "calendar_feed_sources": "Choose at least one thing for the feed to show."
     }
   },
   "projectInbox": {

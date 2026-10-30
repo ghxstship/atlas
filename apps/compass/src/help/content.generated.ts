@@ -1277,8 +1277,10 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Run of Show lets you follow today's running order cue by cue, with the next cue counting down and how many cues are called. The stage manager calls the cues; you follow along.",
+                v: "Run of Show lets you follow today's running order cue by cue, with the next cue counting down and how many cues are called. The stage manager calls the cues; you follow along. A cue whose time is still to be confirmed shows ",
               },
+              { t: "strong", v: "TBC" },
+              { t: "text", v: " instead of a countdown." },
             ],
           },
           {
@@ -1555,6 +1557,14 @@ export const COMPASS_HELP: HelpContent = {
           {
             t: "ul",
             items: [
+              [
+                {
+                  t: "text",
+                  v: "Give a feed a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and cues, such as your set times. ",
+                },
+                { t: "strong", v: "Edit" },
+                { t: "text", v: " changes them without changing the link." },
+              ],
               [
                 { t: "strong", v: "Add a feed" },
                 { t: "text", v: " makes a new link. It's shown only once: tap " },
@@ -2385,7 +2395,26 @@ export const COMPASS_HELP: HelpContent = {
                 v: "The next cue counts down, with a tap you can feel as it gets close. If you call cues, ",
               },
               { t: "strong", v: "Call Cue" },
-              { t: "text", v: " calls the next one." },
+              {
+                t: "text",
+                v: " calls the next one. When the stage manager puts a cue on standby, it shows as ",
+              },
+              { t: "strong", v: "Standby" },
+              { t: "text", v: ". A cue whose time is still to be confirmed shows " },
+              { t: "strong", v: "TBC" },
+              { t: "text", v: ": it is not counted down, buzzed or spoken." },
+            ],
+          },
+          { t: "h2", v: "Your department" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Pick " },
+              { t: "strong", v: "Your department" },
+              {
+                t: "text",
+                v: " once (Audio, Lighting, Video, Special Effects or Stage, or All). Compass remembers it on this device. The cards under the running order show your department's call for the current and next cue, or say there is none.",
+              },
             ],
           },
           { t: "h2", v: "Show mode" },
@@ -4402,8 +4431,10 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "El Orden del show te deja seguir el orden de hoy cue por cue, con la cuenta regresiva del siguiente cue y cuántos cues se llamaron. El jefe de escena llama los cues; tú los sigues.",
+                v: "El Orden del show te deja seguir el orden de hoy cue por cue, con la cuenta regresiva del siguiente cue y cuántos cues se llamaron. El jefe de escena llama los cues; tú los sigues. Un cue cuya hora aún está por confirmar muestra ",
               },
+              { t: "strong", v: "Por confirmar" },
+              { t: "text", v: " en lugar de la cuenta regresiva." },
             ],
           },
           {
@@ -4699,6 +4730,14 @@ export const COMPASS_HELP: HelpContent = {
           {
             t: "ul",
             items: [
+              [
+                {
+                  t: "text",
+                  v: "Dale un nombre a un calendario, que tu aplicación muestra, y elige qué muestra: turnos, reuniones, hitos, fechas límite y cues, como tus horarios de presentación. ",
+                },
+                { t: "strong", v: "Editar" },
+                { t: "text", v: " los cambia sin cambiar el enlace." },
+              ],
               [
                 { t: "strong", v: "Agregar un calendario" },
                 { t: "text", v: " crea un enlace nuevo. Se muestra solo una vez: toca " },
@@ -5555,7 +5594,26 @@ export const COMPASS_HELP: HelpContent = {
                 v: "El siguiente cue lleva una cuenta regresiva, con una vibración cuando se acerca. Si llamas cues, ",
               },
               { t: "strong", v: "Llamar cue" },
-              { t: "text", v: " llama el siguiente." },
+              {
+                t: "text",
+                v: " llama el siguiente. Cuando el jefe de escena pone un cue en espera, aparece como ",
+              },
+              { t: "strong", v: "En espera" },
+              { t: "text", v: ". Un cue cuya hora aún está por confirmar muestra " },
+              { t: "strong", v: "Por confirmar" },
+              { t: "text", v: ": no tiene cuenta regresiva, vibración ni aviso hablado." },
+            ],
+          },
+          { t: "h2", v: "Tu departamento" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Elige " },
+              { t: "strong", v: "Tu departamento" },
+              {
+                t: "text",
+                v: " una vez (Audio, Iluminación, Video, Efectos especiales o Escenario, o Todos). Compass lo recuerda en este dispositivo. Las tarjetas bajo el orden muestran la llamada de tu departamento para el cue actual y el siguiente, o indican que no hay ninguna.",
+              },
             ],
           },
           { t: "h2", v: "Modo show" },
