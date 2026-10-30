@@ -56,6 +56,7 @@ import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { engagementTitle } from "@/lib/engagement-state";
+import { RosterFactsButton } from "@/components/roster/roster-facts-button";
 
 // Leaving an account is irreversible, so it is confirmed in a dialog whose code loads on demand (R4).
 const ConfirmButton = dynamic(() =>
@@ -610,6 +611,12 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
             action={respondRosterEntryAction.bind(null, e.id, "Declined")}
             label={t("gateway.home.feed.roster.decline")}
             variant="ghost"
+          />
+          <RosterFactsButton
+            rosterEntryId={e.id}
+            name={e.partyName ?? e.orgName ?? ""}
+            companyName={e.partyName ?? ""}
+            projectName={e.projectName ?? ""}
           />
           <Link href={"/settings/work-details" as Route} className="text-text-13 text-text-link">
             {t("gateway.home.feed.roster.share")}

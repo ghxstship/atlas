@@ -42,6 +42,7 @@ const engagement = (over: Partial<Engagement>): Engagement => ({
   state: "Onboarding",
   areas: ["engagement", "documents", "onboarding", "roster"],
   projectTimeZone: "America/New_York",
+  rosterLocksAt: null,
   ...over,
 });
 

@@ -4,8 +4,11 @@ import {
   listEngagementAssignments,
   listEngagementRoster,
   listRoleOptions,
+  rosterLocked,
   type RosterEntry,
 } from "@xos/data/roster";
+import { listRosterFactStatus, rosterFactChip } from "@xos/data/roster-facts";
+import { InlineAlert, StateChip } from "@xos/ui";
 import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -24,6 +27,8 @@ import {
   EditRosterEntryForm,
   InviteToRosterForm,
 } from "./roster-forms";
+import { RosterFactsButton } from "@/components/roster/roster-facts-button";
+import { chipState } from "@/lib/roster-facts-steps";
 import { RosterProfileButton } from "./roster-profile";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
@@ -40,15 +45,30 @@ const ConfirmButton = dynamic(() =>
  * Advance representative) adds people from the team or invites them by email, submits the roster for
  * the producing org's review and withdraws entries; each row shows the review state, the person's own
  * answer and what they share. View profile reads the person's details once, logged, in a dialog.
+ *
+ * R5 adds the project facts: each row's Travel, Uniform and Vehicle chips read presence only (not logged), and
+ * Project details opens a drawer that reads the values once, logged. A names lock set by the producing org (G-142)
+ * shows as a banner; after it passes, Add, Invite and Submit of new names are closed, and Returned entries stay
+ * editable and resubmittable.
  */
 export async function CrewTab({ view, t, locale }: TabProps) {
   const { engagement } = view;
-  const [roster, talent, roles] = await Promise.all([
+  const [roster, talent, roles, factStatus] = await Promise.all([
     listEngagementRoster(view.ctx.db, engagement.id),
     listAccountTalent(view.ctx.db, engagement.accountId),
     listRoleOptions(view.ctx.db, engagement.roleCode),
+    listRosterFactStatus(view.ctx.db, engagement.id),
   ]);
-  if (!roster.ok || !talent.ok || !roles.ok) return <RegionError />;
+  if (!roster.ok || !talent.ok || !roles.ok || !factStatus.ok) return <RegionError />;
+  const statusOf = new Map(factStatus.data.map((s) => [s.rosterEntryId, s]));
+  const locked = rosterLocked(engagement.rosterLocksAt);
+  const lockDate = engagement.rosterLocksAt
+    ? formatDateTime(locale, engagement.rosterLocksAt, engagement.projectTimeZone)
+    : "";
+  const lockedSentence = t("gateway.engagement.crew.lockedOn", {
+    date: lockDate,
+    orgName: engagement.orgName,
+  });
   const entries = roster.data.filter((e) => e.entryState !== "Withdrawn");
   const onRoster = new Set(entries.map((e) => e.personId).filter(Boolean));
   const roleOptions = roles.data.map((r) => ({
@@ -65,9 +85,12 @@ export async function CrewTab({ view, t, locale }: TabProps) {
           : p.fullName,
     }));
   const timeZone = engagement.projectTimeZone;
+  // Under a names lock only Returned entries go back for review (2656); Draft names wait for the lock to move.
   const toSubmit = entries.filter(
     (e) =>
-      !e.isSelf && e.personId !== null && (e.entryState === "Draft" || e.entryState === "Returned"),
+      !e.isSelf &&
+      e.personId !== null &&
+      (e.entryState === "Returned" || (e.entryState === "Draft" && !locked)),
   );
   const local = (iso: string | null) =>
     iso
@@ -91,6 +114,11 @@ export async function CrewTab({ view, t, locale }: TabProps) {
       : t("gateway.engagement.crew.noArrival");
   return (
     <div className="flex flex-col gap-16">
+      {engagement.rosterLocksAt ? (
+        <InlineAlert tone={locked ? "warning" : "info"}>
+          {locked ? lockedSentence : t("gateway.engagement.crew.locksOn", { date: lockDate })}
+        </InlineAlert>
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-12">
         <p className="m-0 max-w-[60ch] text-text-14 text-text-secondary">
           {t("gateway.engagement.crew.sentence")}
@@ -117,7 +145,9 @@ export async function CrewTab({ view, t, locale }: TabProps) {
           items={entries.map((e) => {
             const title =
               e.fullName ?? e.invitedEmail ?? t("gateway.engagement.crew.invitedSomeone");
-            const editable = e.isSelf || e.entryState === "Draft" || e.entryState === "Returned";
+            const editable =
+              e.isSelf || e.entryState === "Returned" || (e.entryState === "Draft" && !locked);
+            const status = statusOf.get(e.id);
             return {
               id: e.id,
               title,
@@ -144,9 +174,30 @@ export async function CrewTab({ view, t, locale }: TabProps) {
                 tone: toneFor(e.entryState),
               },
               action: (
-                <span className="flex flex-wrap gap-8">
+                <span className="flex flex-wrap items-center gap-8">
+                  {status
+                    ? (["travel", "uniform", "vehicle"] as const).map((kind) => {
+                        const chip = rosterFactChip(status, kind);
+                        return (
+                          <StateChip
+                            key={kind}
+                            compact
+                            state={chipState(chip)}
+                            label={`${t(`workDetails.projectFacts.kinds.${kind}`)}: ${t(`workDetails.projectFacts.chips.${chip}`)}`}
+                          />
+                        );
+                      })
+                    : null}
                   {e.personId !== null && e.personId !== view.ctx.personId ? (
                     <RosterProfileButton rosterEntryId={e.id} name={title} />
+                  ) : null}
+                  {status && e.personId !== null && e.personId !== view.ctx.personId ? (
+                    <RosterFactsButton
+                      rosterEntryId={e.id}
+                      name={title}
+                      companyName={e.partyName ?? ""}
+                      projectName={engagement.projectName}
+                    />
                   ) : null}
                   {e.personId === null && !e.isSelf ? (
                     <ActionButton
@@ -188,7 +239,9 @@ export async function CrewTab({ view, t, locale }: TabProps) {
         />
       )}
       <Section id="crew-add" title={t("gateway.engagement.crew.addTitle")}>
-        {talentOptions.length > 0 ? (
+        {locked ? (
+          <p className="m-0 text-text-14 text-text-secondary">{lockedSentence}</p>
+        ) : talentOptions.length > 0 ? (
           <AddFromTeamForm
             engagementId={engagement.id}
             talent={talentOptions}
@@ -202,7 +255,15 @@ export async function CrewTab({ view, t, locale }: TabProps) {
         )}
       </Section>
       <Section id="crew-invite" title={t("gateway.engagement.crew.inviteTitle")}>
-        <InviteToRosterForm engagementId={engagement.id} roles={roleOptions} timeZone={timeZone} />
+        {locked ? (
+          <p className="m-0 text-text-14 text-text-secondary">{lockedSentence}</p>
+        ) : (
+          <InviteToRosterForm
+            engagementId={engagement.id}
+            roles={roleOptions}
+            timeZone={timeZone}
+          />
+        )}
       </Section>
     </div>
   );

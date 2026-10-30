@@ -61,6 +61,9 @@ export const KNOWN_REFUSALS = [
   "account_membership_not_yours",
   "account_membership_unconfirmed",
   "assignment_account_mismatch",
+  // R5: the producing org's names lock (G-142, migration 2656).
+  "roster_locked",
+  "roster_lock_engagement_closed",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",
