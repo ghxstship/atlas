@@ -281,17 +281,23 @@ begin
   if p_event_id is null then
     perform private.refuse('receipt_event_required', 'Every receipt carries the event id it was recorded under.');
   end if;
+  -- The capability holds before the order row is locked or a replay answered, so no one else's order is locked
+  -- and no stored receipt ids are read back by a person who may not receive on it.
+  select * into v_order from app.purchase_orders po where po.id = p_purchase_order_id and po.deleted_at is null;
+  if v_order.id is null or not private.can_on_project(v_order.project_id, 'procurement.receipt.write') then
+    raise exception using errcode = '42501', message = 'procurement.receipt.write is required';
+  end if;
   -- Receipts of one order serialize on the order row, so a replay racing its first attempt sees the first attempt.
-  select * into v_order from app.purchase_orders po where po.id = p_purchase_order_id and po.deleted_at is null for update;
+  select * into v_order from app.purchase_orders po where po.id = v_order.id and po.deleted_at is null for update;
+  if v_order.id is null then
+    raise exception using errcode = '42501', message = 'procurement.receipt.write is required';
+  end if;
   select * into v_existing from app.goods_receipts g where g.id = p_event_id;
   if v_existing.id is not null then
     if v_existing.purchase_order_id is distinct from v_order.id then
       perform private.refuse('receipt_event_reused', 'This receipt event already recorded a receipt on another purchase order.');
     end if;
     return private.receipt_event_result('duplicate', p_event_id);
-  end if;
-  if v_order.id is null or not private.can_on_project(v_order.project_id, 'procurement.receipt.write') then
-    raise exception using errcode = '42501', message = 'procurement.receipt.write is required';
   end if;
   if p_lines is null or jsonb_typeof(p_lines) <> 'array' or jsonb_array_length(p_lines) = 0 then
     perform private.refuse('receipt_lines_required', 'A receipt receives at least one line.');
@@ -358,7 +364,7 @@ begin
   return private.receipt_event_result('applied', p_event_id);
 end;
 $$;
-comment on function app.receive_goods(uuid, uuid, jsonb, text) is 'Records one receipt event against an approved or sent purchase order in one transaction (R7a): the goods receipt (its id is the event id), one receipt line per entry of p_lines [{po_line_id, quantity, asset_tags?, venue_id?, condition_enum_id?}], and, for an element with an asset class, Received units by asset tag or a Receipt movement into the lot at the venue (assets.asset.write). Needs procurement.receipt.write on the project. Replaying the event id returns outcome duplicate with the stored ids and changes nothing.';
+comment on function app.receive_goods(uuid, uuid, jsonb, text) is 'Records one receipt event against an approved or sent purchase order in one transaction (R7a): the goods receipt (its id is the event id), one receipt line per entry of p_lines [{po_line_id, quantity, asset_tags?, venue_id?, condition_enum_id?}], and, for an element with an asset class, Received units by asset tag or a Receipt movement into the lot at the venue (assets.asset.write). Needs procurement.receipt.write on the project, checked before the order is locked or a replay answered. Replaying the event id returns outcome duplicate with the stored ids and changes nothing.';
 revoke all on function app.receive_goods(uuid, uuid, jsonb, text) from public, anon;
 grant execute on function app.receive_goods(uuid, uuid, jsonb, text) to authenticated, service_role;
 
@@ -415,16 +421,21 @@ begin
   if p_event_id is null then
     perform private.refuse('return_event_required', 'Every return carries the event id it was recorded under.');
   end if;
-  select * into v_order from app.purchase_orders po where po.id = p_purchase_order_id and po.deleted_at is null for update;
+  -- As in app.receive_goods: the capability first, then the order lock, then a replay.
+  select * into v_order from app.purchase_orders po where po.id = p_purchase_order_id and po.deleted_at is null;
+  if v_order.id is null or not private.can_on_project(v_order.project_id, 'procurement.receipt.write') then
+    raise exception using errcode = '42501', message = 'procurement.receipt.write is required';
+  end if;
+  select * into v_order from app.purchase_orders po where po.id = v_order.id and po.deleted_at is null for update;
+  if v_order.id is null then
+    raise exception using errcode = '42501', message = 'procurement.receipt.write is required';
+  end if;
   select * into v_existing from app.goods_returns g where g.id = p_event_id;
   if v_existing.id is not null then
     if v_existing.purchase_order_id is distinct from v_order.id then
       perform private.refuse('return_event_reused', 'This return event already recorded a return on another purchase order.');
     end if;
     return private.return_event_result('duplicate', p_event_id);
-  end if;
-  if v_order.id is null or not private.can_on_project(v_order.project_id, 'procurement.receipt.write') then
-    raise exception using errcode = '42501', message = 'procurement.receipt.write is required';
   end if;
   if p_lines is null or jsonb_typeof(p_lines) <> 'array' or jsonb_array_length(p_lines) = 0 then
     perform private.refuse('return_lines_required', 'A return sends back at least one line.');
@@ -435,6 +446,9 @@ begin
 
   for v_line in select l from jsonb_array_elements(p_lines) l loop
     v_quantity := (v_line ->> 'quantity')::numeric;
+    if v_quantity is null or v_quantity <= 0 then
+      perform private.refuse('return_quantity_required', 'Every return line sends back a quantity above zero.');
+    end if;
     v_venue := (v_line ->> 'venue_id')::uuid;
     v_lot := null;
     -- Returns of one receipt line serialize on its row.
@@ -469,6 +483,9 @@ begin
       select array_agg(x::uuid) into v_units from jsonb_array_elements_text(v_line -> 'asset_unit_ids') x;
       if coalesce(cardinality(v_units), 0) <> v_quantity then
         perform private.refuse('return_units_count', 'Name one unit for each unit returned.');
+      end if;
+      if cardinality(v_units) <> (select count(distinct u) from unnest(v_units) u) then
+        perform private.refuse('return_unit_repeated', 'Name each returned unit once.');
       end if;
       if not private.has_capability(v_order.org_id, 'assets.asset.write') then
         raise exception using errcode = '42501', message = 'assets.asset.write is required';
@@ -534,7 +551,7 @@ begin
   return private.return_event_result('applied', p_event_id);
 end;
 $$;
-comment on function app.return_goods(uuid, uuid, app.goods_return_reason, jsonb, text) is 'Records one return event against a purchase order in one transaction (R7a): the goods return (its id is the event id) and, per entry of p_lines [{receipt_line_id, quantity, asset_unit_ids?, venue_id?}], return lines that never exceed the receipt line. A line goes back the way it came in. Serialized units must have arrived on that line, be Available, Damaged or In Maintenance and in no one''s custody, and become Returned; a quantity that came into a lot goes back out of a lot at a venue as a Vendor Return movement (both need assets.asset.write); a quantity that never came into stock goes back as a plain line. Off Hire applies only to rental lines. Needs procurement.receipt.write on the project. Replaying the event id returns outcome duplicate with the stored ids.';
+comment on function app.return_goods(uuid, uuid, app.goods_return_reason, jsonb, text) is 'Records one return event against a purchase order in one transaction (R7a): the goods return (its id is the event id) and, per entry of p_lines [{receipt_line_id, quantity, asset_unit_ids?, venue_id?}], return lines that never exceed the receipt line. A line goes back the way it came in. Serialized units must have arrived on that line, be Available, Damaged or In Maintenance and in no one''s custody, and become Returned; a quantity that came into a lot goes back out of a lot at a venue as a Vendor Return movement (both need assets.asset.write); a quantity that never came into stock goes back as a plain line. Off Hire applies only to rental lines. Needs procurement.receipt.write on the project, checked before the order is locked or a replay answered. Replaying the event id returns outcome duplicate with the stored ids.';
 revoke all on function app.return_goods(uuid, uuid, app.goods_return_reason, jsonb, text) from public, anon;
 grant execute on function app.return_goods(uuid, uuid, app.goods_return_reason, jsonb, text) to authenticated, service_role;
 

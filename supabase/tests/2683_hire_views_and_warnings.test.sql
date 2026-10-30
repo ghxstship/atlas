@@ -126,6 +126,11 @@ select pg_temp.as_user('carol');
 select is(lower(pg_temp.site_window('carol', 'prj_a2')), null, 'a project with no dates and no records has no window start');
 select is((select count(*)::int from app.hire_window_warnings(pg_temp.id('prj_a2'), '2027-01-01 00:00+00', '2027-12-31 00:00+00')), 0,
   'so no window rule warns on its hires');
+insert into app.records (project_id, record_kind, title, xyz, xyz_basis, starts_at, ends_at) values
+  (pg_temp.id('prj_a2'), 'Build', 'Build the annex', 'Y', 'Declared', '2027-08-10 12:00+00', '2027-08-10 20:00+00'),
+  (pg_temp.id('prj_a2'), 'Strike', 'Strike the annex', 'Y', 'Declared', '2027-08-01 12:00+00', '2027-08-01 20:00+00');
+select is(pg_temp.site_window('carol', 'prj_a2'), tstzrange('2027-08-10 12:00+00', null, '[)'),
+  'a Strike that ends before the Build starts leaves the window without an end');
 
 select pg_temp.as_platform();
 select is(has_table_privilege('xos_backup', 'app.asset_unit_hire', 'select'), false, 'the backup login cannot read hire rows');

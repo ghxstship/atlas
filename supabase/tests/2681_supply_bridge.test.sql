@@ -181,6 +181,13 @@ select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Defective', jsonb_bui
     'venue_id', pg_temp.id('venue_a'))))$$,
   'XR001', 'return_line_not_stocked: This receipt line never came into stock, so it goes back without a venue.',
   'a line that never came into stock takes nothing out of a lot');
+select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Defective', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck_plain'))))$$,
+  'XR001', 'return_quantity_required: Every return line sends back a quantity above zero.', 'a line without a quantity is refused');
+select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Defective', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck_plain'), 'quantity', 0)))$$,
+  'XR001', 'return_quantity_required: Every return line sends back a quantity above zero.', 'and so is a quantity of zero');
+select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Off Hire', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_radio'), 'quantity', 2,
+    'asset_unit_ids', jsonb_build_array(pg_temp.id('r1'), pg_temp.id('r1')))))$$,
+  'XR001', 'return_unit_repeated: Name each returned unit once.', 'a unit is named once on a return line');
 select pg_temp.as_platform();
 select is((select count(*)::int from app.goods_returns), 0, 'no refused call left a return');
 
@@ -213,7 +220,15 @@ select throws_ok($$select pg_temp.give_back('ret3', 'po', 'Wrong Item', jsonb_bu
   'XR001', 'return_exceeds_receipt: Returns never exceed what the receipt line brought in.', 'the receipt line caps lot returns too');
 select throws_ok($$select pg_temp.give_back('ret3', 'po', 'Wrong Item', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck'), 'quantity', 1,
     'venue_id', pg_temp.id('venue_b'))))$$,
-  'XR001', null, 'a venue holding no lot of the class is refused');
+  'XR001', 'asset_lot_insufficient: Nothing of this item is on hand at that venue.', 'a venue holding no lot of the class is refused');
+select pg_temp.as_platform();
+with x as (insert into app.venues (org_id, name, jurisdiction_id, time_zone)
+  values (pg_temp.id('org_a'), 'Northwind Annex Yard', 'US-FL-MIAMI-DADE', 'America/New_York') returning id) insert into world select 'venue_a2', id from x;
+insert into app.asset_lots (asset_class_id, venue_id, quantity) values (pg_temp.id('cls_deck'), pg_temp.id('venue_a2'), 0);
+select pg_temp.as_user('carol');
+select throws_ok($$select pg_temp.give_back('ret3', 'po', 'Wrong Item', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck'), 'quantity', 1,
+    'venue_id', pg_temp.id('venue_a2'))))$$,
+  'XR001', 'asset_lot_insufficient: Only 0 are on hand in this lot.', 'a Vendor Return never takes a lot below zero');
 select is((select r ->> 'outcome' from pg_temp.give_back('ret4', 'po', 'Over Delivery', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck_plain'), 'quantity', 1))) r),
   'applied', 'a line that never came into stock goes back as a plain line');
 select is((select count(*)::int from app.asset_lot_movements m join app.return_lines r on r.id = m.return_line_id
@@ -223,6 +238,10 @@ select pg_temp.as_user('gina');
 select throws_ok($$select pg_temp.give_back('ret9', 'po', 'Defective', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck'), 'quantity', 1,
     'venue_id', pg_temp.id('venue_a'))))$$,
   '42501', 'procurement.receipt.write is required', 'a person without procurement.receipt.write returns nothing');
+select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Off Hire', '[]'::jsonb)$$,
+  '42501', 'procurement.receipt.write is required', 'nor reads back a return by replaying its event');
+select throws_ok($$select pg_temp.receive('ev1', 'po', '[]'::jsonb)$$,
+  '42501', 'procurement.receipt.write is required', 'nor a receipt');
 
 -- Who reads returns ------------------------------------------------------------------------------------------------------------------------
 select is((select count(*)::int from app.goods_returns), 0, 'a reader without procurement.po.read reads no return');
