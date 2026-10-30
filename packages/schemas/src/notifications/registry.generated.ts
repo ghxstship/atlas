@@ -397,6 +397,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "account.work_details_moved",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.work_details_moved.subject",
+      body: "kinds.account.work_details_moved.body",
+    },
+  },
+  {
     kind: "billing.payment_failed",
     category: "account",
     emailTemplate: "notification",

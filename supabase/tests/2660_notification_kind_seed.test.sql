@@ -1,4 +1,4 @@
--- 2650_notification_kind_seed.test.sql
+-- 2660_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -130,6 +130,10 @@ select set_eq(
   ('account.session_signed_out', 'Email', 'account', 'notification'),
   ('account.session_signed_out', 'SMS', 'account', null::text),
   ('account.session_signed_out', 'Push', 'account', null::text),
+  ('account.work_details_moved', 'In App', 'account', null::text),
+  ('account.work_details_moved', 'Email', 'account', 'notification'),
+  ('account.work_details_moved', 'SMS', 'account', null::text),
+  ('account.work_details_moved', 'Push', 'account', null::text),
   ('billing.payment_failed', 'In App', 'account', null::text),
   ('billing.payment_failed', 'Email', 'account', 'notification'),
   ('billing.payment_failed', 'SMS', 'account', null::text),
