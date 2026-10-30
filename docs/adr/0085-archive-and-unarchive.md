@@ -82,9 +82,12 @@ parent and sub-records, the records at the other end of its dependencies, a base
 records of recurrence rules, and the vendor names an RFQ's invitations show. Those rows are related to
 something the person is looking at, and leaving them out would show a readable record as one outside
 their view. Pickers that offer rows for a new link (the dependency picker, the RFQ invite picker) still
-leave archived rows out. A custom object page opens a peeked record its list leaves out by reading the
-object's records with `archived: "include"`, so the link a record's Related section gives an archived
-custom object record (`?peek=<id>`) opens it, ready to unarchive.
+leave archived rows out. A page whose list leaves out the row its `?peek=<id>` names reads that row by
+its id: the custom object page (getObjectRecord, which also counts the object's records up to it for
+its key), Knowledge > Documents and the vendor directory, as the venue and work order pages already
+did. So the link a record's Related section gives an archived custom object record, and a Favorite
+pinned to a peek (app-shell builds `?peek=<target>`) whose row was archived later, open it, ready to
+unarchive.
 
 ### 5. The API list operations gain an optional parameter
 
