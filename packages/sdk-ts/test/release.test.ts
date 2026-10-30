@@ -1,6 +1,7 @@
 /**
- * Publish readiness of the three public packages (Wave 7): @xos/sdk, @xos/cli and xos-sdk on PyPI
- * release with the XOS version, and what they publish is only built output and documentation.
+ * Publish readiness of the three public packages (Wave 7): @ghxstship/xos-sdk, @ghxstship/xos-cli and
+ * xos-sdk on PyPI release with the XOS version, and what they publish is only built output and
+ * documentation. The npm packages live under the owner's @ghxstship scope; @xos belongs to someone else.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -50,14 +51,20 @@ describe("release packages", () => {
     ]);
   });
 
-  it("are publishable with provenance from this repository", () => {
+  it("are named in the owner's npm scope", () => {
+    expect([sdk.name, cli.name]).toEqual(["@ghxstship/xos-sdk", "@ghxstship/xos-cli"]);
+  });
+
+  it("are publishable from this repository, without provenance while it is private", () => {
     for (const [manifest, dir] of [
       [sdk, "packages/sdk-ts"],
       [cli, "packages/cli"],
     ] as const) {
       expect(manifest.private).toBeUndefined();
       expect(manifest.license).toBe("MIT");
-      expect(manifest.publishConfig).toMatchObject({ access: "public", provenance: true });
+      // npm reads publishConfig from the packed tarball, so provenance here would make the publish job
+      // ask Sigstore to sign a private repository's build, which it refuses (owner decision, 2026-10-24).
+      expect(manifest.publishConfig).toMatchObject({ access: "public", provenance: false });
       expect(manifest.repository.url).toContain("github.com/ghxstship/atlas");
       expect(manifest.repository.directory).toBe(dir);
       expect(manifest.files).toEqual(["dist", "README.md", "LICENSE"]);
@@ -79,6 +86,7 @@ describe("release packages", () => {
     }
     expect(cli.bin).toEqual({ xos: "./dist/main.js" });
     expect(read("cli/src/main.ts").startsWith("#!/usr/bin/env node\n")).toBe(true);
-    expect(cli.dependencies?.["@xos/sdk"]).toBe("workspace:*");
+    // pnpm pack writes workspace:* as the exact SDK version; the publish job checks the packed manifest.
+    expect(cli.dependencies?.["@ghxstship/xos-sdk"]).toBe("workspace:*");
   });
 });

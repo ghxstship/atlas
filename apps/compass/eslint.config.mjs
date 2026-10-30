@@ -1,7 +1,8 @@
-import base from "@xos/config/eslint";
+import base, { expoRoutes } from "@xos/config/eslint";
 
 export default [
   ...base,
+  ...expoRoutes(import.meta.url),
   {
     ignores: ["ios/**", "android/**", ".expo/**", "dist/**"],
   },

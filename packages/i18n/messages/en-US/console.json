@@ -460,6 +460,126 @@
     "reason": "Reason",
     "platform": "Platform"
   },
+  "metrics": {
+    "title": "Platform Metrics",
+    "intro": "Platform-wide figures read from the XOS database: totals only, never a tenant's records. Weeks start on Monday and months on the 1st, in UTC.",
+    "generatedAt": "Figures as of {when}.",
+    "week": "Week of",
+    "growth": {
+      "title": "Growth",
+      "intro": "New orgs and sign-ups by week.",
+      "liveOrgs": "Live orgs",
+      "clients": "{count, plural, one {# partner client} other {# partner clients}}",
+      "newOrgs": "New orgs",
+      "signUps": "Sign-ups",
+      "inWeeks": "{count, plural, one {Last week} other {Last # weeks}}",
+      "withAccount": "People with an account",
+      "chart": "New orgs and sign-ups by week"
+    },
+    "active": {
+      "title": "Active people",
+      "intro": "People who signed in or used a signed-in session.",
+      "day": "Active in the last day",
+      "week": "Active in the last 7 days",
+      "month": "Active in the last 30 days"
+    },
+    "plans": {
+      "title": "Plans and trials",
+      "intro": "Orgs by the plan and state of their live subscription. Plan overrides are left out; billing keeps the subscription's plan.",
+      "trialing": "Trials in progress",
+      "ending": "Trials ending within 7 days",
+      "withoutSubscription": "Orgs without a live subscription",
+      "chart": "Orgs by plan and subscription state",
+      "plan": "Plan",
+      "orgs": "Orgs"
+    },
+    "usage": {
+      "title": "Usage",
+      "intro": "Closed monthly usage totals across every org, for the last three months.",
+      "none": "No month has closed with usage yet.",
+      "month": "Month",
+      "meter": "Meter",
+      "quantity": "Total",
+      "orgs": "Orgs",
+      "amount": "{quantity} {unit}"
+    },
+    "meters": {
+      "field_members": "Field members",
+      "external_engagements": "External engagements",
+      "emails_sent": "Emails sent",
+      "sms_segments": "Text message segments",
+      "push_sent": "Push notifications sent",
+      "api_requests": "API requests",
+      "storage_bytes": "Storage",
+      "ai_tokens": "Aurora tokens"
+    },
+    "units": {
+      "member": "members",
+      "engagement": "engagements",
+      "message": "messages",
+      "segment": "segments",
+      "request": "requests",
+      "byte_day": "byte-days",
+      "token": "tokens"
+    },
+    "aurora": {
+      "title": "Aurora",
+      "intro": "Aurora requests by week, and their outcomes, features and tokens over the last 30 days.",
+      "requests": "Requests in the last 30 days",
+      "inputTokens": "Input tokens in the last 30 days",
+      "outputTokens": "Output tokens in the last 30 days",
+      "chart": "Aurora requests by week",
+      "requestsSeries": "Requests",
+      "byOutcome": "Aurora requests by outcome",
+      "byFeature": "Aurora requests by feature",
+      "outcome": "Outcome",
+      "feature": "Feature"
+    },
+    "outcomes": {
+      "Pending": "Pending",
+      "Answered": "Answered",
+      "No Answer": "No answer",
+      "Failed": "Failed"
+    },
+    "features": {
+      "assistant": "Assistant",
+      "plain_language": "Ask in plain language",
+      "extraction": "Document extraction",
+      "drafting": "Drafting",
+      "summaries": "Summaries",
+      "mapping": "Mapping help"
+    },
+    "jobs": {
+      "title": "Job queue",
+      "intro": "Background jobs by kind: waiting now, and finished in the last 24 hours. A job running for more than 30 minutes is stalled.",
+      "none": "No job is waiting, running or finished in the last 24 hours.",
+      "kind": "Job kind",
+      "ready": "Ready",
+      "scheduled": "Scheduled",
+      "running": "Running",
+      "stalled": "Stalled",
+      "failed": "Failed in 24 hours",
+      "succeeded": "Succeeded in 24 hours",
+      "oldestReady": "Oldest ready since"
+    },
+    "notifications": {
+      "title": "Notification delivery",
+      "intro": "Email, text message and push deliveries of notifications from the last 7 days, by channel. The failure rate counts failed and bounced deliveries among those settled.",
+      "channel": "Channel",
+      "total": "Deliveries",
+      "sent": "Sent",
+      "pending": "Waiting",
+      "failed": "Failed",
+      "bounced": "Bounced",
+      "suppressed": "Suppressed",
+      "failureRate": "Failure rate"
+    },
+    "channels": {
+      "Email": "Email",
+      "SMS": "Text message",
+      "Push": "Push"
+    }
+  },
   "actionNames": {
     "organization_searched": "Searched orgs",
     "organization_viewed": "Opened an org",

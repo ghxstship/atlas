@@ -589,6 +589,7 @@
     "notFound": "Este elemento ya no existe o ya no puede verlo. Vuelva a cargar la página.",
     "conflict": "Ya existe algo con el mismo valor.",
     "invalid": "Algunos valores no son válidos.",
+    "customFields": "Un campo personalizado necesita atención. Revise los campos marcados e inténtelo de nuevo.",
     "unexpected": "Algo falló de nuestro lado. Inténtelo de nuevo en un momento.",
     "reasonRequired": "Escriba un motivo para el cambio.",
     "checklistLabel": "Escriba primero el elemento de la lista.",

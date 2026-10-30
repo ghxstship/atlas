@@ -2,10 +2,12 @@ import { expect as baseExpect, test } from "./engine-test";
 import {
   artistAdvance,
   asPerson,
+  offer,
   offerToApplication,
   PEOPLE,
   PROJECT,
   publishArtistCall,
+  roleEngagement,
   ROLE_PEOPLE,
   submittedSettlement,
   transition,
@@ -130,6 +132,8 @@ test("journey 45: open call, representative accepts, advance, set time and settl
   await expectAccessible(a);
   await a.goto(`/work/engagements/${key}/set-times`);
   await expect(a.getByText(set.label).first()).toBeVisible();
+  // The guest list tab opens only where the project offers a guest list (R3).
+  await offer("offerings.guest_list");
   await a.goto(`/work/engagements/${key}/guest-list`);
   await a.getByLabel("Guest name").fill("Jordan Reyes");
   await a.getByRole("button", { name: "Add guest" }).click();
@@ -170,4 +174,26 @@ test("journey 45: open call, representative accepts, advance, set time and settl
     [engagementId],
   );
   expect(closed?.s).toBe("Complete");
+});
+
+test("R2: an individual artist reads the rider Atlas assigned to their engagement", async ({
+  page,
+}) => {
+  const engagement = await roleEngagement({ person: ROLE_PEOPLE.artist, roleType: "Artist" });
+  await transition("engagement", engagement.id, "Onboarding", "Active", "Artist confirmed.");
+  const title = `Technical Rider ${engagement.key.slice(-4)}`;
+  const [rider] = await sql<{ id: string }>(
+    `insert into app.riders (project_id, engagement_id, title) values ($1, $2, $3) returning id`,
+    [PROJECT, engagement.id, title],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.rider_lines (rider_id, description, quantity) values ($1, 'Two wedge monitors', 2)`,
+    [rider?.id],
+    PEOPLE.owner,
+  );
+  await signIn(page, "artist@example.com", `/work/engagements/${engagement.key}/rider`);
+  await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  await expect(page.getByText("Two wedge monitors")).toBeVisible();
+  await expectAccessible(page);
 });
