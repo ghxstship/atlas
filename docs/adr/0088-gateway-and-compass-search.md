@@ -63,10 +63,14 @@ and without JavaScript the form does that alone.
 ### 4. Compass searches the device
 
 Today's search (`src/screens/TodaySearch.tsx`) reads the offline store, never the network, so it
-works with no signal. It covers the person's shifts, tasks (open onboarding items, deliverables and
-shared Task records), records (shared records, purchase orders and incidents), people (the roster),
-reference (SOPs, emergency codes, radio channels and zones) and actions their access allows. The store
-is read only while something is typed. `src/domain/search.ts` ranks with the same grammar. A code typed
+works with no signal. It covers the person's shifts, tasks (open onboarding items and deliverables),
+records (submittals, purchase orders and incidents), people (the roster), reference (published SOPs,
+emergency codes and radio channels) and actions their access allows. `src/domain/searchDocs.ts` builds
+each kind from the rows the screen it opens lists, with that screen's filters: My shifts' own shifts on
+the chosen project, the More pages' project rule, published SOPs only (the Standard Library drafts every
+org holds stay out, as Reference hides them), and the emergency codes Reference shows. A kind whose
+screen the person cannot open is left out, so a result never lands on a page that does not list it.
+The store is read only while something is typed. `src/domain/search.ts` ranks with the same grammar. A code typed
 in full ranks first, title words count above body words, and a closeness factor applies with a 45-day
 decay. Atlas decays on age; a field worker's next shift matters as much as their last, so Compass
 counts the distance from now either way.
