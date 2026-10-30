@@ -36,4 +36,8 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "roster_entry_not_submitted",
   "roster_review_reason",
   "roster_review_outcome",
+  // R5: the names lock of an engagement (G-142, migration 2656).
+  "roster_locked",
+  "roster_lock_engagement_closed",
+  "roster_lock_rpc",
 ]);

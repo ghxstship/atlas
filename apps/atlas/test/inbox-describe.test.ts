@@ -120,6 +120,17 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     projectName: "Northwind Summer Series",
     orgName: "Northwind Live",
   },
+  // R5: project facts entered for the person (2655) and an engagement's names lock (2656).
+  "roster_entry.project_facts_entered": {
+    kind: "travel",
+    actorName: "Riley Chen",
+    companyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+  },
+  "engagement.roster_lock_changed": {
+    projectName: "Northwind Summer Series",
+    locksAt: "2027-03-01T17:00:00Z",
+  },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
   "survey.opened": { title: "Load-In Pulse", anonymous: "true" },
