@@ -22,11 +22,11 @@ import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
 import { DEFAULT_CURRENCY, pageViews } from "@/lib/assets/page";
 import {
   ASSET_STATE_TONE,
-  BUILT_IN_UNIT_VIEWS,
-  BUILT_IN_UNIT_VIEW_KEY,
-  inBuiltInUnitView,
-  isBuiltInUnitView,
+  BUILT_IN_UNIT_PRESETS,
   matches,
+  presetFilters,
+  unitConditions,
+  unitMatches,
   type ListQuery,
 } from "@/lib/assets/views";
 import type { OrgContext } from "@/lib/shell/context";
@@ -116,22 +116,22 @@ export async function UnitsView({
   }
 
   const filter = query.filter && isAssetState(query.filter) ? query.filter : undefined;
-  // Built-in views (G-96): Hired in reads app.asset_unit_hire, which shows no vendor or cost.
-  const preset = isBuiltInUnitView(query.filter) ? query.filter : undefined;
+  // The declared fields' conditions, which the built-in views (G-96) are presets of. Acquisition reads
+  // app.asset_unit_hire, which shows no vendor or cost, and brings the hire columns with it.
+  const conditions = unitConditions(query.conditions);
+  const hiredIn = conditions.some((c) => c.key === "acquisition");
   const hire = new Map<string, AssetUnitHire>(
-    preset === "view:hired-in"
+    hiredIn
       ? must(await listAssetUnitHire(db, ctx.org.id), "unit hire").map((h) => [h.assetUnitId, h])
       : [],
   );
-  const hiredIn = preset === "view:hired-in";
   const visible = units.filter(
     (u) =>
       (!filter || u.state === filter) &&
-      (!preset ||
-        inBuiltInUnitView(preset, {
-          state: u.state,
-          acquisitionKind: hire.get(u.id)?.acquisitionKind ?? "Purchase",
-        })) &&
+      unitMatches(conditions, {
+        state: u.state,
+        acquisitionKind: hire.get(u.id)?.acquisitionKind ?? "Purchase",
+      }) &&
       custom.keep(u.id) &&
       matches(query.q, u.assetTag, u.className, custodianOf(u), u.homeVenueName),
   );
@@ -196,14 +196,22 @@ export async function UnitsView({
         {...(units.length > 0
           ? {
               filterOptions: stateOptions(t),
-              presets: {
-                label: t("assets.views.builtIn.label"),
-                allLabel: t("assets.views.builtIn.all"),
-                options: BUILT_IN_UNIT_VIEWS.map((v) => ({
-                  value: v,
-                  label: t(`assets.views.builtIn.${BUILT_IN_UNIT_VIEW_KEY[v]}`),
-                })),
-              },
+              filterFields: [
+                { key: "state", label: t("assets.fields.state"), options: stateOptions(t) },
+                {
+                  key: "acquisition",
+                  label: t("assets.hire.acquisition"),
+                  options: [
+                    { value: "Purchase", label: t("assets.hire.purchase") },
+                    { value: "Rental", label: t("assets.hire.rental") },
+                  ],
+                },
+              ],
+              presets: BUILT_IN_UNIT_PRESETS.map((p) => ({
+                id: p.id,
+                name: t(`assets.views.builtIn.${p.id}`),
+                filters: presetFilters(p.filters),
+              })),
             }
           : {})}
         bulk={

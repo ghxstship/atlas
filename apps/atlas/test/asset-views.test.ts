@@ -1,53 +1,73 @@
 import { ASSET_STATES } from "@xos/data/assets";
 import { describe, expect, it } from "vitest";
 import {
-  BUILT_IN_UNIT_VIEWS,
-  inBuiltInUnitView,
-  isBuiltInUnitView,
-  isDamagedUnit,
-  isHiredInUnit,
-  isUnavailableUnit,
+  BUILT_IN_UNIT_PRESETS,
+  presetFilters,
+  unitConditions,
+  unitMatches,
   type UnitViewFacts,
 } from "@/lib/assets/views";
+import { viewToQuery } from "@/lib/views/query";
 
-/** The built-in views of the units list (R7a, G-96): pure predicates over a unit's state and acquisition. */
+/**
+ * The built-in views of the units list (R7a, G-96): presets of the declared state and acquisition conditions
+ * (A117), matched on stored values.
+ */
 
 const unit = (
   state: UnitViewFacts["state"],
   acquisitionKind: UnitViewFacts["acquisitionKind"] = "Purchase",
-) => ({
-  state,
-  acquisitionKind,
-});
+): UnitViewFacts => ({ state, acquisitionKind });
+
+const preset = (id: (typeof BUILT_IN_UNIT_PRESETS)[number]["id"]) =>
+  BUILT_IN_UNIT_PRESETS.find((p) => p.id === id)?.filters ?? [];
 
 describe("built-in unit views (G-96)", () => {
-  it("knows its three filter keys and nothing else", () => {
-    expect(BUILT_IN_UNIT_VIEWS).toEqual(["view:damaged", "view:hired-in", "view:unavailable"]);
-    expect(isBuiltInUnitView("view:hired-in")).toBe(true);
-    expect(isBuiltInUnitView("Damaged")).toBe(false);
-    expect(isBuiltInUnitView(undefined)).toBe(false);
+  it("are the three presets, in order", () => {
+    expect(BUILT_IN_UNIT_PRESETS.map((p) => p.id)).toEqual(["damaged", "hiredIn", "unavailable"]);
   });
 
   it("Damaged lists only Damaged units", () => {
-    expect(ASSET_STATES.filter((s) => isDamagedUnit(unit(s)))).toEqual(["Damaged"]);
+    expect(ASSET_STATES.filter((s) => unitMatches(preset("damaged"), unit(s)))).toEqual([
+      "Damaged",
+    ]);
   });
 
   it("Hired in lists rental units until they go back to the vendor", () => {
-    expect(isHiredInUnit(unit("Available", "Rental"))).toBe(true);
-    expect(isHiredInUnit(unit("Damaged", "Rental"))).toBe(true);
-    expect(isHiredInUnit(unit("Returned", "Rental"))).toBe(false);
-    expect(isHiredInUnit(unit("Available", "Purchase"))).toBe(false);
+    const hired = preset("hiredIn");
+    expect(unitMatches(hired, unit("Available", "Rental"))).toBe(true);
+    expect(unitMatches(hired, unit("Damaged", "Rental"))).toBe(true);
+    expect(unitMatches(hired, unit("Returned", "Rental"))).toBe(false);
+    expect(unitMatches(hired, unit("Available", "Purchase"))).toBe(false);
   });
 
   it("Unavailable lists every state but Available, Returned included", () => {
-    expect(ASSET_STATES.filter((s) => !isUnavailableUnit(unit(s)))).toEqual(["Available"]);
-    expect(isUnavailableUnit(unit("Returned", "Rental"))).toBe(true);
+    expect(
+      ASSET_STATES.filter((s) => !unitMatches(preset("unavailable"), unit(s, "Rental"))),
+    ).toEqual(["Available"]);
   });
 
-  it("routes each filter key to its predicate", () => {
-    const returned = unit("Returned", "Rental");
-    expect(inBuiltInUnitView("view:hired-in", returned)).toBe(false);
-    expect(inBuiltInUnitView("view:unavailable", returned)).toBe(true);
-    expect(inBuiltInUnitView("view:damaged", unit("Damaged"))).toBe(true);
+  it("round-trips through the query a saved copy keeps", () => {
+    const query = viewToQuery(
+      {
+        viewType: "Table",
+        searchText: null,
+        groupByField: null,
+        filters: presetFilters(preset("hiredIn")),
+        sorts: [],
+      },
+      ["table"],
+    );
+    expect(query).toBe("view=table&f.acquisition=Rental&f.state.ne=Returned");
+    const back = unitConditions(new URLSearchParams(query).toString());
+    expect(back).toEqual(preset("hiredIn"));
+  });
+
+  it("reads only the declared fields, whatever the case of a value", () => {
+    expect(unitConditions("f.state=damaged&cf.tier=gold&f.vendor=acme")).toEqual([
+      { scope: "field", key: "state", operator: "eq", value: "damaged" },
+    ]);
+    expect(unitMatches(unitConditions("f.state=damaged"), unit("Damaged"))).toBe(true);
+    expect(unitMatches([], unit("Lost"))).toBe(true);
   });
 });

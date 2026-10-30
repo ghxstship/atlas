@@ -28,7 +28,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
-import { isConditionParam } from "@/lib/views/query";
+import type { FilterField } from "@/components/views/filter-model";
+import { isConditionParam, type FilterPreset } from "@/lib/views/query";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import type { CustomFieldColumns } from "@/components/custom-fields/columns";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
@@ -79,14 +80,15 @@ export interface CollectionProps {
   /** Options of the state filter, when the page has one. */
   readonly filterOptions?: readonly ViewOption[];
   /**
-   * Built-in views listed first, before the state filter (R7a, G-96): filter presets (`filter=view:<name>`) no one
-   * edits or deletes. Saving the page while one is chosen keeps a copy as the person's own saved view.
+   * Fields the Add filter control offers beside the custom fields (A117), which the page's loader applies on
+   * stored values (`f.<key>` conditions).
    */
-  readonly presets?: {
-    readonly label: string;
-    readonly allLabel: string;
-    readonly options: readonly ViewOption[];
-  };
+  readonly filterFields?: readonly FilterField[];
+  /**
+   * Built-in views (R7a, G-96): presets of those fields' conditions, listed first in the saved views menu. No one
+   * edits or deletes them; a person saves a copy as their own saved view.
+   */
+  readonly presets?: readonly FilterPreset[];
   /** The one primary action: its label and the dialog it opens (a form using CreateDialogContext). */
   readonly create?: { label: string; dialog: ReactNode } | null;
   /**
@@ -203,6 +205,8 @@ export function AssetsCollection(props: CollectionProps) {
             options={props.views.map((v) => ({ value: v.value, label: v.label }))}
             onChange={(view) => go({ view })}
             customFields={props.customFields ?? null}
+            {...(props.filterFields ? { fields: props.filterFields } : {})}
+            {...(props.presets ? { presets: props.presets } : {})}
           />
         ) : null
       }
@@ -235,33 +239,11 @@ export function AssetsCollection(props: CollectionProps) {
           onChange={(e) => setQ(e.target.value)}
           width={240}
         />
-        {props.presets ? (
-          <Select
-            key={`preset-${search.get("filter") ?? ""}`}
-            id="assets-preset"
-            label={props.presets.label}
-            value={
-              props.presets.options.some((o) => o.value === search.get("filter"))
-                ? (search.get("filter") ?? "")
-                : ""
-            }
-            options={[
-              { value: "", label: props.presets.allLabel },
-              ...props.presets.options.map((o) => ({ value: o.value, label: o.label })),
-            ]}
-            onChange={(e) => go({ filter: e.target.value || null })}
-          />
-        ) : null}
         {props.filterOptions ? (
           <Select
-            key={`state-${search.get("filter") ?? ""}`}
             id="assets-filter"
             label={t("collection.state")}
-            value={
-              props.filterOptions.some((o) => o.value === search.get("filter"))
-                ? (search.get("filter") ?? "")
-                : ""
-            }
+            value={search.get("filter") ?? ""}
             options={[
               { value: "", label: t("collection.allStates") },
               ...props.filterOptions.map((o) => ({ value: o.value, label: o.label })),

@@ -161,8 +161,24 @@ test("R7a: a rental line is received into stock, shows its provenance and goes b
   await move.getByLabel("Reason").fill("Checked on arrival.");
   await move.getByRole("button", { name: "Change state" }).click();
   await expect(move).toBeHidden();
-  await page.goto(`/${ORG}/assets/units?view=table&filter=view:hired-in`);
+  // The built-in views are presets in the saved views menu; Hired in shows its conditions as filter chips, and a
+  // person can save a copy of it as their own view.
+  await page.goto(`/${ORG}/assets/units?view=table`);
+  const hiredIn = page.getByRole("menuitem", { name: "Hired in" });
+  await expect(async () => {
+    await page.getByRole("button", { name: /Saved views/ }).click();
+    await expect(hiredIn).toBeVisible({ timeout: 5_000 });
+  }).toPass();
+  await hiredIn.click();
+  await page.waitForURL(/f\.acquisition=Rental/);
   await expect(page.getByRole("grid").getByText(tag)).toBeVisible();
+  await expect(async () => {
+    await page.getByRole("button", { name: "Hired in" }).click();
+    await expect(page.getByRole("menuitem", { name: "Save a copy of Hired in" })).toBeVisible({
+      timeout: 5_000,
+    });
+  }).toPass();
+  await page.keyboard.press("Escape");
 
   // Off Hire: the unit goes back to the vendor through a return on the receipt.
   await page.goto(receiptUrl);
@@ -175,9 +191,9 @@ test("R7a: a rental line is received into stock, shows its provenance and goes b
   await expect(page.getByRole("dialog", { name: /Receipt of/ })).toBeVisible();
 
   // Returned: Unavailable lists it, Hired in no longer does.
-  await page.goto(`/${ORG}/assets/units?view=table&filter=view:unavailable`);
+  await page.goto(`/${ORG}/assets/units?view=table&f.state.ne=Available`);
   await expect(page.getByRole("grid").getByText(tag)).toBeVisible();
-  await page.goto(`/${ORG}/assets/units?view=table&filter=view:hired-in`);
+  await page.goto(`/${ORG}/assets/units?view=table&f.acquisition=Rental&f.state.ne=Returned`);
   await expect(page.getByRole("grid").getByText(tag)).toHaveCount(0);
   await page.goto(`/${ORG}/assets/units?peek=${tag}`);
   await expect(page.getByRole("dialog", { name: tag }).getByText("Returned").first()).toBeVisible();

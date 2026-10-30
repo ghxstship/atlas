@@ -1,5 +1,11 @@
 import type { AssetState } from "@xos/data/assets";
 import type { RecordState } from "@xos/ui";
+import {
+  conditionsOf,
+  matchesShown,
+  type Condition,
+  type ConditionOperator,
+} from "@/lib/views/conditions";
 
 /**
  * View helpers for the assets pages. View types per page come from the sitemap (`list.views`), the
@@ -50,55 +56,61 @@ export const ASSET_STATE_TONE: Record<AssetState, RecordState> = {
 };
 
 /**
- * The built-in views of the units list (R7a, G-96), listed before saved views under Built-in. They are filter
- * presets (`filter=view:<name>`), so they cannot be edited or deleted, and saving the page while one is chosen
- * keeps a copy as the person's own saved view.
+ * The units list's declared filter fields (A117), matched on the unit's stored values rather than the words shown,
+ * so a view saved in one language opens the same in the other: `f.state` is its asset state and `f.acquisition`
+ * Purchase or Rental (from app.asset_unit_hire, Rental when it arrived on a rental order line).
  */
-export const BUILT_IN_UNIT_VIEWS = ["view:damaged", "view:hired-in", "view:unavailable"] as const;
-export type BuiltInUnitView = (typeof BUILT_IN_UNIT_VIEWS)[number];
+export const UNIT_FILTER_FIELDS = ["state", "acquisition"] as const;
+export type UnitFilterField = (typeof UNIT_FILTER_FIELDS)[number];
 
-export function isBuiltInUnitView(value: string | undefined): value is BuiltInUnitView {
-  return value !== undefined && (BUILT_IN_UNIT_VIEWS as readonly string[]).includes(value);
-}
-
-/** The catalog key of a built-in view's label: `assets.views.builtIn.<key>`. */
-export const BUILT_IN_UNIT_VIEW_KEY: Record<BuiltInUnitView, string> = {
-  "view:damaged": "damaged",
-  "view:hired-in": "hiredIn",
-  "view:unavailable": "unavailable",
-};
-
-/** What a built-in view reads of a unit: its state and whether it arrived on a rental line. */
+/** What the units list's conditions read of a unit. */
 export interface UnitViewFacts {
   readonly state: AssetState;
-  /** From app.asset_unit_hire: Rental when the unit arrived on a rental order line. */
   readonly acquisitionKind: "Purchase" | "Rental";
 }
 
-/** Damaged: the unit is Damaged. */
-export function isDamagedUnit(unit: UnitViewFacts): boolean {
-  return unit.state === "Damaged";
+/**
+ * The built-in views of the units list (R7a, G-96), listed first in the saved views menu under Built-in: presets
+ * in the A117 filter model, so their conditions show as filter chips, no one edits or deletes them, and a person
+ * saves a copy as their own saved view. Each name is the catalog key `assets.views.builtIn.<id>`.
+ */
+export const BUILT_IN_UNIT_PRESETS: readonly {
+  readonly id: "damaged" | "hiredIn" | "unavailable";
+  readonly filters: readonly Condition[];
+}[] = [
+  { id: "damaged", filters: [{ scope: "field", key: "state", operator: "eq", value: "Damaged" }] },
+  {
+    id: "hiredIn",
+    filters: [
+      { scope: "field", key: "acquisition", operator: "eq", value: "Rental" },
+      { scope: "field", key: "state", operator: "ne", value: "Returned" },
+    ],
+  },
+  {
+    id: "unavailable",
+    filters: [{ scope: "field", key: "state", operator: "ne", value: "Available" }],
+  },
+];
+
+/** A preset's conditions as saved view filters (`f.state`, `ne`, `Available`). */
+export function presetFilters(
+  conditions: readonly Condition[],
+): { field: string; operator: ConditionOperator; value: string }[] {
+  return conditions.map((c) => ({ field: `f.${c.key}`, operator: c.operator, value: c.value }));
 }
 
-/** Hired in: the unit arrived on a rental line and has not gone back to its vendor. */
-export function isHiredInUnit(unit: UnitViewFacts): boolean {
-  return unit.acquisitionKind === "Rental" && unit.state !== "Returned";
+/** The query's conditions on the units list's declared fields. */
+export function unitConditions(conditions: string | undefined): Condition[] {
+  return conditionsOf(new URLSearchParams(conditions ?? "")).filter(
+    (c) => c.scope === "field" && (UNIT_FILTER_FIELDS as readonly string[]).includes(c.key),
+  );
 }
 
-/** Unavailable: the unit is in any state but Available. */
-export function isUnavailableUnit(unit: UnitViewFacts): boolean {
-  return unit.state !== "Available";
-}
-
-export function inBuiltInUnitView(view: BuiltInUnitView, unit: UnitViewFacts): boolean {
-  switch (view) {
-    case "view:damaged":
-      return isDamagedUnit(unit);
-    case "view:hired-in":
-      return isHiredInUnit(unit);
-    case "view:unavailable":
-      return isUnavailableUnit(unit);
-  }
+/** True when a unit passes every condition on the declared fields. */
+export function unitMatches(conditions: readonly Condition[], unit: UnitViewFacts): boolean {
+  return conditions.every((c) =>
+    matchesShown(c.key === "acquisition" ? unit.acquisitionKind : unit.state, c),
+  );
 }
 
 /** Query string values a list route keeps across view switches (Section 4.5.3). */

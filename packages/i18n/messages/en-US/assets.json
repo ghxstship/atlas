@@ -24,8 +24,6 @@
     "calendar": "Calendar",
     "resource-schedule": "Schedule",
     "builtIn": {
-      "label": "Built-in views",
-      "all": "All units",
       "damaged": "Damaged",
       "hiredIn": "Hired in",
       "unavailable": "Unavailable"
@@ -350,7 +348,10 @@
   "hire": {
     "endsAt": "Hire ends",
     "offHire": "Off-hire",
-    "offHireDue": "Off-hire due"
+    "offHireDue": "Off-hire due",
+    "acquisition": "Acquisition",
+    "purchase": "Bought",
+    "rental": "Hired in"
   },
   "provenance": {
     "title": "Provenance",

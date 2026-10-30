@@ -14,6 +14,7 @@ import {
   isBareQuery,
   queryToView,
   viewToQuery,
+  type FilterPreset,
 } from "@/lib/views/query";
 import { DeferredDropdownMenu } from "@/components/shell/deferred-menus";
 import type { ViewDialogState } from "./view-dialogs";
@@ -56,11 +57,14 @@ export interface CollectionViewsProps {
   readonly fields?: readonly FilterField[];
   /** The page's filterable custom fields, when it hands them over instead of a CustomFieldList. */
   readonly customFields?: CustomFieldListView | null;
+  /** Built-in views (R7a): filter presets listed first, which a person copies to edit. */
+  readonly presets?: readonly FilterPreset[];
 }
 
 type Dialogs = ViewDialogState | null;
 
 const NO_FIELDS: readonly FilterField[] = [];
+const NO_PRESETS: readonly FilterPreset[] = [];
 
 /**
  * The one view switcher of every Atlas collection (Section 11.15): the views that fit the data, and
@@ -78,6 +82,7 @@ export function CollectionViews({
   onChange,
   fields = NO_FIELDS,
   customFields,
+  presets = NO_PRESETS,
 }: CollectionViewsProps) {
   const t = useTranslations("views") as unknown as Translate;
   const router = useRouter();
@@ -184,6 +189,10 @@ export function CollectionViews({
 
   const here = currentQuery(new URLSearchParams(search.toString()), value, offered);
   const active = views?.find((v) => canonicalQuery(viewToQuery(v, offered)) === here) ?? null;
+  // A preset applies its filters on the view type on screen.
+  const presetQuery = (p: FilterPreset) =>
+    viewToQuery({ ...queryToView(new URLSearchParams(), value), filters: p.filters }, offered);
+  const preset = active ? null : presets.find((p) => canonicalQuery(presetQuery(p)) === here);
   const draft = (name: string): ViewDraft =>
     ({
       name,
@@ -212,6 +221,21 @@ export function CollectionViews({
   };
 
   const items: MenuItem[] = [];
+  if (presets.length > 0) {
+    items.push({ heading: t("menu.builtIn") });
+    for (const p of presets) {
+      items.push({
+        label: p.name,
+        icon: "Filter",
+        active: preset === p,
+        onSelect: () => {
+          setApplied(null);
+          go(presetQuery(p));
+          announce("applied", p.name);
+        },
+      });
+    }
+  }
   if (loadFailed) items.push({ heading: t("errors.loadFailed") });
   if (views === null) {
     if (!loadFailed) items.push({ heading: t("menu.loading") });
@@ -233,11 +257,19 @@ export function CollectionViews({
     }
   }
   items.push({ separator: true });
-  items.push({
-    label: t("menu.save"),
-    icon: "BookmarkPlus",
-    onSelect: () => setDialog({ kind: "save" }),
-  });
+  items.push(
+    preset
+      ? {
+          label: t("menu.saveCopy", { name: preset.name }),
+          icon: "Copy",
+          onSelect: () => setDialog({ kind: "save", name: preset.name }),
+        }
+      : {
+          label: t("menu.save"),
+          icon: "BookmarkPlus",
+          onSelect: () => setDialog({ kind: "save" }),
+        },
+  );
   // After opening one of their views and changing the filters, the owner can update it to match.
   const differing = active ? undefined : views?.find((v) => v.id === applied && v.mine);
   if (differing) {
@@ -320,7 +352,7 @@ export function CollectionViews({
       ) : null}
       {collection ? (
         <DeferredDropdownMenu
-          label={active ? active.name : t("menu.label")}
+          label={active?.name ?? preset?.name ?? t("menu.label")}
           icon="Bookmark"
           items={items}
           onOpen={retryLoad}

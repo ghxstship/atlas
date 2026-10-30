@@ -24,8 +24,6 @@
     "calendar": "Calendario",
     "resource-schedule": "Programación",
     "builtIn": {
-      "label": "Vistas integradas",
-      "all": "Todas las unidades",
       "damaged": "Dañadas",
       "hiredIn": "Alquiladas",
       "unavailable": "No disponibles"
@@ -350,7 +348,10 @@
   "hire": {
     "endsAt": "Fin del alquiler",
     "offHire": "Devolución",
-    "offHireDue": "Devolución pendiente"
+    "offHireDue": "Devolución pendiente",
+    "acquisition": "Adquisición",
+    "purchase": "Comprada",
+    "rental": "Alquilada"
   },
   "provenance": {
     "title": "Procedencia",
