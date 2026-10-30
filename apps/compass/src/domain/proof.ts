@@ -8,6 +8,7 @@
  */
 import { uuidv7, type MutationInput, type Row } from "@xos/sync";
 import type { EngagementSummary } from "./access";
+import type { ResolvedValues } from "./settings";
 
 /** The RPC that records a photo, replayed once through app.apply_sync_mutation. */
 export const PROOF_PHOTO_RPC = "app.record_proof_of_performance_photo";
@@ -96,4 +97,19 @@ export function photoCounts(rows: readonly Row[]): ReadonlyMap<string, number> {
     if (typeof id === "string") counts.set(id, (counts.get(id) ?? 0) + 1);
   }
   return counts;
+}
+
+/**
+ * The settings a proof photo of an entitlement is taken with: the person's own (sounds), with the entitlement's org's
+ * photo-location rule in place of theirs. A sponsor has no membership, so Compass resolves no org values for them;
+ * api_external.sponsor_entitlements carries the org's media.keep_photo_location instead (2333). Off unless the row
+ * says on.
+ */
+export function proofPhotoSettings(
+  settings: ResolvedValues,
+  entitlement: Readonly<Record<string, unknown>> | undefined,
+): ResolvedValues {
+  const values = new Map(settings);
+  values.set("media.keep_photo_location", entitlement?.["keep_photo_location"] === true);
+  return values;
 }

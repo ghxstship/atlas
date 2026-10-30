@@ -1,7 +1,7 @@
 import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
-import { buildProofPhoto, proofEngagement } from "../src/domain/proof";
+import { buildProofPhoto, proofEngagement, proofPhotoSettings } from "../src/domain/proof";
 import { useCompass, useRows } from "../src/runtime/CompassProvider";
 import { ExternalPageScreen } from "../src/screens/ExternalPageScreen";
 import { PhotoSheet } from "../src/screens/PhotoSheet";
@@ -15,10 +15,12 @@ import { Button, Text, useTheme } from "../src/ui";
 export default function ProofOfPerformanceScreen(): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { resolved, enqueue } = useCompass();
-  const { rows: entitlements } = useRows<{ id: string; project_id?: string | null }>(
-    "sponsor_entitlements",
-  );
+  const { resolved, enqueue, orgSettings } = useCompass();
+  const { rows: entitlements } = useRows<{
+    id: string;
+    project_id?: string | null;
+    keep_photo_location?: boolean | null;
+  }>("sponsor_entitlements");
   const [target, setTarget] = useState<string | null>(null);
   const engagements = resolved?.identity.engagements ?? [];
   const engagementOf = (entitlementId: string) =>
@@ -56,6 +58,11 @@ export default function ProofOfPerformanceScreen(): ReactElement {
       ) : null}
       <PhotoSheet
         open={target !== null && chosen !== null}
+        // The entitlement's org decides whether its proof photos keep their location (2333, ADR 0117).
+        settings={proofPhotoSettings(
+          orgSettings,
+          entitlements.find((e) => e.id === target),
+        )}
         onClose={() => setTarget(null)}
         onPhoto={(uri) => {
           if (!target || !chosen) return;

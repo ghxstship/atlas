@@ -499,7 +499,9 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     table: "sponsor_entitlements",
     schema: "api_external",
     relation: "sponsor_entitlements",
-    select: "id,project_id,project_name,description,quantity,due_on,fulfilled_at,is_overdue",
+    // keep_photo_location: the org's photo-location rule for proof photos of the entitlement (A140, 2333).
+    select:
+      "id,project_id,project_name,description,quantity,due_on,fulfilled_at,is_overdue,keep_photo_location",
     projectColumn: "project_id",
     audiences: ["sponsor"],
   },

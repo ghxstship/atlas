@@ -54,6 +54,7 @@ vi.mock("expo-location", () => ({
 }));
 
 const { processPhoto, photoLocation, wantsExif } = await import("../src/runtime/media");
+const { proofPhotoSettings } = await import("../src/domain/proof");
 
 const KEEP = new Map<string, unknown>([["media.keep_photo_location", true]]);
 const OFF = new Map<string, unknown>([["media.keep_photo_location", false]]);
@@ -158,6 +159,35 @@ describe("photo location (A140, media.keep_photo_location)", () => {
     expect(Buffer.from(bytes).includes("FixtureCam")).toBe(false);
     expect(readGpsExif(bytes)?.latitude).toBeCloseTo(40.7128, 5);
     expect(Buffer.from(bytes).indexOf("Exif\0\0")).toBe(Buffer.from(bytes).lastIndexOf("Exif\0\0"));
+  });
+});
+
+describe("proof-of-performance photos follow the entitlement's org (A140, 2333)", () => {
+  // A sponsor has no membership, so the values Compass resolved for them hold no org rule, whatever it is.
+  const SPONSOR = new Map<string, unknown>([["me.sounds", false]]);
+
+  it("keeps the location when the entitlement's org keeps it, though the sponsor resolved no org settings", async () => {
+    const settings = proofPhotoSettings(SPONSOR, { id: "ent", keep_photo_location: true });
+    expect(wantsExif(settings)).toBe(true);
+    expect(settings.get("me.sounds")).toBe(false);
+    const path = nextPhoto();
+    await processPhoto(`file://${path}`, 4032, 3024, { settings, exif: IOS_EXIF });
+    expect(readGpsExif(new Uint8Array(readFileSync(path)))?.latitude).toBeCloseTo(40.7128, 5);
+  });
+
+  it("leaves it out when the org keeps it off or the entitlement is not on the device yet", async () => {
+    for (const entitlement of [
+      { id: "ent", keep_photo_location: false },
+      { id: "ent" },
+      undefined,
+    ]) {
+      // Even a person whose own resolved values say keep: the entitlement's org decides.
+      const settings = proofPhotoSettings(KEEP, entitlement);
+      expect(wantsExif(settings)).toBe(false);
+      const path = nextPhoto();
+      await processPhoto(`file://${path}`, 4032, 3024, { settings, exif: IOS_EXIF });
+      expect(readGpsExif(new Uint8Array(readFileSync(path)))).toBeNull();
+    }
   });
 });
 

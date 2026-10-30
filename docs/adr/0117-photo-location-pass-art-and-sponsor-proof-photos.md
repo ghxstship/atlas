@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decider: A140 (RRR-204), trace row S13-10
-- Migrations: 2330, 2331, 2332
+- Migrations: 2330, 2331, 2332, 2333
 
 ## Context
 
@@ -24,6 +24,11 @@ Three gaps were left in Compass after A92 and A93 (finding A65-011):
 `media.keep_photo_location` (organization scope, edited with `data.classification.write` in Settings, Data and
 Privacy) is a registry setting (`packages/schemas/settings/a140.yaml`, 2330). The registry renders the field on that
 page in Atlas, so no contributed panel is needed. Compass downloads the value with its other settings.
+
+A sponsor is an external party with no membership, so Compass resolves no org values for them. For proof photos,
+`api_external.sponsor_entitlements` carries the entitlement's org's value as `keep_photo_location` (2333), and the
+proof-of-performance screen takes the photo with that rule in place of the person's resolved values
+(`proofPhotoSettings`). The entitlement's org decides, never the sponsor.
 
 When the setting is on, `processPhoto` writes the place back into the resized JPEG as GPS EXIF
 (`src/domain/exif.ts`). The segment holds only the GPS tags: version, latitude, longitude and, when known, altitude.
