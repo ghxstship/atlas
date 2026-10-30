@@ -69,12 +69,15 @@ export async function VendorDirectory({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, vendors, classes, rules, custom] = await Promise.all([
+  const canWrite = ctx.capabilities.has("vendors.vendor.write");
+  const [t, vendors, classes, rules, custom, currencies] = await Promise.all([
     getCopy("vendors"),
     listVendors(db, ctx.org.id),
     listVendorClasses(db, ctx.org.id),
     listTransitionRules<VendorState>(db, "vendor"),
     customFieldList(ctx, "app.vendors", search),
+    // The bulk currency choices, for a person who may change vendors.
+    canWrite && !(state.peek && state.full) ? listCurrencies(db) : null,
   ]);
   const title = t("directory.title");
   if (!vendors.ok || !classes.ok || !rules.ok) {
@@ -84,7 +87,6 @@ export async function VendorDirectory({
       </CollectionPage>
     );
   }
-  const canWrite = ctx.capabilities.has("vendors.vendor.write");
   const className = new Map(classes.data.map((c) => [c.id, c.name]));
   const stateLabel = (s: string) => t(`states.${s}`);
 
@@ -127,7 +129,6 @@ export async function VendorDirectory({
   }));
 
   // Bulk edit (Section 11.7): state, payment terms and default currency across a selection.
-  const currencies = canWrite ? await listCurrencies(db) : null;
   const bulk = vendorBulk(ctx.org.slug, ctx.capabilities, t, {
     currencies: currencies?.ok ? currencies.data.map((c) => c.code) : [],
     terms: vendors.data.map((v) => v.paymentTermsDays),
