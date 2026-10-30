@@ -4,7 +4,7 @@ import { Icon } from "../Icon/Icon.tsx";
 import { Kbd } from "../Kbd/Kbd.tsx";
 import { type QuickAddProps } from "./Editing.types.ts";
 import { QuickAddChips } from "./QuickAddChips.tsx";
-import { useQuickAdd } from "./useQuickAdd.ts";
+import { loadQuickAddParser, useQuickAdd } from "./useQuickAdd.ts";
 
 /**
  * One line that turns date phrases, @person, #tag, /kind and ~scope into chips; Enter saves. With
@@ -74,6 +74,7 @@ export function QuickAdd({
           value={text}
           disabled={disabled}
           onChange={(e) => setText(e.target.value)}
+          onFocus={() => void loadQuickAddParser().catch(() => undefined)}
           className="flex-1 min-w-0 border-0 bg-transparent outline-none text-text-primary placeholder:text-text-tertiary pointer-coarse:min-h-target-coarse"
         />
         <Kbd>↵</Kbd>

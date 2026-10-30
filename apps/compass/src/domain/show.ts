@@ -1,7 +1,10 @@
 /**
  * Run of show (Section 4.3 item 9, Section 11.13 Show): live cue progression and time to the next cue.
- * Show mode is large type, dark, kept awake, with a haptic before each cue.
+ * Show mode is large type, dark, kept awake, with a haptic before each cue. Current, next, standby and complete
+ * come from @xos/data/show-timing, the same rules Atlas's showcaller console uses (ADR 0131).
  */
+import { callLines, isCueCallKind, type CueCallKind, type CueCallLine } from "@xos/data/cue-calls";
+import { cueProgress } from "@xos/data/show-timing";
 import type { MutationInput } from "@xos/sync";
 
 export interface Cue {
@@ -13,6 +16,46 @@ export interface Cue {
   /** ISO 8601 duration from Postgres interval output, such as "00:04:30". */
   readonly duration: string | null;
   readonly called_at: string | null;
+  /** True while the planned time is an estimate to be confirmed: shown as TBC, never counted down. */
+  readonly start_tbc?: boolean | null;
+  /** When the caller put the cue on standby (internal devices only). */
+  readonly standby_at?: string | null;
+}
+
+/** A department call as the device stores it (app.cue_calls; internal devices only). */
+export interface CueCallRow {
+  readonly id: string;
+  readonly cue_id: string;
+  readonly call_kind: string;
+  readonly instruction: string;
+}
+
+/**
+ * The calls a cue card shows (G-74): the chosen department's line, or every line in enum order when the
+ * person chose All (null). An empty list with a department chosen reads "No <department> call".
+ */
+export function cueCallLines(
+  calls: readonly CueCallRow[],
+  cueId: string | undefined,
+  department: CueCallKind | null,
+): CueCallLine[] {
+  if (cueId === undefined) return [];
+  return callLines(
+    calls.flatMap((c) =>
+      c.cue_id === cueId && isCueCallKind(c.call_kind)
+        ? [{ kind: c.call_kind, instruction: c.instruction }]
+        : [],
+    ),
+    department,
+  );
+}
+
+/**
+ * The department a device remembered (CompassSettings.showDepartment, in SecureStore): a value that is no
+ * longer an app.cue_call_kind label reads as every department (null).
+ */
+export function storedDepartment(value: unknown): CueCallKind | null {
+  return isCueCallKind(value) ? value : null;
 }
 
 export interface ShowState {
@@ -23,7 +66,12 @@ export interface ShowState {
   readonly total: number;
   /** Milliseconds until the next cue's planned time; negative when late; null without a planned time. */
   readonly msToNext: number | null;
+  /** "standby" is before the first call; the caller's standby on the next cue is `onStandby`. */
   readonly status: "standby" | "running" | "late" | "complete";
+  /** True when the caller put the next cue on standby. */
+  readonly onStandby: boolean;
+  /** True when the next cue's time is to be confirmed: no countdown, haptic or spoken countdown for it. */
+  readonly startTbc: boolean;
 }
 
 /** Seconds of warning before a cue: the haptic fires when the countdown crosses it (Section 11.13). */
@@ -31,35 +79,48 @@ export const PRE_CUE_WARNING_MS = 10_000;
 
 export function showState(cues: readonly Cue[], nowMs: number): ShowState {
   const ordered = [...cues].sort((a, b) => a.position - b.position);
-  const called = ordered.filter((c) => c.called_at !== null);
-  const current =
-    called.sort(
-      (a, b) =>
-        Date.parse(b.called_at ?? "") - Date.parse(a.called_at ?? "") || b.position - a.position,
-    )[0] ?? null;
-  const remaining = ordered.filter(
-    (c) => c.called_at === null && (current === null || c.position > current.position),
+  const progress = cueProgress(
+    ordered.map((c) => ({
+      position: c.position,
+      plannedAt: c.planned_at,
+      durationSeconds: null,
+      calledAt: c.called_at,
+      standbyAt: c.standby_at ?? null,
+      startTbc: c.start_tbc === true,
+    })),
+    new Date(nowMs),
   );
-  const next = remaining[0] ?? null;
+  const current = progress.current >= 0 ? (ordered[progress.current] ?? null) : null;
+  const next = progress.next >= 0 ? (ordered[progress.next] ?? null) : null;
   const msToNext = next?.planned_at ? Date.parse(next.planned_at) - nowMs : null;
+  const startTbc = next?.start_tbc === true;
   let status: ShowState["status"] = "running";
-  if (next === null) status = ordered.length > 0 && current !== null ? "complete" : "standby";
+  if (progress.complete) status = "complete";
   else if (current === null) status = "standby";
-  else if (msToNext !== null && msToNext < 0) status = "late";
+  else if (msToNext !== null && msToNext < 0 && !startTbc) status = "late";
   return {
     current,
     next,
-    upcoming: remaining.slice(1, 4),
-    calledCount: called.length,
+    upcoming: ordered.filter((c, i) => i > progress.next && c.called_at === null).slice(0, 3),
+    calledCount: ordered.filter((c) => c.called_at !== null).length,
     total: ordered.length,
     msToNext,
     status,
+    onStandby: progress.standby,
+    startTbc,
   };
 }
 
-/** True exactly when the countdown crosses the warning threshold between two ticks. */
-export function preCueHapticDue(previousMsToNext: number | null, msToNext: number | null): boolean {
-  if (previousMsToNext === null || msToNext === null) return false;
+/**
+ * True exactly when the countdown crosses the warning threshold between two ticks. A cue to be confirmed has no
+ * firm time, so it never fires (G-40).
+ */
+export function preCueHapticDue(
+  previousMsToNext: number | null,
+  msToNext: number | null,
+  nextTbc = false,
+): boolean {
+  if (nextTbc || previousMsToNext === null || msToNext === null) return false;
   return previousMsToNext > PRE_CUE_WARNING_MS && msToNext <= PRE_CUE_WARNING_MS;
 }
 
@@ -95,8 +156,9 @@ export const COUNTDOWN_ANNOUNCE_AT_S: readonly number[] = [60, 30, 10, 0];
 export function countdownAnnouncement(
   previousMsToNext: number | null,
   msToNext: number | null,
+  nextTbc = false,
 ): number | null {
-  if (previousMsToNext === null || msToNext === null) return null;
+  if (nextTbc || previousMsToNext === null || msToNext === null) return null;
   const crossed = COUNTDOWN_ANNOUNCE_AT_S.filter(
     (s) => previousMsToNext > s * 1000 && msToNext <= s * 1000,
   );

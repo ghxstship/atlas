@@ -9,7 +9,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { OwnershipOfferActions } from "@/components/lifecycle/ownership-offer";
+import { OwnershipOfferActions } from "@/components/lifecycle/ownership-offer-lazy";
 import { Banner } from "@/components/platform/client/banner";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";

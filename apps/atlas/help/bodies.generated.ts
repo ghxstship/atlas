@@ -866,7 +866,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you.",
+            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you. The lists below show the default keys; Mod is Cmd on a Mac and Ctrl elsewhere.",
           },
         ],
       },
@@ -876,66 +876,140 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            { t: "text", v: " or " },
+            { t: "text", v: ": Open the command menu" },
+          ],
+          [
             { t: "strong", v: "/" },
-            {
-              t: "text",
-              v: " opens the command menu. It shows the keys for each section next to its name.",
-            },
+            { t: "text", v: ": Search pages and settings" },
           ],
           [
             { t: "strong", v: "C" },
-            {
-              t: "text",
-              v: " opens the Create menu. What you create on the page you are on comes first, so ",
-            },
-            { t: "strong", v: "C" },
-            { t: "text", v: " then " },
-            { t: "strong", v: "Enter" },
-            { t: "text", v: " starts it." },
-          ],
-          [
-            { t: "strong", v: "G" },
-            { t: "text", v: ", then a letter, goes to a section: " },
-            { t: "strong", v: "G H" },
-            { t: "text", v: " Home, " },
-            { t: "strong", v: "G I" },
-            { t: "text", v: " Inbox, " },
-            { t: "strong", v: "G M" },
-            { t: "text", v: " My Work, " },
-            { t: "strong", v: "G P" },
-            { t: "text", v: " Projects, " },
-            { t: "strong", v: "G F" },
-            { t: "text", v: " Finance and more. After " },
-            { t: "strong", v: "G" },
-            { t: "text", v: ", a hint lists the letters; " },
-            { t: "strong", v: "Esc" },
-            { t: "text", v: " cancels." },
+            { t: "text", v: ": Create something new" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: " opens help for the page you are on." },
-          ],
-          [
-            { t: "strong", v: "Mod+J" },
-            { t: "text", v: " asks Aurora, when your organization has turned it on." },
+            { t: "text", v: ": Open help for this page" },
           ],
           [
             { t: "strong", v: "Mod+." },
-            { t: "text", v: " turns focus mode on and off." },
+            { t: "text", v: ": Turn focus mode on or off" },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: ": Ask Aurora" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: " closes the open menu, dialog or side peek." },
+            { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
           ],
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Shortcuts never act while you type in a field, except the ones with " },
+          {
+            t: "text",
+            v: "The command menu shows the keys for each section next to its name, and the Create menu puts what you create on the page you are on first, so Enter starts it. Shortcuts never act while you type in a field, except the ones with ",
+          },
           { t: "strong", v: "Mod" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Go to a section" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each is two keys, one after the other. After the first, a hint lists the keys that can follow; ",
+          },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cancels." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Go to Inbox" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Go to My Work" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Go to Projects" },
+          ],
+          [
+            { t: "strong", v: "G S" },
+            { t: "text", v: ": Go to Schedule" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Go to Work" },
+          ],
+          [
+            { t: "strong", v: "G O" },
+            { t: "text", v: ": Go to Show" },
+          ],
+          [
+            { t: "strong", v: "G A" },
+            { t: "text", v: ": Go to Advancing" },
+          ],
+          [
+            { t: "strong", v: "G L" },
+            { t: "text", v: ": Go to Logistics" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Go to People" },
+          ],
+          [
+            { t: "strong", v: "G C" },
+            { t: "text", v: ": Go to Crew" },
+          ],
+          [
+            { t: "strong", v: "G F" },
+            { t: "text", v: ": Go to Finance" },
+          ],
+          [
+            { t: "strong", v: "G B" },
+            { t: "text", v: ": Go to Procurement" },
+          ],
+          [
+            { t: "strong", v: "G V" },
+            { t: "text", v: ": Go to Vendors" },
+          ],
+          [
+            { t: "strong", v: "G K" },
+            { t: "text", v: ": Go to Knowledge" },
+          ],
+          [
+            { t: "strong", v: "G R" },
+            { t: "text", v: ": Go to Reports" },
+          ],
+          [
+            { t: "strong", v: "G Y" },
+            { t: "text", v: ": Go to Activity" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Go to Settings" },
+          ],
         ],
       },
       { t: "h2", v: "In lists and tables" },
@@ -944,26 +1018,146 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "J" },
-            { t: "text", v: " and " },
+            { t: "text", v: ": Next row" },
+          ],
+          [
             { t: "strong", v: "K" },
-            { t: "text", v: ", or the arrow keys, move between rows." },
+            { t: "text", v: ": Previous row" },
           ],
           [
             { t: "strong", v: "Enter" },
-            { t: "text", v: " opens the focused record in the side peek." },
+            { t: "text", v: ": Open the focused record" },
           ],
           [
             { t: "strong", v: "X" },
-            {
-              t: "text",
-              v: " selects the focused row. The bulk action bar appears with the actions every selected row allows.",
-            },
+            { t: "text", v: ": Select the focused row" },
           ],
           [
-            { t: "strong", v: "Home" },
-            { t: "text", v: " and " },
-            { t: "strong", v: "End" },
-            { t: "text", v: " jump to the first and last row." },
+            { t: "strong", v: "Shift+X" },
+            { t: "text", v: ": Select the rows from the last selected one to the focused one" },
+          ],
+          [
+            { t: "strong", v: "Mod+A" },
+            { t: "text", v: ": Select every loaded row" },
+          ],
+          [
+            { t: "strong", v: "Shift+F10" },
+            { t: "text", v: ": Open the focused row's actions" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The arrow keys also move between rows, and " },
+          { t: "strong", v: "Home" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "End" },
+          {
+            t: "text",
+            v: " jump to the first and last row. Selecting rows shows the bulk action bar with the actions every selected row allows.",
+          },
+        ],
+      },
+      { t: "h2", v: "On a record" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work on a record's full page and in the side peek, while focus is in the record.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Change the state" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Assign an owner" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Add a comment" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Edit the title" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Open the full page" },
+          ],
+          [
+            { t: "strong", v: "L" },
+            { t: "text", v: ": Copy the link" },
+          ],
+          [
+            { t: "strong", v: "Mod+Backspace" },
+            { t: "text", v: ": Move to Trash" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A key does nothing on a record that does not offer its action to you." },
+        ],
+      },
+      { t: "h2", v: "In a view" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work on a collection while focus is in it: its view switcher, its filters, your saved views and export.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "V" },
+            { t: "text", v: ": Switch the view" },
+          ],
+          [
+            { t: "strong", v: "F" },
+            { t: "text", v: ": Open the filters" },
+          ],
+          [
+            { t: "strong", v: "Shift+S" },
+            { t: "text", v: ": Save the view" },
+          ],
+          [
+            { t: "strong", v: "Shift+E" },
+            { t: "text", v: ": Export the view" },
+          ],
+        ],
+      },
+      { t: "h2", v: "In the Inbox" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Approve the focused item" },
+          ],
+          [
+            { t: "strong", v: "R" },
+            { t: "text", v: ": Reject the focused item with a reason" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Mark the focused item done" },
+          ],
+          [
+            { t: "strong", v: "H" },
+            { t: "text", v: ": Snooze the focused item until tomorrow" },
           ],
         ],
       },
@@ -978,6 +1172,38 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " to drop it, and " },
           { t: "strong", v: "Esc" },
           { t: "text", v: " to put it back." },
+        ],
+      },
+      { t: "h2", v: "In the showcaller console" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "While you call a show live, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " puts the selected cue on standby, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps to a cue, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge the remaining plan by a minute and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department. " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list calls the cue. A Stream Deck sends " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, Standby, Previous, Next, Nudge later, Nudge earlier, Jump and Department); set each key to a ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action." },
         ],
       },
       { t: "h2", v: "Make the keys your own" },
@@ -995,13 +1221,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Reset" },
           { t: "text", v: " brings back the default. Turn off " },
           { t: "strong", v: "Keyboard shortcuts" },
-          { t: "text", v: " there to stop every shortcut without " },
+          { t: "text", v: " there to stop every character-key shortcut without " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " or " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; function keys " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " keep working, since they type no character." },
         ],
       },
       {
@@ -1969,6 +2199,156 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "The run of show is the ordered list of segments and cues for a show. Build it ahead of time, then run it live: the current cue advances in real time for everyone watching, in Atlas and in Compass.",
           },
+        ],
+      },
+      { t: "h3", v: "Build the running order" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Add each cue with its planned time and length. When a time is still an estimate, check ",
+            },
+            { t: "strong", v: "Time to be confirmed" },
+            { t: "text", v: ": Atlas shows " },
+            { t: "strong", v: "TBC · est." },
+            { t: "text", v: " with the estimate, Compass, Gateway and the PDF show " },
+            { t: "strong", v: "TBC" },
+            {
+              t: "text",
+              v: ", and calendar subscriptions mark it tentative. Records offer the same box, ",
+            },
+            { t: "strong", v: "Start time to be confirmed" },
+            { t: "text", v: ", beside " },
+            { t: "strong", v: "Starts" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Choose the pencil on a cue to edit it in place: label, time, length and one call for each department (Audio, Lighting, Video, Special Effects and Stage). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancels." },
+          ],
+          [
+            { t: "text", v: "Use the arrows to move a cue one place, or " },
+            { t: "strong", v: "Move to position…" },
+            {
+              t: "text",
+              v: " to put it anywhere after the last called cue in one step. Called cues keep their places, and the cues are renumbered 1, 2, 3 after a move.",
+            },
+          ],
+          [
+            { t: "text", v: "Choose a " },
+            { t: "strong", v: "Department" },
+            {
+              t: "text",
+              v: " to see only that department's calls. Cues that have one are marked; the others say there is no call. The choice stays in the page address, so you can share it.",
+            },
+          ],
+          [
+            { t: "text", v: "Set a " },
+            { t: "strong", v: "Curfew" },
+            { t: "text", v: " in the details when the show has a hard stop." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Call the show" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Run live" },
+          {
+            t: "text",
+            v: ". If you may call cues, the showcaller console opens with the show clock, the time of day, how far the show runs behind or ahead of the plan and, when a curfew is set, the projected end against it.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Call next cue" },
+            { t: "text", v: " calls the cue on standby, or else the next cue. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " calls the cue you selected." },
+          ],
+          [
+            { t: "strong", v: "Standby" },
+            {
+              t: "text",
+              v: " puts the selected cue on standby; everyone following sees it within a second or two. ",
+            },
+            { t: "strong", v: "Previous cue" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Next cue" },
+            { t: "text", v: " move the standby, and " },
+            { t: "strong", v: "Jump to cue" },
+            { t: "text", v: " picks any uncalled cue. Cues you jump past are marked " },
+            { t: "strong", v: "Skipped" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Nudge −1 min" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Nudge +1 min" },
+            { t: "text", v: " move every remaining planned time." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "With focus in the console, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " stands by, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department; " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list goes." },
+        ],
+      },
+      { t: "h3", v: "Set Stream Deck Hotkey actions to F13 to F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Give each Stream Deck key a " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action: " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " Standby, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Previous cue, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Next cue, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Nudge +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Nudge −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Jump to cue and " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Department. They work while the console has focus, even with single-key shortcuts turned off, and you can change them in ",
+          },
+          { t: "strong", v: "Me, Keyboard shortcuts" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "Day sheets" },
@@ -3088,7 +3468,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted.",
+            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted. Las listas siguientes muestran las teclas predeterminadas; Mod es Cmd en una Mac y Ctrl en los demás equipos.",
           },
         ],
       },
@@ -3098,57 +3478,39 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            { t: "text", v: " o " },
+            { t: "text", v: ": Abrir el menú de comandos" },
+          ],
+          [
             { t: "strong", v: "/" },
-            {
-              t: "text",
-              v: " abre el menú de comandos. Junto al nombre de cada sección muestra sus teclas.",
-            },
+            { t: "text", v: ": Buscar páginas y ajustes" },
           ],
           [
             { t: "strong", v: "C" },
-            {
-              t: "text",
-              v: " abre el menú Crear. Lo que se crea en la página actual aparece primero, así que ",
-            },
-            { t: "strong", v: "C" },
-            { t: "text", v: " y luego " },
-            { t: "strong", v: "Enter" },
-            { t: "text", v: " lo inicia." },
-          ],
-          [
-            { t: "strong", v: "G" },
-            { t: "text", v: " y luego una letra lleva a una sección: " },
-            { t: "strong", v: "G H" },
-            { t: "text", v: " Inicio, " },
-            { t: "strong", v: "G I" },
-            { t: "text", v: " Bandeja de entrada, " },
-            { t: "strong", v: "G M" },
-            { t: "text", v: " Mi trabajo, " },
-            { t: "strong", v: "G P" },
-            { t: "text", v: " Proyectos, " },
-            { t: "strong", v: "G F" },
-            { t: "text", v: " Finanzas y más. Después de " },
-            { t: "strong", v: "G" },
-            { t: "text", v: ", una indicación muestra las letras; " },
-            { t: "strong", v: "Esc" },
-            { t: "text", v: " cancela." },
+            { t: "text", v: ": Crear algo nuevo" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: " abre la ayuda de la página actual." },
-          ],
-          [
-            { t: "strong", v: "Mod+J" },
-            { t: "text", v: " pregunta a Aurora, si su organización la activó." },
+            { t: "text", v: ": Abrir la ayuda de esta página" },
           ],
           [
             { t: "strong", v: "Mod+." },
-            { t: "text", v: " activa y desactiva el modo de enfoque." },
+            { t: "text", v: ": Activar o desactivar el modo de enfoque" },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: ": Preguntar a Aurora" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: " cierra el menú, el diálogo o el panel lateral abierto." },
+            { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
           ],
         ],
       },
@@ -3157,10 +3519,99 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
+            v: "El menú de comandos muestra las teclas de cada sección junto a su nombre, y el menú Crear pone primero lo que se crea en la página actual, así que Enter lo inicia. Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
           },
           { t: "strong", v: "Mod" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Ir a una sección" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada uno son dos teclas, una después de la otra. Después de la primera, una indicación muestra las teclas que pueden seguir; ",
+          },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cancela." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Ir a Inicio" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Ir a la Bandeja de entrada" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Ir a Mi trabajo" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Ir a Proyectos" },
+          ],
+          [
+            { t: "strong", v: "G S" },
+            { t: "text", v: ": Ir a Cronograma" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Ir a Trabajo" },
+          ],
+          [
+            { t: "strong", v: "G O" },
+            { t: "text", v: ": Ir a Show" },
+          ],
+          [
+            { t: "strong", v: "G A" },
+            { t: "text", v: ": Ir a Coordinación previa" },
+          ],
+          [
+            { t: "strong", v: "G L" },
+            { t: "text", v: ": Ir a Logística" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Ir a Personas" },
+          ],
+          [
+            { t: "strong", v: "G C" },
+            { t: "text", v: ": Ir a Equipo técnico" },
+          ],
+          [
+            { t: "strong", v: "G F" },
+            { t: "text", v: ": Ir a Finanzas" },
+          ],
+          [
+            { t: "strong", v: "G B" },
+            { t: "text", v: ": Ir a Compras" },
+          ],
+          [
+            { t: "strong", v: "G V" },
+            { t: "text", v: ": Ir a Proveedores" },
+          ],
+          [
+            { t: "strong", v: "G K" },
+            { t: "text", v: ": Ir a Conocimiento" },
+          ],
+          [
+            { t: "strong", v: "G R" },
+            { t: "text", v: ": Ir a Informes" },
+          ],
+          [
+            { t: "strong", v: "G Y" },
+            { t: "text", v: ": Ir a Actividad" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Ir a Configuración" },
+          ],
         ],
       },
       { t: "h2", v: "En listas y tablas" },
@@ -3169,26 +3620,147 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "J" },
-            { t: "text", v: " y " },
+            { t: "text", v: ": Fila siguiente" },
+          ],
+          [
             { t: "strong", v: "K" },
-            { t: "text", v: ", o las flechas, se mueven entre filas." },
+            { t: "text", v: ": Fila anterior" },
           ],
           [
             { t: "strong", v: "Enter" },
-            { t: "text", v: " abre el registro enfocado en el panel lateral." },
+            { t: "text", v: ": Abrir el registro enfocado" },
           ],
           [
             { t: "strong", v: "X" },
+            { t: "text", v: ": Seleccionar la fila enfocada" },
+          ],
+          [
+            { t: "strong", v: "Shift+X" },
             {
               t: "text",
-              v: " selecciona la fila enfocada y aparece la barra de acciones masivas.",
+              v: ": Seleccionar las filas desde la última seleccionada hasta la enfocada",
             },
           ],
           [
-            { t: "strong", v: "Inicio" },
-            { t: "text", v: " y " },
-            { t: "strong", v: "Fin" },
-            { t: "text", v: " saltan a la primera y la última fila." },
+            { t: "strong", v: "Mod+A" },
+            { t: "text", v: ": Seleccionar todas las filas cargadas" },
+          ],
+          [
+            { t: "strong", v: "Shift+F10" },
+            { t: "text", v: ": Abrir las acciones de la fila enfocada" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las flechas también se mueven entre filas, e " },
+          { t: "strong", v: "Inicio" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Fin" },
+          {
+            t: "text",
+            v: " saltan a la primera y la última fila. Al seleccionar filas aparece la barra de acciones masivas con las acciones que permiten todas las filas seleccionadas.",
+          },
+        ],
+      },
+      { t: "h2", v: "En un registro" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en la página completa de un registro y en el panel lateral, mientras el foco está en el registro.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Cambiar el estado" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Asignar un responsable" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Agregar un comentario" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Editar el título" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Abrir la página completa" },
+          ],
+          [
+            { t: "strong", v: "L" },
+            { t: "text", v: ": Copiar el enlace" },
+          ],
+          [
+            { t: "strong", v: "Mod+Retroceso" },
+            { t: "text", v: ": Mover a la papelera" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [{ t: "text", v: "Una tecla no hace nada en un registro que no le ofrece esa acción." }],
+      },
+      { t: "h2", v: "En una vista" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en una colección mientras el foco está en ella: su selector de vista, sus filtros, sus vistas guardadas y la exportación.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "V" },
+            { t: "text", v: ": Cambiar de vista" },
+          ],
+          [
+            { t: "strong", v: "F" },
+            { t: "text", v: ": Abrir los filtros" },
+          ],
+          [
+            { t: "strong", v: "Shift+S" },
+            { t: "text", v: ": Guardar la vista" },
+          ],
+          [
+            { t: "strong", v: "Shift+E" },
+            { t: "text", v: ": Exportar la vista" },
+          ],
+        ],
+      },
+      { t: "h2", v: "En la Bandeja de entrada" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Aprobar el elemento enfocado" },
+          ],
+          [
+            { t: "strong", v: "R" },
+            { t: "text", v: ": Rechazar el elemento enfocado con un motivo" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Marcar como hecho el elemento enfocado" },
+          ],
+          [
+            { t: "strong", v: "H" },
+            { t: "text", v: ": Posponer el elemento enfocado hasta mañana" },
           ],
         ],
       },
@@ -3203,6 +3775,38 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " para soltarla y " },
           { t: "strong", v: "Esc" },
           { t: "text", v: " para devolverla." },
+        ],
+      },
+      { t: "h2", v: "En la consola de llamado" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Mientras llama un espectáculo en vivo, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera la señal seleccionada, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta a una señal, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan un minuto el plan restante y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento. " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama la señal. Un Stream Deck envía " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, En espera, Anterior, Siguiente, Retrasar, Adelantar, Saltar y Departamento); asigne a cada tecla una acción ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "Adapte las teclas" },
@@ -3220,13 +3824,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Restablecer" },
           { t: "text", v: " devuelve el valor predeterminado. Desactive allí " },
           { t: "strong", v: "Atajos de teclado" },
-          { t: "text", v: " para detener todos los atajos sin " },
+          { t: "text", v: " para detener todos los atajos de teclas de carácter sin " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " o " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; las teclas de función " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " siguen funcionando, porque no escriben ningún carácter." },
         ],
       },
       {
@@ -4146,6 +4754,159 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Es la lista ordenada de segmentos y señales de un espectáculo. Prepárela con anticipación y ejecútela en vivo: la señal actual avanza en tiempo real para todos, en Atlas y en Compass.",
           },
+        ],
+      },
+      { t: "h3", v: "Arme el orden" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Agregue cada señal con su hora planificada y su duración. Cuando una hora todavía es una estimación, marque ",
+            },
+            { t: "strong", v: "Hora por confirmar" },
+            { t: "text", v: ": Atlas muestra " },
+            { t: "strong", v: "Por confirmar · aprox." },
+            { t: "text", v: " con la estimación, Compass, Gateway y el PDF muestran " },
+            { t: "strong", v: "Por confirmar" },
+            {
+              t: "text",
+              v: ", y las suscripciones de calendario la marcan como provisional. Los registros ofrecen la misma casilla, ",
+            },
+            { t: "strong", v: "Hora de inicio por confirmar" },
+            { t: "text", v: ", junto a " },
+            { t: "strong", v: "Inicio" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Elija el lápiz de una señal para editarla en su lugar: nombre, hora, duración y una llamada por departamento (Audio, Iluminación, Video, Efectos especiales y Escenario). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancela." },
+          ],
+          [
+            { t: "text", v: "Use las flechas para mover una señal un lugar, o " },
+            { t: "strong", v: "Mover a la posición…" },
+            {
+              t: "text",
+              v: " para ponerla en cualquier lugar después de la última señal llamada en un solo paso. Las señales llamadas conservan su lugar, y las señales se numeran de nuevo 1, 2, 3 después de mover una.",
+            },
+          ],
+          [
+            { t: "text", v: "Elija un " },
+            { t: "strong", v: "Departamento" },
+            {
+              t: "text",
+              v: " para ver solo sus llamadas. Las señales que tienen una quedan marcadas; las demás indican que no hay llamada. La elección queda en la dirección de la página, así que puede compartirla.",
+            },
+          ],
+          [
+            { t: "text", v: "Fije una " },
+            { t: "strong", v: "Hora límite" },
+            { t: "text", v: " en los detalles cuando el espectáculo tenga un final obligatorio." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Llame el espectáculo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elija " },
+          { t: "strong", v: "Ejecutar en vivo" },
+          {
+            t: "text",
+            v: ". Si puede llamar señales, se abre la consola de llamado con el reloj del show, la hora del día, cuánto va atrasado o adelantado frente al plan y, cuando hay hora límite, el final proyectado frente a ella.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Llamar siguiente cue" },
+            { t: "text", v: " llama la señal en espera o, si no hay, la siguiente. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " llama la señal seleccionada." },
+          ],
+          [
+            { t: "strong", v: "En espera" },
+            {
+              t: "text",
+              v: " pone en espera la señal seleccionada; quienes siguen el show la ven en uno o dos segundos. ",
+            },
+            { t: "strong", v: "Cue anterior" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Cue siguiente" },
+            { t: "text", v: " mueven la espera, y " },
+            { t: "strong", v: "Saltar a un cue" },
+            {
+              t: "text",
+              v: " elige cualquier señal sin llamar. Las señales que salte quedan marcadas como ",
+            },
+            { t: "strong", v: "Omitido" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Ajustar −1 min" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Ajustar +1 min" },
+            { t: "text", v: " mueven todas las horas planificadas que quedan." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Con el foco en la consola, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan el plan y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento; " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama." },
+        ],
+      },
+      { t: "h3", v: "Configure acciones Hotkey de Stream Deck con F13 a F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Asigne a cada tecla del Stream Deck una acción " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: ": " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " En espera, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Cue anterior, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Cue siguiente, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Ajustar +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Ajustar −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Saltar a un cue y " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Departamento. Funcionan mientras la consola tiene el foco, aunque los atajos de una tecla estén desactivados, y puede cambiarlas en ",
+          },
+          { t: "strong", v: "Yo, Atajos de teclado" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "Hojas del día" },

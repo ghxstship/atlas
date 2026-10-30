@@ -133,13 +133,13 @@ export function Board({
           >
             <header className="flex items-center gap-6 p-4">
               <StateIcon state={col.state} />
-              <h3 className="m-0 text-text-13 font-semibold">{col.label}</h3>
+              <h2 className="m-0 text-text-13 font-semibold">{col.label}</h2>
               <span className="text-text-secondary tabular-nums">{col.cards.length}</span>
             </header>
             {col.cards.map((card) => {
               const selected = select.isSelected(idOf(card));
               return (
-                <article
+                <div
                   key={card.key}
                   ref={(el) => {
                     if (el) cardRefs.current.set(card.key, el);
@@ -200,7 +200,7 @@ export function Board({
                       {card.due ? <PropertyChip icon="Calendar" value={card.due} /> : null}
                     </div>
                   ) : null}
-                </article>
+                </div>
               );
             })}
             {readOnly ? null : (

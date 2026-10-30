@@ -10,7 +10,8 @@ import { useEffect, useRef, type ReactNode } from "react";
  * The side peek (Section 11.7): a record opened from a list without leaving it. The URL carries the
  * open record (`?peek=<id>`), so the peek survives a reload and can be shared; Escape and the close
  * link return to the list. Below md it covers the screen (Section 11.6). Focus moves to the title on
- * open so a keyboard or screen reader user lands in the record.
+ * open so a keyboard or screen reader user lands in the record. The panel is a record region for the
+ * shell's record shortcuts (@xos/ui/shortcut-targets), with Open full as the Open full page target.
  */
 export function PeekPanel({
   title,
@@ -49,6 +50,7 @@ export function PeekPanel({
       role="dialog"
       aria-modal="false"
       aria-labelledby="peek-title"
+      data-shortcut-scope="record"
       className="fixed inset-y-0 end-0 z-peek flex w-layout-peek max-w-full flex-col overflow-y-auto border-s border-border-subtle bg-bg-surface shadow-dialog max-md:w-full"
     >
       <header className="flex items-center justify-between gap-8 border-b border-border-subtle py-8 ps-20 pe-12">
@@ -59,6 +61,7 @@ export function PeekPanel({
         <span className="flex items-center gap-2">
           <Link
             href={fullHref}
+            data-shortcut="record.open"
             aria-label={fullLabel}
             title={fullLabel}
             className="flex size-32 items-center justify-center rounded-control text-text-secondary hover:bg-bg-hover"

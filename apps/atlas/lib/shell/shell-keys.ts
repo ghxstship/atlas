@@ -19,8 +19,10 @@ export interface ShellKeys {
   readonly platform: Platform;
   /** Keys of the shortcuts the shell's key handler answers anywhere, by registry id. */
   readonly global: Readonly<Record<string, string>>;
-  /** Keys of shortcuts that answer in one region of a page (Inbox items), by registry id. */
+  /** Keys of shortcuts that answer in one region of a page (Inbox items, a record), by registry id. */
   readonly scoped: Readonly<Record<string, string>>;
+  /** The region each scoped shortcut answers in (`record`, `view`, `inbox`, `list`), by registry id. */
+  readonly scopes: Readonly<Record<string, string>>;
   /** Global shortcuts that also work while typing in a field. */
   readonly fields: readonly string[];
   /** Where each navigation shortcut the person may use goes, by registry id. */
@@ -58,6 +60,7 @@ export function buildShellKeys(
   );
   const global: Record<string, string> = {};
   const scoped: Record<string, string> = {};
+  const scopes: Record<string, string> = {};
   const display: Record<string, string> = {};
   const go: Record<string, GoTarget> = {};
   const fields: string[] = [];
@@ -73,13 +76,14 @@ export function buildShellKeys(
     display[shortcut.id] = displayKeys(normalized, platform);
     if (shortcut.scope !== GLOBAL_SCOPE) {
       scoped[shortcut.id] = normalized;
+      scopes[shortcut.id] = shortcut.scope;
     } else if (!shortcut.fixed) {
       // Escape belongs to every dialog and menu: the sheet lists it, the shell never answers it.
       global[shortcut.id] = normalized;
       if (shortcut.fields) fields.push(shortcut.id);
     }
   }
-  return { platform, global, scoped, fields, go, display };
+  return { platform, global, scoped, scopes, fields, go, display };
 }
 
 /** Command menu hints: each navigation shortcut's keys by the sitemap node it opens. */

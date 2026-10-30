@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   SSR_CHUNK_SIZE,
   lighthouseRc,
+  runAssertions,
   lighthouseTargets,
   scorePage,
   SESSION_COOKIES_ENV,
@@ -31,10 +32,10 @@ describe("sessionCookies", () => {
 });
 
 describe("lighthouseRc", () => {
-  it("lists the app's key pages, sets the session through the cookie jar and asserts the spec budgets", () => {
+  it("lists the run's pages, sets the session through the cookie jar and asserts the spec budgets", () => {
     const rc = lighthouseRc({
-      app: "atlas",
       baseUrl: "http://127.0.0.1:3006",
+      paths: lighthouseTargets.atlas.paths,
       sessionScript: "../../../../src/lighthouse-session.cjs",
       chromePath: "/chrome",
       outputDir: "/out",
@@ -46,13 +47,13 @@ describe("lighthouseRc", () => {
     // An extra Cookie header gives way to the jar once the page sets a cookie of its own.
     expect("extraHeaders" in rc.ci.collect.settings).toBe(false);
     expect(rc.ci.collect.chromePath).toBe("/chrome");
-    expect(rc.ci.assert.assertions["largest-contentful-paint"]).toBeDefined();
+    expect(rc.ci.assert.assertions?.["largest-contentful-paint"]).toBeDefined();
   });
 
   it("launches Chrome itself, with no session, for public-only apps", () => {
     const rc = lighthouseRc({
-      app: "docs",
       baseUrl: "http://x",
+      paths: lighthouseTargets.docs.paths,
       sessionScript: null,
       chromePath: undefined,
       outputDir: "/out",
@@ -126,7 +127,45 @@ describe("scorePage", () => {
 
   it("fails a page over the LCP or script budget, and one with missing audits", () => {
     expect(scorePage(report(3000, 150_000)).withinBudget).toBe(false);
+    expect(
+      scorePage({ ...report(1200, 150_000), categories: { accessibility: { score: 0.98 } } })
+        .withinBudget,
+    ).toBe(false);
     expect(scorePage(report(1200, 300_000)).withinBudget).toBe(false);
+    expect(scorePage(report(1200, 300_000), 310_000).withinBudget).toBe(true);
     expect(scorePage({}).withinBudget).toBe(false);
+  });
+
+  it("marks a page that ended on another URL, which lhci's assertMatrix never matches", () => {
+    expect(scorePage(report(1200, 150_000))).toMatchObject({
+      finalUrl: "http://x/home",
+      landed: true,
+    });
+    const moved = scorePage({ ...report(1200, 150_000), finalUrl: "http://x/auth/sign-in" });
+    expect(moved).toMatchObject({ landed: false, finalUrl: "http://x/auth/sign-in" });
+  });
+});
+
+describe("runAssertions", () => {
+  it("gives every page the 200 KB script budget when none holds a ceiling", () => {
+    const assert = runAssertions("http://x", ["/a", "/b"]);
+    expect(assert.assertions?.["resource-summary:script:size"]).toEqual([
+      "error",
+      { maxNumericValue: 204_800 },
+    ]);
+  });
+
+  it("matches each page to its own script budget by exact URL", () => {
+    const assert = runAssertions("http://x", ["/a", "/b.c", "/d"], { "/b.c": 230_000 });
+    const matrix = assert.assertMatrix ?? [];
+    expect(matrix).toHaveLength(2);
+    const budgetOf = (url: string) =>
+      matrix.find((m) => new RegExp(m.matchingUrlPattern).test(url))?.assertions[
+        "resource-summary:script:size"
+      ]?.[1];
+    expect(budgetOf("http://x/a")).toEqual({ maxNumericValue: 204_800 });
+    expect(budgetOf("http://x/b.c")).toEqual({ maxNumericValue: 230_000 });
+    expect(budgetOf("http://x/bxc")).toBeUndefined();
+    expect(budgetOf("http://x/d/e")).toBeUndefined();
   });
 });

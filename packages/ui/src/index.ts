@@ -141,6 +141,9 @@ export {
   Toast,
   UndoToast,
   ToastRegion,
+  RegionBoundary,
+  RegionError,
+  type RegionBoundaryProps,
   type EmptyStateProps,
   type ErrorStateProps,
   type RefusalNoticeProps,
@@ -247,6 +250,7 @@ export {
   TemplateAuth,
   TemplateGatewayShell,
   TemplateSystem,
+  TemplateSystemLink,
   type TemplateCollectionProps,
   type TemplateRecordProps,
   type TemplateSplitViewProps,
@@ -261,6 +265,7 @@ export {
   type TemplateAuthProps,
   type TemplateGatewayShellProps,
   type TemplateSystemProps,
+  type TemplateSystemLinkProps,
 } from "./Templates/Templates.tsx";
 
 /* Data components */
@@ -454,6 +459,7 @@ export {
   quickAddKey,
   zonedInstant,
   useQuickAdd,
+  loadQuickAddParser,
   QuickAddChips,
   contrastRatio,
   type FilterBuilderProps,

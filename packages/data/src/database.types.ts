@@ -562,6 +562,7 @@ export type Database = {
           position: number | null;
           project_id: string | null;
           run_of_show_id: string | null;
+          start_tbc: boolean | null;
         };
         ComputedFields: never;
         Relationships: [
@@ -858,6 +859,7 @@ export type Database = {
           engagement_id: string | null;
           next_call_at: string | null;
           next_call_kind: string | null;
+          next_call_tbc: boolean | null;
           next_call_time_zone: string | null;
           project_id: string | null;
           venue_locality: string | null;
@@ -2191,6 +2193,7 @@ export type Database = {
           record_kind: string | null;
           record_state: string | null;
           record_subtype: string | null;
+          start_tbc: boolean | null;
           starts_at: string | null;
           time_zone: string | null;
           title: string | null;
@@ -2204,6 +2207,7 @@ export type Database = {
           record_kind?: string | null;
           record_state?: string | null;
           record_subtype?: string | null;
+          start_tbc?: boolean | null;
           starts_at?: string | null;
           time_zone?: string | null;
           title?: string | null;
@@ -2216,6 +2220,7 @@ export type Database = {
           record_kind?: string | null;
           record_state?: string | null;
           record_subtype?: string | null;
+          start_tbc?: boolean | null;
           starts_at?: string | null;
           time_zone?: string | null;
           title?: string | null;
@@ -13398,6 +13403,8 @@ export type Database = {
           run_of_show_id: string;
           segment: string | null;
           space_id: string | null;
+          standby_at: string | null;
+          start_tbc: boolean;
           updated_at: string;
           updated_by: string | null;
         };
@@ -13419,6 +13426,8 @@ export type Database = {
           run_of_show_id: string;
           segment?: string | null;
           space_id?: string | null;
+          standby_at?: string | null;
+          start_tbc?: boolean;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -13439,6 +13448,8 @@ export type Database = {
           run_of_show_id?: string;
           segment?: string | null;
           space_id?: string | null;
+          standby_at?: string | null;
+          start_tbc?: boolean;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -41450,6 +41461,7 @@ export type Database = {
           replan_reason: string | null;
           scope_node_id: string | null;
           sop_id: string | null;
+          start_tbc: boolean;
           starts_at: string | null;
           team_code: string | null;
           time_zone: string | null;
@@ -41486,6 +41498,7 @@ export type Database = {
           replan_reason?: string | null;
           scope_node_id?: string | null;
           sop_id?: string | null;
+          start_tbc?: boolean;
           starts_at?: string | null;
           team_code?: string | null;
           time_zone?: string | null;
@@ -41519,6 +41532,7 @@ export type Database = {
           replan_reason?: string | null;
           scope_node_id?: string | null;
           sop_id?: string | null;
+          start_tbc?: boolean;
           starts_at?: string | null;
           team_code?: string | null;
           time_zone?: string | null;
@@ -43866,6 +43880,7 @@ export type Database = {
         Row: {
           created_at: string;
           created_by: string | null;
+          curfew_at: string | null;
           deleted_at: string | null;
           id: string;
           name: string;
@@ -43881,6 +43896,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           created_by?: string | null;
+          curfew_at?: string | null;
           deleted_at?: string | null;
           id?: string;
           name: string;
@@ -43895,6 +43911,7 @@ export type Database = {
         Update: {
           created_at?: string;
           created_by?: string | null;
+          curfew_at?: string | null;
           deleted_at?: string | null;
           id?: string;
           name?: string;
@@ -62839,6 +62856,7 @@ export type Database = {
       };
       message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
       minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
+      move_cue: { Args: { p_cue_id: string; p_to_position: number }; Returns: number };
       my_access_paths: {
         Args: {
           p_org_id: string;
@@ -64342,6 +64360,7 @@ export type Database = {
         };
         Returns: string;
       };
+      save_cue_calls: { Args: { p_calls: Json; p_cue_id: string }; Returns: undefined };
       save_geofence: {
         Args: {
           p_boundary_geojson: Json;
@@ -64727,6 +64746,7 @@ export type Database = {
         }[];
       };
       shared_work_details: { Args: { p_engagement_id: string }; Returns: Json };
+      shift_cue_plan: { Args: { p_run_of_show_id: string; p_seconds: number }; Returns: number };
       shipment_display_key: {
         Args: {
           p_row: Omit<
@@ -64755,6 +64775,7 @@ export type Database = {
           standard_count: number;
         }[];
       };
+      standby_cue: { Args: { p_cue_id?: string; p_run_of_show_id: string }; Returns: undefined };
       start_break_glass: {
         Args: { p_org_id: string; p_reason: string };
         Returns: {

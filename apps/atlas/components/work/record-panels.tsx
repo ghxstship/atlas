@@ -73,8 +73,9 @@ export function TransitionControls({
   }
   return (
     <div className="flex flex-col gap-8">
-      <h3 className="m-0 text-label-13 font-semibold">{t("transition.title")}</h3>
-      <div className="flex flex-wrap gap-6">
+      <h2 className="m-0 text-label-13 font-semibold">{t("transition.title")}</h2>
+      {/* The record.state shortcut focuses the first move, so the next Enter or Tab picks one. */}
+      <div data-shortcut="record.state" data-shortcut-focus="" className="flex flex-wrap gap-6">
         {next.map((state) => (
           <Button key={state} size="sm" onClick={() => setTarget(state)}>
             {t("transition.to", { state: t(`states.${state}`) })}
@@ -206,6 +207,9 @@ export function EditRecordForm({
   const [scope, setScope] = useState(record.scopeNodeId ?? "");
   const [phase, setPhase] = useState(record.phaseCode ?? "");
   const [replan, setReplan] = useState("");
+  // A start to be confirmed (G-40) needs a start: the box is off and disabled while Starts is empty.
+  const [startsValue, setStartsValue] = useState(toLocalInput(record.startsAt, tz));
+  const [startTbc, setStartTbc] = useState(record.startTbc);
   const personOptions = [
     { value: "", label: t("values.unassigned") },
     ...people.map((p) => ({ value: p.personId, label: p.name ?? t("values.unnamed") })),
@@ -240,6 +244,7 @@ export function EditRecordForm({
               scopeNodeId: scope || null,
               phaseCode: phase || null,
               startsAt: fromLocalInput(starts, tz),
+              startTbc: starts !== "" && startTbc,
               endsAt: fromLocalInput(ends, tz),
               dueAt: fromLocalInput(due, tz),
               ...(logsReplans && datesChanged && replan.trim() !== ""
@@ -257,6 +262,7 @@ export function EditRecordForm({
       <ActionErrorAlert error={error} />
       <Input
         id="edit-title"
+        data-shortcut="record.edit-title"
         label={t("fields.title")}
         help={t("fields.titleHelp", { kind: t(`kinds.${record.kind}`) })}
         value={title}
@@ -276,13 +282,15 @@ export function EditRecordForm({
         />
       ) : null}
       <div className="grid grid-cols-2 gap-12 max-sm:grid-cols-1">
-        <Select
-          id="edit-owner"
-          label={t("fields.owner")}
-          value={owner}
-          options={personOptions}
-          onChange={(e) => setOwner(e.target.value)}
-        />
+        <div data-shortcut="record.assign" className="contents">
+          <Select
+            id="edit-owner"
+            label={t("fields.owner")}
+            value={owner}
+            options={personOptions}
+            onChange={(e) => setOwner(e.target.value)}
+          />
+        </div>
         <Select
           id="edit-phase"
           label={t("fields.phase")}
@@ -302,6 +310,7 @@ export function EditRecordForm({
           label={t("fields.starts")}
           name="startsAt"
           defaultValue={toLocalInput(record.startsAt, tz)}
+          onChange={(e) => setStartsValue(e.target.value)}
         />
         <Input
           id="edit-ends"
@@ -309,6 +318,12 @@ export function EditRecordForm({
           label={t("fields.ends")}
           name="endsAt"
           defaultValue={toLocalInput(record.endsAt, tz)}
+        />
+        <Checkbox
+          label={t("fields.startTbc")}
+          checked={startsValue !== "" && startTbc}
+          disabled={startsValue === ""}
+          onChange={(e) => setStartTbc(e.target.checked)}
         />
       </div>
       <MoreFields>
@@ -976,6 +991,7 @@ export function TrashControls({
             variant="ghost"
             icon="Trash2"
             loading={pending}
+            data-shortcut="record.trash"
             onClick={() => run(() => trashRecordAction(org, record.id), trashed)}
           >
             {t("trash.move")}

@@ -16,13 +16,17 @@ export function OpportunityLinkCard({
   locale,
   t,
   extra,
+  headingLevel = 3,
 }: {
   opportunity: Opportunity;
   locale: string;
   t: Translate;
   /** Lines under the tags, such as why the listing is recommended and how far away it is. */
   extra?: ReactNode;
+  /** The title's heading level: 3 under a section heading, 2 where the page title is the last one. */
+  headingLevel?: 2 | 3;
 }) {
+  const Heading = `h${headingLevel}` as const;
   const pay = o.rateOnRequest
     ? t("gateway.common.rateOnRequest")
     : (formatPayRange(locale, o.payMinMinor, o.payMaxMinor, o.currency) ??
@@ -40,14 +44,14 @@ export function OpportunityLinkCard({
           </span>
         ) : null}
       </div>
-      <h3 className="m-0 text-heading-16 font-semibold">
+      <Heading className="m-0 text-heading-16 font-semibold">
         <Link
           href={`/explore/${o.key}` as Route}
           className="text-text-primary no-underline after:absolute after:inset-0"
         >
           {o.title}
         </Link>
-      </h3>
+      </Heading>
       <p className="m-0 flex flex-wrap gap-x-12 gap-y-4 text-text-secondary">
         <strong className="font-semibold text-text-primary tabular-nums">
           {pay}

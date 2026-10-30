@@ -1,14 +1,16 @@
 import { listFavorites } from "@xos/data/settings";
 import { listShortcutBindings, listSidebarLayout } from "@xos/data/shell-preferences";
-import { flattenRoutes, getNode, isNodeVisible } from "@xos/ia";
+import { findRoute, flattenRoutes, getNode, isNodeVisible } from "@xos/ia";
 import { platformOf, SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
 import { negotiatedLocale } from "@/i18n/request";
 import { lockedLocale, selectableLocales } from "@/i18n/negotiate";
+import { PATH_HEADER } from "@/lib/auth/assurance";
 import { getAiFeatures } from "@/lib/aurora/features";
 import { observability } from "@/lib/observability";
 import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
+import { breadcrumbItems } from "@/lib/shell/breadcrumbs";
 import { getMyOrganizations, type OrgContext } from "@/lib/shell/context";
 import { createItems } from "@/lib/shell/create-menu";
 import { buildShellNav, NAV_ICONS } from "@/lib/shell/nav-model";
@@ -130,13 +132,25 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
     lockedLocale(settings.language) === null
       ? selectableLocales(process.env.NODE_ENV === "production")
       : [];
+  // The page this render is for (the path the proxy forwards; none on a prefetch): its breadcrumbs
+  // and node, so the client sitemap loads only once the person can navigate (ADR 0027).
+  const path = headerStore.get(PATH_HEADER)?.split("?")[0] ?? null;
+  const org = { name: ctx.org.name, slug: ctx.org.slug };
+  const page = path
+    ? {
+        path,
+        crumbs: breadcrumbItems(sitemap, path, { org, workspace: workspaces.active?.name }, t),
+        nodeId: findRoute(sitemap, path)?.id ?? null,
+      }
+    : null;
   // Quick add in the Create menu creates records, read on the org's calendar (Section 11.7).
   const quickAdd = ctx.capabilities.has("work.record.write")
     ? { org: ctx.org.slug, timeZone: await getOrgTimeZone(ctx) }
     : null;
   return (
     <ShellFrame
-      org={{ name: ctx.org.name, slug: ctx.org.slug }}
+      org={org}
+      page={page}
       orgs={orgs.map((o) => {
         const best = o.roles[0];
         const role = best ? (best.name ?? t(`shell.roles.${best.code}`)) : "";

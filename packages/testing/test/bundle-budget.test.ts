@@ -1,9 +1,18 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkRouteBudgets, kb, matchRoute, routeBundle } from "../src/bundle-budget.ts";
+import {
+  checkRouteBudgets,
+  CHUNK_FRAMING_BYTES,
+  kb,
+  matchRoute,
+  RESPONSE_HEADER_BYTES,
+  routeBundle,
+  transferBytes,
+} from "../src/bundle-budget.ts";
 
 const routes = [
   "/[org]/home/page",
@@ -70,6 +79,21 @@ function randomText(bytes: number): string {
 
 const only = { atlas: ["/auth/sign-in"], gateway: [], docs: [] };
 
+describe("transferBytes", () => {
+  it("counts a script as next start sends it: default-level gzip, headers and framing", () => {
+    const body = Buffer.from(randomText(100_000));
+    const gzip = gzipSync(body).length;
+    expect(gzip).toBeGreaterThan(32 * 1024);
+    expect(transferBytes(body)).toBe(
+      gzip + RESPONSE_HEADER_BYTES + CHUNK_FRAMING_BYTES * Math.ceil(gzip / 16_384),
+    );
+  });
+
+  it("charges even a tiny script its headers, which is why fewer chunks weigh less", () => {
+    expect(transferBytes(Buffer.from("x"))).toBeGreaterThan(RESPONSE_HEADER_BYTES);
+  });
+});
+
 describe("routeBundle and checkRouteBudgets", () => {
   it("adds root, layout and page chunks once each", () => {
     const root = mkdtempSync(join(tmpdir(), "bundle-"));
@@ -80,7 +104,8 @@ describe("routeBundle and checkRouteBudgets", () => {
       "static/chunks/page.js",
       "static/chunks/root.js",
     ]);
-    expect(bundle.gzipBytes).toBeGreaterThan(2_000);
+    // Three responses, each with its headers on top of the gzip body.
+    expect(bundle.transferBytes).toBeGreaterThan(2_000 + 3 * RESPONSE_HEADER_BYTES);
   });
 
   it("fails a page over budget unless a recorded ceiling holds it", () => {

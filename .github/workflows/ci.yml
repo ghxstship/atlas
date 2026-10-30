@@ -94,7 +94,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs --filter=@xos/console
-      # Fails when a key page passes 200 KB gzip, or the ceiling recorded for it in
+      # Fails when a key page's scripts pass 200 KB on the wire as Lighthouse counts them (gzip at the
+      # level next start sends, with each response's headers), or the ceiling recorded for it in
       # packages/testing/bundle-ceilings.json (pages still over budget, ADR 0027).
       - run: pnpm --filter @xos/testing budget:js -- --chunks
 
@@ -214,6 +215,14 @@ jobs:
           echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
           # Production builds offer no pseudo-locales; the ar-XB journey runs in e2e-pseudo-locales.
           echo "E2E_PRODUCTION_BUILD=1" >> "$GITHUB_ENV"
+      # Gate 10 as Lighthouse counts it: every script a cold load of each key page fetches, the modules a
+      # page loads after hydration included, which the build manifests cannot show (route-js-budget).
+      - name: Route JavaScript of the served key pages
+        if: matrix.suite == 'journeys' && matrix.app != 'docs'
+        run: |
+          SUPABASE_URL="$E2E_SUPABASE_URL" SUPABASE_ANON_KEY="$E2E_SUPABASE_ANON_KEY" \
+            ATLAS_URL="$E2E_ATLAS_URL" GATEWAY_URL="$E2E_GATEWAY_URL" \
+            pnpm --filter @xos/testing budget:js -- --served "${{ matrix.app }}" --chunks
       - name: Journeys
         if: matrix.suite == 'journeys'
         run: pnpm exec playwright test

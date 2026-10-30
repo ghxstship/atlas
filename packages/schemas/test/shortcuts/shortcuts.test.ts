@@ -15,6 +15,7 @@ import {
   chordOf,
   displayKeys,
   effectiveBindings,
+  isCharacterKey,
   isModifierChord,
   isValidKeys,
   keysClash,
@@ -94,10 +95,89 @@ describe("shortcut registry", () => {
     expect(registry.shells.gateway.shortcuts.map((x) => x.id)).toEqual([
       "command-menu",
       "help",
+      "account",
+      "switch-org",
+      "go.home",
+      "go.explore",
+      "go.work",
+      "go.money",
+      "go.messages",
+      "go.profile",
+      "go.documents",
+      "go.settings",
       "close",
       "undo",
       "redo",
     ]);
+  });
+
+  it("gives the showcaller console a keyboard family and a Stream Deck family (ADR 0131)", () => {
+    const atlas = registry.shells.atlas;
+    expect(atlas.scopes).toContain("show");
+    expect(atlas.groups.map((g) => g.id)).toEqual(expect.arrayContaining(["show", "show-deck"]));
+    const keysOf = (group: string) =>
+      Object.fromEntries(
+        atlas.shortcuts.filter((x) => x.group === group).map((x) => [x.id, x.keys]),
+      );
+    expect(keysOf("show")).toEqual({
+      "show.go": "Space",
+      "show.next": "J",
+      "show.previous": "K",
+      "show.standby": "S",
+      "show.jump": "T",
+      "show.nudge-later": "]",
+      "show.nudge-earlier": "[",
+      "show.department": "D",
+    });
+    expect(keysOf("show-deck")).toEqual({
+      "show.deck.go": "F13",
+      "show.deck.standby": "F14",
+      "show.deck.previous": "F15",
+      "show.deck.next": "F16",
+      "show.deck.nudge-later": "F17",
+      "show.deck.nudge-earlier": "F18",
+      "show.deck.jump": "F19",
+      "show.deck.department": "F20",
+    });
+    expect(atlas.shortcuts.find((x) => x.id === "show.go")?.fixed).toBe(true);
+    for (const x of atlas.shortcuts.filter((y) => y.scope === "show")) {
+      expect(x.scope).toBe("show");
+      expect(scopesMeet("show", "list")).toBe(false);
+      expect(scopesMeet("show", "inbox")).toBe(false);
+    }
+  });
+
+  it("gives every record and view action a default a person may rebind (Section 11.2)", () => {
+    const atlas = new Map(registry.shells.atlas.shortcuts.map((x) => [x.id, x]));
+    const actions = {
+      record: ["state", "assign", "comment", "edit-title", "open", "copy-link", "trash"],
+      view: ["switch", "filters", "save", "export"],
+    };
+    for (const [scope, names] of Object.entries(actions)) {
+      expect(registry.shells.atlas.scopes).toContain(scope);
+      for (const name of names) {
+        const shortcut = atlas.get(`${scope}.${name}`);
+        expect(shortcut, `${scope}.${name}`).toMatchObject({ scope, group: scope, fixed: false });
+        expect(shortcut?.keys, `${scope}.${name}`).not.toBeNull();
+      }
+    }
+    expect(atlas.get("record.trash")?.keys).toBe("Mod+Backspace");
+    expect(atlas.get("view.export")?.keys).toBe("Shift+E");
+  });
+
+  it("gives Gateway G then a letter for each destination", () => {
+    const gateway = registry.shells.gateway.shortcuts.filter((x) => x.go !== null);
+    expect(gateway.map((x) => x.go)).toEqual([
+      "home",
+      "explore",
+      "work",
+      "money",
+      "messages",
+      "profile",
+      "documents",
+      "settings",
+    ]);
+    for (const x of gateway) expect(x.keys, x.id).toMatch(/^G [A-Z]$/);
   });
 
   it("refuses defaults that clash where their scopes meet", () => {
@@ -214,6 +294,49 @@ describe("key grammar", () => {
     expect(isModifierChord("nope")).toBe(false);
   });
 
+  it("accepts F13 to F20, which are not reserved, and tells character keys from function keys", () => {
+    for (let n = 13; n <= 20; n += 1) {
+      const key = `F${n}`;
+      expect(isValidKeys(key), key).toBe(true);
+      expect(isValidKeys(`Shift+${key}`), key).toBe(true);
+      expect(chordOf(press(key), "mac")).toBe(key);
+      expect(chordOf(press(key), "other")).toBe(key);
+      for (const r of registry.reserved) {
+        for (const platform of ["mac", "other"] as const) {
+          if (r.platform === undefined || r.platform === platform) {
+            expect(matchesReserved(key, r.keys, platform), `${key} ${r.keys}`).toBe(false);
+          }
+        }
+      }
+    }
+    expect(isValidKeys("F21")).toBe(false);
+    expect(isCharacterKey("J")).toBe(true);
+    expect(isCharacterKey("Shift+J")).toBe(true);
+    expect(isCharacterKey("]")).toBe(true);
+    expect(isCharacterKey("G H")).toBe(true);
+    expect(isCharacterKey("F13")).toBe(false);
+    expect(isCharacterKey("Space")).toBe(false);
+    expect(isCharacterKey("Mod+K")).toBe(false);
+    expect(isCharacterKey("nope")).toBe(false);
+  });
+
+  it("lets a person bind a show key to a function key", () => {
+    const current = (platform: Platform) => effectiveBindings(registry.shells.atlas, {}, platform);
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "Shift+F13")).toBeNull();
+    expect(bindingProblem(registry, "atlas", current, "show.next", "F15")).toMatchObject({
+      kind: "conflict",
+    });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F21")).toEqual({
+      kind: "invalid",
+    });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F12")).toMatchObject({
+      kind: "reserved",
+    });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F14")).toMatchObject({
+      kind: "conflict",
+    });
+  });
+
   it("turns key presses into chords on each platform", () => {
     const cases: [KeyEventLike, Platform, string | null][] = [
       [press("k", { metaKey: true }), "mac", "Mod+K"],
@@ -280,8 +403,13 @@ describe("key grammar", () => {
     expect(keysClash("G H", "G I", "mac")).toBe(false);
     expect(keysClash("H", "G H", "mac")).toBe(false);
     expect(keysClash("nope", "G", "mac")).toBe(false);
-    expect(scopesMeet("list", "inbox")).toBe(false);
     expect(scopesMeet("global", "inbox")).toBe(true);
+    // A list can sit in any region and takes its keys first, so the list scope meets every scope.
+    expect(scopesMeet("list", "inbox")).toBe(true);
+    expect(scopesMeet("view", "list")).toBe(true);
+    expect(scopesMeet("list", "record")).toBe(true);
+    expect(scopesMeet("record", "view")).toBe(false);
+    expect(scopesMeet("inbox", "view")).toBe(false);
   });
 });
 
@@ -351,9 +479,11 @@ describe("personal bindings", () => {
     expect(problem("go.safety", "C")).toEqual({ kind: "conflict", with: "create-menu" });
     expect(problem("go.safety", "G")).toEqual({ kind: "conflict", with: "go.home" });
     expect(problem("go.safety", "G H")).toEqual({ kind: "conflict", with: "go.home" });
-    // Global keys may not shadow a list key, but two other scopes never meet.
+    // No key may shadow a list key, since a list sits in any region; two other scopes never meet.
     expect(problem("go.safety", "X")).toEqual({ kind: "conflict", with: "list.select" });
-    expect(problem("inbox.done", "X")).toBeNull();
+    expect(problem("inbox.done", "X")).toEqual({ kind: "conflict", with: "list.select" });
+    expect(problem("view.switch", "J")).toEqual({ kind: "conflict", with: "list.next" });
+    expect(problem("record.open", "K")).toEqual({ kind: "conflict", with: "list.previous" });
     expect(problem("inbox.done", "A")).toEqual({ kind: "conflict", with: "inbox.approve" });
     // The person's own bindings count, and moving one frees its old keys.
     expect(problem("go.safety", "G Z", { "go.places": "G Z" })).toEqual({
@@ -361,7 +491,13 @@ describe("personal bindings", () => {
       with: "go.places",
     });
     expect(problem("go.safety", "G H", { "go.home": "G Q" })).toBeNull();
-    expect(problem("go.safety", "Shift+S")).toBeNull();
+    expect(problem("go.safety", "Shift+Q")).toBeNull();
     expect(problem("aurora", "Mod+Shift+A")).toBeNull();
+    // Record and view keys hold their letters against global shortcuts, not against each other.
+    expect(problem("go.safety", "S")).toEqual({ kind: "conflict", with: "record.state" });
+    expect(problem("go.safety", "Shift+S")).toEqual({ kind: "conflict", with: "view.save" });
+    expect(problem("record.state", "V")).toBeNull();
+    expect(problem("record.state", "A")).toEqual({ kind: "conflict", with: "record.assign" });
+    expect(problem("view.export", "C")).toEqual({ kind: "conflict", with: "create-menu" });
   });
 });

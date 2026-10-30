@@ -78,7 +78,8 @@
     },
     "mapAlternative": "Las ubicaciones en el mapa aún no están disponibles, así que los lugares se listan abajo por fecha.",
     "orgFilter": "Mostrando solo {org}",
-    "clearFilter": "Mostrar todas las organizaciones"
+    "clearFilter": "Mostrar todas las organizaciones",
+    "tbc": "Por confirmar"
   },
   "engagement": {
     "tabs": "Secciones de la contratación",

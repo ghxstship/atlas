@@ -122,6 +122,12 @@ importers:
       '@tailwindcss/postcss':
         specifier: 4.3.3
         version: 4.3.3
+      '@testing-library/dom':
+        specifier: 10.4.2
+        version: 10.4.2
+      '@testing-library/react':
+        specifier: 16.3.3
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@types/node':
         specifier: 22.20.5
         version: 22.20.5
@@ -146,6 +152,9 @@ importers:
       intl-messageformat:
         specifier: 11.2.15
         version: 11.2.15
+      jsdom:
+        specifier: 29.1.1
+        version: 29.1.1(@noble/hashes@1.8.0)
       jsqr:
         specifier: 1.4.0
         version: 1.4.0
@@ -1350,6 +1359,12 @@ importers:
       '@xos/config':
         specifier: workspace:*
         version: link:../config
+      '@xos/data':
+        specifier: workspace:*
+        version: link:../data
+      '@xos/ia':
+        specifier: workspace:*
+        version: link:../ia
       '@xos/tokens':
         specifier: workspace:*
         version: link:../tokens

@@ -1,10 +1,16 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { stalePartials } from "@xos/help/node";
+import { getMessages, type Locale } from "@xos/i18n";
+import { SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
+import { shortcutPartial } from "@xos/schemas/shortcuts/docs";
 import { format, resolveConfig } from "prettier";
 import { describe, expect, it } from "vitest";
 import enHelp from "../../../packages/i18n/messages/en-US/help.json";
 import esHelp from "../../../packages/i18n/messages/es-US/help.json";
 import {
+  HELP_DIR,
   loadHelpContent,
   parseArticle,
   renderHelpBodies,
@@ -28,8 +34,16 @@ import { sitemap } from "../ia/sitemap.generated";
  * The help content (Section 11.16). Runs with XOS_WRITE_GENERATED=1 to write
  * help/content.generated.ts and help/bodies.generated.ts; every other run fails on drift. Also checks that every article exists
  * in every locale, names real pages, and links only to articles that exist, and that every tour,
- * tip and What's New entry has its copy.
+ * tip and What's New entry has its copy. The keyboard article's shortcut lists are generated from the
+ * shortcut registry (Section 3.15) and written first, so the modules below read them; changing a
+ * default key without regenerating fails here.
  */
+const write = process.env["XOS_WRITE_GENERATED"] === "1";
+const stale = stalePartials(
+  HELP_DIR,
+  shortcutPartial(SHORTCUT_REGISTRY, (locale) => getMessages(locale as Locale)),
+);
+if (write) for (const s of stale) writeFileSync(s.file, s.expected);
 const content = loadHelpContent();
 const target = fileURLToPath(new URL("../help/content.generated.ts", import.meta.url));
 const bodiesTarget = fileURLToPath(new URL("../help/bodies.generated.ts", import.meta.url));
@@ -39,7 +53,7 @@ const formatted = async (source: string, file: string) =>
 const expected = await formatted(renderHelpModule(content), target);
 const expectedBodies = await formatted(renderHelpBodies(content), bodiesTarget);
 const expectedGuides = await formatted(renderHelpGuides(content), guidesTarget);
-if (process.env["XOS_WRITE_GENERATED"] === "1") {
+if (write) {
   writeFileSync(target, expected);
   writeFileSync(bodiesTarget, expectedBodies);
   writeFileSync(guidesTarget, expectedGuides);
@@ -67,6 +81,16 @@ const lookup = (catalog: unknown, path: string): unknown =>
     .reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], catalog);
 
 describe("help content", () => {
+  it("names the registry's default keys in the shortcut lists (A65-007)", () => {
+    expect(write ? [] : stale.map((s) => relative(HELP_DIR, s.file))).toEqual([]);
+    const article = content.articles["en-US"].find((a) => a.slug === "keyboard-navigation");
+    const items = article?.body.flatMap((b) => ("items" in b ? b.items : [])) ?? [];
+    expect(items).toContainEqual([
+      { t: "strong", v: "S" },
+      { t: "text", v: ": Change the state" },
+    ]);
+  });
+
   it("matches the generated module", () => {
     expect(existsSync(target) ? readFileSync(target, "utf8") : "").toBe(expected);
     expect(existsSync(bodiesTarget) ? readFileSync(bodiesTarget, "utf8") : "").toBe(expectedBodies);

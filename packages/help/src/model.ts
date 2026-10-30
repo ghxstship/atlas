@@ -15,7 +15,8 @@
  *
  * Articles are written in a small Markdown subset (## and ### headings, paragraphs, - and 1. lists,
  * **bold**, `code` and [links](href), where `help:<slug>` links to another article of the same
- * shell). Each shell's generator test parses its directory with ./load (node only) into generated
+ * shell). A line that is a whole HTML comment marks a generated list (fillPartials in ./load) and is
+ * skipped. Each shell's generator test parses its directory with ./load (node only) into generated
  * modules, which the shells render as plain elements, never HTML strings. Every article exists in
  * every locale. The apps/docs help center reads the same files.
  */
@@ -113,6 +114,8 @@ export function parseInline(text: string): Inline[] {
   return out;
 }
 
+const COMMENT = /^<!--.*-->$/;
+
 /** Parses the article Markdown subset into blocks. */
 export function parseBody(markdown: string): Block[] {
   const blocks: Block[] = [];
@@ -129,7 +132,8 @@ export function parseBody(markdown: string): Block[] {
     const heading = /^(#{2,3}) (.+)$/.exec(line);
     const bullet = /^- (.+)$/.exec(line);
     const numbered = /^\d+\. (.+)$/.exec(line);
-    if (line === "") flush();
+    // A comment line, such as a generated list's marker, ends the block before it like a blank line.
+    if (line === "" || COMMENT.test(line)) flush();
     else if (heading) {
       flush();
       blocks.push({ t: heading[1] === "##" ? "h2" : "h3", v: heading[2] as string });

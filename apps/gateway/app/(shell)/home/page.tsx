@@ -247,7 +247,9 @@ function detailItems(
       ? [
           {
             label: t(`gateway.home.upNext.callKind.${details.call.kind}`),
-            value: formatScheduleTime(locale, details.call.at, details.call.timeZone, schedule),
+            value: details.call.tbc
+              ? t("gateway.common.tbc")
+              : formatScheduleTime(locale, details.call.at, details.call.timeZone, schedule),
           },
         ]
       : []),

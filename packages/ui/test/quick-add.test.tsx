@@ -362,3 +362,23 @@ describe("QuickAdd with a resolver", () => {
     );
   });
 });
+
+describe("the quick add parser on demand", () => {
+  it("reads the line as plain text until it loads, and a line saved before then once it has", async () => {
+    vi.resetModules();
+    const { renderHook } = await import("@testing-library/react");
+    const { useQuickAdd } = await import("../src/Editing/useQuickAdd.ts");
+    const { result } = renderHook(() =>
+      useQuickAdd({ text: "Load-in tomorrow @dana", referenceDate: monday, timeZone: ny.timeZone }),
+    );
+    expect(result.current.parse).toEqual({
+      text: "Load-in tomorrow @dana",
+      title: "Load-in tomorrow @dana",
+      tokens: [],
+    });
+    const saved = await result.current.finalize();
+    expect(saved.title).toBe("Load-in");
+    expect(saved.tokens.map((t) => t.type).sort()).toEqual(["date", "person"]);
+    await waitFor(() => expect(result.current.parse.tokens).toHaveLength(2));
+  });
+});
