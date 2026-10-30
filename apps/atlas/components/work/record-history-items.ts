@@ -1,5 +1,10 @@
 import type { Json } from "@xos/data/database.types";
-import { attributeColumn, type HistoryEvent } from "@xos/data/field-history";
+import {
+  ATTRIBUTE_FIELD_PREFIX,
+  attributeColumn,
+  eventCurrencies,
+  type HistoryEvent,
+} from "@xos/data/field-history";
 import type { ExtensionValues } from "@xos/data/work";
 import type { HistoryItem } from "@/components/history/field-history-list";
 import { historyItems } from "@/lib/history/items";
@@ -52,7 +57,9 @@ export interface RecordHistoryWording {
 /**
  * A record's field history worded for the DiffViewer (Section 4.10), on its page, its work peek and
  * the shell's peek: the record's own fields by their form labels, and the kind's attributes
- * (`attributes.<column>`, A131) by `work.extension.<column>`, each value as its form shows it.
+ * (`attributes.<column>`, A131) by `work.extension.<column>`, each value as its form shows it. An
+ * amount reads in the currency its extension row held at that event (ADR 0090), and as so many
+ * minor units when that currency is unknown.
  */
 export function recordHistoryItems(
   events: readonly HistoryEvent[],
@@ -61,7 +68,27 @@ export function recordHistoryItems(
   const { t } = w;
   const attributes = new Map(w.fields.map((f) => [f.column, f]));
   const person = (id: string) => w.names[id] ?? t("work.values.unnamed");
-  const attributeValue = (f: KindField, v: Json): string => {
+  // Each currency column's value at every event, walked back from the extension row's value now.
+  const currencyAt = new Map(
+    [...new Set(w.fields.flatMap((f) => (f.currencyColumn ? [f.currencyColumn] : [])))].map(
+      (column) => {
+        const now = w.extension[column];
+        return [
+          column,
+          eventCurrencies(
+            events,
+            typeof now === "string" ? now : null,
+            `${ATTRIBUTE_FIELD_PREFIX}${column}`,
+          ),
+        ];
+      },
+    ),
+  );
+  const attributeValue = (
+    f: KindField,
+    v: Json,
+    at: { readonly event: HistoryEvent; readonly side: "before" | "after" },
+  ): string => {
     const text = typeof v === "string" ? v : JSON.stringify(v);
     switch (f.type) {
       case "boolean":
@@ -78,11 +105,14 @@ export function recordHistoryItems(
         return typeof v === "number" ? w.number(v) : text;
       case "money": {
         if (typeof v !== "number") return text;
-        const code = f.currencyColumn ? w.extension[f.currencyColumn] : null;
+        const code = f.currencyColumn
+          ? (currencyAt.get(f.currencyColumn)?.get(at.event.id)?.[at.side] ?? null)
+          : null;
         const currency = w.currencies.find((c) => c.code === code);
-        return currency
-          ? (formatMoney(v, currency.code, w.locale, currency.exponent) ?? text)
-          : w.number(v);
+        const formatted = currency
+          ? formatMoney(v, currency.code, w.locale, currency.exponent)
+          : null;
+        return formatted ?? t("collab.history.minorUnits", { amount: w.number(v) });
       }
       default:
         return text.length > 160 ? `${text.slice(0, 157)}...` : text;
@@ -99,10 +129,10 @@ export function recordHistoryItems(
       const key = RECORD_FIELD_LABELS[field];
       return field === "deleted_at" ? t("collab.history.trash") : key ? t(key) : null;
     },
-    value: (field, v) => {
+    value: (field, v, at) => {
       const attribute = attributeColumn(field);
       const kindField = attribute === null ? undefined : attributes.get(attribute);
-      if (kindField) return attributeValue(kindField, v);
+      if (kindField) return attributeValue(kindField, v, at);
       const text = typeof v === "string" ? v : JSON.stringify(v);
       if (field === "owner_party_id" || field === "accountable_party_id") return person(text);
       if (field === "record_state") return t(`work.states.${text}`);

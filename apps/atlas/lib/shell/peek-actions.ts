@@ -93,7 +93,11 @@ export async function loadShellPeekAction(
     listStateHistory(db, r.id),
     loadConversation(ctx, { table: "app.records", id: r.id }),
     loadRelations(ctx, r.id),
-    fieldHistoryOf(ctx, r),
+    // A history that cannot be read or worded leaves its section out, not the peek.
+    fieldHistoryOf(ctx, r).catch((error: unknown) => {
+      observability.logger.error("Shell peek field history failed", { error });
+      return null;
+    }),
     // The command menu's recent items (Section 11.7).
     rememberView(ctx, "records", r.id),
   ]).catch((error: unknown) => {
