@@ -50,7 +50,7 @@ with no list of its own; turbo's lint and test inputs include that file.
 
 ### 3. Packages below `@xos/data` keep a copy that a test holds equal
 
-In `@xos/schemas`, `@xos/ai`, `@xos/platform`, `@xos/sdk`, `@xos/ui` and `@xos/ui-native`, each enum is written
+In `@xos/schemas`, `@xos/ai`, `@xos/platform`, `@xos/sdk` and `@xos/ui-native`, each enum is written
 once, at its home in the package, with an `eslint-disable-next-line xos/no-restated-enums` that names the test.
 Other code in the package reads that home. Each package's `test/database-enums.test.ts` holds every copy to the
 same values as its enum, through `databaseEnums()` from `@xos/config/database-enums`. A copy that is a type is
@@ -61,7 +61,12 @@ checked through a `Record` over the type, which must name each member once. `@xo
 
 A list that equals an enum by coincidence keeps its values and carries an `eslint-disable-next-line` with the
 reason on the line above: the change order moves out of Priced in `packages/data/src/finance.ts`, and the automation
-group keys in `packages/schemas/src/automations/evaluate.ts`.
+group keys in `packages/schemas/src/automations/evaluate.ts`. `"Atlas" | "Gateway"` equals `app.shortcut_shell`, the
+keyboard-shortcut shells of migration 1370, but four lists of those two names are other sets: the custom-domain
+purposes of `app.org_domain_purpose` that the 0850 and 1355 triggers gate (the Domains panel), the `app_code` check
+of feedback (1531), the `web_app` check of push subscriptions (1533, in `@xos/data` and `@xos/platform`) and the
+apps with a service worker in `@xos/ui`. Each keeps its literals, so a shell added to `app.shortcut_shell` does not
+widen them to values their constraints refuse.
 
 ## Consequences
 

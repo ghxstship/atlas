@@ -1,6 +1,5 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
-import type { Database } from "./database.types.ts";
 
 /**
  * Browser notifications through Web Push (Section 4.10, A65-023, migration 1533). A browser registers for every org
@@ -9,7 +8,10 @@ import type { Database } from "./database.types.ts";
  * dispatcher sends it the Push deliveries, under A80's quiet hours and preferences.
  */
 
-export type WebPushApp = Database["app"]["Enums"]["shortcut_shell"];
+// The push_subscriptions_web_app check of migration 1533, which equals app.shortcut_shell by
+// coincidence; not that enum.
+// eslint-disable-next-line xos/no-restated-enums
+export type WebPushApp = "Atlas" | "Gateway";
 
 /** A browser's PushSubscription as PushSubscription.toJSON() gives it. */
 export interface BrowserSubscription {

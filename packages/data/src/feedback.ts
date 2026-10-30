@@ -1,7 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
-import type { Database } from "./database.types.ts";
 
 /**
  * Feedback to the platform team (Section 11.7, A65-022, migration 1531). The widget in Atlas and Gateway sends the
@@ -10,7 +9,10 @@ import type { Database } from "./database.types.ts";
  * list and triage it; a screenshot opens for them only once its upload scan found it Clean.
  */
 
-export type FeedbackApp = Database["app"]["Enums"]["shortcut_shell"];
+// The feedback_submissions_app check of migration 1531, which equals app.shortcut_shell by
+// coincidence; not that enum.
+// eslint-disable-next-line xos/no-restated-enums
+export type FeedbackApp = "Atlas" | "Gateway";
 export type FeedbackState = "New" | "Read" | "Planned" | "Closed";
 export const FEEDBACK_STATES: readonly FeedbackState[] = ["New", "Read", "Planned", "Closed"];
 export const FEEDBACK_TRIAGE_STATES: readonly Exclude<FeedbackState, "New">[] = [

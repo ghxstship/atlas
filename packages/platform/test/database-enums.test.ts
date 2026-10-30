@@ -2,7 +2,6 @@ import { databaseEnums } from "@xos/config/database-enums";
 import { describe, expect, it } from "vitest";
 import type { BillingInterval } from "../src/billing/plans.ts";
 import type { SmsKeywordAction } from "../src/notifications/sms.ts";
-import type { WebPushDevice } from "../src/notifications/web-push.ts";
 import { PUNCH_KINDS } from "../src/stores.ts";
 
 /**
@@ -16,12 +15,10 @@ const keywordActions: Record<SmsKeywordAction, true> = {
   "Opt In": true,
   Help: true,
 };
-const pushApps: Record<WebPushDevice["app"], true> = { Atlas: true, Gateway: true };
 
 const lists: readonly (readonly [string, readonly string[]])[] = [
   ["app.billing_interval", Object.keys(intervals)],
   ["app.sms_consent_action", Object.keys(keywordActions)],
-  ["app.shortcut_shell", Object.keys(pushApps)],
   ["app.punch_kind", PUNCH_KINDS],
 ];
 

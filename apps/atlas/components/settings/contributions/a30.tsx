@@ -38,7 +38,6 @@ import { choiceLabelKey, formText, workspaceSettings } from "@/lib/settings/regi
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
-import * as enums from "@xos/data/enums";
 
 /**
  * A30's settings panels: the org name, brand and logos, domains, module switches, verified domains
@@ -199,7 +198,10 @@ async function DomainsPanel({ ctx }: SettingsPanelProps) {
   const canEdit = ctx.capabilities.has("org.white_label.write");
   const plan = subscription.data.planCode;
   const purposes = [
-    ...(planHasFeature(plan, "custom_domain") ? enums.shortcutShell : []),
+    // The custom-domain purposes of org_domain_purpose that the 0850 and 1355 triggers gate on
+    // custom_domain; they equal app.shortcut_shell's values by coincidence, not that enum.
+    // eslint-disable-next-line xos/no-restated-enums
+    ...(planHasFeature(plan, "custom_domain") ? (["Atlas", "Gateway"] as const) : []),
     ...(planHasFeature(plan, "white_label") ? (["Email Sending"] as const) : []),
   ];
   return (
