@@ -82,6 +82,18 @@ export function resolveTenant(
   return { slug, via: "path", rest: `/${rest.join("/")}`, base: `${TENANT_PREFIX}${slug}` };
 }
 
+/**
+ * The docs page a browser path shows. Under /o/<slug>/ the proxy rewrites to the prerendered page
+ * at the rest of the path, so the client reads /o/<slug>/en-US/… where the server rendered
+ * /en-US/…; the tenant base is dropped so both match the same nav item and hydration agrees.
+ */
+export function docsPagePath(pathname: string): string {
+  if (!pathname.startsWith(TENANT_PREFIX)) return pathname;
+  const [slug = "", ...rest] = pathname.slice(TENANT_PREFIX.length).split("/");
+  if (!SLUG.test(slug) || slug.length > 48) return pathname;
+  return `/${rest.join("/")}`;
+}
+
 /** The cookie value carrying a brand and its link base, as JSON: Next URI-encodes it in Set-Cookie. */
 export function encodeBrand(brand: DocsBrand, base: string): string {
   return JSON.stringify({ ...brand, base });

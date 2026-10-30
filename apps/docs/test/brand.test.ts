@@ -5,6 +5,7 @@ import {
   BRAND_COOKIE,
   BRAND_SCRIPT,
   decodeBrand,
+  docsPagePath,
   encodeBrand,
   parseTenantHosts,
   readCookie,
@@ -13,6 +14,7 @@ import {
   type DocsBrand,
 } from "../lib/brand.ts";
 import { brandAssetUrl, docsAccent, fetchDocsBrand } from "../lib/brand-lookup.ts";
+import { activeNavLabel } from "../lib/nav-active.ts";
 import { proxy } from "../proxy.ts";
 
 const HOSTS = parseTenantHosts(
@@ -192,6 +194,39 @@ describe("scopedPath", () => {
     );
     expect(scopedPath("/openapi.json", "/o/northwind-live")).toBe("/openapi.json");
     expect(scopedPath("/en-US", "")).toBe("/en-US");
+  });
+});
+
+describe("the sidebar under /o/<slug>/", () => {
+  const groups = [
+    {
+      items: [
+        { label: "Overview", href: "/en-US" },
+        { label: "Quickstart", href: "/en-US/guides/quickstart" },
+      ],
+    },
+    { label: "API", items: [{ label: "Reference", href: "/en-US/api" }] },
+  ];
+
+  it("reads a rewritten path as the prerendered page it shows", () => {
+    expect(docsPagePath("/o/northwind-live/en-US/guides/quickstart")).toBe(
+      "/en-US/guides/quickstart",
+    );
+    expect(docsPagePath("/o/northwind-live")).toBe("/");
+    expect(docsPagePath("/en-US/api")).toBe("/en-US/api");
+    expect(docsPagePath("/o/Not A Slug/en-US")).toBe("/o/Not A Slug/en-US");
+  });
+
+  it("marks the same item on the server's path and the browser's, so hydration agrees", () => {
+    for (const [server, browser, label] of [
+      ["/en-US/guides/quickstart", "/o/northwind-live/en-US/guides/quickstart", "Quickstart"],
+      ["/en-US/api/people", "/o/northwind-live/en-US/api/people", "Reference"],
+      ["/en-US", "/o/northwind-live/en-US", "Overview"],
+    ] as const) {
+      expect(activeNavLabel(server, groups)).toBe(label);
+      expect(activeNavLabel(browser, groups)).toBe(label);
+    }
+    expect(activeNavLabel("/es-US", groups)).toBeUndefined();
   });
 });
 
