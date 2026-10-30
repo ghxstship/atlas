@@ -8,7 +8,8 @@
 --     row's id column, and an extension row has none: its key is record_id. private.audit_keyed_row_change is the same
 --     trigger with the key column named by its argument, so each event's subject is the extension table and the
 --     record's id. It leaves out what audit_row_change leaves out (private.audit_excluded_columns: audit columns,
---     binary columns and Restricted columns) and skips the same rows (no org, a retention purge, a purged org);
+--     binary columns and Restricted columns), skips the same rows (no org, a retention purge, a purged org) and, like
+--     audit_row_change since 2230, names a partition's events by its parent (private.trigger_table);
 --   * lists the extension tables in private.field_history_extensions, each with the subject table whose history
 --     merges its changes;
 --   * recreates app.field_history from its latest definition (1452; 2061 and 2100 did not redefine it) so a record's
@@ -32,7 +33,10 @@ set search_path = ''
 as $$
 declare
   v_key_column text := tg_argv[0];
-  v_excluded text[] := private.audit_excluded_columns(tg_relid);
+  v_table regclass := private.trigger_table(tg_relid);
+  v_schema text := tg_table_schema;
+  v_name text := tg_table_name;
+  v_excluded text[] := private.audit_excluded_columns(v_table);
   v_old jsonb;
   v_new jsonb;
   v_diff jsonb;
@@ -41,6 +45,11 @@ declare
 begin
   if private.in_trusted_operation('retention_purge') then
     return null;
+  end if;
+  if v_table <> tg_relid::regclass then
+    select n.nspname, c.relname into v_schema, v_name
+    from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where c.oid = v_table;
   end if;
   if tg_op in ('UPDATE', 'DELETE') then
     v_old := to_jsonb(old) - v_excluded;
@@ -71,13 +80,13 @@ begin
   else
     v_diff := jsonb_build_object('old', v_old);
   end if;
-  perform private.write_audit_event((v_row ->> 'org_id')::uuid, tg_table_name || '.' || lower(tg_op), tg_table_schema || '.' || tg_table_name,
+  perform private.write_audit_event((v_row ->> 'org_id')::uuid, v_name || '.' || lower(tg_op), v_schema || '.' || v_name,
     (v_row ->> v_key_column)::uuid, v_diff);
   return null;
 end;
 $$;
 
-comment on function private.audit_keyed_row_change() is 'After insert, update or delete trigger for a table keyed by a column other than id (its name is the trigger''s argument): writes the row change to the audit ledger as private.audit_row_change does, with that column as the subject id. A 1:1 extension row is thereby audited under the id of the row it extends.';
+comment on function private.audit_keyed_row_change() is 'After insert, update or delete trigger for a table keyed by a column other than id (its name is the trigger''s argument): writes the row change to the audit ledger as private.audit_row_change does, with that column as the subject id. A 1:1 extension row is thereby audited under the id of the row it extends. On a partitioned table the action, subject and excluded columns are the parent table''s (private.trigger_table), as for audit_row_change.';
 revoke all on function private.audit_keyed_row_change() from public, anon, authenticated;
 
 -- 2. Extensions whose changes a subject's history merges ----------------------------------------------------------------
