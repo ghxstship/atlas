@@ -27,6 +27,7 @@ import {
 } from "@/components/work/load";
 import { engagementOptions } from "@/lib/people/project-people";
 import type { OrgContext } from "@/lib/shell/context";
+import { importLinkHref } from "@/lib/imports/import-link";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
@@ -139,6 +140,10 @@ export async function RunsPage({
             draftable={draftable}
             setTimes={setTimes.ok ? setTimes.data : []}
             artists={artists}
+            importHref={importLinkHref(ctx.org.slug, ctx.nav, canEdit, {
+              target: "cues",
+              runOfShowId: run.data.id,
+            })}
           >
             {param(search, "live") === "1" ? null : (
               <>

@@ -799,6 +799,10 @@ restated:
     parent: app.import_jobs.sheet_name
     kind: own
     note: One row per sheet of the workbook; the import's is the sheet it reads.
+  - column: app.import_jobs.project_id
+    parent: app.run_of_show.project_id
+    kind: own
+    note: Destination of a guest list import; a cue import names its running order instead and leaves project_id NULL (import_jobs_one_destination).
   - column: app.import_jobs.sheet_name
     parent: app.import_job_sheets.sheet_name
     kind: own
