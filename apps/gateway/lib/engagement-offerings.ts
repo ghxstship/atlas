@@ -18,7 +18,8 @@ import {
 /**
  * The sitemap conditions an engagement's offerings meet: Travel and lodging when travel or lodging
  * is offered, Per diem for per diem, Hospitality when catering, lodging or travel is, and Guest list
- * for a guest list. An offering that is absent or Not Offered meets none.
+ * for a guest list, and Project details (R5) when travel, uniforms or parking is. An offering that is absent or Not
+ * Offered meets none.
  */
 export function offeringConditions(rows: readonly EngagementOffering[]): Condition[] {
   const offered = new Set(rows.filter((r) => r.mode !== "Not Offered").map((r) => r.offering));
@@ -29,6 +30,9 @@ export function offeringConditions(rows: readonly EngagementOffering[]): Conditi
     conditions.push("offered-hospitality");
   }
   if (offered.has("Guest List")) conditions.push("offered-guest-list");
+  if (offered.has("Travel") || offered.has("Uniforms") || offered.has("Parking")) {
+    conditions.push("offered-project-facts");
+  }
   return conditions;
 }
 

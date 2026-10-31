@@ -88,6 +88,15 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     listUrl: "https://atlas.xos.test/legal/subprocessors",
   },
   approval_link_code: { code: "482913", orgName: "Northwind Live", expiresInMinutes: 10 },
+  party_invitation: {
+    kind: "roster",
+    inviterName: "Victor Osei",
+    accountName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    partyName: "Bayside Audio",
+    expiresAt: new Date("2027-06-01T12:00:00Z"),
+    signInUrl: "https://gateway.xos.test/auth/sign-in",
+  },
 };
 
 /** Notification kinds seeded in migrations 0520 and 0560, the database side of the catalog. */

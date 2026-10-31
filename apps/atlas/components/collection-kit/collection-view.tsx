@@ -107,7 +107,7 @@ export function CollectionView({
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
   useLiveRefresh(live ?? null);
-  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.key })), [rows]);
+  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.label ?? r.key })), [rows]);
   const bulkKit = useBulk(ITEM_VIEWS.has(view) ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
@@ -133,7 +133,7 @@ export function CollectionView({
     rowMenu.open(
       {
         id,
-        label: byId.get(id)?.key ?? id,
+        label: byId.get(id)?.label ?? byId.get(id)?.key ?? id,
         open: () => open(id),
         href: href({ peek: id, full: "1", create: null }),
         bulk: bulkKit,

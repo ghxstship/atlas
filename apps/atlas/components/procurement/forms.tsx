@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, Select } from "@xos/ui";
+import { Button, Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -12,7 +12,8 @@ import { useCopy } from "@/components/collection-kit/use-copy";
 
 /**
  * Procurement forms with repeated rows that the generic EntityForm cannot express: an RFQ response
- * with its quoted lines, and a goods receipt with the quantity received per order line.
+ * with its quoted lines, and a goods receipt with the quantity received per order line and, for an
+ * item with an asset class, the units it brings in by tag or the stock it adds at a venue (R7a).
  */
 
 type ServerAction = (state: ActionState, form: FormData) => Promise<ActionState>;
@@ -157,12 +158,22 @@ export function ReceiptForm({
   org,
   purchaseOrderId,
   lines,
+  venues,
   action,
   successHref,
 }: {
   org: string;
   purchaseOrderId: string;
-  lines: { id: string; label: string; ordered: number; received: number }[];
+  lines: {
+    id: string;
+    label: string;
+    ordered: number;
+    received: number;
+    /** The ordered element has an asset class in the org, so the line can come into stock. */
+    stocked: boolean;
+  }[];
+  /** Venues whose lots a stocked line can come into. */
+  venues: { value: string; label: string }[];
   action: ServerAction;
   successHref?: string;
 }) {
@@ -170,6 +181,8 @@ export function ReceiptForm({
   const k = useCopy("procurement.kit");
   const [state, formAction, pending] = useActionState(action, INITIAL);
   const formRef = useResetOnSuccess(state);
+  // The receipt event id is minted when the form opens (as a scan's is): a resubmit records nothing twice.
+  const [eventId] = useState(() => crypto.randomUUID());
   useDone(state, successHref);
   return (
     <form
@@ -181,6 +194,7 @@ export function ReceiptForm({
     >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="purchaseOrderId" value={purchaseOrderId} />
+      <input type="hidden" name="eventId" value={eventId} />
       <ActionFeedback state={state} refusals="procurement.refusals" />
       {lines.map((l) => {
         const remaining = Math.max(0, l.ordered - l.received);
@@ -197,6 +211,25 @@ export function ReceiptForm({
               defaultValue={remaining > 0 ? String(remaining) : ""}
               error={state.fieldErrors?.[`received-${l.id}`] ? k("validation.number") : ""}
             />
+            {l.stocked ? (
+              <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-8">
+                <Textarea
+                  id={`receive-tags-${l.id}`}
+                  name={`tags-${l.id}`}
+                  label={t("receipts.assetTags.label")}
+                  help={t("receipts.assetTags.help")}
+                  rows={2}
+                />
+                <Select
+                  id={`receive-venue-${l.id}`}
+                  name={`venue-${l.id}`}
+                  label={t("receipts.intoStock.label")}
+                  help={t("receipts.intoStock.help")}
+                  value=""
+                  options={[{ value: "", label: t("receipts.intoStock.none") }, ...venues]}
+                />
+              </div>
+            ) : null}
           </div>
         );
       })}

@@ -5,6 +5,7 @@ import type { Route } from "next";
 import NextLink from "next/link";
 import { useRef, useState, useTransition, type KeyboardEvent } from "react";
 import { OutcomeAlert } from "@/components/actions/action-button";
+import { RosterFactsButton } from "@/components/roster/roster-facts-button";
 import { fyiDoneAction, fyiSnoozeAction } from "@/lib/actions/one-tap";
 import { focusAfterLeaving } from "./fyi-focus";
 
@@ -20,6 +21,13 @@ export interface FyiRow {
   /** Names of the row's buttons for assistive technology, naming the item. */
   readonly doneLabel: string;
   readonly snoozeLabel: string;
+  /** Company-entered project details the item opens in place (R5), or null. */
+  readonly rosterFacts: {
+    readonly rosterEntryId: string;
+    readonly name: string;
+    readonly companyName: string;
+    readonly projectName: string;
+  } | null;
 }
 
 export interface FyiLabels {
@@ -126,6 +134,17 @@ export function FyiList({ rows, labels }: { rows: readonly FyiRow[]; labels: Fyi
                 {row.when}
                 {row.unread ? ` · ${labels.new}` : ""}
               </span>
+              {row.rosterFacts ? (
+                <span>
+                  <RosterFactsButton
+                    rosterEntryId={row.rosterFacts.rosterEntryId}
+                    name={row.rosterFacts.name}
+                    companyName={row.rosterFacts.companyName}
+                    projectName={row.rosterFacts.projectName}
+                    self
+                  />
+                </span>
+              ) : null}
             </div>
             <div className="flex gap-8">
               <Button

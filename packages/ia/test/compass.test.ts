@@ -71,11 +71,18 @@ describe("compass sitemap", () => {
   });
 
   it.each<[CompassAudience, string[]]>([
-    ["crew", ["Timesheets", "Per Diem", "Travel and Lodging", "Onboarding Items"]],
-    ["staff", ["Timesheets", "Per Diem", "Travel and Lodging", "Onboarding Items"]],
-    ["vendor", ["Purchase Orders", "Deliveries", "Submittals"]],
-    ["contractor", ["Time Entries", "Deliverables"]],
-    ["artist", ["Advance Summary", "Rider", "Settlement"]],
+    // R5: Project Details for the role types a roster names (vendor, contractor, crew, staff, artist).
+    [
+      "crew",
+      ["Timesheets", "Per Diem", "Travel and Lodging", "Onboarding Items", "Project Details"],
+    ],
+    [
+      "staff",
+      ["Timesheets", "Per Diem", "Travel and Lodging", "Onboarding Items", "Project Details"],
+    ],
+    ["vendor", ["Purchase Orders", "Deliveries", "Submittals", "Project Details"]],
+    ["contractor", ["Time Entries", "Deliverables", "Project Details"]],
+    ["artist", ["Advance Summary", "Rider", "Settlement", "Project Details"]],
     ["artist-representative", ["Advance Summary", "Rider", "Settlement"]],
     ["client", ["Run of Show", "Reports"]],
     ["sponsor", ["Proof of Performance"]],

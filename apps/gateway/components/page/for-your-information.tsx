@@ -21,6 +21,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "shift.assigned": "fyi.kinds.shiftAssigned",
   "shift.changed": "fyi.kinds.shiftChanged",
   "message.received": "fyi.kinds.messageReceived",
+  // A company entered project details for the person (R5): they open their details here and correct them.
+  "roster_entry.project_facts_entered": "updates.kinds.projectFactsEntered",
 };
 
 /** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin. */
@@ -31,7 +33,8 @@ const GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}$/;
  * person's notifications from every org that need nothing from them (app.inbox_items, less the shifts and offers
  * still waiting on their answer), such as the steps of their invoices (finding A38-002), saved-search matches and
  * expiry reminders. Done (E) and Snooze (H) clear each one; the same notifications go out by email and push as the
- * person chose in Settings, Notifications.
+ * person chose in Settings, Notifications. When a company entered project details for the person (R5), the item opens
+ * those details in place, so the person checks and corrects them.
  */
 export async function ForYourInformation({
   db,
@@ -57,6 +60,8 @@ export async function ForYourInformation({
       searchName: n.args["searchName"] ?? "",
       expiresOn: n.args["expiresOn"] ?? "",
       kind: n.args["kind"] ?? "other",
+      actorName: n.args["actorName"] ?? "",
+      projectName: n.args["projectName"] ?? "",
     };
     const text = key
       ? t(`gateway.home.${key}`, values)
@@ -72,6 +77,15 @@ export async function ForYourInformation({
       unread: !n.read,
       doneLabel: t("gateway.home.fyi.doneLabel", { text }),
       snoozeLabel: t("gateway.home.fyi.snoozeLabel", { text }),
+      rosterFacts:
+        n.kind === "roster_entry.project_facts_entered" && n.subject?.table === "engagement_roster_entries"
+          ? {
+              rosterEntryId: n.subject.id,
+              name: n.args["personName"] ?? "",
+              companyName: n.args["companyName"] ?? "",
+              projectName: n.args["projectName"] ?? "",
+            }
+          : null,
     };
   });
   return (

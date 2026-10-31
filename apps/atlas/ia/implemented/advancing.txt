@@ -3,4 +3,8 @@ advancing.packets
 advancing.submissions
 advancing.riders
 advancing.reconciliation
+# R4 (RRR-182): the crew roster.
+advancing.crew
+# R7 (RRR-187): advance allocations.
+advancing.allocations
 project.advancing

@@ -35,6 +35,7 @@ const ICONS: Readonly<Record<string, string>> = {
   settlement: "banknote",
   reports: "chart-column",
   "proof-of-performance": "megaphone",
+  "project-details": "clipboard-list",
 };
 
 /**

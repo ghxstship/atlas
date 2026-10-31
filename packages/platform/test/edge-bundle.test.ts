@@ -106,21 +106,31 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-worker": 290,
   "kiosk-punch": 64,
   // A127: one-tap email action links in the shared stores, the offer and message push categories, offer.sent and the
-  // email action copy in both locales (about 3.5 KB); 182.1 KB on 2026-10-27.
-  "notification-dispatch": 186,
+  // email action copy in both locales (about 3.5 KB); 182.1 KB on 2026-10-27. R5 (2650): the two project facts and
+  // names lock kinds in both locales took it to 181.6 KB on 2026-10-28. R7 (2698): the four allocation kinds (decided,
+  // assigned, issued, withdrawn) in both locales took it to 186.9 KB on 2026-10-30. P9b, the first build carrying A127,
+  // P9 and R7 together: 194.6 KB on 2026-10-31, the sum of their kinds and copy; the same 2 percent of headroom R5 left.
+  "notification-dispatch": 199,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. P9: the shared stores mint an approval link's access
   // code, and the email copy chunks carry the access-code email and the approval reminder in both locales (about
-  // 1.5 KB at boot); 216.4 KB on 2026-10-30.
-  "org-lifecycle": 219,
+  // 1.5 KB at boot); 216.4 KB on 2026-10-30. R7: the radio hand-out's document copy in both locales and the four
+  // allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30. P9b, with P9 and R7 together:
+  // 224.3 KB on 2026-10-31, with the 3.4 KB of headroom R7 left.
+  "org-lifecycle": 228,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  // P9: every kind's copy grew by approval.reminder and approval.link_code in both locales (about 1.4 KB); 146.4 KB on
-  // 2026-10-30.
-  "sms-webhook": 149,
+  // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
+  // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent. R7 (2698): the four
+  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30. P9: approval.reminder and approval.link_code
+  // in both locales (about 1.4 KB). P9b, with P9 and R7 together: 155.9 KB on 2026-10-31, with the same 2 KB of
+  // headroom.
+  "sms-webhook": 158,
   "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // P9b: the shared stores and email chunks carry A127's action links, P9's access-code email and R7's allocation kinds
+  // together, which each branch alone kept under 115; 118.6 KB on 2026-10-31, with about 2 KB of headroom.
+  "subprocessor-notices": 121,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
   "wallet-pass": 120,

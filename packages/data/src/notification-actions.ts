@@ -301,6 +301,8 @@ export interface FyiItem {
   readonly read: boolean;
   /** Display values for the kind's catalog message (title, orgName, gatewayPath and the like). */
   readonly args: Readonly<Record<string, string>>;
+  /** The record the notification is about (its table and id), when it names one; Gateway opens some in place (R5). */
+  readonly subject: { readonly table: string; readonly id: string } | null;
 }
 
 function stringArgs(v: unknown): Record<string, string> {
@@ -334,7 +336,7 @@ export async function listForYourInformation(
   if (!awaiting.ok) return awaiting;
   let query = untyped(db)
     .from("inbox_items")
-    .select("id, org_id, kind, created_at, read_at, message_args")
+    .select("id, org_id, kind, created_at, read_at, message_args, subject_table, subject_id")
     .eq("section", "For Your Information");
   if (awaiting.data.length > 0) query = query.not("id", "in", `(${awaiting.data.join(",")})`);
   const result = await rows(
@@ -349,6 +351,10 @@ export async function listForYourInformation(
       createdAt: str(r["created_at"]),
       read: r["read_at"] !== null && r["read_at"] !== undefined,
       args: stringArgs(r["message_args"]),
+      subject:
+        typeof r["subject_table"] === "string" && typeof r["subject_id"] === "string"
+          ? { table: r["subject_table"], id: r["subject_id"] }
+          : null,
     })),
   );
 }

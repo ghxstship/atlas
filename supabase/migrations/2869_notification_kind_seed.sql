@@ -4,7 +4,7 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 10 email templates, 15 categories, 57 kinds (222 kind and channel rows),
+-- 11 email templates, 15 categories, 67 kinds (262 kind and channel rows),
 -- 8 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
 -- drift test (2869_notification_kind_seed.test.sql); a kind that names its own channels loses the rows of
@@ -31,7 +31,8 @@ insert into private.email_templates (code, description, transactional) values
   ('dsar_received', 'Acknowledges a data subject request and states its due date.', true),
   ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
   ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
-  ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true)
+  ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true),
+  ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true)
 on conflict (code) do update set description = excluded.description, transactional = excluded.transactional;
 
 -- Categories (orders move aside first, so a reordering never collides) -------
@@ -138,6 +139,10 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('account.session_signed_out', 'Email'::app.notification_channel, 'account', 'notification'),
   ('account.session_signed_out', 'SMS'::app.notification_channel, 'account', null),
   ('account.session_signed_out', 'Push'::app.notification_channel, 'account', null),
+  ('account.work_details_moved', 'In App'::app.notification_channel, 'account', null),
+  ('account.work_details_moved', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('account.work_details_moved', 'SMS'::app.notification_channel, 'account', null),
+  ('account.work_details_moved', 'Push'::app.notification_channel, 'account', null),
   ('billing.payment_failed', 'In App'::app.notification_channel, 'account', null),
   ('billing.payment_failed', 'Email'::app.notification_channel, 'account', 'notification'),
   ('billing.payment_failed', 'SMS'::app.notification_channel, 'account', null),
@@ -281,7 +286,43 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('document.expiring', 'In App'::app.notification_channel, 'expiry_reminders', null),
   ('document.expiring', 'Email'::app.notification_channel, 'expiry_reminders', 'notification'),
   ('document.expiring', 'SMS'::app.notification_channel, 'expiry_reminders', null),
-  ('document.expiring', 'Push'::app.notification_channel, 'expiry_reminders', null)
+  ('document.expiring', 'Push'::app.notification_channel, 'expiry_reminders', null),
+  ('roster_entry.invited', 'In App'::app.notification_channel, 'assignments', null),
+  ('roster_entry.invited', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('roster_entry.invited', 'SMS'::app.notification_channel, 'assignments', null),
+  ('roster_entry.invited', 'Push'::app.notification_channel, 'assignments', null),
+  ('roster_entry.returned', 'In App'::app.notification_channel, 'approvals', null),
+  ('roster_entry.returned', 'Email'::app.notification_channel, 'approvals', 'notification'),
+  ('roster_entry.returned', 'SMS'::app.notification_channel, 'approvals', null),
+  ('roster_entry.returned', 'Push'::app.notification_channel, 'approvals', null),
+  ('roster_entry.declined', 'In App'::app.notification_channel, 'assignments', null),
+  ('roster_entry.declined', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('roster_entry.declined', 'SMS'::app.notification_channel, 'assignments', null),
+  ('roster_entry.declined', 'Push'::app.notification_channel, 'assignments', null),
+  ('roster_entry.project_facts_entered', 'In App'::app.notification_channel, 'assignments', null),
+  ('roster_entry.project_facts_entered', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('roster_entry.project_facts_entered', 'SMS'::app.notification_channel, 'assignments', null),
+  ('roster_entry.project_facts_entered', 'Push'::app.notification_channel, 'assignments', null),
+  ('engagement.roster_lock_changed', 'In App'::app.notification_channel, 'assignments', null),
+  ('engagement.roster_lock_changed', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('engagement.roster_lock_changed', 'SMS'::app.notification_channel, 'assignments', null),
+  ('engagement.roster_lock_changed', 'Push'::app.notification_channel, 'assignments', null),
+  ('allocation.decided', 'In App'::app.notification_channel, 'approvals', null),
+  ('allocation.decided', 'Email'::app.notification_channel, 'approvals', 'notification'),
+  ('allocation.decided', 'SMS'::app.notification_channel, 'approvals', null),
+  ('allocation.decided', 'Push'::app.notification_channel, 'approvals', null),
+  ('allocation.assigned', 'In App'::app.notification_channel, 'assignments', null),
+  ('allocation.assigned', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('allocation.assigned', 'SMS'::app.notification_channel, 'assignments', null),
+  ('allocation.assigned', 'Push'::app.notification_channel, 'assignments', null),
+  ('allocation.issued', 'In App'::app.notification_channel, 'assignments', null),
+  ('allocation.issued', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('allocation.issued', 'SMS'::app.notification_channel, 'assignments', null),
+  ('allocation.issued', 'Push'::app.notification_channel, 'assignments', null),
+  ('allocation.withdrawn', 'In App'::app.notification_channel, 'assignments', null),
+  ('allocation.withdrawn', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('allocation.withdrawn', 'SMS'::app.notification_channel, 'assignments', null),
+  ('allocation.withdrawn', 'Push'::app.notification_channel, 'assignments', null)
 on conflict (kind, channel) do update
   set category_code = excluded.category_code, email_template_code = excluded.email_template_code;
 
