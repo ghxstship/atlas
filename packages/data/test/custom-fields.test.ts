@@ -72,8 +72,9 @@ const EMPTY_ROW = {
 };
 
 describe("custom field tables", () => {
-  it("lists the nine built-in tables orgs may extend (0540)", () => {
-    expect(CUSTOM_FIELD_TABLES).toHaveLength(9);
+  it("lists the ten built-in tables orgs may extend (0540, and cues from 2920)", () => {
+    expect(CUSTOM_FIELD_TABLES).toHaveLength(10);
+    expect(isCustomFieldTable("app.cues")).toBe(true);
     expect(isCustomFieldTable("app.asset_units")).toBe(true);
     expect(isCustomFieldTable("app.audit_events")).toBe(false);
     expect(isCustomFieldTable(7)).toBe(false);
@@ -103,7 +104,14 @@ describe("reading definitions", () => {
                 sort_order: 0,
                 deleted_at: "2026-01-01",
               },
-              { id: "c1", choice_key: "gold", label: "Gold", sort_order: 1, deleted_at: null },
+              {
+                id: "c1",
+                choice_key: "gold",
+                label: "Gold",
+                sort_order: 1,
+                color_key: "cat-4",
+                deleted_at: null,
+              },
             ],
           },
         ]),
@@ -123,8 +131,8 @@ describe("reading definitions", () => {
           filterable: true,
           sortOrder: 10,
           choices: [
-            { id: "c1", key: "gold", label: "Gold" },
-            { id: "c2", key: "silver", label: "Silver" },
+            { id: "c1", key: "gold", label: "Gold", colorKey: "cat-4" },
+            { id: "c2", key: "silver", label: "Silver", colorKey: null },
           ],
         },
       ],

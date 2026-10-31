@@ -72,6 +72,12 @@ const cue = (over: Partial<Cue> = {}): Cue => ({
   calledByName: null,
   startTbc: false,
   standbyAt: null,
+  segment: null,
+  description: null,
+  script: null,
+  segmentInstanceId: null,
+  calledViaLink: null,
+  updatedAt: "2027-06-05T20:00:00Z",
   ...over,
 });
 
@@ -365,10 +371,10 @@ describe("cues", () => {
   it("derives progression from the called and planned times alone (P1 display screens)", () => {
     const now = new Date("2027-06-05T23:00:00Z");
     const slim = [
-      { calledAt: "2027-06-05T22:59:00Z", plannedAt: null },
-      { calledAt: null, plannedAt: "2027-06-05T23:02:00Z" },
+      { position: 1, durationSeconds: null, calledAt: "2027-06-05T22:59:00Z", plannedAt: null },
+      { position: 2, durationSeconds: null, calledAt: null, plannedAt: "2027-06-05T23:02:00Z" },
     ];
-    expect(cueProgress(slim, now)).toEqual({
+    expect(cueProgress(slim, now)).toMatchObject({
       current: 0,
       next: 1,
       nextInSeconds: 120,

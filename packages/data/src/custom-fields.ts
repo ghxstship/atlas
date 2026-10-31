@@ -1,7 +1,13 @@
 import { addCalendarDays, instantOfLocalIn, startOfDayIn } from "./calendar.ts";
 import type { XosClient } from "./client.ts";
-import type { CustomDataType, CustomField } from "./governance.ts";
+import {
+  liveChoices,
+  type CustomDataType,
+  type CustomField,
+  type DefinitionRow,
+} from "./governance.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Custom field values on built-in tables (A117, RRR-162; Section 4.5.6 org settings item 16, 0540). An org
@@ -30,6 +36,8 @@ export const CUSTOM_FIELD_TABLES = [
   "app.purchase_orders",
   "app.invoices",
   "app.incidents",
+  // Cues of a running order (2920, ADR 0142): their fields carry audiences (cueFieldAudiences).
+  "app.cues",
 ] as const;
 
 export type CustomFieldTable = (typeof CUSTOM_FIELD_TABLES)[number];
@@ -70,15 +78,16 @@ export interface CustomFieldParseContext {
 }
 
 const SELECT_DEFINITIONS =
-  "id, target_table, field_key, label, data_type, required, filterable, sort_order, custom_field_choices(id, choice_key, label, sort_order, deleted_at)";
+  "id, target_table, field_key, label, data_type, required, filterable, sort_order, custom_field_choices(id, choice_key, label, sort_order, color_key, deleted_at)";
 
-/** The org's live custom fields on one table, in form order, with their live choices. */
+/** The org's live custom fields on one table, in form order, with their live choices and colours. */
 export async function listCustomFieldDefinitions(
   db: XosClient,
   orgId: string,
   table: CustomFieldTable,
 ): Promise<Result<CustomField[]>> {
-  const { data, error } = await db
+  // Untyped until the data types carry custom_field_choices.color_key (2920); rows are mapped here.
+  const { data, error } = await untyped(db)
     .from("custom_field_definitions")
     .select(SELECT_DEFINITIONS)
     .eq("org_id", orgId)
@@ -88,7 +97,7 @@ export async function listCustomFieldDefinitions(
     .order("label");
   if (error) return fail(toDataError(error));
   return ok(
-    data.map((r) => ({
+    ((data ?? []) as unknown as DefinitionRow[]).map((r) => ({
       id: r.id,
       targetTable: r.target_table,
       key: r.field_key,
@@ -97,12 +106,84 @@ export async function listCustomFieldDefinitions(
       required: r.required,
       filterable: r.filterable,
       sortOrder: r.sort_order,
-      choices: (r.custom_field_choices ?? [])
-        .filter((c) => c.deleted_at === null)
-        .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label))
-        .map((c) => ({ id: c.id, key: c.choice_key, label: c.label })),
+      choices: liveChoices(r.custom_field_choices),
     })),
   );
+}
+
+// Cue field audiences (app.cue_field_audiences, 2920) --------------------------------------------------------
+
+/** Who a cue field is for: Crew in Atlas, Showcaller on showcaller links, Client in Gateway (ADR 0142). */
+export const CUE_FIELD_AUDIENCES = ["Crew", "Showcaller", "Client"] as const;
+export type CueFieldAudience = (typeof CUE_FIELD_AUDIENCES)[number];
+
+/** Data types that never go to a showcaller link or a Client: neither has an account or holds money. */
+export const CREW_ONLY_TYPES: readonly CustomDataType[] = ["Person", "Money", "Email"];
+
+/** The audiences a field of this type may take. */
+export function audiencesFor(type: CustomDataType): readonly CueFieldAudience[] {
+  return CREW_ONLY_TYPES.includes(type) ? ["Crew"] : CUE_FIELD_AUDIENCES;
+}
+
+/** The live audiences of the org's cue fields, by definition id. */
+export async function listCueFieldAudiences(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<ReadonlyMap<string, readonly CueFieldAudience[]>>> {
+  const { data, error } = await untyped(db)
+    .from("cue_field_audiences")
+    .select("custom_field_definition_id, audience")
+    .eq("org_id", orgId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  const byField = new Map<string, CueFieldAudience[]>();
+  for (const r of (data ?? []) as {
+    custom_field_definition_id: string;
+    audience: CueFieldAudience;
+  }[]) {
+    byField.set(r.custom_field_definition_id, [
+      ...(byField.get(r.custom_field_definition_id) ?? []),
+      r.audience,
+    ]);
+  }
+  for (const list of byField.values()) {
+    list.sort((a, b) => CUE_FIELD_AUDIENCES.indexOf(a) - CUE_FIELD_AUDIENCES.indexOf(b));
+  }
+  return ok(byField);
+}
+
+/**
+ * Makes a cue field's audiences exactly `audiences`: adds the missing ones and removes the rest (soft delete).
+ * The database refuses Showcaller or Client on a Person, Money or Email field (cue_field_audience_type).
+ */
+export async function setCueFieldAudiences(
+  db: XosClient,
+  definitionId: string,
+  audiences: readonly CueFieldAudience[],
+): Promise<Result<null>> {
+  const current = await untyped(db)
+    .from("cue_field_audiences")
+    .select("id, audience")
+    .eq("custom_field_definition_id", definitionId)
+    .is("deleted_at", null);
+  if (current.error) return fail(toDataError(current.error));
+  const rows = (current.data ?? []) as { id: string; audience: CueFieldAudience }[];
+  const gone = rows.filter((r) => !audiences.includes(r.audience)).map((r) => r.id);
+  const added = audiences.filter((a) => !rows.some((r) => r.audience === a));
+  if (gone.length > 0) {
+    const { error } = await untyped(db)
+      .from("cue_field_audiences")
+      .update({ deleted_at: new Date().toISOString() })
+      .in("id", gone);
+    if (error) return fail(toDataError(error));
+  }
+  if (added.length > 0) {
+    const { error } = await untyped(db)
+      .from("cue_field_audiences")
+      .insert(added.map((audience) => ({ custom_field_definition_id: definitionId, audience })));
+    if (error) return fail(toDataError(error));
+  }
+  return ok(null);
 }
 
 // Typed columns ------------------------------------------------------------------------------------------------

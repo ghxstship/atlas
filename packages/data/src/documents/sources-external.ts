@@ -255,6 +255,13 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       calledByName: null,
       startTbc: c.start_tbc === true,
       standbyAt: null,
+      // A party's PDF never carries the segment, the description, the script or who called a cue.
+      segment: null,
+      description: null,
+      script: null,
+      segmentInstanceId: null,
+      calledViaLink: null,
+      updatedAt: "",
     }));
     return ok({
       orgId: project.data.orgId,

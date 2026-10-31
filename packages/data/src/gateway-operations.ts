@@ -452,3 +452,67 @@ export async function claimTokenSubmissions(
   const row = data[0];
   return ok({ advance: row?.claimed_advance ?? 0, documents: row?.claimed_documents ?? 0 });
 }
+
+// Client cue fields (api_external.cue_field_values, B3 2920) ----------------------------------------
+
+/** A Client-audience custom value of a cue, as Gateway's running order shows it (ADR 0142). */
+export interface ClientCueField {
+  readonly cueId: string;
+  readonly key: string;
+  readonly label: string;
+  readonly dataType: string;
+  readonly sortOrder: number;
+  readonly text: string | null;
+  readonly number: number | null;
+  readonly date: string | null;
+  readonly timestamp: string | null;
+  readonly boolean: boolean | null;
+  readonly choiceLabel: string | null;
+  readonly choiceColorKey: string | null;
+}
+
+/**
+ * The Client-audience field values of the given cues. The view answers only a Client engaged on the cue's
+ * project; anyone else reads no rows. Untyped until the data types carry the view (2920).
+ */
+export async function readClientCueFields(
+  db: XosClient,
+  cueIds: readonly string[],
+): Promise<Result<ClientCueField[]>> {
+  if (cueIds.length === 0) return ok([]);
+  const view = (
+    external(db) as unknown as {
+      from(name: string): {
+        select(columns: string): {
+          in(
+            column: string,
+            values: readonly string[],
+          ): PromiseLike<{
+            data: unknown[] | null;
+            error: { code?: string; message: string } | null;
+          }>;
+        };
+      };
+    }
+  ).from("cue_field_values");
+  const { data, error } = await view.select("*").in("cue_id", cueIds);
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Record<string, unknown>[])
+      .map((r) => ({
+        cueId: String(r["cue_id"] ?? ""),
+        key: String(r["field_key"] ?? ""),
+        label: String(r["label"] ?? ""),
+        dataType: String(r["data_type"] ?? "Text"),
+        sortOrder: typeof r["sort_order"] === "number" ? r["sort_order"] : 0,
+        text: typeof r["value_text"] === "string" ? r["value_text"] : null,
+        number: typeof r["value_number"] === "number" ? r["value_number"] : null,
+        date: typeof r["value_date"] === "string" ? r["value_date"] : null,
+        timestamp: typeof r["value_timestamp"] === "string" ? r["value_timestamp"] : null,
+        boolean: typeof r["value_boolean"] === "boolean" ? r["value_boolean"] : null,
+        choiceLabel: typeof r["choice_label"] === "string" ? r["choice_label"] : null,
+        choiceColorKey: typeof r["choice_color_key"] === "string" ? r["choice_color_key"] : null,
+      }))
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label)),
+  );
+}

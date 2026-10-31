@@ -186,6 +186,21 @@ export interface Cue {
   readonly startTbc: boolean;
   /** When the caller put the cue on standby; NULL when it is not on standby. */
   readonly standbyAt: string | null;
+  /** Show segment the cue belongs to, as written (1180). */
+  readonly segment: string | null;
+  /** What happens on the cue. */
+  readonly description: string | null;
+  /** What is said on the cue, up to 20,000 characters (ADR 0142). */
+  readonly script: string | null;
+  /** The library segment copy the cue came from (app.run_segment_instances), or null. */
+  readonly segmentInstanceId: string | null;
+  /**
+   * The showcaller link's caller name when the cue was called through a showcaller link; then
+   * calledByName is null (ADR 0142).
+   */
+  readonly calledViaLink: string | null;
+  /** When the cue last changed, for the showcaller portal's stale-edit check. */
+  readonly updatedAt: string;
 }
 
 /** Postgres interval text (HH:MM:SS, with optional days) in seconds. */
@@ -200,18 +215,41 @@ export function intervalSeconds(interval: string | null): number | null {
   );
 }
 
+interface CueRow {
+  id: string;
+  run_of_show_id: string;
+  position: number;
+  label: string;
+  planned_at: string | null;
+  duration: string | null;
+  called_at: string | null;
+  start_tbc: boolean;
+  standby_at: string | null;
+  segment: string | null;
+  description: string | null;
+  script: string | null;
+  segment_instance_id: string | null;
+  updated_at: string;
+  caller: { full_name: string | null } | null;
+  link: { caller_name: string } | null;
+}
+
+/**
+ * The live cues of a running order, in order. Untyped until the data types carry 2921 and 2923's
+ * columns (segment_instance_id, script, called_via_link_id); every row is mapped here.
+ */
 export async function listCues(db: XosClient, runOfShowId: string): Promise<Result<Cue[]>> {
-  const { data, error } = await db
+  const { data, error } = await untyped(db)
     .from("cues")
     .select(
-      "id, run_of_show_id, position, label, planned_at, duration, called_at, start_tbc, standby_at, caller:people!cues_called_by_fkey(full_name)",
+      "id, run_of_show_id, position, label, planned_at, duration, called_at, start_tbc, standby_at, segment, description, script, segment_instance_id, updated_at, caller:people!cues_called_by_fkey(full_name), link:showcaller_links!cues_called_via_link_id_fkey(caller_name)",
     )
     .eq("run_of_show_id", runOfShowId)
     .is("deleted_at", null)
     .order("position");
   if (error) return fail(toDataError(error));
   return ok(
-    data.map((c) => ({
+    (data as unknown as CueRow[]).map((c) => ({
       id: c.id,
       runOfShowId: c.run_of_show_id,
       position: c.position,
@@ -222,6 +260,12 @@ export async function listCues(db: XosClient, runOfShowId: string): Promise<Resu
       calledByName: c.caller?.full_name ?? null,
       startTbc: c.start_tbc,
       standbyAt: c.standby_at,
+      segment: c.segment,
+      description: c.description,
+      script: c.script,
+      segmentInstanceId: c.segment_instance_id,
+      calledViaLink: c.link?.caller_name ?? null,
+      updatedAt: c.updated_at,
     })),
   );
 }
@@ -272,6 +316,9 @@ export async function updateCue(
     readonly plannedAt?: string | null;
     readonly durationSeconds?: number | null;
     readonly startTbc?: boolean;
+    readonly segment?: string | null;
+    readonly description?: string | null;
+    readonly script?: string | null;
   },
 ): Promise<Result<null>> {
   const row: {
@@ -279,16 +326,27 @@ export async function updateCue(
     planned_at?: string | null;
     duration?: string | null;
     start_tbc?: boolean;
+    segment?: string | null;
+    description?: string | null;
+    script?: string | null;
   } = {};
   if (patch.label !== undefined) row.label = patch.label.trim();
+  if (patch.segment !== undefined) row.segment = blankToNull(patch.segment);
+  if (patch.description !== undefined) row.description = blankToNull(patch.description);
+  if (patch.script !== undefined) row.script = patch.script === "" ? null : patch.script;
   if (patch.plannedAt !== undefined) row.planned_at = patch.plannedAt;
   if (patch.startTbc !== undefined) row.start_tbc = patch.startTbc;
   if (patch.durationSeconds !== undefined) {
     row.duration = patch.durationSeconds === null ? null : `${patch.durationSeconds} seconds`;
   }
-  const { data, error } = await db.from("cues").update(row).eq("id", id).select("id");
+  const { data, error } = await untyped(db).from("cues").update(row).eq("id", id).select("id");
   if (error) return fail(toDataError(error));
-  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+  return (data ?? []).length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+function blankToNull(value: string | null): string | null {
+  const trimmed = value?.trim() ?? "";
+  return trimmed === "" ? null : trimmed;
 }
 
 export async function removeCue(db: XosClient, id: string): Promise<Result<null>> {
@@ -507,6 +565,66 @@ export async function saveCueCalls(
   calls: Partial<Record<CueCallKind, string | null>>,
 ): Promise<Result<null>> {
   const { error } = await untyped(db).rpc("save_cue_calls", { p_cue_id: cueId, p_calls: calls });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+// Segment colours (app.run_segment_colors, ADR 0142) ---------------------------------------------------
+
+/** The seven themed categorical colours a segment or a choice may take (color.viz.cat-1..7). */
+export const SEGMENT_COLORS = [
+  "cat-1",
+  "cat-2",
+  "cat-3",
+  "cat-4",
+  "cat-5",
+  "cat-6",
+  "cat-7",
+] as const;
+export type SegmentColor = (typeof SEGMENT_COLORS)[number];
+
+export function isSegmentColor(value: unknown): value is SegmentColor {
+  return typeof value === "string" && (SEGMENT_COLORS as readonly string[]).includes(value);
+}
+
+/** A segment name as the database matches it: case and outer spaces ignored. */
+export function segmentKey(segment: string | null | undefined): string {
+  return (segment ?? "").trim().toLowerCase();
+}
+
+/** The running order's segment colours, keyed by segmentKey(name). */
+export async function listSegmentColors(
+  db: XosClient,
+  runOfShowId: string,
+): Promise<Result<ReadonlyMap<string, SegmentColor>>> {
+  const { data, error } = await untyped(db)
+    .from("run_segment_colors")
+    .select("segment, color_key")
+    .eq("run_of_show_id", runOfShowId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  const colors = new Map<string, SegmentColor>();
+  for (const r of (data ?? []) as { segment: string; color_key: string }[]) {
+    if (isSegmentColor(r.color_key)) colors.set(segmentKey(r.segment), r.color_key);
+  }
+  return ok(colors);
+}
+
+/**
+ * Sets or clears (null) the colour of a segment of a running order (app.set_segment_color), in one
+ * statement: every cue whose segment text matches shows it.
+ */
+export async function setSegmentColor(
+  db: XosClient,
+  runOfShowId: string,
+  segment: string,
+  color: SegmentColor | null,
+): Promise<Result<null>> {
+  const { error } = await untyped(db).rpc("set_segment_color", {
+    p_run_of_show_id: runOfShowId,
+    p_segment: segment,
+    p_color_key: color,
+  });
   if (error) return fail(toDataError(error));
   return ok(null);
 }
