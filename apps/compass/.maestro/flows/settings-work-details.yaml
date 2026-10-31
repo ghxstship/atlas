@@ -1,6 +1,7 @@
 appId: pro.ghxstship.compass
-# Settings, Work Details in Compass (A111, S4.5.6-44): a member records a shirt size and an emergency contact. Both
-# save online with the member's session, and the Profile shows the contact read-only.
+# Settings, Work Details in Compass (A111, S4.5.6-44): a member sees that uniform sizes and travel preferences moved to
+# each project (R6a) and records an emergency contact. It saves online with the member's session, and the Profile
+# shows the contact read-only, with no uniform sizes card.
 # Named after its file: config.yaml orders flows by name.
 name: settings-work-details
 ---
@@ -12,30 +13,12 @@ name: settings-work-details
     file: ../subflows/open-route.yaml
     env:
       ROUTE: settings/work-details
+# Uniform sizes and travel preferences are asked per project since R6a: a notice says so, and no card edits them.
 - extendedWaitUntil:
     visible:
-      id: "work-uniform"
+      id: "work-details-moved"
     timeout: 30000
-- scrollUntilVisible:
-    element:
-      id: "work-uniform-shirtSize"
-    direction: DOWN
-    timeout: 20000
-- tapOn:
-    id: "work-uniform-shirtSize"
-- tapOn:
-    id: "work-uniform-shirtSize-sheet-L"
-- scrollUntilVisible:
-    element:
-      id: "work-uniform-save"
-    direction: DOWN
-    timeout: 20000
-- tapOn:
-    id: "work-uniform-save"
-- extendedWaitUntil:
-    visible:
-      id: "work-uniform-saved"
-    timeout: 30000
+- assertNotVisible: "Uniform sizes"
 - scrollUntilVisible:
     element:
       id: "work-contact-fullName"
@@ -77,9 +60,4 @@ name: settings-work-details
     direction: DOWN
     timeout: 30000
 - assertVisible: "Maestro Contact · Sibling"
-- scrollUntilVisible:
-    element:
-      id: "profile-uniform-sizes"
-    direction: DOWN
-    timeout: 20000
-- assertVisible: "Shirt: L"
+- assertNotVisible: "Uniform sizes"

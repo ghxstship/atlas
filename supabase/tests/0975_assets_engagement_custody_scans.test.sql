@@ -28,12 +28,15 @@ insert into world values
   ('ev7', '01920000-0000-7000-8450-000000000007'), ('ev8', '01920000-0000-7000-8450-000000000008');
 
 -- Custody to an engagement -------------------------------------------------------------------------------------
+-- The constraints hold for the platform; signed-in users write custody only through the scan RPCs (R7, 2692).
+select pg_temp.as_platform();
 select throws_ok($$insert into app.asset_custody (asset_unit_id, custodian_membership_id, custodian_engagement_id) values ((select id from world where key = 'r3'), (select id from world where key = 'dave@org_a'), (select id from world where key = 'eng_ivy_a'))$$,
   '23514', null, 'custody goes to a membership or an engagement, never both');
 select throws_ok($$insert into app.asset_custody (asset_unit_id, custodian_engagement_id) values ((select id from world where key = 'r3'), (select id from world where key = 'eng_ivy_b'))$$,
   'XR001', null, 'custody never goes to another org''s engagement');
 select lives_ok($$insert into app.asset_custody (asset_unit_id, custodian_engagement_id, project_id) values ((select id from world where key = 'r3'), (select id from world where key = 'eng_ivy_a'), (select id from world where key = 'prj_a'))$$,
   'custody goes to an engagement alone');
+select pg_temp.as_user('carol');
 
 -- Resolution and check-out by a Manager ----------------------------------------------------------------------
 select is((select subject_kind from app.resolve_asset_code(pg_temp.id('org_a'), 'nwl-rad-001')), 'unit', 'a Manager resolves a tag');

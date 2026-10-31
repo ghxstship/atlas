@@ -4,7 +4,7 @@ import * as Linking from "expo-linking";
 import { useRouter, type Href } from "expo-router";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { elsewhereLink, moreSections } from "../../src/domain/access";
+import { elsewhereLink, moreSections, rosterOnly } from "../../src/domain/access";
 import { useCompass } from "../../src/runtime/CompassProvider";
 import { ProjectPicker, SyncBanner, useAllowed } from "../../src/screens/common";
 import { Badge, Card, ListRow, Screen } from "../../src/ui";
@@ -35,6 +35,7 @@ const ICONS: Readonly<Record<string, string>> = {
   settlement: "banknote",
   reports: "chart-column",
   "proof-of-performance": "megaphone",
+  "project-details": "clipboard-list",
 };
 
 /**
@@ -46,10 +47,12 @@ const ICONS: Readonly<Record<string, string>> = {
 export default function MoreScreen(): ReactElement {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { resolved, status, config } = useCompass();
+  const { resolved, status, config, projectId } = useCompass();
   const canKiosk = useAllowed("kiosk.operate");
   const audience = resolved?.identity.audience;
-  const { native, elsewhere } = audience ? moreSections(audience) : { native: [], elsewhere: [] };
+  const { native, elsewhere } = audience
+    ? moreSections(audience, { rosterOnly: rosterOnly(resolved.identity, projectId) })
+    : { native: [], elsewhere: [] };
   const link = audience ? elsewhereLink(audience, config) : null;
   const labels = elsewhere.map((m) => t(m.label));
   const names =

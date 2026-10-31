@@ -304,6 +304,7 @@ export {
 export { scanStore, supabaseStorage } from "./scanning/stores.ts";
 export {
   buildPkpass,
+  passImages,
   passJson,
   readAppleWalletEnv,
   unconfiguredPassSigner,
@@ -311,6 +312,7 @@ export {
   type ApplePassConfig,
   type AppleSignerKeys,
   type AppleWalletEnv,
+  type PassFile,
   type PassSigner,
   type WalletLabels,
   type WalletPass,
@@ -349,7 +351,9 @@ export {
   callerPassLoader,
   parseWalletRequest,
   passFromRow,
+  publicBrandLogo,
   walletPassResponse,
+  type BrandLogo,
   type WalletDeps,
   type WalletRequest,
   type WalletResponse,
