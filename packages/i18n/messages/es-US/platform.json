@@ -123,7 +123,12 @@
     "integration_disconnected": "Esa conexión está desconectada y no puede cambiar.",
     "moderation_appeal_window": "Las apelaciones se aceptan durante seis meses después de una decisión; esta es más antigua.",
     "moderation_appeal_grounds": "Explica por qué la decisión es incorrecta, en hasta 4,000 caracteres.",
-    "moderation_appeal_exists": "Esta decisión ya se apeló."
+    "moderation_appeal_exists": "Esta decisión ya se apeló.",
+    "import_destination_required": "Elija la escaleta o el proyecto al que van las filas.",
+    "import_destination_unexpected": "Este tipo de importación va a toda la organización; no nombra una escaleta ni un proyecto.",
+    "import_destination_unknown": "Esa escaleta o ese proyecto ya no existe.",
+    "import_target_outside_destination": "Una fila habría quedado fuera de la escaleta o del proyecto que nombra esta importación, así que no se escribió.",
+    "import_paste_empty": "Pegue una fila de encabezados y al menos una fila debajo."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",
@@ -264,13 +269,14 @@
     "notFound": "Esta importación ya no existe o no puede verla. Inicie una nueva importación.",
     "back": "Todas las importaciones",
     "fileLine": "{file} en {target}",
+    "destinationLine": "En {destination}",
     "cancel": "Cancelar esta importación",
     "canceled": "Esta importación se canceló. No se escribió nada.",
     "newAnother": "Iniciar otra importación",
     "new": {
       "title": "Nueva importación",
       "intro": "Suba una hoja de cálculo, confirme cómo corresponden sus columnas, revise problemas y posibles duplicados y luego confirme. Puede deshacer todo el lote durante 7 días.",
-      "noTargets": "Todavía no puede importar nada. Pida a un Administrador acceso de escritura a recintos, proveedores o activos.",
+      "noTargets": "Todavía no puede importar nada. Pida a un Administrador acceso de escritura a recintos, proveedores o activos, o pida al responsable de un proyecto acceso a una escaleta o a una lista de invitados.",
       "target": "Importar en",
       "targetHelp": "Cada fila se convierte en un registro de este tipo.",
       "file": "Hoja de cálculo",
@@ -282,7 +288,19 @@
       "link": "Enlace de Google Sheets",
       "linkHelp": "Pegue el enlace de una hoja de cálculo compartida con la cuenta de Google que conectó Google Drive en Configuración, Integraciones.",
       "linkSubmit": "Leer la hoja",
-      "linkInvalid": "Pegue un enlace que empiece con https://docs.google.com/spreadsheets/d/."
+      "linkInvalid": "Pegue un enlace que empiece con https://docs.google.com/spreadsheets/d/.",
+      "destinationRun": "Escaleta",
+      "destinationProject": "Proyecto",
+      "destinationHelp": "Las filas se agregan a esta escaleta o proyecto.",
+      "sourcePaste": "Filas pegadas"
+    },
+    "paste": {
+      "label": "Filas",
+      "help": "Copie celdas de Excel, Google Sheets o Shoflo, con la fila de encabezados primero.",
+      "preview": "Primeras {count} filas",
+      "previewEmpty": "Pegue una fila de encabezados y al menos una fila para verlas aquí.",
+      "submit": "Leer las filas",
+      "filename": "Filas pegadas {date}"
     },
     "past": {
       "title": "Importaciones recientes",
@@ -297,7 +315,9 @@
       "venues": "Recintos",
       "counterparties": "Clientes y otras empresas",
       "vendor_products": "Productos de proveedores",
-      "asset_units": "Unidades de activos"
+      "asset_units": "Unidades de activos",
+      "cues": "Cues de la escaleta",
+      "guest_list_entries": "Lista de invitados"
     },
     "steps": {
       "upload": "Subir",
@@ -356,7 +376,11 @@
         "Playbook": "Según el mapa de columnas del Playbook",
         "Header": "Según el nombre de la columna",
         "Assistant": "Sugerido por Aurora"
-      }
+      },
+      "samples": "Valores de ejemplo",
+      "preview": "Vista previa",
+      "previewIntro": "Las primeras filas tal como se leerán con las opciones actuales.",
+      "previewRow": "Fila {row}"
     },
     "fields": {
       "name": "Nombre",
@@ -374,7 +398,19 @@
       "lead_time_days": "Plazo de entrega en días",
       "asset_tag": "Etiqueta del activo",
       "asset_class_id": "Clase de activo",
-      "home_venue_id": "Recinto base"
+      "home_venue_id": "Recinto base",
+      "position": "Número de cue",
+      "label": "Cue",
+      "segment": "Segmento",
+      "description": "Descripción",
+      "planned_at": "Hora prevista",
+      "duration": "Duración",
+      "space_id": "Espacio",
+      "guest_name": "Nombre del invitado",
+      "plus_ones": "Acompañantes",
+      "note": "Nota para la puerta",
+      "scope_node_id": "Show",
+      "counterparty_id": "En la lista de"
     },
     "dryRun": {
       "title": "Simulación",
@@ -424,6 +460,15 @@
       "unknown_asset_class": "ninguna clase de activo tiene este nombre",
       "unknown_venue": "ningún recinto tiene este nombre",
       "target_not_importable": "este tipo de registro no se puede importar",
+      "invalid_position": "no es un número de cue entero",
+      "invalid_time": "no es una hora",
+      "invalid_duration": "no es una duración",
+      "unknown_space": "ningún espacio de este recinto tiene este nombre",
+      "invalid_plus_ones": "no está entre 0 y 20",
+      "unknown_show": "ningún show de este proyecto tiene este nombre",
+      "unknown_party": "ninguna empresa de esta organización tiene este nombre",
+      "too_long": "demasiado largo",
+      "duplicate_in_file": "repite una fila anterior",
       "other": "no se acepta"
     },
     "commit": {
@@ -455,7 +500,8 @@
       "importIt": "Importar esta hoja",
       "importLabel": "Importar la hoja {sheet}",
       "target": "Importar {sheet} en",
-      "summary": "{rows, plural, =0 {Sin filas} one {# fila} other {# filas}}. Destino propuesto: {target}."
+      "summary": "{rows, plural, =0 {Sin filas} one {# fila} other {# filas}}. Destino propuesto: {target}.",
+      "destination": "Adónde van las filas de {sheet}"
     },
     "aurora": {
       "button": "Sugerir con Aurora",
