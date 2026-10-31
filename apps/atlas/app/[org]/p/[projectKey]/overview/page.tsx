@@ -1,5 +1,11 @@
 import { labelActivity, listActivity } from "@xos/data/activity";
-import { listProductionStateHistory, listProjectStateHistory } from "@xos/data/projects";
+import {
+  getSiteWindows,
+  listProductionStateHistory,
+  listProjectStateHistory,
+  listSetupProgress,
+  listSiteWindowWarnings,
+} from "@xos/data/projects";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -9,6 +15,7 @@ import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-pane
 import { SummaryEntry } from "@/components/aurora/entry/summary-entry";
 import { AttachmentsPanel, CommentsPanel } from "@/components/projects/collab-panels";
 import { ReadinessPanel } from "@/components/projects/readiness-panel";
+import { SetupCard } from "@/components/projects/setup-card";
 import { TransitionDialog } from "@/components/projects/transition-dialog";
 import { PageHeader, PropertyList, StateChip, TemplateRecord } from "@/components/projects/ui";
 import { requireNode } from "@/lib/shell/require-node";
@@ -40,13 +47,27 @@ export default async function OverviewPage({
   const t = await getTranslations("projects");
   const a = await getTranslations("activity.feed");
   const format = await getFormatter();
-  const [gates, moves, collab, activity, stateHistory, productionHistory] = await Promise.all([
+  const [
+    gates,
+    moves,
+    collab,
+    activity,
+    stateHistory,
+    productionHistory,
+    setup,
+    windows,
+    windowWarnings,
+  ] = await Promise.all([
     loadGates(ctx),
     loadTransitions(ctx),
     loadCollaboration(ctx),
     listActivity(db, { orgId: ctx.org.org.id, projectId: project.id, limit: 8 }),
     listProjectStateHistory(db, project.id),
     listProductionStateHistory(db, project.id),
+    // A project without an event type has no requirements, so the Setup card skips its read.
+    project.eventTypeId ? listSetupProgress(db, project.id) : Promise.resolve(null),
+    getSiteWindows(db, project.id),
+    listSiteWindowWarnings(db, project.id),
   ]);
   const canSettings = ctx.capabilities.has("projects.settings.write");
   const canWrite = ctx.capabilities.has("projects.project.write");
@@ -64,6 +85,42 @@ export default async function OverviewPage({
   // Field has no activity feed (Section 4.5.9), and the feed answers not-found: leave it out.
   const feed = optional(activity, "project activity");
   const activityHref = nodeHref("project.activity", routeParams);
+  // B14 (3033): bump-in and bump-out come from the Load In and Load Out days; a window ends at 00:00 after its last day.
+  const dayRange = (
+    range: { readonly startsAt: string | null; readonly endsAt: string | null } | null,
+  ) => {
+    if (!range?.startsAt || !range.endsAt) return null;
+    const last = new Date(Date.parse(range.endsAt) - 1);
+    return format.dateTimeRange(new Date(range.startsAt), last, {
+      day: "numeric",
+      month: "short",
+      timeZone: project.timeZone,
+    });
+  };
+  const bumpIn = windows.ok ? dayRange(windows.data.bumpIn) : null;
+  const bumpOut = windows.ok ? dayRange(windows.data.bumpOut) : null;
+  const showDays =
+    project.startsOn && project.endsOn
+      ? format.dateTimeRange(
+          new Date(`${project.startsOn}T12:00:00Z`),
+          new Date(`${project.endsOn}T12:00:00Z`),
+          {
+            day: "numeric",
+            month: "short",
+            timeZone: "UTC",
+          },
+        )
+      : null;
+  const siteLine =
+    bumpIn || bumpOut
+      ? [
+          bumpIn ? t("windows.bumpIn", { days: bumpIn }) : null,
+          showDays ? t("windows.show", { days: showDays }) : null,
+          bumpOut ? t("windows.bumpOut", { days: bumpOut }) : null,
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : null;
 
   return (
     <>
@@ -145,8 +202,18 @@ export default async function OverviewPage({
                 { label: t("fields.timeZone"), value: project.timeZone },
                 { label: t("fields.startsOn"), value: date(project.startsOn) },
                 { label: t("fields.endsOn"), value: date(project.endsOn) },
+                ...(siteLine ? [{ label: t("windows.label"), value: siteLine }] : []),
               ]}
             />
+            {windowWarnings.ok && windowWarnings.data.length > 0 ? (
+              <ul className="m-0 flex list-disc flex-col gap-4 ps-20 text-text-12 text-warning-text">
+                {windowWarnings.data.map((w) => (
+                  <li key={`${w.warning}:${w.dayOn ?? ""}`}>
+                    {t(`windows.warnings.${w.warning}`)}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             <section aria-labelledby="state-history" className="flex flex-col gap-8">
               <h2 id="state-history" className="m-0 text-label-13 font-semibold">
                 {t("overview.history")}
@@ -221,6 +288,7 @@ export default async function OverviewPage({
             </Link>
           </p>
         </section>
+        <SetupCard items={setup?.ok ? setup.data : []} gatesHref={gatesHref} />
         <CustomFieldsPanel org={ctx.org.org.slug} table="app.projects" id={project.id} />
         {feed ? (
           <section aria-labelledby="recent-activity" className="flex flex-col gap-8">

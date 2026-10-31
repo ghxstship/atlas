@@ -105,16 +105,29 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
-  "notification-dispatch": 180,
+  // R5 (2650): the two project facts and names lock kinds in both locales took it to 181.6 KB on 2026-10-28.
+  // R7 (2698): the four allocation kinds (decided, assigned, issued, withdrawn) in both locales took it to 186.9 KB
+  // on 2026-10-30; the same 2 percent of headroom R5 left. A127's one-tap email action links in the shared stores,
+  // the offer and message push categories, offer.sent and the email action copy in both locales (about 3.5 KB), with
+  // R7's kinds and B14's record review copy, took it to 192.5 KB on 2026-10-31; the same 2 percent of headroom.
+  "notification-dispatch": 196,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
-  // which the org export reaches at boot; 211.5 KB on 2026-10-25.
-  "org-lifecycle": 215,
+  // which the org export reaches at boot; 211.5 KB on 2026-10-25. R7: the radio hand-out's document copy in both
+  // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30. A127's
+  // one-tap action token stores in the shared stores chunk took it to 223.7 KB on 2026-10-31; 2 percent of headroom.
+  "org-lifecycle": 228,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 145,
+  // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
+  // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent. R7 (2698): the four
+  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom. A127's
+  // offer.sent and its one-tap action copy, with P8's and B14's kinds, took it to 154.4 KB on 2026-10-31; 2 KB again.
+  "sms-webhook": 157,
   "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // A127: the shared email chunks it loads at boot gained the offer email and the one-tap action links (about 2.3
+  // KB), which took it to 117.3 KB on 2026-10-31 once merged with the advancing kinds; 2 KB of headroom.
+  "subprocessor-notices": 120,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
   "wallet-pass": 120,

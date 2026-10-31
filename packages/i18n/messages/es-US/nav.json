@@ -23,7 +23,10 @@
         "calendar": "Calendario",
         "milestones": "Hitos",
         "baselines": "Líneas base",
-        "events": "Eventos"
+        "events": "Eventos",
+        "days": "Días",
+        "workload": "Carga de trabajo",
+        "clashes": "Conflictos"
       },
       "work": {
         "allRecords": "Todos los registros",
@@ -41,7 +44,9 @@
         "packets": "Paquetes",
         "submissions": "Respuestas recibidas",
         "riders": "Riders",
-        "reconciliation": "Conciliación"
+        "reconciliation": "Conciliación",
+        "crew": "Lista del equipo",
+        "allocations": "Asignaciones"
       },
       "places": {
         "venues": "Recintos",
@@ -398,7 +403,9 @@
       "reports": "Informes",
       "invoices": "Facturas",
       "documents": "Documentos",
-      "messages": "Mensajes"
+      "messages": "Mensajes",
+      "crew": "Equipo",
+      "projectDetails": "Datos del proyecto"
     },
     "avatar": {
       "settings": "Configuración",
@@ -474,7 +481,8 @@
       "reference": "Referencia",
       "offlineQueue": "Cola sin conexión",
       "profile": "Perfil y certificaciones",
-      "settings": "Configuración"
+      "settings": "Configuración",
+      "projectDetails": "Datos del proyecto"
     },
     "reference": {
       "emergencyCodes": "Códigos de emergencia",

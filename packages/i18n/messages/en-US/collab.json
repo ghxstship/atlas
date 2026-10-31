@@ -17,7 +17,27 @@
     "someRow": "A selected row",
     "done": "{count, plural, one {Changed # row.} other {Changed # rows.}}",
     "failed": "The change couldn't be saved. Try again.",
-    "none": "None"
+    "none": "None",
+    "shift": {
+      "action": "Shift time",
+      "title": "Shift time of {count, plural, one {# record} other {# records}}",
+      "minutes": "Minutes",
+      "minutesHelp": "Later with +, earlier with -, up to 10,080 minutes (seven days).",
+      "minutesInvalid": "Enter whole minutes other than 0, such as +15 or -30, up to 10,080.",
+      "presets": "Common shifts",
+      "preset": "{minutes} min",
+      "explain": "Preview shows every record that moves, including the successors pushed to keep their dependencies.",
+      "preview": "Preview",
+      "apply": "Move {count, plural, one {# record} other {# records}}",
+      "cancel": "Cancel",
+      "moves": "{count, plural, one {# selected record moves} other {# selected records move}} by {minutes} min.",
+      "pushed": "{count, plural, one {# successor outside the selection is pushed:} other {# successors outside the selection are pushed:}}",
+      "pushedMore": "{count, plural, one {and # more.} other {and # more.}}",
+      "skipped": "{count, plural, one {# selected record has no dates or is canceled, so it stays where it is.} other {# selected records have no dates or are canceled, so they stay where they are.}}",
+      "nothing": "None of the selected records has a date to move.",
+      "someRecord": "A record",
+      "done": "{count, plural, one {Moved # record} other {Moved # records}} {minutes} min."
+    }
   },
   "undo": {
     "notifications": "Undo notifications",

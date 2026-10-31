@@ -11,6 +11,7 @@ import {
   deleteVerbiageTerm,
   publishSop,
   renameDocument,
+  setDocumentType,
   updateSop,
   updateVerbiageTerm,
   verbiageProblems,
@@ -105,6 +106,7 @@ export async function createDocumentAction(_: ActionState, form: FormData): Prom
     await createDocument(ctx.viewer.db, ctx.org.id, {
       title,
       projectId: uuid(form, "projectId"),
+      documentTypeId: uuid(form, "documentTypeId"),
       ...version,
     }),
     ctx,
@@ -129,6 +131,18 @@ export async function renameDocumentAction(_: ActionState, form: FormData): Prom
   if (id === null) return { error: "notFound" };
   if (title === null) return { fieldErrors: { title: "required" } };
   return finish(await renameDocument(ctx.viewer.db, id, title), ctx, MODULE);
+}
+
+/** Files a document under an org document type, or clears it (B14, 3031). */
+export async function setDocumentTypeAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  return finish(
+    await setDocumentType(ctx.viewer.db, id, uuid(form, "documentTypeId")),
+    ctx,
+    MODULE,
+  );
 }
 
 export async function deleteDocumentAction(_: ActionState, form: FormData): Promise<ActionState> {

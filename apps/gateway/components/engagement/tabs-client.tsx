@@ -1,4 +1,5 @@
 import {
+  APP_ENUMS,
   listEngagementDocuments,
   listSharedRecords,
   readView,
@@ -12,6 +13,8 @@ import { formatDate, formatDateTime, formatMoney, formatScheduleTime } from "@/l
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { ApprovalForm, DeliverableForm } from "./forms";
+import type { ReactNode } from "react";
+import { ResubmitSponsorAssetForm, SupplySponsorAssetForm } from "./advance-forms";
 import { SponsorAssetForm } from "./sponsor-forms";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
@@ -199,23 +202,25 @@ export async function RecordsTab({
           title: r.title,
           meta: [
             t(enumLabelKey("recordKind", r.kind)),
-            r.startsAt
-              ? formatScheduleTime(
-                  locale,
-                  r.startsAt,
-                  r.timeZone ?? view.engagement.projectTimeZone,
-                  view.scheduleView,
-                )
-              : r.dueAt
-                ? t("gateway.engagement.due", {
-                    date: formatScheduleTime(
-                      locale,
-                      r.dueAt,
-                      r.timeZone ?? view.engagement.projectTimeZone,
-                      view.scheduleView,
-                    ),
-                  })
-                : null,
+            r.startsAt && r.startTbc
+              ? t("gateway.common.tbc")
+              : r.startsAt
+                ? formatScheduleTime(
+                    locale,
+                    r.startsAt,
+                    r.timeZone ?? view.engagement.projectTimeZone,
+                    view.scheduleView,
+                  )
+                : r.dueAt
+                  ? t("gateway.engagement.due", {
+                      date: formatScheduleTime(
+                        locale,
+                        r.dueAt,
+                        r.timeZone ?? view.engagement.projectTimeZone,
+                        view.scheduleView,
+                      ),
+                    })
+                  : null,
           ],
           tag: { label: t(enumLabelKey("recordState", r.state)), tone: toneFor(r.state) },
         }))}
@@ -273,15 +278,17 @@ export async function RunOfShowTab({ view, t, locale, engagementKey }: TabProps)
                 id: c.id ?? "",
                 title: `${c.position ?? ""}. ${c.label ?? ""}`,
                 meta: [
-                  c.planned_at
-                    ? formatScheduleTime(
-                        locale,
-                        c.planned_at,
-                        view.engagement.projectTimeZone,
-                        view.scheduleView,
-                        "time",
-                      )
-                    : null,
+                  c.planned_at && c.start_tbc
+                    ? t("gateway.common.tbc")
+                    : c.planned_at
+                      ? formatScheduleTime(
+                          locale,
+                          c.planned_at,
+                          view.engagement.projectTimeZone,
+                          view.scheduleView,
+                          "time",
+                        )
+                      : null,
                   c.duration,
                   c.called_at
                     ? t("gateway.engagement.runOfShow.called", {
@@ -468,12 +475,39 @@ export async function EntitlementsTab({ view, t, locale, engagementKey }: TabPro
  * canceled ones are final.
  */
 export async function AssetApprovalsTab({ view, t, locale, engagementKey }: TabProps) {
-  const assets = await readView(view.ctx.db, "sponsor_assets", {
-    eq: { project_id: view.engagement.projectId },
-    order: ["due_on", "asc"],
+  const [assets, entitlements] = await Promise.all([
+    readView(view.ctx.db, "sponsor_assets", {
+      eq: { project_id: view.engagement.projectId },
+      order: ["due_on", "asc"],
+    }),
+    readView(view.ctx.db, "sponsor_entitlements", {
+      eq: { project_id: view.engagement.projectId },
+    }),
+  ]);
+  if (!assets.ok || !entitlements.ok) return <RegionError />;
+  const assetIds = assets.data.flatMap((a) => (a.id ? [a.id] : []));
+  const files = await readView(view.ctx.db, "sponsor_asset_files", {
+    in: ["sponsor_asset_id", assetIds],
+    order: ["revision", "desc"],
   });
-  if (!assets.ok) return <RegionError />;
-  if (assets.data.length === 0) {
+  if (!files.ok) return <RegionError />;
+  // R9 (2713): the sponsor's own assets, which the org approves, and the org's, which the sponsor approves.
+  const supplied = assets.data.filter((a) => a.asset_source === "Sponsor Supplied");
+  const toApprove = assets.data.filter((a) => a.asset_source !== "Sponsor Supplied");
+  const supplyForm =
+    entitlements.data.length > 0 ? (
+      <SupplySponsorAssetForm
+        orgId={view.engagement.orgId}
+        entitlements={entitlements.data.flatMap((e) =>
+          e.id ? [{ value: e.id, label: e.description ?? "" }] : [],
+        )}
+        kinds={APP_ENUMS.sponsor_asset_kind.map((k) => ({
+          value: k,
+          label: t(enumLabelKey("sponsorAssetKind", k)),
+        }))}
+      />
+    ) : null;
+  if (assets.data.length === 0 && supplyForm === null) {
     return (
       <TabEmpty
         icon="Image"
@@ -483,36 +517,84 @@ export async function AssetApprovalsTab({ view, t, locale, engagementKey }: TabP
       />
     );
   }
+  const row = (a: (typeof assets.data)[number], detail: ReactNode) => {
+    const state = a.asset_state ?? "Submitted";
+    const latest = files.data.filter(
+      (f) => f.sponsor_asset_id === a.id && f.revision === a.revision,
+    );
+    return {
+      id: a.id ?? "",
+      title: a.title ?? "",
+      meta: [
+        a.asset_kind ? t(enumLabelKey("sponsorAssetKind", a.asset_kind)) : null,
+        a.entitlement_description,
+        a.due_on
+          ? t("gateway.engagement.assets.due", { date: formatDate(locale, a.due_on) })
+          : null,
+        a.revision ? t("gateway.engagement.assets.revision", { n: a.revision }) : null,
+        a.usage_note,
+        latest.length > 0
+          ? t("gateway.engagement.assets.files", {
+              files: latest.map((f) => f.title ?? "").join(", "),
+            })
+          : null,
+      ],
+      // A supplied asset Returned to the sponsor waits on the sponsor too, but for a resubmission,
+      // so it reads Returned rather than Awaiting your approval.
+      tag:
+        a.awaiting_sponsor && a.asset_source !== "Sponsor Supplied"
+          ? { label: t("gateway.engagement.assets.awaiting"), tone: "accent" as const }
+          : { label: t(enumLabelKey("reviewState", state)), tone: toneFor(state) },
+      ...(detail ? { detail } : {}),
+    };
+  };
   return (
-    <RowList
-      label={t("nav.gateway.engagementTabs.assetApprovals")}
-      items={assets.data.map((a) => {
-        const state = a.asset_state ?? "Submitted";
-        return {
-          id: a.id ?? "",
-          title: a.title ?? "",
-          meta: [
-            a.asset_kind ? t(enumLabelKey("sponsorAssetKind", a.asset_kind)) : null,
-            a.entitlement_description,
-            a.due_on
-              ? t("gateway.engagement.assets.due", { date: formatDate(locale, a.due_on) })
-              : null,
-            a.revision ? t("gateway.engagement.assets.revision", { n: a.revision }) : null,
-            a.usage_note,
-          ],
-          tag: {
-            label: a.awaiting_sponsor
-              ? t("gateway.engagement.assets.awaiting")
-              : t(enumLabelKey("reviewState", state)),
-            tone: a.awaiting_sponsor ? ("accent" as const) : toneFor(state),
-          },
-          ...((state === "Submitted" || state === "Returned") && a.id
-            ? {
-                detail: <SponsorAssetForm assetId={a.id} title={a.title ?? ""} state={state} />,
-              }
-            : {}),
-        };
-      })}
-    />
+    <div className="flex flex-col gap-24">
+      <Section id="assets-supplied" title={t("gateway.engagement.assets.suppliedTitle")}>
+        {supplied.length === 0 ? (
+          <p className="m-0 text-text-14 text-text-secondary">
+            {t("gateway.engagement.assets.suppliedEmpty")}
+          </p>
+        ) : (
+          <RowList
+            label={t("gateway.engagement.assets.suppliedTitle")}
+            items={supplied.map((a) =>
+              row(
+                a,
+                a.asset_state === "Returned" && a.id && a.sponsor_entitlement_id ? (
+                  <ResubmitSponsorAssetForm
+                    orgId={view.engagement.orgId}
+                    entitlementId={a.sponsor_entitlement_id}
+                    assetId={a.id}
+                    title={a.title ?? ""}
+                  />
+                ) : null,
+              ),
+            )}
+          />
+        )}
+        {supplyForm}
+      </Section>
+      <Section id="assets-to-approve" title={t("gateway.engagement.assets.toApproveTitle")}>
+        {toApprove.length === 0 ? (
+          <p className="m-0 text-text-14 text-text-secondary">
+            {t("gateway.engagement.assets.empty")}
+          </p>
+        ) : (
+          <RowList
+            label={t("gateway.engagement.assets.toApproveTitle")}
+            items={toApprove.map((a) => {
+              const state = a.asset_state ?? "Submitted";
+              return row(
+                a,
+                (state === "Submitted" || state === "Returned") && a.id ? (
+                  <SponsorAssetForm assetId={a.id} title={a.title ?? ""} state={state} />
+                ) : null,
+              );
+            })}
+          />
+        )}
+      </Section>
+    </div>
   );
 }

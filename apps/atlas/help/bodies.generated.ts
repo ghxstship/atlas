@@ -66,6 +66,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
+      { t: "h2", v: "Allocations" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Allocations say what each party and person is given for a production: badges, parking passes, radios and carts, catering, rooms, trips and per diems. A coordinator requests one for a party's pool or for one person; a reviewer who did not request it approves or declines it. Approving equipment holds it from class stock, a lot or the order it arrives on, and the dialog shows how many are available for those dates and how much of the allowance remains. Split a party's pool to its people, then issue each item: issuing confirms the person has it. The status reads held, ordered, received, issued and returned from the rows that record them. Holds that no longer fit what can supply them show in a banner. Radio allocations take channels, and Print radio hand-out gives the sheet people sign.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -475,6 +495,21 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Hover over or focus any gate or phase chip to see its definition from the XOS canon. The glossary in Help lists every term.",
+          },
+        ],
+      },
+      { t: "h2", v: "Required documents and details" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a project has an event type, its gates also check what the type requires. Each Required document type due by the gate needs a project document of that type with at least one version, and each required detail needs a value. Under each gate, ",
+          },
+          { t: "strong", v: "Required documents and details" },
+          {
+            t: "text",
+            v: " lists what is done and what is missing, and the pass button names what is missing. Recommended items show in the list and on the Overview's Setup card, but never stop a gate. A project without an event type passes its gates exactly as before.",
           },
         ],
       },
@@ -980,6 +1015,38 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " to put it back." },
         ],
       },
+      { t: "h2", v: "In the showcaller console" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "While you call a show live, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " puts the selected cue on standby, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps to a cue, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge the remaining plan by a minute and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department. " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list calls the cue. A Stream Deck sends " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, Standby, Previous, Next, Nudge later, Nudge earlier, Jump and Department); set each key to a ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action." },
+        ],
+      },
       { t: "h2", v: "Make the keys your own" },
       {
         t: "p",
@@ -995,13 +1062,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Reset" },
           { t: "text", v: " brings back the default. Turn off " },
           { t: "strong", v: "Keyboard shortcuts" },
-          { t: "text", v: " there to stop every shortcut without " },
+          { t: "text", v: " there to stop every character-key shortcut without " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " or " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; function keys " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " keep working, since they type no character." },
         ],
       },
       {
@@ -1075,6 +1146,29 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Training" },
             { t: "text", v: ": build short courses for your crew." },
           ],
+        ],
+      },
+      { t: "h2", v: "Document types" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "File each document under one of your organization's " },
+          { t: "strong", v: "document types" },
+          { t: "text", v: ", such as a site plan or an insurance certificate. Manage them in " },
+          { t: "strong", v: "Settings, Templates, Document types" },
+          { t: "text", v: ", where " },
+          { t: "strong", v: "Add standard types" },
+          {
+            t: "text",
+            v: " adds the XOS Standard Library's types you do not have yet. On a project's Documents tab, ",
+          },
+          { t: "strong", v: "Required documents" },
+          {
+            t: "text",
+            v: " shows how many of the event type's Required and Recommended documents are on file; choose ",
+          },
+          { t: "strong", v: "Add" },
+          { t: "text", v: " beside a missing one to create it with its type already chosen." },
         ],
       },
     ],
@@ -1504,6 +1598,78 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Event types and the staged intake" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Your organization can describe the kinds of event it produces in " },
+          { t: "strong", v: "Settings, Templates, Event types" },
+          {
+            t: "text",
+            v: ": a festival, a gala, a trade show. Each event type picks the template a new project starts from by its scale (Intimate up to 500 people, Small 500 to 2,500, Medium 2,500 to 10,000, Large 10,000 to 50,000, Major over 50,000) and its audience, asks for its own project details at intake, and names the documents a project needs by a gate.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When your organization has event types, " },
+          { t: "strong", v: "New project" },
+          { t: "text", v: " walks through steps: " },
+          { t: "strong", v: "Start" },
+          {
+            t: "text",
+            v: " (the event type, and whether to start from its template, another template, a past project or blank), ",
+          },
+          { t: "strong", v: "Scale and audience" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Basics" },
+          {
+            t: "text",
+            v: " (the key, name, show dates, time zone and venue, with the load-in and load-out days under More fields), ",
+          },
+          { t: "strong", v: "Details" },
+          { t: "text", v: " (the type's fields and its guidance), " },
+          { t: "strong", v: "Copy" },
+          { t: "text", v: " (only when starting from a past project) and " },
+          { t: "strong", v: "Review" },
+          {
+            t: "text",
+            v: ", which names the template that will be applied and what the type requires. Create makes the project in one step; if anything is refused, nothing is created. Without event types, New project stays a single screen.",
+          },
+        ],
+      },
+      { t: "h2", v: "Show days, bump-in and bump-out" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The first and last show days are the project's start and end dates. Load-in and load-out days are project days on the schedule; the days around the show give the ",
+          },
+          { t: "strong", v: "bump-in" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "bump-out" },
+          {
+            t: "text",
+            v: " windows, which the Overview lists, the dock schedule shades and procurement compares hires with. Atlas warns, without refusing, when a load-in falls after the first show day, a load-out before the last, the windows overlap or one is longer than 60 days.",
+          },
+        ],
+      },
+      { t: "h2", v: "Copy from another project" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "In " },
+          { t: "strong", v: "Project settings" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Copy from a project" },
+          {
+            t: "text",
+            v: " copies the plan, pass categories, hotel blocks, budgets and advance forms of a past project into this one, moved by a number of days (filled in from the two first show days). Times keep their local time, also across a daylight saving change. Preview shows every item with what is copied and what is skipped and why; Copy writes exactly that. Shifts, people, engagements, credentials and the answers of the companies you engage are never copied.",
+          },
+        ],
+      },
     ],
     reports: [
       { t: "h2", v: "Standard reports" },
@@ -1717,6 +1883,191 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "A baseline freezes the plan at a point in time. Compare the current plan with any baseline to see which records slipped and by how much.",
+          },
+        ],
+      },
+      { t: "h2", v: "Days" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Schedule, Days marks what each project day is for: " },
+          { t: "strong", v: "Load In" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Show" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Load Out" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Travel" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Off" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Rehearsal" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Other" },
+          {
+            t: "text",
+            v: ". Each day reads as text with an icon beside its colour, on the timeline, the calendar, the day sheet, Crew, Shifts and the portfolio timeline.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Choose " },
+            { t: "strong", v: "Add day" },
+            {
+              t: "text",
+              v: ", or open a day, to set its type, a label, where it happens (a venue, one of the project's shows, or a place in words), its time zone and its team.",
+            },
+          ],
+          [
+            { t: "strong", v: "Split day" },
+            {
+              t: "text",
+              v: " adds a part, up to four, such as a load-out in the morning and travel to the next city in the afternoon. A part at a venue reads in the venue's time zone.",
+            },
+          ],
+          [
+            { t: "text", v: "Removing a part moves it to Trash; " },
+            { t: "strong", v: "Undo" },
+            { t: "text", v: " brings it back." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Edit a day as a grid" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Open a day and choose " },
+          { t: "strong", v: "Edit as grid" },
+          {
+            t: "text",
+            v: " to type its records like a spreadsheet: Time, Title, Kind, Owner and TBC. Tab and Shift+Tab move across cells, Enter saves a cell and moves down, and typing in the last row adds a record.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: 'Time takes shorthand on the project\'s clock: 8, 8a, 830p, 8:30 pm, 20:30, noon, or a range such as 8a-10:30a. An end before the start is the next day. Phrases such as "tomorrow 9am" work too.',
+            },
+          ],
+          [
+            { t: "strong", v: "Save" },
+            {
+              t: "text",
+              v: " shows how many records are new, changed and refused, with each refusal on its cell. ",
+            },
+            { t: "strong", v: "Apply" },
+            { t: "text", v: " writes every row or none." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Day templates" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Save a day's records and cues as a template with " },
+          { t: "strong", v: "Save day as template" },
+          { t: "text", v: "; times are kept from local midnight. On another day, " },
+          { t: "strong", v: "Apply day template" },
+          {
+            t: "text",
+            v: " lays the template beside what the day already holds, by time: new items are marked ",
+          },
+          { t: "strong", v: "New" },
+          { t: "text", v: ", items already on the day are marked " },
+          { t: "strong", v: "Already on this day" },
+          {
+            t: "text",
+            v: " and unticked, and overlaps are counted. Untick what you do not want and apply; ",
+          },
+          { t: "strong", v: "Undo" },
+          {
+            t: "text",
+            v: " moves what was added to Trash. Templates are listed and edited on Projects, Templates.",
+          },
+        ],
+      },
+      { t: "h2", v: "The anchor" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The project Schedule tab shows the project's " },
+          { t: "strong", v: "Anchor" },
+          {
+            t: "text",
+            v: ", the day the plan counts from, usually the show day. The timeline draws it, and its table lists each record's offset, such as D−3 for three days before.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Set anchor" },
+            { t: "text", v: " sets the first anchor; it moves nothing." },
+          ],
+          [
+            { t: "strong", v: "Move anchor" },
+            {
+              t: "text",
+              v: " previews what moves and what stays: dated records move by whole days on the project's clock, with the running orders, cues, day types and unpublished sheets. Records pinned to their dates, complete or locked into a baseline stay, published sheets stay, and shifts never move: reschedule booked people on Crew, Shifts. ",
+            },
+            { t: "strong", v: "Move back" },
+            { t: "text", v: " in the toast moves the plan back." },
+          ],
+          [
+            { t: "text", v: "On a record, " },
+            { t: "strong", v: "Stays on its dates when the anchor moves" },
+            { t: "text", v: " pins it." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Workload" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Schedule, Workload shows hours per person per day for a week, from shifts and estimated tasks, as a heatmap or a table. Each cell shows its hours as text; a day over the organization's limit (10 hours unless changed under Settings, Scheduling) shows ",
+          },
+          { t: "strong", v: "Over 10 h" },
+          {
+            t: "text",
+            v: " with an icon. A shift past midnight counts on each day in its own time zone. Open a cell to see its shift hours, task hours and tasks with no estimate.",
+          },
+        ],
+      },
+      { t: "h2", v: "Clashes" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Schedule, Clashes lists people on two shifts at once, shifts during a person's travel, suppliers on two productions at different venues, artists on two stages, short changeovers, travel too close to a call and running orders past curfew. Each is a ",
+          },
+          { t: "strong", v: "Clash" },
+          { t: "text", v: " or a " },
+          { t: "strong", v: "Warning" },
+          {
+            t: "text",
+            v: ", says what clashes, and links to where it is fixed; nothing is fixed for you. A time to be confirmed lowers a clash to a warning. You see a clash only when you can read both of its sides.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Hospitality leads can also choose " },
+          { t: "strong", v: "Check travel requests" },
+          {
+            t: "text",
+            v: " to compare requested travel dates with each person's calls. Each check is recorded in the person's access log.",
           },
         ],
       },
@@ -1971,6 +2322,179 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Build the running order" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Add each cue with its planned time and length. When a time is still an estimate, check ",
+            },
+            { t: "strong", v: "Time to be confirmed" },
+            { t: "text", v: ": Atlas shows " },
+            { t: "strong", v: "TBC · est." },
+            { t: "text", v: " with the estimate, Compass, Gateway and the PDF show " },
+            { t: "strong", v: "TBC" },
+            {
+              t: "text",
+              v: ", and calendar subscriptions mark it tentative. Records offer the same box, ",
+            },
+            { t: "strong", v: "Start time to be confirmed" },
+            { t: "text", v: ", beside " },
+            { t: "strong", v: "Starts" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Choose the pencil on a cue to edit it in place: label, time, length and one call for each department (Audio, Lighting, Video, Special Effects and Stage). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancels." },
+          ],
+          [
+            { t: "text", v: "Use the arrows to move a cue one place, or " },
+            { t: "strong", v: "Move to position…" },
+            {
+              t: "text",
+              v: " to put it anywhere after the last called cue in one step. Called cues keep their places, and the cues are renumbered 1, 2, 3 after a move.",
+            },
+          ],
+          [
+            { t: "text", v: "Choose a " },
+            { t: "strong", v: "Department" },
+            {
+              t: "text",
+              v: " to see only that department's calls. Cues that have one are marked; the others say there is no call. The choice stays in the page address, so you can share it.",
+            },
+          ],
+          [
+            { t: "text", v: "Set a " },
+            { t: "strong", v: "Curfew" },
+            { t: "text", v: " in the details when the show has a hard stop." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Call the show" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Run live" },
+          {
+            t: "text",
+            v: ". If you may call cues, the showcaller console opens with the show clock, the time of day, how far the show runs behind or ahead of the plan and, when a curfew is set, the projected end against it.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Call next cue" },
+            { t: "text", v: " calls the cue on standby, or else the next cue. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " calls the cue you selected." },
+          ],
+          [
+            { t: "strong", v: "Standby" },
+            {
+              t: "text",
+              v: " puts the selected cue on standby; everyone following sees it within a second or two. ",
+            },
+            { t: "strong", v: "Previous cue" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Next cue" },
+            { t: "text", v: " move the standby, and " },
+            { t: "strong", v: "Jump to cue" },
+            { t: "text", v: " picks any uncalled cue. Cues you jump past are marked " },
+            { t: "strong", v: "Skipped" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Nudge −1 min" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Nudge +1 min" },
+            { t: "text", v: " move every remaining planned time." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "With focus in the console, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " stands by, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department; " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list goes." },
+        ],
+      },
+      { t: "h3", v: "Set Stream Deck Hotkey actions to F13 to F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Give each Stream Deck key a " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action: " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " Standby, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Previous cue, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Next cue, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Nudge +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Nudge −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Jump to cue and " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Department. They work while the console has focus, even with single-key shortcuts turned off, and you can change them in ",
+          },
+          { t: "strong", v: "Me, Keyboard shortcuts" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h3", v: "Edit the running order as a grid" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Edit as grid" },
+          {
+            t: "text",
+            v: " to type the cues like a spreadsheet: Time, Duration, Label, Segment and TBC, in running order. Time takes shorthand such as 830p or 20:30, and +1 marks a cue after midnight; Duration takes 45, 45m or 1h30. Typing in the last row adds a cue, and ",
+          },
+          { t: "strong", v: "Move up" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "Move down" },
+          {
+            t: "text",
+            v: " reorder. Called cues, and the cues before the last called one, keep their places. ",
+          },
+          { t: "strong", v: "Save" },
+          { t: "text", v: " previews; " },
+          { t: "strong", v: "Apply" },
+          { t: "text", v: " writes every row or none and renumbers the cues." },
+        ],
+      },
       { t: "h2", v: "Day sheets" },
       {
         t: "p",
@@ -2103,6 +2627,40 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Recurring work creates records on a schedule, such as daily checks or weekly reports, so nothing depends on memory.",
+          },
+        ],
+      },
+      { t: "h2", v: "Reviews" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Turn on " },
+          { t: "strong", v: "Requires review" },
+          {
+            t: "text",
+            v: " on a record, or on a template's record item, when the work must be checked before it is done. A record that requires review becomes Complete only after its latest review is approved. While the record is Active, choose ",
+          },
+          { t: "strong", v: "Request review" },
+          {
+            t: "text",
+            v: ", pick a reviewer and add a note: the record moves to In Review and the reviewer is notified. The reviewer, or any other approver who may change the project's records, chooses ",
+          },
+          { t: "strong", v: "Approve" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Request changes" },
+          {
+            t: "text",
+            v: " with a note; asking for changes moves the record back to Active with the note in its history. Whoever asked for the review never decides it. Only someone who may change the project's settings turns Requires review off.",
+          },
+        ],
+      },
+      { t: "h2", v: "File reviews" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On a submittal or a record, each version of a file can be approved or sent back with what to change, by someone other than the person who uploaded it. Each version keeps its own history, and a new version starts unreviewed. A submittal cannot be approved while the current version of one of its files has changes requested.",
           },
         ],
       },
@@ -2272,6 +2830,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Asignaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
           },
         ],
       },
@@ -2682,6 +3260,21 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Pase el puntero o enfoque cualquier chip de compuerta o fase para ver su definición del canon de XOS.",
+          },
+        ],
+      },
+      { t: "h2", v: "Documentos y detalles obligatorios" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando un proyecto tiene un tipo de evento, sus compuertas también revisan lo que el tipo requiere. Cada tipo de documento Obligatorio para la compuerta necesita un documento del proyecto de ese tipo con al menos una versión, y cada detalle obligatorio necesita un valor. Bajo cada compuerta, ",
+          },
+          { t: "strong", v: "Documentos y detalles obligatorios" },
+          {
+            t: "text",
+            v: " muestra lo que está listo y lo que falta, y el botón para pasar nombra lo que falta. Los elementos recomendados aparecen en la lista y en la tarjeta Configuración del Resumen, pero nunca detienen una compuerta. Un proyecto sin tipo de evento pasa sus compuertas igual que antes.",
           },
         ],
       },
@@ -3205,6 +3798,38 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " para devolverla." },
         ],
       },
+      { t: "h2", v: "En la consola de llamado" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Mientras llama un espectáculo en vivo, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera la señal seleccionada, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta a una señal, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan un minuto el plan restante y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento. " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama la señal. Un Stream Deck envía " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, En espera, Anterior, Siguiente, Retrasar, Adelantar, Saltar y Departamento); asigne a cada tecla una acción ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: "." },
+        ],
+      },
       { t: "h2", v: "Adapte las teclas" },
       {
         t: "p",
@@ -3220,13 +3845,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Restablecer" },
           { t: "text", v: " devuelve el valor predeterminado. Desactive allí " },
           { t: "strong", v: "Atajos de teclado" },
-          { t: "text", v: " para detener todos los atajos sin " },
+          { t: "text", v: " para detener todos los atajos de teclas de carácter sin " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " o " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; las teclas de función " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " siguen funcionando, porque no escriben ningún carácter." },
         ],
       },
       {
@@ -3300,6 +3929,32 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Capacitación" },
             { t: "text", v: ": cree cursos breves para su personal." },
           ],
+        ],
+      },
+      { t: "h2", v: "Tipos de documento" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Archive cada documento bajo uno de los " },
+          { t: "strong", v: "tipos de documento" },
+          {
+            t: "text",
+            v: " de su organización, como un plano del sitio o un certificado de seguro. Adminístrelos en ",
+          },
+          { t: "strong", v: "Configuración, Plantillas, Tipos de documento" },
+          { t: "text", v: ", donde " },
+          { t: "strong", v: "Agregar tipos estándar" },
+          {
+            t: "text",
+            v: " agrega los tipos de la Biblioteca Estándar de XOS que aún no tiene. En la pestaña Documentos de un proyecto, ",
+          },
+          { t: "strong", v: "Documentos obligatorios" },
+          {
+            t: "text",
+            v: " muestra cuántos de los documentos Obligatorios y Recomendados del tipo de evento están archivados; elija ",
+          },
+          { t: "strong", v: "Agregar" },
+          { t: "text", v: " junto a uno que falte para crearlo con su tipo ya elegido." },
         ],
       },
     ],
@@ -3693,6 +4348,78 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Tipos de evento y el alta por pasos" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Su organización puede describir los tipos de evento que produce en " },
+          { t: "strong", v: "Configuración, Plantillas, Tipos de evento" },
+          {
+            t: "text",
+            v: ": un festival, una gala, una feria. Cada tipo de evento elige la plantilla con la que empieza un proyecto nuevo según su escala (Íntimo hasta 500 personas, Pequeño de 500 a 2,500, Mediano de 2,500 a 10,000, Grande de 10,000 a 50,000, Masivo más de 50,000) y su público, pide sus propios detalles al crear el proyecto y nombra los documentos que el proyecto necesita para cada compuerta.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Cuando su organización tiene tipos de evento, " },
+          { t: "strong", v: "Nuevo proyecto" },
+          { t: "text", v: " avanza por pasos: " },
+          { t: "strong", v: "Inicio" },
+          {
+            t: "text",
+            v: " (el tipo de evento y si se empieza desde su plantilla, otra plantilla, un proyecto anterior o en blanco), ",
+          },
+          { t: "strong", v: "Escala y público" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Datos básicos" },
+          {
+            t: "text",
+            v: " (la clave, el nombre, las fechas del evento, la zona horaria y el recinto, con los días de montaje y desmontaje en Más campos), ",
+          },
+          { t: "strong", v: "Detalles" },
+          { t: "text", v: " (los campos del tipo y sus indicaciones), " },
+          { t: "strong", v: "Copia" },
+          { t: "text", v: " (solo al empezar desde un proyecto anterior) y " },
+          { t: "strong", v: "Revisión" },
+          {
+            t: "text",
+            v: ", que nombra la plantilla que se aplicará y lo que el tipo requiere. Crear hace el proyecto en un solo paso; si algo se rechaza, no se crea nada. Sin tipos de evento, Nuevo proyecto sigue siendo una sola pantalla.",
+          },
+        ],
+      },
+      { t: "h2", v: "Días del evento, montaje y desmontaje" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El primer y el último día del evento son las fechas de inicio y fin del proyecto. Los días de montaje y desmontaje son días del proyecto en el cronograma; los días alrededor del evento dan los periodos de ",
+          },
+          { t: "strong", v: "montaje" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "desmontaje" },
+          {
+            t: "text",
+            v: ", que el Resumen muestra, el programa del muelle sombrea y compras compara con los alquileres. Atlas avisa, sin rechazar, cuando un montaje cae después del primer día del evento, un desmontaje antes del último, los periodos se traslapan o uno dura más de 60 días.",
+          },
+        ],
+      },
+      { t: "h2", v: "Copiar de otro proyecto" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En " },
+          { t: "strong", v: "Configuración del proyecto" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Copiar de un proyecto" },
+          {
+            t: "text",
+            v: " copia el plan, las categorías de pases, los bloques de hotel, los presupuestos y los formularios de avance de un proyecto anterior a este, movidos un número de días (que se llena con los primeros días de evento de ambos). Las horas conservan su hora local, también al cambiar el horario de verano. La vista previa muestra cada elemento con lo que se copia, lo que se omite y por qué; Copiar escribe exactamente eso. Nunca se copian turnos, personas, contrataciones, credenciales ni las respuestas de las empresas que contrata.",
+          },
+        ],
+      },
     ],
     reports: [
       { t: "h2", v: "Informes estándar" },
@@ -3891,6 +4618,191 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Una línea base congela el plan en un momento dado. Compare el plan actual con cualquier línea base para ver qué registros se retrasaron y cuánto.",
+          },
+        ],
+      },
+      { t: "h2", v: "Días" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Programación, Días indica para qué es cada día del proyecto: " },
+          { t: "strong", v: "Montaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Función" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Desmontaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Viaje" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Día libre" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ensayo" },
+          { t: "text", v: " u " },
+          { t: "strong", v: "Otro" },
+          {
+            t: "text",
+            v: ". Cada día se lee como texto con un icono junto a su color, en la línea de tiempo, el calendario, la hoja del día, Personal, Turnos y la línea de tiempo de la cartera.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Elija " },
+            { t: "strong", v: "Agregar día" },
+            {
+              t: "text",
+              v: ", o abra un día, para fijar su tipo, una etiqueta, dónde ocurre (una sede, una de las funciones del proyecto o un lugar escrito), su zona horaria y su equipo.",
+            },
+          ],
+          [
+            { t: "strong", v: "Dividir el día" },
+            {
+              t: "text",
+              v: " agrega una parte, hasta cuatro, como un desmontaje por la mañana y el viaje a la siguiente ciudad por la tarde. Una parte en una sede se lee en la zona horaria de la sede.",
+            },
+          ],
+          [
+            { t: "text", v: "Quitar una parte la mueve a la Papelera; " },
+            { t: "strong", v: "Deshacer" },
+            { t: "text", v: " la recupera." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Editar un día como cuadrícula" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Abra un día y elija " },
+          { t: "strong", v: "Editar como cuadrícula" },
+          {
+            t: "text",
+            v: " para escribir sus registros como en una hoja de cálculo: Hora, Título, Tipo, Responsable y Por confirmar. Tab y Mayús+Tab se mueven entre celdas, Intro guarda una celda y baja, y escribir en la última fila agrega un registro.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: 'La hora acepta formas cortas en el reloj del proyecto: 8 a. m., 8:30 p. m., 20 h, 20:30, mediodía o un rango como 8a-10:30a. Un final antes del inicio es el día siguiente. También funcionan frases como "mañana 9am".',
+            },
+          ],
+          [
+            { t: "strong", v: "Guardar" },
+            {
+              t: "text",
+              v: " muestra cuántos registros son nuevos, cambiados y rechazados, con cada rechazo en su celda. ",
+            },
+            { t: "strong", v: "Aplicar" },
+            { t: "text", v: " escribe todas las filas o ninguna." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Plantillas de día" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Guarde los registros y cues de un día como plantilla con " },
+          { t: "strong", v: "Guardar el día como plantilla" },
+          { t: "text", v: "; las horas se guardan desde la medianoche local. En otro día, " },
+          { t: "strong", v: "Aplicar plantilla de día" },
+          {
+            t: "text",
+            v: " pone la plantilla junto a lo que el día ya tiene, por hora: los elementos nuevos llevan ",
+          },
+          { t: "strong", v: "Nuevo" },
+          { t: "text", v: ", los que ya están en el día llevan " },
+          { t: "strong", v: "Ya está en este día" },
+          {
+            t: "text",
+            v: " y quedan desmarcados, y se cuentan las superposiciones. Desmarque lo que no quiera y aplique; ",
+          },
+          { t: "strong", v: "Deshacer" },
+          {
+            t: "text",
+            v: " mueve lo agregado a la Papelera. Las plantillas se listan y editan en Proyectos, Plantillas.",
+          },
+        ],
+      },
+      { t: "h2", v: "El ancla" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La pestaña Cronograma del proyecto muestra el " },
+          { t: "strong", v: "Ancla" },
+          {
+            t: "text",
+            v: ", el día desde el que cuenta el plan, normalmente el día de la función. La línea de tiempo lo marca, y su tabla muestra el desfase de cada registro, como D−3 para tres días antes.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Fijar el ancla" },
+            { t: "text", v: " fija la primera ancla; no mueve nada." },
+          ],
+          [
+            { t: "strong", v: "Mover el ancla" },
+            {
+              t: "text",
+              v: " muestra qué se mueve y qué se queda: los registros con fecha se mueven días enteros en el reloj del proyecto, junto con los órdenes de presentación, los cues, los tipos de día y las hojas sin publicar. Los registros fijados a sus fechas, completos o bloqueados en una línea base se quedan, las hojas publicadas se quedan y los turnos nunca se mueven: reprograme a las personas contratadas en Personal, Turnos. ",
+            },
+            { t: "strong", v: "Volver a mover" },
+            { t: "text", v: " en el aviso devuelve el plan." },
+          ],
+          [
+            { t: "text", v: "En un registro, " },
+            { t: "strong", v: "Se queda en sus fechas cuando se mueve el ancla" },
+            { t: "text", v: " lo fija." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Carga de trabajo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Programación, Carga de trabajo muestra las horas por persona y día de una semana, de turnos y tareas estimadas, como mapa de calor o tabla. Cada celda muestra sus horas como texto; un día sobre el límite de la organización (10 horas salvo que se cambie en Configuración, Programación) muestra ",
+          },
+          { t: "strong", v: "Más de 10 h" },
+          {
+            t: "text",
+            v: " con un icono. Un turno que pasa la medianoche cuenta en cada día en su propia zona horaria. Abra una celda para ver sus horas de turnos, horas de tareas y tareas sin estimación.",
+          },
+        ],
+      },
+      { t: "h2", v: "Conflictos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Programación, Conflictos lista personas en dos turnos a la vez, turnos durante el viaje de una persona, proveedores en dos producciones en sedes distintas, artistas en dos escenarios, cambios cortos, viajes demasiado cerca de una llamada y órdenes de presentación después de la hora límite. Cada uno es un ",
+          },
+          { t: "strong", v: "Conflicto" },
+          { t: "text", v: " o una " },
+          { t: "strong", v: "Advertencia" },
+          {
+            t: "text",
+            v: ", dice qué choca y enlaza a donde se corrige; nada se corrige por usted. Una hora por confirmar baja un conflicto a advertencia. Solo ve un conflicto cuando puede leer ambos lados.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Los responsables de hospitalidad también pueden elegir " },
+          { t: "strong", v: "Revisar solicitudes de viaje" },
+          {
+            t: "text",
+            v: " para comparar las fechas de viaje solicitadas con las llamadas de cada persona. Cada revisión queda registrada en el registro de acceso de la persona.",
           },
         ],
       },
@@ -4148,6 +5060,182 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Arme el orden" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Agregue cada señal con su hora planificada y su duración. Cuando una hora todavía es una estimación, marque ",
+            },
+            { t: "strong", v: "Hora por confirmar" },
+            { t: "text", v: ": Atlas muestra " },
+            { t: "strong", v: "Por confirmar · aprox." },
+            { t: "text", v: " con la estimación, Compass, Gateway y el PDF muestran " },
+            { t: "strong", v: "Por confirmar" },
+            {
+              t: "text",
+              v: ", y las suscripciones de calendario la marcan como provisional. Los registros ofrecen la misma casilla, ",
+            },
+            { t: "strong", v: "Hora de inicio por confirmar" },
+            { t: "text", v: ", junto a " },
+            { t: "strong", v: "Inicio" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Elija el lápiz de una señal para editarla en su lugar: nombre, hora, duración y una llamada por departamento (Audio, Iluminación, Video, Efectos especiales y Escenario). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancela." },
+          ],
+          [
+            { t: "text", v: "Use las flechas para mover una señal un lugar, o " },
+            { t: "strong", v: "Mover a la posición…" },
+            {
+              t: "text",
+              v: " para ponerla en cualquier lugar después de la última señal llamada en un solo paso. Las señales llamadas conservan su lugar, y las señales se numeran de nuevo 1, 2, 3 después de mover una.",
+            },
+          ],
+          [
+            { t: "text", v: "Elija un " },
+            { t: "strong", v: "Departamento" },
+            {
+              t: "text",
+              v: " para ver solo sus llamadas. Las señales que tienen una quedan marcadas; las demás indican que no hay llamada. La elección queda en la dirección de la página, así que puede compartirla.",
+            },
+          ],
+          [
+            { t: "text", v: "Fije una " },
+            { t: "strong", v: "Hora límite" },
+            { t: "text", v: " en los detalles cuando el espectáculo tenga un final obligatorio." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Llame el espectáculo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elija " },
+          { t: "strong", v: "Ejecutar en vivo" },
+          {
+            t: "text",
+            v: ". Si puede llamar señales, se abre la consola de llamado con el reloj del show, la hora del día, cuánto va atrasado o adelantado frente al plan y, cuando hay hora límite, el final proyectado frente a ella.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Llamar siguiente cue" },
+            { t: "text", v: " llama la señal en espera o, si no hay, la siguiente. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " llama la señal seleccionada." },
+          ],
+          [
+            { t: "strong", v: "En espera" },
+            {
+              t: "text",
+              v: " pone en espera la señal seleccionada; quienes siguen el show la ven en uno o dos segundos. ",
+            },
+            { t: "strong", v: "Cue anterior" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Cue siguiente" },
+            { t: "text", v: " mueven la espera, y " },
+            { t: "strong", v: "Saltar a un cue" },
+            {
+              t: "text",
+              v: " elige cualquier señal sin llamar. Las señales que salte quedan marcadas como ",
+            },
+            { t: "strong", v: "Omitido" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Ajustar −1 min" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Ajustar +1 min" },
+            { t: "text", v: " mueven todas las horas planificadas que quedan." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Con el foco en la consola, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan el plan y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento; " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama." },
+        ],
+      },
+      { t: "h3", v: "Configure acciones Hotkey de Stream Deck con F13 a F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Asigne a cada tecla del Stream Deck una acción " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: ": " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " En espera, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Cue anterior, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Cue siguiente, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Ajustar +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Ajustar −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Saltar a un cue y " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Departamento. Funcionan mientras la consola tiene el foco, aunque los atajos de una tecla estén desactivados, y puede cambiarlas en ",
+          },
+          { t: "strong", v: "Yo, Atajos de teclado" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h3", v: "Editar el orden de presentación como cuadrícula" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elija " },
+          { t: "strong", v: "Editar como cuadrícula" },
+          {
+            t: "text",
+            v: " para escribir los cues como en una hoja de cálculo: Hora, Duración, Etiqueta, Segmento y Por confirmar, en el orden de presentación. La hora acepta formas cortas como 8:30 p. m. o 20:30, y +1 marca un cue después de la medianoche; Duración acepta 45, 45m o 1h30. Escribir en la última fila agrega un cue, y ",
+          },
+          { t: "strong", v: "Subir" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Bajar" },
+          {
+            t: "text",
+            v: " reordenan. Los cues llamados, y los que van antes del último llamado, conservan su lugar. ",
+          },
+          { t: "strong", v: "Guardar" },
+          { t: "text", v: " muestra la vista previa; " },
+          { t: "strong", v: "Aplicar" },
+          { t: "text", v: " escribe todas las filas o ninguna y renumera los cues." },
+        ],
+      },
       { t: "h2", v: "Hojas del día" },
       {
         t: "p",
@@ -4279,6 +5367,40 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "El trabajo recurrente crea registros según un calendario, como revisiones diarias o informes semanales.",
+          },
+        ],
+      },
+      { t: "h2", v: "Revisiones" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Active " },
+          { t: "strong", v: "Requiere revisión" },
+          {
+            t: "text",
+            v: " en un registro, o en un elemento de registro de una plantilla, cuando el trabajo deba revisarse antes de terminarse. Un registro que requiere revisión queda Completo solo después de aprobarse su última revisión. Mientras el registro está Activo, elija ",
+          },
+          { t: "strong", v: "Pedir revisión" },
+          {
+            t: "text",
+            v: ", escoja a quien revisa y agregue una nota: el registro pasa a En revisión y se avisa a quien revisa. Quien revisa, o cualquier otro aprobador que pueda cambiar los registros del proyecto, elige ",
+          },
+          { t: "strong", v: "Aprobar" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Pedir cambios" },
+          {
+            t: "text",
+            v: " con una nota; pedir cambios regresa el registro a Activo con la nota en su historial. Quien pidió la revisión nunca la decide. Solo quien puede cambiar la configuración del proyecto desactiva Requiere revisión.",
+          },
+        ],
+      },
+      { t: "h2", v: "Revisión de archivos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En una presentación o un registro, cada versión de un archivo puede aprobarse o devolverse con lo que hay que cambiar, por alguien distinto de quien la subió. Cada versión conserva su propio historial y una versión nueva empieza sin revisar. Una presentación no puede aprobarse mientras la versión actual de uno de sus archivos tenga cambios solicitados.",
           },
         ],
       },

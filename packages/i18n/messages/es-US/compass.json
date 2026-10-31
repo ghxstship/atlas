@@ -89,7 +89,9 @@
     "notActiveTitle": "Tu contratación aún no está activa",
     "notActive": "Esto se abre cuando tu contratación pase a Activa. Termina la incorporación en Gateway.",
     "closedTitle": "Tu contratación terminó",
-    "closed": "El acceso a Compass terminó al completarse tu contratación. Pagos y documentos siguen en Gateway."
+    "closed": "El acceso a Compass terminó al completarse tu contratación. Pagos y documentos siguen en Gateway.",
+    "rosterMemberTitle": "Tu empresa se encarga de esto",
+    "rosterMember": "Trabajas en este proyecto en el equipo de tu empresa, así que tu empresa lleva tu tiempo, cambios de turno y gastos. Pregúntale a quien dirige tu equipo."
   },
   "sync": {
     "offline": "Sin conexión. Los cambios se guardan en este dispositivo.",
@@ -155,9 +157,14 @@
       "settlement_lines": "líneas de liquidación",
       "shared_reports": "informes compartidos",
       "sponsor_entitlements": "beneficios del patrocinador",
+      "proof_of_performance_photos": "fotos de comprobación de cumplimiento",
       "engagement_documents": "documentos de la contratación",
       "profile_certifications": "tus certificaciones",
-      "profile_documents": "tus documentos"
+      "profile_documents": "tus documentos",
+      "roster_entries": "entradas de lista",
+      "advance_allocations": "artículos asignados a ti",
+      "parking_passes": "pases de estacionamiento",
+      "cue_calls": "llamadas de departamento"
     }
   },
   "queue": {
@@ -270,7 +277,8 @@
       "serverState": "{title}, ahora {state}",
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
-      "expenseReceipt": "Gasto: {description}, {day}"
+      "expenseReceipt": "Gasto: {description}, {day}",
+      "proofPhoto": "Foto de comprobación de cumplimiento, {time}"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
     "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
@@ -287,7 +295,31 @@
     "callTime": "Llamado {time}",
     "blockEmpty": "Nada aquí hoy.",
     "orgChip": "{org}",
-    "nextCueAt": "Previsto para el {day} a las {time}"
+    "nextCueAt": "Previsto para el {day} a las {time}",
+    "roster": {
+      "callTitle": "Tu citación",
+      "arrival": "Llega el {day}, de {start} a {end}",
+      "fromShift": "Tu primer turno de hoy.",
+      "noArrival": "Tu llegada aún no está definida. Tu empresa la define en la lista.",
+      "parkingTitle": "Estacionamiento",
+      "noParking": "No tienes pase de estacionamiento en este proyecto.",
+      "showPass": "Mostrar pase",
+      "gearTitle": "Equipo asignado",
+      "noGear": "Todavía no tienes nada asignado.",
+      "holding": "Lo tienes contigo",
+      "pickup": "Recoger en el mostrador: {status}",
+      "status": {
+        "approved": "Aprobado",
+        "reserved": "Reservado",
+        "awaitingOrder": "Esperando pedido",
+        "onOrder": "Pedido",
+        "confirmed": "Confirmado",
+        "received": "Recibido"
+      },
+      "contactTitle": "Contacto",
+      "contactSentence": "Pregúntale sobre tu citación, tu equipo o el estacionamiento.",
+      "projectDetails": "Actualizar datos del proyecto"
+    }
   },
   "orgs": {
     "title": "Organizaciones",
@@ -309,7 +341,14 @@
     "since": "Desde las {time}",
     "cueTitle": "Siguiente cue: {cue}",
     "cueBody": "{project} a las {time}",
-    "channel": "Turno y siguiente cue"
+    "channel": "Turno y siguiente cue",
+    "gallery": {
+      "todayName": "Compass Hoy",
+      "todayDescription": "Tus turnos de hoy y el siguiente cue.",
+      "nextCueName": "Siguiente cue de Compass",
+      "nextCueDescription": "El tiempo que falta para el siguiente cue."
+    },
+    "cueTbc": "{cue} · Por confirmar"
   },
   "wallet": {
     "holder": "Nombre",
@@ -438,7 +477,31 @@
     "enterCode": "Escribe un código",
     "submitCode": "Buscar",
     "vendorEmpty": "Aún no tienes entregas reservadas en este proyecto. Los turnos de muelle aparecen aquí al reservarse.",
-    "assignedEmpty": "Aún no tienes equipo asignado. Los artículos aparecen aquí cuando tu jefe de equipo te los entrega."
+    "assignedEmpty": "Aún no tienes equipo asignado. Los artículos aparecen aquí cuando tu jefe de equipo te los entrega.",
+    "receiveOrder": {
+      "title": "Recibir contra una orden",
+      "close": "Cerrar",
+      "open": "Recibir contra una orden",
+      "resume": "Revisar la recepción",
+      "scanHint": "Elige una línea con etiquetas y escanea cada unidad. Usa los botones para las demás líneas.",
+      "tagged": "{count} de {open} etiquetadas",
+      "removeTag": "Quitar {tag}",
+      "counted": "{count} de {open} contadas",
+      "less": "Una menos de {line}",
+      "more": "Una más de {line}",
+      "note": "Estado o excepciones",
+      "submit": "Recibir",
+      "otherOrder": "Elegir otra orden",
+      "loading": "Cargando órdenes.",
+      "offline": "Las órdenes solo se cargan con conexión. Los escaneos siguen en la cola de ingreso.",
+      "retry": "Reintentar",
+      "none": "Ninguna orden aprobada o enviada de este proyecto tiene líneas por recibir.",
+      "order": "OC {number}",
+      "unnamedVendor": "Proveedor sin nombre",
+      "tagAdded": "Etiqueta agregada",
+      "tagSkipped": "Ya etiquetada, o la línea está completa",
+      "queued": "{count} recibidas; se sincroniza cuando tengas conexión"
+    }
   },
   "incidents": {
     "title": "Incidentes",
@@ -534,7 +597,24 @@
     "countdownLabel": "{minutes} min {seconds} s para {cue}",
     "countdownLate": "{minutes} min {seconds} s de retraso en {cue}",
     "countdownSoon": "{cue} en {seconds} segundos",
-    "countdownGo": "{cue}: ya"
+    "countdownGo": "{cue}: ya",
+    "tbc": "Por confirmar",
+    "onStandby": "En espera",
+    "department": "Tu departamento",
+    "allDepartments": "Todos",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Iluminación",
+      "video": "Video",
+      "sfx": "Efectos especiales",
+      "stage": "Escenario"
+    },
+    "yourCallNow": "Tu llamada ahora: {cue}",
+    "yourCallNext": "Tu próxima llamada: {cue}",
+    "callLine": "{department} · {instruction}",
+    "noCall": "Sin llamada de {department}",
+    "noCalls": "Sin llamadas de departamento",
+    "countdownTbc": "{cue}: hora por confirmar"
   },
   "kiosk": {
     "title": "Quiosco",
@@ -899,6 +979,18 @@
     "prompt": "Activa las notificaciones para aprobar hojas de horas y otras solicitudes desde la alerta.",
     "denied": "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
     "turnOn": "Activar notificaciones"
+  },
+  "offerActions": {
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "reply": "Responder",
+    "send": "Enviar",
+    "replyPrompt": "Escribe una respuesta",
+    "shiftAccepted": "Turno aceptado. Ya estás en el horario.",
+    "shiftDeclined": "Turno rechazado. Quien programa lo ve de nuevo en Borrador.",
+    "offerAccepted": "Oferta aceptada. La organización prepara tu contratación a continuación.",
+    "offerDeclined": "Oferta rechazada.",
+    "replied": "Respuesta enviada."
   },
   "help": {
     "title": "Ayuda",

@@ -36,4 +36,12 @@ Punch items are the small fixes found during inspections and walkthroughs. Each 
 
 Recurring work creates records on a schedule, such as daily checks or weekly reports, so nothing depends on memory.
 
+## Reviews
+
+Turn on **Requires review** on a record, or on a template's record item, when the work must be checked before it is done. A record that requires review becomes Complete only after its latest review is approved. While the record is Active, choose **Request review**, pick a reviewer and add a note: the record moves to In Review and the reviewer is notified. The reviewer, or any other approver who may change the project's records, chooses **Approve** or **Request changes** with a note; asking for changes moves the record back to Active with the note in its history. Whoever asked for the review never decides it. Only someone who may change the project's settings turns Requires review off.
+
+## File reviews
+
+On a submittal or a record, each version of a file can be approved or sent back with what to change, by someone other than the person who uploaded it. Each version keeps its own history, and a new version starts unreviewed. A submittal cannot be approved while the current version of one of its files has changes requested.
+
 Related: [Schedule](help:schedule).

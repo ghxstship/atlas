@@ -3,6 +3,7 @@ import { listPhases, listScopeNodes } from "@xos/data/projects";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { ProjectOverLimitBanner } from "@/components/plan-limits/banners";
 import { ProjectTabs, type ProjectTabGroup } from "@/components/projects/project-tabs";
 import { ScopePicker } from "@/components/projects/scope-picker";
 import { ProjectOpened } from "@/components/shell/project-opened";
@@ -15,7 +16,8 @@ import { getTranslate } from "@/lib/shell/translate";
 
 /**
  * The project frame (Section 4.5.1 and 4.5.4): the project header with key, name, state and phase,
- * the scope picker, and the tab bar grouped by act, showing only the tabs the viewer may open.
+ * the scope picker, the banner of a project a plan limit made read-only (A107), and the tab bar grouped by act,
+ * showing only the tabs the viewer may open.
  * Every tab page renders inside it. A project the viewer may not read answers 404 (invariant 2).
  * Opening it notes the view, so it leads the recent projects under Projects in the sidebar (Section
  * 4.5.2).
@@ -71,6 +73,12 @@ export default async function ProjectLayout({
               code={phaseCode(project.phaseCode)}
               name={t(`phases.${phaseCode(project.phaseCode)}`)}
             />
+            {project.eventTypeName ? (
+              <Tag>
+                <span className="sr-only">{t("header.eventType")} </span>
+                {project.eventTypeName}
+              </Tag>
+            ) : null}
             {project.archivedAt ? <Tag tone="warning">{t("header.archived")}</Tag> : null}
           </div>
         </div>
@@ -86,6 +94,7 @@ export default async function ProjectLayout({
           />
         </Suspense>
       </header>
+      <ProjectOverLimitBanner ctx={ctx.org} projectId={project.id} />
       <Suspense>
         <ProjectTabs
           label={t("header.tabs")}

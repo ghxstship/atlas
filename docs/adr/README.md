@@ -61,6 +61,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0057](0057-encrypted-bank-and-certificate-numbers.md)              | Encrypted Bank and Certificate Numbers                                           | Accepted |
 | [0060](0060-collection-exports-and-the-export-worker.md)            | Exports of Every Collection and the Export Worker                                | Proposed |
 | [0061](0061-watermarked-uploaded-pdfs.md)                           | Watermarked Uploaded PDFs                                                        | Proposed |
+| [0063](0063-shift-templates-availability-and-crew-drag.md)          | Shift Templates, Members' Availability and the Crew Drag Board                   | Proposed |
 | [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0065](0065-carrier-client-credentials.md)                          | UPS and FedEx Mint Their Access Tokens with the Client-Credentials Grant         | Proposed |
 | [0068](0068-denormalization-register-and-catalog-lints.md)          | Denormalization Register and Catalog Lints                                       | Proposed |
@@ -73,6 +74,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0075](0075-selection-menus-and-hover-cards-in-every-view.md)       | Selection, Record Menus and Hover Cards in Every View                            | Accepted |
 | [0076](0076-custom-fields-on-pages-and-the-filter-builder.md)       | Custom Fields on Pages, and the Add Filter Control                               | Accepted |
 | [0080](0080-operations-bulk-edit-and-undo.md)                       | Operations Bulk Edit, Undo for Their Deletes and Day Sheet Drafts                | Accepted |
+| [0081](0081-objects-over-plan-limits-become-read-only.md)           | Objects Over the Plan's Limits Become Read-Only                                  | Proposed |
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 | [0087](0087-dashboard-template-and-template-roots.md)               | The Dashboard Template, Saved Spans and Template Roots                           | Accepted |
@@ -81,9 +83,19 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0102](0102-profile-facts-and-project-facts.md)                     | Profile Facts and Project Facts                                                  | Accepted |
 | [0103](0103-combined-statuses-are-computed.md)                      | Combined Statuses Are Computed                                                   | Accepted |
 | [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
+| [0105][adr-0105]                                                    | Allergies Are Restricted; Catering Lead and On-Site Medical Roles Read Them      | Accepted |
+| [0106](0106-one-tap-actions-from-email-and-push.md)                 | One-Tap Actions from Email and Push, and Gateway's For Your Information          | Proposed |
 | [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
+| [0111](0111-timeline-reschedule-pushes-successors.md)               | A Timeline Reschedule Pushes Successors by What It Adds                          | Accepted |
+| [0112](0112-holiday-calendars-for-time-off-and-payroll.md)          | Holiday Calendars for Time Off and Payroll                                       | Accepted |
 | [0114](0114-stricter-separation-of-duties-options.md)               | Stricter Separation of Duties Options                                            | Proposed |
+| [0117](0117-photo-location-pass-art-and-sponsor-proof-photos.md)    | Photo Location, Pass Art from the Org Logo, and Sponsor Proof Photos             | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
+| [0131](0131-show-calling-and-stream-deck-keys.md)                   | Show Calling: TBC Times, Standby, Cue Moves and Stream Deck Keys                 | Accepted |
+| [0143](0143-scheduling-depth.md)                                    | Scheduling Depth: Day Types, Day Templates, the Anchor and Computed Clashes      | Accepted |
+| [0153](0153-event-types-setup-completeness-and-project-copy.md)     | Event Types, Setup Completeness and Copying a Past Project                       | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
+
+[adr-0105]: 0105-allergies-restricted-and-workforce-role-capabilities.md

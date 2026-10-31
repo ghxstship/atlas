@@ -1,6 +1,14 @@
 "use client";
 
-import { Checkbox, DataTable, EmptyState, Input, PageHeader, TemplateCollection } from "@xos/ui";
+import {
+  Checkbox,
+  DataTable,
+  EmptyState,
+  Input,
+  PageHeader,
+  Select,
+  TemplateCollection,
+} from "@xos/ui";
 import type { ProjectSummary } from "@xos/data/projects";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
@@ -94,12 +102,29 @@ export function ProjectCollection({
   };
 
   const gateOf = (code: string) => phases.find((p) => p.code === code)?.gate ?? 0;
+  // B14 (3030): the event type, read with the list (event_type:event_types(name)), as a column, a filter and a grouping.
+  const typeFilter = params.get("type");
+  const groupByType = params.get("group") === "type";
+  const typeNames = useMemo(
+    () =>
+      [
+        ...new Set(projects.map((p) => p.eventTypeName).filter((n): n is string => Boolean(n))),
+      ].sort(),
+    [projects],
+  );
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q === ""
-      ? projects
-      : projects.filter((p) => p.key.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
-  }, [projects, query]);
+    const searched =
+      q === ""
+        ? projects
+        : projects.filter(
+            (p) => p.key.toLowerCase().includes(q) || p.name.toLowerCase().includes(q),
+          );
+    if (typeFilter === null) return searched;
+    return searched.filter((p) =>
+      typeFilter === "" ? !p.eventTypeName : p.eventTypeName === typeFilter,
+    );
+  }, [projects, query, typeFilter]);
 
   const setParam = (name: string, value: string | null) => {
     const next = new URLSearchParams(params.toString());
@@ -174,6 +199,28 @@ export function ProjectCollection({
         checked={includeArchived}
         onChange={(e) => setParam("archived", e.target.checked ? "1" : null)}
       />
+      {typeNames.length > 0 ? (
+        <>
+          <Select
+            id="projects-event-type"
+            label={t("eventTypes.field")}
+            value={typeFilter ?? "*"}
+            options={[
+              { value: "*", label: t("eventTypes.allTypes") },
+              { value: "", label: t("intake.noEventType") },
+              ...typeNames.map((n) => ({ value: n, label: n })),
+            ]}
+            onChange={(e) => setParam("type", e.target.value === "*" ? null : e.target.value)}
+          />
+          {view === "table" ? (
+            <Checkbox
+              label={t("eventTypes.groupBy")}
+              checked={groupByType}
+              onChange={(e) => setParam("group", e.target.checked ? "type" : null)}
+            />
+          ) : null}
+        </>
+      ) : null}
     </>
   );
 
@@ -210,33 +257,64 @@ export function ProjectCollection({
       />
     );
   } else if (view === "table") {
-    body = (
+    const columns = [
+      { key: "key", label: t("fields.key"), type: "code" as const, width: 88 },
+      { key: "name", label: t("fields.name"), wrap: true },
+      { key: "state", label: t("fields.state"), type: "state" as const, width: 128 },
+      { key: "phase", label: t("fields.phase"), width: 160 },
+      ...(typeNames.length > 0
+        ? [{ key: "eventType", label: t("eventTypes.field"), width: 160 }]
+        : []),
+      { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code" as const, width: 180 },
+      { key: "venue", label: t("fields.venue"), width: 180 },
+      { key: "dates", label: t("fields.dates"), width: 220 },
+      ...custom.columns,
+    ];
+    const rows = (list: readonly ProjectSummary[]) =>
+      list.map((p) => ({
+        id: p.key,
+        key: p.key,
+        name: p.name,
+        state: { state: stateIcon(p.projectState), label: stateLabel(p) },
+        phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
+        eventType: p.eventTypeName ?? t("values.none"),
+        jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
+        venue: p.venueName ?? t("values.none"),
+        dates: dates(p),
+        ...custom.cells(p.id),
+      }));
+    const table = (list: readonly ProjectSummary[], caption: string) => (
       <DataTable
-        caption={t("list.caption")}
-        columns={[
-          { key: "key", label: t("fields.key"), type: "code", width: 88 },
-          { key: "name", label: t("fields.name"), wrap: true },
-          { key: "state", label: t("fields.state"), type: "state", width: 128 },
-          { key: "phase", label: t("fields.phase"), width: 160 },
-          { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code", width: 180 },
-          { key: "venue", label: t("fields.venue"), width: 180 },
-          { key: "dates", label: t("fields.dates"), width: 220 },
-          ...custom.columns,
-        ]}
+        caption={caption}
+        columns={columns}
         pinStart={["key"]}
-        rows={shown.map((p) => ({
-          id: p.key,
-          key: p.key,
-          name: p.name,
-          state: { state: stateIcon(p.projectState), label: stateLabel(p) },
-          phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
-          jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
-          venue: p.venueName ?? t("values.none"),
-          dates: dates(p),
-          ...custom.cells(p.id),
-        }))}
+        rows={rows(list)}
         onRowActivate={(row) => setPeekKey(String(row["key"]))}
       />
+    );
+    body = groupByType ? (
+      <div className="flex flex-col gap-20">
+        {[...typeNames, null]
+          .map((name) => ({ name, list: shown.filter((p) => (p.eventTypeName ?? null) === name) }))
+          .filter((g) => g.list.length > 0)
+          .map((g) => (
+            <section
+              key={g.name ?? ""}
+              className="flex flex-col gap-8"
+              aria-label={g.name ?? t("intake.noEventType")}
+            >
+              <h2 className="m-0 text-text-14 font-semibold">
+                {t("eventTypes.groupHeading", {
+                  name: g.name ?? t("intake.noEventType"),
+                  count: g.list.length,
+                })}
+              </h2>
+              {table(g.list, `${t("list.caption")}: ${g.name ?? t("intake.noEventType")}`)}
+            </section>
+          ))}
+      </div>
+    ) : (
+      table(shown, t("list.caption"))
     );
   } else {
     body = (

@@ -245,6 +245,8 @@ export interface RecordSummary {
   readonly accountableId: string | null;
   readonly scopeNodeId: string | null;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed: shown as TBC, still sorted by the estimate. */
+  readonly startTbc: boolean;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
@@ -253,10 +255,12 @@ export interface RecordSummary {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly deletedAt: string | null;
+  /** B14 (3034): Complete only after the latest review is Approved. Absent reads as false. */
+  readonly requiresReview?: boolean;
 }
 
 const RECORD_COLUMNS =
-  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, ends_at, due_at, time_zone, blocker_text, replan_reason, created_at, updated_at, deleted_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
+  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, start_tbc, ends_at, due_at, time_zone, blocker_text, replan_reason, requires_review, created_at, updated_at, deleted_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
 
 interface RecordRow {
   id: string;
@@ -273,11 +277,13 @@ interface RecordRow {
   accountable_party_id: string | null;
   scope_node_id: string | null;
   starts_at: string | null;
+  start_tbc: boolean;
   ends_at: string | null;
   due_at: string | null;
   time_zone: string | null;
   blocker_text: string | null;
   replan_reason: string | null;
+  requires_review?: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -307,6 +313,7 @@ export function toRecordSummary(row: RecordRow): RecordSummary {
     accountableId: row.accountable_party_id,
     scopeNodeId: row.scope_node_id,
     startsAt: row.starts_at,
+    startTbc: row.start_tbc ?? false,
     endsAt: row.ends_at,
     dueAt: row.due_at,
     timeZone: row.time_zone,
@@ -315,6 +322,7 @@ export function toRecordSummary(row: RecordRow): RecordSummary {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
+    requiresReview: row.requires_review ?? false,
   };
 }
 
@@ -336,6 +344,10 @@ export interface RecordQuery {
   readonly to?: string;
   /** Only records with a start, end or due time. */
   readonly datedOnly?: boolean;
+  /** Only records with no start, end or due time (P8: the Unscheduled list). */
+  readonly undatedOnly?: boolean;
+  /** Leaves out records in these states. */
+  readonly excludeStates?: readonly string[];
   /** Trash: only soft-deleted records. Otherwise soft-deleted records are left out. */
   readonly trashed?: boolean;
   readonly limit?: number;
@@ -371,6 +383,10 @@ export async function listRecords(
   const window = windowFilter(query.from, query.to);
   if (window) q = q.or(window);
   if (query.datedOnly) q = q.or("starts_at.not.is.null,ends_at.not.is.null,due_at.not.is.null");
+  if (query.undatedOnly) q = q.is("starts_at", null).is("ends_at", null).is("due_at", null);
+  if (query.excludeStates && query.excludeStates.length > 0) {
+    q = q.not("record_state", "in", `(${query.excludeStates.join(",")})`);
+  }
   q = query.trashed ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
   const { data, error } = await q
     .order("project_id")
@@ -528,6 +544,8 @@ export interface RecordInput {
   readonly ownerId?: string | null | undefined;
   readonly accountableId?: string | null | undefined;
   readonly startsAt?: string | null | undefined;
+  /** The start is an estimate to be confirmed; the database clears it while the start is empty. */
+  readonly startTbc?: boolean | undefined;
   readonly endsAt?: string | null | undefined;
   readonly dueAt?: string | null | undefined;
   readonly timeZone?: string | null | undefined;
@@ -593,6 +611,7 @@ export async function createRecord(
       owner_party_id: input.ownerId ?? null,
       accountable_party_id: input.accountableId ?? null,
       starts_at: input.startsAt ?? null,
+      start_tbc: input.startTbc ?? false,
       ends_at: input.endsAt ?? null,
       due_at: input.dueAt ?? null,
       time_zone: input.timeZone ?? null,
@@ -618,11 +637,14 @@ export interface RecordPatch {
   readonly ownerId?: string | null | undefined;
   readonly accountableId?: string | null | undefined;
   readonly startsAt?: string | null | undefined;
+  readonly startTbc?: boolean | undefined;
   readonly endsAt?: string | null | undefined;
   readonly dueAt?: string | null | undefined;
   readonly timeZone?: string | null | undefined;
   /** Logged with the replan when the record is Scheduled or later (Section 3.10). */
   readonly replanReason?: string | null | undefined;
+  /** Turning it on needs work.record.write, off projects.settings.write (record_review_flag_locked). */
+  readonly requiresReview?: boolean | undefined;
 }
 
 /** Edits a record. From Scheduled onward a date change is written to the replan log. */
@@ -639,10 +661,12 @@ export async function updateRecord(
   if (patch.ownerId !== undefined) row.owner_party_id = patch.ownerId;
   if (patch.accountableId !== undefined) row.accountable_party_id = patch.accountableId;
   if (patch.startsAt !== undefined) row.starts_at = patch.startsAt;
+  if (patch.startTbc !== undefined) row.start_tbc = patch.startTbc;
   if (patch.endsAt !== undefined) row.ends_at = patch.endsAt;
   if (patch.dueAt !== undefined) row.due_at = patch.dueAt;
   if (patch.timeZone !== undefined) row.time_zone = patch.timeZone;
   if (patch.replanReason !== undefined) row.replan_reason = patch.replanReason;
+  if (patch.requiresReview !== undefined) row.requires_review = patch.requiresReview;
   if (Object.keys(row).length === 0) return ok(null);
   const { data, error } = await db.from("records").update(row).eq("id", id).select("id");
   if (error) return fail(toDataError(error));
@@ -701,11 +725,17 @@ export async function restoreRecord(db: XosClient, id: string): Promise<Result<n
 /**
  * Copies a record into a new Proposed record of the same project (journey 70): kind, subtype,
  * title, scope, phase, URID, XYZ tag, people, dates and the kind's attributes. With children, the
- * checklist is copied too, every item open.
+ * checklist is copied too, every item open. `withoutDates` leaves the copy undated, so it waits in
+ * the schedule's Unscheduled list (P8).
  */
 export async function duplicateRecord(
   db: XosClient,
-  input: { readonly orgId: string; readonly recordId: string; readonly withChildren?: boolean },
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly withChildren?: boolean;
+    readonly withoutDates?: boolean;
+  },
 ): Promise<Result<{ id: string; number: number }>> {
   const source = await getRecord(db, input.recordId);
   if (!source.ok) return source;
@@ -724,9 +754,10 @@ export async function duplicateRecord(
     xyz: r.xyz,
     ownerId: r.ownerId,
     accountableId: r.accountableId,
-    startsAt: r.startsAt,
-    endsAt: r.endsAt,
-    dueAt: r.dueAt,
+    startsAt: input.withoutDates ? null : r.startsAt,
+    startTbc: input.withoutDates ? false : r.startTbc,
+    endsAt: input.withoutDates ? null : r.endsAt,
+    dueAt: input.withoutDates ? null : r.dueAt,
     timeZone: r.timeZone,
     extension: extension.data,
   });
@@ -1442,4 +1473,128 @@ export async function listCurrencyOptions(
       )
       .sort((a, b) => a.code.localeCompare(b.code)),
   );
+}
+
+// Reviews (B14, G-268, migration 3034) -----------------------------------------------------------------
+
+export type ReviewDecision = "Approved" | "Rejected";
+
+export interface RecordReview {
+  /** The Approval record that asks for the review. */
+  readonly approvalRecordId: string;
+  readonly approvalKey: string;
+  readonly approvalState: string;
+  readonly reviewerId: string | null;
+  readonly reviewerName: string | null;
+  readonly requesterId: string;
+  readonly requesterName: string | null;
+  readonly decision: ReviewDecision | null;
+  readonly approverName: string | null;
+  readonly decidedAt: string | null;
+  readonly requestedAt: string;
+}
+
+/**
+ * Reviews of a record, latest first: each Approval record whose approval names it (app.record_approval), with its
+ * reviewer (the Approval record's owner), requester and decision. The latest live one that is not Canceled decides
+ * whether a flagged record may be Complete.
+ */
+export async function listRecordReviews(
+  db: XosClient,
+  recordId: string,
+): Promise<Result<RecordReview[]>> {
+  const { data, error } = await untyped(db)
+    .from("record_approval")
+    .select(
+      "record_id, requester_person_id, decision, decided_at, requester:people!record_approval_requester_person_id_fkey(full_name), approver:people!record_approval_approver_person_id_fkey(full_name), approval:records!record_approval_record_kind_fkey!inner(record_number, record_state, owner_party_id, created_at, deleted_at, project:projects!records_project_id_fkey(project_key), owner:people!records_owner_party_id_fkey(full_name))",
+    )
+    .eq("subject_record_id", recordId)
+    .is("approval.deleted_at", null);
+  if (error) return fail(toDataError(error));
+  type Row = {
+    record_id: string;
+    requester_person_id: string;
+    decision: ReviewDecision | null;
+    decided_at: string | null;
+    requester: { full_name: string | null } | null;
+    approver: { full_name: string | null } | null;
+    approval: {
+      record_number: number;
+      record_state: string;
+      owner_party_id: string | null;
+      created_at: string;
+      project: { project_key: string } | null;
+      owner: { full_name: string | null } | null;
+    };
+  };
+  return ok(
+    (data as unknown as Row[])
+      .map((r) => ({
+        approvalRecordId: r.record_id,
+        approvalKey: formatRecordKey(
+          r.approval.project?.project_key ?? "",
+          r.approval.record_number,
+        ),
+        approvalState: r.approval.record_state,
+        reviewerId: r.approval.owner_party_id,
+        reviewerName: r.approval.owner?.full_name ?? null,
+        requesterId: r.requester_person_id,
+        requesterName: r.requester?.full_name ?? null,
+        decision: r.decision,
+        approverName: r.approver?.full_name ?? null,
+        decidedAt: r.decided_at,
+        requestedAt: r.approval.created_at,
+      }))
+      .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)),
+  );
+}
+
+/** The review that decides a flagged record: the latest one whose Approval record is not Canceled. */
+export function currentReview(reviews: readonly RecordReview[]): RecordReview | null {
+  return reviews.find((r) => r.approvalState !== "Canceled") ?? null;
+}
+
+/**
+ * Asks for a review of an Active record (app.request_record_review): an Approval record owned by the reviewer, the
+ * record In Review, and approval.requested to the reviewer. A review names its reviewer, never the asker or the
+ * record's owner (sod_record_review_owner). Returns the Approval record id.
+ */
+export async function requestRecordReview(
+  db: XosClient,
+  input: {
+    readonly recordId: string;
+    readonly reviewerId: string;
+    readonly note?: string | null;
+  },
+): Promise<Result<{ approvalRecordId: string }>> {
+  const { data, error } = await untyped(db).rpc("request_record_review", {
+    p_record_id: input.recordId,
+    p_reviewer_person_id: input.reviewerId,
+    p_note: input.note?.trim() ? input.note.trim() : null,
+  });
+  if (error) return fail(toDataError(error));
+  return typeof data === "string"
+    ? ok({ approvalRecordId: data })
+    : fail({ kind: "unexpected", message: "no approval id" });
+}
+
+/**
+ * Decides a review (app.decide_record_review): Approved, or Rejected with a note, which moves the record back to
+ * Active. The requester never decides (sod_approval_requester).
+ */
+export async function decideRecordReview(
+  db: XosClient,
+  input: {
+    readonly approvalRecordId: string;
+    readonly decision: ReviewDecision;
+    readonly note?: string | null;
+  },
+): Promise<Result<null>> {
+  const { error } = await untyped(db).rpc("decide_record_review", {
+    p_approval_record_id: input.approvalRecordId,
+    p_decision: input.decision,
+    p_note: input.note?.trim() ? input.note.trim() : null,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
 }

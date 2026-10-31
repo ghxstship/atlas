@@ -236,6 +236,7 @@ var templates = {
     project: "Proyecto",
     submit: "Guardar como plantilla",
     done: "Plantilla guardada a partir del proyecto.",
+    keepDates: "Conservar las fechas de vencimiento",
   },
   detail: {
     none: "Cree una plantilla para verla aquí.",
@@ -287,6 +288,8 @@ var templates = {
       "Déjelo en blanco para no tener vencimiento; use un número negativo para antes del inicio.",
     remove: "Quitar",
     removeNamed: "Quitar {name}",
+    requiresReview: "Requiere revisión",
+    reviewed: "requiere revisión",
   },
   draft: {
     title: "Borrador de la versión {version}",
@@ -322,6 +325,8 @@ var templates = {
     open: "Abrir el proyecto",
     needsCapability:
       "Crear proyectos requiere projects.project.create. Pídalo a un Propietario o Administrador.",
+    withoutDates:
+      "Dejar los registros sin fecha (esperan en la lista Sin programar del cronograma)",
   },
   delete: {
     label: "Eliminar esta plantilla",

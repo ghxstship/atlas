@@ -16,7 +16,8 @@
     "chart": "Gráfico",
     "feed": "Actividad",
     "inbox": "Bandeja de entrada",
-    "split": "Vista dividida"
+    "split": "Vista dividida",
+    "heatmap": "Mapa de calor"
   },
   "filter": {
     "add": "Agregar filtro",
@@ -60,7 +61,9 @@
     "loading": "Cargando vistas guardadas",
     "empty": "Todavía no hay vistas guardadas",
     "default": "{name} (predeterminada)",
+    "builtIn": "Vistas integradas",
     "save": "Guardar la vista actual",
+    "saveCopy": "Guardar una copia de {name}",
     "update": "Actualizar {name} para que coincida",
     "setDefault": "Abrir {name} de forma predeterminada",
     "clearDefault": "Dejar de abrir {name} de forma predeterminada",
@@ -162,6 +165,9 @@
       "archived_at": "Archivado",
       "area_sq_ft": "Área (pies cuadrados)",
       "arrangement": "Modalidad",
+      "arrival_ends_at": "Llega antes de",
+      "arrival_starts_at": "Llega desde",
+      "arrival_time_zone": "Zona horaria de llegada",
       "arrives_at": "Llega",
       "article_state": "Estado",
       "asset_class_id": "Clase de activo",
@@ -272,6 +278,7 @@
       "fulfillment_kind": "Tipo",
       "fulfillment_number": "Servicio",
       "fulfillment_state": "Estado",
+      "full_name": "Nombre",
       "gate": "Compuerta",
       "gate_exit": "Salida de la compuerta",
       "gate_passed": "Compuerta superada",
@@ -347,6 +354,7 @@
       "parent": "Superior",
       "parent_code": "Superior",
       "parent_id": "Superior",
+      "party_name": "Parte",
       "pay_basis": "Base de pago",
       "pay_period_state": "Estado",
       "payee_person_id": "Beneficiario",
@@ -360,6 +368,7 @@
       "permit_rule": "Permiso",
       "permitted_load": "Carga permitida",
       "person_id": "Persona",
+      "person_response": "Respuesta de la persona",
       "phase": "Fase",
       "phase_code": "Fase",
       "piece_count": "Piezas",
@@ -497,7 +506,19 @@
       "worked_minutes": "Minutos trabajados",
       "worker_classification": "Clasificación",
       "xyz": "XYZ",
-      "zone_id": "Zona"
+      "zone_id": "Zona",
+      "item_name": "Artículo",
+      "display_status": "Estado",
+      "allocation_state": "Decisión",
+      "origin": "Origen",
+      "needed_time_zone": "Zona horaria",
+      "reserved_quantity": "Reservado",
+      "issued_quantity": "Entregado",
+      "returned_quantity": "Devuelto",
+      "decline_reason": "Motivo del rechazo",
+      "day_on": "Fecha",
+      "day_type": "Tipo de día",
+      "team_code": "Equipo"
     }
   }
 }

@@ -17,7 +17,27 @@
     "someRow": "Una fila seleccionada",
     "done": "{count, plural, one {Se cambió # fila.} other {Se cambiaron # filas.}}",
     "failed": "No se pudo guardar el cambio. Inténtelo de nuevo.",
-    "none": "Ninguno"
+    "none": "Ninguno",
+    "shift": {
+      "action": "Mover hora",
+      "title": "Mover la hora de {count, plural, one {# registro} other {# registros}}",
+      "minutes": "Minutos",
+      "minutesHelp": "Más tarde con +, más temprano con -, hasta 10.080 minutos (siete días).",
+      "minutesInvalid": "Escriba minutos enteros distintos de 0, como +15 o -30, hasta 10.080.",
+      "presets": "Cambios habituales",
+      "preset": "{minutes} min",
+      "explain": "La vista previa muestra cada registro que se mueve, incluidos los sucesores que se desplazan para mantener sus dependencias.",
+      "preview": "Vista previa",
+      "apply": "Mover {count, plural, one {# registro} other {# registros}}",
+      "cancel": "Cancelar",
+      "moves": "{count, plural, one {Se mueve # registro seleccionado} other {Se mueven # registros seleccionados}} {minutes} min.",
+      "pushed": "{count, plural, one {Se desplaza # sucesor fuera de la selección:} other {Se desplazan # sucesores fuera de la selección:}}",
+      "pushedMore": "{count, plural, one {y # más.} other {y # más.}}",
+      "skipped": "{count, plural, one {# registro seleccionado no tiene fechas o está cancelado, así que se queda donde está.} other {# registros seleccionados no tienen fechas o están cancelados, así que se quedan donde están.}}",
+      "nothing": "Ninguno de los registros seleccionados tiene una fecha que mover.",
+      "someRecord": "Un registro",
+      "done": "{count, plural, one {Se movió # registro} other {Se movieron # registros}} {minutes} min."
+    }
   },
   "undo": {
     "notifications": "Avisos de deshacer",

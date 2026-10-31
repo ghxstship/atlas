@@ -85,6 +85,7 @@ describe("my work", () => {
       updatedAt: "",
       roles: [],
       ownerId: null,
+      startTbc: false,
       ...none,
     };
     const groups = groupByDueState(

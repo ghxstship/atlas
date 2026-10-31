@@ -229,6 +229,7 @@ var templates = {
     project: "Project",
     submit: "Save as template",
     done: "Template saved from the project.",
+    keepDates: "Keep due dates",
   },
   detail: {
     none: "Create a template to see it here.",
@@ -279,6 +280,8 @@ var templates = {
     dueOffsetHelp: "Leave blank for no due date; use a negative number for before the start.",
     remove: "Remove",
     removeNamed: "Remove {name}",
+    requiresReview: "Requires review",
+    reviewed: "requires review",
   },
   draft: {
     title: "Draft version {version}",
@@ -313,6 +316,7 @@ var templates = {
     done: "Project {key} created.",
     open: "Open the project",
     needsCapability: "Creating projects needs projects.project.create. Ask an Owner or Admin.",
+    withoutDates: "Leave records undated (they wait in the schedule's Unscheduled list)",
   },
   delete: {
     label: "Delete this template",

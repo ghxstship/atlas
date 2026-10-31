@@ -15,7 +15,6 @@ import {
   RecordRow,
   Select,
   TemplateCollection,
-  Timeline,
   rememberOverlayOpener,
   type RecordKind,
 } from "@xos/ui";
@@ -27,7 +26,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
-import { formatScheduleTime, formatWhen, stateToken, withQuery } from "./format";
+import { formatScheduleTime, formatStartTime, formatWhen, stateToken, withQuery } from "./format";
 import { useScheduleView } from "./use-schedule-view";
 import { displayTimeZone } from "@xos/ui/preferences";
 import { TransitionDialog } from "./record-panels";
@@ -38,6 +37,13 @@ import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import type { RecordQuickAddProps } from "@/components/quick-add/record-quick-add";
+import { Timeline } from "@/components/lazy-ui/timeline";
+import { timelineView, type TimelineExtras } from "@/components/schedule/timeline-view";
+
+// Drag to reschedule on the timeline (A133), for people who may change it; loads with that view.
+const RescheduleTimeline = dynamic(() =>
+  import("@/components/schedule/timeline-reschedule").then((m) => m.RescheduleTimeline),
+);
 
 // Shown only to people who may create records; its date parser loads with it (ADR 0027).
 const RecordQuickAdd = dynamic(() =>
@@ -82,6 +88,8 @@ export function RecordCollection({
   today,
   timeZone,
   timeline,
+  canReschedule = false,
+  backlog = [],
   canCreate,
   create,
   peek,
@@ -89,6 +97,8 @@ export function RecordCollection({
   hideKindFilter = false,
   bulk,
   quickAdd,
+  dayTypes,
+  anchor,
 }: {
   title: string;
   label: string;
@@ -108,6 +118,10 @@ export function RecordCollection({
   today: string;
   timeZone: string;
   timeline: TimelineModel | null;
+  /** Timeline bars move and resize (A133). */
+  canReschedule?: boolean;
+  /** Undated records to place on the timeline, beside it (P8); only with canReschedule. */
+  backlog?: readonly { id: string; label: string }[];
   canCreate: boolean;
   create?: ReactNode;
   peek?: ReactNode;
@@ -120,6 +134,10 @@ export function RecordCollection({
   bulk?: BulkConfig | null;
   /** The inline quick add row (Section 11.7), for people who may create records here. */
   quickAdd?: RecordQuickAddProps | null;
+  /** Each date's day-type tags (B4), for the calendar and the timeline. */
+  dayTypes?: TimelineExtras["dayTypes"];
+  /** The project's anchor day (B4), drawn on the timeline as a gate the offsets count from. */
+  anchor?: TimelineExtras["anchor"];
 }) {
   const t = useCopy("work");
   const format = useFormatter();
@@ -158,7 +176,18 @@ export function RecordCollection({
       r.startsAt && r.startsAt > new Date().toISOString()
         ? r.startsAt
         : (r.dueAt ?? r.endsAt ?? r.startsAt);
-    return when(at, r.timeZone ?? r.projectTimeZone);
+    // A start to be confirmed reads "TBC · est. <time>" (G-40); it still sorts by the estimate.
+    return at === r.startsAt
+      ? formatStartTime(
+          at,
+          r.startTbc,
+          locale,
+          r.timeZone ?? r.projectTimeZone,
+          zoneView,
+          "dateTime",
+          (time) => t("values.tbcEstimate", { time }),
+        )
+      : when(at, r.timeZone ?? r.projectTimeZone);
   };
   const byId = new Map(records.map((r) => [r.id, r]));
   // A record's menu, the same in every view (Section 11.7).
@@ -461,6 +490,13 @@ export function RecordCollection({
           month={month}
           today={today}
           events={events}
+          {...(dayTypes
+            ? {
+                days: dayTypes
+                  .filter((d) => d.date.startsWith(month.slice(0, 7)))
+                  .map((d) => ({ date: d.date, tags: [...d.tags] })),
+              }
+            : {})}
           onEventSelect={(e) => {
             const r = e.id ? byId.get(e.id) : undefined;
             if (r) open(r.key);
@@ -477,32 +513,19 @@ export function RecordCollection({
     );
   } else if (view === "timeline") {
     body =
-      timeline && timeline.bars.length > 0 ? (
+      timeline && (timeline.bars.length > 0 || (canReschedule && backlog.length > 0)) ? (
         <div className="min-w-0">
-          <Timeline
-            label={label}
-            days={timeline.days.map((d) => ({
-              dow: format.dateTime(new Date(`${d.day}T12:00:00Z`), {
-                weekday: "narrow",
-                timeZone: "UTC",
-              }),
-              date: d.date,
-              weekend: d.weekend,
-            }))}
-            dayWidth={timeline.days.length > 60 ? 16 : 32}
-            {...(timeline.today !== undefined ? { today: timeline.today } : {})}
-            rows={timeline.bars.map((b) => ({
-              key: b.record.key,
-              title: b.record.title,
-              state: stateToken(b.record.state),
-              start: b.start,
-              end: b.end,
-              ...(b.milestone ? { milestone: true } : {}),
-              ...(b.dependsOn !== undefined ? { dependsOn: b.dependsOn } : {}),
-              ...(b.baselineStart !== undefined ? { baselineStart: b.baselineStart } : {}),
-              ...(b.baselineEnd !== undefined ? { baselineEnd: b.baselineEnd } : {}),
-            }))}
-          />
+          {canReschedule ? (
+            <RescheduleTimeline
+              org={org}
+              label={label}
+              timeline={timeline}
+              backlog={backlog}
+              extras={{ dayTypes, anchor }}
+            />
+          ) : (
+            <Timeline label={label} {...timelineView(timeline, format, { dayTypes, anchor })} />
+          )}
         </div>
       ) : (
         <EmptyState

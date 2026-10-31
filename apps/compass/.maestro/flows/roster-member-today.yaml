@@ -1,0 +1,54 @@
+appId: pro.ghxstship.compass
+# Compass Today for a person on a party's roster (R8, ADR 0100 roster-member): scripts/roster-member.js puts a new
+# person on Demo Staging Supply's crew for an Active vendor engagement of the demo project, with a parking pass for
+# their van and a badge waiting at the desk. Signed in, Today shows their call (the start of their arrival window),
+# the pass with its vehicle and Show pass, the badge to pick up and whom to ask; clocking in is the company's, so the
+# clock never shows, and More leaves Timesheets out. Update project details opens More > Project Details, online
+# only. When the flow completes, scripts/roster-member-cleanup.js puts the demo project back as the setup found it.
+# Named after its file: config.yaml orders flows by name.
+name: roster-member-today
+onFlowComplete:
+  - runScript:
+      file: ../scripts/roster-member-cleanup.js
+---
+- runScript:
+    file: ../scripts/roster-member.js
+- assertTrue:
+    condition: ${output.roster.status === "ok"}
+    label: The roster fixture was built (${output.roster.status})
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: ${output.roster.email}
+- assertVisible:
+    id: "today"
+- extendedWaitUntil:
+    visible:
+      id: "roster-call"
+    timeout: 60000
+- assertNotVisible:
+    id: "clock-button"
+- assertVisible:
+    id: "roster-parking"
+- assertVisible:
+    text: ".*Ford Transit White.*"
+- assertVisible:
+    id: "roster-gear"
+- assertVisible:
+    id: "roster-contact"
+- scrollUntilVisible:
+    element:
+      id: "roster-project-details"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "roster-project-details"
+- extendedWaitUntil:
+    visible:
+      id: "project-details-entries|project-details-empty|project-details-offline"
+    timeout: 30000
+- back
+- tapOn:
+    id: "tab-more"
+- assertNotVisible:
+    id: "more-timesheets"

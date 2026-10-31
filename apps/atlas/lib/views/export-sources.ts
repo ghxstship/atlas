@@ -244,6 +244,34 @@ const guests = source("app.guest_list_entries", [
   "note",
   "project_id",
 ]);
+// R4: the crew roster, through the producing org's read view (the person resolved, no profile value).
+const crewRoster = source("app.roster_entry_people", [
+  "full_name",
+  "party_name",
+  "job_title",
+  "arrival_starts_at",
+  "arrival_ends_at",
+  "arrival_time_zone",
+  "entry_state",
+  "person_response",
+  "project_id",
+]);
+
+// R7: what each party and person is given, read from the computed status (no prices).
+const allocations = source("app.advance_allocation_status", [
+  "item_name",
+  "kind",
+  "quantity",
+  "display_status",
+  "allocation_state",
+  "origin",
+  "needed_time_zone",
+  "reserved_quantity",
+  "issued_quantity",
+  "returned_quantity",
+  "decline_reason",
+  "project_id",
+]);
 
 const custody = source("app.asset_custody", [
   "created_at",
@@ -467,6 +495,8 @@ const payments = source("app.payments", [
 export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "activity/feed": activity,
 
+  "advancing/crew": crewRoster,
+  "advancing/allocations": allocations,
   "advancing/packets": packets,
   "advancing/reconciliation": reconciliations,
   "advancing/riders": riders,
@@ -763,6 +793,8 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     riders: inProject(riders),
     reconciliation: inProject(reconciliations),
     guests: inProject(guests),
+    crew: inProject(crewRoster),
+    allocations: inProject(allocations),
     submissions,
   }),
   "project/assets": inProject(custody),
@@ -992,6 +1024,17 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "created_at",
   ]),
   "schedule/calendar": records,
+  // B4 (G-38): the projects' day types.
+  "schedule/days": source("app.project_days", [
+    "day_on",
+    "day_type",
+    "sort_order",
+    "label",
+    "location_text",
+    "time_zone",
+    "team_code",
+    "project_id",
+  ]),
   "schedule/events": source("app.workforce_events", [
     "event_kind",
     "title",
@@ -1113,6 +1156,11 @@ export const NOT_EXPORTED: Readonly<Record<string, string>> = {
   // which shows a moderator what they need to decide and nothing to carry away.
   "people/moderation":
     "Reported content stays in the moderation queue; an export would carry it out.",
+  // ADR 0143 decision 5: computed when read, never stored, so there is no relation to export from.
+  "schedule/workload":
+    "Hours are worked out from shifts and estimates as the page is read; nothing is stored to export.",
+  "schedule/clashes":
+    "Clashes are worked out as the page is read and shown only to someone who reads both sides; nothing is stored to export.",
 };
 
 export function exportEntryFor(collectionKey: string | null): ExportEntry | null {

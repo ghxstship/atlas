@@ -14,6 +14,8 @@ export const GATEWAY_BULK_RESOURCES = [
   "my_timesheets",
   "my_engagement_documents",
   "my_applications",
+  // R8 (2700): the party side's share of a pool for each selected person on its roster.
+  "engaged_allocation_assignments",
 ] as const;
 export type GatewayBulkResource = (typeof GATEWAY_BULK_RESOURCES)[number];
 
@@ -21,6 +23,7 @@ const RPC = {
   my_timesheets: "bulk_update_my_timesheets",
   my_engagement_documents: "bulk_update_my_engagement_documents",
   my_applications: "bulk_update_my_applications",
+  engaged_allocation_assignments: "bulk_update_engaged_allocation_assignments",
 } as const satisfies Record<GatewayBulkResource, string>;
 
 export function isGatewayBulkResource(value: unknown): value is GatewayBulkResource {

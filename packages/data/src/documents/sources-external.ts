@@ -92,6 +92,10 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       unitPriceMinor: l.unit_price_minor,
       extendedMinor: l.unit_price_minor === null ? null : l.amount_minor,
       receivedQuantity: 0,
+      // The vendor's line view carries no hire period, and the order document does not print one.
+      acquisitionKind: "Purchase" as const,
+      hireStartsAt: null,
+      hireEndsAt: null,
     }));
     const number = po.po_number ?? 0;
     return ok({
@@ -249,6 +253,8 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       durationSeconds: intervalSeconds(c.duration === null ? null : String(c.duration)),
       calledAt: c.called_at,
       calledByName: null,
+      startTbc: c.start_tbc === true,
+      standbyAt: null,
     }));
     return ok({
       orgId: project.data.orgId,
@@ -266,8 +272,11 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           showDate: run.show_date ?? "",
           cueCount: mapped.length,
           calledCount: mapped.filter((c) => c.calledAt !== null).length,
+          curfewAt: null,
         },
         cues: mapped,
+        // Department calls stay internal: no api_external view shows them (ADR 0131).
+        calls: [],
       },
     });
   },

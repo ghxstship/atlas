@@ -37,6 +37,7 @@
     "slug_reserved": "That web address is reserved by the platform. Choose another.",
     "plan_unknown": "That plan does not exist.",
     "plan_limit_exceeded": "Your plan's limit is reached. Upgrade the plan or remove something first.",
+    "plan_limit_read_only": "This is read-only because the organization is over its plan's limits. The banner at the top of the page says which limit and how to lift it.",
     "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
     "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     "plan_feature_required": "Your plan does not include this. Upgrade the plan to use it.",
@@ -84,6 +85,9 @@
     "approval_approver_capability": "Approving this document needs its approval capability.",
     "approval_one_step_per_approver": "You already decided a step of this approval. The next step needs another approver.",
     "approval_rejection_reason": "Say why when you reject an approval.",
+    "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
+    "record_review_note_required": "Say what to change when you ask for changes.",
+    "sod_record_review_owner": "You own this record, so someone else reviews it.",
     "sod_approval_requester": "You requested this approval, so someone else decides it.",
     "calendar_feed_limit": "You have 20 calendar feeds. Revoke one before you add another.",
     "calendar_feed_revoked": "A revoked calendar feed stays revoked. Add a new feed instead.",
@@ -122,7 +126,26 @@
     "integration_disconnected": "That connection is disconnected and cannot change.",
     "moderation_appeal_window": "Appeals are accepted for six months after a decision; this one is older.",
     "moderation_appeal_grounds": "Say why the decision is wrong, in up to 4,000 characters.",
-    "moderation_appeal_exists": "This decision has already been appealed."
+    "moderation_appeal_exists": "This decision has already been appealed.",
+    "earning_code_taken": "Another earning code already uses this code. Choose a different code.",
+    "time_off_policy_taken": "Another time off policy already has this name. Choose a different name.",
+    "holiday_calendar_taken": "Another holiday calendar already has this name. Choose a different name.",
+    "holiday_calendar_applies_taken": "Another calendar already applies across the org for this state, or for no state. Change that one, or leave Applies across the org unchecked.",
+    "holiday_day_taken": "This calendar already has a holiday on that day. Remove it first, or choose another day.",
+    "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first.",
+    "holiday_preset_unknown": "Choose the US federal holidays.",
+    "holiday_preset_year": "Choose a year from 2021 to 2100.",
+    "holiday_preset_names": "A holiday name is 1 to 100 characters.",
+    "event_type_taken": "An event type with this name already exists.",
+    "document_type_taken": "A document type with this name already exists.",
+    "event_type_in_use": "Archive the event type instead; projects still use it.",
+    "document_type_in_use": "Remove the event types' requirements for this document type first.",
+    "event_type_template_kind": "Choose a live project template.",
+    "event_type_template_type_immutable": "A template rule stays with its event type.",
+    "event_type_field_target": "Choose a live custom field of projects.",
+    "event_type_field_immutable": "A field of a type keeps its type and field; remove it and add another.",
+    "event_type_requirement_document_type": "Choose a live document type.",
+    "event_type_requirement_immutable": "A requirement keeps its type and document type; remove it and add another."
   },
   "partner": {
     "sections": "Partner console sections",
@@ -577,7 +600,8 @@
       "account": {
         "security_changed": "Account security changed",
         "recovery_code_used": "Recovery code used",
-        "session_signed_out": "Session signed out"
+        "session_signed_out": "Session signed out",
+        "work_details_moved": "Work details moved to each project"
       },
       "announcement": {
         "posted": "Announcement posted"
@@ -664,6 +688,9 @@
         "assigned": "Shift assigned",
         "changed": "Shift changed"
       },
+      "availability": {
+        "requested": "Availability requested"
+      },
       "survey": {
         "opened": "Survey opened"
       },
@@ -675,6 +702,9 @@
       },
       "opportunity": {
         "matched": "New opportunity match"
+      },
+      "offer": {
+        "sent": "New offer"
       },
       "onboarding": {
         "item_expiring": "Onboarding item expiring"
@@ -692,6 +722,21 @@
       },
       "content": {
         "removed": "Your content removed"
+      },
+      "roster_entry": {
+        "invited": "Put on a crew roster",
+        "returned": "Roster entry returned",
+        "declined": "Roster entry declined",
+        "project_facts_entered": "Project details entered for you"
+      },
+      "engagement": {
+        "roster_lock_changed": "Names lock changed"
+      },
+      "allocation": {
+        "decided": "Allocation decided",
+        "assigned": "Allocation given to you",
+        "issued": "Allocation handed over",
+        "withdrawn": "Allocation withdrawn"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

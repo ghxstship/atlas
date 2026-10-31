@@ -8,13 +8,16 @@ import type { GatewayBulkResource } from "@xos/data/gateway-bulk";
  * menu and the server action read the rest from here, so server and client agree.
  */
 
-export const GATEWAY_ACTION_IDS = ["sign", "submit", "withdraw"] as const;
+export const GATEWAY_ACTION_IDS = ["sign", "submit", "withdraw", "assign"] as const;
 export type GatewayActionId = (typeof GATEWAY_ACTION_IDS)[number];
 
 export interface GatewayAction {
   readonly id: GatewayActionId;
   readonly resource: GatewayBulkResource;
-  /** The column the action sets, and the value it sets it to. */
+  /**
+   * The column the action sets, and the value it sets it to. An action whose values the person picks
+   * (assign: a pool and a quantity each) takes them from the page instead (actionRows' `values`).
+   */
   readonly field: string;
   readonly value: string;
   /** Whether the undo stack can take it back: a submit is recalled; a signature or withdrawal is final. */
@@ -47,15 +50,29 @@ export const GATEWAY_ACTIONS: Readonly<Record<GatewayActionId, GatewayAction>> =
     undoable: false,
     icon: "Undo2",
   },
+  // R8: give each selected person on the roster a share of one approved pool. Undo gives the shares
+  // back to the pool (newest first) while nobody moved them since (bulk_stale).
+  assign: {
+    id: "assign",
+    resource: "engaged_allocation_assignments",
+    field: "quantity",
+    value: "1",
+    undoable: true,
+    icon: "UserPlus",
+  },
 };
 
 export function isGatewayActionId(value: unknown): value is GatewayActionId {
   return (GATEWAY_ACTION_IDS as readonly unknown[]).includes(value);
 }
 
-/** The rows that apply an action to each id. */
-export function actionRows(action: GatewayAction, ids: readonly string[]): BulkRow[] {
-  return ids.map((id) => ({ id, set: { [action.field]: action.value } }));
+/** The rows that apply an action to each id, with the values the page picked when it has some. */
+export function actionRows(
+  action: GatewayAction,
+  ids: readonly string[],
+  values?: Readonly<Record<string, string>>,
+): BulkRow[] {
+  return ids.map((id) => ({ id, set: values ? { ...values } : { [action.field]: action.value } }));
 }
 
 /**
@@ -81,6 +98,12 @@ export const KNOWN_BULK_REFUSALS = [
   "application_offered",
   "lifecycle_transition",
   "lifecycle_conflict",
+  // R8: assigning from a pool (2700, through 2693's split and unsplit).
+  "allocation_not_pool",
+  "allocation_split_exceeds",
+  "allocation_cap_person",
+  "allocation_entry_not_accepted",
+  "allocation_issued",
 ] as const;
 
 /** The catalog key of a refused row's copy. */

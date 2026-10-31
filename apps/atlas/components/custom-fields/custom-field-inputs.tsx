@@ -39,11 +39,20 @@ export interface CustomFieldInputsHandle {
 export function CustomFieldInputs({
   table,
   idPrefix,
+  fieldKeys,
+  requiredKeys,
   ref,
 }: {
   table: CustomFieldTable;
   /** Prefix of the inputs' ids, when one form shows the fields of two tables. */
   idPrefix?: string;
+  /**
+   * Only these fields, plus every field the org marked required, so the required check is never hidden (B14: an event
+   * type's field set at intake). All fields when absent.
+   */
+  fieldKeys?: readonly string[];
+  /** Fields this form requires beyond their own required flag, marked and checked as required. */
+  requiredKeys?: readonly string[];
   ref?: Ref<CustomFieldInputsHandle>;
 }) {
   const org = useOrgSlug();
@@ -78,10 +87,15 @@ export function CustomFieldInputs({
     return first === undefined;
   }, [prefix]);
 
+  const shownKeys = fieldKeys?.join("\u0000");
+  const requiredKeyList = requiredKeys?.join("\u0000");
   useEffect(() => {
     let live = true;
-    const settle = (loaded: CustomFieldForm | null) => {
+    const shown = shownKeys === undefined ? null : new Set(shownKeys.split("\u0000"));
+    const required = new Set(requiredKeyList ? requiredKeyList.split("\u0000") : []);
+    const settle = (full: CustomFieldForm | null) => {
       if (!live) return;
+      const loaded = full ? narrowForm(full, shown, required) : null;
       current.current = { ...current.current, loading: false, form: loaded };
       setForm(loaded);
     };
@@ -92,7 +106,7 @@ export function CustomFieldInputs({
     return () => {
       live = false;
     };
-  }, [org, table]);
+  }, [org, table, shownKeys, requiredKeyList]);
 
   useImperativeHandle(
     ref,
@@ -151,4 +165,18 @@ export function CustomFieldInputs({
       ) : null}
     </div>
   );
+}
+
+/** The form with only the shown fields (and every required one), the extra required keys marked required. */
+export function narrowForm(
+  form: CustomFieldForm,
+  shown: ReadonlySet<string> | null,
+  required: ReadonlySet<string>,
+): CustomFieldForm {
+  return {
+    ...form,
+    fields: form.fields
+      .filter((f) => shown === null || shown.has(f.key) || f.required || required.has(f.key))
+      .map((f) => (required.has(f.key) && !f.required ? { ...f, required: true } : f)),
+  };
 }

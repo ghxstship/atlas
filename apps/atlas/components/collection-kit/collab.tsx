@@ -1,5 +1,6 @@
 import { listMembers } from "@xos/data";
-import { listAttachments } from "@xos/data/attachments";
+import { listAttachments, listVersionReviews } from "@xos/data/attachments";
+import { FileReviewControls } from "@/components/lazy-ui/file-review";
 import { listThreads } from "@xos/data/comments";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import type { OrgContext } from "@/lib/shell/context";
@@ -48,13 +49,32 @@ export async function CollabPanels({
     mine: a.createdBy === me,
     classification: a.classification,
   }));
+  // B14 (3035): a submittal's files are reviewed version by version, by someone other than the uploader.
+  const reviewable = table === "app.submittals" && attachments.data.length > 0;
+  const reviews = reviewable
+    ? await listVersionReviews(
+        db,
+        attachments.data.flatMap((a) => a.versions.map((v) => v.id)),
+      )
+    : null;
   return (
-    <CollabClient
-      org={ctx.org.slug}
-      table={table}
-      id={id}
-      comments={comments}
-      attachments={files}
-    />
+    <>
+      <CollabClient
+        org={ctx.org.slug}
+        table={table}
+        id={id}
+        comments={comments}
+        attachments={files}
+      />
+      {reviewable ? (
+        <FileReviewControls
+          org={ctx.org.slug}
+          attachments={attachments.data}
+          reviews={reviews?.ok ? reviews.data : []}
+          me={me}
+          canReview={ctx.capabilities.has("procurement.po.write")}
+        />
+      ) : null}
+    </>
   );
 }

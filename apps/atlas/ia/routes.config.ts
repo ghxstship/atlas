@@ -40,6 +40,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/network-restricted":
     "Auth template: an org's IP allow-list refused this network; an Owner may take emergency access (A52).",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/auth/act/{token}":
+    "Auth template: confirm a one-tap action from a notification email; opening it never acts (A127, ADR 0106).",
   "/auth/mfa":
     "Auth template: the second factor after the first, or setting one up an org requires (A77).",
   "/auth/session-ended":
@@ -72,6 +74,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: opens a share link and sends the file, watermarked when Confidential (Section 8.6).",
   "/files/{version}":
     "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
+  "/files/party/{version}":
+    "Route handler: a file a party uploaded to party-uploads (an advance answer's or a supplied sponsor asset's), for a reader app.party_file_object admits, served under the caller's session behind the scan gate (R9).",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",

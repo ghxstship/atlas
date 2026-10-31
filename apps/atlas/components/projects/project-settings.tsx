@@ -17,8 +17,14 @@ import { ActionError, echoed, useClosingAction } from "./action-error";
 import { CustomFieldsSection } from "@/components/custom-fields/custom-fields-section";
 import { ProjectFields, type ProjectFormOptions } from "./project-fields";
 import { TransitionDialog } from "./transition-dialog";
+import dynamic from "next/dynamic";
+import { EVENT_AUDIENCES, EVENT_SCALES } from "@xos/data/setup";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+
+/** Copy from another project (B14, G-252) loads when its button is first pressed. */
+const CopySetupDialog = dynamic(() => import("./copy-setup-dialog").then((m) => m.CopySetupDialog));
+
 interface Base {
   readonly org: string;
   readonly projectKey: string;
@@ -78,6 +84,7 @@ export function ProjectSettings({
   canArchive,
   roles,
   engagementsHref,
+  eventTypes = [],
 }: {
   org: string;
   project: ProjectSummary;
@@ -91,9 +98,17 @@ export function ProjectSettings({
   canArchive: boolean;
   roles: readonly string[];
   engagementsHref: string | null;
+  /** B14 (3030): the org's event types, archived ones only when the project names one. */
+  eventTypes?: readonly { readonly value: string; readonly label: string }[];
 }) {
   const t = useTranslations("projects");
   const format = useFormatter();
+  const [copying, setCopying] = useState(false);
+  // Mounted from the first open on, so the toast naming what was copied outlives the dialog.
+  const [copyOpened, setCopyOpened] = useState(false);
+  // Setting a type on a project that has none needs only the update policy; changing one needs projects.settings.write.
+  const typed = Boolean(project.eventTypeId || project.eventScale || project.eventAudience);
+  const canType = canSettings || (canWrite && !typed);
   const [state, action, pending] = useActionState(updateProjectAction, {});
   const base = { org, projectKey: project.key };
   const editable = canWrite || canSettings;
@@ -132,6 +147,43 @@ export function ProjectSettings({
               description: project.description,
             }}
           />
+          {eventTypes.length > 0 || typed ? (
+            <div className="flex flex-wrap gap-12">
+              <Select
+                id="settings-event-type"
+                name="eventTypeId"
+                label={t("eventTypes.field")}
+                value={echoed(state, "eventTypeId", project.eventTypeId ?? "")}
+                options={[{ value: "", label: t("intake.noEventType") }, ...eventTypes]}
+                disabled={!canType}
+              />
+              <Select
+                id="settings-event-scale"
+                name="eventScale"
+                label={t("intake.scale")}
+                value={echoed(state, "eventScale", project.eventScale ?? "")}
+                options={[
+                  { value: "", label: t("intake.anyScale") },
+                  ...EVENT_SCALES.map((v) => ({ value: v, label: t(`intake.scales.${v}`) })),
+                ]}
+                disabled={!canType}
+              />
+              <Select
+                id="settings-event-audience"
+                name="eventAudience"
+                label={t("intake.audience")}
+                value={echoed(state, "eventAudience", project.eventAudience ?? "")}
+                options={[
+                  { value: "", label: t("intake.anyAudience") },
+                  ...EVENT_AUDIENCES.map((v) => ({
+                    value: v,
+                    label: t(`intake.audiences.${v.replaceAll(" ", "") as "PublicTicketed"}`),
+                  })),
+                ]}
+                disabled={!canType}
+              />
+            </div>
+          ) : null}
           {editable ? (
             <div className="flex items-center gap-12">
               <Button type="submit" variant="primary" loading={pending}>
@@ -148,6 +200,27 @@ export function ProjectSettings({
       </Section>
 
       <CustomFieldsSection table="app.projects" id={project.id} />
+
+      {canWrite ? (
+        <Section id="settings-copy" title={t("copy.title")} lead={t("copy.lead")}>
+          <div>
+            <Button
+              type="button"
+              variant="secondary"
+              icon="Copy"
+              onClick={() => {
+                setCopyOpened(true);
+                setCopying(true);
+              }}
+            >
+              {t("copy.open")}
+            </Button>
+          </div>
+          {copyOpened ? (
+            <CopySetupDialog org={org} project={project} open={copying} onOpenChange={setCopying} />
+          ) : null}
+        </Section>
+      ) : null}
 
       <Section
         id="settings-lifecycle"

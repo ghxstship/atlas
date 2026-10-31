@@ -37,6 +37,7 @@
     "slug_reserved": "Esa dirección web está reservada por la plataforma. Elija otra.",
     "plan_unknown": "Ese plan no existe.",
     "plan_limit_exceeded": "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    "plan_limit_read_only": "Esto es de solo lectura porque la organización supera los límites de su plan. El aviso en la parte superior de la página indica qué límite y cómo levantarlo.",
     "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
     "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     "plan_feature_required": "Su plan no incluye esto. Mejore el plan para usarlo.",
@@ -84,6 +85,9 @@
     "approval_approver_capability": "Aprobar este documento requiere su permiso de aprobación.",
     "approval_one_step_per_approver": "Usted ya decidió un paso de esta aprobación. El siguiente paso necesita otra persona.",
     "approval_rejection_reason": "Diga por qué cuando rechace una aprobación.",
+    "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
+    "record_review_note_required": "Diga qué cambiar cuando solicite cambios.",
+    "sod_record_review_owner": "Usted es responsable de este registro, así que otra persona lo revisa.",
     "sod_approval_requester": "Usted solicitó esta aprobación, así que otra persona la decide.",
     "calendar_feed_limit": "Tiene 20 calendarios suscritos. Revoque uno antes de agregar otro.",
     "calendar_feed_revoked": "Un calendario revocado sigue revocado. Agregue uno nuevo.",
@@ -122,7 +126,26 @@
     "integration_disconnected": "Esa conexión está desconectada y no puede cambiar.",
     "moderation_appeal_window": "Las apelaciones se aceptan durante seis meses después de una decisión; esta es más antigua.",
     "moderation_appeal_grounds": "Explica por qué la decisión es incorrecta, en hasta 4,000 caracteres.",
-    "moderation_appeal_exists": "Esta decisión ya se apeló."
+    "moderation_appeal_exists": "Esta decisión ya se apeló.",
+    "earning_code_taken": "Otro código de ingreso ya usa este código. Elija un código diferente.",
+    "time_off_policy_taken": "Otra política de tiempo libre ya tiene este nombre. Elija un nombre diferente.",
+    "holiday_calendar_taken": "Otro calendario de feriados ya tiene este nombre. Elija un nombre diferente.",
+    "holiday_calendar_applies_taken": "Otro calendario ya se aplica en toda la organización para este estado, o sin estado. Cambie ese, o deje sin marcar Se aplica en toda la organización.",
+    "holiday_day_taken": "Este calendario ya tiene un feriado ese día. Quítelo primero o elija otro día.",
+    "holiday_venue_taken": "Ese recinto ya tiene un calendario de feriados. Desasígnelo allí primero.",
+    "holiday_preset_unknown": "Elija los feriados federales de EE. UU.",
+    "holiday_preset_year": "Elija un año de 2021 a 2100.",
+    "holiday_preset_names": "El nombre de un feriado tiene de 1 a 100 caracteres.",
+    "event_type_taken": "Ya existe un tipo de evento con este nombre.",
+    "document_type_taken": "Ya existe un tipo de documento con este nombre.",
+    "event_type_in_use": "Archiva el tipo de evento; todavía hay proyectos que lo usan.",
+    "document_type_in_use": "Quita primero los requisitos de los tipos de evento para este tipo de documento.",
+    "event_type_template_kind": "Elige una plantilla de proyecto vigente.",
+    "event_type_template_type_immutable": "Una regla de plantilla se queda con su tipo de evento.",
+    "event_type_field_target": "Elige un campo personalizado vigente de proyectos.",
+    "event_type_field_immutable": "Un campo de un tipo conserva su tipo y su campo; quítalo y agrega otro.",
+    "event_type_requirement_document_type": "Elige un tipo de documento vigente.",
+    "event_type_requirement_immutable": "Un requisito conserva su tipo y su tipo de documento; quítalo y agrega otro."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",
@@ -577,7 +600,8 @@
       "account": {
         "security_changed": "Cambió la seguridad de la cuenta",
         "recovery_code_used": "Código de recuperación usado",
-        "session_signed_out": "Sesión cerrada"
+        "session_signed_out": "Sesión cerrada",
+        "work_details_moved": "Datos de trabajo pasados a cada proyecto"
       },
       "announcement": {
         "posted": "Anuncio publicado"
@@ -664,6 +688,9 @@
         "assigned": "Turno asignado",
         "changed": "Turno modificado"
       },
+      "availability": {
+        "requested": "Disponibilidad solicitada"
+      },
       "survey": {
         "opened": "Encuesta abierta"
       },
@@ -675,6 +702,9 @@
       },
       "opportunity": {
         "matched": "Nueva oportunidad coincidente"
+      },
+      "offer": {
+        "sent": "Oferta nueva"
       },
       "onboarding": {
         "item_expiring": "Elemento de incorporación por vencer"
@@ -692,6 +722,21 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "roster_entry": {
+        "invited": "Incluido en una lista de equipo",
+        "returned": "Entrada de la lista devuelta",
+        "declined": "Entrada de la lista rechazada",
+        "project_facts_entered": "Datos del proyecto ingresados para ti"
+      },
+      "engagement": {
+        "roster_lock_changed": "Cambió el cierre de nombres"
+      },
+      "allocation": {
+        "decided": "Asignación decidida",
+        "assigned": "Asignación recibida",
+        "issued": "Asignación entregada",
+        "withdrawn": "Asignación retirada"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

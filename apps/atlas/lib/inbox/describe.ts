@@ -39,11 +39,15 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   // A99: a recovery code used (the codes left) and sessions signed out (how many).
   "account.recovery_code_used": ["remaining"],
   "account.session_signed_out": ["count"],
+  // R6a (2664): which profile facts moved to each project (uniform, travel or both).
+  "account.work_details_moved": ["moved"],
   "billing.payment_failed": ["days"],
   // 2051: the rows of a validated or committed import.
   "import.finished": ["written", "refused", "skipped"],
   // Marketplace matches and expiry reminders (A89, migrations 1462 and 1463).
   "opportunity.matched": ["count", "searchName"],
+  // An offer that waits on the applicant (A127, 2200).
+  "offer.sent": ["orgName"],
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],
@@ -52,6 +56,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "content_report.overdue": ["subject"],
   "content_report.decided": ["subject", "action", "statement"],
   "content.removed": ["subject", "ruleReference", "statement"],
+  // P8 (2853): the project and the days an availability poll asks about.
+  "availability.requested": ["projectName", "dayCount", "firstDay", "lastDay"],
 };
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
@@ -63,6 +69,8 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.workforce_events": "schedule/events",
   // 1394: shift.assigned and shift.changed open the worker's shifts. Records open in inboxTarget.
   "app.shifts": "crew/shifts",
+  // P8: availability.requested opens the member's availability, where the poll's Requests card is.
+  "app.availability_polls": "me/work-details",
   "app.training_courses": "knowledge/training",
   "app.recognitions": "people/recognition",
   "app.support_tickets": "people/help-desk",
@@ -144,7 +152,7 @@ function values(
   const startsAt = date(a["startsAt"]);
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
-  for (const key of ["days", "count", "written", "refused", "skipped"]) {
+  for (const key of ["days", "count", "written", "refused", "skipped", "dayCount"]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }
   return out;

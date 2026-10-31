@@ -2,6 +2,7 @@ import { getFieldHistory, type HistoryEvent } from "@xos/data/field-history";
 import { FieldHistoryList } from "@/components/history/field-history-list";
 import { historyItems } from "@/lib/history/items";
 import { getActual, type Actual, type Dependency } from "@xos/data/schedule";
+import { getRecordAnchorPinned } from "@xos/data/anchor";
 import { getPunchItemForRecord } from "@xos/data/work-orders";
 import {
   getRecordByKey,
@@ -14,12 +15,14 @@ import {
   listRecurrences,
   listReplans,
   listScopeNodeRefs,
+  listRecordReviews,
   listStateHistory,
   nextStates,
   replanShift,
   type Assignment,
   type ChecklistItem,
   type ExtensionValues,
+  type RecordReview as Review,
   type RecordSummary,
   type Recurrence,
   type ReplanEntry,
@@ -28,6 +31,7 @@ import {
 } from "@xos/data/work";
 import { InlineAlert, PropertyList } from "./ui";
 import { getFormatter, getLocale } from "next-intl/server";
+import dynamic from "next/dynamic";
 import { SummaryEntryRow } from "@/components/aurora/entry/summary-entry";
 import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
 import type { OrgContext } from "@/lib/shell/context";
@@ -35,7 +39,13 @@ import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
-import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
+import {
+  formatScheduleTime,
+  formatStartTime,
+  scheduleViewOf,
+  slipAmount,
+  type ScheduleView,
+} from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { kindFields } from "./kind-fields";
@@ -54,6 +64,17 @@ import {
   type KindField,
 } from "./record-panels";
 import { RelatedRecords, type RecordRelations } from "./related-records";
+import { RecordReview } from "@/components/lazy-ui/record-review";
+import { FileReviewControls } from "@/components/lazy-ui/file-review";
+import { listVersionReviews, type VersionReview } from "@xos/data/attachments";
+
+// Minute retime of a dated record (P8), for people who may change the timeline; loads on demand.
+const AnchorPin = dynamic(() =>
+  import("@/components/schedule/anchor-pin").then((m) => m.AnchorPin),
+);
+const RecordRetime = dynamic(() =>
+  import("@/components/schedule/record-retime").then((m) => m.RecordRetime),
+);
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
@@ -89,9 +110,16 @@ export interface RecordDetail {
   readonly conversation: Conversation;
   readonly canWrite: boolean;
   readonly canSchedule: boolean;
+  /** The record stays on its dates when the project's anchor moves (B4, G-44). */
+  readonly anchorPinned: boolean;
   readonly canRecur: boolean;
   /** How the viewer reads schedule times (me.time_zone_display and their own zone). */
   readonly scheduleView: ScheduleView;
+  /** B14 (3034): the record's reviews, latest first, and whether the viewer may turn Requires review off. */
+  readonly reviews: readonly Review[];
+  readonly canClearReviewFlag: boolean;
+  /** B14 (3035): reviews of the versions of the record's files, newest first. */
+  readonly fileReviews: readonly VersionReview[];
 }
 
 /** The record a display key names, with all it shows, or null when it is not visible. */
@@ -124,6 +152,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     conversation,
     fieldHistory,
     shell,
+    pinned,
   ] = await Promise.all([
     loadRecordMeta(ctx),
     capabilitySet(ctx),
@@ -146,8 +175,14 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     loadConversation(ctx, subject),
     getFieldHistory(db, "app.records", record.id),
     getShellSettings(db, ctx.org.id, null),
+    getRecordAnchorPinned(db, record.id),
     // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
     rememberView(ctx, "records", record.id),
+  ]);
+  const versionIds = conversation.attachments.flatMap((a) => a.versions.map((v) => v.id));
+  const [reviews, fileReviews] = await Promise.all([
+    record.kind === "Approval" ? Promise.resolve(null) : listRecordReviews(db, record.id),
+    versionIds.length > 0 ? listVersionReviews(db, versionIds) : Promise.resolve(null),
   ]);
   return {
     record,
@@ -172,8 +207,12 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     conversation,
     canWrite: caps.has("work.record.write") && !record.deletedAt,
     canSchedule: caps.has("schedule.timeline.write") && !record.deletedAt,
+    anchorPinned: pinned.ok ? pinned.data : false,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
     scheduleView: scheduleViewOf(shell.preferences, shell.viewerTimeZone),
+    reviews: reviews?.ok ? reviews.data : [],
+    canClearReviewFlag: caps.has("projects.settings.write"),
+    fileReviews: fileReviews?.ok ? fileReviews.data : [],
   };
 }
 
@@ -222,7 +261,19 @@ export async function recordPropertyItems(detail: RecordDetail) {
     { label: t("work.fields.xyz"), value: t(`work.xyz.${record.xyz}`) },
     { label: t("work.fields.owner"), value: person(record.ownerId) },
     { label: t("work.fields.accountable"), value: person(record.accountableId) },
-    { label: t("work.fields.starts"), value: when(record.startsAt) },
+    {
+      label: t("work.fields.starts"),
+      value:
+        formatStartTime(
+          record.startsAt,
+          record.startTbc,
+          locale,
+          tz,
+          detail.scheduleView,
+          "dateTime",
+          (time) => t("work.values.tbcEstimate", { time }),
+        ) ?? t("work.values.notSet"),
+    },
     { label: t("work.fields.ends"), value: when(record.endsAt) },
     { label: t("work.fields.due"), value: when(record.dueAt) },
     { label: t("work.fields.timeZone"), value: tz },
@@ -339,6 +390,20 @@ export async function RecordBody({
           logsReplans={logsReplans}
         />
       ) : null}
+      {record.kind === "Approval" || record.deletedAt ? null : (
+        <RecordReview
+          org={org}
+          recordId={record.id}
+          state={record.state}
+          requiresReview={record.requiresReview ?? false}
+          reviews={detail.reviews}
+          people={meta.people}
+          me={me}
+          ownerId={record.ownerId}
+          canWrite={detail.canWrite}
+          canClearFlag={detail.canClearReviewFlag}
+        />
+      )}
       <ExtensionForm
         org={org}
         record={record}
@@ -381,6 +446,13 @@ export async function RecordBody({
           ) : undefined
         }
       />
+      {detail.canSchedule && (record.startsAt || record.endsAt || record.dueAt) ? (
+        <RecordRetime org={org} recordId={record.id} />
+      ) : null}
+      {/* The pin saves on the record itself, so it needs record write as well as the timeline. */}
+      {detail.canSchedule && detail.canWrite ? (
+        <AnchorPin org={org} recordId={record.id} pinned={detail.anchorPinned} />
+      ) : null}
       {dated ? (
         <ActualsForm
           org={org}
@@ -506,6 +578,13 @@ export async function RecordBody({
         names={{ ...names, ...detail.conversation.names }}
         me={me}
         canPost={!record.deletedAt}
+      />
+      <FileReviewControls
+        org={org}
+        attachments={detail.conversation.attachments}
+        reviews={detail.fileReviews}
+        me={me}
+        canReview={detail.canWrite}
       />
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}

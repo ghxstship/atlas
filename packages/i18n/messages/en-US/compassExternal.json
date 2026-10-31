@@ -50,10 +50,15 @@
   },
   "progress": "{done} of {total} done",
   "proof": {
+    "addPhoto": "Add a photo",
+    "capture": "Photograph each entitlement as it is delivered. Photos upload when you have a signal, and the organizer sees them once they pass the virus scan.",
     "delivered": "Delivered",
     "documents": "Proof documents",
     "empty": "No entitlements or proof of performance on this project yet.",
     "entitlements": "Entitlements",
+    "noEngagement": "Photos can be added while your sponsorship is active on this project.",
+    "photosOne": "1 photo",
+    "photosOther": "{count} photos",
     "waiting": "Not delivered yet"
   },
   "purchaseOrders": {

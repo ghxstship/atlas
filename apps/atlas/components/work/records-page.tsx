@@ -1,5 +1,13 @@
-import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
+import {
+  buildTimeline,
+  latestBaselinePlan,
+  listDependencies,
+  lockedRecordIds,
+  scheduleWindow,
+} from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
+import { getProjectAnchor } from "@xos/data/anchor";
+import { dayTagsByDate, dayTypeSlug, listProjectDays } from "@xos/data/schedule-days";
 import { todayIn } from "@xos/data/calendar";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
@@ -108,21 +116,98 @@ export async function RecordsPage({
 
   const timeZone =
     project?.timeZone ?? records[0]?.projectTimeZone ?? meta.projects[0]?.timeZone ?? "UTC";
+  // People who may change the timeline drag its bars to reschedule (A133).
+  const canReschedule = view === "timeline" && caps.has("schedule.timeline.write");
+  // P8: beside their timeline, the records with no dates wait in an Unscheduled list to be placed.
+  // Schedule pages load dated records only, so the backlog is its own read with the same filters. The
+  // database picks the undated, open records, so dated and closed ones never use up the read's limit.
+  let backlog: { id: string; label: string }[] = [];
+  if (canReschedule) {
+    const undated = await listRecords(db, {
+      orgId: ctx.org.id,
+      ...(projectId ? { projectId } : {}),
+      ...(fixedKinds ? { kinds: fixedKinds } : kinds.length > 0 ? { kinds } : {}),
+      ...(states.length > 0 ? { states } : {}),
+      ...(q ? { search: q } : {}),
+      undatedOnly: true,
+      excludeStates: ["Canceled", "Complete"],
+    });
+    backlog = must(undated, "records")
+      .filter((r) => custom.keep(r.id))
+      .map((r) => ({ id: r.id, label: `${r.key} ${r.title}` }));
+  }
   let timeline = null;
-  if (view === "timeline" && records.length > 0) {
+  if (view === "timeline" && (records.length > 0 || backlog.length > 0)) {
     const ids = records.map((r) => r.id);
-    const [deps, plan] = await Promise.all([
+    const [deps, plan, locked] = await Promise.all([
       listDependencies(db, ids),
       projectId
         ? latestBaselinePlan(db, projectId)
         : Promise.resolve({ ok: true as const, data: new Map() }),
+      canReschedule
+        ? lockedRecordIds(db, records)
+        : Promise.resolve({ ok: true as const, data: new Set<string>() }),
     ]);
+    // With nothing dated, the project's days (or the next four weeks) still draw, to place onto.
+    const drawn =
+      backlog.length > 0 ? must(await scheduleWindow(db, projectId, today), "window") : null;
     timeline = buildTimeline({
       records,
       dependencies: must(deps, "dependencies"),
       baseline: must(plan, "baseline"),
+      locked: must(locked, "locked records"),
       timeZone,
+      ...(drawn ? { window: drawn } : {}),
+      // A week of room on each side to drag bars into.
+      ...(canReschedule ? { pad: 7 } : {}),
     });
+  }
+
+  // Day types on the calendar and the timeline (B4): one project's by name, several prefixed with their keys.
+  let dayTypes:
+    | {
+        date: string;
+        tags: { label: string; category: 1 | 2 | 3 | 4 | 5 | 6 | 7; icon: string }[];
+      }[]
+    | undefined;
+  let anchor: { day: string; label: string } | null = null;
+  // Only the dates the view draws: the month on the calendar, the timeline's first to last day.
+  const drawnDays =
+    view === "calendar"
+      ? { from: month, to: lastOfMonth(month) }
+      : view === "timeline" && timeline && timeline.days.length > 0
+        ? { from: timeline.days[0]?.day ?? today, to: timeline.days.at(-1)?.day ?? today }
+        : null;
+  if (drawnDays) {
+    const ids = projectId ? [projectId] : meta.projects.map((p) => p.id);
+    const days = await listProjectDays(db, { orgId: ctx.org.id, projectIds: ids, ...drawnDays });
+    if (days.ok) {
+      const byDate = dayTagsByDate(
+        days.data,
+        (d) => d.label ?? t(`schedule.days.types.${dayTypeSlug(d.dayType)}`),
+        { prefixKeys: !projectId },
+      );
+      dayTypes = [...byDate].map(([date, v]) => ({
+        date,
+        tags: [
+          ...v.tags.map((tag) => ({ label: tag.label, category: tag.category, icon: tag.icon })),
+          ...(v.more > 0
+            ? [
+                {
+                  label: t("schedule.days.more", { n: v.more }),
+                  category: 7 as const,
+                  icon: "Ellipsis",
+                },
+              ]
+            : []),
+        ],
+      }));
+    }
+    if (project && view === "timeline") {
+      const anchorOn = await getProjectAnchor(db, project.id);
+      if (anchorOn.ok && anchorOn.data)
+        anchor = { day: anchorOn.data, label: t("schedule.anchor.gate") };
+    }
   }
 
   const peekKey = param(search, "peek");
@@ -146,8 +231,11 @@ export async function RecordsPage({
   }
 
   const canCreate = caps.has("work.record.write");
-  // Bulk edit (Section 11.7) for people who may change records.
-  const bulk: BulkConfig | null = canCreate ? recordBulkConfig(ctx.org.slug, meta, t) : null;
+  // Bulk edit (Section 11.7) for people who may change records, with Shift time (P8) for those who
+  // may also change the timeline.
+  const bulk: BulkConfig | null = canCreate
+    ? recordBulkConfig(ctx.org.slug, meta, t, { shift: caps.has("schedule.timeline.write") })
+    : null;
   const label = title ?? t(getNode(sitemap, node).node.label);
   const visibleKinds = fixedKinds ?? meta.kinds.map((k) => k.kind);
   // Quick add (Section 11.7): a line lands in the page's project (its tab or its filter), as the New
@@ -199,9 +287,13 @@ export async function RecordsPage({
         today={today}
         timeZone={timeZone}
         timeline={timeline}
+        canReschedule={canReschedule}
+        backlog={backlog}
         canCreate={canCreate}
         bulk={bulk}
         quickAdd={quickAdd}
+        {...(dayTypes ? { dayTypes } : {})}
+        anchor={anchor}
         hideKindFilter={fixedKinds !== undefined && fixedKinds.length <= 1}
         create={
           <CreateRecordDialog
@@ -221,4 +313,10 @@ export async function RecordsPage({
       />
     </CustomFieldList>
   );
+}
+
+/** The last day of the month that `month` (YYYY-MM-01) starts, as YYYY-MM-DD. */
+function lastOfMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number) as [number, number];
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
 }

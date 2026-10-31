@@ -4,11 +4,13 @@ import {
   listDockSlots,
   listShipments,
   listZoneOptions,
+  slotOutsideSiteWindows,
   type DockSlot,
   type Shipment,
   type ZoneOption,
 } from "@xos/data/logistics";
 import type { EngagementOption } from "@xos/data/project-people";
+import { getSiteWindows, type SiteWindows } from "@xos/data/projects";
 import type { RecordState } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
@@ -96,7 +98,7 @@ export async function DockSection({
     view === "calendar"
       ? { from: `${cal.previous}-20T00:00:00Z`, to: `${cal.next}-10T00:00:00Z` }
       : { from: `${isoDay(monday - 1)}T00:00:00Z`, to: `${isoDay(monday + 8)}T00:00:00Z` };
-  const [zones, slots, shipments] = await Promise.all([
+  const [zones, slots, shipments, siteWindows] = await Promise.all([
     listZoneOptions(db, venueIds),
     listDockSlots(db, {
       orgId: scope.ctx.org.id,
@@ -107,7 +109,31 @@ export async function DockSection({
       orgId: scope.ctx.org.id,
       ...(scope.project ? { projectId: scope.project.id } : {}),
     }),
+    // B14 (3033): one project's bump-in and bump-out, computed from its Load In and Load Out days.
+    scope.project ? getSiteWindows(db, scope.project.id) : Promise.resolve(null),
   ]);
+  const bump: SiteWindows | null = siteWindows?.ok ? siteWindows.data : null;
+  /** The local days a window covers: from its first day to the day before it ends (it ends at 00:00). */
+  const windowDays = (range: SiteWindows["bumpIn"]) => {
+    if (!range?.startsAt || !range.endsAt) return new Set<string>();
+    const out = new Set<string>();
+    const first = isoDateIn(range.startsAt, timeZone);
+    const last = isoDateIn(new Date(Date.parse(range.endsAt) - 1).toISOString(), timeZone);
+    for (
+      let d = Date.parse(`${first}T00:00:00Z`);
+      d <= Date.parse(`${last}T00:00:00Z`);
+      d += DAY_MS
+    ) {
+      out.add(new Date(d).toISOString().slice(0, 10));
+    }
+    return out;
+  };
+  const bumpInDays = windowDays(bump?.bumpIn ?? null);
+  const bumpOutDays = windowDays(bump?.bumpOut ?? null);
+  const band = (day: string) =>
+    bumpInDays.has(day) ? t("dock.bumpIn") : bumpOutDays.has(day) ? t("dock.bumpOut") : null;
+  /** A warning, never a refusal (as R7a's hire warnings): the slot meets neither window. */
+  const outside = (slot: DockSlot) => (bump ? slotOutsideSiteWindows(slot, bump) : false);
   if (!zones.ok) throw new Error(`Cannot read docks: ${JSON.stringify(zones.error)}`);
   if (!slots.ok) throw new Error(`Cannot read dock slots: ${JSON.stringify(slots.error)}`);
   if (!shipments.ok) throw new Error(`Cannot read shipments: ${JSON.stringify(shipments.error)}`);
@@ -133,13 +159,14 @@ export async function DockSection({
     const shipment = slot.shipmentId ? shipmentById.get(slot.shipmentId) : undefined;
     const start = format.time(slot.startsAt, slot.timeZone);
     const end = format.time(slot.endsAt, slot.timeZone);
-    return shipment
+    const label = shipment
       ? t("dock.slotWithShipment", {
           start,
           end,
           shipment: `${shipment.key} ${shipmentTitle(shipment)}`,
         })
       : t("dock.slot", { start, end });
+    return outside(slot) ? `${label} · ${t("dock.outsideWindows")}` : label;
   };
 
   const fieldsFor = (slot?: DockSlot): FieldSpec[] => {
@@ -458,12 +485,21 @@ export async function DockSection({
         nextMonth={cal.next}
         previousLabel={t("common.previousMonth")}
         nextLabel={t("common.nextMonth")}
-        items={slots.data.map((s) => ({
-          date: isoDateIn(s.startsAt, s.timeZone),
-          label: `${s.zoneCode ?? ""} ${slotLabel(s)}`,
-          state: slotState(s),
-          href: peekHref(s.id),
-        }))}
+        items={[
+          // The bump windows as labelled days; selecting one opens that week's schedule.
+          ...[...bumpInDays, ...bumpOutDays].map((d) => ({
+            date: d,
+            label: band(d) ?? "",
+            state: "scheduled" as RecordState,
+            href: hrefWith(base, search, { view: "resource-schedule", week: d, month: null }),
+          })),
+          ...slots.data.map((s) => ({
+            date: isoDateIn(s.startsAt, s.timeZone),
+            label: `${s.zoneCode ?? ""} ${slotLabel(s)}`,
+            state: slotState(s),
+            href: peekHref(s.id),
+          })),
+        ]}
       />
     );
   } else if (weekSlots.length === 0) {
@@ -599,10 +635,17 @@ export async function DockSection({
                   <th
                     key={d}
                     scope="col"
-                    className="h-control-lg px-12 text-start text-text-12 font-medium bg-bg-surface border-b border-border-subtle"
+                    className={`h-control-lg px-12 text-start text-text-12 font-medium border-b border-border-subtle ${
+                      band(d) ? "bg-bg-hover" : "bg-bg-surface"
+                    }`}
                   >
                     <span className="text-text-secondary">{format.weekday(d)}</span>{" "}
                     <span className="tabular-nums">{format.date(d)}</span>
+                    {band(d) ? (
+                      <span className="mt-2 block w-fit rounded-chip border border-border-subtle px-6 text-text-12 font-semibold text-text-primary">
+                        {band(d)}
+                      </span>
+                    ) : null}
                   </th>
                 ))}
               </tr>
@@ -621,7 +664,7 @@ export async function DockSection({
                   {days.map((d) => (
                     <td
                       key={d}
-                      className="px-8 py-8 align-top border-b border-s border-border-subtle"
+                      className={`px-8 py-8 align-top border-b border-s border-border-subtle ${band(d) ? "bg-bg-hover" : ""}`}
                     >
                       <ul className="m-0 flex list-none flex-col gap-4 p-0">
                         {weekSlots

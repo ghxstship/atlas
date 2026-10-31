@@ -21,6 +21,7 @@ import Link from "next/link";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
 import { ReplyForm } from "@/components/engagement/forms";
+import { AvailabilityRequests } from "@/components/profile/availability-requests";
 import { SupplierDiversityPanel } from "@/components/profile/supplier-diversity";
 import { RowList } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
@@ -276,6 +277,9 @@ export default async function ProfilePage() {
       </Section>
 
       <SupplierDiversityPanel db={ctx.db} t={t} locale={locale} accountId={null} />
+
+      {/* P8: orgs' availability polls, linked from the availability.requested notification. */}
+      <AvailabilityRequests db={ctx.db} t={t} locale={locale} />
 
       <Section title={t("gateway.profile.availability.title")} id="availability">
         <AvailabilityCalendar

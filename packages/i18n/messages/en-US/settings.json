@@ -271,7 +271,7 @@
     },
     "shortcutsEnabled": {
       "label": "Keyboard shortcuts",
-      "help": "Single-key shortcuts such as J, K and ? on desktop."
+      "help": "Single character-key shortcuts such as J, K and ? on desktop. Function keys F13 to F20, such as Stream Deck keys, always work."
     },
     "messageTranslation": {
       "label": "Translate chat messages",
@@ -288,6 +288,22 @@
     "supplierDiversityProgram": {
       "label": "Supplier diversity program",
       "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
+    },
+    "keepPhotoLocation": {
+      "label": "Keep photo location",
+      "help": "Keep where a Compass photo was taken in the photo's file. When off, Compass removes the location as it resizes the photo."
+    },
+    "availabilityRequired": {
+      "label": "Members state their availability",
+      "help": "Members state when they can work for the days ahead, and their availability inside the notice period is locked so planners can rely on it."
+    },
+    "availabilityNoticeDays": {
+      "label": "Availability notice (days)",
+      "help": "While availability is required, nobody can change a member's availability for this many days ahead. Availability stays the member's own: planners read it and reassign shifts, but cannot edit it."
+    },
+    "availabilityHorizonDays": {
+      "label": "Availability horizon (days)",
+      "help": "How many days ahead members state their availability. Planners see who has not stated it for a shift inside this window."
     },
     "offeringsTravel": {
       "label": "Travel",
@@ -332,6 +348,30 @@
     "partnerLayout": {
       "label": "Partner console layout",
       "help": "Widen or narrow a partner console tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
+    },
+    "projectFactsKeepDays": {
+      "label": "Keep project details for (days)",
+      "help": "How long the travel, uniform and vehicle details people enter on a roster entry stay after the engagement is complete or canceled. 30 to 365 days."
+    },
+    "companyMaySubmitProjectFacts": {
+      "label": "Companies may enter project details for their people",
+      "help": "When on, the company that rosters someone may enter their travel, uniform and vehicle details for them. The person is notified and can correct anything they did not enter themselves."
+    },
+    "advancingAllowanceOverflow": {
+      "label": "Requests beyond the allowance",
+      "help": "Refuse turns away a request above an offering's cap. Review lets it in as requested; approving it, or assigning above the cap, then needs a reason that is kept with the allocation."
+    },
+    "workloadDayHours": {
+      "label": "Workload day (hours)",
+      "help": "On Schedule, Workload, a person's day reads as over above this many hours of shifts and estimated tasks. It changes what the view shows and stores nothing."
+    },
+    "changeoverMinutes": {
+      "label": "Minimum changeover (minutes)",
+      "help": "On Schedule, Clashes, a gap between two artists' sets under this many minutes is a warning; sets that overlap are always a clash."
+    },
+    "travelBufferMinutes": {
+      "label": "Travel buffer (minutes)",
+      "help": "On Schedule, Clashes, a flight or ride that lands within this many minutes of a person's first call, or leaves this soon after their last, is a warning; one that lands after the call or leaves before it ends is a clash."
     }
   },
   "choices": {
@@ -476,6 +516,10 @@
       "provided": "Provided",
       "reimbursed": "Reimbursed",
       "buyout": "Buyout"
+    },
+    "advancing_allowance_overflow": {
+      "refuse": "Refuse",
+      "review": "Send to review"
     }
   },
   "brand": {
@@ -786,7 +830,7 @@
     "resetOne": "{action} uses its default keys again.",
     "resetAll": "Reset all shortcuts",
     "resetAllDone": "Every shortcut uses its default keys again.",
-    "singleKeysOff": "Single-key shortcuts are off, so shortcuts without Ctrl, Cmd or Alt do nothing. Turn on Keyboard shortcuts above to use them.",
+    "singleKeysOff": "Single-key shortcuts are off, so character keys without Ctrl, Cmd or Alt do nothing. Function keys F13 to F20 still work. Turn on Keyboard shortcuts above to use them.",
     "fixed": "Esc, Enter and the list keys J, K and X belong to every list and dialog, so they stay as they are. Help lists every shortcut.",
     "problems": {
       "conflict": "{keys} already does {action}. Change that shortcut first, or choose other keys.",

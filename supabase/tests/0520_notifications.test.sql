@@ -91,7 +91,9 @@ select is((select count(*)::integer from app.notifications), 0, 'inv_03_leaving_
 select pg_temp.as_platform();
 
 -- Claiming and sending ------------------------------------------------------------------------------------------
-create temporary table claimed as select * from app.claim_notification_deliveries('Email', 50);
+-- The world queues dozens of emails of its own (offers, shifts, approvals and more), so each claim takes the most a
+-- sender may (500): everything due is claimed in one call.
+create temporary table claimed as select * from app.claim_notification_deliveries('Email', 500);
 grant select on claimed to public;
 select ok((select count(*) from claimed where recipient_person_id = pg_temp.id('dave')) = 1, 'a due email is claimed for sending');
 select is((select address from claimed where recipient_person_id = pg_temp.id('dave')), 'dave@northwind.test',
@@ -100,7 +102,7 @@ select is((select email_template_code from claimed where recipient_person_id = p
   'the claim names the React Email template');
 select is((select message_status from app.notification_deliveries where notification_id = (select id from n where key = 'gina_1') and channel = 'Email'),
   'Suppressed'::app.message_status, 'inv_03_leaving_ends_access: a delivery to someone who left the org is suppressed');
-select is((select count(*)::integer from app.claim_notification_deliveries('Email', 50)), 0, 'a claimed delivery is not claimed twice');
+select is((select count(*)::integer from app.claim_notification_deliveries('Email', 500)), 0, 'a claimed delivery is not claimed twice');
 select lives_ok($$select app.record_notification_delivery((select delivery_id from claimed where recipient_person_id = pg_temp.id('dave')), 'Sent', 're_123', null)$$,
   'the sender records a sent email');
 select is((select count(*)::integer from app.usage_events where meter_code = 'emails_sent' and org_id = pg_temp.id('org_a')), 1,
@@ -112,7 +114,7 @@ select app.record_email_feedback(pg_temp.id('org_a'), 'Erin@Northwind.test', 'Ha
 select app.record_email_feedback(pg_temp.id('org_a'), 'erin@northwind.test', 'Hard Bounce');
 select is((select count(*)::integer from app.suppression_list where address = 'erin@northwind.test'), 1, 'a bounce suppresses the address once');
 update app.notification_deliveries set deliver_after = now() where notification_id = (select id from n where key = 'erin_2');
-create temporary table claimed2 as select * from app.claim_notification_deliveries('Email', 50);
+create temporary table claimed2 as select * from app.claim_notification_deliveries('Email', 500);
 select is((select message_status from app.notification_deliveries where notification_id = (select id from n where key = 'erin_2') and channel = 'Email'),
   'Suppressed'::app.message_status, 'a suppressed address receives nothing');
 
@@ -132,7 +134,7 @@ select lives_ok($$insert into app.push_subscriptions (membership_id, expo_push_t
 select throws_ok($$insert into app.push_subscriptions (membership_id, expo_push_token, platform)
   values (pg_temp.id('dave@org_a'), 'not-a-token', 'ios')$$, '23514', null, 'only Expo push tokens are accepted');
 select pg_temp.as_platform();
-select is((select push_tokens[1] from app.claim_notification_deliveries('Push', 50) where recipient_person_id = pg_temp.id('dave') limit 1),
+select is((select push_tokens[1] from app.claim_notification_deliveries('Push', 500) where recipient_person_id = pg_temp.id('dave') limit 1),
   'ExponentPushToken[abcdefghij0123456789]', 'push claims carry the member''s device tokens');
 select pg_temp.as_user('xavier');
 select is((select count(*)::integer from app.push_subscriptions), 0, 'no cross-tenant device reads');

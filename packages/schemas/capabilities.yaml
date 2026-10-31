@@ -257,7 +257,7 @@ modules:
         description: Create and edit the run of show and its cues.
       - code: show.cue.call
         class: write
-        description: Call cues live during a show.
+        description: "Call cues live during a show: go, standby and nudging the remaining planned times."
       - code: show.day_sheet.write
         class: write
         description: Create and edit day sheets and call sheets.
@@ -1244,6 +1244,8 @@ modules:
         class: read
         description: Read unmasked government identifiers.
         roles: { owner: organization }
+      # Migration 2662 (R6a, ADR 0105) also grants this on a project to an Active assignment there to the canon catering
+      # lead (8000.51.01) or on-site medical (7000.51.01) role, for allergies (2663); 0203 stays the generator's output.
       - code: data.restricted.read.medical
         class: read
         description: Read unmasked medical notes.

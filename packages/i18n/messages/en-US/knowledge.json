@@ -106,6 +106,23 @@
     "sop_acknowledge_self": "You can acknowledge an SOP only for yourself.",
     "sop_version_managed": "The version rises only when the SOP is published.",
     "append_only": "Versions and acknowledgments never change once recorded.",
-    "cross_org_reference": "That item belongs to another organization."
+    "cross_org_reference": "That item belongs to another organization.",
+    "document_type_in_use": "Remove the event types' requirements for this document type first."
+  },
+  "documentTypes": {
+    "untyped": "No type",
+    "type": "Type",
+    "save": "Save type",
+    "requiredTitle": "Required documents",
+    "requiredSummary": "{requiredMet} of {requiredTotal} required and {recommendedMet} of {recommendedTotal} recommended",
+    "met": "on file",
+    "missing": "missing",
+    "required": "required",
+    "recommended": "recommended",
+    "byGate": "by gate {gate}",
+    "addMissing": "Add {type}",
+    "filter": "Type",
+    "allTypes": "All types",
+    "requiredLine": "{label}: {state} ({requirement}, by gate {gate})"
   }
 }

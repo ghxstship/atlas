@@ -69,6 +69,12 @@ describe("bulk edit", () => {
       ["beos", "bulk_update_beos"],
       ["accommodation_blocks", "bulk_update_accommodation_blocks"],
       ["guest_list_entries", "bulk_update_guest_list_entries"],
+      ["purchase_orders", "bulk_update_purchase_orders"],
+      ["rfqs", "bulk_update_rfqs"],
+      ["vendors", "bulk_update_vendors"],
+      ["engagement_roster_entries", "bulk_update_roster_entries"],
+      ["advance_allocations", "bulk_update_advance_allocations"],
+      ["cues", "bulk_update_cues"],
     ] as const) {
       const { db, calls } = rpcClient({ data: { preview: true, changed: 1 }, error: null });
       const result = await bulkUpdate(db, resource, [{ id: "x", set: { a: 1 } }], {

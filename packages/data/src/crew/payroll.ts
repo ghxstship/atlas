@@ -495,6 +495,8 @@ export interface EarningCode {
   readonly code: string;
   readonly name: string;
   readonly isOvertime: boolean;
+  /** Holiday pay is paid under the code (migration 2270); never with isOvertime. */
+  readonly isHoliday: boolean;
 }
 
 /** Earning codes of the org in code order. */
@@ -504,10 +506,18 @@ export async function listEarningCodes(
 ): Promise<Result<EarningCode[]>> {
   const { data, error } = await db
     .from("earning_codes")
-    .select("id, code, name, is_overtime")
+    .select("id, code, name, is_overtime, is_holiday")
     .eq("org_id", orgId)
     .is("deleted_at", null)
     .order("code", { ascending: true });
   if (error) return fail(toDataError(error));
-  return ok(data.map((c) => ({ id: c.id, code: c.code, name: c.name, isOvertime: c.is_overtime })));
+  return ok(
+    data.map((c) => ({
+      id: c.id,
+      code: c.code,
+      name: c.name,
+      isOvertime: c.is_overtime,
+      isHoliday: c.is_holiday,
+    })),
+  );
 }

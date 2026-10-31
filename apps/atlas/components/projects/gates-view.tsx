@@ -22,6 +22,7 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
+import { unmetForGate, type SetupItem } from "@xos/data/setup";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
@@ -70,6 +71,7 @@ export function GatesView({
   views,
   view,
   gatePanels,
+  setup = [],
 }: Hidden & {
   phases: readonly Phase[];
   criteria: readonly GateCriterion[];
@@ -83,6 +85,8 @@ export function GatesView({
   view: GateView;
   /** Server-rendered panels shown under a gate's criteria, keyed by gate (A98: objectives at 1, measurement at 8). */
   gatePanels?: Readonly<Partial<Record<number, ReactNode>>>;
+  /** B14 (3031, 3032): what the event type requires, each by a gate; the gate refuses while a Required one is unmet. */
+  setup?: readonly SetupItem[];
 }) {
   const t = useTranslations("projects");
   const format = useFormatter();
@@ -144,7 +148,9 @@ export function GatesView({
           {phases.map((ph) => {
             const s = status(ph.gate);
             const own = criteria.filter((c) => c.gate === ph.gate);
-            const open = own.filter((c) => c.blocking && !counted(c)).length;
+            const due = setup.filter((i) => i.requiredByGate === ph.gate);
+            const missing = unmetForGate(setup, ph.gate);
+            const open = own.filter((c) => c.blocking && !counted(c)).length + missing.length;
             const next = phases.find((p) => p.gate === ph.gate + 1);
             const passed = passedGates.get(ph.gate);
             return (
@@ -188,6 +194,7 @@ export function GatesView({
                             ? t("gates.passTitle", { gate: ph.gate, next: phaseName(next.code) })
                             : t("gates.passTitleLast", { gate: ph.gate })
                         }
+                        missing={missing.map((i) => i.label)}
                       />
                     ) : null}
                   </header>
@@ -264,6 +271,46 @@ export function GatesView({
                       );
                     })}
                   </ul>
+                  {due.length > 0 ? (
+                    <section
+                      aria-labelledby={`gate-setup-${ph.gate}`}
+                      className="flex flex-col gap-6"
+                    >
+                      <h3 id={`gate-setup-${ph.gate}`} className="m-0 text-text-13 font-semibold">
+                        {t("setup.gateTitle")}
+                      </h3>
+                      <ul className="m-0 flex list-none flex-col gap-4 p-0 text-text-13">
+                        {due.map((i) => (
+                          <li key={i.requirementId} className="flex flex-wrap items-center gap-6">
+                            <Tag
+                              tone={
+                                i.satisfied
+                                  ? "success"
+                                  : i.requirement === "Required"
+                                    ? "danger"
+                                    : "warning"
+                              }
+                            >
+                              {i.satisfied ? t("setup.satisfied") : t("setup.missing")}
+                            </Tag>
+                            <span>{i.label}</span>
+                            <span className="text-text-secondary">
+                              {t("setup.kindRequirement", {
+                                kind:
+                                  i.kind === "Document"
+                                    ? t("intake.review.document")
+                                    : t("intake.review.field"),
+                                requirement:
+                                  i.requirement === "Required"
+                                    ? t("setup.required")
+                                    : t("setup.recommended"),
+                              })}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ) : null}
                   {gatePanels?.[ph.gate] ?? null}
                 </section>
               </li>
@@ -470,7 +517,8 @@ function PassGateDialog({
   gate,
   phaseCode: code,
   title,
-}: Hidden & { gate: number; phaseCode: string; title: string }) {
+  missing = [],
+}: Hidden & { gate: number; phaseCode: string; title: string; missing?: readonly string[] }) {
   const t = useTranslations("projects");
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useClosingAction(passGateAction, () => setOpen(false));
@@ -480,7 +528,9 @@ function PassGateDialog({
       onOpenChange={setOpen}
       trigger={
         <Button variant="primary" size="sm">
-          {t("gates.pass", { gate })}
+          {missing.length > 0
+            ? t("setup.passMissing", { gate, items: missing.join(", ") })
+            : t("gates.pass", { gate })}
         </Button>
       }
       title={title}

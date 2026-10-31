@@ -150,6 +150,7 @@ export async function addItemAction(
         xyz: z.enum(["X", "Y", "Z"]),
         phaseCode: z.string().max(10).nullable(),
         dueOffsetDays: z.coerce.number().int().min(-3660).max(3660).nullable(),
+        requiresReview: z.boolean(),
       }),
     ])
     .safeParse({
@@ -162,6 +163,7 @@ export async function addItemAction(
       xyz: blank(form.get("xyz")),
       phaseCode: blank(form.get("phaseCode")),
       dueOffsetDays: blank(form.get("dueOffsetDays")),
+      requiresReview: form.get("requiresReview") === "on",
     });
   if (!parsed.success) return { ...input, at: Date.now() };
   const d = parsed.data;
@@ -189,6 +191,7 @@ export async function addItemAction(
           xyz: d.xyz,
           phaseCode: d.phaseCode,
           dueOffsetDays: d.dueOffsetDays,
+          requiresReview: d.requiresReview,
         },
   );
   return result.ok ? done(ctx.org.slug, result.data) : fromDataError(result.error);
@@ -241,6 +244,8 @@ export async function applyTemplateAction(
     ...parsed.data,
     projectKey: parsed.data.projectKey.toUpperCase(),
     venueId: null,
+    // P8: the records wait undated in the schedule's Unscheduled list.
+    withoutDates: form.get("withoutDates") === "on",
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/projects`, "layout");
@@ -264,6 +269,10 @@ export async function saveProjectAsTemplateAction(
       description: blank(form.get("description")),
     });
   if (!parsed.success) return { ...input, at: Date.now() };
-  const result = await createTemplateFromProject(ctx.viewer.db, parsed.data);
+  // P8: "Keep due dates" is checked by default; unchecked saves no due offsets.
+  const result = await createTemplateFromProject(ctx.viewer.db, {
+    ...parsed.data,
+    keepDates: form.get("keepDates") === "on",
+  });
   return result.ok ? done(ctx.org.slug, result.data) : fromDataError(result.error);
 }
