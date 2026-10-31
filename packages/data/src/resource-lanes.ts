@@ -254,9 +254,15 @@ export async function listZoneLanes(
 }
 
 /** The venues of the given projects, for their zone lanes. */
-export async function listProjectVenueIds(db: XosClient, projectIds: readonly string[]): Promise<Result<string[]>> {
+export async function listProjectVenueIds(
+  db: XosClient,
+  projectIds: readonly string[],
+): Promise<Result<string[]>> {
   if (projectIds.length === 0) return ok([]);
-  const { data, error } = await db.from("projects").select("venue_id").in("id", [...projectIds]);
+  const { data, error } = await db
+    .from("projects")
+    .select("venue_id")
+    .in("id", [...projectIds]);
   if (error) return fail(toDataError(error));
   return ok([...new Set(data.flatMap((p) => (p.venue_id ? [p.venue_id] : [])))]);
 }

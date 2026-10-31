@@ -419,7 +419,11 @@ export async function listDayItems(
 
 /** Brings a template back from Trash: the delete toast's Undo. */
 export async function restoreDayTemplate(db: XosClient, id: string): Promise<Result<null>> {
-  const { data, error } = await untyped(db).from("day_templates").update({ deleted_at: null }).eq("id", id).select("id");
+  const { data, error } = await untyped(db)
+    .from("day_templates")
+    .update({ deleted_at: null })
+    .eq("id", id)
+    .select("id");
   if (error) return fail(toDataError(error));
   if ((data as unknown[]).length === 0) return fail({ kind: "not-found" });
   return ok(null);

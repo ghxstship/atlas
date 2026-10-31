@@ -45,7 +45,11 @@ const ONE =
   /^(\d{1,4})(?:[:.h](\d{2}))?\s*(a|am|a\.m\.|a\.\s?m\.|p|pm|p\.m\.|p\.\s?m\.|h|hrs|horas)?$/u;
 
 function normalize(text: string): string {
-  return text.toLowerCase().replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  return text
+    .toLowerCase()
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function readOne(raw: string): Clock | null {
