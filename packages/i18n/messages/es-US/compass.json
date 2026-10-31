@@ -89,7 +89,9 @@
     "notActiveTitle": "Tu contratación aún no está activa",
     "notActive": "Esto se abre cuando tu contratación pase a Activa. Termina la incorporación en Gateway.",
     "closedTitle": "Tu contratación terminó",
-    "closed": "El acceso a Compass terminó al completarse tu contratación. Pagos y documentos siguen en Gateway."
+    "closed": "El acceso a Compass terminó al completarse tu contratación. Pagos y documentos siguen en Gateway.",
+    "rosterMemberTitle": "Tu empresa se encarga de esto",
+    "rosterMember": "Trabajas en este proyecto en el equipo de tu empresa, así que tu empresa lleva tu tiempo, cambios de turno y gastos. Pregúntale a quien dirige tu equipo."
   },
   "sync": {
     "offline": "Sin conexión. Los cambios se guardan en este dispositivo.",
@@ -157,7 +159,10 @@
       "sponsor_entitlements": "beneficios del patrocinador",
       "engagement_documents": "documentos de la contratación",
       "profile_certifications": "tus certificaciones",
-      "profile_documents": "tus documentos"
+      "profile_documents": "tus documentos",
+      "roster_entries": "entradas de lista",
+      "advance_allocations": "artículos asignados a ti",
+      "parking_passes": "pases de estacionamiento"
     }
   },
   "queue": {
@@ -287,7 +292,31 @@
     "callTime": "Llamado {time}",
     "blockEmpty": "Nada aquí hoy.",
     "orgChip": "{org}",
-    "nextCueAt": "Previsto para el {day} a las {time}"
+    "nextCueAt": "Previsto para el {day} a las {time}",
+    "roster": {
+      "callTitle": "Tu citación",
+      "arrival": "Llega el {day}, de {start} a {end}",
+      "fromShift": "Tu primer turno de hoy.",
+      "noArrival": "Tu llegada aún no está definida. Tu empresa la define en la lista.",
+      "parkingTitle": "Estacionamiento",
+      "noParking": "No tienes pase de estacionamiento en este proyecto.",
+      "showPass": "Mostrar pase",
+      "gearTitle": "Equipo asignado",
+      "noGear": "Todavía no tienes nada asignado.",
+      "holding": "Lo tienes contigo",
+      "pickup": "Recoger en el mostrador: {status}",
+      "status": {
+        "approved": "Aprobado",
+        "reserved": "Reservado",
+        "awaitingOrder": "Esperando pedido",
+        "onOrder": "Pedido",
+        "confirmed": "Confirmado",
+        "received": "Recibido"
+      },
+      "contactTitle": "Contacto",
+      "contactSentence": "Pregúntale sobre tu citación, tu equipo o el estacionamiento.",
+      "projectDetails": "Actualizar datos del proyecto"
+    }
   },
   "orgs": {
     "title": "Organizaciones",
@@ -438,7 +467,31 @@
     "enterCode": "Escribe un código",
     "submitCode": "Buscar",
     "vendorEmpty": "Aún no tienes entregas reservadas en este proyecto. Los turnos de muelle aparecen aquí al reservarse.",
-    "assignedEmpty": "Aún no tienes equipo asignado. Los artículos aparecen aquí cuando tu jefe de equipo te los entrega."
+    "assignedEmpty": "Aún no tienes equipo asignado. Los artículos aparecen aquí cuando tu jefe de equipo te los entrega.",
+    "receiveOrder": {
+      "title": "Recibir contra una orden",
+      "close": "Cerrar",
+      "open": "Recibir contra una orden",
+      "resume": "Revisar la recepción",
+      "scanHint": "Elige una línea con etiquetas y escanea cada unidad. Usa los botones para las demás líneas.",
+      "tagged": "{count} de {open} etiquetadas",
+      "removeTag": "Quitar {tag}",
+      "counted": "{count} de {open} contadas",
+      "less": "Una menos de {line}",
+      "more": "Una más de {line}",
+      "note": "Estado o excepciones",
+      "submit": "Recibir",
+      "otherOrder": "Elegir otra orden",
+      "loading": "Cargando órdenes.",
+      "offline": "Las órdenes solo se cargan con conexión. Los escaneos siguen en la cola de ingreso.",
+      "retry": "Reintentar",
+      "none": "Ninguna orden aprobada o enviada de este proyecto tiene líneas por recibir.",
+      "order": "OC {number}",
+      "unnamedVendor": "Proveedor sin nombre",
+      "tagAdded": "Etiqueta agregada",
+      "tagSkipped": "Ya etiquetada, o la línea está completa",
+      "queued": "{count} recibidas; se sincroniza cuando tengas conexión"
+    }
   },
   "incidents": {
     "title": "Incidentes",
@@ -950,5 +1003,41 @@
   "systemBanner": {
     "details": "Detalles",
     "dismiss": "Ocultar"
+  },
+  "clockTeam": {
+    "open": "Fichar al equipo",
+    "listTitle": "Equipo de hoy",
+    "selected": "{count} seleccionados",
+    "selectAll": "Seleccionar todos",
+    "select": "Seleccionar a {name}",
+    "window": "{start} a {end}",
+    "unnamed": "Miembro del equipo",
+    "pending": "Pendiente de sincronizar",
+    "in": "Dentro",
+    "refused": "Sin fichar",
+    "empty": "Nadie a quien supervisas tiene turno en este proyecto hoy.",
+    "refresh": "Actualizar",
+    "hint": "Cada persona se ficha con tu hora y tu ubicación. Si el servidor rechaza a alguien, el motivo aparece junto a su nombre.",
+    "clockIn": "Fichar entrada",
+    "clockOut": "Fichar salida",
+    "outsideGeofence": "Estás fuera de la geocerca del proyecto, así que las entradas pueden rechazarse. Ficha al equipo en el lugar.",
+    "agencyShift": "Turno de agencia",
+    "refusals": {
+      "supervisor_punch_batch": "Ficha entre 1 y 100 personas a la vez.",
+      "supervisor_punch_batch_required": "Este fichaje de equipo no tiene identificador de lote. Vuelve a fichar al equipo.",
+      "supervisor_punch_project": "Este turno ya no está en este proyecto o se canceló.",
+      "supervisor_punch_no_worker": "Nadie tiene este turno todavía.",
+      "supervisor_punch_not_lead": "No supervisas el turno de esta persona.",
+      "supervisor_punch_self": "Ficha tu propia entrada desde tu reloj.",
+      "supervisor_punch_outside_shift": "La entrada se abre dos horas antes del inicio del turno y se cierra cuando termina.",
+      "punch_already_in": "Ya fichó la entrada.",
+      "punch_not_in": "No ha fichado la entrada.",
+      "punch_shift_not_accepted": "Este turno no está publicado o no es suyo.",
+      "punch_id_conflict": "Este fichaje ya se usó para otro. Vuelve a fichar.",
+      "punch_location_required": "Este proyecto necesita tu ubicación para fichar al equipo.",
+      "punch_outside_geofence": "Estás fuera de la geocerca del proyecto.",
+      "punch_before_clock_in": "Una salida cuenta después de la entrada.",
+      "roster_entry_not_working": "Su entrada en el equipo está retirada o su contratación no está activa."
+    }
   }
 }

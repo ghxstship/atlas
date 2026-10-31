@@ -47,6 +47,11 @@ export interface DownloadScope {
    * the onboarding checklist a person works through before operational access opens (A92). Absent holds none.
    */
   readonly onboardingEngagementIds?: readonly string[];
+  /**
+   * External: the person's own roster entries accepted by both sides on an Active or Closing engagement (R8), for a
+   * person who works an engagement only through a party's roster. Absent holds none.
+   */
+  readonly rosterEntryIds?: readonly string[];
 }
 
 export type ScopeKey = Exclude<keyof DownloadScope, "audience">;
@@ -76,6 +81,8 @@ const OPERATIONAL_EXTERNAL: readonly Audience[] = EXTERNAL_AUDIENCES;
 const ownOrEngaged: readonly ScopeAlternative[] = [
   { column: "membership_id", key: "membershipIds", audiences: INTERNAL },
   { column: "engagement_id", key: "engagementIds", audiences: OPERATIONAL_EXTERNAL },
+  // Agency staff work their shifts and record time through their own roster entry (R12).
+  { column: "roster_entry_id", key: "rosterEntryIds" },
 ];
 
 const internalProject: ScopeAlternative = {
@@ -111,7 +118,16 @@ export const TABLE_RULES: readonly TableRule[] = [
       { column: "id", key: "engagedProjectIds", audiences: OPERATIONAL_EXTERNAL },
     ],
   },
-  { table: "shifts", anyOf: [...ownOrEngaged, internalProject] },
+  {
+    table: "shifts",
+    anyOf: [
+      ...ownOrEngaged,
+      internalProject,
+      // A staffing agency's lead holds its slots and its roster's shifts on the project, which api_external.shifts
+      // returns to them alone (R12), so they clock the team in offline.
+      { column: "project_id", key: "engagedProjectIds", audiences: ["staff"], restOnly: true },
+    ],
+  },
   {
     table: "shift_swaps",
     anyOf: [
@@ -168,6 +184,8 @@ export const TABLE_RULES: readonly TableRule[] = [
     anyOf: [
       { column: "custodian_membership_id", key: "membershipIds", audiences: INTERNAL },
       { column: "custodian_engagement_id", key: "engagementIds", audiences: ["crew", "staff"] },
+      // The units a person on a roster holds on their own entry (R8).
+      { column: "roster_entry_id", key: "rosterEntryIds" },
       internalOrg,
     ],
   },
@@ -247,6 +265,17 @@ export const TABLE_RULES: readonly TableRule[] = [
     table,
     anyOf: [{ column, key, audiences, restOnly: true }],
   })),
+  // A person on a roster (R8): their own entries, what is allocated on them and their parking passes, from
+  // api_external views (my_roster_entries, advance_allocations, my_parking_passes) the REST downloader serves.
+  { table: "roster_entries", anyOf: [{ column: "id", key: "rosterEntryIds", restOnly: true }] },
+  {
+    table: "advance_allocations",
+    anyOf: [{ column: "roster_entry_id", key: "rosterEntryIds", restOnly: true }],
+  },
+  {
+    table: "parking_passes",
+    anyOf: [{ column: "holder_person_id", key: "personIds", restOnly: true }],
+  },
   // The canon codes: the swatch of every org's codes, and the list an org that holds no codes shows.
   { table: "canon_emergency_codes", anyOf: [], global: true },
   { table: "incident_severities", anyOf: [], global: true },

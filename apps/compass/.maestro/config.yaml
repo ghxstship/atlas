@@ -27,6 +27,7 @@ executionOrder:
     - field-inspection-walk
     - field-gate-scan
     - field-receive-batch
+    - field-receive-order
     - field-asset-scan
     - field-nfc-scan
     - desk-asset-custody
@@ -37,7 +38,10 @@ executionOrder:
     - field-expense-receipt
     - field-report-block
     - crew-external-today
+    - roster-member-today
+    - clock-team
     - crew-external-work
+    - project-details
     - profile-credentials
     - vendor-external-scan
     - multi-org-today

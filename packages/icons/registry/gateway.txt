@@ -15,6 +15,7 @@ Gavel
 Gift
 ListMusic
 ListOrdered
+Mail
 MailCheck
 MessagesSquare
 Receipt

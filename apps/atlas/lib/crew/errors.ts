@@ -9,6 +9,8 @@ import type { Translate } from "@/lib/shell/translate";
 export const KNOWN_REFUSALS = [
   "shift_accept_rpc",
   "shift_already_claimed",
+  "shift_already_filled",
+  "shift_claims_waiting",
   "shift_not_published",
   "shift_double_booked",
   "shift_state_conflict",
@@ -25,6 +27,9 @@ export const KNOWN_REFUSALS = [
   "shift_claim_not_most_senior",
   "shift_claim_none",
   "sod_shift_claim_self",
+  "shift_template_unknown",
+  "shift_template_days",
+  "availability_inside_notice",
   "punch_location_required",
   "punch_outside_geofence",
   "swap_stale",
@@ -98,6 +103,18 @@ export const KNOWN_REFUSALS = [
   "per_diem_day_taken",
   "engagement_worker_person",
   "engagement_not_working",
+  // R12: agency slots, agency staff on shifts, their training, and the supervisor's team punch (2750 to 2754).
+  "roster_shift_rpc",
+  "roster_shift_not_agency_slot",
+  "roster_entry_other_engagement",
+  "roster_entry_not_accepted",
+  "roster_training_incomplete",
+  "roster_shift_overlap",
+  "roster_shift_closed",
+  "roster_shift_not_assigned",
+  "roster_entry_not_working",
+  "sod_roster_training",
+  "sod_supervisor_punch",
 ] as const;
 
 const KNOWN = new Set<string>(KNOWN_REFUSALS);

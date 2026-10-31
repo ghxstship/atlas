@@ -94,7 +94,7 @@ function grantsFromYaml(): Grant[] {
     const domain =
       key === "engagementIds" || key === "engagedProjectIds"
         ? EXTERNAL_AUDIENCES
-        : key === "personIds" || key === null
+        : key === "personIds" || key === "rosterEntryIds" || key === null
           ? ALL
           : INTERNAL_AUDIENCES;
     return { table: q.table, column: q.column, key, audiences: q.audiences ?? domain };
@@ -130,10 +130,12 @@ describe("sync rules (Section 13: tested against the same scope rules as RLS)", 
     expect(canonical(grantsFromYaml())).toEqual(canonical(grantsFromScope()));
   });
 
-  it("external buckets are parameterized only by engagement scope", () => {
+  it("external buckets are parameterized only by engagement or roster entry scope", () => {
     for (const [name, bucket] of Object.entries(rules.bucket_definitions)) {
       if (!name.startsWith("external_")) continue;
-      expect(bucket.parameters).toMatch(/scope_key = '(engagementIds|engagedProjectIds)'/);
+      expect(bucket.parameters).toMatch(
+        /scope_key = '(engagementIds|engagedProjectIds|rosterEntryIds)'/,
+      );
     }
   });
 
@@ -156,6 +158,7 @@ describe("sync rules (Section 13: tested against the same scope rules as RLS)", 
       if (
         q.bucket.startsWith("external_") ||
         q.bucket === "own_person" ||
+        q.bucket === "roster_entry" ||
         q.bucket === "canon_reference"
       )
         expect(q.columns, `${q.bucket} ${q.source}`).not.toContain("*");

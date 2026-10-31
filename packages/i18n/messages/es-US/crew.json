@@ -53,11 +53,14 @@
     "money": "Ingrese un monto con dos decimales como máximo, o déjelo en blanco para Sin precio.",
     "moneyRequired": "Ingrese la tarifa como un monto con dos decimales como máximo.",
     "currency": "Elija una moneda.",
-    "hours": "Ingrese las horas como un número mayor que cero."
+    "hours": "Ingrese las horas como un número mayor que cero.",
+    "worker": "Elige a alguien de la lista o deja el turno libre."
   },
   "refusals": {
     "shift_accept_rpc": "Solo la persona del turno lo acepta, o un miembro del equipo lo reclama mientras está abierto.",
     "shift_already_claimed": "Alguien ya tiene este turno. Elija otro turno abierto.",
+    "shift_already_filled": "Alguien quedó asignado a este turno después de que abrió el horario. Elija otro turno abierto.",
+    "shift_claims_waiting": "Hay miembros que reclamaron este turno. Apruebe o rechace sus reclamos en el turno antes de asignarlo a otra persona.",
     "shift_not_published": "Solo se puede reclamar un turno abierto publicado. Pida al planificador que lo publique.",
     "shift_double_booked": "Ya tiene un turno que se superpone con este. Intercambie o libere ese turno primero.",
     "shift_state_conflict": "El turno cambió de estado desde que lo abrió. Vuelva a cargar para ver su estado actual.",
@@ -142,12 +145,26 @@
     "sod_shift_claim_self": "No puedes aprobar tu propio reclamo. Otro supervisor lo decide.",
     "punch_location_required": "Este proyecto necesita tu ubicación para fichar. Ficha en el lugar desde Compass con la ubicación activada.",
     "punch_outside_geofence": "Estás fuera de la geocerca del proyecto. Ficha en el lugar.",
+    "shift_template_unknown": "Esa plantilla de turno ya no existe o es de otra organización. Elija una plantilla de esta organización.",
+    "shift_template_days": "Elija entre 1 y 31 días distintos para planificar.",
+    "availability_inside_notice": "La disponibilidad dentro del plazo de aviso de su organización está bloqueada y nadie puede cambiarla. Si no puede trabajar un turno en ese plazo, avise a su planificador para que lo reasigne.",
     "per_diem_one_worker": "Elija una persona para los viáticos.",
     "per_diem_range": "Los viáticos cubren de 1 a 62 días. Revise el primer y el último día.",
     "per_diem_member_org": "Ese miembro ya no pertenece a esta organización. Elija un miembro actual.",
     "per_diem_day_taken": "Ya hay un viático registrado para un día de ese rango. Quítelo o elija otros días.",
     "engagement_worker_person": "El tiempo, los turnos y los viáticos van a una contratación que nombra a una persona, no a una contratación de empresa. Elija una persona.",
-    "engagement_not_working": "El personal externo registra tiempo y recibe viáticos solo mientras su contratación está Activa o En cierre."
+    "engagement_not_working": "El personal externo registra tiempo y recibe viáticos solo mientras su contratación está Activa o En cierre.",
+    "roster_shift_rpc": "Asigna personal de agencia desde el campo Persona o el calendario, que primero comprueba su formación.",
+    "roster_shift_not_agency_slot": "Solo un puesto de agencia, o un turno que tiene el equipo de la agencia, admite personal de agencia. Asigna primero el turno a la agencia.",
+    "roster_entry_other_engagement": "Este turno está asignado a otra agencia. Elige a alguien del equipo de esa agencia.",
+    "roster_entry_not_accepted": "Asigna a esta persona cuando tú y ella hayan aceptado su entrada en el equipo.",
+    "roster_training_incomplete": "Esta persona tiene formación por confirmar o verificar antes de su primer turno. Verifícala desde su entrada en el equipo.",
+    "roster_shift_overlap": "Esta persona ya tiene un turno que se superpone con este. Elige a otra persona.",
+    "roster_shift_closed": "Este turno está cancelado o ya terminó.",
+    "roster_shift_not_assigned": "Nadie del equipo de una agencia tiene este turno.",
+    "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
+    "sod_roster_training": "Una persona no puede verificar su propia formación. Pide a otra persona que la verifique.",
+    "sod_supervisor_punch": "Fichaste la entrada o la salida de esta persona, así que otra persona aprueba esta hoja de horas."
   },
   "states": {
     "shift": {
@@ -443,7 +460,12 @@
     "emptyWriter": "No hay tiempo registrado esta semana. El equipo marca la entrada desde Compass, o registre tiempo para alguien aquí.",
     "emptyReader": "No hay tiempo registrado esta semana. Marque la entrada desde su turno en Compass o desde el turno aquí.",
     "caption": "Registros de tiempo",
-    "weekTotal": "Semana"
+    "weekTotal": "Semana",
+    "punchSources": {
+      "Mobile": "Compass",
+      "Kiosk": "Quiosco",
+      "Supervisor": "Supervisor"
+    }
   },
   "sheets": {
     "title": "{name} · {hours} h",
@@ -605,6 +627,110 @@
       "first-come": "El turno es para la primera persona que lo reclama."
     }
   },
+  "scheduling": {
+    "title": "Cubrir turnos abiertos",
+    "help": "Arrastre a una persona a un turno abierto, o elija un turno y pulse Asignar. Las personas se ordenan para el turno elegido: primero quienes están libres a esa hora, luego por la disponibilidad que indicaron, luego quienes ya trabajaron el puesto y luego quienes tienen menos horas esta semana.",
+    "fill": {
+      "label": "Tasa de cobertura",
+      "value": "{filled} de {total} turnos cubiertos ({percent}%)"
+    },
+    "noOpenShifts": "Todos los turnos de esta semana tienen a alguien asignado.",
+    "noShifts": "No hay turnos planificados esta semana.",
+    "noStaffableShifts": "Ningún turno abierto de esta semana se puede cubrir aquí: los demás son de proyectos que usted no puede cubrir, o hay miembros que los reclamaron.",
+    "openShifts": "Turnos abiertos ({count})",
+    "ranked": "Equipo ordenado",
+    "rankedFor": "Ordenado para {shift}",
+    "loading": "Ordenando al equipo para este turno.",
+    "noCandidates": "Nadie más de la organización ni del equipo de una agencia puede tomar este turno.",
+    "unnamed": "Miembro sin nombre",
+    "unnamedStaff": "Integrante del personal de agencia sin nombre",
+    "availability": {
+      "Available": "Disponible",
+      "Tentative": "Tentativo o disponible en parte",
+      "Unstated": "Disponibilidad sin indicar",
+      "Unavailable": "No disponible",
+      "title": "Su disponibilidad para {org}",
+      "required": "Su organización pide a los miembros indicar su disponibilidad para los próximos {horizon} días. Los periodos de los próximos {notice} días están bloqueados, y después de ese plazo solo usted puede cambiar su disponibilidad. Si no puede trabajar un turno en los próximos {notice} días, avise a su planificador para que lo reasigne.",
+      "optional": "Indicar su disponibilidad es opcional. Los planificadores la ven al cubrir turnos.",
+      "zone": "Las horas están en {zone}.",
+      "unstated": "{count, plural, one {# día} other {# días}} del {from} al {to} no {count, plural, one {tiene} other {tienen}} disponibilidad indicada.",
+      "periods": "Sus periodos de disponibilidad",
+      "remove": "Quitar",
+      "removeLabel": "Quitar el periodo que empieza el {start}",
+      "add": "Agregar periodo",
+      "added": "Periodo agregado.",
+      "addLabel": "Nuevo periodo de disponibilidad",
+      "kind": "Disponibilidad",
+      "errors": {
+        "kind": "Elija Disponible, Tentativo o No disponible."
+      }
+    },
+    "overdue": "Disponibilidad atrasada",
+    "conflict": "En otro turno a esa hora",
+    "workedRole": "Ya trabajó este puesto",
+    "agencyStaff": "Personal de agencia, {account}",
+    "agency": "agencia",
+    "trainingDue": "Capacitación pendiente",
+    "weekHours": "{hours} h esta semana",
+    "assign": "Asignar",
+    "assignTo": "Asignar a {name} a {shift}",
+    "assigned": "{name} está en {shift}. {fill}.",
+    "assignFailed": "No se asignó a {name}. {error}",
+    "dropConflict": "{name} está en otro turno durante {shift}, así que no se asignó. Ahora ese turno está elegido: revise el orden y pulse Asignar para asignarle de todos modos.",
+    "dropNotRanked": "{name} no está entre las personas ordenadas para {shift}, así que no se asignó. Ahora ese turno está elegido.",
+    "claimsWaiting": {
+      "title": "Reclamos en espera ({count})",
+      "help": "Hay miembros que reclamaron estos turnos. Abra uno para aprobar o rechazar sus reclamos; nadie más puede quedar asignado hasta que se decidan.",
+      "decide": "Decidir los reclamos de {shift}"
+    },
+    "fromTemplate": {
+      "open": "Planificar con plantilla",
+      "title": "Planificar turnos con una plantilla",
+      "submit": "Planificar turnos",
+      "template": "Plantilla",
+      "option": "{name} · {call} a {wrap} · {count, plural, one {# persona} other {# personas}}",
+      "from": "Primer día",
+      "to": "Último día",
+      "toHelp": "Cada día del primero al último recibe los turnos de la plantilla como borradores abiertos, hasta 31 días."
+    },
+    "errors": {
+      "template": "Elija una plantilla.",
+      "toAfterFrom": "El último día es igual o posterior al primero.",
+      "tooManyDays": "Planifique como máximo 31 días a la vez."
+    },
+    "templates": {
+      "title": "Plantillas de turnos",
+      "description": "Turnos que los planificadores colocan en días desde el horario del equipo: un puesto, horas de llamado y de cierre, cuántas personas y el descanso. Un cierre igual o anterior al llamado termina al día siguiente.",
+      "loadFailed": "Las plantillas de turnos no se cargaron. Vuelva a cargar la página.",
+      "empty": "Su organización aún no tiene plantillas de turnos.",
+      "emptyEditor": "Aún no hay plantillas de turnos. Agregue abajo los turnos que planifica con más frecuencia.",
+      "name": "Nombre",
+      "hours": "Horario",
+      "headcount": "Personas",
+      "break": "Descanso",
+      "breakField": "Descanso (minutos)",
+      "call": "Hora de llamado",
+      "wrap": "Hora de cierre",
+      "span": "{call} a {wrap}",
+      "spanOvernight": "{call} a {wrap} del día siguiente",
+      "minutes": "{minutes} min",
+      "actions": "Acciones",
+      "trash": "Mover a la papelera",
+      "trashLabel": "Mover {name} a la papelera",
+      "add": "Agregar plantilla",
+      "added": "Plantilla agregada.",
+      "addLabel": "Nueva plantilla de turno",
+      "errors": {
+        "name": "Escriba un nombre de hasta 120 caracteres.",
+        "roleCode": "Elija un puesto del canon, o ningún puesto.",
+        "callTime": "Escriba la hora de llamado.",
+        "wrapTime": "Escriba una hora de cierre distinta de la de llamado.",
+        "headcount": "Personas es un número entero del 1 al 50.",
+        "breakMinutes": "El descanso es un número entero de minutos, más corto que el turno.",
+        "duplicate": "Otra plantilla ya tiene este nombre. Elija otro."
+      }
+    }
+  },
   "perDiems": {
     "title": "Viáticos",
     "empty": "Aún no hay viáticos. Agregue viáticos para un miembro o para personal contratado.",
@@ -626,5 +752,28 @@
       "currency": "Moneda",
       "day": "Día"
     }
+  },
+  "agency": {
+    "groupMembers": "Miembros",
+    "groupAgencies": "Agencias",
+    "groupStaff": "Personal de agencia",
+    "agencyOption": "Puesto de agencia: {account}",
+    "staffOption": "{name} ({account})",
+    "staffTrainingDue": "{name} ({account}, formación pendiente)",
+    "staffConflict": "{name} ({account}, se superpone con otro turno)",
+    "slotLabel": "Puesto de agencia: {account}",
+    "slotUnnamed": "Puesto de agencia",
+    "unassignReason": "Se quitó del turno en Atlas.",
+    "allocated": "{n} asignados a agencias",
+    "trainingTitle": "Formación",
+    "trainingEmpty": "Todavía no hay nada confirmado.",
+    "recordVerification": "Registrar verificación",
+    "passed": "Aprobada",
+    "failed": "No aprobada",
+    "awaiting": "Pendiente de verificación"
+  },
+  "timesheets": {
+    "clockedBy": "Fichado por {name}",
+    "clockedByColumn": "Fichado por"
   }
 }

@@ -1,0 +1,107 @@
+-- Shared pgTAP fixture for the R12 suites (2750 to 2754), included with \ir inside each test transaction. Builds on the
+-- project facts world (2654_project_facts_world.psql, which includes the engagement world). Every name is fictional.
+-- Nothing persists: each suite rolls back.
+--
+-- Crestline Staffing (acct_s, Northwind's counterparty cp_s_a), a staffing agency: olga Account Owner, stella and theo Account Members who confirmed,
+-- uma and vic Account Members who have not confirmed yet. Crestline applied to Northwind's Staff opportunity (opp_agency)
+-- on prj_a with stella, theo, uma and vic on its slate; the application was accepted and carol made the Staff company
+-- engagement eng_agency from it, which seeded Draft roster entries for stella and theo (e_stella, e_theo) and none for
+-- uma or vic. Both accepted their entries, olga submitted the roster, alice accepted both entries and eng_agency is Active.
+-- Shifts on prj_a, all published, starting tomorrow: slot_1 and slot_2 are agency slots of eng_agency (08:00 to 16:00
+-- and 10:00 to 18:00 UTC), sh_frank_day is frank's (08:00 to 16:00), sh_open is open.
+-- The phone geofence rule (time.geofence_required) is off for org_a; the 1321 suite covers it.
+
+create function pg_temp.at_day(p_hours numeric) returns timestamptz
+language sql stable as $$ select date_trunc('day', now()) + interval '1 day' + make_interval(secs => p_hours * 3600) $$;
+grant execute on function pg_temp.at_day(numeric) to public;
+
+create function pg_temp.shift(p_key text, p_column text, p_worker uuid, p_from numeric, p_to numeric) returns uuid
+language plpgsql as $$
+declare
+  v uuid;
+begin
+  execute format('insert into app.shifts (project_id, %s, role_code, starts_at, ends_at, time_zone) values ($1, $2, %L, $3, $4, %L) returning id',
+    coalesce(p_column, 'membership_id'), '5000.51.02', 'America/New_York')
+    into v using pg_temp.id('prj_a'), p_worker, pg_temp.at_day(p_from), pg_temp.at_day(p_to);
+  insert into world values (p_key, v);
+  return v;
+end $$;
+grant execute on function pg_temp.shift(text, text, uuid, numeric, numeric) to public;
+
+create function pg_temp.refusal(p_sql text) returns text
+language plpgsql as $$
+declare
+  v_hint text;
+begin
+  execute p_sql;
+  return null;
+exception when sqlstate 'XR001' then
+  get stacked diagnostics v_hint = pg_exception_hint;
+  return v_hint;
+end $$;
+grant execute on function pg_temp.refusal(text) to public;
+
+select pg_temp.new_user('olga', 'olga@crestline-staffing.test', 'Olga Brandt');
+select pg_temp.new_user('stella', 'stella@crestline-staffing.test', 'Stella Okafor');
+select pg_temp.new_user('theo', 'theo@crestline-staffing.test', 'Theo Ramires');
+select pg_temp.new_user('uma', 'uma@crestline-staffing.test', 'Uma Castell');
+select pg_temp.new_user('vic', 'vic@crestline-staffing.test', 'Vic Haldane');
+select pg_temp.as_user('olga');
+insert into world values ('acct_s', app.create_external_account('Crestline Staffing', 'crestline-staffing'));
+select app.add_account_member(pg_temp.id('acct_s'), pg_temp.id(p), 'Account Member') from unnest(array['stella', 'theo', 'uma', 'vic']) p;
+select pg_temp.as_user('stella');
+select app.accept_account_membership(pg_temp.membership('acct_s', 'stella'));
+select pg_temp.as_user('theo');
+select app.accept_account_membership(pg_temp.membership('acct_s', 'theo'));
+
+-- The award: opportunity, application with its slate, acceptance, engagement.
+select pg_temp.as_user('carol');
+with o as (insert into app.opportunities (project_id, role_type, role_code, title, visibility, rate_type, pay_min_minor, pay_max_minor,
+    currency_code, deadline_at, starts_on, ends_on, requisition_id)
+  values (pg_temp.id('prj_a'), 'Staff', '5000.51.02', 'Summer Series event staff', 'Invited', 'Hourly', 2500, 3500, 'USD',
+    now() + interval '7 days', '2027-06-01', '2027-06-03', pg_temp.id('requisition_a')) returning id)
+  insert into world select 'opp_agency', id from o;
+insert into app.opportunity_invitations (opportunity_id, organization_id) values (pg_temp.id('opp_agency'), pg_temp.id('acct_s'));
+select app.transition_opportunity(pg_temp.id('opp_agency'), 'Draft', 'Pending Approval', 'Ready for approval.');
+select app.transition_opportunity(pg_temp.id('opp_agency'), 'Pending Approval', 'Published', 'Approved.');
+select pg_temp.as_user('olga');
+with a as (insert into app.applications (opportunity_id, applicant_organization_id) values (pg_temp.id('opp_agency'), pg_temp.id('acct_s')) returning id)
+  insert into world select 'app_agency', id from a;
+insert into app.agency_slates (application_id, person_id) select pg_temp.id('app_agency'), pg_temp.id(p) from unnest(array['stella', 'theo', 'uma', 'vic']) p;
+select pg_temp.as_user('carol');
+select app.transition_application(pg_temp.id('app_agency'), 'Submitted', 'In Review', 'Screening.');
+select app.transition_application(pg_temp.id('app_agency'), 'In Review', 'Offered', 'Offer sent.');
+select pg_temp.as_user('olga');
+select app.transition_application(pg_temp.id('app_agency'), 'Offered', 'Accepted', 'Accepting.');
+select pg_temp.as_user('carol');
+insert into world select 'eng_agency', app.create_engagement_from_application(pg_temp.id('app_agency'), 'INDEPENDENT_CONTRACTOR',
+  'Day Rate', 'Per Engagement', '2027-06-01', '2027-06-03');
+select pg_temp.as_platform();
+insert into world select 'cp_s_a', e.counterparty_id from app.engagements e where e.id = pg_temp.id('eng_agency');
+insert into world select 'e_' || p, r.id from unnest(array['stella', 'theo']) p
+  join app.engagement_roster_entries r on r.engagement_id = pg_temp.id('eng_agency') and r.person_id = pg_temp.id(p);
+
+-- The roster: both accept, the agency submits, the production accepts, the engagement starts.
+select pg_temp.as_user('stella');
+select app.respond_roster_entry(pg_temp.id('e_stella'), 'Accepted');
+select pg_temp.as_user('theo');
+select app.respond_roster_entry(pg_temp.id('e_theo'), 'Accepted');
+select pg_temp.as_user('olga');
+select app.submit_roster(pg_temp.id('eng_agency'));
+-- Carol made the engagement, so the seeded entries name her as their creator and another reviewer accepts them
+-- (sod_roster_reviewer).
+select pg_temp.as_user('alice');
+select app.review_roster_entry(pg_temp.id('e_stella'), 'Accepted');
+select app.review_roster_entry(pg_temp.id('e_theo'), 'Accepted');
+select pg_temp.move_engagement('eng_agency', 'Onboarding', 'Active');
+
+-- Shifts tomorrow.
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'time.geofence_required', 'Organization', pg_temp.id('org_a'), p_value_boolean => false);
+select pg_temp.as_user('carol');
+select pg_temp.shift('slot_1', 'engagement_id', pg_temp.id('eng_agency'), 8, 16);
+select pg_temp.shift('slot_2', 'engagement_id', pg_temp.id('eng_agency'), 10, 18);
+select pg_temp.shift('sh_frank_day', 'membership_id', pg_temp.id('frank@org_a'), 8, 16);
+select pg_temp.shift('sh_open', 'membership_id', null, 8, 16);
+select app.publish_shifts(array[pg_temp.id('slot_1'), pg_temp.id('slot_2'), pg_temp.id('sh_frank_day'), pg_temp.id('sh_open')]);
+select pg_temp.as_platform();

@@ -181,6 +181,89 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "clock-team",
+        title: "Clock in team",
+        summary: "Punch the people you supervise in or out at once, offline too.",
+        kind: "page",
+        nodes: ["clock-team"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Clock in team" },
+              {
+                t: "text",
+                v: " punches a whole crew in or out from your phone. Field supervisors open it from the ",
+              },
+              { t: "strong", v: "Crew" },
+              {
+                t: "text",
+                v: " tab. If you lead a staffing agency's crew on a project, open it from ",
+              },
+              { t: "strong", v: "Today" },
+              { t: "text", v: "." },
+            ],
+          },
+          { t: "h2", v: "Punch the team" },
+          {
+            t: "ol",
+            items: [
+              [
+                { t: "text", v: "Check the people to punch, or turn on " },
+                { t: "strong", v: "Select all" },
+                { t: "text", v: ". The list shows today's shifts of the people you supervise." },
+              ],
+              [
+                { t: "text", v: "Tap " },
+                { t: "strong", v: "Clock in" },
+                { t: "text", v: ". When anyone you checked is already in, the main action is " },
+                { t: "strong", v: "Clock out" },
+                { t: "text", v: " instead." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Each person is punched at your time and your location, so stand on site when the project needs a location to clock in.",
+              },
+            ],
+          },
+          { t: "h2", v: "Offline" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The punch waits on your phone as one change and uploads when you are back online. A punch sent twice counts once.",
+              },
+            ],
+          },
+          { t: "h2", v: "When someone is not punched" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The reason shows beside their name. For example, a shift may not have started yet: clock-in opens two hours before a shift starts and closes when it ends. You cannot punch yourself in here; use your own clock.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "You cannot approve a timesheet that holds time you punched for someone. Another approver approves it.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "contact-support",
         title: "Contact support",
         summary:
@@ -1179,6 +1262,51 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " or " },
               { t: "strong", v: "Manage in Atlas" },
               { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "project-details",
+        title: "Project details",
+        summary: "Enter the travel, uniform sizes and vehicle a project asks of you.",
+        kind: "page",
+        nodes: ["project-details"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "More" },
+              { t: "text", v: " > " },
+              { t: "strong", v: "Project details" },
+              {
+                t: "text",
+                v: " lists the projects you are on a roster for. Open one to see what it asks of you: your travel request (the airport codes and dates you fly in and home, and whether you need a pickup or a room), your uniform sizes, or the vehicle you park on site. A project asks only for what it offers.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Project details save only when you are online, and they are never kept on your phone. Offline, the save buttons are off until you connect again.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "These details stay on that roster entry and are never written to your profile. Each time someone else reads them, your access log in Gateway shows it, and they are deleted after the engagement closes. Gateway's ",
+              },
+              { t: "strong", v: "Project details" },
+              {
+                t: "text",
+                v: " tab on the engagement holds the same details, with a search for airports by city.",
+              },
             ],
           },
         ],
@@ -2196,8 +2324,7 @@ export const COMPASS_HELP: HelpContent = {
       {
         slug: "settings-work-details",
         title: "Work details",
-        summary:
-          "Your work phone, uniform sizes, dietary and accessibility needs, travel profile and emergency contacts.",
+        summary: "Your work phone, dietary and accessibility needs and emergency contacts.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,
@@ -2207,7 +2334,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Settings, Work Details holds what organizations need to equip, feed, book and look after you.",
+                v: "Settings, Work Details holds what organizations need to feed and look after you.",
               },
             ],
           },
@@ -2219,13 +2346,9 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "text", v: ": saves on this phone offline, like your other settings." },
               ],
               [
-                { t: "strong", v: "Uniform sizes" },
-                { t: "text", v: ", " },
                 { t: "strong", v: "Dietary needs" },
-                { t: "text", v: ", " },
-                { t: "strong", v: "Accessibility needs" },
                 { t: "text", v: " and " },
-                { t: "strong", v: "Travel profile" },
+                { t: "strong", v: "Accessibility needs" },
                 { t: "text", v: ": change what applies and tap " },
                 { t: "strong", v: "Save" },
                 { t: "text", v: " on that card." },
@@ -2244,7 +2367,18 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement.",
+                v: "Uniform sizes and your seat, meal and home airport are no longer kept here. Each production asks for them on the project you are rostered on, in ",
+              },
+              { t: "strong", v: "Project details" },
+              { t: "text", v: ", and keeps them only for that project." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project.",
               },
             ],
           },
@@ -2256,7 +2390,7 @@ export const COMPASS_HELP: HelpContent = {
                 v: "Your passport, loyalty programs, what you share with each engagement and your access log open in Gateway. Your ",
               },
               { t: "link", v: "profile", href: "help:profile" },
-              { t: "text", v: " shows your contacts and sizes." },
+              { t: "text", v: " shows your contacts." },
             ],
           },
         ],
@@ -3262,6 +3396,96 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Escaleta" },
               { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "clock-team",
+        title: "Fichar al equipo",
+        summary:
+          "Ficha la entrada o la salida de las personas que supervisas a la vez, también sin conexión.",
+        kind: "page",
+        nodes: ["clock-team"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Fichar al equipo" },
+              {
+                t: "text",
+                v: " registra la entrada o la salida de todo un equipo desde tu teléfono. Los supervisores de campo lo abren desde la pestaña ",
+              },
+              { t: "strong", v: "Equipo técnico" },
+              {
+                t: "text",
+                v: ". Si diriges el equipo de una agencia de personal en un proyecto, ábrelo desde ",
+              },
+              { t: "strong", v: "Hoy" },
+              { t: "text", v: "." },
+            ],
+          },
+          { t: "h2", v: "Fichar al equipo" },
+          {
+            t: "ol",
+            items: [
+              [
+                { t: "text", v: "Marca a las personas que quieres fichar o activa " },
+                { t: "strong", v: "Seleccionar todos" },
+                {
+                  t: "text",
+                  v: ". La lista muestra los turnos de hoy de las personas que supervisas.",
+                },
+              ],
+              [
+                { t: "text", v: "Toca " },
+                { t: "strong", v: "Fichar entrada" },
+                {
+                  t: "text",
+                  v: ". Si alguien que marcaste ya está dentro, la acción principal es ",
+                },
+                { t: "strong", v: "Fichar salida" },
+                { t: "text", v: "." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Cada persona se ficha con tu hora y tu ubicación, así que quédate en el lugar cuando el proyecto pide la ubicación para fichar la entrada.",
+              },
+            ],
+          },
+          { t: "h2", v: "Sin conexión" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "El fichaje espera en tu teléfono como un solo cambio y se sube cuando vuelves a tener conexión. Un fichaje enviado dos veces cuenta una sola vez.",
+              },
+            ],
+          },
+          { t: "h2", v: "Cuando no se ficha a alguien" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "El motivo aparece junto a su nombre. Por ejemplo, puede que un turno todavía no haya empezado: la entrada se abre dos horas antes del inicio del turno y se cierra cuando termina. Aquí no puedes ficharte a ti mismo; usa tu propio reloj.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "No puedes aprobar una hoja de horas que incluya tiempo que fichaste para otra persona. La aprueba otra persona.",
+              },
             ],
           },
         ],
@@ -4299,6 +4523,51 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " o " },
               { t: "strong", v: "Administrar en Atlas" },
               { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "project-details",
+        title: "Datos del proyecto",
+        summary: "Ingresa el viaje, las tallas de uniforme y el vehículo que un proyecto te pide.",
+        kind: "page",
+        nodes: ["project-details"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Más" },
+              { t: "text", v: " > " },
+              { t: "strong", v: "Datos del proyecto" },
+              {
+                t: "text",
+                v: " muestra los proyectos en cuya lista estás. Abre uno para ver lo que te pide: tu solicitud de viaje (los códigos de aeropuerto y las fechas de llegada y de regreso, y si necesitas que te recojan o una habitación), tus tallas de uniforme o el vehículo que estacionas en el sitio. Un proyecto solo pide lo que ofrece.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los datos del proyecto solo se guardan cuando tienes conexión y nunca se quedan en tu teléfono. Sin conexión, los botones de guardar están desactivados hasta que vuelvas a conectarte.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Estos datos se quedan en esa entrada de la lista y nunca se escriben en tu perfil. Cada vez que otra persona los lee, tu registro de accesos en Gateway lo muestra, y se eliminan después de que la contratación se cierra. La pestaña ",
+              },
+              { t: "strong", v: "Datos del proyecto" },
+              {
+                t: "text",
+                v: " de la contratación en Gateway tiene los mismos datos, con una búsqueda de aeropuertos por ciudad.",
+              },
             ],
           },
         ],
@@ -5364,7 +5633,7 @@ export const COMPASS_HELP: HelpContent = {
         slug: "settings-work-details",
         title: "Datos de trabajo",
         summary:
-          "Tu teléfono de trabajo, tallas de uniforme, necesidades alimentarias y de accesibilidad, perfil de viaje y contactos de emergencia.",
+          "Tu teléfono de trabajo, necesidades alimentarias y de accesibilidad y contactos de emergencia.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,
@@ -5374,7 +5643,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Ajustes, Datos de trabajo reúne lo que las organizaciones necesitan para equiparte, alimentarte, reservar tus viajes y cuidarte.",
+                v: "Ajustes, Datos de trabajo reúne lo que las organizaciones necesitan para alimentarte y cuidarte.",
               },
             ],
           },
@@ -5389,13 +5658,9 @@ export const COMPASS_HELP: HelpContent = {
                 },
               ],
               [
-                { t: "strong", v: "Tallas de uniforme" },
-                { t: "text", v: ", " },
                 { t: "strong", v: "Necesidades alimentarias" },
-                { t: "text", v: ", " },
-                { t: "strong", v: "Necesidades de accesibilidad" },
                 { t: "text", v: " y " },
-                { t: "strong", v: "Perfil de viaje" },
+                { t: "strong", v: "Necesidades de accesibilidad" },
                 { t: "text", v: ": cambia lo que corresponda y toca " },
                 { t: "strong", v: "Guardar" },
                 { t: "text", v: " en esa tarjeta." },
@@ -5414,7 +5679,18 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación.",
+                v: "Las tallas de uniforme y tu asiento, comida y aeropuerto de origen ya no se guardan aquí. Cada producción te los pide en el proyecto en cuya lista estás, en ",
+              },
+              { t: "strong", v: "Datos del proyecto" },
+              { t: "text", v: ", y los guarda solo para ese proyecto." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto.",
               },
             ],
           },
@@ -5426,7 +5702,7 @@ export const COMPASS_HELP: HelpContent = {
                 v: "Tu pasaporte, tus programas de lealtad, lo que compartes con cada contratación y tu registro de acceso se abren en Gateway. Tu ",
               },
               { t: "link", v: "perfil", href: "help:profile" },
-              { t: "text", v: " muestra tus contactos y tallas." },
+              { t: "text", v: " muestra tus contactos." },
             ],
           },
         ],

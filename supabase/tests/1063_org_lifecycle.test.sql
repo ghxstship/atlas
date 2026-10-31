@@ -1,12 +1,12 @@
 -- pgTAP: Org cancellation (Section 14.7, A36). The Owner cancels by typing the name; the subscription
 -- ends; the org is read-only for 30 days (reads and the full export work, writes are refused); the Owner
--- may reactivate inside the window; partners with clients cannot cancel.
+-- may reactivate inside the window, on the Access plan; partners with clients cannot cancel.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(31);
+select plan(32);
 
 -- Refusals before cancelling -------------------------------------------------------------------------------
 select pg_temp.as_user('bob');
@@ -84,9 +84,12 @@ select throws_ok($$select app.reactivate_organization((select id from world wher
 -- Reactivation ------------------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');
 select lives_ok($$select app.reactivate_organization((select id from world where key = 'org_a'))$$, 'the Owner reactivates within 30 days');
+select lives_ok($$insert into app.venues (org_id, name, jurisdiction_id, time_zone)
+  values ((select id from world where key = 'org_a'), 'New Venue', 'US-FL-MIAMI-DADE', 'America/New_York')$$,
+  'writes work again');
 select pg_temp.as_user('carol');
-update app.projects set name = 'Northwind Summer Series 2027' where id = pg_temp.id('prj_a');
-select is((select name from app.projects where id = pg_temp.id('prj_a')), 'Northwind Summer Series 2027', 'writes work again');
+select throws_like($$update app.projects set name = 'Renamed' where id = (select id from world where key = 'prj_a')$$,
+  'plan_limit_read_only:%', 'the org restarts on Access, where the seats past its limit are read-only (2070)');
 select pg_temp.as_user('alice');
 select throws_ok($$select app.reactivate_organization((select id from world where key = 'org_a'))$$,
   'XR001', 'org_not_canceled: This organization is not canceled.', 'a live org is not reactivated');

@@ -92,6 +92,10 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       unitPriceMinor: l.unit_price_minor,
       extendedMinor: l.unit_price_minor === null ? null : l.amount_minor,
       receivedQuantity: 0,
+      // The vendor's line view carries no hire period, and the order document does not print one.
+      acquisitionKind: "Purchase" as const,
+      hireStartsAt: null,
+      hireEndsAt: null,
     }));
     const number = po.po_number ?? 0;
     return ok({

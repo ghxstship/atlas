@@ -138,8 +138,9 @@ where not exists (
 
 -- Vendor account ----------------------------------------------------------------------------------------
 
-insert into app.account_memberships (id, org_id, person_id)
-values ('01920000-0000-7000-8000-00000000b301', '01920000-0000-7000-8000-000000000301', '01920000-0000-7000-8000-000000000302')
+-- The demo member has confirmed the membership (R4, 2630).
+insert into app.account_memberships (id, org_id, person_id, accepted_at)
+values ('01920000-0000-7000-8000-00000000b301', '01920000-0000-7000-8000-000000000301', '01920000-0000-7000-8000-000000000302', now())
 on conflict (id) do nothing;
 
 insert into app.account_membership_roles (account_membership_id, account_role, granted_by)

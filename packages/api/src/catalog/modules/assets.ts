@@ -11,6 +11,12 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions } from "../correct.ts";
 import { collectionAction } from "../define.ts";
 import { assetUnitBulkActions, fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
+import {
+  assetClassAvailabilityQuery,
+  assetReservationCapabilities,
+  assetReservationResources,
+} from "./parts/allocations.ts";
+import { assetSupplyResources } from "./parts/supply-bridge.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -25,6 +31,9 @@ const ASSET_STATES = [
   "Lost",
   "Retired",
 ] as const;
+
+/** The ten asset states since R7a's Returned (2680). */
+const ASSET_STATES_WITH_RETURNED = [...ASSET_STATES, "Returned"] as const;
 
 const assetState = (description: string) =>
   z.enum(ASSET_STATES).meta({ description, example: "Available" });
@@ -86,8 +95,40 @@ const AssetScanResult = z
   .meta({ id: "AssetScanResult", description: "The outcome of one scan event." });
 
 export const additions = defineAdditions("Assets", {
-  actions: { assetUnits: [...assetUnitBulkActions, fieldHistoryAction("asset unit")] },
+  resources: [...assetSupplyResources, ...assetReservationResources],
+  actions: {
+    assetUnits: [...assetUnitBulkActions, fieldHistoryAction("asset unit")],
+    // R7 (G-93): how many of a class are free over a window.
+    assetClasses: [assetClassAvailabilityQuery],
+  },
+  capabilities: {
+    assetUnitHire: { read: "assets.asset.read" },
+    ...assetReservationCapabilities,
+    assetClasses: { actions: { availability: "assets.asset.read" } },
+  },
   corrections: [
+    {
+      id: "asset-class-offering",
+      since: SINCE,
+      resources: ["assetClasses"],
+      change:
+        "Adds the optional `offering`, Radios or Carts: the offering the class answers for, at most one live class per offering in an org.",
+      reason:
+        "app.asset_classes.offering (2691, R7) names the app.offering_kind a class supplies (asset_classes_offering, asset_classes_org_offering_key); allocations read the offering's caps through it.",
+      apply: editShape({
+        add: {
+          offering: {
+            schema: orNull(
+              z.enum(["Radios", "Carts"]).meta({
+                description: "Offering the class answers for; null for site assets.",
+                example: "Radios",
+              }),
+            ),
+            create: "optional",
+          },
+        },
+      }),
+    },
     {
       id: "asset-class-element",
       since: SINCE,
@@ -152,6 +193,25 @@ export const additions = defineAdditions("Assets", {
           { applyScan: "assets.custody.write" },
         ),
       ),
+    },
+    {
+      id: "asset-unit-receipt-line",
+      since: SINCE,
+      resources: ["assetUnits"],
+      change:
+        "Adds the read-only `receipt_line_id`, the receipt line the unit arrived on; `asset_state` gains Returned, the tenth state.",
+      reason:
+        "app.asset_units.receipt_line_id (2681, R7a) links a unit received through app.receive_goods to its receipt line, fixed once set (unit_receipt_immutable), so owner, cost and vendor are derived and never stored on the unit. 2680 adds Returned to app.asset_state, reached only through app.return_goods.",
+      apply: editShape({
+        add: {
+          receipt_line_id: { schema: orNull(fields.ref("receipt line the unit arrived on")) },
+          asset_state: {
+            schema: z
+              .enum(ASSET_STATES_WITH_RETURNED)
+              .meta({ description: "Asset lifecycle state.", example: "Available" }),
+          },
+        },
+      }),
     },
     {
       id: "asset-lot-ledger",
