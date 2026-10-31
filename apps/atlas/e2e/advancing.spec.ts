@@ -193,3 +193,39 @@ test("guest list: a requested guest is approved by another person and checked in
   await expect(page.getByRole("dialog", { name: "Riley Chen" })).toBeVisible();
   await expectAccessibleInBothThemes(page);
 });
+
+test("R9: a packet takes typed sections, each held to its kind", async ({ page }) => {
+  const stamp = Date.now().toString(36);
+  const title = `Vendor Typed Advance ${stamp}`;
+  await signIn(page, "producer@example.com");
+  await page.goto(`/${ORG}/advancing/packets?create=1`);
+  const create = page.getByRole("dialog", { name: "New advance packet" });
+  await create.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
+  await create.getByLabel("Packet name").fill(title);
+  await create.getByRole("button", { name: "Create packet" }).click();
+  await page.waitForURL(/full=1/);
+  await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+
+  // Each kind that offers no catalog item: a text answer, files, a Load In window, the crew roster and the guest list.
+  const add = async (name: string, kind: string) => {
+    await page.getByLabel("New section").fill(name);
+    await page.getByLabel("Kind", { exact: true }).selectOption({ label: kind });
+    await page.getByRole("button", { name: "Add section" }).click();
+    await expect(page.getByText(new RegExp(`\\d+\\. ${name}`))).toBeVisible();
+  };
+  await add("Arrival notes", "Text");
+  await add("Stage plot", "File");
+  await add("Load in", "Schedule window");
+  await add("Crew", "Crew roster");
+  await add("Guests", "Guest list");
+
+  // A request section offers at least one item before it is added.
+  await page.getByLabel("New section").fill("Radios");
+  await page.getByLabel("Kind", { exact: true }).selectOption({ label: "Item request" });
+  await page.getByRole("button", { name: "Add section" }).click();
+  await expect(page.getByText("Choose at least one item or pass to offer.")).toBeVisible();
+  await expectAccessibleInBothThemes(page);
+
+  // The recipient answers under its engagement, with a naming deadline once one is chosen.
+  await expect(page.getByLabel("Names due")).toBeDisabled();
+});

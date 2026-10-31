@@ -696,7 +696,10 @@ async function PacketPage({
             <div className="pt-12">
               <RecordAnswerForm
                 org={org}
-                sections={packet.sections.map((s) => ({ value: s.id, label: s.title }))}
+                // Typed answers come from the party in Gateway; a phone answer is text (R9).
+                sections={packet.sections
+                  .filter((s) => s.kind === "Text")
+                  .map((s) => ({ value: s.id, label: s.title }))}
                 recipients={packet.recipients.map((r) => ({
                   value: r.id,
                   label: partyLabel(r.party, t),
