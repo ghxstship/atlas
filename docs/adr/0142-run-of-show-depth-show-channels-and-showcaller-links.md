@@ -119,6 +119,20 @@ A show channel is a Project group marked `show_channel`, at most one live per pr
 becomes one reads nothing more, and `app.my_conversations` stays within it. Notify: `app.send_chat_message` notifies
 no Client-engaged member.
 
+What the exclusion leaves: `private.my_group_ids` (0800) is unchanged, so a member who joined the channel and became a
+Client afterwards still sees the group's row, its member list and any post or survey addressed to the group (the
+Group audience of `private.in_audience`, 1365). The messages, their previews, the unread count and the notifications
+are what the channel holds, and those stay closed. A member who is a Client when the channel opens, or when they try
+to join, is never in the group at all. Narrowing `private.my_group_ids` as well would touch every group policy and
+audience check of the org for a case an Owner resolves by removing the member from the group.
+
+The panel sits beside the showcaller console in live mode, and the show shortcuts answer only in the console (ADR
+0131): live mode marks no show scope region, so a key pressed on the panel (Space on its buttons, letters in its
+message box) never reaches the console's controls. The console hands `show.chat` (M) to the panel's message box.
+Because the show region holds no design system list, the list scope does not meet the show scope in the shortcut
+registry (`LISTLESS_SCOPES` in packages/schemas/src/shortcuts/model.ts), and P2's J and K keep their meaning in the
+console while a list's J and K move the list.
+
 ### 11. Out of scope
 
 - Messaging from the portal: `app.chat_messages.author_membership_id` is NOT NULL, and an outside showcaller has no

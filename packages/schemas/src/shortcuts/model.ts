@@ -107,8 +107,12 @@ export function effectiveBindings(
 const LIST_SCOPE = "list";
 
 /**
- * Scopes whose region never holds a design system list. The showcaller console (ADR 0131) is its own
- * region beside the cue list, and its J and K move the standby rather than the list focus.
+ * Scopes whose region never holds a design system list, so their keys may repeat a list's. The show
+ * scope is the showcaller console (ADR 0131): its keys are answered by the console's own handler on
+ * its region, whose cues are a plain list without list keys, and live mode marks no show region for
+ * the shell (B3, ADR 0142), so the show channel and any list beside the console keep their own keys.
+ * A list's J and K therefore move the list and the console's J and K move the standby, never both
+ * (apps/atlas/test/show-keys-dom.test.ts). A design system list inside the console would break this.
  */
 const LISTLESS_SCOPES: ReadonlySet<string> = new Set(["show"]);
 

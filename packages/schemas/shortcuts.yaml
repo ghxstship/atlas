@@ -21,7 +21,7 @@
 #           while focus is in that kind of region. Two shortcuts conflict when they share keys, or one
 #           is the first step of the other's sequence, and their scopes meet (the same scope, either
 #           one global, or either one list, since a list can sit in any region except the showcaller
-#           console's show scope).
+#           console's show scope, which holds none: model.ts LISTLESS_SCOPES).
 #   group   The shortcut sheet section.
 #   keys    Default keys. Omit them for an action with no default that a person may bind.
 #   mac     Default keys on macOS, only when they differ from `keys`.
