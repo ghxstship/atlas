@@ -384,7 +384,7 @@
     "subject": "Tu código para decidir en {orgName}",
     "heading": "Tu código de acceso",
     "body": "{orgName} te pidió decidir una aprobación. Ingresa este código en la página que abriste desde el correo de aprobación:",
-    "expiry": "El código funciona durante {minutes} minutos y solo con el enlace desde el que se pidió.",
+    "expiry": "El código funciona durante {minutes} minutos y solo con los enlaces del correo de aprobación que abriste.",
     "ignore": "Si no pediste un código, ignora este correo. Nada se decide sin el código y el enlace."
   }
 }

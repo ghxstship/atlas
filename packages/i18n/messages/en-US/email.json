@@ -384,7 +384,7 @@
     "subject": "Your code to decide for {orgName}",
     "heading": "Your access code",
     "body": "{orgName} asked you to decide an approval. Enter this code on the page you opened from the approval email:",
-    "expiry": "The code works for {minutes} minutes and only with the link it was requested from.",
+    "expiry": "The code works for {minutes} minutes and only with the links of the approval email you opened.",
     "ignore": "If you did not ask for a code, ignore this email. Nothing is decided without the code and the link."
   }
 }

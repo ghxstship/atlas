@@ -95,7 +95,8 @@ var email_default$1 = {
     subject: "Your code to decide for {orgName}",
     heading: "Your access code",
     body: "{orgName} asked you to decide an approval. Enter this code on the page you opened from the approval email:",
-    expiry: "The code works for {minutes} minutes and only with the link it was requested from.",
+    expiry:
+      "The code works for {minutes} minutes and only with the links of the approval email you opened.",
     ignore:
       "If you did not ask for a code, ignore this email. Nothing is decided without the code and the link.",
   },
@@ -198,7 +199,7 @@ var email_default = {
     heading: "Tu código de acceso",
     body: "{orgName} te pidió decidir una aprobación. Ingresa este código en la página que abriste desde el correo de aprobación:",
     expiry:
-      "El código funciona durante {minutes} minutos y solo con el enlace desde el que se pidió.",
+      "El código funciona durante {minutes} minutos y solo con los enlaces del correo de aprobación que abriste.",
     ignore:
       "Si no pediste un código, ignora este correo. Nada se decide sin el código y el enlace.",
   },
