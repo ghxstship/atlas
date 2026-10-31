@@ -1,0 +1,145 @@
+-- Shared pgTAP fixture for the B12 suites (3010 to 3018), included with \ir after 0300_domain_world.psql (or a world that
+-- includes it). Every name is
+-- fictional; nothing persists: each suite rolls back.
+--
+-- In org_a (Northwind Live), on prj_a:
+--   periods per_jun and per_jul (2027); cost center cc_venue; budget bud (USD) with line_a (Stage deck rental, 0000.01.01,
+--   cc_venue, 12 x 10000) and line_b (Sound package, 0000.01.01, 1 x 50000).
+--   Counterparties cp_rig 'Pier Rigging Co', cp_rig2 'Pier Rigging Co.' (alike by name), cp_lake 'Lakeshore Brands'.
+--   Spend authority for Expense and Purchase Order, USD and EUR, for the owner and admin roles.
+-- People: carol (manager) files expenses and records credits; bob (admin) approves; alice (owner) records payments;
+--   frank (field, assigned to prj_a) files his own; gina (viewer) holds no finance capability.
+
+create function pg_temp.build_payables_world() returns void
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform pg_temp.as_user('carol');
+  insert into app.cost_centers (org_id, code, name, kind) values (pg_temp.id('org_a'), 'CC-VENUE', 'Venue Operations', 'Standing')
+  returning id into v_id;
+  insert into world values ('cc_venue', v_id);
+  insert into app.accounting_periods (org_id, starts_on, ends_on) values (pg_temp.id('org_a'), '2027-06-01', '2027-06-30')
+  returning id into v_id;
+  insert into world values ('per_jun', v_id);
+  insert into app.accounting_periods (org_id, starts_on, ends_on) values (pg_temp.id('org_a'), '2027-07-01', '2027-07-31')
+  returning id into v_id;
+  insert into world values ('per_jul', v_id);
+  insert into app.budgets (project_id, name, currency_code, is_baseline) values (pg_temp.id('prj_a'), 'Summer Series Budget', 'USD', true)
+  returning id into v_id;
+  insert into world values ('bud', v_id);
+  insert into app.budget_lines (budget_id, line_number, description, urid, cost_center_id, quantity, unit_price_minor, xyz, xyz_basis)
+  values (pg_temp.id('bud'), 1, 'Stage deck rental.', '0000.01.01', pg_temp.id('cc_venue'), 12, 10000, 'X', 'Declared')
+  returning id into v_id;
+  insert into world values ('line_a', v_id);
+  insert into app.budget_lines (budget_id, line_number, description, urid, quantity, unit_price_minor, xyz, xyz_basis)
+  values (pg_temp.id('bud'), 2, 'Sound package.', '0000.01.01', 1, 50000, 'X', 'Declared')
+  returning id into v_id;
+  insert into world values ('line_b', v_id);
+
+  perform pg_temp.as_user('alice');
+  insert into world values ('cp_rig', app.create_counterparty(pg_temp.id('org_a'), 'Pier Rigging Co', 'Rigging Engineering'));
+  insert into world values ('cp_rig2', app.create_counterparty(pg_temp.id('org_a'), 'Pier Rigging Co.', 'Rigging Engineering'));
+  insert into world values ('cp_lake', app.create_counterparty(pg_temp.id('org_a'), 'Lakeshore Brands', null));
+
+  perform pg_temp.as_platform();
+  insert into app.spend_authorities (org_id, role_id, document_type, currency_code, limit_minor)
+  select pg_temp.id('org_a'), pg_temp.system_role(r), d::app.spend_document_type, c, 100000000
+  from unnest(array['owner', 'admin']) r, unnest(array['Expense', 'Purchase Order']) d, unnest(array['USD', 'EUR']) c
+  on conflict do nothing;
+end $$;
+
+select pg_temp.build_payables_world();
+
+-- Files an expense as p_who and names it p_key. p_credit_of names the original's key for a credit.
+create function pg_temp.expense(p_key text, p_who text, p_line text, p_amount bigint, p_on date,
+  p_counterparty text default null, p_reimbursable boolean default false, p_credit_of text default null) returns uuid
+language plpgsql as $$
+declare
+  v uuid;
+begin
+  perform pg_temp.as_user(p_who);
+  insert into app.expenses (budget_line_id, description, incurred_on, amount_minor, currency_code, counterparty_id,
+    is_reimbursable, credit_of_expense_id)
+  values (pg_temp.id(p_line), initcap(replace(p_key, '_', ' ')) || '.', p_on, p_amount, 'USD',
+    case when p_counterparty is not null then pg_temp.id(p_counterparty) end, p_reimbursable,
+    case when p_credit_of is not null then pg_temp.id(p_credit_of) end)
+  returning id into v;
+  perform pg_temp.as_platform();
+  insert into world values (p_key, v);
+  return v;
+end $$;
+
+-- Approves an expense as p_who.
+create function pg_temp.approve(p_key text, p_who text default 'bob') returns boolean
+language plpgsql as $$
+declare
+  v boolean;
+begin
+  perform pg_temp.as_user(p_who);
+  v := app.approve_expense(pg_temp.id(p_key), 'Checked.');
+  perform pg_temp.as_platform();
+  return v;
+end $$;
+
+-- An expense's state, read as the platform.
+create function pg_temp.expense_state(p_key text) returns text
+language sql security definer as $$ select e.expense_state::text from app.expenses e where e.id = pg_temp.id(p_key) $$;
+
+-- Moves a row through its lifecycle as the platform, for fixtures no RPC under test is about.
+create function pg_temp.move(p_lifecycle text, p_table text, p_column text, p_key text, p_from text, p_to text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_platform();
+  perform private.transition_lifecycle(p_lifecycle, p_table::regclass, p_lifecycle || '_state',
+    ('app.' || p_lifecycle || '_state_transitions')::regclass, p_column, pg_temp.id(p_key), p_from, p_to, 'Fixture.');
+end $$;
+
+-- A payable bill on prj_a recorded by carol, one line of p_amount (NULL is unpriced), moved to p_state. The payee is a
+-- counterparty key, or a person key with the engagement it bills.
+create function pg_temp.bill(p_key text, p_counterparty text, p_currency text, p_amount bigint, p_due date,
+  p_state text default 'Approved', p_person text default null, p_engagement text default null) returns uuid
+language plpgsql as $$
+declare
+  v uuid;
+begin
+  perform pg_temp.as_user('carol');
+  insert into app.invoices (project_id, direction, counterparty_id, payee_person_id, engagement_id, invoice_number, currency_code, due_on)
+  values (pg_temp.id('prj_a'), 'Payable', case when p_counterparty is not null then pg_temp.id(p_counterparty) end,
+    case when p_person is not null then pg_temp.id(p_person) end, case when p_engagement is not null then pg_temp.id(p_engagement) end,
+    upper(p_key), p_currency, p_due) returning id into v;
+  insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor, urid)
+  values (v, 1, 'Billed.', 1, p_amount, '0000.01.01');
+  perform pg_temp.as_platform();
+  insert into world values (p_key, v);
+  if p_state in ('Approved', 'Disputed', 'Canceled') then
+    perform private.transition_lifecycle('invoice', 'app.invoices', 'invoice_state', 'app.invoice_state_transitions', 'invoice_id',
+      v, 'Proposed', 'Approved', 'Fixture.');
+  end if;
+  if p_state in ('Disputed', 'Canceled') then
+    perform private.transition_lifecycle('invoice', 'app.invoices', 'invoice_state', 'app.invoice_state_transitions', 'invoice_id',
+      v, 'Approved', 'Disputed', 'Fixture.');
+  end if;
+  if p_state = 'Canceled' then
+    perform private.transition_lifecycle('invoice', 'app.invoices', 'invoice_state', 'app.invoice_state_transitions', 'invoice_id',
+      v, 'Disputed', 'Canceled', 'Fixture.');
+  end if;
+  return v;
+end $$;
+
+-- A payable payment of p_amount to a counterparty applied to one bill, left Proposed or moved to Approved.
+create function pg_temp.pay(p_key text, p_counterparty text, p_bill text, p_amount bigint, p_approved boolean) returns void
+language plpgsql as $$
+declare
+  v uuid;
+begin
+  perform pg_temp.as_platform();
+  insert into app.payments (counterparty_id, direction, amount_minor, currency_code, paid_on)
+  values (pg_temp.id(p_counterparty), 'Payable', p_amount, 'USD', '2027-06-03') returning id into v;
+  insert into world values (p_key, v);
+  insert into app.payment_applications (payment_id, invoice_id, amount_minor) values (v, pg_temp.id(p_bill), p_amount);
+  if p_approved then
+    perform private.transition_lifecycle('payment', 'app.payments', 'payment_state', 'app.payment_state_transitions', 'payment_id',
+      v, 'Proposed', 'Approved', 'Fixture.');
+  end if;
+end $$;

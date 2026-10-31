@@ -116,8 +116,9 @@ select throws_ok($$select app.approve_expense((select id from world where key = 
 select pg_temp.as_platform();
 
 -- Expense state machine -------------------------------------------------------------------------------------------
+-- 3012 (B12) adds Paid>Approved, used only by app.void_expense_reimbursement.
 select is((select string_agg(from_state || '>' || to_state, ' ' order by from_state, to_state) from app.lifecycle_transition_rules where lifecycle = 'expense'),
-  'Approved>Paid Proposed>Approved Proposed>Canceled Proposed>Rejected Rejected>Proposed', 'the expense lifecycle moves');
+  'Approved>Paid Paid>Approved Proposed>Approved Proposed>Canceled Proposed>Rejected Rejected>Proposed', 'the expense lifecycle moves');
 select pg_temp.as_user('alice');
 select lives_ok($$select app.reject_expense((select id from world where key = 'exp_big'), 'Over limit.')$$, 'Proposed to Rejected');
 select pg_temp.as_user('carol');
