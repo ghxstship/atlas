@@ -643,7 +643,21 @@
       "cue_standby_called": "That cue was already called, so it cannot go on standby. Choose an uncalled cue.",
       "cue_standby_capability": "You cannot put cues on standby on this project. Ask the stage manager to do it.",
       "cue_shift_range": "Nudge the plan by up to an hour earlier or later.",
-      "cue_call_kind": "Calls go to Audio, Lighting, Video, Special Effects or Stage. Choose one of those departments."
+      "cue_call_kind": "Calls go to Audio, Lighting, Video, Special Effects or Stage. Choose one of those departments.",
+      "segment_insert_before_called": "Insert the segment after the last called cue.",
+      "segment_insert_cue_limit": "A running order holds at most 300 cues.",
+      "segment_library_empty": "This library segment has no cues yet.",
+      "segment_publish_runs": "Publish to between 1 and 50 running orders at a time.",
+      "segment_library_cue_limit": "A library segment holds at most 100 cues.",
+      "segment_color_key": "Pick one of the seven segment colours, or none.",
+      "segment_color_segment": "Name the segment before you colour it.",
+      "show_channel_client": "Clients are never in a show channel.",
+      "showcaller_link_capability": "Showcaller links need show.run_of_show.write and show.cue.call on the project.",
+      "showcaller_link_limit": "This running order has 5 showcaller links. Revoke one before you add another.",
+      "showcaller_link_expiry_range": "A showcaller link expires after now and within 14 days.",
+      "showcaller_link_caller_name": "Name the showcaller, in up to 120 characters.",
+      "showcaller_link_revoked": "A revoked link stays revoked. Make a new link instead.",
+      "org_read_only": "This organization is read-only, so nothing can be changed."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",
@@ -655,7 +669,10 @@
       "scopeProject": "That scope belongs to another project.",
       "project": "Name the project with ~ and a scope, for example ~NWS-E01."
     },
-    "cueCall": "Each department's call can be up to 2000 characters. Shorten it and save again."
+    "cueCall": "Each department's call can be up to 2000 characters. Shorten it and save again.",
+    "segmentName": "Name the segment, for example Awards Block.",
+    "callerName": "Name the showcaller, in up to 120 characters.",
+    "messageBody": "Write a message first."
   },
   "grammar": {
     "Approval": "A noun phrase naming what is approved, for example Rigging Plan Sign-Off.",

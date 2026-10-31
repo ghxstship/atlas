@@ -104,6 +104,10 @@
       "callSheets": {
         "empty": "No call sheets yet. Send call times to crew and talent.",
         "action": "New call sheet"
+      },
+      "segments": {
+        "empty": "No library segments yet. Save a block you run in many shows.",
+        "action": "New segment"
       }
     },
     "advancing": {

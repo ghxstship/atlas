@@ -35,7 +35,8 @@
       "show": {
         "runOfShow": "Escaleta",
         "daySheets": "Hojas del día",
-        "callSheets": "Hojas de llamado"
+        "callSheets": "Hojas de llamado",
+        "segments": "Biblioteca de segmentos"
       },
       "advancing": {
         "packets": "Paquetes",

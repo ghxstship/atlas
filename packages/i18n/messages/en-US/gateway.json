@@ -384,7 +384,11 @@
     "runOfShow": {
       "empty": "No run of show shared yet. It appears here once the organization shares it.",
       "called": "Called {time}",
-      "mySet": "Your set"
+      "mySet": "Your set",
+      "fields": "Cue details",
+      "yes": "Yes",
+      "no": "No",
+      "fieldValue": "{label}: {value}"
     },
     "scope": {
       "statement": "Statement of work",

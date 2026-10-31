@@ -95,7 +95,8 @@
       "jump": "Jump to a cue",
       "nudgeLater": "Nudge the remaining plan one minute later",
       "nudgeEarlier": "Nudge the remaining plan one minute earlier",
-      "department": "Show the next department's calls"
+      "department": "Show the next department's calls",
+      "chat": "Focus the show channel message box"
     },
     "record": {
       "state": "Change the state",

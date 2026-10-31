@@ -512,6 +512,13 @@ shells:
         group: show
         keys: D
         label: help.shortcuts.show.department
+      # The show channel beside the running cue (B3, ADR 0142): M focuses its message box. C is the global
+      # create menu's and G starts sequences, so the show scope takes M, free in both.
+      - id: show.chat
+        scope: show
+        group: show
+        keys: M
+        label: help.shortcuts.show.chat
       # Stream Deck: Hotkey actions send F13 to F20, which answer even with single-key shortcuts off.
       - id: show.deck.go
         scope: show

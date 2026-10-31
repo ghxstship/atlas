@@ -384,7 +384,11 @@
     "runOfShow": {
       "empty": "Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.",
       "called": "Llamado {time}",
-      "mySet": "Tu presentación"
+      "mySet": "Tu presentación",
+      "fields": "Detalles del cue",
+      "yes": "Sí",
+      "no": "No",
+      "fieldValue": "{label}: {value}"
     },
     "scope": {
       "statement": "Declaración de trabajo",

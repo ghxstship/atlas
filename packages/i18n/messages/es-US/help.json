@@ -95,7 +95,8 @@
       "jump": "Saltar a un cue",
       "nudgeLater": "Retrasar un minuto el plan restante",
       "nudgeEarlier": "Adelantar un minuto el plan restante",
-      "department": "Mostrar las llamadas del siguiente departamento"
+      "department": "Mostrar las llamadas del siguiente departamento",
+      "chat": "Ir al cuadro de mensaje del canal del show"
     },
     "record": {
       "state": "Cambiar el estado",

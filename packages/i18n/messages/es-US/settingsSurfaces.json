@@ -246,7 +246,33 @@
       "asset_units": "Unidades de activos",
       "purchase_orders": "Órdenes de compra",
       "invoices": "Facturas",
-      "incidents": "Incidentes"
+      "incidents": "Incidentes",
+      "cues": "Cues"
+    },
+    "colors": {
+      "none": "Sin color",
+      "cat-1": "Naranja",
+      "cat-2": "Celeste",
+      "cat-3": "Verde",
+      "cat-4": "Amarillo",
+      "cat-5": "Azul",
+      "cat-6": "Bermellón",
+      "cat-7": "Morado"
+    },
+    "choiceColor": "Color",
+    "choiceColorHelp": "Opcional. El nombre siempre se muestra junto al color.",
+    "choiceWithColor": "{label} ({color})",
+    "audienceList": "Para: {audiences}",
+    "audiencesFor": "Para quién es {label}",
+    "audiencesLabel": "Se muestra a",
+    "audiencesHelp": "Equipo lo ve en Atlas. Llamado del show lo muestra en los enlaces de llamado. Cliente lo muestra en Gateway.",
+    "audiencesCrewOnly": "Los campos de Persona, Dinero y Correo quedan con el equipo: los enlaces de llamado y los clientes nunca los ven.",
+    "audiencesSave": "Guardar audiencias",
+    "audiences": {
+      "Crew": "Equipo",
+      "Showcaller": "Llamado del show",
+      "Client": "Cliente",
+      "none": "nadie todavía"
     }
   },
   "canon": {

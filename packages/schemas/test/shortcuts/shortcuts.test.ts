@@ -128,6 +128,7 @@ describe("shortcut registry", () => {
       "show.nudge-later": "]",
       "show.nudge-earlier": "[",
       "show.department": "D",
+      "show.chat": "M",
     });
     expect(keysOf("show-deck")).toEqual({
       "show.deck.go": "F13",

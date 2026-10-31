@@ -35,7 +35,8 @@
       "show": {
         "runOfShow": "Run of Show",
         "daySheets": "Day Sheets",
-        "callSheets": "Call Sheets"
+        "callSheets": "Call Sheets",
+        "segments": "Segment Library"
       },
       "advancing": {
         "packets": "Packets",
