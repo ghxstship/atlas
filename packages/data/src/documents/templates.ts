@@ -1,4 +1,5 @@
 import { credentialStatus, type IssuedCredential } from "../credentials.ts";
+import type { GuestPass } from "../advancing.ts";
 import type { RadioHandoutLine } from "../allocations.ts";
 import type { ChangeOrder, ChangeOrderLine, Invoice, InvoiceLine } from "../finance.ts";
 import type { BeoDetail } from "../hospitality.ts";
@@ -18,8 +19,8 @@ import {
 } from "./model.ts";
 
 /**
- * Versioned templates for the twelve Section 11.9 documents and the radio hand-out (ADR 0031). Each kind keeps every
- * version it has shipped. A record renders with the version in force when it was issued, so a
+ * Versioned templates for the twelve Section 11.9 documents, the radio hand-out and the guest pass (ADR 0031). Each
+ * kind keeps every version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
  */
@@ -99,6 +100,8 @@ export interface DocumentDataMap {
     readonly project: DocumentProject;
     readonly lines: readonly RadioHandoutLine[];
   };
+  /** An approved guest's pass (B8, G-68): no credential, a pass code the door scans. */
+  "guest-pass": { readonly project: DocumentProject; readonly guest: GuestPass };
 }
 
 export interface BadgePhoto {
@@ -216,6 +219,7 @@ export const DESCRIBE: {
     recordKey: keyed(d.project.key, "RADIOS"),
     issuedAt: generatedAt.toISOString(),
   }),
+  "guest-pass": (d) => ({ recordKey: d.guest.passCode, issuedAt: d.guest.decidedAt }),
 };
 
 const field = (label: string, value: string) => ({ label, value });
@@ -250,6 +254,16 @@ export const BADGE_V2_FROM = "2027-02-01T00:00:00Z";
 
 /** The code a gate scans on a printed badge: the wallet pass form (ADR 0049), which Compass reads as the credential. */
 export const badgeScanPayload = (credentialNumber: string) => `XOSCR1:${credentialNumber}`;
+
+/**
+ * When the guest pass (B8) takes effect. It has one version, so every pass renders it; the instant is fixed, no
+ * earlier than the planned production release that ships it, as BADGE_V2_FROM is, so a later version has a clear
+ * boundary (ADR 0031 decision 3).
+ */
+export const GUEST_PASS_V1_FROM = "2027-02-01T00:00:00Z";
+
+/** The code a door scans on a guest pass (B8): Compass reads it as the guest by their pass code. */
+export const guestPassScanPayload = (passCode: string) => `XOSGP1:${passCode}`;
 
 export const TEMPLATES: TemplateRegistry = {
   "purchase-order": [
@@ -1001,6 +1015,67 @@ export const TEMPLATES: TemplateRegistry = {
           { kind: "paragraph", text: t("radioHandout.footer") },
         ],
       }),
+    },
+  ],
+  "guest-pass": [
+    {
+      version: 1,
+      effectiveFrom: GUEST_PASS_V1_FROM,
+      papers: ["a6", "cr80", "letter", "a4"],
+      build: ({ project, guest }, { t, f, paper }) => {
+        // Card order (render-card.ts): the guest's name, the scan code, then compact paragraphs. No portrait: a guest
+        // pass names a guest, it does not identify a holder.
+        const passType =
+          guest.passCategoryName !== null
+            ? t("guestPass.passType", {
+                name: guest.passCategoryName,
+                code: guest.passCategoryCode ?? "",
+              })
+            : t("guestPass.guest");
+        const show = guest.showName ?? project.name;
+        const blocks: DocumentBlock[] = [
+          { kind: "heading", text: guest.guestName },
+          {
+            kind: "scan-code",
+            payload: guestPassScanPayload(guest.passCode),
+            alt: t("guestPass.scanAlt", { code: guest.passCode }),
+            caption: t("guestPass.scanCaption"),
+          },
+          { kind: "paragraph", text: passType, size: "large" },
+          {
+            kind: "paragraph",
+            text: guest.showDay
+              ? t("guestPass.showOn", { show, date: f.day(guest.showDay) })
+              : show,
+          },
+          ...(guest.plusOnes > 0
+            ? [
+                {
+                  kind: "paragraph" as const,
+                  text:
+                    guest.plusOnes === 1
+                      ? t("guestPass.admitsOne")
+                      : t("guestPass.admitsOther", { count: f.number(guest.plusOnes) }),
+                },
+              ]
+            : []),
+          ...(guest.tableLabel
+            ? [
+                {
+                  kind: "paragraph" as const,
+                  text: t("guestPass.table", { table: guest.tableLabel }),
+                },
+              ]
+            : []),
+          { kind: "paragraph", text: guest.passCode },
+        ];
+        return {
+          title: t("guestPass.title", { name: guest.guestName }),
+          blocks: isCardPaper(paper)
+            ? blocks
+            : [...blocks, { kind: "paragraph", text: t("guestPass.scanNote") }],
+        };
+      },
     },
   ],
 };

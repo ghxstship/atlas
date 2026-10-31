@@ -568,6 +568,23 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       },
     ],
   },
+  "guest-pass": {
+    project,
+    guest: {
+      id: "90000000-0000-4000-8000-000000000001",
+      projectId: project.id,
+      guestName: "María José Ångström-Delacroix de la Vega",
+      plusOnes: 2,
+      state: "Approved",
+      passCode: "GP-ABCDEFGHIJ",
+      passCategoryCode: "VIP",
+      passCategoryName: "VIP Guest",
+      tableLabel: "Table 4",
+      showName: "Main Stage, Night 1",
+      showDay: "2027-06-04",
+      decidedAt: "2027-05-20T18:00:00Z",
+    },
+  },
 };
 
 /**

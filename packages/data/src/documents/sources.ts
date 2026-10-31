@@ -1,3 +1,4 @@
+import { getGuestPass } from "../advancing.ts";
 import { radioHandout } from "../allocations.ts";
 import type { XosClient } from "../client.ts";
 import { getIssuedCredential } from "../credentials.ts";
@@ -191,6 +192,15 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     const lines = await radioHandout(db, id);
     if (!lines.ok) return lines;
     return ok({ project: project.data, lines: lines.data });
+  },
+
+  /** Only an Approved or Checked In guest with a pass code has a pass; a Requested guest answers not found. */
+  "guest-pass": async (db, orgId, id) => {
+    const guest = await getGuestPass(db, id);
+    if (!guest.ok) return guest;
+    const project = await documentProject(db, orgId, guest.data.projectId);
+    if (!project.ok) return project;
+    return ok({ project: project.data, guest: guest.data });
   },
 
   "credential-badge": async (db, orgId, id) => {

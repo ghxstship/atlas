@@ -497,5 +497,17 @@
       "Declined": "Declined",
       "Withdrawn": "Withdrawn"
     }
+  },
+  "guestPass": {
+    "title": "Guest pass: {name}",
+    "guest": "Guest",
+    "passType": "{name} ({code})",
+    "showOn": "{show}, {date}",
+    "admitsOne": "Admits 1 more",
+    "admitsOther": "Admits {count} more",
+    "table": "Table: {table}",
+    "scanAlt": "Door code for guest pass {code}",
+    "scanCaption": "Scan at the door",
+    "scanNote": "Show this pass at the door. A scan finds the guest on tonight's list, so a pass for a guest who was removed lets nobody in."
   }
 }

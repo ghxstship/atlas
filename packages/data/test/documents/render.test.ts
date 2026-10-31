@@ -197,7 +197,35 @@ describe("credential badges on cards and in batches (P5)", () => {
     expect(pages(pdf)).toBe(1);
   }, 60_000);
 
-  it("refuses a card paper for any kind but the badge", async () => {
+  it("draws the guest pass on one A6 card with the door code and no portrait (B8)", async () => {
+    const pass = buildDocumentModel(
+      "guest-pass",
+      {
+        ...FIXTURES["guest-pass"],
+        guest: { ...FIXTURES["guest-pass"].guest, guestName: "Sasha Bell" },
+      },
+      {
+        locale: "en-US",
+        messages: EN,
+        brand: { ...BRAND, logo: null },
+        recordUrl: "https://atlas.example.test/r",
+        now: NOW,
+        paper: "a6",
+      },
+    );
+    for (const paper of ["a6", "cr80"] as const) {
+      const pdf = text(await renderDocumentPdf(pass, { paper }));
+      expect(pages(pdf)).toBe(1);
+      expect(pdf).toContain("/Alt (Door code for guest pass GP-ABCDEFGHIJ)");
+      expect(pdf).toContain("/S /H1");
+      expect(pdf).not.toContain("/Subtype /Image");
+    }
+    expect(text(await renderDocumentPdf(pass, { paper: "a6" }))).toContain(
+      "/MediaBox [0 0 297.64 419.53]",
+    );
+  }, 60_000);
+
+  it("refuses a card paper for any kind but the badge and the guest pass", async () => {
     const invoice = buildDocumentModel("invoice", FIXTURES.invoice, {
       locale: "en-US",
       messages: EN,

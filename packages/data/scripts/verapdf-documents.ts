@@ -34,8 +34,9 @@ import {
  * shared image), so the watermark keeps the files compliant, and the Section 14.5 compliance forms
  * (OSHA Forms 300, 300A and 301 and the WH-347, ADR 0041), and the P5 credential badges: CR80 and A6 cards
  * with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter
- * (8 files per locale). The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM. Exits 1 when
- * any file is not compliant or veraPDF cannot run.
+ * (8 files per locale), and the B8 guest pass on A6 and CR80 cards (the per-kind loop renders it on Letter and A4).
+ * The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM. Exits 1 when any file is not compliant or
+ * veraPDF cannot run.
  *
  *   pnpm --filter @xos/data documents:verapdf [--keep]
  */
@@ -110,6 +111,20 @@ for (const locale of LOCALES) {
       await renderDocumentsPdf(batch, { paper, title: `Credential badges (3)`, lang: locale }),
       { mode: 0o644 },
     );
+    files.push(name);
+  }
+  // B8 guest passes on the two cards: the card layout without a portrait, the door code centred.
+  for (const paper of ["a6", "cr80"] as const) {
+    const name = `guest-pass.${locale}.${paper}.pdf`;
+    const model = buildDocumentModel("guest-pass", FIXTURES["guest-pass"], {
+      locale,
+      messages,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/northwind/documents/guest-pass",
+      now: NOW,
+      paper,
+    });
+    writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
     files.push(name);
   }
   // The platform's deletion certificate (A79, Section 14.7) goes through the same renderer and gate.

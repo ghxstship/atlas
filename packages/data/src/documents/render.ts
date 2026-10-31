@@ -32,7 +32,7 @@ const SCAN_SIZE = 108;
 
 /**
  * Page sizes in points. A6 is pdfkit's 297.64 by 419.53; CR80 is the ID-1 card, 53.98 by 85.60 mm, portrait
- * (P5). The card sizes are for the credential badge only (printSizesFor).
+ * (P5). The card sizes are for the credential badge and the guest pass only (printSizesFor).
  */
 export const SIZES: Record<PrintSize, string | [number, number]> = {
   letter: "LETTER",
@@ -239,9 +239,9 @@ function marginsFor(paper: PrintSize) {
   return { top: MARGIN, left: MARGIN, right: MARGIN, bottom: MARGIN + FOOTER };
 }
 
-/** Card papers print only the credential badge; the routes check isPrintSizeFor first. */
+/** Card papers print only the credential badge and the guest pass; the routes check isPrintSizeFor first. */
 function assertPrintable(model: DocumentModel, paper: PrintSize): void {
-  if (isCardPaper(paper) && model.kind !== "credential-badge") {
+  if (isCardPaper(paper) && model.kind !== "credential-badge" && model.kind !== "guest-pass") {
     throw new Error(`A ${model.kind} prints on Letter or A4, not ${paper}.`);
   }
 }

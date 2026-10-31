@@ -497,5 +497,17 @@
       "Declined": "Rechazada",
       "Withdrawn": "Retirada"
     }
+  },
+  "guestPass": {
+    "title": "Pase de invitado: {name}",
+    "guest": "Invitado",
+    "passType": "{name} ({code})",
+    "showOn": "{show}, {date}",
+    "admitsOne": "Admite 1 persona más",
+    "admitsOther": "Admite {count} personas más",
+    "table": "Mesa: {table}",
+    "scanAlt": "Código de puerta del pase de invitado {code}",
+    "scanCaption": "Escanear en la puerta",
+    "scanNote": "Muestre este pase en la puerta. Al escanearlo se busca al invitado en la lista de esta noche, así que el pase de un invitado retirado no deja entrar a nadie."
   }
 }

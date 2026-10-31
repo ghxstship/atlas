@@ -2336,6 +2336,89 @@ export async function updateGuestPass(
   return (data ?? []).length === 0 ? fail(NOT_FOUND) : ok(null);
 }
 
+/** What a guest pass prints (B8, the guest-pass document): an Approved or Checked In guest with a pass code. */
+export interface GuestPass {
+  readonly id: string;
+  readonly projectId: string;
+  readonly guestName: string;
+  readonly plusOnes: number;
+  readonly state: "Approved" | "Checked In";
+  readonly passCode: string;
+  readonly passCategoryCode: string | null;
+  readonly passCategoryName: string | null;
+  readonly tableLabel: string | null;
+  /** The show the guest attends (the entry's scope node), or null for the whole project. */
+  readonly showName: string | null;
+  /** The project's first day (YYYY-MM-DD), printed as the show's date. */
+  readonly showDay: string | null;
+  /** When the guest was approved: the pass's issue time, which picks its template version. */
+  readonly decidedAt: string;
+}
+
+/**
+ * A guest's pass, read as the caller (advancing.packet.read on the project, through row level security). A guest who
+ * is not Approved or Checked In, or has no pass code yet, answers not found, so a Requested guest has no pass.
+ */
+export async function getGuestPass(db: XosClient, guestId: string): Promise<Result<GuestPass>> {
+  const { data: raw, error } = await untyped(db)
+    .from("guest_list_entries")
+    .select(
+      "id, project_id, scope_node_id, guest_name, plus_ones, entry_state, pass_code, pass_category_id, table_label, decided_at",
+    )
+    .eq("id", guestId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  const g = raw as {
+    id: string;
+    project_id: string;
+    scope_node_id: string | null;
+    guest_name: string;
+    plus_ones: number;
+    entry_state: GuestState;
+    pass_code: string | null;
+    pass_category_id: string | null;
+    table_label: string | null;
+    decided_at: string | null;
+  } | null;
+  if (
+    !g ||
+    g.pass_code === null ||
+    g.decided_at === null ||
+    (g.entry_state !== "Approved" && g.entry_state !== "Checked In")
+  ) {
+    return fail(NOT_FOUND);
+  }
+  const [category, scope, project] = await Promise.all([
+    g.pass_category_id
+      ? db
+          .from("credential_categories")
+          .select("code, name")
+          .eq("id", g.pass_category_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    g.scope_node_id
+      ? db.from("scope_nodes").select("name").eq("id", g.scope_node_id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    db.from("projects").select("starts_on").eq("id", g.project_id).maybeSingle(),
+  ]);
+  for (const r of [category, scope, project]) if (r.error) return fail(toDataError(r.error));
+  return ok({
+    id: g.id,
+    projectId: g.project_id,
+    guestName: g.guest_name,
+    plusOnes: g.plus_ones,
+    state: g.entry_state,
+    passCode: g.pass_code,
+    passCategoryCode: category.data?.code ?? null,
+    passCategoryName: category.data?.name ?? null,
+    tableLabel: g.table_label,
+    showName: scope.data?.name ?? null,
+    showDay: project.data?.starts_on ?? null,
+    decidedAt: g.decided_at,
+  });
+}
+
 export type GuestEmailKind = "Invitation" | "Pass" | "Message";
 export type GuestEmailState = "Queued" | "Sending" | "Sent" | "Failed" | "Suppressed" | "Skipped";
 

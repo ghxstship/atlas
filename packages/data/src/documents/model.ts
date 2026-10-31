@@ -5,7 +5,7 @@
  * renderer writes follows the same order as the page.
  */
 
-/** The twelve Section 11.9 documents and the radio hand-out (R7, ADR 0031 amendment). */
+/** The twelve Section 11.9 documents, the radio hand-out (R7) and the guest pass (B8), per the ADR 0031 amendments. */
 export const DOCUMENT_KINDS = [
   "purchase-order",
   "invoice",
@@ -20,6 +20,7 @@ export const DOCUMENT_KINDS = [
   "final-cost-report",
   "agreement-certificate",
   "radio-handout",
+  "guest-pass",
 ] as const;
 
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -76,6 +77,7 @@ export const DOCUMENT_CLASSIFICATION: Readonly<
   "final-cost-report": "Internal",
   "agreement-certificate": "Internal",
   "radio-handout": "Internal",
+  "guest-pass": "Internal",
   "deletion-certificate": "Internal",
   "certified-payroll": "Restricted",
   "osha-300": "Confidential",
@@ -99,9 +101,9 @@ export function isPaper(value: string): value is Paper {
 }
 
 /**
- * Card sizes, for the credential badge only (P5, ADR 0031 amendment): A6 (105 by 148 mm) and the ID-1 card CR80
- * (53.98 by 85.60 mm), both portrait. Paper and isPaper keep meaning Letter or A4, so compliance forms and Gateway
- * still accept only those.
+ * Card sizes, for the credential badge (P5) and the guest pass (B8), per the ADR 0031 amendments: A6 (105 by 148 mm)
+ * and the ID-1 card CR80 (53.98 by 85.60 mm), both portrait. Paper and isPaper keep meaning Letter or A4, so
+ * compliance forms and Gateway still accept only those.
  */
 export type CardPaper = "a6" | "cr80";
 
@@ -116,9 +118,17 @@ export function isCardPaper(value: string): value is CardPaper {
 
 const BADGE_SIZES: readonly PrintSize[] = ["letter", "a4", "a6", "cr80"];
 
-/** The sizes a kind prints on: the credential badge also prints on A6 and CR80 cards, every other kind on Letter and A4. */
+/** The guest pass prints on the badge sizes, A6 first: it is a card handed to a guest or attached to their email. */
+const GUEST_PASS_SIZES: readonly PrintSize[] = ["a6", "cr80", "letter", "a4"];
+
+/**
+ * The sizes a kind prints on, the default first: the credential badge also prints on A6 and CR80 cards, the guest
+ * pass on the same sizes with A6 as its default, every other kind on Letter and A4.
+ */
 export function printSizesFor(kind: string): readonly PrintSize[] {
-  return kind === "credential-badge" ? BADGE_SIZES : PAPERS;
+  if (kind === "credential-badge") return BADGE_SIZES;
+  if (kind === "guest-pass") return GUEST_PASS_SIZES;
+  return PAPERS;
 }
 
 export function isPrintSizeFor(kind: string, value: string): value is PrintSize {
