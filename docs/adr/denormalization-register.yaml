@@ -158,6 +158,12 @@ derived:
     refresh: Written only by `app.apply_asset_scan` in the same transaction as the custody row (migration 2692, R7; moved from R0)
     reason: Compass checks a unit's scan state offline without the custody ledger (ADR 0103 section 4); every other combined status is computed
     adr: "0103"
+  - objects:
+      - app.over_limit_objects
+    source: Objects each object limit counts, ranked against `private.org_plan_limits` and `app.plan_limit_choices`
+    refresh: Rewritten by `private.recompute_over_limit` from triggers on subscriptions, projects, memberships, roles and plan limits, by the Owner's choice and by the hourly lifecycle job; a row goes as soon as its object is writable (2070)
+    reason: The row guard runs on every write to every org table and asks one indexed question instead of ranking an org's projects and members per write; the banner call counts without ranking
+    adr: "0081"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
