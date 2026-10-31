@@ -212,6 +212,11 @@ describe("field history", () => {
     expect([...FIELD_HISTORY_SUBJECTS].sort()).toEqual([...listed].sort());
     expect(hasFieldHistory("app.expenses")).toBe(true);
     expect(hasFieldHistory("app.form_submissions")).toBe(false);
+    // B6 (2950): the itinerary and Show day read what moved on travel, rooms and cues.
+    for (const table of ["app.travel_segments", "app.accommodation_assignments", "app.cues"]) {
+      expect(hasFieldHistory(table), table).toBe(true);
+    }
+    expect(MONEY_SUBJECTS.has("app.travel_segments")).toBe(true);
   });
 
   it("lists as money subjects exactly the subjects with amounts in minor units, each with a currency", () => {

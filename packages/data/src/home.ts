@@ -378,3 +378,91 @@ export async function committedSpend(
   }
   return ok({ totalMinor: summed > 0 ? sum : null, currency, unpricedCount: unpriced });
 }
+
+/** The next doors of Home > Today (B6, G-249): an Event record whose doors open soonest. */
+export interface NextDoors {
+  readonly recordId: string;
+  readonly key: string | null;
+  readonly title: string;
+  readonly projectKey: string;
+  readonly projectName: string;
+  /** The project's IANA zone, which the tile shows the doors time in. */
+  readonly projectTimeZone: string | null;
+  readonly venueName: string | null;
+  readonly doorsAt: string;
+}
+
+/** How far back an opened door still shows (Doors opened 40 min ago), and how far ahead the tile looks. */
+const DOORS_LOOKBACK_MS = 6 * 3_600_000;
+const DOORS_LOOKAHEAD_MS = 14 * 86_400_000;
+
+/**
+ * The earliest doors at or after six hours ago and within 14 days, among the live Event records of
+ * the org's live projects the viewer reads (row level security), or null when there is none. The
+ * venue is the event's own (app.record_event.venue_id). Two reads, never one per record.
+ */
+export async function nextDoors(
+  db: XosClient,
+  input: { readonly orgId: string; readonly now?: Date },
+): Promise<Result<NextDoors | null>> {
+  const now = input.now ?? new Date();
+  const events = await db
+    .from("record_event")
+    .select("record_id, doors_at, venue:venues!record_event_venue_id_fkey(name)")
+    .eq("org_id", input.orgId)
+    .gte("doors_at", new Date(now.getTime() - DOORS_LOOKBACK_MS).toISOString())
+    .lte("doors_at", new Date(now.getTime() + DOORS_LOOKAHEAD_MS).toISOString())
+    .order("doors_at", { ascending: true })
+    .limit(25);
+  if (events.error) return fail(toDataError(events.error));
+  const rows = (events.data ?? []) as unknown as {
+    record_id: string;
+    doors_at: string | null;
+    venue: { name: string } | null;
+  }[];
+  if (rows.length === 0) return ok(null);
+  const records = await db
+    .from("records")
+    .select(
+      "id, record_display_key, title, project:projects!records_project_id_fkey(project_key, name, time_zone, deleted_at)",
+    )
+    .in(
+      "id",
+      rows.map((r) => r.record_id),
+    )
+    .eq("org_id", input.orgId)
+    .eq("record_kind", "Event")
+    .neq("record_state", "Canceled")
+    .is("deleted_at", null);
+  if (records.error) return fail(toDataError(records.error));
+  const byId = new Map(
+    (
+      (records.data ?? []) as unknown as {
+        id: string;
+        record_display_key: string | null;
+        title: string;
+        project: {
+          project_key: string;
+          name: string;
+          time_zone: string | null;
+          deleted_at: string | null;
+        } | null;
+      }[]
+    ).map((r) => [r.id, r]),
+  );
+  for (const row of rows) {
+    const record = byId.get(row.record_id);
+    if (!record || !row.doors_at || !record.project || record.project.deleted_at !== null) continue;
+    return ok({
+      recordId: record.id,
+      key: record.record_display_key,
+      title: record.title,
+      projectKey: record.project.project_key,
+      projectName: record.project.name,
+      projectTimeZone: record.project.time_zone,
+      venueName: row.venue?.name ?? null,
+      doorsAt: row.doors_at,
+    });
+  }
+  return ok(null);
+}

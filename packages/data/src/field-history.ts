@@ -12,9 +12,10 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * The tables whose rows have a field history: private.field_history_subjects (migrations 1452,
- * 2100 and 2241). Asking for any other table is refused, so pages render the history only for these.
+ * 2100, 2241 and 2950). Asking for any other table is refused, so pages render the history only for these.
  */
 export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
+  "app.accommodation_assignments",
   "app.accommodation_blocks",
   "app.accounting_periods",
   "app.advance_packets",
@@ -37,6 +38,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.cost_centers",
   "app.credential_categories",
   "app.credentials",
+  "app.cues",
   "app.custom_object_records",
   "app.day_sheets",
   "app.dock_slots",
@@ -89,6 +91,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.time_off_requests",
   "app.timesheets",
   "app.training_courses",
+  "app.travel_segments",
   "app.vendor_classes",
   "app.vendor_scorecards",
   "app.vendors",
@@ -122,6 +125,7 @@ export const MONEY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.per_diems",
   "app.purchase_orders",
   "app.requisitions",
+  "app.travel_segments",
   "app.work_orders",
 ]);
 
@@ -150,6 +154,7 @@ type MoneyTable =
   | "per_diems"
   | "purchase_orders"
   | "requisitions"
+  | "travel_segments"
   | "work_orders";
 
 /**
