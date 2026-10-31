@@ -918,6 +918,17 @@ export interface BudgetLine {
   readonly actualMinor: number;
   readonly drawnInMinor: number;
   readonly drawnOutMinor: number;
+  /**
+   * What approved, sent and closed purchase orders commit against the line in the budget's currency
+   * (app.budget_line_commitments, 2810); null when withheld or when a counted line is unpriced.
+   */
+  readonly committedMinor: number | null;
+  /** True when the viewer cannot read the project's purchase orders, so Committed stays blank. */
+  readonly committedWithheld: boolean;
+  /** Purchase order lines counted in committedMinor. */
+  readonly poLineCount: number;
+  /** Lines of approved orders in another currency drawing on the line: counted, never summed. */
+  readonly otherCurrencyPoLineCount: number;
   /** The version the row was read at, for conflict checks on save. */
   readonly updatedAt: string;
 }
@@ -925,7 +936,7 @@ export interface BudgetLine {
 const LINE_COLUMNS =
   "id, budget_id, line_number, description, line_type, urid, cost_center_id, grade_code, element_id, quantity, unit_basis, unit_price_minor, xyz, xyz_basis, updated_at";
 
-function toLine(r: Raw, amounts?: Raw): BudgetLine {
+function toLine(r: Raw, amounts?: Raw, commitment?: Raw): BudgetLine {
   const quantity = num(r["quantity"]);
   const unitPrice = numOrNull(r["unit_price_minor"]);
   return {
@@ -950,8 +961,62 @@ function toLine(r: Raw, amounts?: Raw): BudgetLine {
     actualMinor: amounts ? num(amounts["actual_minor"]) : 0,
     drawnInMinor: amounts ? num(amounts["drawn_in_minor"]) : 0,
     drawnOutMinor: amounts ? num(amounts["drawn_out_minor"]) : 0,
+    committedMinor: commitment ? numOrNull(commitment["committed_minor"]) : null,
+    committedWithheld: commitment ? commitment["is_committed_withheld"] === true : false,
+    poLineCount: commitment ? num(commitment["po_line_count"]) : 0,
+    otherCurrencyPoLineCount: commitment ? num(commitment["other_currency_po_line_count"]) : 0,
     updatedAt: str(r["updated_at"]),
   };
+}
+
+/**
+ * A line as saved (updateBudgetLine returns only stored columns) merged onto the line it replaces:
+ * the stored fields and version come from the save, the extended amount is recomputed from them, and
+ * the derived account, actual and committed amounts are kept until the page rereads them.
+ */
+export function mergeSavedLine(previous: BudgetLine, saved: BudgetLine): BudgetLine {
+  return {
+    ...previous,
+    description: saved.description,
+    lineType: saved.lineType,
+    urid: saved.urid,
+    costCenterId: saved.costCenterId,
+    gradeCode: saved.gradeCode,
+    elementId: saved.elementId,
+    quantity: saved.quantity,
+    unitBasis: saved.unitBasis,
+    unitPriceMinor: saved.unitPriceMinor,
+    xyz: saved.xyz,
+    xyzBasis: saved.xyzBasis,
+    lineNumber: saved.lineNumber,
+    extendedMinor: extendedMinor(saved.quantity, saved.unitPriceMinor),
+    updatedAt: saved.updatedAt,
+  };
+}
+
+export interface BudgetCommittedTotal {
+  readonly totalMinor: number;
+  /** Budget lines with at least one purchase order line counted. */
+  readonly committedLineCount: number;
+  /** Purchase order lines in another currency, left out of the total. */
+  readonly otherCurrencyLineCount: number;
+}
+
+/**
+ * The budget's committed total, or null by the silence rule when any line is withheld or blank, so
+ * the figure is never a partial sum. An empty budget commits zero.
+ */
+export function budgetCommittedTotal(lines: readonly BudgetLine[]): BudgetCommittedTotal | null {
+  let totalMinor = 0;
+  let committedLineCount = 0;
+  let otherCurrencyLineCount = 0;
+  for (const line of lines) {
+    if (line.committedWithheld || line.committedMinor === null) return null;
+    totalMinor += line.committedMinor;
+    if (line.poLineCount > 0) committedLineCount += 1;
+    otherCurrencyLineCount += line.otherCurrencyPoLineCount;
+  }
+  return { totalMinor, committedLineCount, otherCurrencyLineCount };
 }
 
 export interface BudgetDetail {
@@ -976,7 +1041,7 @@ export async function getBudget(
     (r) => r,
   );
   if (!head.ok) return head;
-  const [summaries, lines, amounts] = await Promise.all([
+  const [summaries, lines, amounts, commitments] = await Promise.all([
     listBudgets(db, { orgId, projectId: str(head.data["project_id"]) }),
     rows(
       db
@@ -988,14 +1053,30 @@ export async function getBudget(
       (r) => r,
     ),
     rows(db.from("budget_line_amounts").select("*").eq("budget_id", budgetId), (r) => r),
+    rows(
+      db
+        .from("budget_line_commitments")
+        .select(
+          "budget_line_id, committed_minor, po_line_count, other_currency_po_line_count, is_committed_withheld",
+        )
+        .eq("budget_id", budgetId),
+      (r) => r,
+    ),
   ]);
   if (!summaries.ok) return summaries;
   if (!lines.ok) return lines;
   if (!amounts.ok) return amounts;
+  if (!commitments.ok) return commitments;
   const budget = summaries.data.find((b) => b.id === budgetId);
   if (!budget) return fail({ kind: "not-found" });
   const byLine = new Map(amounts.data.map((a) => [str(a["budget_line_id"]), a]));
-  return ok({ budget, lines: lines.data.map((l) => toLine(l, byLine.get(str(l["id"])))) });
+  const committedBy = new Map(commitments.data.map((c) => [str(c["budget_line_id"]), c]));
+  return ok({
+    budget,
+    lines: lines.data.map((l) =>
+      toLine(l, byLine.get(str(l["id"])), committedBy.get(str(l["id"]))),
+    ),
+  });
 }
 
 export interface BudgetInput {

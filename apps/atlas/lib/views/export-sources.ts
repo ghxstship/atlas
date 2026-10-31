@@ -429,6 +429,8 @@ const budgetLines = source("app.budget_line_facts", [
   "cost_center_code",
   "extended_minor",
   "is_unpriced",
+  "committed_minor",
+  "is_committed_withheld",
   "actual_minor",
   "currency_code",
   "project_id",

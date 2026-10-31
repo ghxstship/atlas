@@ -10,7 +10,7 @@ import type {
   UridOption,
   XyzTag,
 } from "@xos/data/finance";
-import { accountForUrid, BUDGET_LINE_TYPES, xyzFor } from "@xos/data/finance";
+import { accountForUrid, BUDGET_LINE_TYPES, mergeSavedLine, xyzFor } from "@xos/data/finance";
 import {
   Button,
   Combobox,
@@ -25,7 +25,7 @@ import {
   type GridColumn,
 } from "@xos/ui";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   addBudgetLinesAction,
   deleteBudgetLinesAction,
@@ -34,7 +34,19 @@ import {
   updateBudgetLineAction,
   type ActionState,
 } from "@/app/[org]/finance/actions";
+import { useLiveRefresh } from "@/components/live/live-refresh";
+import type { PresenceMe } from "@/components/presence/presence";
+import {
+  catchUpLine,
+  lineSaveOutcome,
+  LineSaves,
+  linesAfterSave,
+  mergeLines,
+  savedVersion,
+  typedLine,
+} from "@/lib/finance/live-lines";
 import { parsePastedLines } from "@/lib/finance/paste";
+import { BudgetPresence } from "./budget-presence";
 import { ActionFeedback } from "./kit-action-feedback";
 import { fieldError } from "./kit-field-error";
 import { useFinanceT } from "./kit-use-finance-t";
@@ -47,6 +59,13 @@ import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
  * chooses (Section 11.7, journey 33). Lines are added one at a time, from catalog elements at a
  * chosen grade with the grade's price or Unpriced (journey 3), or pasted from a spreadsheet as one
  * batch that Undo removes (journey 34).
+ *
+ * The grid is live (Section 11.7, gap G-216): a line someone else saves, adds or removes appears
+ * without a reload, and Committed follows purchase orders as they are approved, sent, closed or
+ * canceled. Lines merge by id. The line with an open cell, and a line whose save is in flight, keep
+ * what this person typed and the version they started from, so a later save is still checked against
+ * it and nothing is overwritten unseen. Who else has the budget open, and the line each is editing,
+ * shows above the grid.
  */
 
 export interface CostCenterOption {
@@ -61,6 +80,10 @@ type GridRow = Record<string, Cell>;
 interface Props {
   readonly org: string;
   readonly budgetId: string;
+  /** The budget's project, whose purchase orders fill Committed. */
+  readonly projectId: string;
+  /** The viewer, for presence on the budget; null in the moment before their person exists. */
+  readonly me: PresenceMe | null;
   readonly currency: string;
   readonly exponent: number;
   readonly lines: readonly BudgetLine[];
@@ -104,26 +127,57 @@ async function submit<T extends Record<string, string>>(
 export function BudgetEditor(props: Props) {
   const t = useFinanceT();
   const router = useRouter();
-  const [lines, setLines] = useState<BudgetLine[]>(() => [...props.lines]);
+  const [lines, setLines] = useState<readonly BudgetLine[]>(props.lines);
   const [gridKey, setGridKey] = useState(0);
   const [status, setStatus] = useState<ActionState>({});
-  const [conflict, setConflict] = useState<{ mine: BudgetLineInput; theirs: BudgetLine } | null>(
-    null,
-  );
+  const [removedLine, setRemovedLine] = useState<number | null>(null);
+  const [conflict, setConflict] = useState<{
+    mine: BudgetLineInput;
+    theirs: BudgetLine;
+    previous: BudgetLine;
+  } | null>(null);
   const [undo, setUndo] = useState<{ ids: string[]; message: string; restore: boolean } | null>(
     null,
   );
   const [sheet, setSheet] = useState<"add" | "catalog" | "paste" | "delete" | "draw" | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [, start] = useTransition();
+  // Saves in flight per line, chained so a second edit saves against the version the first returns.
+  const saves = useRef(new LineSaves());
+  // Lines this tab deleted, which leave the page without a line-removed status.
+  const [deletedHere, setDeletedHere] = useState<ReadonlySet<string>>(() => new Set());
+  const [savingIds, setSavingIds] = useState<ReadonlySet<string>>(() => new Set());
+  const markSaving = (id: string, on: boolean) =>
+    setSavingIds((current) => {
+      const next = new Set(current);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
 
-  // Lines added or removed elsewhere (a paste, a delete, another person) reset the grid.
-  const shape = props.lines.map((l) => l.id).join(",");
-  const [seenShape, setSeenShape] = useState(shape);
-  if (shape !== seenShape) {
-    setSeenShape(shape);
-    setLines([...props.lines]);
-    setGridKey((k) => k + 1);
+  // A new page render (a save, a paste, someone else's change, a purchase order approved) merges in.
+  const [seenLines, setSeenLines] = useState(props.lines);
+  if (props.lines !== seenLines) {
+    setSeenLines(props.lines);
+    const held = new Set(savingIds);
+    if (editingId) held.add(editingId);
+    const merged = mergeLines(lines, props.lines, held, deletedHere);
+    setLines(merged.lines);
+    // A line someone else removed while this person had its cell open: the draft goes with it, and
+    // the status says so.
+    if (merged.removedRows.length > 0) setRemovedLine(merged.removedRows[0] ?? null);
+    if (editingId && !props.lines.some((l) => l.id === editingId)) setEditingId(null);
   }
+
+  useLiveRefresh(
+    useMemo(
+      () => [
+        { table: "budget_lines", filter: `budget_id=eq.${props.budgetId}` },
+        { table: "purchase_orders", filter: `project_id=eq.${props.projectId}` },
+      ],
+      [props.budgetId, props.projectId],
+    ),
+  );
 
   const centerCode = useMemo(
     () => new Map(props.costCenters.map((c) => [c.id, c.code])),
@@ -135,17 +189,29 @@ export function BudgetEditor(props: Props) {
   );
   const known = useMemo(() => new Set(props.urids.map((u) => u.urid)), [props.urids]);
 
-  const rows: GridRow[] = lines.map((l) => ({
-    id: l.id,
-    description: l.description,
-    urid: l.urid,
-    lineType: t(`budgets.lineTypes.${l.lineType}`),
-    costCenter: l.costCenterId ? (centerCode.get(l.costCenterId) ?? null) : null,
-    quantity: l.quantity,
-    unitBasis: l.unitBasis,
-    unitPrice: toMajor(l.unitPriceMinor, props.exponent),
-    actual: toMajor(l.actualMinor, props.exponent),
-  }));
+  // One array per change of the lines, so the grid merges rows only when they change.
+  const rows: GridRow[] = useMemo(
+    () =>
+      lines.map((l) => ({
+        id: l.id,
+        description: l.description,
+        urid: l.urid,
+        lineType: t(`budgets.lineTypes.${l.lineType}`),
+        costCenter: l.costCenterId ? (centerCode.get(l.costCenterId) ?? null) : null,
+        quantity: l.quantity,
+        unitBasis: l.unitBasis,
+        unitPrice: toMajor(l.unitPriceMinor, props.exponent),
+        // Blank when withheld or unpriced, so the column total stays blank too (the silence rule).
+        committed: l.committedWithheld ? null : toMajor(l.committedMinor, props.exponent),
+        actual: toMajor(l.actualMinor, props.exponent),
+      })),
+    [lines, centerCode, props.exponent, t],
+  );
+  const withheld = lines.some((l) => l.committedWithheld);
+  const otherCurrencyLines = lines.flatMap((l, i) =>
+    l.otherCurrencyPoLineCount > 0 ? [i + 1] : [],
+  );
+  const editingLine = editingId ? lines.findIndex((l) => l.id === editingId) + 1 || null : null;
 
   const columns: GridColumn[] = [
     {
@@ -186,6 +252,13 @@ export function BudgetEditor(props: Props) {
       width: 128,
     },
     {
+      key: "account",
+      label: t("budgets.columns.account"),
+      type: "code",
+      width: 96,
+      derive: (r) => accountForUrid(String(r["urid"] ?? ""), props.accounts)?.code ?? null,
+    },
+    {
       key: "extended",
       label: t("budgets.columns.extended"),
       type: "money",
@@ -198,11 +271,12 @@ export function BudgetEditor(props: Props) {
           : Number(r["quantity"] ?? 0) * Number(r["unitPrice"]),
     },
     {
-      key: "account",
-      label: t("budgets.columns.account"),
-      type: "code",
-      width: 96,
-      derive: (r) => accountForUrid(String(r["urid"] ?? ""), props.accounts)?.code ?? null,
+      key: "committed",
+      label: t("budgets.columns.committed"),
+      type: "money",
+      currency: props.currency,
+      total: true,
+      width: 128,
     },
     {
       key: "actual",
@@ -214,33 +288,47 @@ export function BudgetEditor(props: Props) {
     },
   ];
 
-  const save = async (index: number, input: BudgetLineInput, expected: string) => {
-    const line = lines[index];
-    if (!line) return;
-    const result = await submit(updateBudgetLineAction, {
-      org: props.org,
-      id: line.id,
-      expectedUpdatedAt: expected,
-      line: JSON.stringify(input),
+  /**
+   * Saves a line against the version it was read at. The typed values show at once; a refusal puts
+   * the line back, a conflict opens the dialog, and a line deleted elsewhere is dropped. A second
+   * edit of a line whose save is still in flight waits for it and saves against its new version.
+   */
+  const save = async (previous: BudgetLine, input: BudgetLineInput, expected: string) => {
+    const id = previous.id;
+    // Named by the grid row it showed on, as the presence and currency captions name lines.
+    const row = lines.findIndex((l) => l.id === id) + 1 || previous.lineNumber;
+    setLines((current) => typedLine(current, id, input));
+    markSaving(id, true);
+    const last = await saves.current.run(id, expected, async (version) => {
+      const result = await submit(updateBudgetLineAction, {
+        org: props.org,
+        id,
+        expectedUpdatedAt: version,
+        line: JSON.stringify(input),
+      });
+      const outcome = lineSaveOutcome(result);
+      setLines((current) => linesAfterSave(current, previous, outcome));
+      if (outcome.kind === "conflict") {
+        setConflict({ mine: input, theirs: outcome.theirs, previous });
+      } else if (outcome.kind === "removed") {
+        setRemovedLine(row);
+        setStatus({});
+      } else {
+        setStatus(result);
+        if (outcome.kind === "saved") start(() => router.refresh());
+      }
+      return savedVersion(outcome);
     });
-    if (result.conflict) {
-      setConflict({ mine: input, theirs: result.conflict });
-      return;
-    }
-    setStatus(result);
-    if (result.line) {
-      const saved = result.line;
-      setLines((current) => current.map((l) => (l.id === saved.id ? { ...l, ...saved } : l)));
-      start(() => router.refresh());
-    } else {
-      setGridKey((k) => k + 1);
-    }
+    if (last) markSaving(id, false);
   };
 
+  // Grid rows map to lines by id, never by position: rows can move while someone else adds or
+  // removes lines. Only a row whose values differ from its line saves.
   const onChange = (next: GridRow[]) => {
-    next.forEach((row, index) => {
-      const line = lines[index];
-      if (!line) return;
+    const byId = new Map(lines.map((l) => [l.id, l]));
+    for (const row of next) {
+      const line = byId.get(String(row["id"] ?? ""));
+      if (!line) continue;
       const urid = String(row["urid"] ?? "");
       const code = row["costCenter"] === null ? null : String(row["costCenter"]).toUpperCase();
       const changed =
@@ -250,7 +338,7 @@ export function BudgetEditor(props: Props) {
           (line.costCenterId ? (centerCode.get(line.costCenterId) ?? null) : null) ||
         Number(row["quantity"] ?? 0) !== line.quantity ||
         toMinor(row["unitPrice"] ?? null, props.exponent) !== line.unitPriceMinor;
-      if (!changed) return;
+      if (!changed) continue;
       const problem = (field: string) => {
         setStatus({ error: { kind: "input" }, fieldErrors: { grid: field }, at: Date.now() });
         setGridKey((k) => k + 1);
@@ -269,8 +357,17 @@ export function BudgetEditor(props: Props) {
         unitPriceMinor: toMinor(row["unitPrice"] ?? null, props.exponent),
         ...xyz,
       };
-      void save(index, input, line.updatedAt);
-    });
+      setRemovedLine(null);
+      void save(line, input, line.updatedAt);
+    }
+  };
+
+  // When a cell closes without a save, its line catches up with the page.
+  const onEditingChange = (key: string | null) => {
+    const closed = editingId;
+    setEditingId(key);
+    if (key !== null || closed === null || saves.current.has(closed)) return;
+    setLines((current) => catchUpLine(current, props.lines, closed));
   };
 
   const gridError = status.fieldErrors?.["grid"];
@@ -298,6 +395,9 @@ export function BudgetEditor(props: Props) {
           ) : null}
         </div>
       ) : null}
+      {props.me ? (
+        <BudgetPresence budgetId={props.budgetId} me={props.me} editingLine={editingLine} />
+      ) : null}
       {gridError ? (
         <p role="alert" className="m-0 text-text-13 text-danger-text">
           {t(`budgets.gridErrors.${gridError}`)}
@@ -305,6 +405,11 @@ export function BudgetEditor(props: Props) {
       ) : (
         <ActionFeedback state={status} />
       )}
+      {removedLine !== null ? (
+        <p role="status" className="m-0 text-text-13 text-text-secondary">
+          {t("budgets.lineRemoved", { line: removedLine })}
+        </p>
+      ) : null}
       {lines.length === 0 ? (
         <p className="m-0 text-text-13 text-text-secondary">{t("budgets.noLines")}</p>
       ) : (
@@ -314,26 +419,38 @@ export function BudgetEditor(props: Props) {
           columns={columns}
           rows={rows}
           totalsLabel={t("common.total")}
+          rowKey="id"
           onChange={onChange}
+          onEditingChange={onEditingChange}
         />
       )}
+      {lines.length > 0 && withheld ? (
+        <p className="m-0 text-text-12 text-text-secondary">{t("budgets.committedWithheld")}</p>
+      ) : null}
+      {lines.length > 0 && !withheld && otherCurrencyLines.length > 0 ? (
+        <p className="m-0 text-text-12 text-text-secondary">
+          {t("budgets.committedOtherCurrency", {
+            count: otherCurrencyLines.length,
+            lines: otherCurrencyLines.join(", "),
+          })}
+        </p>
+      ) : null}
       {conflict ? (
         <ConflictDialog
           conflict={conflict}
           currency={props.currency}
           exponent={props.exponent}
           onKeepMine={() => {
-            const index = lines.findIndex((l) => l.id === conflict.theirs.id);
+            const { mine, theirs, previous } = conflict;
             setConflict(null);
-            void save(index, conflict.mine, conflict.theirs.updatedAt);
+            void save(mergeSavedLine(previous, theirs), mine, theirs.updatedAt);
           }}
           onTakeTheirs={() => {
             const theirs = conflict.theirs;
             setLines((current) =>
-              current.map((l) => (l.id === theirs.id ? { ...l, ...theirs } : l)),
+              current.map((l) => (l.id === theirs.id ? mergeSavedLine(l, theirs) : l)),
             );
             setConflict(null);
-            setGridKey((k) => k + 1);
           }}
         />
       ) : null}
@@ -355,6 +472,7 @@ export function BudgetEditor(props: Props) {
           lines={lines}
           onClose={() => setSheet(null)}
           onDeleted={(ids) => {
+            setDeletedHere((current) => new Set([...current, ...ids]));
             setSheet(null);
             setUndo({ ids, message: t("budgets.deleted", { count: ids.length }), restore: true });
           }}

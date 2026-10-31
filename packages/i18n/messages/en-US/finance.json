@@ -375,9 +375,12 @@
     "catalogSearch": "Search the catalog",
     "catalogSentence": "Pick elements and a grade. Each line takes the grade's canon price, or Unpriced when the element has no price at that grade.",
     "choose": "Choose a budget",
+    "committedOtherCurrency": "{count, plural, one {Line {lines} draws on purchase orders in another currency, which are not included in Committed.} other {Lines {lines} draw on purchase orders in another currency, which are not included in Committed.}}",
+    "committedWithheld": "Committed is hidden: you cannot read this project's purchase orders",
     "columns": {
       "account": "Account",
       "actual": "Actual",
+      "committed": "Committed",
       "costCenter": "Cost center",
       "description": "Description",
       "extended": "Extended",
@@ -423,13 +426,18 @@
       "actual": "Actual",
       "changeCount": "{count, plural, =0 {No approved change orders} one {# approved change order} other {# approved change orders}}",
       "changes": "Approved changes",
+      "committed": "Committed",
+      "committedCaption": "{count, plural, =0 {No lines committed} one {# line committed} other {# lines committed}}{other, plural, =0 {} one {; # order line in another currency is not included} other {; # order lines in another currency are not included}}. Approved PO change orders are not allocated to lines and are not included.",
+      "committedUnpricedCaption": "A purchase order line drawing on this budget has no price, so Committed is not totaled.",
       "label": "Budget totals",
       "lines": "{count, plural, one {# line} other {# lines}}",
       "revised": "Revised budget",
       "total": "Original budget",
+      "unpriced": "Unpriced",
       "unpricedCaption": "{count, plural, one {# line is unpriced} other {# lines are unpriced}}; priced lines total {priced}.",
       "variance": "{amount} left against the revised budget",
-      "varianceUnknown": "The variance is unknown until every line is priced."
+      "varianceUnknown": "The variance is unknown until every line is priced.",
+      "withheld": "Withheld"
     },
     "grade": "Grade",
     "gridErrors": {
@@ -440,6 +448,7 @@
     },
     "gridLabel": "Budget lines",
     "kind": "Budget",
+    "lineRemoved": "Someone else removed line {line}, so your change was not saved.",
     "lineTypes": {
       "Cost": "Cost",
       "Labor": "Labor",

@@ -566,12 +566,125 @@ describe("budgets", () => {
           { budget_line_id: "l1", extended_minor: null, account_code: "5500", actual_minor: 0 },
         ]),
       ],
+      "from:budget_line_commitments": [okResponse([])],
     });
     const result = await finance.getBudget(db, "o1", "b1");
     expect(result.ok && result.data.lines[0]).toMatchObject({
       extendedMinor: null,
       accountCode: "5500",
     });
+  });
+
+  it("reads each line's committed amount, or that it is withheld", async () => {
+    const { db } = fakeClient({
+      "from:budgets": [okResponse({ id: "b1", project_id: "p1" }), okResponse([budgetRow])],
+      "from:budget_revised_totals": [okResponse([totalRow])],
+      "from:budget_lines": [okResponse([lineRow, { ...lineRow, id: "l2", line_number: 2 }])],
+      "from:budget_line_amounts": [okResponse([])],
+      "from:budget_line_commitments": [
+        okResponse([
+          {
+            budget_line_id: "l1",
+            committed_minor: 53000,
+            po_line_count: 3,
+            other_currency_po_line_count: 1,
+            is_committed_withheld: false,
+          },
+          {
+            budget_line_id: "l2",
+            committed_minor: null,
+            po_line_count: 0,
+            other_currency_po_line_count: 0,
+            is_committed_withheld: true,
+          },
+        ]),
+      ],
+    });
+    const result = await finance.getBudget(db, "o1", "b1");
+    expect(result.ok && result.data.lines).toEqual([
+      expect.objectContaining({
+        id: "l1",
+        committedMinor: 53000,
+        poLineCount: 3,
+        otherCurrencyPoLineCount: 1,
+        committedWithheld: false,
+      }),
+      expect.objectContaining({ id: "l2", committedMinor: null, committedWithheld: true }),
+    ]);
+  });
+
+  it("merges a saved line onto the line it replaces, keeping the derived amounts", () => {
+    const previous: finance.BudgetLine = {
+      id: "l1",
+      budgetId: "b1",
+      lineNumber: 1,
+      description: "Sound",
+      lineType: "Cost",
+      urid: "5000.01",
+      costCenterId: null,
+      gradeCode: null,
+      elementId: null,
+      quantity: 1,
+      unitBasis: null,
+      unitPriceMinor: 1000,
+      xyz: "X",
+      xyzBasis: "Declared",
+      extendedMinor: 1000,
+      accountCode: "5500",
+      actualMinor: 400,
+      drawnInMinor: 0,
+      drawnOutMinor: 0,
+      committedMinor: 900,
+      committedWithheld: false,
+      poLineCount: 1,
+      otherCurrencyPoLineCount: 0,
+      updatedAt: "2027-01-01T00:00:00Z",
+    };
+    const saved = {
+      ...previous,
+      description: "Sound package",
+      quantity: 2,
+      accountCode: null,
+      actualMinor: 0,
+      committedMinor: null,
+      poLineCount: 0,
+      extendedMinor: null,
+      updatedAt: "2027-01-02T00:00:00Z",
+    };
+    expect(finance.mergeSavedLine(previous, saved)).toEqual({
+      ...previous,
+      description: "Sound package",
+      quantity: 2,
+      extendedMinor: 2000,
+      updatedAt: "2027-01-02T00:00:00Z",
+    });
+  });
+
+  it("totals committed by the silence rule", () => {
+    const line = (committedMinor: number | null, over: Partial<finance.BudgetLine> = {}) =>
+      ({
+        committedMinor,
+        committedWithheld: false,
+        poLineCount: committedMinor ? 1 : 0,
+        otherCurrencyPoLineCount: 0,
+        ...over,
+      }) as finance.BudgetLine;
+    expect(finance.budgetCommittedTotal([])).toEqual({
+      totalMinor: 0,
+      committedLineCount: 0,
+      otherCurrencyLineCount: 0,
+    });
+    expect(
+      finance.budgetCommittedTotal([
+        line(500),
+        line(0, { otherCurrencyPoLineCount: 2 }),
+        line(250),
+      ]),
+    ).toEqual({ totalMinor: 750, committedLineCount: 2, otherCurrencyLineCount: 2 });
+    expect(
+      finance.budgetCommittedTotal([line(500), line(null, { committedWithheld: true })]),
+    ).toBeNull();
+    expect(finance.budgetCommittedTotal([line(500), line(null)])).toBeNull();
   });
 
   it("answers not-found for a missing budget", async () => {
@@ -1301,6 +1414,7 @@ describe("errors on reads", () => {
       "from:budgets": [okResponse({ id: "b1", project_id: "p1" }), okResponse([])],
       "from:budget_lines": [okResponse([])],
       "from:budget_line_amounts": [okResponse([])],
+      "from:budget_line_commitments": [okResponse([])],
     });
     expect(await finance.getBudget(db, "o1", "b1")).toEqual({
       ok: false,

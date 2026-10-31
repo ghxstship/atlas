@@ -67,6 +67,8 @@
     "actualIn": "Real en {currency}",
     "budget": "Presupuesto original",
     "changes": "Cambios aprobados",
+    "committed": "Comprometido",
+    "committedWithheld": "El comprometido está oculto en algunas filas: no puede leer las órdenes de compra de esos proyectos",
     "chartSubtitle": "Presupuesto revisado frente al gasto aprobado y pagado.",
     "chartTitle": "Presupuesto frente a real en {currency}",
     "dimensions": {
@@ -92,7 +94,8 @@
       "project": "Sin proyecto"
     },
     "variance": "Variación",
-    "varianceIn": "Variación en {currency}"
+    "varianceIn": "Variación en {currency}",
+    "withheld": "Retenido"
   },
   "labor": {
     "budget": "Presupuesto de mano de obra",
