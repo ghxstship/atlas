@@ -64,7 +64,8 @@ export default async function OverviewPage({
     listActivity(db, { orgId: ctx.org.org.id, projectId: project.id, limit: 8 }),
     listProjectStateHistory(db, project.id),
     listProductionStateHistory(db, project.id),
-    listSetupProgress(db, project.id),
+    // A project without an event type has no requirements, so the Setup card skips its read.
+    project.eventTypeId ? listSetupProgress(db, project.id) : Promise.resolve(null),
     getSiteWindows(db, project.id),
     listSiteWindowWarnings(db, project.id),
   ]);
@@ -287,7 +288,7 @@ export default async function OverviewPage({
             </Link>
           </p>
         </section>
-        <SetupCard items={setup.ok ? setup.data : []} gatesHref={gatesHref} />
+        <SetupCard items={setup?.ok ? setup.data : []} gatesHref={gatesHref} />
         <CustomFieldsPanel org={ctx.org.org.slug} table="app.projects" id={project.id} />
         {feed ? (
           <section aria-labelledby="recent-activity" className="flex flex-col gap-8">

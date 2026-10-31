@@ -52,7 +52,9 @@ project document of that type with a version, and `gate_fields_missing` while a 
 gate has no value. Recommended items never block; a project without an event type passes and refuses exactly as
 before; deleted document types and fields are ignored. `app.project_setup_progress` shows the same rows to readers of
 the project's documents only, so nobody sees a false Missing. The Overview's Setup card is server-rendered markup with
-a native meter, so the key page carries no new JavaScript.
+a native meter, so the key page carries no new JavaScript. This departs from the spec's on-demand loading on purpose: a
+client-loaded card would add a module and a second request to a key page, while the server read runs in parallel with
+the page's other reads and is skipped for a project without an event type.
 
 **D4. Copying a past project is a direct copy of org-owned setup.** `app.copy_project_setup` copies the plan (Show and
 Standing Venue nodes, open records with their parents and dependencies, B4's project days), pass categories and their
