@@ -15,4 +15,5 @@ export const TEMPLATE_CODES = [
   "dsar_received",
   "subprocessor_confirm",
   "subprocessor_notice",
+  "approval_link_code",
 ] as const satisfies readonly TemplateCode[];

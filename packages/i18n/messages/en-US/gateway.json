@@ -37,9 +37,24 @@
       "notification_channel_outside": "A company sets Email and Push only.",
       "supplier_diversity_no_program": "That organization does not run a supplier diversity program, so it takes no diversity certifications.",
       "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York.",
+      "notification_action_used": "This was already handled. Nothing else to do.",
+      "notification_action_expired": "This link has expired. Open the item from Home to act on it.",
+      "notification_action_not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+      "notification_action_invalid": "This link does not work. Open the item from Home.",
+      "notification_action_elsewhere": "This link opens in Atlas. Use the button in the email to open it there.",
+      "notification_action_reason": "Say why you are rejecting it.",
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
-      "submittal_note_length": "Write a note of 1 to 500 characters."
+      "submittal_note_length": "Write a note of 1 to 500 characters.",
+      "approval_link_code_too_soon": "A code was sent a moment ago. Wait a minute, then ask again; at most five are sent an hour.",
+      "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
+      "approval_link_email_off": "Your approval emails are turned off, so no code can be sent. Sign in to decide instead.",
+      "approval_not_in_review": "This approval was already decided or withdrawn.",
+      "approval_not_step_approver": "You are not an approver of the step this approval is waiting on.",
+      "approval_one_step_per_approver": "You already decided a step of this approval. The next step needs someone else.",
+      "approval_subject_beneficiary": "This approval is for you, so someone else decides it.",
+      "approval_rejection_reason": "Say why you are rejecting it.",
+      "sod_approval_requester": "You requested this approval, so someone else decides it."
     }
   },
   "common": {
@@ -218,7 +233,12 @@
     "deliveries": {
       "empty": "No deliveries or dock slots yet. Your dock times appear here once booked.",
       "docks": "Dock slots",
-      "shipments": "Shipments"
+      "shipments": "Shipments",
+      "approval": {
+        "waiting": "Awaiting approval",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
     },
     "submittals": {
       "empty": "No submittals have been requested yet.",
@@ -1091,6 +1111,24 @@
       "rate": "Rate your work with {org}",
       "rateAction": "Rate"
     },
+    "fyi": {
+      "title": "For your information",
+      "empty": "Nothing new. Updates from organizations you work with show up here.",
+      "done": "Done",
+      "snooze": "Snooze",
+      "doneLabel": "Mark {text} done",
+      "snoozeLabel": "Snooze {text} for a day",
+      "keys": "Select an item, then press E for Done or H to snooze it for a day. J and K move between items.",
+      "new": "New",
+      "kinds": {
+        "offerSent": "{orgName} sent you an offer for {title}",
+        "shiftAssigned": "New shift: {title}",
+        "shiftChanged": "Shift changed: {title}",
+        "messageReceived": "New message",
+        "other": "{title}",
+        "untitled": "New update"
+      }
+    },
     "recommended": {
       "title": "Recommended for you",
       "all": "See all",
@@ -1098,8 +1136,6 @@
       "emptyAction": "Set an alert"
     },
     "updates": {
-      "title": "Updates",
-      "new": "New",
       "kinds": {
         "invoiceSubmitted": "{orgName} received invoice {title}",
         "invoiceApproved": "{orgName} approved invoice {title}",
@@ -1716,6 +1752,75 @@
       "done": "Done: {advance, plural, one {# advance answer} other {# advance answers}} and {documents, plural, one {# signed document} other {# signed documents}} are now in your account.",
       "nothing": "No submissions were waiting for {email}. Anything you complete from now on is saved to this account.",
       "home": "Go to Home"
+    },
+    "actionLink": {
+      "title": "Confirm from email",
+      "heading": {
+        "approve": "Approve {title}?",
+        "reject": "Reject {title}?",
+        "accept": "Accept {title}?"
+      },
+      "untitled": "this item",
+      "org": "From {org}. Nothing happens until you confirm.",
+      "signedInAs": "Signed in as {email}.",
+      "confirm": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "accept": "Accept"
+      },
+      "reason": "Why are you rejecting it?",
+      "done": {
+        "approve": "Approved. Nothing else to do.",
+        "reject": "Rejected with your reason.",
+        "accept": "Accepted. The organization takes it from here."
+      },
+      "home": "Go to Home",
+      "state": {
+        "used": "This was already handled. Nothing else to do.",
+        "expired": "This link has expired. Open the item from Home to act on it.",
+        "not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+        "elsewhere": "This link opens in Atlas, where your organization's security settings apply. Use the button in the email to open it there.",
+        "invalid": "This link does not work. Open the item from Home."
+      },
+      "signedOut": {
+        "heading": {
+          "approve": "Approve this request from your email",
+          "reject": "Reject this request from your email"
+        },
+        "codeGoesTo": "We email a 6-digit code to {email}.",
+        "signInInstead": "Sign in to decide instead",
+        "state": {
+          "used": "This was already handled. Nothing else to do.",
+          "expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
+          "locked": "Too many wrong codes. This link is locked; sign in to decide."
+        },
+        "codeIntro": "To keep this decision yours, we email you a code first. The request appears once you enter it.",
+        "emailMeACode": "Email me a code",
+        "codeSent": "Code sent. It works for 10 minutes.",
+        "codeLabel": "Code from your email",
+        "codeHelp": "The 6 digits from the email we just sent you.",
+        "showRequest": "Show the request",
+        "sendAgain": "Send a new code",
+        "untitled": "This request",
+        "step": "Step: {step}",
+        "reason": "Why are you rejecting it?",
+        "confirm": {
+          "approve": "Approve",
+          "reject": "Reject"
+        },
+        "done": {
+          "approve": "Approved. Nothing else to do.",
+          "reject": "Rejected with your reason."
+        },
+        "outcome": {
+          "approval_link_code_wrong": "That code is wrong or has expired. {attemptsLeft, plural, one {# try left} other {# tries left}} before the link locks.",
+          "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
+          "notification_action_used": "This was already handled. Nothing else to do.",
+          "notification_action_expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
+          "notification_action_invalid": "This link does not work. Sign in to decide.",
+          "notification_action_reason": "Say why you are rejecting it."
+        }
+      }
     },
     "errors": {
       "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",

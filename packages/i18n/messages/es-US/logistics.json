@@ -224,7 +224,13 @@
     },
     "noVendor": "Sin proveedor",
     "endedVendor": "Contratación de proveedor terminada",
-    "linkedVendor": "Hay una contratación de proveedor vinculada"
+    "linkedVendor": "Hay una contratación de proveedor vinculada",
+    "approval": {
+      "label": "Aprobación",
+      "waiting": "En espera de aprobación",
+      "approved": "Aprobada",
+      "rejected": "Rechazada"
+    }
   },
   "yard": {
     "title": "Registro del patio de maniobras",

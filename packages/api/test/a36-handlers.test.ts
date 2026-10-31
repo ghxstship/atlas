@@ -229,6 +229,39 @@ describe("Acting on a notification", () => {
       (await api.request(`/notifications/${id(999)}/act`, post({ action: "done" }))).status,
     ).toBe(404);
   });
+
+  it("accepts an offer and replies to a message from the push action (A127)", async () => {
+    const { api, calls } = app({
+      "from:notifications": [
+        ok({ id: notification.id }),
+        ok({ ...notification, read_at: T, archived_at: T }),
+        ok({ id: notification.id }),
+        ok({ ...notification, read_at: T, archived_at: T }),
+      ],
+      "rpc:act_on_notification": [ok(notification.id), ok(notification.id)],
+    });
+    const accepted = await api.request(
+      `/notifications/${notification.id}/act`,
+      post({ action: "accept" }),
+    );
+    await expectContract(accepted, "notifications.act");
+    const replied = await api.request(
+      `/notifications/${notification.id}/act`,
+      post({ action: "reply", comment: "On my way." }),
+    );
+    await expectContract(replied, "notifications.act");
+    const steps = calls
+      .filter((c) => c.target === "rpc:act_on_notification")
+      .flatMap((c) => c.steps);
+    expect(steps.map((s) => s[1][0])).toEqual([
+      { p_notification_id: notification.id, p_action: "accept", p_comment: null },
+      { p_notification_id: notification.id, p_action: "reply", p_comment: "On my way." },
+    ]);
+    expect(
+      (await api.request(`/notifications/${notification.id}/act`, post({ action: "delete" })))
+        .status,
+    ).toBe(422);
+  });
 });
 
 describe("Import dry run and commit", () => {

@@ -9,6 +9,7 @@ import {
   type ZoneOption,
 } from "@xos/data/logistics";
 import type { EngagementOption } from "@xos/data/project-people";
+import { approvalBySubject, listSubjectApprovals } from "@xos/data/workflow";
 import type { RecordState } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
@@ -112,6 +113,16 @@ export async function DockSection({
   if (!slots.ok) throw new Error(`Cannot read dock slots: ${JSON.stringify(slots.error)}`);
   if (!shipments.ok) throw new Error(`Cannot read shipments: ${JSON.stringify(shipments.error)}`);
   const shipmentById = new Map(shipments.data.map((s) => [s.id, s]));
+  // P9: a booking a project's approval rule holds shows Awaiting approval, Approved or Rejected (2860); it is not gated.
+  const approvals = await listSubjectApprovals(db, { dockSlotIds: slots.data.map((s) => s.id) });
+  const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
+  const approvalLabel = (id: string): string | null => {
+    const a = approvalOf.get(id);
+    if (!a || a.state === "Canceled") return null;
+    return t(
+      `dock.approval.${a.state === "In Review" ? "waiting" : a.state === "Approved" ? "approved" : "rejected"}`,
+    );
+  };
   const shipmentTitle = (s: Shipment) =>
     s.carrierName
       ? t("shipments.titleWithCarrier", { direction: s.direction, carrier: s.carrierName })
@@ -323,6 +334,9 @@ export async function DockSection({
                       })
                   : t("common.notSet"),
               },
+              ...(approvalLabel(slot.id)
+                ? [{ label: t("dock.approval.label"), value: approvalLabel(slot.id) }]
+                : []),
             ]}
             actions={
               <>
@@ -500,6 +514,7 @@ export async function DockSection({
             { key: "shipment", label: t("dock.fields.shipment"), wrap: true },
             { key: "project", label: t("dock.fields.project"), type: "code", width: 90 },
             { key: "state", label: t("dock.fields.checkedIn") },
+            { key: "approval", label: t("dock.approval.label") },
           ]}
           rows={weekSlots.map((s) => {
             const shipment = s.shipmentId ? shipmentById.get(s.shipmentId) : undefined;
@@ -515,6 +530,7 @@ export async function DockSection({
               shipment: shipment ? `${shipment.key} ${shipmentTitle(shipment)}` : "",
               project: s.projectKey,
               state: s.checkedInAt ? t("dock.state.checkedIn") : t("dock.state.booked"),
+              approval: approvalLabel(s.id) ?? "",
               href: peekHref(s.id),
               fullHref: hrefWith(base, search, { peek: s.id, full: "1", edit: null }),
               ...(!s.checkedInAt && scope.access.can(s.projectId, "logistics.dock_slot.write")
@@ -565,6 +581,7 @@ export async function DockSection({
             chips: [
               s.projectKey,
               s.checkedInAt ? t("dock.state.checkedIn") : t("dock.state.booked"),
+              ...(approvalLabel(s.id) ? [approvalLabel(s.id) ?? ""] : []),
             ],
             next: format.dateTime(s.startsAt, s.timeZone) ?? "",
           }))}

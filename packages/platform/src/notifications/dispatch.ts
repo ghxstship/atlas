@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   EmailSendError,
+  type EmailAction,
   RecipientRefusedError,
   isTemplateCode,
   sendEmail,
@@ -23,6 +24,8 @@ export interface ClaimedEmail {
   readonly messageArgs: Readonly<Record<string, unknown>>;
   readonly subjectTable: string | null;
   readonly subjectId: string | null;
+  /** The notification the delivery carries (A127: its one-tap links act on it). */
+  readonly notificationId?: string;
 }
 
 export interface Recipient {
@@ -44,6 +47,13 @@ export interface NotificationStore {
   linkFor(claim: ClaimedEmail): Promise<string>;
   /** Signed reply address for reply by email, or null when the email takes no replies. */
   replyAddressFor(claim: ClaimedEmail): Promise<string | null>;
+  /** One-tap action links minted for the delivery (A127, ADR 0106); without it an email has no action buttons. */
+  actionLinksFor?(claim: ClaimedEmail): Promise<readonly EmailAction[]>;
+  /**
+   * The access code an approval_link_code email carries, minted now and returned once (P9, app.mint_approval_link_code);
+   * null when its link is no longer ready. Only its hash is stored.
+   */
+  mintApprovalLinkCodeFor?(claim: ClaimedEmail): Promise<string | null>;
   record(
     deliveryId: string,
     outcome: DeliveryOutcome,
@@ -62,6 +72,10 @@ const importFinished = z.object({
   skipped: z.number().int().nonnegative(),
   url: z.url(),
 });
+const approvalLinkCode = z.object({ orgName: z.string() });
+/** How long an emailed access code works (app.mint_approval_link_code, migration 2861). */
+export const APPROVAL_LINK_CODE_MINUTES = 10;
+
 const reportDelivery = z.object({
   reportName: z.string(),
   periodLabel: z.string(),
@@ -84,21 +98,38 @@ async function propsFor(
   if (!isTemplateCode(claim.emailTemplateCode))
     throw new Error(`Unknown email template ${claim.emailTemplateCode}`);
   switch (claim.emailTemplateCode) {
-    case "notification":
+    case "notification": {
+      const actions = (await store.actionLinksFor?.(claim)) ?? [];
       return {
         code: "notification",
         props: {
           kind: claim.kind,
           args: messageArgs(claim.messageArgs),
           url: await store.linkFor(claim),
+          ...(actions.length === 0 ? {} : { actions }),
         },
       };
+    }
     case "export_ready":
       return { code: "export_ready", props: exportReady.parse(claim.messageArgs) };
     case "import_finished":
       return { code: "import_finished", props: importFinished.parse(claim.messageArgs) };
     case "report_delivery":
       return { code: "report_delivery", props: reportDelivery.parse(claim.messageArgs) };
+    case "approval_link_code": {
+      // P9: the code is minted while the email is rendered, so it exists in clear only in this email.
+      const code = (await store.mintApprovalLinkCodeFor?.(claim)) ?? null;
+      if (code === null || !/^[0-9]{6}$/.test(code))
+        throw new Error("The approval link is no longer ready, so no access code was sent");
+      return {
+        code: "approval_link_code",
+        props: {
+          code,
+          orgName: approvalLinkCode.parse(claim.messageArgs).orgName,
+          expiresInMinutes: APPROVAL_LINK_CODE_MINUTES,
+        },
+      };
+    }
     default:
       throw new Error(`The ${claim.emailTemplateCode} template is not sent for notifications`);
   }

@@ -4,7 +4,8 @@ import { untyped } from "./untyped.ts";
 
 /**
  * Platform workflow (A33, migrations 1030 to 1034): approval policies and approvals of spend
- * documents, Trash, project templates and org state labels. Every read and write runs as the
+ * documents, Trash, project templates and org state labels; P9 (2860 to 2862) adds approval rules for passes,
+ * deliveries and equipment, their computed approvals, and approval reminders. Every read and write runs as the
  * caller, so row level security and the RPCs decide; refusals come back typed with their rule.
  */
 
@@ -978,6 +979,401 @@ export async function setStateLabel(
 }
 
 // Support screenshots (1034) -------------------------------------------------------------------------------
+
+// Approval rules: passes, deliveries and equipment (P9, migrations 2860 and 2862) ----------------------------
+
+export const APPROVAL_RULE_SUBJECTS = ["Pass", "Delivery", "Equipment"] as const;
+export type ApprovalRuleSubject = (typeof APPROVAL_RULE_SUBJECTS)[number];
+
+export interface ApprovalRuleStep {
+  readonly id: string;
+  readonly order: number;
+  readonly name: string;
+  readonly roleId: string | null;
+  readonly membershipId: string | null;
+  readonly engagementId: string | null;
+  /** Engagement steps only: the approver decides from the email without signing in, with an emailed code. */
+  readonly signedOutLinks: boolean;
+}
+
+export interface ApprovalRule {
+  readonly id: string;
+  readonly projectId: string;
+  readonly subject: ApprovalRuleSubject;
+  readonly name: string;
+  readonly description: string | null;
+  /** The one filter of the rule's subject: a credential category, a dock zone or an asset class; null for all. */
+  readonly filterId: string | null;
+  readonly state: PolicyState;
+  readonly steps: readonly ApprovalRuleStep[];
+}
+
+/** A project's approval rules with their steps, Active first (app.approval_rules, 2860). */
+export async function listApprovalRules(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ApprovalRule[]>> {
+  const rules = await rows(
+    untyped(db)
+      .from("approval_rules")
+      .select(
+        "id, project_id, subject, name, description, credential_category_id, zone_id, asset_class_id, rule_state, steps:approval_rule_steps(id, step_order, name, approver_role_id, approver_membership_id, approver_engagement_id, signed_out_links, deleted_at)",
+      )
+      .eq("project_id", projectId)
+      .is("deleted_at", null)
+      .order("name"),
+  );
+  if (!rules.ok) return rules;
+  const rank: Record<string, number> = { Active: 0, Draft: 1, Retired: 2 };
+  return ok(
+    rules.data
+      .map((r) => ({
+        id: str(r["id"]),
+        projectId: str(r["project_id"]),
+        subject: str(r["subject"]) as ApprovalRuleSubject,
+        name: str(r["name"]),
+        description: strOrNull(r["description"]),
+        filterId:
+          strOrNull(r["credential_category_id"]) ??
+          strOrNull(r["zone_id"]) ??
+          strOrNull(r["asset_class_id"]),
+        state: str(r["rule_state"]) as PolicyState,
+        steps: (Array.isArray(r["steps"]) ? (r["steps"] as Raw[]) : [])
+          .filter((s) => s["deleted_at"] === null || s["deleted_at"] === undefined)
+          .map((s) => ({
+            id: str(s["id"]),
+            order: num(s["step_order"]),
+            name: str(s["name"]),
+            roleId: strOrNull(s["approver_role_id"]),
+            membershipId: strOrNull(s["approver_membership_id"]),
+            engagementId: strOrNull(s["approver_engagement_id"]),
+            signedOutLinks: s["signed_out_links"] === true,
+          }))
+          .sort((a, b) => a.order - b.order),
+      }))
+      .sort((a, b) => (rank[a.state] ?? 3) - (rank[b.state] ?? 3) || a.name.localeCompare(b.name)),
+  );
+}
+
+export interface ApprovalRuleInput {
+  readonly id?: string;
+  readonly projectId: string;
+  readonly subject: ApprovalRuleSubject;
+  readonly name: string;
+  readonly description: string | null;
+  readonly filterId: string | null;
+}
+
+const RULE_FILTER_COLUMN: Record<ApprovalRuleSubject, string> = {
+  Pass: "credential_category_id",
+  Delivery: "zone_id",
+  Equipment: "asset_class_id",
+};
+
+/** Creates a Draft rule, or edits one; an Active or Retired rule keeps its subject and filter. */
+export async function saveApprovalRule(
+  db: XosClient,
+  input: ApprovalRuleInput,
+): Promise<Result<string>> {
+  const values: Raw = {
+    name: input.name.trim(),
+    description: input.description?.trim() || null,
+    subject: input.subject,
+    credential_category_id: null,
+    zone_id: null,
+    asset_class_id: null,
+    [RULE_FILTER_COLUMN[input.subject]]: input.filterId,
+  };
+  if (input.id)
+    return write(untyped(db).from("approval_rules").update(values).eq("id", input.id).select("id"));
+  return write(
+    untyped(db)
+      .from("approval_rules")
+      .insert({ ...values, project_id: input.projectId })
+      .select("id")
+      .single(),
+  );
+}
+
+export async function deleteApprovalRule(db: XosClient, id: string): Promise<Result<string>> {
+  return write(
+    untyped(db).from("approval_rules").update({ deleted_at: now() }).eq("id", id).select("id"),
+  );
+}
+
+export type ApprovalRuleApprover =
+  | { readonly kind: "role"; readonly id: string }
+  | { readonly kind: "member"; readonly id: string }
+  | { readonly kind: "engagement"; readonly id: string; readonly signedOutLinks: boolean };
+
+/** Adds a step after the rule's last one: a role, a member, or an engagement of the project. */
+export async function saveApprovalRuleStep(
+  db: XosClient,
+  input: {
+    readonly ruleId: string;
+    readonly name: string;
+    readonly approver: ApprovalRuleApprover;
+  },
+): Promise<Result<string>> {
+  const last = await rows(
+    untyped(db)
+      .from("approval_rule_steps")
+      .select("step_order")
+      .eq("approval_rule_id", input.ruleId)
+      .is("deleted_at", null)
+      .order("step_order", { ascending: false })
+      .limit(1),
+  );
+  if (!last.ok) return last;
+  const a = input.approver;
+  return write(
+    untyped(db)
+      .from("approval_rule_steps")
+      .insert({
+        approval_rule_id: input.ruleId,
+        step_order: num(last.data[0]?.["step_order"]) + 1,
+        name: input.name.trim(),
+        approver_role_id: a.kind === "role" ? a.id : null,
+        approver_membership_id: a.kind === "member" ? a.id : null,
+        approver_engagement_id: a.kind === "engagement" ? a.id : null,
+        signed_out_links: a.kind === "engagement" && a.signedOutLinks,
+      })
+      .select("id")
+      .single(),
+  );
+}
+
+export async function removeApprovalRuleStep(db: XosClient, id: string): Promise<Result<string>> {
+  return write(
+    untyped(db).from("approval_rule_steps").update({ deleted_at: now() }).eq("id", id).select("id"),
+  );
+}
+
+/** Activates or retires a rule; activating refuses a rule without steps or with an unreachable outside approver. */
+export async function transitionApprovalRule(
+  db: XosClient,
+  input: {
+    readonly id: string;
+    readonly from: PolicyState;
+    readonly to: PolicyState;
+    readonly reason: string;
+  },
+): Promise<Result<string>> {
+  return call(
+    db,
+    "transition_approval_rule",
+    {
+      p_approval_rule_id: input.id,
+      p_expected: input.from,
+      p_next: input.to,
+      p_reason: input.reason,
+    },
+    str,
+  );
+}
+
+/** A pass, dock booking or equipment approval with its computed state (app.subject_approval_status, ADR 0103). */
+export interface SubjectApproval {
+  readonly id: string;
+  readonly projectId: string;
+  readonly ruleId: string;
+  readonly ruleName: string;
+  readonly subject: ApprovalRuleSubject;
+  readonly credentialId: string | null;
+  readonly dockSlotId: string | null;
+  readonly requestedBy: string | null;
+  readonly createdAt: string;
+  readonly state: ApprovalState;
+  readonly currentStep: number | null;
+  readonly currentStepName: string | null;
+  /** False while In Review when no one may decide the current step: Approvals says so, and rule writers cancel it. */
+  readonly currentStepHasApprover: boolean;
+  readonly stepCount: number;
+  readonly waitingSince: string;
+  readonly viewerMayDecide: boolean;
+  readonly approverNames: readonly string[];
+  readonly cancelReason: string | null;
+}
+
+const SUBJECT_APPROVAL_COLUMNS =
+  "id, project_id, approval_rule_id, rule_name, subject, credential_id, dock_slot_id, requested_by, created_at, approval_state, current_step, current_step_name, current_step_has_approver, step_count, waiting_since, cancel_reason, viewer_may_decide, current_step_approver_names";
+
+export function toSubjectApproval(r: Raw): SubjectApproval {
+  return {
+    id: str(r["id"]),
+    projectId: str(r["project_id"]),
+    ruleId: str(r["approval_rule_id"]),
+    ruleName: str(r["rule_name"]),
+    subject: str(r["subject"]) as ApprovalRuleSubject,
+    credentialId: strOrNull(r["credential_id"]),
+    dockSlotId: strOrNull(r["dock_slot_id"]),
+    requestedBy: strOrNull(r["requested_by"]),
+    createdAt: str(r["created_at"]),
+    state: str(r["approval_state"]) as ApprovalState,
+    currentStep: numOrNull(r["current_step"]),
+    currentStepName: strOrNull(r["current_step_name"]),
+    currentStepHasApprover: r["current_step_has_approver"] !== false,
+    stepCount: num(r["step_count"]),
+    waitingSince: str(r["waiting_since"]),
+    viewerMayDecide: r["viewer_may_decide"] === true,
+    approverNames: Array.isArray(r["current_step_approver_names"])
+      ? (r["current_step_approver_names"] as unknown[]).map(str)
+      : [],
+    cancelReason: strOrNull(r["cancel_reason"]),
+  };
+}
+
+/** Ids per request of a chip lookup, so the GET stays well inside PostgREST's URL limit. */
+const SUBJECT_ID_CHUNK = 100;
+
+/**
+ * Subject approvals the viewer may read, newest first: the org's (the newest 200, as Approvals lists spend
+ * approvals), or every approval of the given passes or dock slots (the credentials pages and the dock schedule show
+ * their state as a chip), asked for 100 ids at a time.
+ */
+export async function listSubjectApprovals(
+  db: XosClient,
+  filter: {
+    readonly orgId?: string;
+    readonly credentialIds?: readonly string[];
+    readonly dockSlotIds?: readonly string[];
+  },
+): Promise<Result<SubjectApproval[]>> {
+  if (filter.credentialIds?.length === 0 || filter.dockSlotIds?.length === 0) return ok([]);
+  const ids = filter.credentialIds ?? filter.dockSlotIds;
+  const column = filter.credentialIds ? "credential_id" : "dock_slot_id";
+  const read = (chunk: readonly string[] | null) => {
+    let query = untyped(db).from("subject_approval_status").select(SUBJECT_APPROVAL_COLUMNS);
+    if (filter.orgId) query = query.eq("org_id", filter.orgId);
+    if (chunk) query = query.in(column, [...chunk]);
+    // Approvals of the given subjects come back whole: each subject holds only a few.
+    query = query.order("created_at", { ascending: false }).order("id", { ascending: false });
+    return rows(chunk ? query : query.limit(200));
+  };
+  if (!ids) {
+    const result = await read(null);
+    return result.ok ? ok(result.data.map(toSubjectApproval)) : result;
+  }
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += SUBJECT_ID_CHUNK) {
+    chunks.push(ids.slice(i, i + SUBJECT_ID_CHUNK));
+  }
+  const results = await Promise.all(chunks.map(read));
+  const out: SubjectApproval[] = [];
+  for (const result of results) {
+    if (!result.ok) return result;
+    out.push(...result.data.map(toSubjectApproval));
+  }
+  return ok(
+    out.sort((a, b) =>
+      a.createdAt === b.createdAt
+        ? b.id.localeCompare(a.id)
+        : b.createdAt.localeCompare(a.createdAt),
+    ),
+  );
+}
+
+/** The latest approval of each pass or dock slot, keyed by its id; a canceled one counts only when nothing newer is. */
+export function approvalBySubject(
+  approvals: readonly SubjectApproval[],
+): ReadonlyMap<string, SubjectApproval> {
+  const out = new Map<string, SubjectApproval>();
+  for (const a of approvals) {
+    const key = a.credentialId ?? a.dockSlotId;
+    if (!key) continue;
+    const held = out.get(key);
+    if (!held || (held.state === "Canceled" && a.state !== "Canceled")) out.set(key, a);
+  }
+  return out;
+}
+
+export async function decideSubjectApproval(
+  db: XosClient,
+  input: { readonly id: string; readonly approved: boolean; readonly comment: string | null },
+): Promise<Result<string>> {
+  return call(
+    db,
+    "decide_subject_approval",
+    { p_subject_approval_id: input.id, p_approved: input.approved, p_comment: input.comment },
+    str,
+  );
+}
+
+export async function cancelSubjectApproval(
+  db: XosClient,
+  input: { readonly id: string; readonly reason: string },
+): Promise<Result<string>> {
+  return call(
+    db,
+    "cancel_subject_approval",
+    { p_subject_approval_id: input.id, p_reason: input.reason },
+    str,
+  );
+}
+
+export type ReminderSubjectTable = "approval_instances" | "timesheets" | "subject_approvals";
+
+/** When a pending approval's approvers were last told, and when they may be told again (app.approval_reminder_status). */
+export interface ReminderStatus {
+  readonly subjectTable: ReminderSubjectTable;
+  readonly subjectId: string;
+  readonly step: number | null;
+  readonly waitingSince: string;
+  readonly lastNotifiedAt: string;
+  readonly remindersSent: number;
+  readonly reminderLimit: number;
+  readonly remindersEnabled: boolean;
+  /** Null when automatic reminders are off or the limit is reached. */
+  readonly nextReminderAt: string | null;
+  /** When Remind approvers may next be pressed; null once the limit is reached. */
+  readonly nextManualAt: string | null;
+}
+
+export function toReminderStatus(r: Raw): ReminderStatus {
+  return {
+    subjectTable: str(r["subject_table"]) as ReminderSubjectTable,
+    subjectId: str(r["subject_id"]),
+    step: numOrNull(r["step_order"]),
+    waitingSince: str(r["waiting_since"]),
+    lastNotifiedAt: str(r["last_notified_at"]),
+    remindersSent: num(r["reminders_sent"]),
+    reminderLimit: num(r["reminder_limit"]),
+    remindersEnabled: r["reminders_enabled"] !== false,
+    nextReminderAt: strOrNull(r["next_reminder_at"]),
+    nextManualAt: strOrNull(r["next_manual_at"]),
+  };
+}
+
+/** Reminder status of every pending approval of the org the viewer may read, keyed by subject id. */
+export async function listReminderStatus(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<ReadonlyMap<string, ReminderStatus>>> {
+  const result = await rows(
+    untyped(db)
+      .from("approval_reminder_status")
+      .select(
+        "subject_table, subject_id, step_order, waiting_since, last_notified_at, reminders_sent, reminder_limit, reminders_enabled, next_reminder_at, next_manual_at",
+      )
+      .eq("org_id", orgId)
+      .limit(500),
+  );
+  if (!result.ok) return result;
+  return ok(new Map(result.data.map((r) => [str(r["subject_id"]), toReminderStatus(r)])));
+}
+
+/** Remind approvers: a manual reminder to the step's approvers, at most every 4 hours. Returns the reminder number. */
+export async function remindApprovers(
+  db: XosClient,
+  input: { readonly subjectTable: ReminderSubjectTable; readonly subjectId: string },
+): Promise<Result<number>> {
+  return call(
+    db,
+    "remind_approvers",
+    { p_subject_table: input.subjectTable, p_subject_id: input.subjectId },
+    num,
+  );
+}
 
 export const SCREENSHOT_TYPES = {
   "image/png": "png",
