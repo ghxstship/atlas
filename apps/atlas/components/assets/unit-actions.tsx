@@ -66,34 +66,37 @@ export function UnitActions(props: UnitActionsProps) {
           ))
         : null}
       {props.can.write && props.nextStates.length > 0 ? (
-        <ActionButton
-          label={t("units.transition.open")}
-          icon="ArrowRightLeft"
-          title={t("units.transition.title", { tag: props.assetTag })}
-          description={t("units.transition.description", {
-            state: t(`states.${assetStateKey(props.state as AssetState)}`),
-          })}
-          submitLabel={t("units.transition.submit")}
-          action={transitionUnitAction}
-          org={props.org}
-          hidden={{ unitId: props.unitId, expected: props.state }}
-        >
-          <Select
-            id="unit-next"
-            name="next"
-            label={t("fields.next")}
-            value={props.nextStates[0]?.value ?? ""}
-            options={[...props.nextStates]}
-          />
-          <Textarea
-            id="unit-reason"
-            name="reason"
-            required
-            width="100%"
-            label={t("fields.reason")}
-            help={t("units.transition.reasonHelp")}
-          />
-        </ActionButton>
+        // The lifecycle move is the unit's Change state shortcut target.
+        <span data-shortcut="record.state" className="contents">
+          <ActionButton
+            label={t("units.transition.open")}
+            icon="ArrowRightLeft"
+            title={t("units.transition.title", { tag: props.assetTag })}
+            description={t("units.transition.description", {
+              state: t(`states.${assetStateKey(props.state as AssetState)}`),
+            })}
+            submitLabel={t("units.transition.submit")}
+            action={transitionUnitAction}
+            org={props.org}
+            hidden={{ unitId: props.unitId, expected: props.state }}
+          >
+            <Select
+              id="unit-next"
+              name="next"
+              label={t("fields.next")}
+              value={props.nextStates[0]?.value ?? ""}
+              options={[...props.nextStates]}
+            />
+            <Textarea
+              id="unit-reason"
+              name="reason"
+              required
+              width="100%"
+              label={t("fields.reason")}
+              help={t("units.transition.reasonHelp")}
+            />
+          </ActionButton>
+        </span>
       ) : null}
       {props.can.maintenance ? (
         <Button size="sm" variant="secondary" icon="Wrench" onClick={() => setMaintaining(true)}>

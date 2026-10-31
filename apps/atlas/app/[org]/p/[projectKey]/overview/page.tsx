@@ -97,13 +97,16 @@ export default async function OverviewPage({
                         label={t(`states.${project.projectState}`)}
                       />
                       {canSettings ? (
-                        <TransitionDialog
-                          org={ctx.org.org.slug}
-                          projectKey={project.key}
-                          lifecycle="project"
-                          current={project.projectState}
-                          allowed={moves.project}
-                        />
+                        // The project state's move is the page's Change state shortcut target.
+                        <span data-shortcut="record.state" className="contents">
+                          <TransitionDialog
+                            org={ctx.org.org.slug}
+                            projectKey={project.key}
+                            lifecycle="project"
+                            current={project.projectState}
+                            allowed={moves.project}
+                          />
+                        </span>
                       ) : null}
                     </span>
                   ),

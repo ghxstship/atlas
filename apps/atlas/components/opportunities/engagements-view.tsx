@@ -360,27 +360,30 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
             items={engagementProperties(e.roleType).map((key) => properties[key])}
           />
           {canWrite && moves.length > 0 ? (
-            <ActionForm
-              action={transitionEngagementAction}
-              hidden={{ org: ctx.org.slug, engagementId: e.id, expected: e.state }}
-              title={t("transitions.title")}
-              fields={[
-                {
-                  name: "next",
-                  label: t("transitions.next"),
-                  kind: "select",
-                  defaultValue: moves[0] ?? "",
-                  options: moves.map((m) => ({
-                    value: m,
-                    label: t(`engagementMoves.${enumKey(m)}`),
-                  })),
-                },
-                { name: "reason", label: t("transitions.reason"), kind: "text", required: true },
-              ]}
-              submitLabel={t("transitions.submit")}
-              variant="primary"
-              successLabel={t("transitions.done")}
-            />
+            // The move form is the record's Change state shortcut target: the key opens the moves.
+            <div data-shortcut="record.state" className="contents">
+              <ActionForm
+                action={transitionEngagementAction}
+                hidden={{ org: ctx.org.slug, engagementId: e.id, expected: e.state }}
+                title={t("transitions.title")}
+                fields={[
+                  {
+                    name: "next",
+                    label: t("transitions.next"),
+                    kind: "select",
+                    defaultValue: moves[0] ?? "",
+                    options: moves.map((m) => ({
+                      value: m,
+                      label: t(`engagementMoves.${enumKey(m)}`),
+                    })),
+                  },
+                  { name: "reason", label: t("transitions.reason"), kind: "text", required: true },
+                ]}
+                submitLabel={t("transitions.submit")}
+                variant="primary"
+                successLabel={t("transitions.done")}
+              />
+            </div>
           ) : null}
           <div className="flex flex-col gap-8">
             <h2 className="m-0 text-heading-14 font-semibold">{t("engagements.stages")}</h2>

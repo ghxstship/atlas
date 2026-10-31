@@ -3,13 +3,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import {
+  fillPartials,
   helpProblems,
   loadHelpContent,
   parseArticle,
   renderHelpBodies,
   renderHelpGuides,
   renderHelpModule,
+  stalePartials,
   uncoveredNodes,
+  type PartialRenderer,
 } from "../src/load";
 
 const root = mkdtempSync(join(tmpdir(), "xos-help-"));
@@ -96,5 +99,45 @@ describe("help loader", () => {
       { slug: "s", title: "", summary: "", kind: "page" as const, nodes: ["settings.*"], order: 0 },
     ];
     expect(uncoveredNodes(articles, ["home", "settings.profile"])).toEqual(["home"]);
+  });
+
+  it("fills generated lists between their markers, and names the stale files", () => {
+    const render: PartialRenderer = (name, args, locale) =>
+      name === "keys" ? [`- **${args.join(" ")}**: ${locale}`] : null;
+    const text = "Intro\n\n<!-- keys G H -->\n- old\n<!-- /keys -->\n\nAfter\n";
+    const filled = fillPartials(text, "es-US", render);
+    expect(filled).toBe(
+      "Intro\n\n<!-- keys G H -->\n\n- **G H**: es-US\n\n<!-- /keys -->\n\nAfter\n",
+    );
+    expect(fillPartials(filled, "es-US", render)).toBe(filled);
+    expect(() => fillPartials("<!-- other -->\n<!-- /other -->", "en-US", render)).toThrow(
+      /Unknown help partial: other/,
+    );
+    // The markers never reach readers.
+    expect(parseArticle("k", md("K", "home", filled)).body).toEqual([
+      { t: "p", c: [{ t: "text", v: "Intro" }] },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": es-US" },
+          ],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "After" }] },
+    ]);
+
+    const dir = write(join(root, "partials"), {
+      "articles/en-US/keys.md": md(
+        "Keys",
+        "home",
+        "<!-- keys A -->\n\n- **A**: en-US\n\n<!-- /keys -->",
+      ),
+      "articles/es-US/keys.md": md("Teclas", "home", "<!-- keys A -->\n<!-- /keys -->"),
+    });
+    const stale = stalePartials(dir, render);
+    expect(stale.map((s) => s.file)).toEqual([join(dir, "articles", "es-US", "keys.md")]);
+    expect(stale[0]?.expected).toContain("- **A**: es-US");
   });
 });
