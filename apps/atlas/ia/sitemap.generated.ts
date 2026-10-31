@@ -535,6 +535,13 @@ export const sitemap: Sitemap = {
               route: "/{org}/advancing/reconciliation",
               list: { views: ["table", "matrix"], default: "table" },
             },
+            {
+              id: "advancing.crew",
+              kind: "page",
+              label: "nav.atlas.pages.advancing.crew",
+              route: "/{org}/advancing/crew",
+              list: { views: ["list", "table"], default: "list" },
+            },
           ],
         },
       ],

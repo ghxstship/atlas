@@ -17,6 +17,13 @@ function subprocessorLinks(appUrl) {
     unsubscribe: (token) => `${list.toString()}?unsubscribe=${encodeURIComponent(token)}`,
   };
 }
+/** Gateway sign-in, where an invitee signs in with the invited address and accepts on Home. */
+function gatewaySignInUrl(gatewayUrl) {
+  return new URL("/auth/sign-in", gatewayUrl).toString();
+}
+function text(value) {
+  return typeof value === "string" ? value : "";
+}
 /** Claims due platform emails, sends each and records the outcome. A failure is recorded, never dropped. */
 async function dispatchPlatformEmails(store, transport, options, limit = 25) {
   const claims = await store.claim(limit);
@@ -46,26 +53,40 @@ async function dispatchPlatformEmails(store, transport, options, limit = 25) {
         deliveryId: claim.id,
       };
       const result =
-        claim.template === "subprocessor_confirm"
+        claim.template === "party_invitation"
           ? await sendEmail({
               ...common,
-              template: "subprocessor_confirm",
+              template: "party_invitation",
               props: {
-                confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                kind: claim.args["kind"] === "roster" ? "roster" : "account",
+                inviterName: text(claim.args["inviter_name"]),
+                accountName: text(claim.args["account_name"]),
+                projectName: text(claim.args["project_name"]),
+                partyName: text(claim.args["party_name"]),
+                expiresAt: new Date(str(claim.args["expires_at"], "expires_at")),
+                signInUrl: gatewaySignInUrl(options.gatewayUrl ?? options.appUrl),
               },
             })
-          : await sendEmail({
-              ...common,
-              template: "subprocessor_notice",
-              props: {
-                listVersion: str(claim.args["list_version"], "list_version"),
-                summary: str(claim.args["summary"], "summary"),
-                effectiveOn: /* @__PURE__ */ new Date(
-                  `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
-                ),
-                listUrl: links.list,
-              },
-            });
+          : claim.template === "subprocessor_confirm"
+            ? await sendEmail({
+                ...common,
+                template: "subprocessor_confirm",
+                props: {
+                  confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                },
+              })
+            : await sendEmail({
+                ...common,
+                template: "subprocessor_notice",
+                props: {
+                  listVersion: str(claim.args["list_version"], "list_version"),
+                  summary: str(claim.args["summary"], "summary"),
+                  effectiveOn: /* @__PURE__ */ new Date(
+                    `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
+                  ),
+                  listUrl: links.list,
+                },
+              });
       await store.finish(claim.id, true, result.providerMessageId, null);
       sent += 1;
     } catch (error) {

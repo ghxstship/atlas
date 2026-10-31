@@ -294,6 +294,20 @@
         "subject": "{subject, select, comment {Your comment was removed} message {Your message was removed} other {Your post was removed}}",
         "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
       }
+    },
+    "roster_entry": {
+      "invited": {
+        "subject": "You are on the {partyName} crew for {projectName}",
+        "body": "Open Gateway Home to accept or decline."
+      },
+      "returned": {
+        "subject": "{personName} was returned on the {projectName} roster",
+        "body": "Reason: {reason}"
+      },
+      "declined": {
+        "subject": "{personName} declined the {projectName} roster",
+        "body": "Add someone else or withdraw the entry."
+      }
     }
   },
   "notification": {
@@ -359,5 +373,11 @@
   "deletionCertificate": {
     "subject": "Deletion certificate for {org}",
     "body": "The data of {org} was deleted from XOS on {date}, as the organization's lifecycle set out.\n\nYour deletion certificate is attached. Its id is {id}. You can also download it from Atlas while you have an account.\n\nEncrypted backups made before the deletion age out on their own schedule."
+  },
+  "party_invitation": {
+    "accountSubject": "{inviterName} invites you to {accountName} on XOS",
+    "rosterSubject": "{inviterName} invites you onto the {partyName} crew for {projectName}",
+    "how": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. The company then sees your profile and project facts. Not expecting this? Ignore it.",
+    "action": "Sign in to Gateway"
   }
 }
