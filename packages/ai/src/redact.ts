@@ -104,9 +104,25 @@ const PATTERNS: readonly (readonly [RegExp, string])[] = [
   [/(?:\+\d{1,3}[ .-]?)?\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}\b/g, "[phone]"],
 ];
 
-/** Replaces email addresses, Social Security numbers, card numbers and phone numbers with labels. */
+/**
+ * Identity document values an itinerary or contract may print (ADR 0033 item 38: passport numbers
+ * and expiry are never sent): the value after a passport, date of birth, known traveler or redress
+ * label. The label stays, so the reader sees what was withheld.
+ */
+const IDENTITY =
+  /\b(passport(?:\s+(?:no\.?|number|#|expiry|expiration(?:\s+date)?|exp\.?))?|date\s+of\s+birth|birth\s*date|d\.?o\.?b\.?|known\s+traveler(?:\s+(?:no\.?|number|#))?|ktn|redress(?:\s+(?:no\.?|number|#))?)(?![a-z])(\s*[:#]?\s*)(\d{1,2}[\s-]?[a-z]{3}[\s-]?\d{2,4}|[a-z0-9][a-z0-9/.-]{2,19})/gi;
+
+/** Replaces the values of passport, date of birth, known traveler and redress labels with [withheld]. */
+export function withholdIdentity(text: string): string {
+  return text.replace(IDENTITY, (_match, label: string, gap: string) => `${label}${gap}[withheld]`);
+}
+
+/**
+ * Replaces email addresses, Social Security numbers, card numbers and phone numbers with labels,
+ * and withholds identity document values (`withholdIdentity`).
+ */
 export function redactText(text: string): string {
-  let out = text;
+  let out = withholdIdentity(text);
   for (const [pattern, label] of PATTERNS) out = out.replace(pattern, label);
   return out;
 }

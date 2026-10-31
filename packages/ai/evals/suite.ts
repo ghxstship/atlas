@@ -8,13 +8,23 @@ import { loadModelConfig, type ModelConfig } from "../src/config.ts";
 import { askAssistant, type PublicApi } from "../src/features/assistant.ts";
 import {
   draft,
+  draftAdvanceAnswers,
   draftList,
+  isGovernanceKind,
+  type AdvanceAnswersDraft,
   type ContextRecord,
+  type DraftableSection,
   type DraftKind,
   type ListDraft,
   type VerbiageEntry,
 } from "../src/features/drafting.ts";
-import { extractDocument, type DocumentKind } from "../src/features/extraction.ts";
+import {
+  EXTRACTION_TARGETS,
+  extractDocument,
+  type DocumentKind,
+  type ExtractionValue,
+  type RestrictedCapability,
+} from "../src/features/extraction.ts";
 import { buildFilter, type FilterCollection } from "../src/features/filters.ts";
 import { suggestCatalogBinding, suggestColumnMappings } from "../src/features/mapping.ts";
 import { summarize, type SummaryKind } from "../src/features/summaries.ts";
@@ -108,42 +118,78 @@ function sameValue(
   return field.value === expected;
 }
 
+/** An extraction case of extraction.json; B15 adds lines-only kinds, checks and the tie-out. */
+interface ExtractionCase {
+  readonly id: string;
+  readonly kind: string;
+  readonly document: string;
+  readonly expected: Readonly<Record<string, unknown>>;
+  readonly expectedLines?: readonly Readonly<Record<string, unknown>>[];
+  readonly expectedCheck?: Readonly<Record<string, unknown>>;
+  readonly expectedTieOut?: "ties" | "residual" | "incomplete";
+  readonly readable?: readonly RestrictedCapability[];
+  readonly invoiceCurrency?: string;
+  /** Text no stored excerpt may hold, such as a passport number. */
+  readonly mustNotContainExcerpt?: readonly string[];
+}
+
+/** Scores one extraction: header fields, lines in order, checks, the tie-out and withheld text. */
+export function extractionChecks(
+  c: ExtractionCase,
+  proposals: readonly ProposedChange[],
+  value: ExtractionValue | null,
+): string {
+  const kind = c.kind as DocumentKind;
+  const linesOnly = EXTRACTION_TARGETS[kind].header === false;
+  const header = linesOnly ? [] : (proposals[0]?.fields ?? []);
+  const wrong = Object.entries(c.expected).find(
+    ([path, v]) =>
+      !sameValue(
+        v,
+        header.find((f) => f.field_path === path),
+      ),
+  );
+  if (wrong) return `${wrong[0]} expected ${JSON.stringify(wrong[1])}`;
+  const expectedLines = c.expectedLines ?? [];
+  if (expectedLines.length > 0) {
+    const lines = linesOnly ? proposals : proposals.slice(1);
+    if (lines.length !== expectedLines.length)
+      return `expected ${expectedLines.length} lines, got ${lines.length}`;
+    for (const [i, line] of expectedLines.entries()) {
+      const bad = Object.entries(line).find(
+        ([path, v]) =>
+          !sameValue(
+            v,
+            lines[i]?.fields.find((f) => f.field_path === path),
+          ),
+      );
+      if (bad) return `line ${i + 1} ${bad[0]} expected ${JSON.stringify(bad[1])}`;
+    }
+  }
+  for (const [path, v] of Object.entries(c.expectedCheck ?? {})) {
+    if (value?.check?.[path]?.value !== v) return `check ${path} expected ${JSON.stringify(v)}`;
+  }
+  if (c.expectedTieOut && value?.tie_out?.status !== c.expectedTieOut) {
+    return `tie-out expected ${c.expectedTieOut}, got ${value?.tie_out?.status ?? "none"}`;
+  }
+  const excerpts = proposals.flatMap((p) => p.fields.map((f) => f.source_excerpt ?? "")).join("\n");
+  const leaked = (c.mustNotContainExcerpt ?? []).find((t) => excerpts.includes(t));
+  return leaked ? `an excerpt holds "${leaked}"` : "";
+}
+
 async function extractionCases(client: ModelClient, config: ModelConfig): Promise<CaseResult[]> {
   const out: CaseResult[] = [];
-  for (const c of extractionSet.cases) {
+  for (const c of extractionSet.cases as readonly ExtractionCase[]) {
     const { store, proposals } = evalStore();
     const result = await extractDocument(ctxFor(client, config, "2026-10-14", store), {
       kind: c.kind as DocumentKind,
       document: { type: "document", mediaType: "text/plain", data: c.document },
       fileName: `${c.id}.txt`,
       subject: null,
+      ...(c.readable ? { readable: c.readable } : {}),
+      ...(c.invoiceCurrency ? { invoiceCurrency: c.invoiceCurrency } : {}),
     });
-    const header = proposals[0]?.fields ?? [];
-    const wrong = Object.entries(c.expected).find(
-      ([path, value]) =>
-        !sameValue(
-          value,
-          header.find((f) => f.field_path === path),
-        ),
-    );
-    let detail = wrong ? `${wrong[0]} expected ${JSON.stringify(wrong[1])}` : "";
-    const expectedLines =
-      "expectedLines" in c ? (c.expectedLines as Record<string, unknown>[]) : [];
-    if (!detail && expectedLines.length > 0) {
-      const lines = proposals.slice(1);
-      if (lines.length !== expectedLines.length)
-        detail = `expected ${expectedLines.length} lines, got ${lines.length}`;
-      expectedLines.forEach((line, i) => {
-        const bad = Object.entries(line).find(
-          ([path, value]) =>
-            !sameValue(
-              value,
-              lines[i]?.fields.find((f) => f.field_path === path),
-            ),
-        );
-        if (!detail && bad) detail = `line ${i + 1} ${bad[0]} expected ${JSON.stringify(bad[1])}`;
-      });
-    }
+    let detail = extractionChecks(c, proposals, result.kind === "answer" ? result.value : null);
     if (result.kind !== "answer" && !detail) detail = describeFailure(result);
     out.push({ id: c.id, pass: detail === "", detail: detail || "ok" });
   }
@@ -295,13 +341,101 @@ async function listCase(
   return { id: c.id, pass: problem === null, detail: problem ?? "ok" };
 }
 
+/** An advance answers case of drafting.json (B15): the source is sent as a text document. */
+interface AdvanceCase {
+  readonly id: string;
+  readonly kind: "advance_answers";
+  readonly sections: readonly DraftableSection[];
+  readonly roster: readonly { id: string; name: string }[];
+  readonly timeZone: string;
+  readonly source: string;
+  readonly expectAnswered?: readonly string[];
+  readonly expectUnanswered?: readonly string[];
+  /** Kept lines per section. */
+  readonly expectLines?: Readonly<Record<string, number>>;
+  /** Sections whose answer must keep no line: the source does not show what they take. */
+  readonly expectNoLines?: readonly string[];
+  readonly mustNotContain: readonly string[];
+}
+
+/** Scores drafted answers: the sections answered and listed unanswered, kept lines, nothing invented. */
+export function advanceChecks(value: AdvanceAnswersDraft, c: AdvanceCase): string | null {
+  const answered = new Set(value.answers.map((a) => a.section_id));
+  const missing = (c.expectAnswered ?? []).find((id) => !answered.has(id));
+  if (missing) return `did not answer ${missing}`;
+  const invented = (c.expectUnanswered ?? []).find(
+    (id) =>
+      answered.has(id) &&
+      value.answers.some((a) => a.section_id === id && (a.body !== null || a.lines.length > 0)),
+  );
+  if (invented) return `answered ${invented}, which the source does not answer`;
+  for (const [id, n] of Object.entries(c.expectLines ?? {})) {
+    const got = value.answers.find((a) => a.section_id === id)?.lines.length ?? 0;
+    if (got !== n) return `${id} kept ${got} lines, expected ${n}`;
+  }
+  const lined = (c.expectNoLines ?? []).find(
+    (id) => (value.answers.find((a) => a.section_id === id)?.lines.length ?? 0) > 0,
+  );
+  if (lined) return `${lined} kept a line the source does not support`;
+  const text = value.answers
+    .map((a) => `${a.body ?? ""} ${a.lines.map((l) => l.note ?? "").join(" ")}`)
+    .join("\n");
+  return textChecks(text, [], c.mustNotContain);
+}
+
+async function advanceCase(
+  client: ModelClient,
+  config: ModelConfig,
+  c: AdvanceCase,
+): Promise<CaseResult> {
+  const { store } = evalStore();
+  const result = await draftAdvanceAnswers(ctxFor(client, config, "2026-10-14", store), {
+    recipientId: "eval-recipient",
+    sections: c.sections,
+    roster: c.roster,
+    timeZone: c.timeZone,
+    source: {
+      kind: "document",
+      document: { type: "document", mediaType: "text/plain", data: c.source },
+      fileName: `${c.id}.txt`,
+    },
+    neverSend: EVAL_NEVER_SEND,
+  });
+  if (result.kind === "no-answer" && (c.expectAnswered ?? []).length === 0) {
+    return { id: c.id, pass: true, detail: "ok" };
+  }
+  if (result.kind !== "answer") return { id: c.id, pass: false, detail: describeFailure(result) };
+  const problem = advanceChecks(result.value, c);
+  return { id: c.id, pass: problem === null, detail: problem ?? "ok" };
+}
+
+/** A prose drafting case of drafting.json; a governance case (B15) also gives its outline. */
+interface ProseCase {
+  readonly id: string;
+  readonly kind: string;
+  readonly instructions: string;
+  readonly context: readonly ContextRecord[];
+  readonly verbiage: readonly VerbiageEntry[];
+  readonly mustContain: readonly string[];
+  readonly mustNotContain: readonly string[];
+  readonly allowMoney: boolean;
+  readonly outline?: readonly string[];
+  readonly expectGap?: boolean;
+}
+
 async function draftingCases(client: ModelClient, config: ModelConfig): Promise<CaseResult[]> {
   const out: CaseResult[] = [];
-  for (const c of draftingSet.cases) {
-    if (isListDraftKind(c.kind)) {
-      out.push(await listCase(client, config, c as unknown as ListCase));
+  for (const raw of draftingSet.cases) {
+    if (isListDraftKind(raw.kind)) {
+      out.push(await listCase(client, config, raw as unknown as ListCase));
       continue;
     }
+    if (raw.kind === "advance_answers") {
+      out.push(await advanceCase(client, config, raw as unknown as AdvanceCase));
+      continue;
+    }
+    const c = raw as unknown as ProseCase;
+    const outline = c.outline;
     const { store } = evalStore();
     const result = await draft(ctxFor(client, config, "2026-10-14", store), {
       kind: c.kind as DraftKind,
@@ -310,6 +444,7 @@ async function draftingCases(client: ModelClient, config: ModelConfig): Promise<
       verbiage: c.verbiage,
       neverSend: EVAL_NEVER_SEND,
       subject: null,
+      ...(outline ? { outline } : {}),
     });
     if (result.kind !== "answer") {
       out.push({ id: c.id, pass: false, detail: describeFailure(result) });
@@ -319,6 +454,11 @@ async function draftingCases(client: ModelClient, config: ModelConfig): Promise<
     let problem = textChecks(body, c.mustContain, c.mustNotContain);
     if (!problem && !c.allowMoney && MONEY.test(body))
       problem = "states a price the context does not give";
+    // Governance drafts (B15) follow their outline and mark what the records lack.
+    if (!problem && isGovernanceKind(c.kind) && (result.value.missingHeadings ?? []).length > 0)
+      problem = `missing headings: ${(result.value.missingHeadings ?? []).join(", ")}`;
+    if (!problem && c.expectGap && result.value.gaps.length === 0)
+      problem = "left no [needs: ...] gap";
     out.push({ id: c.id, pass: problem === null, detail: problem ?? "ok" });
   }
   return out;

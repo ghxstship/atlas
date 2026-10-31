@@ -7,14 +7,23 @@
       "kind": "sop",
       "instructions": "Write the load-in SOP for the main stage.",
       "verbiage": [
-        { "term": "loading dock", "preferred": "Dock" },
-        { "term": "stagehands", "preferred": "crew" }
+        {
+          "term": "loading dock",
+          "preferred": "Dock"
+        },
+        {
+          "term": "stagehands",
+          "preferred": "crew"
+        }
       ],
       "context": [
         {
           "id": "v1",
           "table": "app.venues",
-          "data": { "name": "Bayfront Amphitheater", "dock_doors": 2 }
+          "data": {
+            "name": "Bayfront Amphitheater",
+            "dock_doors": 2
+          }
         }
       ],
       "mustNotContain": ["loading dock", "stagehands"],
@@ -27,7 +36,13 @@
       "instructions": "Email the lighting vendor asking them to confirm their arrival time for load-in.",
       "verbiage": [],
       "context": [
-        { "id": "p1", "table": "app.projects", "data": { "name": "Harbor Nights 2026" } }
+        {
+          "id": "p1",
+          "table": "app.projects",
+          "data": {
+            "name": "Harbor Nights 2026"
+          }
+        }
       ],
       "mustNotContain": [],
       "mustContain": ["[needs:"],
@@ -47,17 +62,28 @@
       "id": "day-sheet",
       "kind": "day_sheet",
       "instructions": "Draft the day sheet for show day.",
-      "verbiage": [{ "term": "talent", "preferred": "artist" }],
+      "verbiage": [
+        {
+          "term": "talent",
+          "preferred": "artist"
+        }
+      ],
       "context": [
         {
           "id": "s1",
           "table": "app.run_of_show_items",
-          "data": { "at": "16:00", "item": "Doors" }
+          "data": {
+            "at": "16:00",
+            "item": "Doors"
+          }
         },
         {
           "id": "s2",
           "table": "app.run_of_show_items",
-          "data": { "at": "17:30", "item": "Opening set" }
+          "data": {
+            "at": "17:30",
+            "item": "Opening set"
+          }
         }
       ],
       "mustNotContain": ["talent"],
@@ -224,6 +250,626 @@
       "mustContain": [],
       "mustNotContain": ["Open Bar For The Crew"],
       "allowMoney": false
+    },
+    {
+      "timeZone": "America/New_York",
+      "roster": [
+        {
+          "id": "e_kai",
+          "name": "Kai Moana"
+        },
+        {
+          "id": "e_mo",
+          "name": "Mo Ali"
+        }
+      ],
+      "sections": [
+        {
+          "id": "s_notes",
+          "title": "Load In Notes",
+          "prompt": "How many trucks and when?",
+          "kind": "Text",
+          "window_kind": null,
+          "max_lines": null,
+          "per_person": false,
+          "choices": []
+        },
+        {
+          "id": "s_win",
+          "title": "Load In",
+          "prompt": "When do you load in?",
+          "kind": "Schedule Window",
+          "window_kind": "Load In",
+          "max_lines": 2,
+          "per_person": false,
+          "choices": []
+        },
+        {
+          "id": "s_items",
+          "title": "Radios and Carts",
+          "prompt": "What do you need from us?",
+          "kind": "Item Request",
+          "window_kind": null,
+          "max_lines": 3,
+          "per_person": false,
+          "choices": [
+            {
+              "asset_class_id": "cls_radio",
+              "code": "8000.03.01-XPMS-002",
+              "name": "Radios",
+              "offering": "Radios"
+            },
+            {
+              "asset_class_id": "cls_cart",
+              "code": "8000.04.02-XPMS-001",
+              "name": "Carts",
+              "offering": "Carts"
+            }
+          ]
+        },
+        {
+          "id": "s_parking",
+          "title": "Parking",
+          "prompt": "How many vehicles?",
+          "kind": "Text",
+          "window_kind": null,
+          "max_lines": null,
+          "per_person": false,
+          "choices": []
+        }
+      ],
+      "id": "advance-window-from-mail",
+      "kind": "advance_answers",
+      "source": "Hi team, we load in Saturday June 5, 2027 from 07:00 to 2027-06-05 09:30 at Dock 2. Two trucks.",
+      "expectAnswered": ["s_win", "s_notes"],
+      "expectUnanswered": ["s_parking", "s_items"],
+      "expectLines": {
+        "s_win": 1
+      },
+      "mustNotContain": []
+    },
+    {
+      "timeZone": "America/New_York",
+      "roster": [
+        {
+          "id": "e_kai",
+          "name": "Kai Moana"
+        },
+        {
+          "id": "e_mo",
+          "name": "Mo Ali"
+        }
+      ],
+      "sections": [
+        {
+          "id": "s_notes",
+          "title": "Load In Notes",
+          "prompt": "How many trucks and when?",
+          "kind": "Text",
+          "window_kind": null,
+          "max_lines": null,
+          "per_person": false,
+          "choices": []
+        },
+        {
+          "id": "s_win",
+          "title": "Load In",
+          "prompt": "When do you load in?",
+          "kind": "Schedule Window",
+          "window_kind": "Load In",
+          "max_lines": 2,
+          "per_person": false,
+          "choices": []
+        },
+        {
+          "id": "s_items",
+          "title": "Radios and Carts",
+          "prompt": "What do you need from us?",
+          "kind": "Item Request",
+          "window_kind": null,
+          "max_lines": 3,
+          "per_person": false,
+          "choices": [
+            {
+              "asset_class_id": "cls_radio",
+              "code": "8000.03.01-XPMS-002",
+              "name": "Radios",
+              "offering": "Radios"
+            },
+            {
+              "asset_class_id": "cls_cart",
+              "code": "8000.04.02-XPMS-001",
+              "name": "Carts",
+              "offering": "Carts"
+            }
+          ]
+        },
+        {
+          "id": "s_parking",
+          "title": "Parking",
+          "prompt": "How many vehicles?",
+          "kind": "Text",
+          "window_kind": null,
+          "max_lines": null,
+          "per_person": false,
+          "choices": []
+        }
+      ],
+      "id": "advance-item-quantities",
+      "kind": "advance_answers",
+      "source": "Advance reply 2027: please hold 6 radios and 2 carts for our crew.",
+      "expectAnswered": ["s_items"],
+      "expectLines": {
+        "s_items": 2
+      },
+      "expectUnanswered": ["s_win", "s_parking"],
+      "mustNotContain": []
+    },
+    {
+      "timeZone": "America/New_York",
+      "roster": [
+        {
+          "id": "e_kai",
+          "name": "Kai Moana"
+        },
+        {
+          "id": "e_mo",
+          "name": "Mo Ali"
+        }
+      ],
+      "sections": [
+        {
+          "id": "s_notes",
+          "title": "Load In Notes",
+          "prompt": "How many trucks and when?",
+          "kind": "Text",
+          "window_kind": null,
+          "max_lines": null,
+          "per_person": false,
+          "choices": []
+        },
+        {
+          "id": "s_win",
+          "title": "Load In",
+          "prompt": "When do you load in?",
+          "kind": "Schedule Window",
+          "window_kind": "Load In",
+          "max_lines": 2,
+          "per_person": false,
+          "choices": []
+        },
+        {
+          "id": "s_items",
+          "title": "Radios and Carts",
+          "prompt": "What do you need from us?",
+          "kind": "Item Request",
+          "window_kind": null,
+          "max_lines": 3,
+          "per_person": false,
+          "choices": [
+            {
+              "asset_class_id": "cls_radio",
+              "code": "8000.03.01-XPMS-002",
+              "name": "Radios",
+              "offering": "Radios"
+            },
+            {
+              "asset_class_id": "cls_cart",
+              "code": "8000.04.02-XPMS-001",
+              "name": "Carts",
+              "offering": "Carts"
+            }
+          ]
+        },
+        {
+          "id": "s_parking",
+          "title": "Parking",
+          "prompt": "How many vehicles?",
+          "kind": "Text",
+          "window_kind": null,
+          "max_lines": null,
+          "per_person": false,
+          "choices": []
+        }
+      ],
+      "id": "advance-unsupported-time",
+      "kind": "advance_answers",
+      "source": "We will load in on the morning of June 5, 2027, time to be confirmed.",
+      "expectNoLines": ["s_win"],
+      "expectUnanswered": ["s_items", "s_parking"],
+      "mustNotContain": []
+    },
+    {
+      "timeZone": "America/New_York",
+      "roster": [
+        {
+          "id": "e_kai",
+          "name": "Kai Moana"
+        },
+        {
+          "id": "e_mo",
+          "name": "Mo Ali"
+        }
+      ],
+      "sections": [
+        {
+          "id": "s_notes",
+          "title": "Load In Notes",
+          "prompt": "How many trucks and when?",
+          "kind": "Text",
+          "window_kind": null,
+          "max_lines": null,
+          "per_person": false,
+          "choices": []
+        },
+        {
+          "id": "s_win",
+          "title": "Load In",
+          "prompt": "When do you load in?",
+          "kind": "Schedule Window",
+          "window_kind": "Load In",
+          "max_lines": 2,
+          "per_person": false,
+          "choices": []
+        },
+        {
+          "id": "s_items",
+          "title": "Radios and Carts",
+          "prompt": "What do you need from us?",
+          "kind": "Item Request",
+          "window_kind": null,
+          "max_lines": 3,
+          "per_person": false,
+          "choices": [
+            {
+              "asset_class_id": "cls_radio",
+              "code": "8000.03.01-XPMS-002",
+              "name": "Radios",
+              "offering": "Radios"
+            },
+            {
+              "asset_class_id": "cls_cart",
+              "code": "8000.04.02-XPMS-001",
+              "name": "Carts",
+              "offering": "Carts"
+            }
+          ]
+        },
+        {
+          "id": "s_parking",
+          "title": "Parking",
+          "prompt": "How many vehicles?",
+          "kind": "Text",
+          "window_kind": null,
+          "max_lines": null,
+          "per_person": false,
+          "choices": []
+        }
+      ],
+      "id": "advance-unanswered-section",
+      "kind": "advance_answers",
+      "source": "Tour book 2027, page 3: Two trucks arrive with the backline. Nothing else is needed.",
+      "expectAnswered": ["s_notes"],
+      "expectUnanswered": ["s_win", "s_items", "s_parking"],
+      "mustNotContain": []
+    },
+    {
+      "id": "governance-event-plan",
+      "kind": "event_plan",
+      "instructions": "Draft the event plan.",
+      "verbiage": [],
+      "context": [
+        {
+          "id": "prj",
+          "table": "app.projects",
+          "data": {
+            "name": "Harbor Gala",
+            "starts_on": "2027-11-20",
+            "ends_on": "2027-11-20",
+            "time_zone": "America/New_York"
+          }
+        },
+        {
+          "id": "ev",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Event",
+            "record_subtype": "Gala",
+            "title": "Harbor Gala",
+            "description": "Indoor seated dinner for 400 in the Harbor Ballroom."
+          }
+        },
+        {
+          "id": "rk",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Risk",
+            "record_subtype": "Safety",
+            "title": "Crowd Crush at the Coat Check",
+            "risk": {
+              "likelihood": 2,
+              "impact": 4,
+              "mitigation": "Two coat check lines and a host."
+            }
+          }
+        },
+        {
+          "id": "cue",
+          "table": "app.cues",
+          "data": {
+            "label": "Doors",
+            "planned_at": "2027-11-20T23:00:00Z"
+          }
+        }
+      ],
+      "outline": [
+        "Overview",
+        "Schedule",
+        "Site and Venue",
+        "Staffing and Roles",
+        "Safety and Risk",
+        "Medical and Emergency",
+        "Communications",
+        "Permits and Approvals"
+      ],
+      "mustContain": ["Harbor Gala"],
+      "mustNotContain": [],
+      "allowMoney": false,
+      "expectGap": true
+    },
+    {
+      "id": "governance-event-brief",
+      "kind": "event_brief",
+      "instructions": "Draft the event brief.",
+      "verbiage": [],
+      "context": [
+        {
+          "id": "prj",
+          "table": "app.projects",
+          "data": {
+            "name": "Harbor Gala",
+            "starts_on": "2027-11-20",
+            "ends_on": "2027-11-20",
+            "time_zone": "America/New_York"
+          }
+        },
+        {
+          "id": "ev",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Event",
+            "record_subtype": "Gala",
+            "title": "Harbor Gala",
+            "description": "Indoor seated dinner for 400 in the Harbor Ballroom."
+          }
+        },
+        {
+          "id": "rk",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Risk",
+            "record_subtype": "Safety",
+            "title": "Crowd Crush at the Coat Check",
+            "risk": {
+              "likelihood": 2,
+              "impact": 4,
+              "mitigation": "Two coat check lines and a host."
+            }
+          }
+        },
+        {
+          "id": "cue",
+          "table": "app.cues",
+          "data": {
+            "label": "Doors",
+            "planned_at": "2027-11-20T23:00:00Z"
+          }
+        }
+      ],
+      "outline": [
+        "Purpose",
+        "Key Facts",
+        "Schedule Highlights",
+        "Contacts by Role",
+        "What Is Needed"
+      ],
+      "mustContain": ["Harbor Gala"],
+      "mustNotContain": [],
+      "allowMoney": false
+    },
+    {
+      "id": "governance-approval-pack",
+      "kind": "approval_pack",
+      "instructions": "Draft the approval pack for the fire marshal.",
+      "verbiage": [],
+      "context": [
+        {
+          "id": "prj",
+          "table": "app.projects",
+          "data": {
+            "name": "Harbor Gala",
+            "starts_on": "2027-11-20",
+            "ends_on": "2027-11-20",
+            "time_zone": "America/New_York"
+          }
+        },
+        {
+          "id": "ev",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Event",
+            "record_subtype": "Gala",
+            "title": "Harbor Gala",
+            "description": "Indoor seated dinner for 400 in the Harbor Ballroom."
+          }
+        },
+        {
+          "id": "rk",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Risk",
+            "record_subtype": "Safety",
+            "title": "Crowd Crush at the Coat Check",
+            "risk": {
+              "likelihood": 2,
+              "impact": 4,
+              "mitigation": "Two coat check lines and a host."
+            }
+          }
+        },
+        {
+          "id": "cue",
+          "table": "app.cues",
+          "data": {
+            "label": "Doors",
+            "planned_at": "2027-11-20T23:00:00Z"
+          }
+        }
+      ],
+      "outline": [
+        "Cover Letter",
+        "Event Summary",
+        "Permits Held and Pending",
+        "Insurance",
+        "Risk Summary",
+        "Site Plan and Capacity",
+        "Contacts"
+      ],
+      "mustContain": ["Crowd Crush"],
+      "mustNotContain": [],
+      "allowMoney": false,
+      "expectGap": true
+    },
+    {
+      "id": "governance-waste-plan",
+      "kind": "waste_plan",
+      "instructions": "Draft the waste plan.",
+      "verbiage": [],
+      "context": [
+        {
+          "id": "prj",
+          "table": "app.projects",
+          "data": {
+            "name": "Harbor Gala",
+            "starts_on": "2027-11-20",
+            "ends_on": "2027-11-20",
+            "time_zone": "America/New_York"
+          }
+        },
+        {
+          "id": "ev",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Event",
+            "record_subtype": "Gala",
+            "title": "Harbor Gala",
+            "description": "Indoor seated dinner for 400 in the Harbor Ballroom."
+          }
+        },
+        {
+          "id": "rk",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Risk",
+            "record_subtype": "Safety",
+            "title": "Crowd Crush at the Coat Check",
+            "risk": {
+              "likelihood": 2,
+              "impact": 4,
+              "mitigation": "Two coat check lines and a host."
+            }
+          }
+        },
+        {
+          "id": "cue",
+          "table": "app.cues",
+          "data": {
+            "label": "Doors",
+            "planned_at": "2027-11-20T23:00:00Z"
+          }
+        },
+        {
+          "id": "cat",
+          "table": "app.fulfillments",
+          "data": {
+            "fulfillment_kind": "Catering",
+            "title": "Gala Dinner Service"
+          }
+        }
+      ],
+      "outline": [
+        "Waste Streams",
+        "Bins and Placement",
+        "Vendor Responsibilities",
+        "Collection Schedule",
+        "Diversion Targets",
+        "Reporting"
+      ],
+      "mustContain": ["Gala Dinner Service"],
+      "mustNotContain": [],
+      "allowMoney": false
+    },
+    {
+      "id": "governance-waste-plan-needs-targets",
+      "kind": "waste_plan",
+      "instructions": "Draft the waste plan with our diversion targets.",
+      "verbiage": [],
+      "context": [
+        {
+          "id": "prj",
+          "table": "app.projects",
+          "data": {
+            "name": "Harbor Gala",
+            "starts_on": "2027-11-20",
+            "ends_on": "2027-11-20",
+            "time_zone": "America/New_York"
+          }
+        },
+        {
+          "id": "ev",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Event",
+            "record_subtype": "Gala",
+            "title": "Harbor Gala",
+            "description": "Indoor seated dinner for 400 in the Harbor Ballroom."
+          }
+        },
+        {
+          "id": "rk",
+          "table": "app.records",
+          "data": {
+            "record_kind": "Risk",
+            "record_subtype": "Safety",
+            "title": "Crowd Crush at the Coat Check",
+            "risk": {
+              "likelihood": 2,
+              "impact": 4,
+              "mitigation": "Two coat check lines and a host."
+            }
+          }
+        },
+        {
+          "id": "cue",
+          "table": "app.cues",
+          "data": {
+            "label": "Doors",
+            "planned_at": "2027-11-20T23:00:00Z"
+          }
+        }
+      ],
+      "outline": [
+        "Waste Streams",
+        "Bins and Placement",
+        "Vendor Responsibilities",
+        "Collection Schedule",
+        "Diversion Targets",
+        "Reporting"
+      ],
+      "mustContain": [],
+      "mustNotContain": ["90%", "75%"],
+      "allowMoney": false,
+      "expectGap": true
     }
   ]
 }
