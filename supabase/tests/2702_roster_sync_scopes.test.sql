@@ -52,6 +52,25 @@ select pg_temp.as_user('ivy');
 select throws_ok($$select * from app.resolve_asset_code(pg_temp.id('org_a'), 'NWL-RAD-001')$$, '42501', null,
   'someone with no operational engagement or entry with the org cannot scan');
 
+-- Ivy works prj_a on her own Crew engagement and joins Bayside Audio's roster there too: her project keeps the Crew
+-- audience rather than crew, and her entry still syncs.
+select pg_temp.as_user('victor');
+select app.add_account_member(pg_temp.id('acct_v'), pg_temp.id('ivy'), 'Account Member');
+select pg_temp.as_user('ivy');
+select app.accept_account_membership(pg_temp.membership('acct_v', 'ivy'));
+select pg_temp.as_user('victor');
+insert into world select 'e_ivy', app.add_roster_entry(pg_temp.id('eng_vendor_a'), pg_temp.id('ivy'), null, null, null, null, null);
+select pg_temp.as_user('ivy');
+select app.respond_roster_entry(pg_temp.id('e_ivy'), 'Accepted');
+select pg_temp.as_user('victor');
+select app.submit_roster(pg_temp.id('eng_vendor_a'));
+select pg_temp.as_user('carol');
+select app.review_roster_entry(pg_temp.id('e_ivy'), 'Accepted');
+select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
+select is(pg_temp.scopes('ivy', 'rosterEntryIds'), array[pg_temp.id('e_ivy')::text || ':crew'], 'Ivy syncs her roster entry');
+select is(pg_temp.scopes('ivy', 'engagedProjectIds'), array[pg_temp.id('prj_a')::text || ':Crew'],
+  'and the project once, with her own engagement''s audience');
+
 -- Losing the scope ---------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('victor');
 select app.withdraw_roster_entry(pg_temp.id('e_una'), 'Swapped out.');

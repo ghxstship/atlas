@@ -7,7 +7,8 @@
 --   * private.sync_scope_grants: the scope key rosterEntryIds joins the allowed keys (sync_scope_grants_scope_key,
 --     0942:23). private.sync_scope_rows is recreated from 0942:42-77 with rosterEntryIds and the entries' projects
 --     as engagedProjectIds, both with audience crew, the Compass audience a person on a roster works as. Self entries
---     are left out: the engaged person syncs their own engagement through engagementIds already.
+--     are left out: the engaged person syncs their own engagement through engagementIds already. A project the person
+--     also works through their own engagement is not repeated as crew, so its audience stays that engagement's role type.
 --   * Triggers on app.engagement_roster_entries (insert, a change of state, answer or engagement, and soft delete) and on
 --     app.engagement_state_transitions refresh the scopes of the people on the roster (0942:143-159 is the refresh).
 --   * private.asset_unit_assigned_to_me and app.resolve_asset_code are recreated from 1111, and
@@ -62,6 +63,10 @@ begin
     join app.engagements e on e.id = r.engagement_id
     where r.id in (select private.my_roster_entry_ids('operational')) and r.entry_state = 'Accepted' and not r.is_self
       and e.engagement_state in ('Active', 'Closing')
+      -- A project the person also works through their own engagement keeps that engagement's role type as audience.
+      and e.project_id not in (select o.project_id from app.engagements o
+                               where o.id in (select private.my_engagement_ids('operational'))
+                                 and o.engagement_state in ('Active', 'Closing'))
   ) r;
   perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
   perform set_config('request.jwt.claim.sub', coalesce(v_sub, ''), true);
@@ -69,7 +74,7 @@ begin
 end;
 $$;
 
-comment on function private.sync_scope_rows(uuid) is 'The sync scopes of a user, computed with the same helpers as row level security by evaluating them under the user''s claims, then restoring the caller''s claims. readableProjectIds is exactly the projects read policy. When a person reaches one project through two engagements, the first role type in canon order is the audience. A person on a party''s roster holds rosterEntryIds and their projects as engagedProjectIds, audience crew, for each live entry accepted by both sides on an Active or Closing engagement, self entries left out (R8).';
+comment on function private.sync_scope_rows(uuid) is 'The sync scopes of a user, computed with the same helpers as row level security by evaluating them under the user''s claims, then restoring the caller''s claims. readableProjectIds is exactly the projects read policy. When a person reaches one project through two engagements, the first role type in canon order is the audience. A person on a party''s roster holds rosterEntryIds and their projects as engagedProjectIds, audience crew, for each live entry accepted by both sides on an Active or Closing engagement, self entries left out, and a project the person also works through their own engagement keeps that engagement''s audience (R8).';
 revoke all on function private.sync_scope_rows(uuid) from public, anon, authenticated;
 
 -- Refresh on roster changes -----------------------------------------------------------------------------------------------------
