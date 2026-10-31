@@ -1,5 +1,10 @@
 import { readView, type ExternalRow } from "@xos/data/gateway";
 import {
+  listMyTrackProgress,
+  listSectionTracks,
+  type ExternalTrackProgress,
+} from "@xos/data/gateway-operations";
+import {
   listEngagementAllocations,
   namesClosed,
   type EngagedAllocation,
@@ -21,6 +26,7 @@ import { AdvanceFileForm, AdvanceLinesForm, GuestListConfirmForm } from "./advan
 import { AdvanceAnswerForm } from "./forms";
 import { GuestRequestForm } from "./party-forms";
 import { RowList, TabEmpty } from "./rows";
+import { Tag } from "@/components/ui";
 import type { TabProps } from "./tab-context";
 
 /**
@@ -29,8 +35,28 @@ import type { TabProps } from "./tab-context";
  * bucket; Schedule Window proposes windows; Item Request and Credential Request ask for the section's
  * choices, which become allocations the producer's review decides; Crew Roster reads the roster;
  * Guest List keeps the guest list and its cap. Contractors and sponsors get the same tab without a
- * guest list (ADR 0100, prompt lines 917 to 926). Each line shows its allocation's computed stage.
+ * guest list (ADR 0100, prompt lines 917 to 926). Each line shows its allocation's computed stage. Sections group by
+ * track (R11, G-176) when a packet uses more than General, each with its computed state and when it was signed off
+ * (api_external.advance_track_progress, which names no reviewer).
  */
+
+/** Tracks in the order the producer's Tracks pane shows them (app.advance_track). */
+const TRACKS = [
+  "Finance",
+  "Technical",
+  "Hospitality",
+  "Catering",
+  "Travel",
+  "Logistics",
+  "General",
+] as const;
+
+function trackTone(state: string): "success" | "accent" | "warning" | "danger" | "neutral" {
+  if (state === "Signed Off") return "success";
+  if (state === "Ready for Sign-off") return "accent";
+  if (state === "Reopened") return "warning";
+  return "neutral";
+}
 
 type SectionRow = ExternalRow<"advance_sections">;
 type SubmissionRow = ExternalRow<"advance_submissions">;
@@ -91,6 +117,11 @@ export async function AdvanceTab({ view, t, locale, engagementKey }: TabProps) {
   ]);
   if (!sections.ok || !submissions.ok) return <RegionError />;
   const sectionIds = sections.data.flatMap((s) => (s.id ? [s.id] : []));
+  const [tracks, trackProgress] = await Promise.all([
+    listSectionTracks(db, sectionIds),
+    listMyTrackProgress(db, packetIds),
+  ]);
+  if (!tracks.ok || !trackProgress.ok) return <RegionError />;
   const submissionIds = submissions.data.flatMap((s) => (s.id ? [s.id] : []));
   const typed = sections.data.some((s) => s.section_kind !== "Text");
   const [choices, lines, files, allocations, roster, offerings, guests] = await Promise.all([
@@ -166,13 +197,86 @@ export async function AdvanceTab({ view, t, locale, engagementKey }: TabProps) {
                 {t("gateway.engagement.due", { date: formatDateTime(locale, packet.due_at) })}
               </p>
             ) : null}
-            <RowList
+            <TrackGroups
               label={packet.title ?? ""}
-              items={sections.data
-                .filter((s) => s.advance_packet_id === packet.id)
-                .map((s) => sectionRow(s, submissions.data, ctx))}
+              sections={sections.data.filter((s) => s.advance_packet_id === packet.id)}
+              tracks={tracks.data}
+              progress={trackProgress.data.filter(
+                (p) => p.packetId === packet.id && p.recipientId === recipient?.id,
+              )}
+              render={(s) => sectionRow(s, submissions.data, ctx)}
+              t={t}
+              locale={locale}
             />
           </Section>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * A packet's sections, grouped by track when it uses more than General: each track names its computed state and,
+ * once signed off, when (R11). A packet on General alone reads as one list, as before tracks.
+ */
+function TrackGroups({
+  label,
+  sections,
+  tracks,
+  progress,
+  render,
+  t,
+  locale,
+}: {
+  label: string;
+  sections: readonly SectionRow[];
+  tracks: ReadonlyMap<string, string>;
+  progress: readonly ExternalTrackProgress[];
+  render: (s: SectionRow) => ReturnType<typeof sectionRow>;
+  t: Translate;
+  locale: string;
+}) {
+  const trackOf = (s: SectionRow) => tracks.get(s.id ?? "") ?? "General";
+  const used = TRACKS.filter((tr) => sections.some((s) => trackOf(s) === tr));
+  if (used.length <= 1 && used[0] === "General") {
+    return <RowList label={label} items={sections.map(render)} />;
+  }
+  return (
+    <div className="flex flex-col gap-16">
+      {used.map((tr) => {
+        const name = t(enumLabelKey("advanceTrack", tr));
+        const state = progress.find((p) => p.track === tr);
+        return (
+          <div key={tr} className="flex flex-col gap-8">
+            <div className="flex flex-wrap items-center gap-8">
+              <h3 className="m-0 text-heading-14 font-semibold">
+                {t("gateway.engagement.advance.tracks.label", { track: name })}
+              </h3>
+              {state ? (
+                <Tag tone={trackTone(state.state)}>
+                  {t(`gateway.engagement.advance.tracks.states.${enumKey(state.state)}`)}
+                </Tag>
+              ) : null}
+              {state?.signedOffAt ? (
+                <span className="text-text-13 text-text-secondary">
+                  {t("gateway.engagement.advance.tracks.signedOffOn", {
+                    date: formatDateTime(locale, state.signedOffAt),
+                  })}
+                </span>
+              ) : state ? (
+                <span className="text-text-13 text-text-secondary">
+                  {t("gateway.engagement.advance.tracks.progress", {
+                    done: state.sectionsDone,
+                    total: state.sectionsTotal,
+                  })}
+                </span>
+              ) : null}
+            </div>
+            <RowList
+              label={t("gateway.engagement.advance.tracks.label", { track: name })}
+              items={sections.filter((s) => trackOf(s) === tr).map(render)}
+            />
+          </div>
         );
       })}
     </div>

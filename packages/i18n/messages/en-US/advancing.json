@@ -152,7 +152,13 @@
     "advance_line_booked": "This window already has a dock slot.",
     "advance_dock_zone": "Choose a live dock zone.",
     "dock_slot_overlap": "Another slot holds that dock then. Choose another dock or move the slot.",
-    "credential_names_closed": "The naming deadline has passed for the party; change the names from Allocations."
+    "credential_names_closed": "The naming deadline has passed for the party; change the names from Allocations.",
+    "advance_track_empty": "No section of the packet is on this track.",
+    "advance_track_incomplete": "Every section on the track must be accepted, complete or not applicable before it is signed off.",
+    "advance_track_signed_off": "This track is signed off already. Revoke the sign-off to sign it again.",
+    "advance_track_revoke_reason": "Say why the sign-off is revoked, in 1 to 500 characters.",
+    "advance_reminder_batch": "Remind 1 to 200 recipients at a time.",
+    "advance_section_stale": "The section changed since you opened it. Reload and try again."
   },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",
@@ -891,5 +897,137 @@
     "done": "Dock slot booked.",
     "noZones": "The project's venue has no zones to book.",
     "booked": "Dock slot booked"
+  },
+  "progress": {
+    "title": "Progress",
+    "tiles": {
+      "outstanding": "Outstanding",
+      "overdue": "Overdue",
+      "awaitingReview": "Awaiting review",
+      "rosterGaps": "Roster gaps",
+      "tracksReady": "Tracks ready"
+    },
+    "tileCaptions": {
+      "outstanding": "Sections missing or returned",
+      "overdue": "Past the due date",
+      "awaitingReview": "Answers to review",
+      "rosterGaps": "Details still missing",
+      "tracksReady": "Ready for sign-off"
+    },
+    "panes": {
+      "label": "Show",
+      "packets": "Packets",
+      "crew": "Crew",
+      "allocations": "Allocations",
+      "tracks": "Tracks"
+    },
+    "packetFilter": "Packet",
+    "noPackets": "No packet is sent yet. Send one to see who has answered each section.",
+    "corner": {
+      "recipient": "Recipient",
+      "person": "Person",
+      "party": "Party"
+    },
+    "heatmap": {
+      "packets": "{packet}: answers by recipient and section",
+      "crew": "Crew readiness by person and category",
+      "allocations": "Allocations by party and offering",
+      "tracks": "{packet}: tracks by recipient"
+    },
+    "states": {
+      "missing": "Missing",
+      "awaitingReview": "Awaiting review",
+      "accepted": "Accepted",
+      "returned": "Returned",
+      "complete": "Complete",
+      "notApplicable": "Not applicable"
+    },
+    "overdue": "Overdue",
+    "readiness": {
+      "categories": {
+        "acceptance": "Acceptance",
+        "contact": "Contact",
+        "emergencyContacts": "Emergency contacts",
+        "dietaryNeeds": "Dietary needs",
+        "accessibilityNeeds": "Accessibility needs",
+        "allergies": "Allergies",
+        "passport": "Passport",
+        "uniform": "Uniform",
+        "travel": "Travel",
+        "vehicle": "Vehicle"
+      },
+      "states": {
+        "accepted": "Accepted",
+        "awaitingPerson": "Awaiting person",
+        "declined": "Declined",
+        "onFile": "On file",
+        "missing": "Missing",
+        "notShared": "Not shared",
+        "shared": "Shared",
+        "submitted": "Submitted",
+        "notOffered": "Not offered",
+        "hidden": "Hidden"
+      },
+      "empty": "No one is on a crew roster for this project yet.",
+      "refused": "You cannot read the crew of this project."
+    },
+    "allocation": {
+      "states": {
+        "requested": "Requested",
+        "approved": "Approved",
+        "partlyIssued": "Partly issued",
+        "issued": "Issued",
+        "returned": "Returned"
+      },
+      "detail": "{issued} of {approved} handed over",
+      "requestedDetail": "{n} awaiting a decision",
+      "empty": "Nothing is allocated on this project yet.",
+      "badges": "Badges",
+      "sites": "Site assets"
+    },
+    "tracksEmpty": "No section of this packet is on a track yet.",
+    "remind": {
+      "action": "Send reminder",
+      "done": "Reminded {sent}; {skipped} reminded in the last day",
+      "pickPacket": "Choose a packet to remind its recipients.",
+      "selected": "{n, plural, one {# recipient selected} other {# recipients selected}}"
+    },
+    "live": "Updates as answers and rosters change."
+  },
+  "tracks": {
+    "label": "Track",
+    "help": "Groups the sections a reviewer signs off together. It can change after the packet is sent.",
+    "names": {
+      "finance": "Finance",
+      "technical": "Technical",
+      "hospitality": "Hospitality",
+      "catering": "Catering",
+      "travel": "Travel",
+      "logistics": "Logistics",
+      "general": "General"
+    },
+    "states": {
+      "notStarted": "Not started",
+      "inProgress": "In progress",
+      "readyForSignOff": "Ready for sign-off",
+      "signedOff": "Signed off",
+      "reopened": "Reopened"
+    },
+    "signedOffOn": "Signed off {date}",
+    "signedOffBy": "Signed off by {name}, {date}",
+    "progress": "{done} of {total} done",
+    "signOff": {
+      "title": "Sign off {track} for {recipient}",
+      "body": "Every section on this track is accepted, complete or not applicable. Signing off records who signed and when.",
+      "confirm": "Sign off",
+      "done": "{track} signed off for {recipient}."
+    },
+    "revoke": {
+      "title": "Revoke the {track} sign-off for {recipient}",
+      "reason": "Why it is revoked",
+      "reasonHelp": "1 to 500 characters. The track goes back for review.",
+      "confirm": "Revoke sign-off",
+      "done": "{track} sign-off revoked for {recipient}."
+    }
   }
 }

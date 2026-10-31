@@ -152,7 +152,13 @@
     "advance_line_booked": "Esta franja ya tiene un turno de muelle.",
     "advance_dock_zone": "Elige una zona de muelle vigente.",
     "dock_slot_overlap": "Otro turno ocupa ese muelle a esa hora. Elige otro muelle o mueve el turno.",
-    "credential_names_closed": "Ya pasó la fecha límite de nombres para la parte; cambia los nombres desde Asignaciones."
+    "credential_names_closed": "Ya pasó la fecha límite de nombres para la parte; cambia los nombres desde Asignaciones.",
+    "advance_track_empty": "Ninguna sección del paquete está en esta área.",
+    "advance_track_incomplete": "Todas las secciones del área deben estar aceptadas, completas o no aplicar antes de aprobarla.",
+    "advance_track_signed_off": "Esta área ya está aprobada. Revoca la aprobación para volver a aprobarla.",
+    "advance_track_revoke_reason": "Di por qué se revoca la aprobación, en 1 a 500 caracteres.",
+    "advance_reminder_batch": "Recuerda de 1 a 200 destinatarios a la vez.",
+    "advance_section_stale": "La sección cambió desde que la abriste. Recarga e inténtalo de nuevo."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
@@ -891,5 +897,137 @@
     "done": "Turno de muelle reservado.",
     "noZones": "El recinto del proyecto no tiene zonas para reservar.",
     "booked": "Turno de muelle reservado"
+  },
+  "progress": {
+    "title": "Progreso",
+    "tiles": {
+      "outstanding": "Pendientes",
+      "overdue": "Vencidas",
+      "awaitingReview": "Por revisar",
+      "rosterGaps": "Faltantes en listas",
+      "tracksReady": "Áreas listas"
+    },
+    "tileCaptions": {
+      "outstanding": "Secciones faltantes o devueltas",
+      "overdue": "Pasada la fecha de vencimiento",
+      "awaitingReview": "Respuestas por revisar",
+      "rosterGaps": "Datos que aún faltan",
+      "tracksReady": "Listas para aprobar"
+    },
+    "panes": {
+      "label": "Mostrar",
+      "packets": "Paquetes",
+      "crew": "Equipo",
+      "allocations": "Asignaciones",
+      "tracks": "Áreas"
+    },
+    "packetFilter": "Paquete",
+    "noPackets": "Aún no se envió ningún paquete. Envía uno para ver quién respondió cada sección.",
+    "corner": {
+      "recipient": "Destinatario",
+      "person": "Persona",
+      "party": "Parte"
+    },
+    "heatmap": {
+      "packets": "{packet}: respuestas por destinatario y sección",
+      "crew": "Preparación del equipo por persona y categoría",
+      "allocations": "Asignaciones por parte y servicio",
+      "tracks": "{packet}: áreas por destinatario"
+    },
+    "states": {
+      "missing": "Falta",
+      "awaitingReview": "Por revisar",
+      "accepted": "Aceptada",
+      "returned": "Devuelta",
+      "complete": "Completa",
+      "notApplicable": "No aplica"
+    },
+    "overdue": "Vencida",
+    "readiness": {
+      "categories": {
+        "acceptance": "Aceptación",
+        "contact": "Contacto",
+        "emergencyContacts": "Contactos de emergencia",
+        "dietaryNeeds": "Necesidades alimentarias",
+        "accessibilityNeeds": "Necesidades de accesibilidad",
+        "allergies": "Alergias",
+        "passport": "Pasaporte",
+        "uniform": "Uniforme",
+        "travel": "Viaje",
+        "vehicle": "Vehículo"
+      },
+      "states": {
+        "accepted": "Aceptada",
+        "awaitingPerson": "Espera a la persona",
+        "declined": "Rechazada",
+        "onFile": "Registrado",
+        "missing": "Falta",
+        "notShared": "No compartido",
+        "shared": "Compartido",
+        "submitted": "Enviado",
+        "notOffered": "No se ofrece",
+        "hidden": "Oculto"
+      },
+      "empty": "Todavía no hay nadie en una lista de equipo de este proyecto.",
+      "refused": "No puedes ver el equipo de este proyecto."
+    },
+    "allocation": {
+      "states": {
+        "requested": "Solicitada",
+        "approved": "Aprobada",
+        "partlyIssued": "Entregada en parte",
+        "issued": "Entregada",
+        "returned": "Devuelta"
+      },
+      "detail": "{issued} de {approved} entregados",
+      "requestedDetail": "{n} esperan una decisión",
+      "empty": "Todavía no hay nada asignado en este proyecto.",
+      "badges": "Credenciales",
+      "sites": "Equipos del sitio"
+    },
+    "tracksEmpty": "Ninguna sección de este paquete está en un área todavía.",
+    "remind": {
+      "action": "Enviar recordatorio",
+      "done": "Se recordó a {sent}; a {skipped} ya se les recordó en el último día",
+      "pickPacket": "Elige un paquete para recordar a sus destinatarios.",
+      "selected": "{n, plural, one {# destinatario seleccionado} other {# destinatarios seleccionados}}"
+    },
+    "live": "Se actualiza cuando cambian las respuestas y las listas."
+  },
+  "tracks": {
+    "label": "Área",
+    "help": "Agrupa las secciones que un revisor aprueba juntas. Se puede cambiar después de enviar el paquete.",
+    "names": {
+      "finance": "Finanzas",
+      "technical": "Técnica",
+      "hospitality": "Hospitalidad",
+      "catering": "Catering",
+      "travel": "Viajes",
+      "logistics": "Logística",
+      "general": "General"
+    },
+    "states": {
+      "notStarted": "Sin empezar",
+      "inProgress": "En curso",
+      "readyForSignOff": "Listo para aprobar",
+      "signedOff": "Aprobado",
+      "reopened": "Reabierto"
+    },
+    "signedOffOn": "Aprobado el {date}",
+    "signedOffBy": "Aprobado por {name}, {date}",
+    "progress": "{done} de {total} listas",
+    "signOff": {
+      "title": "Aprobar {track} de {recipient}",
+      "body": "Todas las secciones de esta área están aceptadas, completas o no aplican. Al aprobar queda registrado quién aprobó y cuándo.",
+      "confirm": "Aprobar",
+      "done": "{track} aprobado para {recipient}."
+    },
+    "revoke": {
+      "title": "Revocar la aprobación de {track} de {recipient}",
+      "reason": "Por qué se revoca",
+      "reasonHelp": "De 1 a 500 caracteres. El área vuelve a revisión.",
+      "confirm": "Revocar aprobación",
+      "done": "Se revocó la aprobación de {track} para {recipient}."
+    }
   }
 }

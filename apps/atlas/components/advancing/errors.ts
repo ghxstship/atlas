@@ -4,6 +4,13 @@
  * repository; each has a key in both catalogs.
  */
 export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
+  // R11 (2741, 2743): reminders by hand and track sign-off.
+  "advance_reminder_batch",
+  "advance_track_empty",
+  "advance_track_incomplete",
+  "advance_track_signed_off",
+  "advance_track_revoke_reason",
+  "advance_section_stale",
   "advance_packet_send",
   "advance_packet_sent",
   "advance_packet_no_sections",

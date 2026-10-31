@@ -331,7 +331,20 @@
       "rosterLink": "Abrir la pestaña Personal",
       "noGuestList": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
       "guestsUsed": "{n} lugares en la lista de invitados, acompañantes incluidos.",
-      "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos."
+      "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos.",
+      "tracks": {
+        "label": "Área {track}",
+        "states": {
+          "notStarted": "Sin empezar",
+          "inProgress": "En curso",
+          "readyForSignOff": "Listo para aprobar",
+          "signedOff": "Aprobado",
+          "reopened": "Reabierto"
+        },
+        "signedOffOn": "Aprobado el {date}",
+        "progress": "{done} de {total} secciones listas",
+        "summary": "Áreas"
+      }
     },
     "compliance": {
       "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
@@ -1178,6 +1191,15 @@
     "sponsorAssetSource": {
       "orgSupplied": "Enviado por la organización",
       "sponsorSupplied": "Enviado por ti"
+    },
+    "advanceTrack": {
+      "finance": "Finanzas",
+      "technical": "Técnica",
+      "hospitality": "Hospitalidad",
+      "catering": "Catering",
+      "travel": "Viajes",
+      "logistics": "Logística",
+      "general": "General"
     }
   },
   "explore": {

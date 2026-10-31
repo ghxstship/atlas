@@ -7,11 +7,13 @@ import {
   addSection,
   addSectionChoice,
   ADVANCE_SECTION_KINDS,
+  ADVANCE_TRACKS,
   ADVANCE_WINDOW_KINDS,
   bookDockSlotFromAnswer,
   removeSectionChoice,
   sectionConfig,
   setRecipientNamesDue,
+  setSectionTrack,
   archivePacket,
   archiveRider,
   createPacket,
@@ -188,6 +190,7 @@ export async function addSectionAction(_: AdvancingState, form: FormData): Promi
       maxLines: z.coerce.number().int().nullable().catch(null),
       perPerson: z.boolean(),
       choices: z.array(z.string().regex(/^(asset_class|credential_category):[0-9a-f-]{36}$/)),
+      track: z.enum(ADVANCE_TRACKS).catch("General"),
     })
     .safeParse({
       packetId: text(form, "packetId"),
@@ -198,6 +201,7 @@ export async function addSectionAction(_: AdvancingState, form: FormData): Promi
       maxLines: text(form, "maxLines") || null,
       perPerson: text(form, "perPerson") === "on",
       choices: form.getAll("choice").filter((c): c is string => typeof c === "string" && c !== ""),
+      track: text(form, "track") || "General",
     });
   if (!parsed.success) {
     return {
@@ -224,6 +228,11 @@ export async function addSectionAction(_: AdvancingState, form: FormData): Promi
     prompt: f.prompt,
     config,
   });
+  // R11: a section is General unless the builder chose another track (2743).
+  if (added.ok && f.track !== "General") {
+    const tracked = await setSectionTrack(ctx.viewer.db, added.data.id, f.track);
+    if (!tracked.ok) return done(ctx.org.slug, tracked);
+  }
   if (!added.ok || !needsChoices) return done(ctx.org.slug, added);
   for (const choice of f.choices) {
     const [kind, targetId] = choice.split(":") as ["asset_class" | "credential_category", string];
@@ -278,18 +287,29 @@ export async function updateSectionAction(
   form: FormData,
 ): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ sectionId: id, title, prompt: optionalText(2000) }).safeParse({
-    sectionId: text(form, "sectionId"),
-    title: text(form, "title"),
-    prompt: text(form, "prompt"),
-  });
+  const parsed = z
+    .object({
+      sectionId: id,
+      title,
+      prompt: optionalText(2000),
+      track: z.enum(ADVANCE_TRACKS).nullable().catch(null),
+    })
+    .safeParse({
+      sectionId: text(form, "sectionId"),
+      title: text(form, "title"),
+      prompt: text(form, "prompt"),
+      track: text(form, "track") || null,
+    });
   if (!parsed.success) return { fieldErrors: { title: "title" } };
+  const updated = await updateSection(ctx.viewer.db, parsed.data.sectionId, {
+    title: parsed.data.title,
+    prompt: parsed.data.prompt,
+  });
+  // R11: the track is a grouping label, editable after the packet is sent like the wording (2743).
+  if (!updated.ok || parsed.data.track === null) return done(ctx.org.slug, updated);
   return done(
     ctx.org.slug,
-    await updateSection(ctx.viewer.db, parsed.data.sectionId, {
-      title: parsed.data.title,
-      prompt: parsed.data.prompt,
-    }),
+    await setSectionTrack(ctx.viewer.db, parsed.data.sectionId, parsed.data.track),
   );
 }
 

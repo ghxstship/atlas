@@ -9,6 +9,11 @@ export {
   type RunOfShowLiveProps,
   type CoordinateMatrixProps,
   type AccessGridMatrixProps,
+  type StatusHeatmapProps,
+  type StatusHeatmapRow,
+  type StatusHeatmapCol,
+  type StatusHeatmapCell,
+  type StatusHeatmapLegendItem,
 } from "./XOS.types.ts";
 export { GateReadinessPanel } from "./GateReadinessPanel.tsx";
 export { ProvenanceBadge } from "./ProvenanceBadge.tsx";
@@ -21,3 +26,4 @@ export { RadioChannelTable } from "./RadioChannelTable.tsx";
 export { RunOfShowLive } from "./RunOfShowLive.tsx";
 export { CoordinateMatrix } from "./CoordinateMatrix.tsx";
 export { AccessGridMatrix } from "./AccessGridMatrix.tsx";
+export { StatusHeatmap } from "./StatusHeatmap.tsx";

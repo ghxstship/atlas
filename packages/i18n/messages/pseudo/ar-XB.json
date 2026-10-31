@@ -226,6 +226,13 @@
       "hint": "‮∀ɹɹoʍ ʞǝʎs ɯoʌǝ, Ǝuʇǝɹ ǝpıʇs, ꓷǝlǝʇǝ ɔlǝɐɹs ʇo Ոudɹıɔǝp, dɐsʇǝ ɟɹoɯ Ǝxɔǝl ɟılls ʇɥǝ ɹɐuƃǝ.‬",
       "row": "‮ꓤoʍ‬"
     },
+    "heatmap": {
+      "cell": "‮{row}, {col}: {state}‬",
+      "detail": "‮{row}, {col}: {state}. {detail}‬",
+      "none": "‮{row}, {col}: ñöţ àšķéð‬",
+      "select": "‮Šéļéçţ {row}‬",
+      "legend": "‮Ŵĥàţ éàçĥ šţàţé ɱéàñš‬"
+    },
     "help": {
       "ask": "‮∀sʞ ɐ bnǝsʇıou ɐqonʇ ʇɥıs dɐƃǝ‬",
       "assistant": "‮∀ssısʇɐuʇ‬",

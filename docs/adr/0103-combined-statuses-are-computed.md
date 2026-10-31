@@ -106,3 +106,15 @@ Migrations 2690 to 2698 build sections 3 and 4. Where the build differs from the
   Per diems gain `roster_entry_id`, so a roster worker can hold one without a membership.
 - **Catering counts.** `app.catering_counts` logs `dietary_needs.counted`, and `allergies.counted` when allergies
   are shown, once per person counted. Below five people the counts are suppressed.
+
+## Amendment: R11 progress, readiness and tracks (RRR-192, 2026-10-31)
+
+- **Computed, nothing is stored.** R11's advance progress (`app.advance_progress`), crew readiness
+  (`app.roster_readiness`) and allocation heat (`app.advance_allocation_heat`, over `app.advance_allocation_status`)
+  are computed when read (migration 2740), so `docs/adr/denormalization-register.md` gets no row for them.
+- **Track states.** A track sign-off is a fact: who signed (`created_by`) and when (`signed_off_at`) in
+  `app.advance_track_signoffs`, revoked with a reason and never deleted (migration 2743). The track state (Not
+  Started, In Progress, Ready for Sign-off, Signed Off, Reopened) is computed in `app.advance_track_progress` from
+  the cells and the live sign-off, never stored.
+- **Reminder ledgers.** `private.advance_reminders_sent` and `private.roster_fact_reminders_sent` (2741) record that a
+  reminder went out, so it goes once; they summarize nothing and are not derived values.

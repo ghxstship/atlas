@@ -225,6 +225,13 @@
     "hint": "Las flechas mueven, Enter edita, Supr borra a Sin precio, pegar desde Excel llena el rango.",
     "row": "Fila"
   },
+  "heatmap": {
+    "cell": "{row}, {col}: {state}",
+    "detail": "{row}, {col}: {state}. {detail}",
+    "none": "{row}, {col}: no se pide",
+    "select": "Seleccionar {row}",
+    "legend": "Qué significa cada estado"
+  },
   "help": {
     "ask": "Haga una pregunta sobre esta página",
     "assistant": "Asistente",

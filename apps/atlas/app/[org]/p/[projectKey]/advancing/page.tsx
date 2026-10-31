@@ -4,6 +4,7 @@ import { AllocationsCollection } from "@/components/advancing/allocations";
 import { advancingProjectTab } from "@/components/advancing/context";
 import { CrewRoster } from "@/components/advancing/crew-roster";
 import { PacketsCollection } from "@/components/advancing/packets";
+import { AdvancingProgress } from "@/components/advancing/progress";
 import { ReconciliationCollection } from "@/components/advancing/reconciliation";
 import { RidersCollection } from "@/components/advancing/riders";
 import { GuestList } from "@/components/advancing/guests";
@@ -13,6 +14,7 @@ import { TravelParty } from "@/components/advancing/travel-party";
 import { getTranslate } from "@/lib/shell/translate";
 
 const SECTIONS = [
+  "progress",
   "packets",
   "submissions",
   "riders",
@@ -27,7 +29,8 @@ const SECTIONS = [
  * The project's Advancing tab (Section 4.5.4): packets, submissions, riders and reconciliation of
  * this project, using the same components as the org-level pages with the project fixed. Travel party (R5) is a
  * project section only: it reads one project's roster travel, logged, and has no org-level page. Its table and the
- * hospitality forms it opens load on demand.
+ * hospitality forms it opens load on demand. Progress (R11) is the default: every outstanding advancing item of the
+ * project on one screen, with heatmaps that load on demand.
  */
 export default async function ProjectAdvancingPage({
   params,
@@ -37,7 +40,7 @@ export default async function ProjectAdvancingPage({
   const search = flatSearch(await searchParams);
   const actx = await advancingProjectTab(routeParams);
   const t = await getTranslate();
-  const section = SECTIONS.find((s) => s === search["section"]) ?? "packets";
+  const section = SECTIONS.find((s) => s === search["section"]) ?? "progress";
   const path = `/${routeParams.org}/p/${routeParams.projectKey}/advancing`;
   const sectionHref = (s: string) => `${path}?section=${s}`;
   const sectionLabel = (s: string) =>
@@ -67,7 +70,9 @@ export default async function ProjectAdvancingPage({
           ))}
         </ul>
       </nav>
-      {section === "travel-party" ? (
+      {section === "progress" ? (
+        <AdvancingProgress actx={actx} path={path} search={search} title={title} />
+      ) : section === "travel-party" ? (
         <TravelParty actx={actx} project={actx.project} path={path} search={search} title={title} />
       ) : section === "allocations" ? (
         <AllocationsCollection actx={actx} path={path} search={search} title={title} />

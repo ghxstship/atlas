@@ -226,6 +226,13 @@
       "hint": "[Àrröw kéýs mövé, Éñtér édîts, Délété çléàrs tö Ûñprîçéd, pàsté fröm Éxçél fîlls thé ràñgé. ···································]",
       "row": "[Röw ·]"
     },
+    "heatmap": {
+      "cell": "[{row}, {col}: {state} ··]",
+      "detail": "[{row}, {col}: {state}. {detail} ···]",
+      "none": "[{row}, {col}: ñöţ àšķéð ······]",
+      "select": "[Šéļéçţ {row} ···]",
+      "legend": "[Ŵĥàţ éàçĥ šţàţé ɱéàñš ·········]"
+    },
     "help": {
       "ask": "[Àsk à qûéstîöñ àböût thîs pàgé ···········]",
       "assistant": "[Àssîstàñt ···]",

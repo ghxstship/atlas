@@ -43,7 +43,8 @@
         "riders": "Riders",
         "reconciliation": "Conciliación",
         "crew": "Lista del equipo",
-        "allocations": "Asignaciones"
+        "allocations": "Asignaciones",
+        "progress": "Progreso"
       },
       "places": {
         "venues": "Recintos",
