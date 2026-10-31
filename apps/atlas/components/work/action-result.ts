@@ -97,6 +97,7 @@ const EXPLAINED = new Set([
   "record_review_state",
   "record_review_open",
   "record_review_note_required",
+  "sod_record_review_owner",
   "sod_file_review_uploader",
   "file_review_not_clean",
   "file_review_subject",

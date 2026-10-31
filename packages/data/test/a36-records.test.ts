@@ -428,6 +428,11 @@ describe("inbox repository", () => {
     };
     expect(isActionableApproval(timesheet)).toBe(true);
     expect(isActionableApproval({ ...timesheet, kind: "mention.created" })).toBe(false);
+    // A record review (B14, migration 3034) is approvable by its Approval record while it is in the Inbox.
+    const review = { ...timesheet, subjectTable: "app.records", subjectId: "ap1" };
+    expect(isActionableApproval(review)).toBe(true);
+    expect(isActionableApproval({ ...review, subjectId: null })).toBe(false);
+    expect(isActionableApproval({ ...review, kind: "approval.decided" })).toBe(false);
     expect(await actOnInboxItem(db, { id: "n1", action: "approve" })).toEqual({
       ok: true,
       data: "n1",

@@ -686,6 +686,7 @@
       "record_review_open": "A review of this record is still open; wait for its decision.",
       "record_review_note_required": "Say what to change when you ask for changes.",
       "sod_file_review_uploader": "The person who uploaded a file version cannot review it.",
+      "sod_record_review_owner": "The owner of a record cannot review it. Ask someone else.",
       "file_review_not_clean": "Only a file that passed its virus scan is reviewed.",
       "file_review_subject": "Files are reviewed on submittals and records.",
       "file_review_note_required": "Say what to change in up to 1,000 characters."
@@ -836,8 +837,10 @@
     "approve": "Approve",
     "requestChanges": "Request changes",
     "reviewer": "Reviewer",
+    "chooseReviewer": "Choose a reviewer",
+    "noReviewers": "Nobody else here can review this record yet. Add a project member who may edit its records.",
     "note": "Note for the reviewer",
-    "request": "Request review",
+    "request": "Ask for review",
     "history": "{count, plural, one {# review} other {# reviews}}"
   }
 }

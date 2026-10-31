@@ -686,6 +686,7 @@
       "record_review_open": "Una revisión de este registro sigue abierta; espera su decisión.",
       "record_review_note_required": "Di qué cambiar cuando pidas cambios.",
       "sod_file_review_uploader": "Quien subió una versión de archivo no puede revisarla.",
+      "sod_record_review_owner": "Quien es responsable de un registro no puede revisarlo. Pídeselo a otra persona.",
       "file_review_not_clean": "Solo se revisa un archivo que pasó su análisis de virus.",
       "file_review_subject": "Los archivos se revisan en presentaciones y registros.",
       "file_review_note_required": "Di qué cambiar en hasta 1,000 caracteres."
@@ -834,10 +835,12 @@
     "answerNote": "Nota",
     "answerNoteHelp": "Obligatoria cuando pides cambios; quien la pidió la ve en el historial del registro.",
     "approve": "Aprobar",
-    "requestChanges": "Pedir cambios",
+    "requestChanges": "Solicitar cambios",
     "reviewer": "Revisor",
+    "chooseReviewer": "Elige quién revisa",
+    "noReviewers": "Aún no hay nadie más que pueda revisar este registro. Agrega al proyecto a alguien que pueda editar sus registros.",
     "note": "Nota para quien revisa",
-    "request": "Pedir revisión",
+    "request": "Solicitar revisión",
     "history": "{count, plural, one {# revisión} other {# revisiones}}"
   }
 }

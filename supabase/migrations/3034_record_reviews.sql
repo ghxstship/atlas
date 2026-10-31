@@ -17,9 +17,20 @@
 --   * t47_record_review_gate refuses Complete without an approved latest review (record_review_required,
 --     record_review_pending, record_review_changes_requested) on every path: app.transition_record, the bulk RPCs and
 --     direct writes. Clearing the flag needs projects.settings.write (record_review_flag_locked).
---   * app.act_on_notification is restated from 1140 so Approve and Reject on an approval.requested about app.records
---     decide the review from Inbox and from Compass's push actions; Reject needs a comment.
--- No notification kind is added: request and decision reuse approval.requested and approval.decided.
+--   * Only an independent decision counts (ADR 0153 D5): the guard counts an Approved review only when its approver is neither
+--     the record's owner nor the person completing it, it was decided after the record last entered Active, and it
+--     is in the record's project. The record's owner is never its reviewer (sod_record_review_owner, a new built-in
+--     rule), so an Approval record inserted by hand with a borrowed requester cannot carry a record to Complete.
+--   * app.act_on_notification is restated from A127's 2200, the latest definition, so Approve and Reject on an
+--     approval.requested about app.records decide the review from Inbox and from Compass's push actions; Reject needs a
+--     comment. private.notification_link_actions (2200) is not restated, so email one-tap links are not offered for
+--     record reviews.
+-- No notification kind is added: request and decision reuse approval.requested and approval.decided, with subject_id
+-- the Approval record (what app.decide_record_review takes) and recordKey the reviewed record's key. The seed is
+-- regenerated as 3039 for the two new emitters.
+
+insert into private.separation_of_duties_rules (code, enforced_on, description) values
+  ('sod_record_review_owner', 'Record reviews', 'The owner of a record cannot review it.');
 
 -- Columns ------------------------------------------------------------------------------------------------------------------
 
@@ -248,13 +259,18 @@ begin
       where a.subject_record_id = v_record.id and a.decision is null and r.deleted_at is null and r.record_state <> 'Canceled') then
     perform private.refuse('record_review_open', 'A review of this record is still open; wait for its decision.');
   end if;
-  if p_reviewer_person_id is not null then
-    if p_reviewer_person_id = v_me then
-      perform private.refuse('sod_approval_requester', 'An approval is decided by an eligible approver, never the requester.');
-    end if;
-    if not private.can_decide_record_review(p_reviewer_person_id, v_record.project_id) then
-      perform private.refuse('approval_not_eligible', 'Only a person who may write the project''s records decides its approvals.');
-    end if;
+  -- A review always has someone to decide it and to tell.
+  if p_reviewer_person_id is null then
+    raise exception using errcode = '22023', message = 'a review names its reviewer';
+  end if;
+  if p_reviewer_person_id = v_me then
+    perform private.refuse('sod_approval_requester', 'An approval is decided by an eligible approver, never the requester.');
+  end if;
+  if p_reviewer_person_id = v_record.owner_party_id then
+    perform private.refuse('sod_record_review_owner', 'The owner of a record cannot review it.');
+  end if;
+  if not private.can_decide_record_review(p_reviewer_person_id, v_record.project_id) then
+    perform private.refuse('approval_not_eligible', 'Only a person who may write the project''s records decides its approvals.');
   end if;
 
   v_key := private.record_key(v_record.id);
@@ -270,16 +286,14 @@ begin
     v_approval, 'Ready', 'Active', v_reason);
   perform private.transition_lifecycle('record', 'app.records', 'record_state', 'app.record_state_transitions', 'record_id',
     v_record.id, 'Active', 'In Review', v_reason);
-  if p_reviewer_person_id is not null then
-    perform private.notify(v_record.org_id, p_reviewer_person_id, 'approval.requested', 'app.records', v_approval,
-      v_record.project_id, jsonb_build_object('title', v_record.title, 'recordKey', v_key,
-        'actorName', (select p.full_name from app.people p where p.id = v_me)));
-  end if;
+  perform private.notify(v_record.org_id, p_reviewer_person_id, 'approval.requested', 'app.records', v_approval,
+    v_record.project_id, jsonb_build_object('title', v_record.title, 'recordKey', v_key,
+      'actorName', (select p.full_name from app.people p where p.id = v_me)));
   return v_approval;
 end;
 $$;
 
-comment on function app.request_record_review(uuid, uuid, text) is 'Asks for a review of an Active record (G-268, ADR 0153 D5): creates an Approval record "Review of KEY-n" in the record''s project and scope node, owned by the reviewer, with its record_approval naming the record and the caller as requester; moves it Proposed, Ready, Active and the record Active to In Review with the note as reason; and sends the named reviewer approval.requested (title, recordKey, actorName). Needs work.record.write on the project (42501). Refuses an Approval record (record_review_kind), a record that is not Active (record_review_state), a record with an undecided review (record_review_open), the caller as reviewer (sod_approval_requester) and a reviewer who could not decide it (approval_not_eligible). Returns the Approval record id.';
+comment on function app.request_record_review(uuid, uuid, text) is 'Asks for a review of an Active record (G-268, ADR 0153 D5): creates an Approval record "Review of KEY-n" in the record''s project and scope node, owned by the reviewer, with its record_approval naming the record and the caller as requester; moves it Proposed, Ready, Active and the record Active to In Review with the note as reason; and sends the named reviewer approval.requested about the Approval record (subject app.records; title, recordKey of the reviewed record, actorName). Needs work.record.write on the project (42501) and a reviewer (22023). Refuses an Approval record (record_review_kind), a record that is not Active (record_review_state), a record with an undecided review (record_review_open), the caller as reviewer (sod_approval_requester), the record''s owner as reviewer (sod_record_review_owner) and a reviewer who could not decide it (approval_not_eligible). Returns the Approval record id.';
 revoke all on function app.request_record_review(uuid, uuid, text) from public, anon;
 grant execute on function app.request_record_review(uuid, uuid, text) to authenticated, service_role;
 
@@ -320,6 +334,9 @@ begin
     perform private.refuse('record_review_note_required', 'Keep the note to 1,000 characters.');
   end if;
   select * into v_subject from app.records r where r.id = v_link.subject_record_id for update;
+  if v_me = v_subject.owner_party_id then
+    perform private.refuse('sod_record_review_owner', 'The owner of a record cannot review it.');
+  end if;
 
   -- The guard stamps the approver from the session and refuses the requester and anyone who cannot decide (0311).
   update app.record_approval set decision = p_decision where record_id = v_approval.id;
@@ -340,7 +357,7 @@ begin
 end;
 $$;
 
-comment on function app.decide_record_review(uuid, app.approval_decision, text) is 'Decides a review an app.request_record_review Approval record asks for (G-268, ADR 0153 D5): records the decision on record_approval, where private.guard_record_approval stamps the session person as approver and refuses the requester (sod_approval_requester) and anyone who cannot write the project''s records (approval_not_eligible), so any eligible approver other than the requester decides; moves the Approval record Active to Complete; on Rejected, which needs a note (record_review_note_required), moves the record back In Review to Active with the note when it is still In Review, and otherwise leaves its state alone; archives the open approval.requested for the Approval record; and sends the requester approval.decided. Needs work.record.write on the project (42501). Returns the Approval record id.';
+comment on function app.decide_record_review(uuid, app.approval_decision, text) is 'Decides a review an app.request_record_review Approval record asks for (G-268, ADR 0153 D5): records the decision on record_approval, where private.guard_record_approval stamps the session person as approver and refuses the requester (sod_approval_requester) and anyone who cannot write the project''s records (approval_not_eligible), so any eligible approver other than the requester and the record''s owner (sod_record_review_owner) decides; moves the Approval record Active to Complete; on Rejected, which needs a note (record_review_note_required), moves the record back In Review to Active with the note when it is still In Review, and otherwise leaves its state alone; archives the open approval.requested for the Approval record; and sends the requester approval.decided. Needs work.record.write on the project (42501). Returns the Approval record id.';
 revoke all on function app.decide_record_review(uuid, app.approval_decision, text) from public, anon;
 grant execute on function app.decide_record_review(uuid, app.approval_decision, text) to authenticated, service_role;
 
@@ -353,39 +370,54 @@ security definer
 set search_path = ''
 as $$
 declare
+  v_me uuid := case when auth.uid() is not null then private.current_person_id() end;
+  v_review record;
   v_found boolean;
-  v_decision app.approval_decision;
+  v_active_at timestamptz;
 begin
   if old.requires_review and not new.requires_review and auth.uid() is not null
      and not private.can_on_project(new.project_id, 'projects.settings.write') then
     perform private.refuse('record_review_flag_locked', 'Only someone who may change the project''s settings turns off Requires review.');
   end if;
   if new.record_state = 'Complete' and old.record_state <> 'Complete' and new.requires_review then
-    select true, a.decision into v_found, v_decision
+    -- The latest live, not Canceled Approval record about the record, in its own project.
+    select r.id, a.decision, a.approver_person_id, a.decided_at into v_review
     from app.record_approval a join app.records r on r.id = a.record_id
-    where a.subject_record_id = new.id and r.deleted_at is null and r.record_state <> 'Canceled'
-    order by r.created_at desc, r.id desc
+    where a.subject_record_id = new.id and r.project_id = new.project_id
+      and r.deleted_at is null and r.record_state <> 'Canceled'
+    order by r.created_at desc, r.record_number desc, r.id desc
     limit 1;
-    if v_found is null then
+    v_found := found;
+    -- When the record last entered Active: a decision before that (a reopened record, or an Approved review followed
+    -- by a Rejected one that was later deleted) no longer stands.
+    select max(t.created_at) into v_active_at
+    from app.record_state_transitions t where t.record_id = new.id and t.to_state = 'Active';
+    if not v_found then
       perform private.refuse('record_review_required', 'This record needs an approved review before it is Complete.');
-    elsif v_decision is null then
+    elsif v_review.decision is null then
       perform private.refuse('record_review_pending', 'The review is still open.');
-    elsif v_decision = 'Rejected' then
+    elsif v_review.decision = 'Rejected' then
       perform private.refuse('record_review_changes_requested', 'The reviewer asked for changes; ask for another review.');
+    elsif v_review.approver_person_id is not distinct from new.owner_party_id
+       or v_review.approver_person_id is not distinct from v_me
+       or (v_active_at is not null and v_review.decided_at <= v_active_at) then
+      -- An approval by the record's owner or by the person completing it, or one decided before the record last
+      -- entered Active, is not an independent review of the work as it stands.
+      perform private.refuse('record_review_required', 'This record needs an approved review before it is Complete.');
     end if;
   end if;
   return new;
 end;
 $$;
 
-comment on function private.guard_record_review() is 'The review done-gate (G-268, ADR 0153 D5): a record with requires_review moves to Complete only when the latest live, not Canceled Approval record about it is decided Approved (record_review_required with none, record_review_pending while undecided, record_review_changes_requested after Rejected), on every path that changes the state. Turning requires_review off needs projects.settings.write on the project (record_review_flag_locked); turning it on needs only the record''s write policy.';
+comment on function private.guard_record_review() is 'The review done-gate (G-268, ADR 0153 D5): a record with requires_review moves to Complete only when the latest live, not Canceled Approval record about it in its own project is decided Approved (record_review_required with none, record_review_pending while undecided, record_review_changes_requested after Rejected), on every path that changes the state. An Approved review counts only when its approver is neither the record''s owner nor the person completing it and it was decided after the record last entered Active; otherwise record_review_required. Turning requires_review off needs projects.settings.write on the project (record_review_flag_locked); turning it on needs only the record''s write policy.';
 revoke all on function private.guard_record_review() from public, anon, authenticated;
 
 create trigger t47_record_review_gate before update of record_state, requires_review on app.records
   for each row execute function private.guard_record_review();
 
 -- Acting on a review request from Inbox -------------------------------------------------------------------------------------------
--- Restated from 1140_timesheet_approval_requests.sql, the latest definition, with the app.records branch.
+-- Restated from A127's 2200_one_tap_actions.sql, the latest definition, with the app.records branch.
 
 create or replace function app.act_on_notification(p_notification_id uuid, p_action text, p_comment text default null)
 returns uuid
@@ -397,41 +429,77 @@ as $$
 declare
   v_person uuid := private.require_person();
   v_note app.notifications;
+  v_shift app.shifts;
+  v_comment text := nullif(btrim(coalesce(p_comment, '')), '');
+  v_conversation uuid;
 begin
   select * into v_note from app.notifications n
-  where n.id = p_notification_id and n.recipient_person_id = v_person
-    and n.org_id in (select private.my_org_ids()) and n.deleted_at is null;
-  if v_note.id is null then
+  where n.id = p_notification_id and n.recipient_person_id = v_person and n.deleted_at is null;
+  -- Approving and rejecting are a member's. Done and answering a shift, an offer or a message are the recipient's while
+  -- the notification is still theirs to see (private.is_my_notification: a member, an external party or an applicant
+  -- the org works with, as row level security on notifications reads it) (A127).
+  if v_note.id is null or not coalesce(case when p_action in ('approve', 'reject')
+                                            then v_note.org_id in (select private.my_org_ids())
+                                            else private.is_my_notification(v_note.id) end, false) then
     raise exception using errcode = '42501', message = 'notification not found';
   end if;
-  if p_action not in ('approve', 'reject', 'done') or p_action is null then
-    perform private.refuse('inbox_action_unknown', 'An Inbox item is approved, rejected or marked Done.');
+  if p_action is null or p_action not in ('approve', 'reject', 'done', 'accept', 'decline', 'reply') then
+    perform private.refuse('inbox_action_unknown', 'An Inbox item is approved, rejected, accepted, declined, answered or marked Done.');
   end if;
   if p_action in ('approve', 'reject') then
     if v_note.kind <> 'approval.requested' or v_note.subject_table not in ('approval_instances', 'timesheets', 'app.records') then
       perform private.refuse('inbox_action_not_offered', 'Only an approval request is approved or rejected from the Inbox.');
     end if;
     if v_note.subject_table = 'timesheets' then
-      if p_action = 'reject' and nullif(btrim(coalesce(p_comment, '')), '') is null then
+      if p_action = 'reject' and v_comment is null then
         perform private.refuse('timesheet_rejection_reason', 'Say why when you reject a timesheet.');
       end if;
       perform app.decide_timesheet(v_note.subject_id,
         (case when p_action = 'approve' then 'Approved' else 'Rejected' end)::app.approval_decision,
-        coalesce(nullif(btrim(coalesce(p_comment, '')), ''), 'Approved from a notification.'));
+        coalesce(v_comment, 'Approved from a notification.'));
     elsif v_note.subject_table = 'app.records' then
-      -- B14 (3034): a record review; asking for changes needs a note (record_review_note_required).
+      -- B14 (3034): a record review, by its Approval record; asking for changes needs a note
+      -- (record_review_note_required).
       perform app.decide_record_review(v_note.subject_id,
-        (case when p_action = 'approve' then 'Approved' else 'Rejected' end)::app.approval_decision, p_comment);
+        (case when p_action = 'approve' then 'Approved' else 'Rejected' end)::app.approval_decision, v_comment);
     else
       perform app.decide_approval(v_note.subject_id, p_action = 'approve', p_comment);
     end if;
+  elsif p_action in ('accept', 'decline') then
+    if v_note.kind in ('shift.assigned', 'shift.changed') and v_note.subject_table = 'app.shifts' then
+      select * into v_shift from app.shifts s where s.id = v_note.subject_id;
+      if p_action = 'decline' then
+        perform app.decline_shift(v_note.subject_id, v_comment);
+      elsif v_shift.membership_id is null and v_shift.engagement_id is not null then
+        perform app.accept_engaged_shift(v_note.subject_id, 'Accepted from a notification.');
+      else
+        perform app.accept_shift(v_note.subject_id, 'Accepted from a notification.');
+      end if;
+    elsif v_note.kind = 'offer.sent' and v_note.subject_table = 'app.offers' then
+      if p_action = 'accept' then
+        perform app.accept_offer(v_note.subject_id);
+      else
+        perform app.decline_offer(v_note.subject_id, coalesce(v_comment, 'Declined from a notification.'));
+      end if;
+    else
+      perform private.refuse('inbox_action_not_offered', 'Only a shift or an offer is accepted or declined from a notification.');
+    end if;
+  elsif p_action = 'reply' then
+    v_conversation := case when v_note.message_args ->> 'conversation_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+                           then (v_note.message_args ->> 'conversation_id')::uuid end;
+    if v_note.kind <> 'message.received' or v_conversation is null then
+      perform private.refuse('inbox_action_not_offered', 'Only a message is answered from a notification.');
+    end if;
+    if v_comment is null then
+      perform private.refuse('notification_reply_empty', 'Write a reply first.');
+    end if;
+    perform app.send_chat_message(v_conversation, v_comment);
   end if;
   update app.notifications set read_at = coalesce(read_at, now()), archived_at = now()
   where id = v_note.id and created_at = v_note.created_at;
   return v_note.id;
 end;
 $$;
-
-comment on function app.act_on_notification(uuid, text, text) is 'Acts on a notification where it arrives (Section 11.10 rule 5), for its recipient only: approve or reject the approval, the timesheet or the record review (B14, app.records) an approval request asks for (app.decide_approval, app.decide_timesheet and app.decide_record_review decide every rule, so a refusal names it and the item stays), or mark it Done. A decided or Done item leaves the Inbox. Push notification actions call it through the API (notifications.act). Returns the notification id.';
+comment on function app.act_on_notification(uuid, text, text) is 'Acts on a notification where it arrives (Section 11.10 rule 5), for its recipient only, while it is still theirs to see (private.is_my_notification): approve or reject the approval, the timesheet or the record review (B14, app.records) an approval request asks for (a member''s; app.decide_approval, app.decide_timesheet and app.decide_record_review decide every rule); accept or decline a published shift (app.accept_shift, app.accept_engaged_shift, app.decline_shift) or an offer awaiting the applicant (app.accept_offer, app.decline_offer); reply to a message (app.send_chat_message, the reply in p_comment); or mark it Done. A refusal names its rule and the item stays; a handled or Done item leaves the Inbox. Push notification actions call it through the API (notifications.act) and one-tap email links through app.use_notification_action. Returns the notification id.';
 revoke all on function app.act_on_notification(uuid, text, text) from public, anon;
 grant execute on function app.act_on_notification(uuid, text, text) to authenticated, service_role;

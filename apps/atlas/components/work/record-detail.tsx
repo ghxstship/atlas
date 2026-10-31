@@ -399,6 +399,7 @@ export async function RecordBody({
           reviews={detail.reviews}
           people={meta.people}
           me={me}
+          ownerId={record.ownerId}
           canWrite={detail.canWrite}
           canClearFlag={detail.canClearReviewFlag}
         />

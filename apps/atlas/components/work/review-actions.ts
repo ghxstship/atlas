@@ -26,14 +26,12 @@ export async function requestReviewAction(
   org: string,
   input: {
     readonly recordId: string;
-    readonly reviewerId: string | null;
+    readonly reviewerId: string;
     readonly note: string | null;
   },
 ): Promise<ActionResult> {
   const ctx = await context(org);
-  const parsed = z
-    .object({ recordId: z.uuid(), reviewerId: z.uuid().nullable(), note })
-    .safeParse(input);
+  const parsed = z.object({ recordId: z.uuid(), reviewerId: z.uuid(), note }).safeParse(input);
   if (!parsed.success) return invalid();
   const result = await requestRecordReview(ctx.viewer.db, parsed.data);
   if (!result.ok) return failed(result.error);

@@ -9,8 +9,9 @@ import { decideReviewAction, requestReviewAction } from "./review-actions";
 
 /**
  * A record's review (B14, G-268; ADR 0153 D5): the Requires review switch, the latest review with its state and
- * decision, Request review with a reviewer and a note while the record is Active, and Approve or Request changes for
- * the named reviewer and any other eligible approver who is not the requester. Loaded on demand through
+ * decision, Ask for review with a reviewer and a note while the record is Active, and Approve or Request changes for
+ * the named reviewer and any other eligible approver who is not the requester. A review always names its reviewer,
+ * never the asker or the record's owner (sod_record_review_owner), so the picker leaves both out. Loaded on demand through
  * components/lazy-ui/record-review.tsx, never with the record collection. The database decides every rule.
  */
 export function RecordReview({
@@ -21,6 +22,7 @@ export function RecordReview({
   reviews,
   people,
   me,
+  ownerId,
   canWrite,
   canClearFlag,
 }: {
@@ -32,6 +34,8 @@ export function RecordReview({
   reviews: readonly Review[];
   people: readonly { readonly personId: string; readonly name: string | null }[];
   me: string | null;
+  /** The record's owner, who never reviews it. */
+  ownerId: string | null;
   canWrite: boolean;
   /** projects.settings.write: turning the flag off needs it (record_review_flag_locked). */
   canClearFlag: boolean;
@@ -44,6 +48,7 @@ export function RecordReview({
   const [note, setNote] = useState("");
   const [answer, setAnswer] = useState("");
   const latest = reviews.find((r) => r.approvalState !== "Canceled") ?? null;
+  const reviewers = people.filter((p) => p.personId !== me && p.personId !== ownerId);
   const open = latest !== null && latest.decision === null;
   const canDecide = canWrite && open && latest.requesterId !== me;
   const decisionLabel = (r: Review) =>
@@ -152,17 +157,18 @@ export function RecordReview({
         </div>
       ) : null}
 
-      {canWrite && state === "Active" && !open ? (
+      {canWrite && state === "Active" && !open && reviewers.length === 0 ? (
+        <p className="m-0 text-text-13 text-text-secondary">{t("review.noReviewers")}</p>
+      ) : null}
+      {canWrite && state === "Active" && !open && reviewers.length > 0 ? (
         <div className="flex flex-col gap-8">
           <Select
             id={`review-reviewer-${recordId}`}
             label={t("review.reviewer")}
             value={reviewer}
             options={[
-              { value: "", label: t("review.anyApprover") },
-              ...people
-                .filter((p) => p.personId !== me)
-                .map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
+              { value: "", label: t("review.chooseReviewer") },
+              ...reviewers.map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
             ]}
             onChange={(e) => setReviewer(e.target.value)}
           />
@@ -179,12 +185,13 @@ export function RecordReview({
               type="button"
               variant="secondary"
               loading={request.pending}
+              disabled={reviewer === ""}
               onClick={() =>
                 request.run(
                   () =>
                     requestReviewAction(org, {
                       recordId,
-                      reviewerId: reviewer || null,
+                      reviewerId: reviewer,
                       note: note || null,
                     }),
                   () => setNote(""),

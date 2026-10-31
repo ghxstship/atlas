@@ -1556,19 +1556,20 @@ export function currentReview(reviews: readonly RecordReview[]): RecordReview | 
 
 /**
  * Asks for a review of an Active record (app.request_record_review): an Approval record owned by the reviewer, the
- * record In Review, and approval.requested to the reviewer. Returns the Approval record id.
+ * record In Review, and approval.requested to the reviewer. A review names its reviewer, never the asker or the
+ * record's owner (sod_record_review_owner). Returns the Approval record id.
  */
 export async function requestRecordReview(
   db: XosClient,
   input: {
     readonly recordId: string;
-    readonly reviewerId?: string | null;
+    readonly reviewerId: string;
     readonly note?: string | null;
   },
 ): Promise<Result<{ approvalRecordId: string }>> {
   const { data, error } = await untyped(db).rpc("request_record_review", {
     p_record_id: input.recordId,
-    p_reviewer_person_id: input.reviewerId ?? null,
+    p_reviewer_person_id: input.reviewerId,
     p_note: input.note?.trim() ? input.note.trim() : null,
   });
   if (error) return fail(toDataError(error));

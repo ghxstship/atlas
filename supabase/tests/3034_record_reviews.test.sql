@@ -2,14 +2,16 @@
 -- without an approved latest review, through app.transition_record and app.bulk_update_records alike. Requesting a
 -- review creates an Approval record "Review of KEY-n" owned by an eligible reviewer and moves the record In Review;
 -- the requester never decides it; asking for changes needs a note, moves the record back to Active with the note and
--- tells the requester; Approve and Reject also work from Inbox. Clearing the flag needs projects.settings.write, and
--- templates carry the flag both ways.
+-- tells the requester; Approve and Reject also work from Inbox. Only an independent decision about the work as it
+-- stands counts: never one by the record's owner or by the person completing it, nor one decided before the record last
+-- entered Active, so a hand-made Approval record with a borrowed requester, or a reopened record, needs a new review.
+-- Clearing the flag needs projects.settings.write, and templates carry the flag both ways.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(35);
+select plan(43);
 
 create function pg_temp.new_record(p_key text, p_title text, p_review boolean default true) returns uuid
 language plpgsql as $$
@@ -25,6 +27,21 @@ language sql as $$
   select app.transition_record(pg_temp.id(p_key), 'Proposed', 'Ready', 'Ready.');
   select app.transition_record(pg_temp.id(p_key), 'Ready', 'Active', 'Started.');
 $$;
+-- pgTAP runs in one transaction, where now() never moves. A review decided in a later request than the record's last
+-- move into Active is decided after it; this ages what happened to the record so far by an hour, so the next step is
+-- later than all of it, as it would be in another request.
+create function pg_temp.an_hour_passes(p_key text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_platform();
+  alter table app.record_state_transitions disable trigger t95_append_only;
+  alter table app.record_state_transitions disable trigger t90_stamp_audit_columns;
+  update app.record_state_transitions set created_at = created_at - interval '1 hour' where record_id = pg_temp.id(p_key);
+  alter table app.record_state_transitions enable trigger t95_append_only;
+  alter table app.record_state_transitions enable trigger t90_stamp_audit_columns;
+  update app.record_approval set decided_at = decided_at - interval '1 hour'
+  where subject_record_id = pg_temp.id(p_key) and decided_at is not null;
+end $$;
 create function pg_temp.bulk_complete(p_key text) returns text
 language sql as $$
   select app.bulk_update_records(jsonb_build_array(jsonb_build_object('id', pg_temp.id(p_key),
@@ -105,14 +122,78 @@ select throws_ok(format($$select app.act_on_notification(%L, 'reject')$$, pg_tem
   'XR001', 'record_review_note_required: Say what to change when you ask for changes.', 'Reject from Inbox needs a comment');
 select lives_ok(format($$select app.act_on_notification(%L, 'approve')$$, pg_temp.id('n2')), 'the reviewer approves from Inbox');
 select is((select record_state from app.records where id = pg_temp.id('t1')), 'In Review', 'an approval leaves the record In Review');
+-- The decision was a later request than the record's last move into Active.
+select pg_temp.as_platform();
+update app.record_approval set decided_at = decided_at + interval '1 minute' where record_id = pg_temp.id('ap2');
 select pg_temp.as_user('carol');
 select lives_ok(format($$select app.transition_record(%L, 'In Review', 'Complete', 'Done.')$$, pg_temp.id('t1')),
   'after an Approved decision the owner completes it');
 
+-- Reopened, the record needs a new review: the approval was of the work before it went back to Active.
+select pg_temp.an_hour_passes('t1');
+select pg_temp.as_user('carol');
+select app.transition_record(pg_temp.id('t1'), 'Complete', 'Active', 'One spot drifted overnight.');
+select throws_ok(format($$select app.transition_record(%L, 'Active', 'Complete', 'Done again.')$$, pg_temp.id('t1')),
+  'XR001', 'record_review_required: This record needs an approved review before it is Complete.',
+  'a reopened record is not completed again on its old approval');
+
+-- An Approved review followed by a Rejected one that is then deleted: the record went back to Active after the
+-- approval, so it no longer stands.
+select pg_temp.new_record('t6', 'Focus the side fills');
+select pg_temp.start('t6');
+insert into world select 'ap6', app.request_record_review(pg_temp.id('t6'), pg_temp.id('erin'), 'Focused.');
+select pg_temp.as_user('erin');
+select app.decide_record_review(pg_temp.id('ap6'), 'Approved');
+select pg_temp.an_hour_passes('t6');
+select pg_temp.as_user('carol');
+select app.transition_record(pg_temp.id('t6'), 'In Review', 'Active', 'Moving the fills for the new set.');
+insert into world select 'ap7', app.request_record_review(pg_temp.id('t6'), pg_temp.id('erin'), 'Refocused.');
+select pg_temp.as_user('erin');
+select app.decide_record_review(pg_temp.id('ap7'), 'Rejected', 'Fill three spills onto the screen.');
+select pg_temp.as_platform();
+update app.records set deleted_at = now() where id = pg_temp.id('ap7');
+select pg_temp.as_user('carol');
+select throws_ok(format($$select app.transition_record(%L, 'Active', 'Complete', 'Done.')$$, pg_temp.id('t6')),
+  'XR001', 'record_review_required: This record needs an approved review before it is Complete.',
+  'deleting the Rejected review does not bring back the older approval');
+
+-- The owner of a record never reviews it.
+select pg_temp.new_record('t5', 'Hang the scrim');
+update app.records set owner_party_id = pg_temp.id('erin') where id = pg_temp.id('t5');
+select pg_temp.start('t5');
+select throws_ok(format('select app.request_record_review(%L)', pg_temp.id('t5')),
+  '22023', 'a review names its reviewer', 'a review names its reviewer');
+select throws_ok(format('select app.request_record_review(%L, %L)', pg_temp.id('t5'), pg_temp.id('erin')),
+  'XR001', 'sod_record_review_owner: The owner of a record cannot review it.', 'the owner is not asked to review it');
+insert into world select 'ap5', app.request_record_review(pg_temp.id('t5'), pg_temp.id('dave'), 'Hung.');
+select pg_temp.as_user('erin');
+select throws_ok(format($$select app.decide_record_review(%L, 'Approved')$$, pg_temp.id('ap5')),
+  'XR001', 'sod_record_review_owner: The owner of a record cannot review it.', 'nor decides a review of it');
+
+-- An Approval record made by hand, with someone else named as requester, does not complete the work of the person
+-- who approved it.
+select pg_temp.as_user('carol');
+select pg_temp.new_record('t7', 'Tie off the drape line');
+select pg_temp.start('t7');
+with r as (insert into app.records (project_id, record_kind, title, xyz, xyz_basis)
+  values (pg_temp.id('prj_a'), 'Approval', 'Review of NWL-' || (select record_number from app.records where id = pg_temp.id('t7')), 'Y', 'Declared')
+  returning id) insert into world select 'ap_spoof', id from r;
+select lives_ok(format($$insert into app.record_approval (record_id, subject_record_id, requester_person_id, decision)
+  values (%L, %L, %L, 'Approved')$$, pg_temp.id('ap_spoof'), pg_temp.id('t7'), pg_temp.id('erin')),
+  'carol records an approval of her own task, naming erin as requester');
+select is((select approver_person_id from app.record_approval where record_id = pg_temp.id('ap_spoof')), pg_temp.id('carol'),
+  'the database names carol as its approver');
+select pg_temp.as_platform();
+update app.record_approval set decided_at = decided_at + interval '1 minute' where record_id = pg_temp.id('ap_spoof');
+select pg_temp.as_user('carol');
+select throws_ok(format($$select app.transition_record(%L, 'Active', 'Complete', 'Done.')$$, pg_temp.id('t7')),
+  'XR001', 'record_review_required: This record needs an approved review before it is Complete.',
+  'her own approval does not let her complete it');
+
 -- An open review blocks another; an Approval record is not reviewed.
 select pg_temp.new_record('t2', 'Label the cable runs');
 select pg_temp.start('t2');
-insert into world select 'ap3', app.request_record_review(pg_temp.id('t2'));
+insert into world select 'ap3', app.request_record_review(pg_temp.id('t2'), pg_temp.id('erin'));
 select app.transition_record(pg_temp.id('t2'), 'In Review', 'Active', 'Back to it.');
 select throws_ok(format('select app.request_record_review(%L)', pg_temp.id('t2')),
   'XR001', 'record_review_open: A review of this record is still open; wait for its decision.', 'one open review at a time');
