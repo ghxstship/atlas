@@ -46869,6 +46869,7 @@ export type Database = {
       };
       roster_invitations: {
         Row: {
+          advance_recipient_token_id: string | null;
           claimed_at: string | null;
           claimed_person_id: string | null;
           created_at: string;
@@ -46878,7 +46879,7 @@ export type Database = {
           email: string;
           expires_at: string;
           id: string;
-          invited_by: string;
+          invited_by: string | null;
           org_id: string;
           revoked_at: string | null;
           roster_entry_id: string;
@@ -46887,6 +46888,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          advance_recipient_token_id?: string | null;
           claimed_at?: string | null;
           claimed_person_id?: string | null;
           created_at?: string;
@@ -46896,7 +46898,7 @@ export type Database = {
           email: string;
           expires_at: string;
           id?: string;
-          invited_by: string;
+          invited_by?: string | null;
           org_id: string;
           revoked_at?: string | null;
           roster_entry_id: string;
@@ -46904,6 +46906,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          advance_recipient_token_id?: string | null;
           claimed_at?: string | null;
           claimed_person_id?: string | null;
           created_at?: string;
@@ -46913,7 +46916,7 @@ export type Database = {
           email?: string;
           expires_at?: string;
           id?: string;
-          invited_by?: string;
+          invited_by?: string | null;
           org_id?: string;
           revoked_at?: string | null;
           roster_entry_id?: string;
@@ -46921,6 +46924,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "roster_invitations_advance_recipient_token_id_fkey";
+            columns: ["advance_recipient_token_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_recipient_tokens";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "roster_invitations_claimed_person_id_fkey";
             columns: ["claimed_person_id"];

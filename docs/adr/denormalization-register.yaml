@@ -1235,6 +1235,18 @@ restated:
     parent: app.requisitions.starts_on
     kind: own
     note: First day in the role; the requisition link is optional.
+  - column: app.roster_invitations.claimed_at
+    parent: app.advance_recipient_tokens.claimed_at
+    kind: own
+    note: When the invitee accepted the roster entry; the advance link it was sent through has its own claim (migration 2731, R10).
+  - column: app.roster_invitations.expires_at
+    parent: app.advance_recipient_tokens.expires_at
+    kind: own
+    note: When the invitation lapses, 1 hour to 30 days after it was sent; the advance link it was sent through has its own expiry (migration 2731, R10).
+  - column: app.roster_invitations.revoked_at
+    parent: app.advance_recipient_tokens.revoked_at
+    kind: own
+    note: When a manager revoked or replaced the invitation; revoking the advance link it was sent through is a separate act (migration 2731, R10).
   - column: app.run_of_show.project_id
     parent: app.records.project_id
     kind: own
@@ -1580,6 +1592,14 @@ restated:
     parent: app.people.user_id
     kind: fact
     note: Deleted sign-in, kept after the sign-in is gone.
+  - column: private.advance_upload_tickets.expires_at
+    parent: app.advance_recipient_tokens.expires_at
+    kind: own
+    note: When the upload ticket closes unused, 15 minutes after it was issued; the advance link has its own expiry (migration 2730, R10).
+  - column: private.advance_upload_tickets.used_at
+    parent: app.advance_recipient_tokens.used_at
+    kind: own
+    note: When the ticket's upload was registered; the advance link records its own first answer (migration 2730, R10).
   - column: private.age_confirmations.user_id
     parent: app.people.user_id
     kind: fact
