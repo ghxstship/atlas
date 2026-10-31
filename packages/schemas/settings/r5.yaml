@@ -1,0 +1,36 @@
+# Settings registry: R5 (project facts per roster entry, RRR-184). ADR 0102, owner decisions 0/1, 3, 4 and 6.
+# Field reference: see a30.yaml.
+#
+# How long a roster entry's project facts (travel request, uniform sizes, vehicle) stay after the engagement is
+# Complete or Canceled, and whether the company that rosters a person may enter them on the person's behalf. The
+# project value of the second appears on R3's project settings panel with the other advancing.* settings.
+contributor: r5
+settings:
+  # Data and privacy ------------------------------------------------------------------------------------------------
+  - key: advancing.project_facts.keep_days
+    type: integer
+    min: 30
+    max: 365
+    default: 90
+    scopes: [organization]
+    capability: data.retention.write
+    label: settings.fields.projectFactsKeepDays.label
+    help: settings.fields.projectFactsKeepDays.help
+    pages: { org: settings.data-and-privacy }
+    enforced_by:
+      - consumer: supabase/migrations/2655_roster_project_fact_rpcs.sql#private.expire_roster_project_facts
+        test: supabase/tests/2655_roster_project_fact_rpcs.test.sql
+
+  # Gateway and marketplace -----------------------------------------------------------------------------------------
+  - key: advancing.company_may_submit_project_facts
+    type: boolean
+    default: false
+    scopes: [organization, project]
+    lockable: true
+    capability: org.gateway.write
+    label: settings.fields.companyMaySubmitProjectFacts.label
+    help: settings.fields.companyMaySubmitProjectFacts.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2655_roster_project_fact_rpcs.sql#private.assert_project_fact_writer
+        test: supabase/tests/2655_roster_project_fact_rpcs.test.sql

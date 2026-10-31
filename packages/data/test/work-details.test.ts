@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  SHAREABLE_WORK_DETAIL_CATEGORIES,
   WORK_DETAIL_CATEGORIES,
+  WORK_DETAIL_RULES,
   addEmergencyContact,
   addLoyaltyProgram,
   getMyNameParts,
@@ -32,21 +34,10 @@ const REFUSED = (rule: string) => errorResponse("XR001", `${rule}: Refused.`, ru
 const DETAIL_ROW = {
   id: "wd1",
   person_id: "p1",
-  shirt_size: "M",
-  jacket_size: null,
-  pants_size: "32x32",
-  shoe_size: "US 9",
-  glove_size: null,
-  hat_size: null,
-  uniform_notes: null,
   dietary_needs: ["Vegan"],
-  allergies: "Peanuts, severe",
   dietary_notes: null,
   accessibility_needs: [],
   accessibility_notes: null,
-  seat_preference: "Aisle",
-  meal_preference: null,
-  home_airport: "MIA",
   passport_number_last4: "TEST",
   passport_issuing_country: "IT",
   passport_expires_on: "2031-04-30",
@@ -58,17 +49,22 @@ describe("work details", () => {
   it("reads the owner's row with the passport number masked to its last four", async () => {
     const { db, calls } = fakeClient({
       "from:person_work_details": [okResponse(DETAIL_ROW), okResponse(null)],
+      "rpc:my_allergies": [okResponse("Peanuts, severe")],
     });
     const read = await getMyWorkDetails(db);
     expect(read.ok && read.data).toMatchObject({
-      shirtSize: "M",
       dietaryNeeds: ["Vegan"],
+      allergies: "Peanuts, severe",
       passportNumber: null,
       passportNumberLast4: "TEST",
       passportNumberMasked: true,
     });
     const select = calls[0]?.steps.find(([step]) => step === "select")?.[1][0] as string;
     expect(select).not.toMatch(/passport_number,/);
+    // Uniform sizes and travel preferences left the profile in R6a (2664).
+    expect(select).not.toMatch(/shirt_size|seat_preference|home_airport/);
+    // Allergies are Restricted (R6a, 2663): the owner reads them through app.my_allergies.
+    expect(select).not.toMatch(/allergies/);
     const none = await getMyWorkDetails(db);
     expect(none.ok && none.data).toBeNull();
   });
@@ -76,13 +72,17 @@ describe("work details", () => {
   it("saves only the fields given, after ensuring the row", async () => {
     const { db, calls } = fakeClient({
       "rpc:ensure_my_work_details": [okResponse("wd1"), REFUSED("not_signed_in")],
-      "from:person_work_details": [okResponse({ ...DETAIL_ROW, shirt_size: "L" })],
+      "from:person_work_details": [okResponse({ ...DETAIL_ROW, dietary_notes: "No cilantro." })],
+      "rpc:my_allergies": [okResponse(null)],
     });
-    const saved = await saveMyWorkDetails(db, { shirtSize: "L", allergies: null });
-    expect(saved.ok && saved.data.shirtSize).toBe("L");
-    expect(calls[1]?.steps).toContainEqual(["update", [{ shirt_size: "L", allergies: null }]]);
+    const saved = await saveMyWorkDetails(db, { dietaryNotes: "No cilantro.", allergies: null });
+    expect(saved.ok && saved.data).toMatchObject({ dietaryNotes: "No cilantro.", allergies: null });
+    expect(calls[1]?.steps).toContainEqual([
+      "update",
+      [{ dietary_notes: "No cilantro.", allergies: null }],
+    ]);
     expect(calls[1]?.steps).toContainEqual(["eq", ["id", "wd1"]]);
-    const refused = await saveMyWorkDetails(db, { shirtSize: "S" });
+    const refused = await saveMyWorkDetails(db, { dietaryNotes: "Halal" });
     expect(!refused.ok && refused.error.kind).toBe("refusal");
   });
 
@@ -264,13 +264,15 @@ describe("sharing", () => {
           sort_order: 0,
         },
       ],
+      contact: { email: "ivy@freelance.test", phone: null },
       uniform: null,
       dietary: null,
+      medical: null,
       accessibility: { accessibility_needs: ["Seating"], accessibility_notes: null },
       travel: {
-        seat_preference: "Aisle",
+        seat_preference: null,
         meal_preference: null,
-        home_airport: "MIA",
+        home_airport: null,
         loyalty_programs: [
           { program_kind: "Airline", program_name: "SkyMiles", member_number: "SM-0000-TEST" },
         ],
@@ -286,8 +288,15 @@ describe("sharing", () => {
     };
     const parsed = parseSharedWorkDetails(raw);
     expect(parsed.emergencyContacts?.[0]?.phoneE164).toBe("+393471234567");
-    expect(parsed.uniform).toBeNull();
+    expect(parsed).not.toHaveProperty("uniform");
+    expect(parsed.contact).toEqual({ email: "ivy@freelance.test", phone: null });
     expect(parsed.dietary).toBeNull();
+    expect(parsed.medical).toBeNull();
+    expect(parsed.travel).toEqual({
+      loyaltyPrograms: [
+        { programKind: "Airline", programName: "SkyMiles", memberNumber: "SM-0000-TEST" },
+      ],
+    });
     expect(parsed.accessibility?.accessibilityNeeds).toEqual(["Seating"]);
     expect(parsed.travel?.loyaltyPrograms[0]?.programName).toBe("SkyMiles");
     expect(parsed.passport).toMatchObject({
@@ -323,6 +332,47 @@ describe("sharing", () => {
     expect(!stepUp.ok && stepUp.error.kind === "refusal" && stepUp.error.rule).toBe(
       "step_up_required",
     );
+  });
+
+  it("parses masked allergies and the medical read (R6a)", () => {
+    const masked = parseSharedWorkDetails({
+      engagement_id: "e1",
+      categories: ["Dietary Needs"],
+      readable: ["Dietary Needs"],
+      dietary: {
+        dietary_needs: ["Vegan"],
+        allergies: null,
+        allergies_masked: true,
+        allergies_on_file: true,
+        dietary_notes: null,
+      },
+      medical: null,
+    });
+    expect(masked.dietary).toMatchObject({
+      allergies: null,
+      allergiesMasked: true,
+      allergiesOnFile: true,
+    });
+    expect(masked.medical).toBeNull();
+    const medicalOnly = parseSharedWorkDetails({
+      engagement_id: "e1",
+      categories: ["Dietary Needs"],
+      readable: [],
+      dietary: null,
+      medical: { allergies: "Peanuts, severe" },
+    });
+    expect(medicalOnly.dietary).toBeNull();
+    expect(medicalOnly.medical).toEqual({ allergies: "Peanuts, severe" });
+  });
+
+  it("shares every category but the retired Uniform Sizes, and names R6a's refusals and log actions", () => {
+    expect(SHAREABLE_WORK_DETAIL_CATEGORIES).not.toContain("Uniform Sizes");
+    expect(SHAREABLE_WORK_DETAIL_CATEGORIES).toContain("Contact");
+    expect(SHAREABLE_WORK_DETAIL_CATEGORIES).toHaveLength(WORK_DETAIL_CATEGORIES.length - 1);
+    expect(WORK_DETAIL_RULES).toContain("work_detail_field_moved");
+    expect(WORK_DETAIL_RULES).toContain("work_detail_category_retired");
+    expect(workDetailLogKey("work_details.fields_removed")).toBe("fieldsRemoved");
+    expect(workDetailLogKey("allergies.viewed")).toBe("allergiesViewed");
   });
 
   it("lists the person's access log, newest first", async () => {
