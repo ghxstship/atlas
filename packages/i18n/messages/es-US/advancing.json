@@ -152,7 +152,15 @@
     "advance_line_booked": "Esta franja ya tiene un turno de muelle.",
     "advance_dock_zone": "Elige una zona de muelle vigente.",
     "dock_slot_overlap": "Otro turno ocupa ese muelle a esa hora. Elige otro muelle o mueve el turno.",
-    "credential_names_closed": "Ya pasó la fecha límite de nombres para la parte; cambia los nombres desde Asignaciones."
+    "credential_names_closed": "Ya pasó la fecha límite de nombres para la parte; cambia los nombres desde Asignaciones.",
+    "guest_pass_category": "Un tipo de pase es una categoría de Acceso de este proyecto. Elige una de la lista.",
+    "guest_host_not_on_project": "Un anfitrión es miembro de tu organización o está contratado en este proyecto. Elige a alguien de la lista.",
+    "guest_entry_production_fields": "El tipo de pase, la mesa y el anfitrión los define la producción.",
+    "guest_entry_checked_in": "Un invitado registrado conserva su tipo de pase, mesa, anfitrión y correo.",
+    "guest_email_batch": "Envía correos a entre 1 y 500 invitados a la vez.",
+    "guest_email_rate": "Tu organización puede escribir a hasta 2,000 invitados por día. Envía el resto mañana.",
+    "guest_email_message": "Un mensaje necesita un asunto de hasta 150 caracteres y un texto de hasta 5,000.",
+    "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
@@ -534,7 +542,9 @@
       "guest": "Invitado",
       "plusOnes": "Acompañantes",
       "show": "Show",
-      "from": "Lista de"
+      "from": "Lista de",
+      "passType": "Tipo de pase",
+      "table": "Mesa"
     },
     "states": {
       "Requested": "Solicitado",
@@ -565,7 +575,60 @@
       "edit": "Editar a {name}",
       "remove": "Quitar a {name}"
     },
-    "import": "Importar invitados"
+    "import": "Importar invitados",
+    "pass": {
+      "type": "Tipo de pase",
+      "typeHelp": "Una categoría de Acceso de este proyecto, como GUEST o VIP.",
+      "noType": "Sin tipo de pase",
+      "table": "Mesa",
+      "tableHelp": "Opcional. Una mesa o asiento, de hasta 40 caracteres.",
+      "host": "Anfitrión",
+      "hostHelp": "Opcional. La persona que recibe a este invitado se entera cuando llega.",
+      "noHost": "Sin anfitrión",
+      "email": "Correo",
+      "emailHelp": "Aquí le enviamos su pase.",
+      "code": "Código del pase",
+      "print": "Imprimir pase",
+      "download": "Descargar pase",
+      "notApproved": "El pase se emite cuando se aprueba al invitado."
+    },
+    "email": {
+      "action": "Escribir a invitados",
+      "title": "Escribir a invitados",
+      "what": "Envía a los invitados seleccionados una invitación, su pase o un mensaje. Se omiten los invitados sin correo y las direcciones que pidieron no recibir correos de tu organización.",
+      "kind": "Qué enviar",
+      "kinds": {
+        "Invitation": "Invitación",
+        "Pass": "Su pase",
+        "Message": "Un mensaje"
+      },
+      "subject": "Asunto",
+      "subjectHelp": "Hasta 150 caracteres.",
+      "body": "Mensaje",
+      "bodyHelp": "Hasta 5,000 caracteres.",
+      "note": "Nota",
+      "noteHelp": "Opcional. Se agrega debajo de la invitación o del pase.",
+      "language": "Idioma del correo",
+      "preview": "Vista previa",
+      "willSkip": "{count, plural, one {Se omitirá # invitado} other {Se omitirán # invitados}}",
+      "willSuppress": "{count, plural, one {# dirección pidió no recibir correos} other {# direcciones pidieron no recibir correos}}",
+      "confirm": "{count, plural, one {Enviar a # invitado} other {Enviar a # invitados}}",
+      "sent": "{count, plural, one {En cola para # invitado} other {En cola para # invitados}}",
+      "sendsTitle": "Correos a invitados",
+      "states": {
+        "Queued": "En cola",
+        "Sending": "Enviando",
+        "Sent": "Enviado",
+        "Failed": "Falló",
+        "Suppressed": "Bloqueado",
+        "Skipped": "Omitido"
+      },
+      "skipReasons": {
+        "NoEmail": "Sin correo",
+        "NotLive": "Ya no está en la lista",
+        "NoPass": "No aprobado"
+      }
+    }
   },
   "crew": {
     "sentence": "Las personas que cada parte incluye en sus contrataciones. Acepta o devuelve cada entrada enviada.",

@@ -189,7 +189,8 @@
         "occupancy": "Aforo",
         "weather": "Clima",
         "guestCheckIn": "Registro de invitados",
-        "lostAndFound": "Objetos perdidos"
+        "lostAndFound": "Objetos perdidos",
+        "muster": "Lista de Evacuación"
       }
     },
     "items": {
@@ -450,7 +451,8 @@
       "personProfile": "Perfil de persona",
       "companyProfile": "Perfil de empresa",
       "advanceForm": "Formulario de coordinación previa",
-      "agreementSigning": "Firma de acuerdo"
+      "agreementSigning": "Firma de acuerdo",
+      "guestUnsubscribe": "Dejar de Recibir Correos"
     },
     "profile": {
       "badgePhotos": "Fotos de credencial"

@@ -499,7 +499,32 @@
       "tagAdded": "Tag added",
       "tagSkipped": "Already tagged, or the line is full",
       "queued": "{count} received; it syncs when you are online"
-    }
+    },
+    "direction": "Direction",
+    "directionLabel": "Scan direction for this zone",
+    "in": "In",
+    "out": "Out",
+    "exitRecorded": "Exit recorded",
+    "insideNow": "Inside now: {count}",
+    "override": "Override",
+    "overrideTitle": "Let this person in",
+    "overrideReason": "Reason",
+    "overrideReasonHelp": "Say why, in 1 to 300 characters.",
+    "overrideSubmit": "Let in",
+    "overrideQueued": "Override recorded",
+    "overrideRefusals": {
+      "scan_not_denied": "The server let this person in after all; no override is needed.",
+      "scan_override_revoked": "A revoked badge is never let in.",
+      "scan_override_stale": "This denial is more than 15 minutes old. Scan again.",
+      "scan_override_taken": "Someone already overrode this denial.",
+      "scan_override_self": "Nobody overrides a denial of their own badge."
+    },
+    "guestPass": "Guest pass",
+    "guestPassNotListed": "This pass is not on tonight's list.",
+    "guestPassOffline": "Connect to check passes.",
+    "guestPassTable": "Table {table}",
+    "guestPassPlusOnes": "{count, plural, =0 {No plus-ones} one {# plus-one} other {# plus-ones}}",
+    "guestPassCheckIn": "Check in"
   },
   "incidents": {
     "title": "Incidents",
@@ -773,7 +798,12 @@
     "done": "Done",
     "close": "Close",
     "failed": "That did not go through",
-    "offline": "Reporting and blocking need a connection. Try again when you are back online."
+    "offline": "Reporting and blocking need a connection. Try again when you are back online.",
+    "weatherHold": "Weather hold since {time}",
+    "warnings": "Official warnings",
+    "noWarnings": "No official warnings.",
+    "callHold": "Call hold",
+    "allClear": "All clear"
   },
   "blocked": {
     "title": "Blocked People",

@@ -499,7 +499,32 @@
       "tagAdded": "Etiqueta agregada",
       "tagSkipped": "Ya etiquetada, o la línea está completa",
       "queued": "{count} recibidas; se sincroniza cuando tengas conexión"
-    }
+    },
+    "direction": "Sentido",
+    "directionLabel": "Sentido del escaneo en esta zona",
+    "in": "Entrada",
+    "out": "Salida",
+    "exitRecorded": "Salida registrada",
+    "insideNow": "Adentro ahora: {count}",
+    "override": "Anular",
+    "overrideTitle": "Dejar pasar a esta persona",
+    "overrideReason": "Motivo",
+    "overrideReasonHelp": "Indica por qué, en 1 a 300 caracteres.",
+    "overrideSubmit": "Dejar pasar",
+    "overrideQueued": "Anulación registrada",
+    "overrideRefusals": {
+      "scan_not_denied": "El servidor sí dejó pasar a esta persona; no hace falta anular.",
+      "scan_override_revoked": "Una credencial revocada nunca entra.",
+      "scan_override_stale": "Esta denegación tiene más de 15 minutos. Escanea de nuevo.",
+      "scan_override_taken": "Alguien ya anuló esta denegación.",
+      "scan_override_self": "Nadie anula la denegación de su propia credencial."
+    },
+    "guestPass": "Pase de invitado",
+    "guestPassNotListed": "Este pase no está en la lista de esta noche.",
+    "guestPassOffline": "Conéctate para verificar pases.",
+    "guestPassTable": "Mesa {table}",
+    "guestPassPlusOnes": "{count, plural, =0 {Sin acompañantes} one {# acompañante} other {# acompañantes}}",
+    "guestPassCheckIn": "Registrar entrada"
   },
   "incidents": {
     "title": "Incidentes",
@@ -773,7 +798,12 @@
     "done": "Listo",
     "close": "Cerrar",
     "failed": "No se pudo completar",
-    "offline": "Denunciar y bloquear necesitan conexión. Vuelve a intentarlo cuando tengas conexión."
+    "offline": "Denunciar y bloquear necesitan conexión. Vuelve a intentarlo cuando tengas conexión.",
+    "weatherHold": "Suspensión por clima desde las {time}",
+    "warnings": "Avisos oficiales",
+    "noWarnings": "No hay avisos oficiales.",
+    "callHold": "Suspender",
+    "allClear": "Fin de la suspensión"
   },
   "blocked": {
     "title": "Personas bloqueadas",

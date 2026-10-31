@@ -123,6 +123,7 @@ export const KNOWN_REFUSALS = [
   "guest_name_length",
   "guest_plus_ones",
   "guest_note_length",
+  "guest_email_format",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",

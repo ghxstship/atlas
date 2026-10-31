@@ -120,7 +120,8 @@
       "guest_list_closed": "La lista de invitados se abre cuando la organización confirma tu contratación. Vuelve más tarde.",
       "guest_name_length": "Escribe el nombre del invitado, de hasta 200 caracteres.",
       "guest_plus_ones": "Los acompañantes van de 0 a 20.",
-      "guest_note_length": "La nota puede tener hasta 500 caracteres."
+      "guest_note_length": "La nota puede tener hasta 500 caracteres.",
+      "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía."
     }
   },
   "common": {
@@ -461,7 +462,8 @@
         "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria.",
         "advanceLine": "Revisa cada línea: elige un artículo y una cantidad entera de 1 o más.",
         "sponsorAsset": "Elige el beneficio y el tipo, y adjunta los archivos.",
-        "title": "Di qué es el recurso, en hasta 200 caracteres."
+        "title": "Di qué es el recurso, en hasta 200 caracteres.",
+        "guestEmail": "Escribe una dirección de correo, o déjala vacía."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -543,7 +545,9 @@
         "plusOnes": "Acompañantes",
         "note": "Nota para la producción (opcional)",
         "submit": "Agregar invitado",
-        "done": "Invitado agregado. La producción lo confirma antes del show."
+        "done": "Invitado agregado. La producción lo confirma antes del show.",
+        "email": "Correo (opcional)",
+        "emailHelp": "Aquí le enviamos su pase."
       },
       "settlement": {
         "decision": "Tu respuesta",
@@ -1838,7 +1842,8 @@
       "roster_person_duplicate": "Esta persona ya está en la lista.",
       "invitation_email": "Escribe una sola dirección de correo.",
       "roster_arrival_window": "Indica un inicio, un fin posterior y una zona horaria para la llegada, o deja los tres vacíos.",
-      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York."
+      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía."
     }
   },
   "settings": {
@@ -2461,5 +2466,15 @@
     "section": "Fotos de credencial",
     "sectionLead": "Da a las organizaciones con las que trabajas una foto para tu credencial.",
     "open": "Abrir fotos de credencial"
+  },
+  "unsubscribe": {
+    "title": "Dejar de recibir correos",
+    "question": "¿Dejar de recibir correos de {org} en esta dirección?",
+    "questionUnknown": "¿Dejar de recibir correos de esta organización en esta dirección?",
+    "body": "Recibiste este enlace en un correo de una lista de invitados. Nada cambia hasta que confirmes.",
+    "confirm": "Dejar de recibir correos",
+    "done": "No volverás a recibir correos de {org} en esta dirección.",
+    "doneUnknown": "Si el enlace era válido, no volverás a recibir correos de esa organización en esta dirección.",
+    "failed": "No se pudo guardar. Inténtalo de nuevo en un momento."
   }
 }

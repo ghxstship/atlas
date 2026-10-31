@@ -120,7 +120,8 @@
       "guest_list_closed": "The guest list opens once the organization confirms your engagement. Check back later.",
       "guest_name_length": "Write the guest's name, up to 200 characters.",
       "guest_plus_ones": "Plus-ones run from 0 to 20.",
-      "guest_note_length": "Keep the note to 500 characters."
+      "guest_note_length": "Keep the note to 500 characters.",
+      "guest_email_format": "Enter one email address for the guest, or leave it empty."
     }
   },
   "common": {
@@ -461,7 +462,8 @@
         "allocationWindow": "Give the need a start, a later end and a time zone.",
         "advanceLine": "Check each line: choose an item and a whole quantity of 1 or more.",
         "sponsorAsset": "Choose the entitlement and the kind, and attach the files.",
-        "title": "Say what the asset is, in up to 200 characters."
+        "title": "Say what the asset is, in up to 200 characters.",
+        "guestEmail": "Enter one email address, or leave it empty."
       },
       "advance": {
         "answer": "Your answer",
@@ -543,7 +545,9 @@
         "plusOnes": "Plus-ones",
         "note": "Note for the production (optional)",
         "submit": "Add guest",
-        "done": "Guest added. The production confirms them before the show."
+        "done": "Guest added. The production confirms them before the show.",
+        "email": "Email (optional)",
+        "emailHelp": "We send their pass here."
       },
       "settlement": {
         "decision": "Your answer",
@@ -1838,7 +1842,8 @@
       "roster_person_duplicate": "This person is already on the roster.",
       "invitation_email": "Enter one email address.",
       "roster_arrival_window": "Give the arrival a start, a later end and a time zone, or leave all three empty.",
-      "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York."
+      "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York.",
+      "guest_email_format": "Enter one email address for the guest, or leave it empty."
     }
   },
   "settings": {
@@ -2461,5 +2466,15 @@
     "section": "Badge photos",
     "sectionLead": "Give the organizations you work with a photo for your credential badge.",
     "open": "Open badge photos"
+  },
+  "unsubscribe": {
+    "title": "Stop emails",
+    "question": "Stop emails from {org} to this address?",
+    "questionUnknown": "Stop emails from this organization to this address?",
+    "body": "You were sent this link in an email from a guest list. Nothing changes until you confirm.",
+    "confirm": "Stop emails",
+    "done": "You will not get emails from {org} at this address again.",
+    "doneUnknown": "If this link was valid, you will not get emails from that organization at this address again.",
+    "failed": "This could not be saved. Try again in a moment."
   }
 }

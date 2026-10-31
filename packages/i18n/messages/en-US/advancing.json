@@ -152,7 +152,15 @@
     "advance_line_booked": "This window already has a dock slot.",
     "advance_dock_zone": "Choose a live dock zone.",
     "dock_slot_overlap": "Another slot holds that dock then. Choose another dock or move the slot.",
-    "credential_names_closed": "The naming deadline has passed for the party; change the names from Allocations."
+    "credential_names_closed": "The naming deadline has passed for the party; change the names from Allocations.",
+    "guest_pass_category": "A pass type is an Access category of this project. Choose one from the list.",
+    "guest_host_not_on_project": "A host is a member of your organization or engaged on this project. Choose someone from the list.",
+    "guest_entry_production_fields": "The pass type, table and host are set by the production.",
+    "guest_entry_checked_in": "A checked-in guest keeps their pass type, table, host and email.",
+    "guest_email_batch": "Email 1 to 500 guests at a time.",
+    "guest_email_rate": "Your organization can email up to 2,000 guests a day. Send the rest tomorrow.",
+    "guest_email_message": "A message needs a subject of up to 150 characters and a text of up to 5,000.",
+    "guest_email_format": "Enter one email address for the guest, or leave it empty."
   },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",
@@ -534,7 +542,9 @@
       "guest": "Guest",
       "plusOnes": "Plus-ones",
       "show": "Show",
-      "from": "List of"
+      "from": "List of",
+      "passType": "Pass type",
+      "table": "Table"
     },
     "states": {
       "Requested": "Requested",
@@ -565,7 +575,60 @@
       "edit": "Edit {name}",
       "remove": "Remove {name}"
     },
-    "import": "Import guests"
+    "import": "Import guests",
+    "pass": {
+      "type": "Pass type",
+      "typeHelp": "An Access category of this project, such as GUEST or VIP.",
+      "noType": "No pass type",
+      "table": "Table",
+      "tableHelp": "Optional. A table or seat, up to 40 characters.",
+      "host": "Host",
+      "hostHelp": "Optional. The person hosting this guest hears when they arrive.",
+      "noHost": "No host",
+      "email": "Email",
+      "emailHelp": "We send their pass here.",
+      "code": "Pass code",
+      "print": "Print pass",
+      "download": "Download pass",
+      "notApproved": "A pass is issued once the guest is approved."
+    },
+    "email": {
+      "action": "Email guests",
+      "title": "Email guests",
+      "what": "Send the selected guests an invitation, their pass, or a message. Guests without an email, and addresses that asked not to hear from your organization, are skipped.",
+      "kind": "What to send",
+      "kinds": {
+        "Invitation": "Invitation",
+        "Pass": "Their pass",
+        "Message": "A message"
+      },
+      "subject": "Subject",
+      "subjectHelp": "Up to 150 characters.",
+      "body": "Message",
+      "bodyHelp": "Up to 5,000 characters.",
+      "note": "Note",
+      "noteHelp": "Optional. Added below the invitation or pass.",
+      "language": "Email language",
+      "preview": "Preview",
+      "willSkip": "{count, plural, one {# guest will be skipped} other {# guests will be skipped}}",
+      "willSuppress": "{count, plural, one {# address asked not to get email} other {# addresses asked not to get email}}",
+      "confirm": "{count, plural, one {Send to # guest} other {Send to # guests}}",
+      "sent": "{count, plural, one {Queued for # guest} other {Queued for # guests}}",
+      "sendsTitle": "Guest emails",
+      "states": {
+        "Queued": "Queued",
+        "Sending": "Sending",
+        "Sent": "Sent",
+        "Failed": "Failed",
+        "Suppressed": "Suppressed",
+        "Skipped": "Skipped"
+      },
+      "skipReasons": {
+        "NoEmail": "No email",
+        "NotLive": "No longer on the list",
+        "NoPass": "Not approved"
+      }
+    }
   },
   "crew": {
     "sentence": "The people each party puts on its engagements. Accept or return each submitted entry.",

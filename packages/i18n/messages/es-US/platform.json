@@ -410,7 +410,9 @@
       "plus_ones": "Acompañantes",
       "note": "Nota para la puerta",
       "scope_node_id": "Show",
-      "counterparty_id": "En la lista de"
+      "counterparty_id": "En la lista de",
+      "guest_email": "Correo del invitado",
+      "table_label": "Mesa"
     },
     "dryRun": {
       "title": "Simulación",
@@ -469,7 +471,8 @@
       "unknown_party": "ninguna empresa de esta organización tiene este nombre",
       "too_long": "demasiado largo",
       "duplicate_in_file": "repite una fila anterior",
-      "other": "no se acepta"
+      "other": "no se acepta",
+      "invalid_email": "no es una dirección de correo"
     },
     "commit": {
       "title": "Confirmar",

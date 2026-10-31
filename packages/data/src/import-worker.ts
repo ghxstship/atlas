@@ -363,7 +363,14 @@ const MAX_LENGTH: Readonly<Record<string, number>> = {
   description: 2000,
   guest_name: 200,
   note: 500,
+  table_label: 40,
 };
+
+/** A guest email as the guest list stores it (2974): trimmed, lowercased, the 1382 pattern, at most 320 characters. */
+export function importGuestEmail(value: string): string | null {
+  const email = value.trim().toLowerCase();
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : null;
+}
 
 /**
  * Checks one row against its target; cell issues name the column and an issue code from the catalogs. A cue or guest
@@ -482,7 +489,8 @@ export async function validateRow(
     }
     case "guest_list_entries": {
       const projectId = destination.project?.id ?? null;
-      for (const f of ["guest_name", "note"]) bounded(f);
+      for (const f of ["guest_name", "note", "table_label"]) bounded(f);
+      await set("guest_email", importGuestEmail, "invalid_email");
       await set(
         "plus_ones",
         (v) => {

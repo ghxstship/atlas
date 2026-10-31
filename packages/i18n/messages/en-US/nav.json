@@ -189,7 +189,8 @@
         "occupancy": "Occupancy",
         "weather": "Weather",
         "guestCheckIn": "Guest Check-In",
-        "lostAndFound": "Lost and Found"
+        "lostAndFound": "Lost and Found",
+        "muster": "Muster List"
       }
     },
     "items": {
@@ -450,7 +451,8 @@
       "personProfile": "Person Profile",
       "companyProfile": "Company Profile",
       "advanceForm": "Advance Form",
-      "agreementSigning": "Agreement Signing"
+      "agreementSigning": "Agreement Signing",
+      "guestUnsubscribe": "Stop Emails"
     },
     "profile": {
       "badgePhotos": "Badge Photos"
