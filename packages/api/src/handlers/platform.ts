@@ -185,6 +185,11 @@ export const handlers = defineHandlers("Platform", {
   ...handlersFor("Platform", tableResource("customObjectRelations")),
   ...handlersFor("Platform", tableResource("customFieldDefinitions")),
   ...handlersFor("Platform", tableResource("customFieldValues")),
+  // Who a cue field is for (2920, ADR 0142); the database refuses Person, Money and Email outside the crew.
+  ...handlersFor(
+    "Platform",
+    tableResource("cueFieldAudiences", { verbs: ["list", "create", "delete"] }),
+  ),
 
   "objects.list": async ({ params, query }, context) => {
     const typeId = await objectType(context.db, params.object_key);

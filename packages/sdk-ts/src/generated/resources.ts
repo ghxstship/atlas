@@ -315,6 +315,8 @@ import type {
   CueCallCreate,
   CueCallUpdate,
   CueCreate,
+  CueFieldAudience,
+  CueFieldAudienceCreate,
   CueUpdate,
   CustomFieldDefinition,
   CustomFieldDefinitionCreate,
@@ -871,6 +873,7 @@ import type {
   RunOfShow,
   RunOfShowCreate,
   RunOfShowUpdate,
+  RunSegmentInstance,
   SavedProjectFact,
   SavedSearch,
   SavedSearchCreate,
@@ -894,6 +897,19 @@ import type {
   ScopeNode,
   ScopeNodeCreate,
   ScopeNodeUpdate,
+  SegmentInsertRequest,
+  SegmentInsertResult,
+  SegmentLibraryCue,
+  SegmentLibraryCueCall,
+  SegmentLibraryCueCallCreate,
+  SegmentLibraryCueCallUpdate,
+  SegmentLibraryCueCreate,
+  SegmentLibraryCueUpdate,
+  SegmentLibrarySegment,
+  SegmentLibrarySegmentCreate,
+  SegmentLibrarySegmentUpdate,
+  SegmentPublishRequest,
+  SegmentPublishResults,
   SeparationOfDutiesRule,
   ServiceAccount,
   ServiceAccountCreate,
@@ -927,6 +943,15 @@ import type {
   Shortlist,
   ShortlistCreate,
   ShortlistUpdate,
+  ShowChannelConversation,
+  ShowChannelJoinRequest,
+  ShowChannelOpenRequest,
+  ShowChannelStatus,
+  ShowcallerDevicesSignedOut,
+  ShowcallerLink,
+  ShowcallerLinkRegenerated,
+  ShowcallerLinkRequest,
+  ShowcallerLinkToken,
   SitePlan,
   SitePlanCreate,
   SitePlanPin,
@@ -34460,6 +34485,619 @@ export class CueCallsResource extends $Resource {
 }
 
 /**
+ * Operations on `segmentLibrary`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class SegmentLibraryResource extends $Resource {
+  /**
+   * List library segment rows
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /segment-library` (operation `segmentLibrary.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<SegmentLibrarySegment>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SegmentLibrarySegment>> {
+    return this.client.requestPage<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List library segment rows
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /segment-library` (operation `segmentLibrary.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SegmentLibrarySegment>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SegmentLibrarySegment, void, undefined> {
+    return this.client.paginate<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a library segment
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Creates a library segment. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /segment-library` (operation `segmentLibrary.create`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  create(
+    body: SegmentLibrarySegmentCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentLibrarySegment>> {
+    return this.client.request<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a library segment
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns one library segment with its `ETag`. A library segment the caller may not see returns 404.
+   *
+   * `GET /segment-library/{id}` (operation `segmentLibrary.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SegmentLibrarySegment>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SegmentLibrarySegment>> {
+    return this.client.request<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a library segment
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /segment-library/{id}` (operation `segmentLibrary.update`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  update(
+    id: string,
+    body: SegmentLibrarySegmentUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<SegmentLibrarySegment>> {
+    return this.client.request<SegmentLibrarySegment>(
+      $OPERATIONS["segmentLibrary.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a library segment
+   *
+   * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Soft-deletes the library segment: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /segment-library/{id}` (operation `segmentLibrary.delete`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["segmentLibrary.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Copy a library segment into a running order
+   *
+   * Copies the segment's cues and their department calls into a running order of the same org through app.insert_library_segment, before the cue at the 1-based place `before_position` (omitted, at the end), renumbering the running order 1..n in one transaction. With `starts_at` the copies are planned from it and the durations before them; without it they are unplanned. Needs show.run_of_show.write on the project. Refuses an empty segment (422 `segment_library_empty`), a place at or before the last called cue (422 `segment_insert_before_called`) and a running order that would pass 300 cues (422 `segment_insert_cue_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /segment-library/{id}/insert-into-run` (operation `segmentLibrary.insertIntoRun`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  insertIntoRun(
+    id: string,
+    body: SegmentInsertRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentInsertResult>> {
+    return this.client.request<SegmentInsertResult>(
+      $OPERATIONS["segmentLibrary.insertIntoRun"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Publish a library segment to running orders
+   *
+   * Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /segment-library/{id}/publish` (operation `segmentLibrary.publish`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  publish(
+    id: string,
+    body: SegmentPublishRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentPublishResults>> {
+    return this.client.request<SegmentPublishResults>(
+      $OPERATIONS["segmentLibrary.publish"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `segmentLibraryCues`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class SegmentLibraryCuesResource extends $Resource {
+  /**
+   * List library cue rows
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /segment-library-cues` (operation `segmentLibraryCues.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<SegmentLibraryCue>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SegmentLibraryCue>> {
+    return this.client.requestPage<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List library cue rows
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /segment-library-cues` (operation `segmentLibraryCues.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SegmentLibraryCue>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SegmentLibraryCue, void, undefined> {
+    return this.client.paginate<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a library cue
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Creates a library cue. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /segment-library-cues` (operation `segmentLibraryCues.create`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  create(
+    body: SegmentLibraryCueCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCue>> {
+    return this.client.request<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a library cue
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns one library cue with its `ETag`. A library cue the caller may not see returns 404.
+   *
+   * `GET /segment-library-cues/{id}` (operation `segmentLibraryCues.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SegmentLibraryCue>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCue>> {
+    return this.client.request<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a library cue
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /segment-library-cues/{id}` (operation `segmentLibraryCues.update`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  update(
+    id: string,
+    body: SegmentLibraryCueUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCue>> {
+    return this.client.request<SegmentLibraryCue>(
+      $OPERATIONS["segmentLibraryCues.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a library cue
+   *
+   * A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Soft-deletes the library cue: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /segment-library-cues/{id}` (operation `segmentLibraryCues.delete`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["segmentLibraryCues.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `segmentLibraryCueCalls`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class SegmentLibraryCueCallsResource extends $Resource {
+  /**
+   * List library cue call rows
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /segment-library-cue-calls` (operation `segmentLibraryCueCalls.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<SegmentLibraryCueCall>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SegmentLibraryCueCall>> {
+    return this.client.requestPage<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List library cue call rows
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /segment-library-cue-calls` (operation `segmentLibraryCueCalls.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SegmentLibraryCueCall>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SegmentLibraryCueCall, void, undefined> {
+    return this.client.paginate<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a library cue call
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Creates a library cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /segment-library-cue-calls` (operation `segmentLibraryCueCalls.create`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  create(
+    body: SegmentLibraryCueCallCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCueCall>> {
+    return this.client.request<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a library cue call
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns one library cue call with its `ETag`. A library cue call the caller may not see returns 404.
+   *
+   * `GET /segment-library-cue-calls/{id}` (operation `segmentLibraryCueCalls.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SegmentLibraryCueCall>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCueCall>> {
+    return this.client.request<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a library cue call
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /segment-library-cue-calls/{id}` (operation `segmentLibraryCueCalls.update`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  update(
+    id: string,
+    body: SegmentLibraryCueCallUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<SegmentLibraryCueCall>> {
+    return this.client.request<SegmentLibraryCueCall>(
+      $OPERATIONS["segmentLibraryCueCalls.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a library cue call
+   *
+   * A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Soft-deletes the library cue call: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /segment-library-cue-calls/{id}` (operation `segmentLibraryCueCalls.delete`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["segmentLibraryCueCalls.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `runSegmentInstances`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class RunSegmentInstancesResource extends $Resource {
+  /**
+   * List segment copy rows
+   *
+   * A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /run-segment-instances` (operation `runSegmentInstances.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<RunSegmentInstance>,
+    options?: $RequestOptions,
+  ): Promise<$Page<RunSegmentInstance>> {
+    return this.client.requestPage<RunSegmentInstance>(
+      $OPERATIONS["runSegmentInstances.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List segment copy rows
+   *
+   * A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /run-segment-instances` (operation `runSegmentInstances.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<RunSegmentInstance>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<RunSegmentInstance, void, undefined> {
+    return this.client.paginate<RunSegmentInstance>(
+      $OPERATIONS["runSegmentInstances.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a segment copy
+   *
+   * A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns one segment copy with its `ETag`. A segment copy the caller may not see returns 404.
+   *
+   * `GET /run-segment-instances/{id}` (operation `runSegmentInstances.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<RunSegmentInstance>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<RunSegmentInstance>> {
+    return this.client.request<RunSegmentInstance>(
+      $OPERATIONS["runSegmentInstances.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `showcallerLinks`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class ShowcallerLinksResource extends $Resource {
+  /**
+   * List showcaller link rows
+   *
+   * A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /showcaller-links` (operation `showcallerLinks.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<ShowcallerLink>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ShowcallerLink>> {
+    return this.client.requestPage<ShowcallerLink>(
+      $OPERATIONS["showcallerLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List showcaller link rows
+   *
+   * A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /showcaller-links` (operation `showcallerLinks.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ShowcallerLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ShowcallerLink, void, undefined> {
+    return this.client.paginate<ShowcallerLink>(
+      $OPERATIONS["showcallerLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a showcaller link
+   *
+   * A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns one showcaller link with its `ETag`. A showcaller link the caller may not see returns 404.
+   *
+   * `GET /showcaller-links/{id}` (operation `showcallerLinks.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ShowcallerLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ShowcallerLink>> {
+    return this.client.request<ShowcallerLink>(
+      $OPERATIONS["showcallerLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a showcaller link to a running order
+   *
+   * Makes a showcaller link through app.create_showcaller_link. The caller must be a member of the running order's org and hold both show.run_of_show.write and show.cue.call on the project (422 `showcaller_link_capability`); a read-only org makes none (422 `org_read_only`). `caller_name` is 1 to 120 characters (422 `showcaller_link_caller_name`). `expires_at` defaults to the end of the day after the show in the project's zone; when given it must be after now and within 14 days (422 `showcaller_link_expiry_range`). A running order holds at most 5 live links (422 `showcaller_link_limit`). Anyone with the link and the code can call cues and edit this running order until it expires. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /showcaller-links/create` (operation `showcallerLinks.create`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  create(
+    body: ShowcallerLinkRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowcallerLinkToken>> {
+    return this.client.request<ShowcallerLinkToken>(
+      $OPERATIONS["showcallerLinks.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Regenerate a showcaller link
+   *
+   * Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. Its creator, or a holder of show.run_of_show.write on the project, may. A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /showcaller-links/{id}/regenerate` (operation `showcallerLinks.regenerate`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  regenerate(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowcallerLinkRegenerated>> {
+    return this.client.request<ShowcallerLinkRegenerated>(
+      $OPERATIONS["showcallerLinks.regenerate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a showcaller link
+   *
+   * Revokes the link through app.revoke_showcaller_link so it never opens or writes again and the open portal stops on its next update. Its creator, or a holder of show.run_of_show.write on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /showcaller-links/{id}/revoke` (operation `showcallerLinks.revoke`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<ShowcallerLink>> {
+    return this.client.request<ShowcallerLink>(
+      $OPERATIONS["showcallerLinks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Sign every device out of a showcaller link
+   *
+   * Drops every device grant of the link through app.sign_out_showcaller_devices, so each device must enter the access code again; the token and code stay. Its creator, or a holder of show.run_of_show.write on the project, may. Answers how many devices were signed out. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /showcaller-links/{id}/sign-out-devices` (operation `showcallerLinks.signOutDevices`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  signOutDevices(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowcallerDevicesSignedOut>> {
+    return this.client.request<ShowcallerDevicesSignedOut>(
+      $OPERATIONS["showcallerLinks.signOutDevices"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `rosterEntries`, in the Advancing module.
  *
  * Advance packets, sections, recipients, submissions and riders (Section 4.2).
@@ -39265,6 +39903,88 @@ export class LiveLinksResource extends $Resource {
 }
 
 /**
+ * Operations on `cueFieldAudiences`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class CueFieldAudiencesResource extends $Resource {
+  /**
+   * List cue field audience rows
+   *
+   * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /cue-field-audiences` (operation `cueFieldAudiences.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  list(
+    params?: $ListParams<CueFieldAudience>,
+    options?: $RequestOptions,
+  ): Promise<$Page<CueFieldAudience>> {
+    return this.client.requestPage<CueFieldAudience>(
+      $OPERATIONS["cueFieldAudiences.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List cue field audience rows
+   *
+   * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /cue-field-audiences` (operation `cueFieldAudiences.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  listAll(
+    params?: $ListAllParams<CueFieldAudience>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<CueFieldAudience, void, undefined> {
+    return this.client.paginate<CueFieldAudience>(
+      $OPERATIONS["cueFieldAudiences.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a cue field audience
+   *
+   * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Creates a cue field audience. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /cue-field-audiences` (operation `cueFieldAudiences.create`).
+   * Requires the capability `org.custom_fields.write`.
+   */
+  create(
+    body: CueFieldAudienceCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<CueFieldAudience>> {
+    return this.client.request<CueFieldAudience>(
+      $OPERATIONS["cueFieldAudiences.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a cue field audience
+   *
+   * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Soft-deletes the cue field audience: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /cue-field-audiences/{id}` (operation `cueFieldAudiences.delete`).
+   * Requires the capability `org.custom_fields.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["cueFieldAudiences.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `personCalendarFeeds`, in the Platform module.
  *
  * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
@@ -40043,6 +40763,68 @@ export class WorkforceGroupsResource extends $Resource {
     return this.client.request<WorkforceGroup>(
       $OPERATIONS["workforceGroups.archive"],
       { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Open a project's show channel
+   *
+   * Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project, with the caller as Owner and the project's members, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /groups/open-show-channel` (operation `workforceGroups.openShowChannel`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  openShowChannel(
+    body: ShowChannelOpenRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowChannelConversation>> {
+    return this.client.request<ShowChannelConversation>(
+      $OPERATIONS["workforceGroups.openShowChannel"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Join a project's show channel
+   *
+   * Adds the caller to the project's live show channel through app.join_show_channel. Needs show.run_of_show.read on the project; anyone engaged as Client is refused (422 `show_channel_client`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /groups/join-show-channel` (operation `workforceGroups.joinShowChannel`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  joinShowChannel(
+    body: ShowChannelJoinRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ShowChannelConversation>> {
+    return this.client.request<ShowChannelConversation>(
+      $OPERATIONS["workforceGroups.joinShowChannel"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Read what the show channel panel may offer
+   *
+   * Answers through app.show_channel_status whether the project has a live show channel, its conversation (only for a member), and whether the caller is in it, may join it or may open it. Group visibility hides a group from people outside it, so the panel asks here. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /groups/show-channel-status` (operation `workforceGroups.showChannelStatus`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  showChannelStatus(
+    params: {
+      /**
+       * Identifier of the project of the show channel.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ShowChannelStatus>> {
+    return this.client.request<ShowChannelStatus>(
+      $OPERATIONS["workforceGroups.showChannelStatus"],
+      { query: params },
       options,
     );
   }

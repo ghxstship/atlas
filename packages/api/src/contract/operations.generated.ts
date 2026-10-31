@@ -2671,6 +2671,21 @@ export interface Components {
     description?: string | null;
     space_id?: string | null;
   };
+  CueFieldAudience: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    custom_field_definition_id: string;
+    audience: "Crew" | "Showcaller" | "Client";
+  };
+  CueFieldAudienceCreate: {
+    custom_field_definition_id: string;
+    audience: "Crew" | "Showcaller" | "Client";
+  };
+  CueFieldAudiencePage: { data: Array<Components["CueFieldAudience"]>; next_cursor: string | null };
   CuePage: { data: Array<Components["Cue"]>; next_cursor: string | null };
   CueUpdate: {
     position?: number;
@@ -7951,6 +7966,21 @@ export interface Components {
   };
   RunOfShowPage: { data: Array<Components["RunOfShow"]>; next_cursor: string | null };
   RunOfShowUpdate: { name?: string; show_date?: string; record_id?: string | null };
+  RunSegmentInstance: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    run_of_show_id: string;
+    segment_library_id: string;
+    library_version: number;
+  };
+  RunSegmentInstancePage: {
+    data: Array<Components["RunSegmentInstance"]>;
+    next_cursor: string | null;
+  };
   SavedProjectFact: { id: string };
   SavedSearch: {
     id: string;
@@ -8124,6 +8154,99 @@ export interface Components {
   ScopeNodePage: { data: Array<Components["ScopeNode"]>; next_cursor: string | null };
   ScopeNodeUpdate: { scope_code?: string; name?: string; node_kind?: string };
   SeatPreference: "Window" | "Aisle" | "No Preference";
+  SegmentInsertRequest: { run_of_show_id: string; before_position?: number; starts_at?: string };
+  SegmentInsertResult: { segment_instance_id: string };
+  SegmentLibraryCue: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    segment_library_id: string;
+    position: number;
+    label: string;
+    duration: string | null;
+    description: string | null;
+    script: string | null;
+  };
+  SegmentLibraryCueCall: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    segment_library_cue_id: string;
+    call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction: string;
+  };
+  SegmentLibraryCueCallCreate: {
+    segment_library_cue_id: string;
+    call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction: string;
+  };
+  SegmentLibraryCueCallPage: {
+    data: Array<Components["SegmentLibraryCueCall"]>;
+    next_cursor: string | null;
+  };
+  SegmentLibraryCueCallUpdate: {
+    call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction?: string;
+  };
+  SegmentLibraryCueCreate: {
+    segment_library_id: string;
+    position: number;
+    label: string;
+    duration?: string | null;
+    description?: string | null;
+    script?: string | null;
+  };
+  SegmentLibraryCuePage: {
+    data: Array<Components["SegmentLibraryCue"]>;
+    next_cursor: string | null;
+  };
+  SegmentLibraryCueUpdate: {
+    position?: number;
+    label?: string;
+    duration?: string | null;
+    description?: string | null;
+    script?: string | null;
+  };
+  SegmentLibrarySegment: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    description: string | null;
+    color_key: string | null;
+    version: number;
+  };
+  SegmentLibrarySegmentCreate: {
+    name: string;
+    description?: string | null;
+    color_key?: string | null;
+  };
+  SegmentLibrarySegmentPage: {
+    data: Array<Components["SegmentLibrarySegment"]>;
+    next_cursor: string | null;
+  };
+  SegmentLibrarySegmentUpdate: {
+    name?: string;
+    description?: string | null;
+    color_key?: string | null;
+  };
+  SegmentPublishRequest: { run_of_show_ids: Array<string> };
+  SegmentPublishResults: {
+    data: Array<{
+      run_of_show_id: string;
+      segment_instance_id: string | null;
+      outcome: "Published" | "Current" | "Called" | "Linked" | "No Instance";
+    }>;
+  };
   SeparationOfDutiesRule: { code: string; enforced_on: string; description: string };
   SeparationOfDutiesRulePage: {
     data: Array<Components["SeparationOfDutiesRule"]>;
@@ -8500,6 +8623,51 @@ export interface Components {
   ShortlistCreate: { opportunity_id: string; application_id: string; rank?: number | null };
   ShortlistPage: { data: Array<Components["Shortlist"]>; next_cursor: string | null };
   ShortlistUpdate: { rank?: number | null };
+  ShowChannelConversation: { conversation_id: string };
+  ShowChannelJoinRequest: { project_id: string };
+  ShowChannelOpenRequest: { project_id: string };
+  ShowChannelStatus: {
+    channel_exists: boolean;
+    conversation_id: string | null;
+    am_member: boolean;
+    can_join: boolean;
+    can_open: boolean;
+  };
+  ShowcallerDevicesSignedOut: { devices: number };
+  ShowcallerLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    run_of_show_id: string;
+    caller_name: string;
+    note: string | null;
+    token_hint: string;
+    expires_at: string;
+    failed_attempts: number;
+    open_count: number;
+    last_opened_at: string | null;
+    rotated_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  ShowcallerLinkPage: { data: Array<Components["ShowcallerLink"]>; next_cursor: string | null };
+  ShowcallerLinkRegenerated: { token: string; access_code: string; expires_at: string };
+  ShowcallerLinkRequest: {
+    run_of_show_id: string;
+    caller_name: string;
+    expires_at?: string;
+    note?: string;
+  };
+  ShowcallerLinkToken: {
+    showcaller_link_id: string;
+    token: string;
+    access_code: string;
+    expires_at: string;
+  };
   SitePlan: {
     id: string;
     org_id: string;
@@ -24568,6 +24736,261 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "segmentLibrary.list": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SegmentLibrarySegmentPage"] };
+  };
+  "segmentLibrary.create": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SegmentLibrarySegmentCreate"];
+    responses: { 201: Components["SegmentLibrarySegment"] };
+  };
+  "segmentLibrary.get": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SegmentLibrarySegment"] };
+  };
+  "segmentLibrary.update": {
+    module: "Show";
+    method: "patch";
+    path: "/segment-library/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentLibrarySegmentUpdate"];
+    responses: { 200: Components["SegmentLibrarySegment"] };
+  };
+  "segmentLibrary.delete": {
+    module: "Show";
+    method: "delete";
+    path: "/segment-library/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "segmentLibrary.insertIntoRun": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library/{id}/insert-into-run";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentInsertRequest"];
+    responses: { 201: Components["SegmentInsertResult"] };
+  };
+  "segmentLibrary.publish": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library/{id}/publish";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentPublishRequest"];
+    responses: { 200: Components["SegmentPublishResults"] };
+  };
+  "segmentLibraryCues.list": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library-cues";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SegmentLibraryCuePage"] };
+  };
+  "segmentLibraryCues.create": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library-cues";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SegmentLibraryCueCreate"];
+    responses: { 201: Components["SegmentLibraryCue"] };
+  };
+  "segmentLibraryCues.get": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library-cues/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SegmentLibraryCue"] };
+  };
+  "segmentLibraryCues.update": {
+    module: "Show";
+    method: "patch";
+    path: "/segment-library-cues/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentLibraryCueUpdate"];
+    responses: { 200: Components["SegmentLibraryCue"] };
+  };
+  "segmentLibraryCues.delete": {
+    module: "Show";
+    method: "delete";
+    path: "/segment-library-cues/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "segmentLibraryCueCalls.list": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library-cue-calls";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SegmentLibraryCueCallPage"] };
+  };
+  "segmentLibraryCueCalls.create": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library-cue-calls";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SegmentLibraryCueCallCreate"];
+    responses: { 201: Components["SegmentLibraryCueCall"] };
+  };
+  "segmentLibraryCueCalls.get": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library-cue-calls/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SegmentLibraryCueCall"] };
+  };
+  "segmentLibraryCueCalls.update": {
+    module: "Show";
+    method: "patch";
+    path: "/segment-library-cue-calls/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentLibraryCueCallUpdate"];
+    responses: { 200: Components["SegmentLibraryCueCall"] };
+  };
+  "segmentLibraryCueCalls.delete": {
+    module: "Show";
+    method: "delete";
+    path: "/segment-library-cue-calls/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "runSegmentInstances.list": {
+    module: "Show";
+    method: "get";
+    path: "/run-segment-instances";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["RunSegmentInstancePage"] };
+  };
+  "runSegmentInstances.get": {
+    module: "Show";
+    method: "get";
+    path: "/run-segment-instances/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["RunSegmentInstance"] };
+  };
+  "showcallerLinks.list": {
+    module: "Show";
+    method: "get";
+    path: "/showcaller-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ShowcallerLinkPage"] };
+  };
+  "showcallerLinks.get": {
+    module: "Show";
+    method: "get";
+    path: "/showcaller-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ShowcallerLink"] };
+  };
+  "showcallerLinks.create": {
+    module: "Show";
+    method: "post";
+    path: "/showcaller-links/create";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShowcallerLinkRequest"];
+    responses: { 201: Components["ShowcallerLinkToken"] };
+  };
+  "showcallerLinks.regenerate": {
+    module: "Show";
+    method: "post";
+    path: "/showcaller-links/{id}/regenerate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShowcallerLinkRegenerated"] };
+  };
+  "showcallerLinks.revoke": {
+    module: "Show";
+    method: "post";
+    path: "/showcaller-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShowcallerLink"] };
+  };
+  "showcallerLinks.signOutDevices": {
+    module: "Show";
+    method: "post";
+    path: "/showcaller-links/{id}/sign-out-devices";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShowcallerDevicesSignedOut"] };
+  };
   "rosterEntries.list": {
     module: "Advancing";
     method: "get";
@@ -26545,6 +26968,39 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["LiveLink"] };
   };
+  "cueFieldAudiences.list": {
+    module: "Platform";
+    method: "get";
+    path: "/cue-field-audiences";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["CueFieldAudiencePage"] };
+  };
+  "cueFieldAudiences.create": {
+    module: "Platform";
+    method: "post";
+    path: "/cue-field-audiences";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["CueFieldAudienceCreate"];
+    responses: { 201: Components["CueFieldAudience"] };
+  };
+  "cueFieldAudiences.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/cue-field-audiences/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
   "personCalendarFeeds.list": {
     module: "Platform";
     method: "get";
@@ -26874,6 +27330,33 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["WorkforceGroup"] };
+  };
+  "workforceGroups.openShowChannel": {
+    module: "Workforce";
+    method: "post";
+    path: "/groups/open-show-channel";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShowChannelOpenRequest"];
+    responses: { 200: Components["ShowChannelConversation"] };
+  };
+  "workforceGroups.joinShowChannel": {
+    module: "Workforce";
+    method: "post";
+    path: "/groups/join-show-channel";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShowChannelJoinRequest"];
+    responses: { 200: Components["ShowChannelConversation"] };
+  };
+  "workforceGroups.showChannelStatus": {
+    module: "Workforce";
+    method: "get";
+    path: "/groups/show-channel-status";
+    params: Record<string, never>;
+    query: { project_id: string };
+    body: undefined;
+    responses: { 200: Components["ShowChannelStatus"] };
   };
   "workforceGroupMembers.list": {
     module: "Workforce";
@@ -28524,7 +29007,32 @@ export interface ModuleOperations {
     | "cueCalls.create"
     | "cueCalls.get"
     | "cueCalls.update"
-    | "cueCalls.delete";
+    | "cueCalls.delete"
+    | "segmentLibrary.list"
+    | "segmentLibrary.create"
+    | "segmentLibrary.get"
+    | "segmentLibrary.update"
+    | "segmentLibrary.delete"
+    | "segmentLibrary.insertIntoRun"
+    | "segmentLibrary.publish"
+    | "segmentLibraryCues.list"
+    | "segmentLibraryCues.create"
+    | "segmentLibraryCues.get"
+    | "segmentLibraryCues.update"
+    | "segmentLibraryCues.delete"
+    | "segmentLibraryCueCalls.list"
+    | "segmentLibraryCueCalls.create"
+    | "segmentLibraryCueCalls.get"
+    | "segmentLibraryCueCalls.update"
+    | "segmentLibraryCueCalls.delete"
+    | "runSegmentInstances.list"
+    | "runSegmentInstances.get"
+    | "showcallerLinks.list"
+    | "showcallerLinks.get"
+    | "showcallerLinks.create"
+    | "showcallerLinks.regenerate"
+    | "showcallerLinks.revoke"
+    | "showcallerLinks.signOutDevices";
   Knowledge:
     | "sops.list"
     | "sops.create"
@@ -29949,6 +30457,9 @@ export interface ModuleOperations {
     | "liveLinks.createDisplay"
     | "liveLinks.regenerate"
     | "liveLinks.revoke"
+    | "cueFieldAudiences.list"
+    | "cueFieldAudiences.create"
+    | "cueFieldAudiences.delete"
     | "personCalendarFeeds.list"
     | "personCalendarFeeds.create"
     | "personCalendarFeeds.get"
@@ -29982,6 +30493,9 @@ export interface ModuleOperations {
     | "workforceGroups.get"
     | "workforceGroups.update"
     | "workforceGroups.archive"
+    | "workforceGroups.openShowChannel"
+    | "workforceGroups.joinShowChannel"
+    | "workforceGroups.showChannelStatus"
     | "workforceGroupMembers.list"
     | "workforceGroupMembers.create"
     | "workforceGroupMembers.get"

@@ -348,6 +348,11 @@ from .resources import (
     EarnedMediaItemsResource,
     ProjectMeasurementSummaryResource,
     CueCallsResource,
+    SegmentLibraryResource,
+    SegmentLibraryCuesResource,
+    SegmentLibraryCueCallsResource,
+    RunSegmentInstancesResource,
+    ShowcallerLinksResource,
     RosterEntriesResource,
     AdvanceAllocationsResource,
     AssetReservationConflictsResource,
@@ -396,6 +401,7 @@ from .resources import (
     PartnerStandingGrantsResource,
     ShareLinksResource,
     LiveLinksResource,
+    CueFieldAudiencesResource,
     PersonCalendarFeedsResource,
     ProjectInboxesResource,
     InboundMessagesResource,
@@ -793,6 +799,11 @@ class XosClient(XosClientCore):
     earned_media_items: EarnedMediaItemsResource
     project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
+    segment_library: SegmentLibraryResource
+    segment_library_cues: SegmentLibraryCuesResource
+    segment_library_cue_calls: SegmentLibraryCueCallsResource
+    run_segment_instances: RunSegmentInstancesResource
+    showcaller_links: ShowcallerLinksResource
     roster_entries: RosterEntriesResource
     advance_allocations: AdvanceAllocationsResource
     asset_reservation_conflicts: AssetReservationConflictsResource
@@ -841,6 +852,7 @@ class XosClient(XosClientCore):
     partner_standing_grants: PartnerStandingGrantsResource
     share_links: ShareLinksResource
     live_links: LiveLinksResource
+    cue_field_audiences: CueFieldAudiencesResource
     person_calendar_feeds: PersonCalendarFeedsResource
     project_inboxes: ProjectInboxesResource
     inbound_messages: InboundMessagesResource
@@ -1226,6 +1238,11 @@ class XosClient(XosClientCore):
         self.earned_media_items = EarnedMediaItemsResource(self)
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
+        self.segment_library = SegmentLibraryResource(self)
+        self.segment_library_cues = SegmentLibraryCuesResource(self)
+        self.segment_library_cue_calls = SegmentLibraryCueCallsResource(self)
+        self.run_segment_instances = RunSegmentInstancesResource(self)
+        self.showcaller_links = ShowcallerLinksResource(self)
         self.roster_entries = RosterEntriesResource(self)
         self.advance_allocations = AdvanceAllocationsResource(self)
         self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
@@ -1274,6 +1291,7 @@ class XosClient(XosClientCore):
         self.partner_standing_grants = PartnerStandingGrantsResource(self)
         self.share_links = ShareLinksResource(self)
         self.live_links = LiveLinksResource(self)
+        self.cue_field_audiences = CueFieldAudiencesResource(self)
         self.person_calendar_feeds = PersonCalendarFeedsResource(self)
         self.project_inboxes = ProjectInboxesResource(self)
         self.inbound_messages = InboundMessagesResource(self)

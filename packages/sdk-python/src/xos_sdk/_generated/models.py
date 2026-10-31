@@ -1253,6 +1253,30 @@ __all__ = [
     "CueCall",
     "CueCallCreate",
     "CueCallUpdate",
+    "SegmentLibrarySegmentPage",
+    "SegmentLibrarySegment",
+    "SegmentLibrarySegmentCreate",
+    "SegmentLibrarySegmentUpdate",
+    "SegmentInsertResult",
+    "SegmentInsertRequest",
+    "SegmentPublishResults",
+    "SegmentPublishRequest",
+    "SegmentLibraryCuePage",
+    "SegmentLibraryCue",
+    "SegmentLibraryCueCreate",
+    "SegmentLibraryCueUpdate",
+    "SegmentLibraryCueCallPage",
+    "SegmentLibraryCueCall",
+    "SegmentLibraryCueCallCreate",
+    "SegmentLibraryCueCallUpdate",
+    "RunSegmentInstancePage",
+    "RunSegmentInstance",
+    "ShowcallerLinkPage",
+    "ShowcallerLink",
+    "ShowcallerLinkToken",
+    "ShowcallerLinkRequest",
+    "ShowcallerLinkRegenerated",
+    "ShowcallerDevicesSignedOut",
     "RosterEntryPage",
     "RosterEntry",
     "RosterEntryState",
@@ -1479,6 +1503,9 @@ __all__ = [
     "LiveDisplayLinkToken",
     "LiveDisplayLinkRequest",
     "LiveLinkRegenerated",
+    "CueFieldAudiencePage",
+    "CueFieldAudience",
+    "CueFieldAudienceCreate",
     "PersonCalendarFeedPage",
     "PersonCalendarFeed",
     "ProjectInboxPage",
@@ -1511,6 +1538,10 @@ __all__ = [
     "WorkforceGroup",
     "WorkforceGroupCreate",
     "WorkforceGroupUpdate",
+    "ShowChannelConversation",
+    "ShowChannelOpenRequest",
+    "ShowChannelJoinRequest",
+    "ShowChannelStatus",
     "WorkforceGroupMemberPage",
     "WorkforceGroupMember",
     "WorkforceGroupMemberCreate",
@@ -20808,6 +20839,354 @@ class CueCallUpdate(TypedDict, total=False):
     instruction: str
 
 
+class SegmentLibrarySegmentPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SegmentLibrarySegment]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SegmentLibrarySegment(TypedDict):
+    """A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter."""
+
+    #: Identifier of the segment library segment.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Segment name, unique in the org.
+    name: str
+    #: What the segment is.
+    description: Optional[str]
+    #: One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+    color_key: Optional[str]
+    #: Change counter, set by the database: one more for each change of the segment, its cues or their calls.
+    version: int
+
+
+class _SegmentLibrarySegmentCreateRequired(TypedDict):
+    #: Segment name, unique in the org.
+    name: str
+
+
+class SegmentLibrarySegmentCreate(_SegmentLibrarySegmentCreateRequired, total=False):
+    """Fields accepted when creating a SegmentLibrarySegment."""
+
+    #: What the segment is.
+    description: Optional[str]
+    #: One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+    color_key: Optional[str]
+
+
+class SegmentLibrarySegmentUpdate(TypedDict, total=False):
+    """Fields accepted when updating a SegmentLibrarySegment. Omitted fields are unchanged."""
+
+    #: Segment name, unique in the org.
+    name: str
+    #: What the segment is.
+    description: Optional[str]
+    #: One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+    color_key: Optional[str]
+
+
+class SegmentInsertResult(TypedDict):
+    """The copy a segment insert made."""
+
+    #: The new copy of the segment in the running order.
+    segment_instance_id: str
+
+
+class _SegmentInsertRequestRequired(TypedDict):
+    #: Identifier of the running order to copy the segment into.
+    run_of_show_id: str
+
+
+class SegmentInsertRequest(_SegmentInsertRequestRequired, total=False):
+    """Where to copy the segment."""
+
+    #: 1-based place the segment goes before; omit to append.
+    before_position: int
+    #: When the segment's first cue is planned.
+    starts_at: str
+
+
+class SegmentPublishResults(TypedDict):
+    """What publishing did in each chosen running order."""
+
+    #: One row per copy of the segment in each chosen running order.
+    data: List[Dict[str, Any]]
+
+
+class SegmentPublishRequest(TypedDict):
+    """Running orders to publish the segment to."""
+
+    #: Running orders to publish to, 1 to 50.
+    run_of_show_ids: List[str]
+
+
+class SegmentLibraryCuePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SegmentLibraryCue]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SegmentLibraryCue(TypedDict):
+    """A cue of a library segment (at most 100 per segment), copied with the segment into running orders."""
+
+    #: Identifier of the segment library cue.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the library segment.
+    segment_library_id: str
+    #: Order in the segment.
+    position: int
+    #: Cue label.
+    label: str
+    #: Planned length as hours:minutes:seconds.
+    duration: Optional[str]
+    #: What happens on the cue.
+    description: Optional[str]
+    #: What is said on the cue.
+    script: Optional[str]
+
+
+class _SegmentLibraryCueCreateRequired(TypedDict):
+    #: Identifier of the library segment.
+    segment_library_id: str
+    #: Order in the segment.
+    position: int
+    #: Cue label.
+    label: str
+
+
+class SegmentLibraryCueCreate(_SegmentLibraryCueCreateRequired, total=False):
+    """Fields accepted when creating a SegmentLibraryCue."""
+
+    #: Planned length as hours:minutes:seconds.
+    duration: Optional[str]
+    #: What happens on the cue.
+    description: Optional[str]
+    #: What is said on the cue.
+    script: Optional[str]
+
+
+class SegmentLibraryCueUpdate(TypedDict, total=False):
+    """Fields accepted when updating a SegmentLibraryCue. Omitted fields are unchanged."""
+
+    #: Order in the segment.
+    position: int
+    #: Cue label.
+    label: str
+    #: Planned length as hours:minutes:seconds.
+    duration: Optional[str]
+    #: What happens on the cue.
+    description: Optional[str]
+    #: What is said on the cue.
+    script: Optional[str]
+
+
+class SegmentLibraryCueCallPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SegmentLibraryCueCall]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SegmentLibraryCueCall(TypedDict):
+    """A department's call on a library cue, one per department, copied into app.cue_calls with the cue."""
+
+    #: Identifier of the segment library cue call.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the library cue the call belongs to.
+    segment_library_cue_id: str
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
+class SegmentLibraryCueCallCreate(TypedDict):
+    """Fields accepted when creating a SegmentLibraryCueCall."""
+
+    #: Identifier of the library cue the call belongs to.
+    segment_library_cue_id: str
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
+class SegmentLibraryCueCallUpdate(TypedDict, total=False):
+    """Fields accepted when updating a SegmentLibraryCueCall. Omitted fields are unchanged."""
+
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
+class RunSegmentInstancePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[RunSegmentInstance]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class RunSegmentInstance(TypedDict):
+    """A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`."""
+
+    #: Identifier of the run segment instance.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the running order the segment was copied into.
+    run_of_show_id: str
+    #: Identifier of the library segment copied.
+    segment_library_id: str
+    #: Version of the library segment the copy holds.
+    library_version: int
+
+
+class ShowcallerLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ShowcallerLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ShowcallerLink(TypedDict):
+    """A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read."""
+
+    #: Identifier of the showcaller link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project of the running order, stamped by the database.
+    project_id: str
+    #: Identifier of the running order the link calls.
+    run_of_show_id: str
+    #: Name of the showcaller the link is for, shown beside each cue called through it.
+    caller_name: str
+    #: What the link is for. Never shown on the portal.
+    note: Optional[str]
+    #: Last four characters of the token, to tell links apart.
+    token_hint: str
+    #: When the link stops opening and writing: within 14 days.
+    expires_at: str
+    #: Wrong access codes since the link was made or regenerated; it locks at 5, and devices that proved the code keep working.
+    failed_attempts: int
+    #: Successful opens with the access code.
+    open_count: int
+    #: When the link was last opened.
+    last_opened_at: Optional[str]
+    #: When the link was last regenerated.
+    rotated_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class ShowcallerLinkToken(TypedDict):
+    """A new showcaller link with its token and access code, shown once."""
+
+    #: The new link.
+    showcaller_link_id: str
+    #: The link token. The portal is `{Atlas origin}/share/showcaller/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _ShowcallerLinkRequestRequired(TypedDict):
+    #: Identifier of the running order the link calls.
+    run_of_show_id: str
+    #: Name of the showcaller.
+    caller_name: str
+
+
+class ShowcallerLinkRequest(_ShowcallerLinkRequestRequired, total=False):
+    """A showcaller link to a running order."""
+
+    #: When the link stops opening; by default the end of the day after the show.
+    expires_at: str
+    #: What the link is for. Never shown on the portal.
+    note: str
+
+
+class ShowcallerLinkRegenerated(TypedDict):
+    """A regenerated showcaller link's new token and access code, shown once."""
+
+    #: The link token. The portal is `{Atlas origin}/share/showcaller/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link.
+    access_code: str
+    #: When the link stops opening; regenerating keeps the expiry.
+    expires_at: str
+
+
+class ShowcallerDevicesSignedOut(TypedDict):
+    """How many device grants were dropped."""
+
+    #: How many devices were signed out.
+    devices: int
+
+
 class RosterEntryPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -24352,6 +24731,45 @@ class LiveLinkRegenerated(TypedDict):
     expires_at: str
 
 
+class CueFieldAudiencePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[CueFieldAudience]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class CueFieldAudience(TypedDict):
+    """Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`)."""
+
+    #: Identifier of the cue field audience.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the cue custom field.
+    custom_field_definition_id: str
+    #: Who the field is for.
+    audience: Literal["Crew", "Showcaller", "Client"]
+
+
+class CueFieldAudienceCreate(TypedDict):
+    """Fields accepted when creating a CueFieldAudience."""
+
+    #: Identifier of the cue custom field.
+    custom_field_definition_id: str
+    #: Who the field is for.
+    audience: Literal["Crew", "Showcaller", "Client"]
+
+
 class PersonCalendarFeedPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -24804,6 +25222,42 @@ class WorkforceGroupUpdate(TypedDict, total=False):
     name: str
     #: What the group is for.
     description: Optional[str]
+
+
+class ShowChannelConversation(TypedDict):
+    """A project's show channel conversation."""
+
+    #: The show channel's conversation.
+    conversation_id: str
+
+
+class ShowChannelOpenRequest(TypedDict):
+    """The project whose show channel to use."""
+
+    #: Identifier of the project of the show channel.
+    project_id: str
+
+
+class ShowChannelJoinRequest(TypedDict):
+    """The project whose show channel to use."""
+
+    #: Identifier of the project of the show channel.
+    project_id: str
+
+
+class ShowChannelStatus(TypedDict):
+    """What the show channel panel may offer the caller."""
+
+    #: The project has a live show channel.
+    channel_exists: bool
+    #: Its conversation, only for a member of it.
+    conversation_id: Optional[str]
+    #: The caller is in the channel.
+    am_member: bool
+    #: The caller may join: a reader of the running order who is not a Client.
+    can_join: bool
+    #: The caller may open it: no channel yet and show.run_of_show.write.
+    can_open: bool
 
 
 class WorkforceGroupMemberPage(TypedDict):

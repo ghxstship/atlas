@@ -440,6 +440,9 @@ if TYPE_CHECKING:
         CueCallPage,
         CueCallUpdate,
         CueCreate,
+        CueFieldAudience,
+        CueFieldAudienceCreate,
+        CueFieldAudiencePage,
         CuePage,
         CueUpdate,
         CustomFieldDefinition,
@@ -1188,6 +1191,8 @@ if TYPE_CHECKING:
         RunOfShowCreate,
         RunOfShowPage,
         RunOfShowUpdate,
+        RunSegmentInstance,
+        RunSegmentInstancePage,
         SavedProjectFact,
         SavedSearch,
         SavedSearchCreate,
@@ -1219,6 +1224,22 @@ if TYPE_CHECKING:
         ScopeNodeCreate,
         ScopeNodePage,
         ScopeNodeUpdate,
+        SegmentInsertRequest,
+        SegmentInsertResult,
+        SegmentLibraryCue,
+        SegmentLibraryCueCall,
+        SegmentLibraryCueCallCreate,
+        SegmentLibraryCueCallPage,
+        SegmentLibraryCueCallUpdate,
+        SegmentLibraryCueCreate,
+        SegmentLibraryCuePage,
+        SegmentLibraryCueUpdate,
+        SegmentLibrarySegment,
+        SegmentLibrarySegmentCreate,
+        SegmentLibrarySegmentPage,
+        SegmentLibrarySegmentUpdate,
+        SegmentPublishRequest,
+        SegmentPublishResults,
         SeparationOfDutiesRule,
         SeparationOfDutiesRulePage,
         ServiceAccount,
@@ -1263,6 +1284,16 @@ if TYPE_CHECKING:
         ShortlistCreate,
         ShortlistPage,
         ShortlistUpdate,
+        ShowChannelConversation,
+        ShowChannelJoinRequest,
+        ShowChannelOpenRequest,
+        ShowChannelStatus,
+        ShowcallerDevicesSignedOut,
+        ShowcallerLink,
+        ShowcallerLinkPage,
+        ShowcallerLinkRegenerated,
+        ShowcallerLinkRequest,
+        ShowcallerLinkToken,
         SitePlan,
         SitePlanCreate,
         SitePlanPage,
@@ -32152,6 +32183,543 @@ class CueCallsResource(Resource):
         return self._client.request(OPERATIONS["cueCalls.delete"], path={"id": id}, options=options)
 
 
+class SegmentLibraryResource(Resource):
+    """Operations on ``segmentLibrary``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SegmentLibrarySegment]:
+        """List library segment rows
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /segment-library`` (operation ``segmentLibrary.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["segmentLibrary.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SegmentLibrarySegment]:
+        """List library segment rows
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /segment-library`` (operation ``segmentLibrary.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["segmentLibrary.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: SegmentLibrarySegmentCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibrarySegment]:
+        """Create a library segment
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Creates a library segment. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /segment-library`` (operation ``segmentLibrary.create``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibrarySegment]:
+        """Get a library segment
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns one library segment with its `ETag`. A library segment the caller may not see returns 404.
+
+        ``GET /segment-library/{id}`` (operation ``segmentLibrary.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: SegmentLibrarySegmentUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibrarySegment]:
+        """Update a library segment
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /segment-library/{id}`` (operation ``segmentLibrary.update``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a library segment
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Soft-deletes the library segment: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /segment-library/{id}`` (operation ``segmentLibrary.delete``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.delete"], path={"id": id}, options=options)
+
+    def insert_into_run(
+        self,
+        id: str,
+        body: SegmentInsertRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentInsertResult]:
+        """Copy a library segment into a running order
+
+        Copies the segment's cues and their department calls into a running order of the same org through app.insert_library_segment, before the cue at the 1-based place `before_position` (omitted, at the end), renumbering the running order 1..n in one transaction. With `starts_at` the copies are planned from it and the durations before them; without it they are unplanned. Needs show.run_of_show.write on the project. Refuses an empty segment (422 `segment_library_empty`), a place at or before the last called cue (422 `segment_insert_before_called`) and a running order that would pass 300 cues (422 `segment_insert_cue_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /segment-library/{id}/insert-into-run`` (operation ``segmentLibrary.insertIntoRun``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.insertIntoRun"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def publish(
+        self,
+        id: str,
+        body: SegmentPublishRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentPublishResults]:
+        """Publish a library segment to running orders
+
+        Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /segment-library/{id}/publish`` (operation ``segmentLibrary.publish``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.publish"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class SegmentLibraryCuesResource(Resource):
+    """Operations on ``segmentLibraryCues``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SegmentLibraryCue]:
+        """List library cue rows
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /segment-library-cues`` (operation ``segmentLibraryCues.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["segmentLibraryCues.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SegmentLibraryCue]:
+        """List library cue rows
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /segment-library-cues`` (operation ``segmentLibraryCues.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["segmentLibraryCues.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: SegmentLibraryCueCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCue]:
+        """Create a library cue
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Creates a library cue. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /segment-library-cues`` (operation ``segmentLibraryCues.create``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCues.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCue]:
+        """Get a library cue
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns one library cue with its `ETag`. A library cue the caller may not see returns 404.
+
+        ``GET /segment-library-cues/{id}`` (operation ``segmentLibraryCues.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCues.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: SegmentLibraryCueUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCue]:
+        """Update a library cue
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /segment-library-cues/{id}`` (operation ``segmentLibraryCues.update``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCues.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a library cue
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Soft-deletes the library cue: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /segment-library-cues/{id}`` (operation ``segmentLibraryCues.delete``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCues.delete"], path={"id": id}, options=options)
+
+
+class SegmentLibraryCueCallsResource(Resource):
+    """Operations on ``segmentLibraryCueCalls``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SegmentLibraryCueCall]:
+        """List library cue call rows
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /segment-library-cue-calls`` (operation ``segmentLibraryCueCalls.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["segmentLibraryCueCalls.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SegmentLibraryCueCall]:
+        """List library cue call rows
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /segment-library-cue-calls`` (operation ``segmentLibraryCueCalls.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["segmentLibraryCueCalls.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: SegmentLibraryCueCallCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCueCall]:
+        """Create a library cue call
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Creates a library cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /segment-library-cue-calls`` (operation ``segmentLibraryCueCalls.create``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCueCalls.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCueCall]:
+        """Get a library cue call
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns one library cue call with its `ETag`. A library cue call the caller may not see returns 404.
+
+        ``GET /segment-library-cue-calls/{id}`` (operation ``segmentLibraryCueCalls.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCueCalls.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: SegmentLibraryCueCallUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCueCall]:
+        """Update a library cue call
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /segment-library-cue-calls/{id}`` (operation ``segmentLibraryCueCalls.update``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCueCalls.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a library cue call
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Soft-deletes the library cue call: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /segment-library-cue-calls/{id}`` (operation ``segmentLibraryCueCalls.delete``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCueCalls.delete"], path={"id": id}, options=options)
+
+
+class RunSegmentInstancesResource(Resource):
+    """Operations on ``runSegmentInstances``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[RunSegmentInstance]:
+        """List segment copy rows
+
+        A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /run-segment-instances`` (operation ``runSegmentInstances.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["runSegmentInstances.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[RunSegmentInstance]:
+        """List segment copy rows
+
+        A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /run-segment-instances`` (operation ``runSegmentInstances.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["runSegmentInstances.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RunSegmentInstance]:
+        """Get a segment copy
+
+        A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns one segment copy with its `ETag`. A segment copy the caller may not see returns 404.
+
+        ``GET /run-segment-instances/{id}`` (operation ``runSegmentInstances.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["runSegmentInstances.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class ShowcallerLinksResource(Resource):
+    """Operations on ``showcallerLinks``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ShowcallerLink]:
+        """List showcaller link rows
+
+        A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /showcaller-links`` (operation ``showcallerLinks.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["showcallerLinks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ShowcallerLink]:
+        """List showcaller link rows
+
+        A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /showcaller-links`` (operation ``showcallerLinks.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["showcallerLinks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerLink]:
+        """Get a showcaller link
+
+        A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns one showcaller link with its `ETag`. A showcaller link the caller may not see returns 404.
+
+        ``GET /showcaller-links/{id}`` (operation ``showcallerLinks.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def create(
+        self,
+        body: ShowcallerLinkRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerLinkToken]:
+        """Create a showcaller link to a running order
+
+        Makes a showcaller link through app.create_showcaller_link. The caller must be a member of the running order's org and hold both show.run_of_show.write and show.cue.call on the project (422 `showcaller_link_capability`); a read-only org makes none (422 `org_read_only`). `caller_name` is 1 to 120 characters (422 `showcaller_link_caller_name`). `expires_at` defaults to the end of the day after the show in the project's zone; when given it must be after now and within 14 days (422 `showcaller_link_expiry_range`). A running order holds at most 5 live links (422 `showcaller_link_limit`). Anyone with the link and the code can call cues and edit this running order until it expires. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /showcaller-links/create`` (operation ``showcallerLinks.create``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def regenerate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerLinkRegenerated]:
+        """Regenerate a showcaller link
+
+        Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. Its creator, or a holder of show.run_of_show.write on the project, may. A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /showcaller-links/{id}/regenerate`` (operation ``showcallerLinks.regenerate``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.regenerate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerLink]:
+        """Revoke a showcaller link
+
+        Revokes the link through app.revoke_showcaller_link so it never opens or writes again and the open portal stops on its next update. Its creator, or a holder of show.run_of_show.write on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /showcaller-links/{id}/revoke`` (operation ``showcallerLinks.revoke``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def sign_out_devices(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerDevicesSignedOut]:
+        """Sign every device out of a showcaller link
+
+        Drops every device grant of the link through app.sign_out_showcaller_devices, so each device must enter the access code again; the token and code stay. Its creator, or a holder of show.run_of_show.write on the project, may. Answers how many devices were signed out. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /showcaller-links/{id}/sign-out-devices`` (operation ``showcallerLinks.signOutDevices``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.signOutDevices"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
 class RosterEntriesResource(Resource):
     """Operations on ``rosterEntries``, in the Advancing module."""
 
@@ -36438,6 +37006,80 @@ class LiveLinksResource(Resource):
         return self._client.request(OPERATIONS["liveLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
 
+class CueFieldAudiencesResource(Resource):
+    """Operations on ``cueFieldAudiences``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[CueFieldAudience]:
+        """List cue field audience rows
+
+        Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /cue-field-audiences`` (operation ``cueFieldAudiences.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request_page(OPERATIONS["cueFieldAudiences.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[CueFieldAudience]:
+        """List cue field audience rows
+
+        Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /cue-field-audiences`` (operation ``cueFieldAudiences.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.paginate(OPERATIONS["cueFieldAudiences.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: CueFieldAudienceCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CueFieldAudience]:
+        """Create a cue field audience
+
+        Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Creates a cue field audience. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /cue-field-audiences`` (operation ``cueFieldAudiences.create``).
+        Requires the capability ``org.custom_fields.write``.
+        """
+        return self._client.request(OPERATIONS["cueFieldAudiences.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a cue field audience
+
+        Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Soft-deletes the cue field audience: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /cue-field-audiences/{id}`` (operation ``cueFieldAudiences.delete``).
+        Requires the capability ``org.custom_fields.write``.
+        """
+        return self._client.request(OPERATIONS["cueFieldAudiences.delete"], path={"id": id}, options=options)
+
+
 class PersonCalendarFeedsResource(Resource):
     """Operations on ``personCalendarFeeds``, in the Platform module."""
 
@@ -37141,6 +37783,53 @@ class WorkforceGroupsResource(Resource):
         Requires the capability ``org.communication.write``.
         """
         return self._client.request(OPERATIONS["workforceGroups.archive"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def open_show_channel(
+        self,
+        body: ShowChannelOpenRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowChannelConversation]:
+        """Open a project's show channel
+
+        Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project, with the caller as Owner and the project's members, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /groups/open-show-channel`` (operation ``workforceGroups.openShowChannel``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.openShowChannel"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def join_show_channel(
+        self,
+        body: ShowChannelJoinRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowChannelConversation]:
+        """Join a project's show channel
+
+        Adds the caller to the project's live show channel through app.join_show_channel. Needs show.run_of_show.read on the project; anyone engaged as Client is refused (422 `show_channel_client`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /groups/join-show-channel`` (operation ``workforceGroups.joinShowChannel``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.joinShowChannel"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def show_channel_status(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowChannelStatus]:
+        """Read what the show channel panel may offer
+
+        Answers through app.show_channel_status whether the project has a live show channel, its conversation (only for a member), and whether the caller is in it, may join it or may open it. Group visibility hides a group from people outside it, so the panel asks here. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /groups/show-channel-status`` (operation ``workforceGroups.showChannelStatus``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.showChannelStatus"], query={"project_id": project_id}, options=options)
 
 
 class WorkforceGroupMembersResource(Resource):

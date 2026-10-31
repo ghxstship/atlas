@@ -37441,6 +37441,690 @@ export interface CueCallUpdate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface SegmentLibrarySegmentPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SegmentLibrarySegment>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter.
+ */
+export interface SegmentLibrarySegment {
+  /**
+   * Identifier of the segment library segment.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Segment name, unique in the org.
+   * Length: 1 to 200.
+   */
+  readonly name: string;
+  /**
+   * What the segment is.
+   * Length: 1 to 2000.
+   */
+  readonly description: string | null;
+  /**
+   * One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+   * Pattern: `^cat-[1-7]$`.
+   */
+  readonly color_key: string | null;
+  /**
+   * Change counter, set by the database: one more for each change of the segment, its cues or their calls.
+   * Range: 1 to unbounded.
+   */
+  readonly version: number;
+}
+
+/**
+ * Fields accepted when creating a SegmentLibrarySegment.
+ */
+export interface SegmentLibrarySegmentCreate {
+  /**
+   * Segment name, unique in the org.
+   * Length: 1 to 200.
+   */
+  readonly name: string;
+  /**
+   * What the segment is.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
+  /**
+   * One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+   * Pattern: `^cat-[1-7]$`.
+   */
+  readonly color_key?: string | null;
+}
+
+/**
+ * Fields accepted when updating a SegmentLibrarySegment. Omitted fields are unchanged.
+ */
+export interface SegmentLibrarySegmentUpdate {
+  /**
+   * Segment name, unique in the org.
+   * Length: 1 to 200.
+   */
+  readonly name?: string;
+  /**
+   * What the segment is.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
+  /**
+   * One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+   * Pattern: `^cat-[1-7]$`.
+   */
+  readonly color_key?: string | null;
+}
+
+/**
+ * The copy a segment insert made.
+ */
+export interface SegmentInsertResult {
+  /**
+   * The new copy of the segment in the running order.
+   * Format: `uuid`.
+   */
+  readonly segment_instance_id: string;
+}
+
+/**
+ * Where to copy the segment.
+ */
+export interface SegmentInsertRequest {
+  /**
+   * Identifier of the running order to copy the segment into.
+   * Format: `uuid`.
+   */
+  readonly run_of_show_id: string;
+  /**
+   * 1-based place the segment goes before; omit to append.
+   * Range: 1 to unbounded.
+   */
+  readonly before_position?: number;
+  /**
+   * When the segment's first cue is planned.
+   * Format: `date-time`.
+   */
+  readonly starts_at?: string;
+}
+
+/**
+ * What publishing did in each chosen running order.
+ */
+export interface SegmentPublishResults {
+  /**
+   * One row per copy of the segment in each chosen running order.
+   */
+  readonly data: ReadonlyArray<{
+    /**
+     * Running order.
+     * Format: `uuid`.
+     */
+    readonly run_of_show_id: string;
+    /**
+     * Copy of the segment in it, or null when it has none.
+     * Format: `uuid`.
+     */
+    readonly segment_instance_id: string | null;
+    /**
+     * Published (replaced with the current version), Current (already it), Called (a cue was called) or Linked (a cue is an artist's set time), both left untouched, or No Instance.
+     */
+    readonly outcome: "Published" | "Current" | "Called" | "Linked" | "No Instance";
+  }>;
+}
+
+/**
+ * Running orders to publish the segment to.
+ */
+export interface SegmentPublishRequest {
+  /**
+   * Running orders to publish to, 1 to 50.
+   */
+  readonly run_of_show_ids: ReadonlyArray<string>;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SegmentLibraryCuePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SegmentLibraryCue>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A cue of a library segment (at most 100 per segment), copied with the segment into running orders.
+ */
+export interface SegmentLibraryCue {
+  /**
+   * Identifier of the segment library cue.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the library segment.
+   * Format: `uuid`.
+   */
+  readonly segment_library_id: string;
+  /**
+   * Order in the segment.
+   * Range: 1 to unbounded.
+   */
+  readonly position: number;
+  /**
+   * Cue label.
+   * Length: 1 to 200.
+   */
+  readonly label: string;
+  /**
+   * Planned length as hours:minutes:seconds.
+   * Pattern: `^\d{2,}:\d{2}:\d{2}(\.\d+)?$`.
+   */
+  readonly duration: string | null;
+  /**
+   * What happens on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly description: string | null;
+  /**
+   * What is said on the cue.
+   * Length: 1 to 20000.
+   */
+  readonly script: string | null;
+}
+
+/**
+ * Fields accepted when creating a SegmentLibraryCue.
+ */
+export interface SegmentLibraryCueCreate {
+  /**
+   * Identifier of the library segment.
+   * Format: `uuid`.
+   */
+  readonly segment_library_id: string;
+  /**
+   * Order in the segment.
+   * Range: 1 to unbounded.
+   */
+  readonly position: number;
+  /**
+   * Cue label.
+   * Length: 1 to 200.
+   */
+  readonly label: string;
+  /**
+   * Planned length as hours:minutes:seconds.
+   * Pattern: `^\d{2,}:\d{2}:\d{2}(\.\d+)?$`.
+   */
+  readonly duration?: string | null;
+  /**
+   * What happens on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
+  /**
+   * What is said on the cue.
+   * Length: 1 to 20000.
+   */
+  readonly script?: string | null;
+}
+
+/**
+ * Fields accepted when updating a SegmentLibraryCue. Omitted fields are unchanged.
+ */
+export interface SegmentLibraryCueUpdate {
+  /**
+   * Order in the segment.
+   * Range: 1 to unbounded.
+   */
+  readonly position?: number;
+  /**
+   * Cue label.
+   * Length: 1 to 200.
+   */
+  readonly label?: string;
+  /**
+   * Planned length as hours:minutes:seconds.
+   * Pattern: `^\d{2,}:\d{2}:\d{2}(\.\d+)?$`.
+   */
+  readonly duration?: string | null;
+  /**
+   * What happens on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
+  /**
+   * What is said on the cue.
+   * Length: 1 to 20000.
+   */
+  readonly script?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SegmentLibraryCueCallPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SegmentLibraryCueCall>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A department's call on a library cue, one per department, copied into app.cue_calls with the cue.
+ */
+export interface SegmentLibraryCueCall {
+  /**
+   * Identifier of the segment library cue call.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the library cue the call belongs to.
+   * Format: `uuid`.
+   */
+  readonly segment_library_cue_id: string;
+  /**
+   * Department making the call.
+   */
+  readonly call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction: string;
+}
+
+/**
+ * Fields accepted when creating a SegmentLibraryCueCall.
+ */
+export interface SegmentLibraryCueCallCreate {
+  /**
+   * Identifier of the library cue the call belongs to.
+   * Format: `uuid`.
+   */
+  readonly segment_library_cue_id: string;
+  /**
+   * Department making the call.
+   */
+  readonly call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction: string;
+}
+
+/**
+ * Fields accepted when updating a SegmentLibraryCueCall. Omitted fields are unchanged.
+ */
+export interface SegmentLibraryCueCallUpdate {
+  /**
+   * Department making the call.
+   */
+  readonly call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface RunSegmentInstancePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RunSegmentInstance>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`.
+ */
+export interface RunSegmentInstance {
+  /**
+   * Identifier of the run segment instance.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the running order the segment was copied into.
+   * Format: `uuid`.
+   */
+  readonly run_of_show_id: string;
+  /**
+   * Identifier of the library segment copied.
+   * Format: `uuid`.
+   */
+  readonly segment_library_id: string;
+  /**
+   * Version of the library segment the copy holds.
+   * Range: 1 to unbounded.
+   */
+  readonly library_version: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ShowcallerLinkPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ShowcallerLink>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read.
+ */
+export interface ShowcallerLink {
+  /**
+   * Identifier of the showcaller link.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project of the running order, stamped by the database.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the running order the link calls.
+   * Format: `uuid`.
+   */
+  readonly run_of_show_id: string;
+  /**
+   * Name of the showcaller the link is for, shown beside each cue called through it.
+   * Length: 1 to 120.
+   */
+  readonly caller_name: string;
+  /**
+   * What the link is for. Never shown on the portal.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+  /**
+   * Last four characters of the token, to tell links apart.
+   * Length: 1 to 4.
+   */
+  readonly token_hint: string;
+  /**
+   * When the link stops opening and writing: within 14 days.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Wrong access codes since the link was made or regenerated; it locks at 5, and devices that proved the code keep working.
+   * Range: 0 to unbounded.
+   */
+  readonly failed_attempts: number;
+  /**
+   * Successful opens with the access code.
+   * Range: 0 to unbounded.
+   */
+  readonly open_count: number;
+  /**
+   * When the link was last opened.
+   * Format: `date-time`.
+   */
+  readonly last_opened_at: string | null;
+  /**
+   * When the link was last regenerated.
+   * Format: `date-time`.
+   */
+  readonly rotated_at: string | null;
+  /**
+   * When the link was revoked; it never opens again.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the link.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new showcaller link with its token and access code, shown once.
+ */
+export interface ShowcallerLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly showcaller_link_id: string;
+  /**
+   * The link token. The portal is `{Atlas origin}/share/showcaller/{token}`. Shown once; only its hash is stored.
+   * Pattern: `^xscl_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * A showcaller link to a running order.
+ */
+export interface ShowcallerLinkRequest {
+  /**
+   * Identifier of the running order the link calls.
+   * Format: `uuid`.
+   */
+  readonly run_of_show_id: string;
+  /**
+   * Name of the showcaller.
+   * Length: 1 to 120.
+   */
+  readonly caller_name: string;
+  /**
+   * When the link stops opening; by default the end of the day after the show.
+   * Format: `date-time`.
+   */
+  readonly expires_at?: string;
+  /**
+   * What the link is for. Never shown on the portal.
+   * Length: 1 to 200.
+   */
+  readonly note?: string;
+}
+
+/**
+ * A regenerated showcaller link's new token and access code, shown once.
+ */
+export interface ShowcallerLinkRegenerated {
+  /**
+   * The link token. The portal is `{Atlas origin}/share/showcaller/{token}`. Shown once; only its hash is stored.
+   * Pattern: `^xscl_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening; regenerating keeps the expiry.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * How many device grants were dropped.
+ */
+export interface ShowcallerDevicesSignedOut {
+  /**
+   * How many devices were signed out.
+   * Range: 0 to unbounded.
+   */
+  readonly devices: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface RosterEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -44549,6 +45233,80 @@ export interface LiveLinkRegenerated {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface CueFieldAudiencePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<CueFieldAudience>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`).
+ */
+export interface CueFieldAudience {
+  /**
+   * Identifier of the cue field audience.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the cue custom field.
+   * Format: `uuid`.
+   */
+  readonly custom_field_definition_id: string;
+  /**
+   * Who the field is for.
+   */
+  readonly audience: "Crew" | "Showcaller" | "Client";
+}
+
+/**
+ * Fields accepted when creating a CueFieldAudience.
+ */
+export interface CueFieldAudienceCreate {
+  /**
+   * Identifier of the cue custom field.
+   * Format: `uuid`.
+   */
+  readonly custom_field_definition_id: string;
+  /**
+   * Who the field is for.
+   */
+  readonly audience: "Crew" | "Showcaller" | "Client";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface PersonCalendarFeedPage {
   /**
    * Items on this page, in the documented default order.
@@ -45669,6 +46427,66 @@ export interface WorkforceGroupUpdate {
    * Length: 1 to 2000.
    */
   readonly description?: string | null;
+}
+
+/**
+ * A project's show channel conversation.
+ */
+export interface ShowChannelConversation {
+  /**
+   * The show channel's conversation.
+   * Format: `uuid`.
+   */
+  readonly conversation_id: string;
+}
+
+/**
+ * The project whose show channel to use.
+ */
+export interface ShowChannelOpenRequest {
+  /**
+   * Identifier of the project of the show channel.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+}
+
+/**
+ * The project whose show channel to use.
+ */
+export interface ShowChannelJoinRequest {
+  /**
+   * Identifier of the project of the show channel.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+}
+
+/**
+ * What the show channel panel may offer the caller.
+ */
+export interface ShowChannelStatus {
+  /**
+   * The project has a live show channel.
+   */
+  readonly channel_exists: boolean;
+  /**
+   * Its conversation, only for a member of it.
+   * Format: `uuid`.
+   */
+  readonly conversation_id: string | null;
+  /**
+   * The caller is in the channel.
+   */
+  readonly am_member: boolean;
+  /**
+   * The caller may join: a reader of the running order who is not a Client.
+   */
+  readonly can_join: boolean;
+  /**
+   * The caller may open it: no channel yet and show.run_of_show.write.
+   */
+  readonly can_open: boolean;
 }
 
 /**

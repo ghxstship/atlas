@@ -50274,6 +50274,923 @@
         },
         "description": "Fields accepted when updating a CueCall. Omitted fields are unchanged."
       },
+      "SegmentLibrarySegmentPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SegmentLibrarySegment" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SegmentLibrarySegment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the segment library segment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Segment name, unique in the org.",
+            "example": "Awards Block"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the segment is.",
+            "example": "Three awards and the walk-off."
+          },
+          "color_key": {
+            "type": ["string", "null"],
+            "pattern": "^cat-[1-7]$",
+            "description": "One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).",
+            "example": "cat-4"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Change counter, set by the database: one more for each change of the segment, its cues or their calls.",
+            "example": 3
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "name",
+          "description",
+          "color_key",
+          "version"
+        ],
+        "description": "A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter."
+      },
+      "SegmentLibrarySegmentCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Segment name, unique in the org.",
+            "example": "Awards Block"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the segment is.",
+            "example": "Three awards and the walk-off."
+          },
+          "color_key": {
+            "type": ["string", "null"],
+            "pattern": "^cat-[1-7]$",
+            "description": "One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).",
+            "example": "cat-4"
+          }
+        },
+        "required": ["name"],
+        "description": "Fields accepted when creating a SegmentLibrarySegment."
+      },
+      "SegmentLibrarySegmentUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Segment name, unique in the org.",
+            "example": "Awards Block"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the segment is.",
+            "example": "Three awards and the walk-off."
+          },
+          "color_key": {
+            "type": ["string", "null"],
+            "pattern": "^cat-[1-7]$",
+            "description": "One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).",
+            "example": "cat-4"
+          }
+        },
+        "description": "Fields accepted when updating a SegmentLibrarySegment. Omitted fields are unchanged."
+      },
+      "SegmentInsertResult": {
+        "type": "object",
+        "properties": {
+          "segment_instance_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new copy of the segment in the running order.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["segment_instance_id"],
+        "description": "The copy a segment insert made."
+      },
+      "SegmentInsertRequest": {
+        "type": "object",
+        "properties": {
+          "run_of_show_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the running order to copy the segment into.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "before_position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-based place the segment goes before; omit to append.",
+            "example": 3
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the segment's first cue is planned.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["run_of_show_id"],
+        "description": "Where to copy the segment."
+      },
+      "SegmentPublishResults": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "run_of_show_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Running order.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "segment_instance_id": {
+                  "type": ["string", "null"],
+                  "format": "uuid",
+                  "description": "Copy of the segment in it, or null when it has none.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": ["Published", "Current", "Called", "Linked", "No Instance"],
+                  "description": "Published (replaced with the current version), Current (already it), Called (a cue was called) or Linked (a cue is an artist's set time), both left untouched, or No Instance.",
+                  "example": "Published"
+                }
+              },
+              "required": ["run_of_show_id", "segment_instance_id", "outcome"]
+            },
+            "description": "One row per copy of the segment in each chosen running order."
+          }
+        },
+        "required": ["data"],
+        "description": "What publishing did in each chosen running order."
+      },
+      "SegmentPublishRequest": {
+        "type": "object",
+        "properties": {
+          "run_of_show_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Running order.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Running orders to publish to, 1 to 50."
+          }
+        },
+        "required": ["run_of_show_ids"],
+        "description": "Running orders to publish the segment to."
+      },
+      "SegmentLibraryCuePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SegmentLibraryCue" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SegmentLibraryCue": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the segment library cue.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "segment_library_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the library segment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order in the segment.",
+            "example": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Cue label.",
+            "example": "Award One"
+          },
+          "duration": {
+            "type": ["string", "null"],
+            "pattern": "^\\d{2,}:\\d{2}:\\d{2}(\\.\\d+)?$",
+            "description": "Planned length as hours:minutes:seconds.",
+            "example": "00:04:00"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What happens on the cue.",
+            "example": "Presenter walks on."
+          },
+          "script": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is said on the cue.",
+            "example": "Please welcome our first presenter."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "segment_library_id",
+          "position",
+          "label",
+          "duration",
+          "description",
+          "script"
+        ],
+        "description": "A cue of a library segment (at most 100 per segment), copied with the segment into running orders."
+      },
+      "SegmentLibraryCueCreate": {
+        "type": "object",
+        "properties": {
+          "segment_library_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the library segment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order in the segment.",
+            "example": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Cue label.",
+            "example": "Award One"
+          },
+          "duration": {
+            "type": ["string", "null"],
+            "pattern": "^\\d{2,}:\\d{2}:\\d{2}(\\.\\d+)?$",
+            "description": "Planned length as hours:minutes:seconds.",
+            "example": "00:04:00"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What happens on the cue.",
+            "example": "Presenter walks on."
+          },
+          "script": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is said on the cue.",
+            "example": "Please welcome our first presenter."
+          }
+        },
+        "required": ["segment_library_id", "position", "label"],
+        "description": "Fields accepted when creating a SegmentLibraryCue."
+      },
+      "SegmentLibraryCueUpdate": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order in the segment.",
+            "example": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Cue label.",
+            "example": "Award One"
+          },
+          "duration": {
+            "type": ["string", "null"],
+            "pattern": "^\\d{2,}:\\d{2}:\\d{2}(\\.\\d+)?$",
+            "description": "Planned length as hours:minutes:seconds.",
+            "example": "00:04:00"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What happens on the cue.",
+            "example": "Presenter walks on."
+          },
+          "script": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is said on the cue.",
+            "example": "Please welcome our first presenter."
+          }
+        },
+        "description": "Fields accepted when updating a SegmentLibraryCue. Omitted fields are unchanged."
+      },
+      "SegmentLibraryCueCallPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SegmentLibraryCueCall" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SegmentLibraryCueCall": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the segment library cue call.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "segment_library_cue_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the library cue the call belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "call_kind": {
+            "type": "string",
+            "enum": ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
+            "description": "Department making the call.",
+            "example": "Lighting"
+          },
+          "instruction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the department does on the cue.",
+            "example": "LX 40 GO."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "segment_library_cue_id",
+          "call_kind",
+          "instruction"
+        ],
+        "description": "A department's call on a library cue, one per department, copied into app.cue_calls with the cue."
+      },
+      "SegmentLibraryCueCallCreate": {
+        "type": "object",
+        "properties": {
+          "segment_library_cue_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the library cue the call belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "call_kind": {
+            "type": "string",
+            "enum": ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
+            "description": "Department making the call.",
+            "example": "Lighting"
+          },
+          "instruction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the department does on the cue.",
+            "example": "LX 40 GO."
+          }
+        },
+        "required": ["segment_library_cue_id", "call_kind", "instruction"],
+        "description": "Fields accepted when creating a SegmentLibraryCueCall."
+      },
+      "SegmentLibraryCueCallUpdate": {
+        "type": "object",
+        "properties": {
+          "call_kind": {
+            "type": "string",
+            "enum": ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
+            "description": "Department making the call.",
+            "example": "Lighting"
+          },
+          "instruction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the department does on the cue.",
+            "example": "LX 40 GO."
+          }
+        },
+        "description": "Fields accepted when updating a SegmentLibraryCueCall. Omitted fields are unchanged."
+      },
+      "RunSegmentInstancePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RunSegmentInstance" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "RunSegmentInstance": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the run segment instance.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "run_of_show_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the running order the segment was copied into.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "segment_library_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the library segment copied.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "library_version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Version of the library segment the copy holds.",
+            "example": 2
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "run_of_show_id",
+          "segment_library_id",
+          "library_version"
+        ],
+        "description": "A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`."
+      },
+      "ShowcallerLinkPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ShowcallerLink" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ShowcallerLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the showcaller link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the running order, stamped by the database.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "run_of_show_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the running order the link calls.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "caller_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Name of the showcaller the link is for, shown beside each cue called through it.",
+            "example": "Sam Okafor"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for. Never shown on the portal.",
+            "example": "Night one guest caller"
+          },
+          "token_hint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4,
+            "description": "Last four characters of the token, to tell links apart.",
+            "example": "3f9a"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening and writing: within 14 days.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "failed_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Wrong access codes since the link was made or regenerated; it locks at 5, and devices that proved the code keep working.",
+            "example": 0
+          },
+          "open_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Successful opens with the access code.",
+            "example": 2
+          },
+          "last_opened_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last opened.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "rotated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last regenerated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was revoked; it never opens again.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "run_of_show_id",
+          "caller_name",
+          "note",
+          "token_hint",
+          "expires_at",
+          "failed_attempts",
+          "open_count",
+          "last_opened_at",
+          "rotated_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read."
+      },
+      "ShowcallerLinkToken": {
+        "type": "object",
+        "properties": {
+          "showcaller_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xscl_[0-9a-f]{64}$",
+            "description": "The link token. The portal is `{Atlas origin}/share/showcaller/{token}`. Shown once; only its hash is stored.",
+            "example": "xscl_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["showcaller_link_id", "token", "access_code", "expires_at"],
+        "description": "A new showcaller link with its token and access code, shown once."
+      },
+      "ShowcallerLinkRequest": {
+        "type": "object",
+        "properties": {
+          "run_of_show_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the running order the link calls.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "caller_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Name of the showcaller.",
+            "example": "Sam Okafor"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening; by default the end of the day after the show.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for. Never shown on the portal.",
+            "example": "Night one guest caller"
+          }
+        },
+        "required": ["run_of_show_id", "caller_name"],
+        "description": "A showcaller link to a running order."
+      },
+      "ShowcallerLinkRegenerated": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^xscl_[0-9a-f]{64}$",
+            "description": "The link token. The portal is `{Atlas origin}/share/showcaller/{token}`. Shown once; only its hash is stored.",
+            "example": "xscl_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening; regenerating keeps the expiry.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["token", "access_code", "expires_at"],
+        "description": "A regenerated showcaller link's new token and access code, shown once."
+      },
+      "ShowcallerDevicesSignedOut": {
+        "type": "object",
+        "properties": {
+          "devices": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "How many devices were signed out.",
+            "example": 2
+          }
+        },
+        "required": ["devices"],
+        "description": "How many device grants were dropped."
+      },
       "RosterEntryPage": {
         "type": "object",
         "properties": {
@@ -59924,6 +60841,106 @@
         "required": ["token", "access_code", "expires_at"],
         "description": "A regenerated live link's new token and access code, shown once."
       },
+      "CueFieldAudiencePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CueFieldAudience" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "CueFieldAudience": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the cue field audience.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "custom_field_definition_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the cue custom field.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "audience": {
+            "type": "string",
+            "enum": ["Crew", "Showcaller", "Client"],
+            "description": "Who the field is for.",
+            "example": "Client"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "custom_field_definition_id",
+          "audience"
+        ],
+        "description": "Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`)."
+      },
+      "CueFieldAudienceCreate": {
+        "type": "object",
+        "properties": {
+          "custom_field_definition_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the cue custom field.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "audience": {
+            "type": "string",
+            "enum": ["Crew", "Showcaller", "Client"],
+            "description": "Who the field is for.",
+            "example": "Client"
+          }
+        },
+        "required": ["custom_field_definition_id", "audience"],
+        "description": "Fields accepted when creating a CueFieldAudience."
+      },
       "PersonCalendarFeedPage": {
         "type": "object",
         "properties": {
@@ -61596,6 +62613,78 @@
           }
         },
         "description": "Fields accepted when updating a WorkforceGroup. Omitted fields are unchanged."
+      },
+      "ShowChannelConversation": {
+        "type": "object",
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The show channel's conversation.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["conversation_id"],
+        "description": "A project's show channel conversation."
+      },
+      "ShowChannelOpenRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the show channel.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["project_id"],
+        "description": "The project whose show channel to use."
+      },
+      "ShowChannelJoinRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the show channel.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["project_id"],
+        "description": "The project whose show channel to use."
+      },
+      "ShowChannelStatus": {
+        "type": "object",
+        "properties": {
+          "channel_exists": {
+            "type": "boolean",
+            "description": "The project has a live show channel.",
+            "example": true
+          },
+          "conversation_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Its conversation, only for a member of it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "am_member": {
+            "type": "boolean",
+            "description": "The caller is in the channel.",
+            "example": true
+          },
+          "can_join": {
+            "type": "boolean",
+            "description": "The caller may join: a reader of the running order who is not a Client.",
+            "example": false
+          },
+          "can_open": {
+            "type": "boolean",
+            "description": "The caller may open it: no channel yet and show.run_of_show.write.",
+            "example": false
+          }
+        },
+        "required": ["channel_exists", "conversation_id", "am_member", "can_join", "can_open"],
+        "description": "What the show channel panel may offer the caller."
       },
       "WorkforceGroupMemberPage": {
         "type": "object",
@@ -145307,6 +146396,1410 @@
         }
       }
     },
+    "/segment-library": {
+      "get": {
+        "operationId": "segmentLibrary.list",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List library segment rows",
+        "description": "A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of library segment rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "name": "Awards Block",
+                      "description": "Three awards and the walk-off.",
+                      "color_key": "cat-4",
+                      "version": 3
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibrarySegmentPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "segmentLibrary.create",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Create a library segment",
+        "description": "A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Creates a library segment. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Awards Block",
+                "description": "Three awards and the walk-off.",
+                "color_key": "cat-4"
+              },
+              "schema": { "$ref": "#/components/schemas/SegmentLibrarySegmentCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created library segment.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Awards Block",
+                  "description": "Three awards and the walk-off.",
+                  "color_key": "cat-4",
+                  "version": 3
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibrarySegment" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/segment-library/{id}": {
+      "get": {
+        "operationId": "segmentLibrary.get",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Get a library segment",
+        "description": "A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns one library segment with its `ETag`. A library segment the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library segment.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library segment.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The library segment.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Awards Block",
+                  "description": "Three awards and the walk-off.",
+                  "color_key": "cat-4",
+                  "version": 3
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibrarySegment" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "segmentLibrary.update",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Update a library segment",
+        "description": "A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library segment.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library segment.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Awards Block",
+                "description": "Three awards and the walk-off.",
+                "color_key": "cat-4"
+              },
+              "schema": { "$ref": "#/components/schemas/SegmentLibrarySegmentUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated library segment.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Awards Block",
+                  "description": "Three awards and the walk-off.",
+                  "color_key": "cat-4",
+                  "version": 3
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibrarySegment" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "segmentLibrary.delete",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Delete a library segment",
+        "description": "A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Soft-deletes the library segment: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library segment.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library segment.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The library segment moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/segment-library/{id}/insert-into-run": {
+      "post": {
+        "operationId": "segmentLibrary.insertIntoRun",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "insert_library_segment",
+        "summary": "Copy a library segment into a running order",
+        "description": "Copies the segment's cues and their department calls into a running order of the same org through app.insert_library_segment, before the cue at the 1-based place `before_position` (omitted, at the end), renumbering the running order 1..n in one transaction. With `starts_at` the copies are planned from it and the durations before them; without it they are unplanned. Needs show.run_of_show.write on the project. Refuses an empty segment (422 `segment_library_empty`), a place at or before the last called cue (422 `segment_insert_before_called`) and a running order that would pass 300 cues (422 `segment_insert_cue_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library segment.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library segment.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "before_position": 3,
+                "starts_at": "2026-10-08T14:30:00Z"
+              },
+              "schema": { "$ref": "#/components/schemas/SegmentInsertRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "segment_instance_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/SegmentInsertResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/segment-library/{id}/publish": {
+      "post": {
+        "operationId": "segmentLibrary.publish",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "publish_library_segment",
+        "summary": "Publish a library segment to running orders",
+        "description": "Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library segment.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library segment.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "run_of_show_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"] },
+              "schema": { "$ref": "#/components/schemas/SegmentPublishRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "segment_instance_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "outcome": "Published"
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentPublishResults" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/segment-library-cues": {
+      "get": {
+        "operationId": "segmentLibraryCues.list",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cues",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List library cue rows",
+        "description": "A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of library cue rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "segment_library_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "position": 1,
+                      "label": "Award One",
+                      "duration": "00:04:00",
+                      "description": "Presenter walks on.",
+                      "script": "Please welcome our first presenter."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibraryCuePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "segmentLibraryCues.create",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cues",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Create a library cue",
+        "description": "A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Creates a library cue. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "segment_library_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "position": 1,
+                "label": "Award One",
+                "duration": "00:04:00",
+                "description": "Presenter walks on.",
+                "script": "Please welcome our first presenter."
+              },
+              "schema": { "$ref": "#/components/schemas/SegmentLibraryCueCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created library cue.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment_library_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "position": 1,
+                  "label": "Award One",
+                  "duration": "00:04:00",
+                  "description": "Presenter walks on.",
+                  "script": "Please welcome our first presenter."
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibraryCue" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/segment-library-cues/{id}": {
+      "get": {
+        "operationId": "segmentLibraryCues.get",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cues",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Get a library cue",
+        "description": "A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns one library cue with its `ETag`. A library cue the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library cue.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library cue.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The library cue.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment_library_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "position": 1,
+                  "label": "Award One",
+                  "duration": "00:04:00",
+                  "description": "Presenter walks on.",
+                  "script": "Please welcome our first presenter."
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibraryCue" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "segmentLibraryCues.update",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cues",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Update a library cue",
+        "description": "A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library cue.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library cue.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "position": 1,
+                "label": "Award One",
+                "duration": "00:04:00",
+                "description": "Presenter walks on.",
+                "script": "Please welcome our first presenter."
+              },
+              "schema": { "$ref": "#/components/schemas/SegmentLibraryCueUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated library cue.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment_library_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "position": 1,
+                  "label": "Award One",
+                  "duration": "00:04:00",
+                  "description": "Presenter walks on.",
+                  "script": "Please welcome our first presenter."
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibraryCue" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "segmentLibraryCues.delete",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cues",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Delete a library cue",
+        "description": "A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Soft-deletes the library cue: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library cue.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library cue.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The library cue moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/segment-library-cue-calls": {
+      "get": {
+        "operationId": "segmentLibraryCueCalls.list",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cue_calls",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List library cue call rows",
+        "description": "A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of library cue call rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "segment_library_cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "call_kind": "Lighting",
+                      "instruction": "LX 40 GO."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibraryCueCallPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "segmentLibraryCueCalls.create",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cue_calls",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Create a library cue call",
+        "description": "A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Creates a library cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "segment_library_cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "call_kind": "Lighting",
+                "instruction": "LX 40 GO."
+              },
+              "schema": { "$ref": "#/components/schemas/SegmentLibraryCueCallCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created library cue call.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment_library_cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "call_kind": "Lighting",
+                  "instruction": "LX 40 GO."
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibraryCueCall" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/segment-library-cue-calls/{id}": {
+      "get": {
+        "operationId": "segmentLibraryCueCalls.get",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cue_calls",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Get a library cue call",
+        "description": "A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns one library cue call with its `ETag`. A library cue call the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library cue call.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library cue call.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The library cue call.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment_library_cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "call_kind": "Lighting",
+                  "instruction": "LX 40 GO."
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibraryCueCall" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "segmentLibraryCueCalls.update",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cue_calls",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Update a library cue call",
+        "description": "A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library cue call.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library cue call.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "call_kind": "Lighting", "instruction": "LX 40 GO." },
+              "schema": { "$ref": "#/components/schemas/SegmentLibraryCueCallUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated library cue call.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment_library_cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "call_kind": "Lighting",
+                  "instruction": "LX 40 GO."
+                },
+                "schema": { "$ref": "#/components/schemas/SegmentLibraryCueCall" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "segmentLibraryCueCalls.delete",
+        "tags": ["Show"],
+        "x-xos-table": "app.segment_library_cue_calls",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Delete a library cue call",
+        "description": "A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Soft-deletes the library cue call: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the segment library cue call.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the segment library cue call.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The library cue call moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/run-segment-instances": {
+      "get": {
+        "operationId": "runSegmentInstances.list",
+        "tags": ["Show"],
+        "x-xos-table": "app.run_segment_instances",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List segment copy rows",
+        "description": "A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of segment copy rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "segment_library_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "library_version": 2
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/RunSegmentInstancePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/run-segment-instances/{id}": {
+      "get": {
+        "operationId": "runSegmentInstances.get",
+        "tags": ["Show"],
+        "x-xos-table": "app.run_segment_instances",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Get a segment copy",
+        "description": "A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns one segment copy with its `ETag`. A segment copy the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the run segment instance.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the run segment instance.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The segment copy.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment_library_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "library_version": 2
+                },
+                "schema": { "$ref": "#/components/schemas/RunSegmentInstance" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/showcaller-links": {
+      "get": {
+        "operationId": "showcallerLinks.list",
+        "tags": ["Show"],
+        "x-xos-table": "app.showcaller_links",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List showcaller link rows",
+        "description": "A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of showcaller link rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "caller_name": "Sam Okafor",
+                      "note": "Night one guest caller",
+                      "token_hint": "3f9a",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "failed_attempts": 0,
+                      "open_count": 2,
+                      "last_opened_at": "2026-10-08T14:30:00Z",
+                      "rotated_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ShowcallerLinkPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/showcaller-links/{id}": {
+      "get": {
+        "operationId": "showcallerLinks.get",
+        "tags": ["Show"],
+        "x-xos-table": "app.showcaller_links",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Get a showcaller link",
+        "description": "A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns one showcaller link with its `ETag`. A showcaller link the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the showcaller link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the showcaller link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The showcaller link.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "caller_name": "Sam Okafor",
+                  "note": "Night one guest caller",
+                  "token_hint": "3f9a",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 2,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ShowcallerLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/showcaller-links/create": {
+      "post": {
+        "operationId": "showcallerLinks.create",
+        "tags": ["Show"],
+        "x-xos-table": "app.showcaller_links",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "create_showcaller_link",
+        "summary": "Create a showcaller link to a running order",
+        "description": "Makes a showcaller link through app.create_showcaller_link. The caller must be a member of the running order's org and hold both show.run_of_show.write and show.cue.call on the project (422 `showcaller_link_capability`); a read-only org makes none (422 `org_read_only`). `caller_name` is 1 to 120 characters (422 `showcaller_link_caller_name`). `expires_at` defaults to the end of the day after the show in the project's zone; when given it must be after now and within 14 days (422 `showcaller_link_expiry_range`). A running order holds at most 5 live links (422 `showcaller_link_limit`). Anyone with the link and the code can call cues and edit this running order until it expires. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "caller_name": "Sam Okafor",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "note": "Night one guest caller"
+              },
+              "schema": { "$ref": "#/components/schemas/ShowcallerLinkRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "showcaller_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xscl_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ShowcallerLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/showcaller-links/{id}/regenerate": {
+      "post": {
+        "operationId": "showcallerLinks.regenerate",
+        "tags": ["Show"],
+        "x-xos-table": "app.showcaller_links",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "regenerate_showcaller_link",
+        "summary": "Regenerate a showcaller link",
+        "description": "Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. Its creator, or a holder of show.run_of_show.write on the project, may. A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the showcaller link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the showcaller link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "xscl_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ShowcallerLinkRegenerated" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/showcaller-links/{id}/revoke": {
+      "post": {
+        "operationId": "showcallerLinks.revoke",
+        "tags": ["Show"],
+        "x-xos-table": "app.showcaller_links",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "revoke_showcaller_link",
+        "summary": "Revoke a showcaller link",
+        "description": "Revokes the link through app.revoke_showcaller_link so it never opens or writes again and the open portal stops on its next update. Its creator, or a holder of show.run_of_show.write on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the showcaller link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the showcaller link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "caller_name": "Sam Okafor",
+                  "note": "Night one guest caller",
+                  "token_hint": "3f9a",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 2,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ShowcallerLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/showcaller-links/{id}/sign-out-devices": {
+      "post": {
+        "operationId": "showcallerLinks.signOutDevices",
+        "tags": ["Show"],
+        "x-xos-table": "app.showcaller_links",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "sign_out_showcaller_devices",
+        "summary": "Sign every device out of a showcaller link",
+        "description": "Drops every device grant of the link through app.sign_out_showcaller_devices, so each device must enter the access code again; the token and code stay. Its creator, or a holder of show.run_of_show.write on the project, may. Answers how many devices were signed out. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the showcaller link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the showcaller link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "devices": 2 },
+                "schema": { "$ref": "#/components/schemas/ShowcallerDevicesSignedOut" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/roster-entries": {
       "get": {
         "operationId": "rosterEntries.list",
@@ -156953,6 +159446,143 @@
         }
       }
     },
+    "/cue-field-audiences": {
+      "get": {
+        "operationId": "cueFieldAudiences.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.cue_field_audiences",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List cue field audience rows",
+        "description": "Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of cue field audience rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "custom_field_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "audience": "Client"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/CueFieldAudiencePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "cueFieldAudiences.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.cue_field_audiences",
+        "x-xos-capability": "org.custom_fields.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Create a cue field audience",
+        "description": "Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Creates a cue field audience. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "custom_field_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "audience": "Client"
+              },
+              "schema": { "$ref": "#/components/schemas/CueFieldAudienceCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created cue field audience.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "custom_field_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "audience": "Client"
+                },
+                "schema": { "$ref": "#/components/schemas/CueFieldAudience" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/cue-field-audiences/{id}": {
+      "delete": {
+        "operationId": "cueFieldAudiences.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.cue_field_audiences",
+        "x-xos-capability": "org.custom_fields.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Delete a cue field audience",
+        "description": "Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Soft-deletes the cue field audience: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the cue field audience.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the cue field audience.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The cue field audience moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/person-calendar-feeds": {
       "get": {
         "operationId": "personCalendarFeeds.list",
@@ -158913,6 +161543,144 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/groups/open-show-channel": {
+      "post": {
+        "operationId": "workforceGroups.openShowChannel",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.groups",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "open_show_channel",
+        "summary": "Open a project's show channel",
+        "description": "Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project, with the caller as Owner and the project's members, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "schema": { "$ref": "#/components/schemas/ShowChannelOpenRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "conversation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/ShowChannelConversation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/groups/join-show-channel": {
+      "post": {
+        "operationId": "workforceGroups.joinShowChannel",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.groups",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "join_show_channel",
+        "summary": "Join a project's show channel",
+        "description": "Adds the caller to the project's live show channel through app.join_show_channel. Needs show.run_of_show.read on the project; anyone engaged as Client is refused (422 `show_channel_client`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "schema": { "$ref": "#/components/schemas/ShowChannelJoinRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "conversation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/ShowChannelConversation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/groups/show-channel-status": {
+      "get": {
+        "operationId": "workforceGroups.showChannelStatus",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.groups",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-rpc": "show_channel_status",
+        "summary": "Read what the show channel panel may offer",
+        "description": "Answers through app.show_channel_status whether the project has a live show channel, its conversation (only for a member), and whether the caller is in it, may join it or may open it. Group visibility hides a group from people outside it, so the panel asks here. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project of the show channel.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project of the show channel.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "channel_exists": true,
+                  "conversation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "am_member": true,
+                  "can_join": false,
+                  "can_open": false
+                },
+                "schema": { "$ref": "#/components/schemas/ShowChannelStatus" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }

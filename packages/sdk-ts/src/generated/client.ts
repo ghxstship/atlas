@@ -342,6 +342,11 @@ import {
   EarnedMediaItemsResource,
   ProjectMeasurementSummaryResource,
   CueCallsResource,
+  SegmentLibraryResource,
+  SegmentLibraryCuesResource,
+  SegmentLibraryCueCallsResource,
+  RunSegmentInstancesResource,
+  ShowcallerLinksResource,
   RosterEntriesResource,
   AdvanceAllocationsResource,
   AssetReservationConflictsResource,
@@ -390,6 +395,7 @@ import {
   PartnerStandingGrantsResource,
   ShareLinksResource,
   LiveLinksResource,
+  CueFieldAudiencesResource,
   PersonCalendarFeedsResource,
   ProjectInboxesResource,
   InboundMessagesResource,
@@ -1211,6 +1217,17 @@ export class XosClient extends XosClientCore {
     new ProjectMeasurementSummaryResource(this);
   /** Show: operations on `cueCalls`. */
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
+  /** Show: operations on `segmentLibrary`. */
+  readonly segmentLibrary: SegmentLibraryResource = new SegmentLibraryResource(this);
+  /** Show: operations on `segmentLibraryCues`. */
+  readonly segmentLibraryCues: SegmentLibraryCuesResource = new SegmentLibraryCuesResource(this);
+  /** Show: operations on `segmentLibraryCueCalls`. */
+  readonly segmentLibraryCueCalls: SegmentLibraryCueCallsResource =
+    new SegmentLibraryCueCallsResource(this);
+  /** Show: operations on `runSegmentInstances`. */
+  readonly runSegmentInstances: RunSegmentInstancesResource = new RunSegmentInstancesResource(this);
+  /** Show: operations on `showcallerLinks`. */
+  readonly showcallerLinks: ShowcallerLinksResource = new ShowcallerLinksResource(this);
   /** Advancing: operations on `rosterEntries`. */
   readonly rosterEntries: RosterEntriesResource = new RosterEntriesResource(this);
   /** Advancing: operations on `advanceAllocations`. */
@@ -1323,6 +1340,8 @@ export class XosClient extends XosClientCore {
   readonly shareLinks: ShareLinksResource = new ShareLinksResource(this);
   /** Platform: operations on `liveLinks`. */
   readonly liveLinks: LiveLinksResource = new LiveLinksResource(this);
+  /** Platform: operations on `cueFieldAudiences`. */
+  readonly cueFieldAudiences: CueFieldAudiencesResource = new CueFieldAudiencesResource(this);
   /** Platform: operations on `personCalendarFeeds`. */
   readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
   /** Platform: operations on `projectInboxes`. */
