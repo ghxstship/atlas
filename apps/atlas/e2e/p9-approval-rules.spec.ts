@@ -23,12 +23,8 @@ const OWNER = "01920000-0000-7000-8000-000000000101";
 const ADMIN = "01920000-0000-7000-8000-000000000102";
 const CREW = "01920000-0000-7000-8000-000000000201";
 
-/** SQL against the local stack only, as the given person when one is named. */
-async function localSql<T extends pg.QueryResultRow>(
-  text: string,
-  args: unknown[] = [],
-  asPerson?: string,
-): Promise<T[]> {
+/** A connection to the local stack only. */
+async function localClient(): Promise<pg.Client> {
   const url =
     process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
   if (!/@(127\.0\.0\.1|localhost):/.test(url)) {
@@ -36,6 +32,16 @@ async function localSql<T extends pg.QueryResultRow>(
   }
   const client = new pg.Client({ connectionString: url });
   await client.connect();
+  return client;
+}
+
+/** SQL against the local stack only, as the given person when one is named. */
+async function localSql<T extends pg.QueryResultRow>(
+  text: string,
+  args: unknown[] = [],
+  asPerson?: string,
+): Promise<T[]> {
+  const client = await localClient();
   try {
     await client.query("begin");
     if (asPerson) {
@@ -46,6 +52,31 @@ async function localSql<T extends pg.QueryResultRow>(
     const result = await client.query<T>(text, args);
     await client.query("commit");
     return result.rows;
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Opens the pass's approval five hours ago. The audit trigger keeps created_at on every update, so user triggers are off
+ * for this one statement, as pgTAP 2862 does; the transaction holds the table lock only until it commits.
+ */
+async function backdateApproval(credentialId: string | undefined): Promise<void> {
+  const client = await localClient();
+  try {
+    await client.query("begin");
+    await client.query("alter table app.subject_approvals disable trigger user");
+    const result = await client.query(
+      `update app.subject_approvals set created_at = now() - interval '5 hours'
+       where credential_id = $1 and canceled_at is null`,
+      [credentialId],
+    );
+    await client.query("alter table app.subject_approvals enable trigger user");
+    if (result.rowCount !== 1) throw new Error("The pass has no open approval to backdate.");
+    await client.query("commit");
   } catch (error) {
     await client.query("rollback");
     throw error;
@@ -174,10 +205,7 @@ for (const locale of ["en-US", "es-US"] as const) {
     ).toBeDisabled();
 
     // 4. Five hours on, Remind approvers sends one reminder, and then says when it opens again.
-    await localSql(
-      `update app.subject_approvals set created_at = now() - interval '5 hours' where credential_id = $1`,
-      [pass?.id],
-    );
+    await backdateApproval(pass?.id);
     await page.reload();
     const remind = reminders.getByRole("button", { name: t("workflow.approvals.remind.button") });
     await expect(remind).toBeEnabled();
