@@ -722,6 +722,8 @@ export async function requestAdvanceGuest(
     readonly guestName: string;
     readonly plusOnes: number;
     readonly note?: string | null;
+    /** Where the production sends the guest's pass (B8, 2974); refused as guest_email_format when malformed. */
+    readonly guestEmail?: string | null;
   },
 ): Promise<Result<{ refused: false; guestEntryId: string } | TokenRefusal>> {
   const result = await rows<{
@@ -733,6 +735,7 @@ export async function requestAdvanceGuest(
     p_guest_name: input.guestName,
     p_plus_ones: input.plusOnes,
     p_note: input.note?.trim() ? input.note.trim() : null,
+    p_guest_email: input.guestEmail?.trim() ? input.guestEmail.trim().toLowerCase() : null,
   });
   if (!result.ok) return result;
   const row = firstOf(result.data, (r) => r.guest_entry_id !== null);

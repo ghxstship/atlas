@@ -43,13 +43,21 @@ export async function listEngagedGuests(
 /** Requests a guest on the engagement's list; the production approves or declines in Atlas. */
 export async function requestEngagedGuest(
   db: XosClient,
-  input: { engagementId: string; guestName: string; plusOnes: number; note: string | null },
+  input: {
+    engagementId: string;
+    guestName: string;
+    plusOnes: number;
+    note: string | null;
+    /** Where the production sends the guest's pass (B8, 2974); checked again as guest_email_format. */
+    guestEmail?: string | null;
+  },
 ): Promise<Result<{ id: string }>> {
   const { data, error } = await db.rpc("request_engaged_guest", {
     p_engagement_id: input.engagementId,
     p_guest_name: input.guestName,
     p_plus_ones: input.plusOnes,
     ...(input.note === null ? {} : { p_note: input.note }),
+    ...(input.guestEmail ? { p_guest_email: input.guestEmail } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ id: String(data) });

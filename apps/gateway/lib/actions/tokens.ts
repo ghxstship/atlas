@@ -189,20 +189,30 @@ export async function requestTokenGuestAction(_: FormResult, form: FormData): Pr
       guestName: z.string().trim().min(1).max(200),
       plusOnes: z.coerce.number().int().min(0).max(20),
       note: z.string().trim().max(500),
+      guestEmail: z.union([z.literal(""), z.email().max(320)]),
     })
     .safeParse({
       guestName: form.get("guestName") ?? "",
       plusOnes: form.get("plusOnes") || 0,
       note: form.get("note") ?? "",
+      guestEmail: String(form.get("guestEmail") ?? "")
+        .trim()
+        .toLowerCase(),
     });
-  if (!guest.success)
-    return { fieldError: guest.error.issues[0]?.path[0] === "plusOnes" ? "plusOnes" : "guestName" };
+  if (!guest.success) {
+    const field = guest.error.issues[0]?.path[0];
+    return {
+      fieldError:
+        field === "plusOnes" ? "plusOnes" : field === "guestEmail" ? "guestEmail" : "guestName",
+    };
+  }
   return formResult(
     await requestAdvanceGuest(createAnonSupabase(), {
       ...l.data,
       guestName: guest.data.guestName,
       plusOnes: guest.data.plusOnes,
       note: guest.data.note,
+      guestEmail: guest.data.guestEmail.length > 0 ? guest.data.guestEmail : null,
     }),
   );
 }

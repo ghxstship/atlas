@@ -897,6 +897,13 @@ export const sitemap: Sitemap = {
           route: "/sign/{token}",
           auth: "token",
         },
+        {
+          id: "guest-unsubscribe",
+          kind: "page",
+          label: "nav.gateway.public.guestUnsubscribe",
+          route: "/unsubscribe/{token}",
+          auth: "token",
+        },
       ],
     },
   ],

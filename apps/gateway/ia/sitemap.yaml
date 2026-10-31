@@ -665,3 +665,8 @@ nodes:
         label: nav.gateway.public.agreementSigning
         route: "/sign/{token}"
         auth: token
+      - id: guest-unsubscribe
+        kind: page
+        label: nav.gateway.public.guestUnsubscribe
+        route: "/unsubscribe/{token}"
+        auth: token

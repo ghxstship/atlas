@@ -2098,6 +2098,14 @@ export interface GuestEntry {
   readonly checkedInAt: string | null;
   readonly createdAt: string;
   readonly createdBy: string | null;
+  /** The pass (B8, 2974): an Access category of the project, set by the production. */
+  readonly passCategoryId: string | null;
+  readonly tableLabel: string | null;
+  readonly hostPersonId: string | null;
+  /** Confidential; where the guest's pass and messages go. */
+  readonly guestEmail: string | null;
+  /** Stamped by the database on approval; printed as XOSGP1:<code>. */
+  readonly passCode: string | null;
 }
 
 /** A show or other scope node a guest can attend. */
@@ -2130,7 +2138,7 @@ export async function listGuests(
   let query = db
     .from("guest_list_entries")
     .select(
-      "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by",
+      "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by, pass_category_id, table_label, host_person_id, guest_email, pass_code",
     )
     .eq("org_id", filter.orgId)
     .is("deleted_at", null);
@@ -2178,6 +2186,11 @@ export async function listGuests(
       checkedInAt: g.checked_in_at,
       createdAt: g.created_at,
       createdBy: g.created_by,
+      passCategoryId: g.pass_category_id,
+      tableLabel: g.table_label,
+      hostPersonId: g.host_person_id,
+      guestEmail: g.guest_email,
+      passCode: g.pass_code,
     })),
   );
 }
@@ -2251,6 +2264,116 @@ export async function updateGuest(
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/** A guest's pass fields (B8, 2974), set by the production in any state but Checked In. */
+export interface GuestPassInput {
+  readonly passCategoryId: string | null;
+  readonly tableLabel: string | null;
+  readonly hostPersonId: string | null;
+  readonly guestEmail: string | null;
+}
+
+/** The pattern and length app.guest_list_entries_guest_email checks (1382's address rule). */
+export function cleanGuestEmail(value: string | null | undefined): string | null | undefined {
+  const email = (value ?? "").trim().toLowerCase();
+  if (email === "") return null;
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : undefined;
+}
+
+/**
+ * Sets a guest's pass type, table, host and email. The database checks the pass type is an Access category of the
+ * project (guest_pass_category), the host a project person (guest_host_not_on_project), and keeps them once the
+ * guest is checked in (guest_entry_checked_in).
+ */
+export async function updateGuestPass(
+  db: XosClient,
+  guestId: string,
+  input: GuestPassInput,
+): Promise<Result<null>> {
+  const tableLabel = input.tableLabel?.trim() ? input.tableLabel.trim() : null;
+  const guestEmail = cleanGuestEmail(input.guestEmail);
+  if ((tableLabel !== null && tableLabel.length > 40) || guestEmail === undefined) {
+    return fail({ kind: "invalid", message: "guest_pass" });
+  }
+  const { data, error } = await db
+    .from("guest_list_entries")
+    .update({
+      pass_category_id: input.passCategoryId,
+      table_label: tableLabel,
+      host_person_id: input.hostPersonId,
+      guest_email: guestEmail,
+    })
+    .eq("id", guestId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+export type GuestEmailKind = "Invitation" | "Pass" | "Message";
+export type GuestEmailState = "Queued" | "Sending" | "Sent" | "Failed" | "Suppressed" | "Skipped";
+
+export interface GuestEmailSummary {
+  readonly queued: number;
+  readonly sending: number;
+  readonly sent: number;
+  readonly failed: number;
+  readonly suppressed: number;
+  readonly skipped: number;
+  readonly skippedNoEmail: number;
+  readonly skippedNotLive: number;
+  readonly skippedNoPass: number;
+}
+
+/**
+ * Queues an email to the selected guests (app.queue_guest_emails, 2975; advancing.rider.write). Refusals:
+ * guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org), guest_email_message. Returns the send id;
+ * the counts come from guestEmailSendSummary.
+ */
+export async function queueGuestEmails(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly guestIds: readonly string[];
+    readonly kind: GuestEmailKind;
+    readonly subject?: string | null;
+    readonly body?: string | null;
+    readonly locale: "en-US" | "es-US";
+  },
+): Promise<Result<{ sendId: string }>> {
+  const { data, error } = await db.rpc("queue_guest_emails", {
+    p_project_id: input.projectId,
+    p_entry_ids: [...input.guestIds],
+    p_kind: input.kind,
+    ...(input.subject ? { p_subject: input.subject } : {}),
+    ...(input.body ? { p_body: input.body } : {}),
+    p_locale: input.locale,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ sendId: String(data) });
+}
+
+/** A send's rows counted by state and skip reason (app.guest_email_send_summary). */
+export async function guestEmailSendSummary(
+  db: XosClient,
+  sendId: string,
+): Promise<Result<GuestEmailSummary>> {
+  const { data, error } = await db.rpc("guest_email_send_summary", { p_send_id: sendId });
+  if (error) return fail(toDataError(error));
+  const r = (data as Record<string, number>[] | null)?.[0];
+  if (!r) return fail(NOT_FOUND);
+  return ok({
+    queued: r["queued"] ?? 0,
+    sending: r["sending"] ?? 0,
+    sent: r["sent"] ?? 0,
+    failed: r["failed"] ?? 0,
+    suppressed: r["suppressed"] ?? 0,
+    skipped: r["skipped"] ?? 0,
+    skippedNoEmail: r["skipped_no_email"] ?? 0,
+    skippedNotLive: r["skipped_not_live"] ?? 0,
+    skippedNoPass: r["skipped_no_pass"] ?? 0,
+  });
 }
 
 async function moveGuest(

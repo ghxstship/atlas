@@ -502,6 +502,15 @@ function TokenGuestForm({ sectionId, link }: { sectionId: string; link: AdvanceL
         />
       </div>
       <MoreFields>
+        <Input
+          id={`guest-email-${sectionId}`}
+          name="guestEmail"
+          type="email"
+          autoComplete="off"
+          maxLength={320}
+          label={tf("guest.email")}
+          help={tf("guest.emailHelp")}
+        />
         <Textarea
           id={`guest-note-${sectionId}`}
           name="note"
