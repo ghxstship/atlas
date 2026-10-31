@@ -348,6 +348,10 @@
     "advancingAllowanceOverflow": {
       "label": "Requests beyond the allowance",
       "help": "Refuse turns away a request above an offering's cap. Review lets it in as requested; approving it, or assigning above the cap, then needs a reason that is kept with the allocation."
+    },
+    "transferTurnaroundMinutes": {
+      "label": "Transfer turnaround (minutes)",
+      "help": "Time a driver needs between a drop-off and the next pickup. Transfers warn Tight turnaround when it is shorter. 0 turns the warning off."
     }
   },
   "choices": {

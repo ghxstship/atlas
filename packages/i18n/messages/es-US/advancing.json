@@ -677,7 +677,8 @@
     "noBlock": "Primero agrega un bloque de alojamiento en la página de Hospitalidad.",
     "noFulfillment": "Primero agrega una gestión de Viaje en la página de Hospitalidad.",
     "airports": "{inbound} a {outbound}",
-    "loadFailed": "El grupo de viaje no se cargó. Recarga la página para intentarlo de nuevo."
+    "loadFailed": "El grupo de viaje no se cargó. Recarga la página para intentarlo de nuevo.",
+    "addToTransfer": "Agregar a un traslado"
   },
   "allocations": {
     "sentence": "Lo que recibe cada parte y cada persona para la producción: solicitado, aprobado, reservado, entregado y devuelto.",

@@ -4,14 +4,27 @@ import { BlocksSection } from "@/components/logistics-hospitality/blocks";
 import { SectionSwitcher } from "@/components/logistics-hospitality/client";
 import { FulfillmentsSection } from "@/components/logistics-hospitality/fulfillments";
 import { param, projectTabScope } from "@/components/logistics-hospitality/kit";
+import { RoomingSection } from "@/components/logistics-hospitality/rooming-section";
+import { SpaceBookingsSection } from "@/components/logistics-hospitality/space-bookings";
+import { TransfersSection } from "@/components/logistics-hospitality/transfers";
+import { TravelGridSection } from "@/components/logistics-hospitality/travel-grid";
 import { nodeHref } from "@/lib/shell/sitemap";
 
-const SECTIONS = ["fulfillments", "beos", "blocks"] as const;
+const SECTIONS = [
+  "fulfillments",
+  "beos",
+  "blocks",
+  "travel",
+  "transfers",
+  "rooms",
+  "rooming",
+] as const;
 type HospitalitySection = (typeof SECTIONS)[number];
 
 /**
- * The project Hospitality tab (Section 4.5.4): lodging, catering, travel and amenities, BEOs and
- * accommodation blocks of the project, with the same sections as the org-level pages.
+ * The project Hospitality tab (Section 4.5.4): lodging, catering, travel and amenities, BEOs,
+ * accommodation blocks, the flight grid, transfers, green rooms and the rooming list of the project, with the same
+ * sections as the org-level pages (B5 adds the last four).
  */
 export default async function Page({
   params,
@@ -39,6 +52,18 @@ export default async function Page({
   }
   if (section === "blocks") {
     return <BlocksSection scope={scope} search={search} base={base} heading={heading} />;
+  }
+  if (section === "travel") {
+    return <TravelGridSection scope={scope} search={search} base={base} heading={heading} />;
+  }
+  if (section === "transfers") {
+    return <TransfersSection scope={scope} search={search} base={base} heading={heading} />;
+  }
+  if (section === "rooms") {
+    return <SpaceBookingsSection scope={scope} search={search} base={base} heading={heading} />;
+  }
+  if (section === "rooming") {
+    return <RoomingSection scope={scope} heading={heading} />;
   }
   return <FulfillmentsSection scope={scope} search={search} base={base} heading={heading} />;
 }

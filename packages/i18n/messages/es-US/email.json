@@ -340,6 +340,18 @@
         "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
         "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
       }
+    },
+    "accommodation_block": {
+      "release_due": {
+        "subject": "{blockKey} {blockTitle} se libera {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        "body": "{freeRoomNights, plural, one {Queda # noche de habitación libre} other {Quedan # noches de habitación libres}} en {blockTitle} para {projectName}. Las habitaciones sin asignar vuelven al hotel el {releaseOn}."
+      }
+    },
+    "transfer": {
+      "assigned": {
+        "subject": "Conduces el traslado {transferKey}",
+        "body": "Recogida en {pickupPlace}, el {startsAt, date, medium} a las {startsAt, time, short}, hacia {dropoffPlace}, con {passengerCount, plural, one {# pasajero} other {# pasajeros}}."
+      }
     }
   },
   "notification": {

@@ -149,5 +149,62 @@
     "table": "Tabla",
     "timeline": "Cronograma",
     "calendar": "Calendario"
+  },
+  "localContacts": {
+    "title": "Contactos locales",
+    "empty": "Todavía no hay contactos locales.",
+    "add": "Agregar contacto",
+    "edit": "Editar",
+    "remove": "Quitar a {name}",
+    "save": "Guardar contacto",
+    "cancel": "Cancelar",
+    "roles": {
+      "Promoter": "Promotor",
+      "Venue": "Recinto",
+      "Production": "Producción",
+      "Security": "Seguridad",
+      "Transport": "Transporte",
+      "Hospitality": "Hospitalidad",
+      "Medical": "Atención médica",
+      "Other": "Otro"
+    },
+    "audience": {
+      "Internal": "Interno",
+      "Shared": "Compartido"
+    },
+    "source": {
+      "Member": "Miembro",
+      "Contact": "Contacto"
+    },
+    "scope": {
+      "venue": "Contacto del recinto",
+      "thisDay": "Este día",
+      "everyDay": "Todos los días"
+    },
+    "fields": {
+      "source": "Contacto de",
+      "member": "Miembro",
+      "memberHelp": "Muestra el nombre actual del miembro y su teléfono de trabajo del directorio. No se copia nada.",
+      "name": "Nombre",
+      "phone": "Teléfono comercial",
+      "phoneHelp": "Con el código de país, por ejemplo +1 305 555 0100.",
+      "email": "Correo comercial",
+      "title": "Cargo",
+      "role": "Función",
+      "scope": "Se aplica a",
+      "audience": "Quién lo ve",
+      "audienceHelp": "Compartido también lo muestra a las personas contratadas o en la lista del proyecto. El teléfono de trabajo de un miembro nunca sale de la organización.",
+      "notes": "Notas para la organización"
+    },
+    "errors": {
+      "local_contact_member": "Esa persona ya no es miembro activo de la organización. Elige un miembro actual o escribe el contacto.",
+      "local_contact_day_outside_project": "Ese día está fuera de las fechas del proyecto. Elige un día dentro del proyecto.",
+      "cross_org_reference": "Ese miembro u organización pertenece a otra organización.",
+      "refused": "No se pudo guardar el contacto. Revísalo e inténtalo de nuevo.",
+      "notFound": "Ese contacto ya no existe. Vuelve a cargar la página.",
+      "invalid": "Revisa el nombre, la función y el correo.",
+      "phone": "Escribe el teléfono con su código de país, por ejemplo +1 305 555 0100.",
+      "unexpected": "Algo salió mal. Inténtalo de nuevo."
+    }
   }
 }

@@ -348,6 +348,10 @@
     "advancingAllowanceOverflow": {
       "label": "Solicitudes por encima de la asignación permitida",
       "help": "Rechazar no admite una solicitud por encima del límite de una oferta. Revisar la admite como solicitada; aprobarla, o asignar por encima del límite, requiere entonces un motivo que se guarda con la asignación."
+    },
+    "transferTurnaroundMinutes": {
+      "label": "Margen entre traslados (minutos)",
+      "help": "Tiempo que necesita un conductor entre una llegada y la siguiente recogida. Los traslados avisan Margen corto cuando es menor. 0 desactiva el aviso."
     }
   },
   "choices": {

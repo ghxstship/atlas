@@ -28,6 +28,9 @@ const SUBJECT_TABLES = [
   "app.beos",
   "app.accommodation_blocks",
   "app.travel_segments",
+  // B5 (2941, 2943): ground transfers and space bookings.
+  "app.transfers",
+  "app.space_bookings",
 ] as const;
 
 const subjectSchema = z.object({ table: z.enum(SUBJECT_TABLES), id: z.uuid() });

@@ -17,3 +17,7 @@ A day sheet summarizes one day of a project: times, locations, contacts and note
 ## Call sheets
 
 A call sheet tells each person when and where to report. It draws on the crew schedule, so changes to shifts appear on the next published version.
+
+## Local contacts
+
+A day sheet lists the local contacts for its day: the venue's contacts, the project's contacts for every day, and that day's. Add a member of the org, whose current name and directory work phone always show, or type a contact with a business phone and email. Shared contacts also reach the people engaged or rostered on the project in Gateway and Compass; a member's work phone never leaves the org. Manage a venue's own contacts from its peek in Places > Venues.

@@ -59,7 +59,10 @@
       "hospitality": {
         "fulfillments": "Fulfillments",
         "beos": "BEOs",
-        "accommodationBlocks": "Accommodation Blocks"
+        "accommodationBlocks": "Accommodation Blocks",
+        "travel": "Travel",
+        "transfers": "Transfers",
+        "rooms": "Green Rooms and Dressing Rooms"
       },
       "assets": {
         "assetClasses": "Catalog of Asset Classes",

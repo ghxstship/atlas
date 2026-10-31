@@ -146,7 +146,7 @@ begin
   begin
     v_args := jsonb_build_object(
       'transferKey', (select p.project_key || '-' || new.transfer_number::text from app.projects p where p.id = new.project_id),
-      'pickupAt', new.pickup_at,
+      'startsAt', new.pickup_at,
       'pickupTimeZone', new.pickup_time_zone,
       'pickupPlace', new.pickup_place,
       'dropoffPlace', new.dropoff_place,
@@ -175,7 +175,7 @@ begin
 end;
 $$;
 
-comment on function private.notify_transfer_driver() is 'After a live transfer is created with a driver or its driver changes: sends transfer.assigned to the new driver with the transfer key, pickup time, zone and place, drop-off place and passenger count. A driver who is not an active member of the org gets a Gateway link to their engagement on the project (their own, else their operational roster entry''s); a member''s opens Atlas. A failure is a warning and never blocks the write (as 2655).';
+comment on function private.notify_transfer_driver() is 'After a live transfer is created with a driver or its driver changes: sends transfer.assigned to the new driver with the transfer key, pickup time (startsAt, as shift notices carry it), zone and place, drop-off place and passenger count. A driver who is not an active member of the org gets a Gateway link to their engagement on the project (their own, else their operational roster entry''s); a member''s opens Atlas. A failure is a warning and never blocks the write (as 2655).';
 revoke all on function private.notify_transfer_driver() from public, anon, authenticated;
 create trigger t91_notify_transfer_driver after insert or update of driver_person_id on app.transfers
   for each row execute function private.notify_transfer_driver();

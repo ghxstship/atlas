@@ -709,6 +709,12 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "accommodation_block": {
+        "release_due": "Block release coming up"
+      },
+      "transfer": {
+        "assigned": "Transfer to drive"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

@@ -72,7 +72,25 @@
       "travel_fulfillment_kind": "Un tramo de viaje pertenece a un servicio de viaje. Elige uno de esos.",
       "time_zone_unknown": "Esa zona horaria no se reconoce. Elige una zona de la lista.",
       "same_project": "Esa opción pertenece a otro proyecto. Elige una de este proyecto.",
-      "person_not_on_project": "Esa persona no es miembro ni está contratada en este proyecto. Elige a alguien de la lista."
+      "person_not_on_project": "Esa persona no es miembro ni está contratada en este proyecto. Elige a alguien de la lista.",
+      "transfer_driver_double_booked": "El conductor tiene otro traslado a esa hora. Elige otro conductor o cambia los horarios.",
+      "transfer_vehicle_double_booked": "El vehículo tiene otro traslado a esa hora. Elige otro vehículo o cambia los horarios.",
+      "transfer_passenger_double_booked": "Un pasajero tiene otro traslado a esa hora. Quítalo de allí primero o cambia los horarios.",
+      "transfer_vehicle_full": "El vehículo no tiene asientos libres. Elige un vehículo más grande o quita un pasajero.",
+      "transfer_driver_is_passenger": "El conductor no puede viajar también como pasajero.",
+      "transfer_person_not_on_project": "Esa persona no trabaja en este proyecto. Elige un miembro o a alguien contratado o en la lista del proyecto.",
+      "transfer_meets_flight": "Elige un vuelo de este proyecto para la recogida.",
+      "transfer_canceled": "Este traslado fue cancelado. Restáuralo antes de agregar pasajeros.",
+      "space_booking_overlap": "La sala está reservada en exclusiva a esa hora, o una reserva exclusiva se superpondría con otra. Hazla compartida o cambia los horarios.",
+      "space_booking_venue": "Elige un espacio del recinto del proyecto.",
+      "space_booking_space": "Ese espacio fue eliminado. Elige otro.",
+      "space_booking_set_engagement": "Ese horario de presentación pertenece a otro artista.",
+      "local_contact_member": "Esa persona ya no es miembro activo de la organización.",
+      "local_contact_day_outside_project": "Ese día está fuera de las fechas del proyecto.",
+      "local_contact_org_fixed": "Un contacto permanece en su organización.",
+      "accommodation_block_budget_project": "Elige una línea del presupuesto de este proyecto.",
+      "accommodation_block_budget_currency": "El presupuesto está en otra moneda. Pon el precio del bloque en la moneda del presupuesto.",
+      "cross_org_reference": "Eso pertenece a otra organización."
     },
     "fieldErrors": {
       "required": "Completa este campo.",
@@ -86,7 +104,9 @@
       "rooms": "Escribe al menos una habitación.",
       "guests": "Escribe un número de invitados mayor que cero, o déjalo en blanco.",
       "file": "Elige un archivo para subir.",
-      "fileSize": "Los archivos pueden pesar hasta 50 MB."
+      "fileSize": "Los archivos pueden pesar hasta 50 MB.",
+      "seats": "Escribe entre 1 y 80 asientos.",
+      "partySize": "Escribe entre 1 y 500 personas."
     },
     "unnamed": "Persona sin nombre",
     "peekMissing": {

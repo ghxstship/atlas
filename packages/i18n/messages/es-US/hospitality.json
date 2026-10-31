@@ -8,7 +8,11 @@
     "sections": "Secciones de hospitalidad",
     "fulfillments": "Servicios",
     "beos": "BEO",
-    "blocks": "Bloques de alojamiento"
+    "blocks": "Bloques de alojamiento",
+    "travel": "Viajes",
+    "transfers": "Traslados",
+    "rooms": "Camerinos",
+    "rooming": "Lista de alojamiento"
   },
   "fulfillments": {
     "title": "Servicios",
@@ -204,6 +208,248 @@
       "checkOutOn": "Salida",
       "stay": "Del {from} al {to}",
       "remove": "Quitar a {name}"
+    },
+    "matrix": {
+      "view": "Matriz",
+      "title": "Habitaciones por noche",
+      "block": "Bloque",
+      "value": "{assigned} de {held}",
+      "cell": "{assigned} de {held} asignadas, {free} libres",
+      "releaseDue": "{free} libres, se liberan el {date}"
+    },
+    "budgetLine": {
+      "label": "Línea del presupuesto",
+      "help": "La línea a la que se carga el costo de este bloque. Los montos se calculan a partir del bloque y nunca se escriben en el presupuesto.",
+      "option": "{budget} línea {number}: {description}",
+      "held": "Alojamiento reservado",
+      "assigned": "Alojamiento asignado"
     }
+  },
+  "travelGrid": {
+    "title": "Vuelos",
+    "empty": "Todavía no hay vuelos reservados. Aquí aparecen los vuelos reservados en una gestión de viaje.",
+    "emptyFiltered": "Ningún vuelo coincide con esta vista.",
+    "emptyAction": "Abrir gestiones",
+    "phase": {
+      "upcoming": "Próximo",
+      "inFlight": "En vuelo",
+      "departed": "Despegó",
+      "landed": "Aterrizó"
+    },
+    "leg": "Tramo {leg} de {count}",
+    "arrivalUnknown": "Llegada desconocida",
+    "finalArrival": "Llegada final {place}, {at}",
+    "route": "{from} a {to}",
+    "views": {
+      "upcoming": "Próximos",
+      "inFlight": "En vuelo",
+      "all": "Todos los vuelos"
+    },
+    "columns": {
+      "traveler": "Viajero",
+      "flight": "Vuelo",
+      "route": "Ruta",
+      "departs": "Salida",
+      "arrives": "Llegada",
+      "finalArrival": "Llegada final",
+      "leg": "Tramo",
+      "confirmation": "Confirmación",
+      "phase": "Fase"
+    }
+  },
+  "transfers": {
+    "title": "Traslados",
+    "kind": "Traslado",
+    "new": "Nuevo traslado",
+    "editTitle": "Editar {key}",
+    "cancel": "Cancelar traslado",
+    "canceled": "{key} cancelado",
+    "empty": "Todavía no hay traslados. Reserva una recogida para un vuelo que llega o un recorrido entre el hotel y el recinto.",
+    "emptyReadOnly": "Todavía no hay traslados en estos proyectos.",
+    "travelLink": "Volver a hospitalidad",
+    "route": "{from} a {to}",
+    "window": "{pickup} a {dropoff}",
+    "status": {
+      "unassigned": "Sin asignar",
+      "assigned": "Asignado",
+      "underway": "En curso",
+      "done": "Terminado"
+    },
+    "warnings": {
+      "tightTurnaround": "Margen corto entre traslados",
+      "flightAfterPickup": "El vuelo aterriza después de la recogida",
+      "none": "Ninguna"
+    },
+    "fields": {
+      "project": "Proyecto",
+      "pickupPlace": "Lugar de recogida",
+      "pickupAt": "Recogida",
+      "dropoffPlace": "Lugar de destino",
+      "dropoffAt": "Llegada al destino",
+      "dropoffHelp": "Tu estimación de cuándo termina el recorrido. No se calculan tiempos de manejo.",
+      "vehicle": "Vehículo",
+      "driver": "Conductor",
+      "meetsFlight": "Recibe el vuelo",
+      "notes": "Notas para el equipo",
+      "warnings": "Avisos",
+      "key": "Traslado",
+      "route": "Ruta",
+      "passengers": "Pasajeros",
+      "status": "Estado"
+    },
+    "flightOption": "{flight}, {traveler}, aterriza {arrives}",
+    "meets": "{flight}, aterriza {arrives}",
+    "arrivalUnknown": "hora de aterrizaje desconocida",
+    "passengers": {
+      "title": "Pasajeros ({count} de {seats} asientos)",
+      "empty": "Todavía no hay pasajeros.",
+      "primary": "Pasajero principal",
+      "makePrimary": "Marcar a {name} como principal",
+      "remove": "Quitar a {name}",
+      "add": "Agregar pasajero",
+      "person": "Persona"
+    },
+    "passengerCount": "{count, plural, one {# pasajero} other {# pasajeros}}",
+    "lanes": {
+      "label": "Carriles y semana",
+      "driver": "Por conductor",
+      "vehicle": "Por vehículo",
+      "unassigned": "Sin asignar",
+      "caption": "Traslados, semana del {date}"
+    }
+  },
+  "vehicles": {
+    "kind": "Vehículos",
+    "title": "Vehículos",
+    "count": "{count, plural, one {# vehículo} other {# vehículos}}",
+    "empty": "Todavía no hay vehículos.",
+    "manage": "Vehículos",
+    "option": "{label} ({seats} asientos)",
+    "detail": "{type}, {seats} asientos",
+    "remove": "Quitar {label}",
+    "add": "Agregar vehículo",
+    "fields": {
+      "label": "Nombre",
+      "labelHint": "Van 1",
+      "type": "Tipo",
+      "seats": "Asientos para pasajeros",
+      "seatsHelp": "Asientos para pasajeros; el conductor no cuenta.",
+      "supplier": "Servicio de autos"
+    },
+    "types": {
+      "Sedan": "Sedán",
+      "SUV": "SUV",
+      "Van": "Van",
+      "Sprinter": "Sprinter",
+      "Minibus": "Minibús",
+      "Coach": "Autobús",
+      "Other": "Otro"
+    }
+  },
+  "rooms": {
+    "title": "Camerinos y salas de espera",
+    "kind": "Reserva de espacio",
+    "new": "Reservar una sala",
+    "fromSet": "Reservar desde el horario de presentación",
+    "editTitle": "Editar reserva",
+    "cancel": "Cancelar reserva",
+    "canceled": "Reserva cancelada",
+    "empty": "Todavía no hay salas reservadas. Reserva una sala de espera o un camerino, o resérvalo desde un horario de presentación.",
+    "emptyReadOnly": "Todavía no hay salas reservadas en estos proyectos.",
+    "window": "{in} a {out}",
+    "purpose": {
+      "GreenRoom": "Sala de espera",
+      "DressingRoom": "Camerino",
+      "ProductionOffice": "Oficina de producción",
+      "HospitalitySuite": "Suite de hospitalidad",
+      "Other": "Otro"
+    },
+    "mode": {
+      "Exclusive": "Exclusiva",
+      "Shared": "Compartida"
+    },
+    "flags": {
+      "overCapacity": "Sobre la capacidad",
+      "setMoved": "Cambió el horario",
+      "none": "Ninguno"
+    },
+    "fields": {
+      "space": "Espacio",
+      "purpose": "Reservado como",
+      "mode": "Uso",
+      "modeHelp": "Exclusiva ocupa la sala sola. Las reservas compartidas pueden superponerse.",
+      "setTime": "Horario de presentación",
+      "in": "Entrada",
+      "out": "Salida",
+      "partySize": "Personas",
+      "notes": "Notas para el equipo",
+      "when": "Cuándo",
+      "flags": "Avisos",
+      "act": "Artista"
+    },
+    "spaceOption": "{name} (capacidad {capacity})",
+    "setOption": "{label}, {at}",
+    "notPlanned": "sin programar",
+    "conflicts": {
+      "title": "{count, plural, one {# superposición por revisar} other {# superposiciones por revisar}}",
+      "group": "{space}: {count} reservas superpuestas, hasta {peak} personas a la vez"
+    },
+    "capacity": "Capacidad {capacity}",
+    "lanesCaption": "Salas, semana del {date}"
+  },
+  "rooming": {
+    "title": "Lista de alojamiento",
+    "sentence": "Quién necesita habitación, las noches sugeridas según sus pases o fechas de viaje y lo que falta cubrir. Cada lectura queda registrada en el historial de acceso de cada persona.",
+    "load": "Cargar la lista de alojamiento",
+    "reload": "Volver a cargar",
+    "failed": "No se pudo leer la lista de alojamiento. Inténtalo de nuevo.",
+    "needsRead": "Para leer la lista de alojamiento se necesita hospitality.fulfillment.read en el proyecto.",
+    "filters": {
+      "label": "Mostrar solo"
+    },
+    "status": {
+      "Covered": "Cubierto",
+      "Partial": "Parcial",
+      "Missing": "Falta",
+      "NoDates": "Sin fechas"
+    },
+    "columns": {
+      "person": "Persona",
+      "party": "Grupo",
+      "role": "Función",
+      "suggested": "Estancias sugeridas",
+      "assigned": "Asignado",
+      "uncovered": "Noches sin cubrir",
+      "status": "Estado",
+      "cost": "Costo",
+      "actions": "Acciones"
+    },
+    "stay": "{from} a {to}",
+    "source": {
+      "Credentials": "según pases",
+      "Travel": "según fechas de viaje"
+    },
+    "noDates": "Todavía sin fechas",
+    "none": "Ninguno",
+    "unpriced": "{nights, plural, one {# noche} other {# noches}}, sin precio",
+    "assign": "Asignar habitación",
+    "assigned": "Habitación asignada.",
+    "issueFailed": "No se pudo abrir la asignación. Vuelve a cargar la lista.",
+    "room": "Habitación",
+    "unnamed": "Persona sin nombre",
+    "empty": "Nadie del grupo de viaje necesita habitación.",
+    "emptyFiltered": "Nadie coincide con estos filtros.",
+    "noBlocks": "Ningún bloque cubre estas noches. Contrata un bloque primero.",
+    "block": "Bloque",
+    "checkIn": "Entrada",
+    "checkOut": "Salida",
+    "confirm": "Confirmar habitación",
+    "cancel": "Cancelar",
+    "checkFields": "Revisa el bloque y las fechas.",
+    "stayWithSource": "{stay} ({source})"
+  },
+  "actsWithoutRooms": {
+    "count": "{count, plural, one {# artista sin habitación} other {# artistas sin habitación}}",
+    "row": "{name} ({people, plural, one {# persona} other {# personas}})"
   }
 }

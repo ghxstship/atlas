@@ -314,5 +314,62 @@
       "INFERRED": "Inferred",
       "UNKNOWN": "Unknown"
     }
+  },
+  "localContacts": {
+    "title": "Local contacts",
+    "empty": "No local contacts yet.",
+    "add": "Add contact",
+    "edit": "Edit",
+    "remove": "Remove {name}",
+    "save": "Save contact",
+    "cancel": "Cancel",
+    "roles": {
+      "Promoter": "Promoter",
+      "Venue": "Venue",
+      "Production": "Production",
+      "Security": "Security",
+      "Transport": "Transport",
+      "Hospitality": "Hospitality",
+      "Medical": "Medical",
+      "Other": "Other"
+    },
+    "audience": {
+      "Internal": "Internal",
+      "Shared": "Shared"
+    },
+    "source": {
+      "Member": "Member",
+      "Contact": "Contact"
+    },
+    "scope": {
+      "venue": "Venue contact",
+      "thisDay": "This day",
+      "everyDay": "Every day"
+    },
+    "fields": {
+      "source": "Contact from",
+      "member": "Member",
+      "memberHelp": "Shows the member's current name and directory work phone. Nothing is copied.",
+      "name": "Name",
+      "phone": "Business phone",
+      "phoneHelp": "With the country code, such as +1 305 555 0100.",
+      "email": "Business email",
+      "title": "Title",
+      "role": "Role",
+      "scope": "Applies to",
+      "audience": "Who sees it",
+      "audienceHelp": "Shared also shows to the people engaged or rostered on the project. A member's work phone never leaves the org.",
+      "notes": "Notes for the org"
+    },
+    "errors": {
+      "local_contact_member": "That person is no longer an active member of the org. Choose a current member or type the contact.",
+      "local_contact_day_outside_project": "That day is outside the project's dates. Choose a day within the project.",
+      "cross_org_reference": "That member or organization belongs to another org.",
+      "refused": "The contact could not be saved. Check it and try again.",
+      "notFound": "That contact is gone. Reload the page.",
+      "invalid": "Check the name, role and email.",
+      "phone": "Enter the phone with its country code, such as +1 305 555 0100.",
+      "unexpected": "Something went wrong. Try again."
+    }
   }
 }

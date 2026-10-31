@@ -677,7 +677,8 @@
     "noBlock": "Add an accommodation block on the Hospitality page first.",
     "noFulfillment": "Add a Travel fulfillment on the Hospitality page first.",
     "airports": "{inbound} to {outbound}",
-    "loadFailed": "The travel party did not load. Reload the page to try again."
+    "loadFailed": "The travel party did not load. Reload the page to try again.",
+    "addToTransfer": "Add to a transfer"
   },
   "allocations": {
     "sentence": "What each party and person is given for the production: requested, approved, held, issued and returned.",

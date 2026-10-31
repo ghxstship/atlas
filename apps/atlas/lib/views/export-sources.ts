@@ -356,6 +356,67 @@ const blocks = source("app.accommodation_blocks", [
   "project_id",
 ]);
 
+// The flight grid (B5, G-58) exports Flight rows only, filtered by the phase its built-in views set.
+const travelGrid = source(
+  "app.travel_grid",
+  [
+    "traveler_name",
+    "service_identifier",
+    "operator_name",
+    "departs_from",
+    "departs_at",
+    "departs_time_zone",
+    "arrives_at_place",
+    "arrives_at",
+    "arrives_time_zone",
+    "final_arrival_place",
+    "final_arrival_at",
+    "leg_number",
+    "leg_count",
+    "confirmation_identifier",
+    "phase",
+    "project_id",
+  ],
+  { filters: { phase: "phase" }, fixed: { travel_mode: "Flight" } },
+);
+const transfers = source("app.transfer_board", [
+  "transfer_key",
+  "pickup_place",
+  "pickup_at",
+  "pickup_time_zone",
+  "dropoff_place",
+  "dropoff_at",
+  "dropoff_time_zone",
+  "driver_name",
+  "vehicle_label",
+  "vehicle_type",
+  "seats",
+  "passenger_count",
+  "primary_passenger_name",
+  "meets_service_identifier",
+  "meets_flight_arrives_at",
+  "status",
+  "tight_turnaround",
+  "meets_flight_after_pickup",
+  "project_id",
+]);
+const spaceBookings = source("app.space_booking_board", [
+  "space_name",
+  "act_name",
+  "purpose",
+  "booking_mode",
+  "party_size",
+  "starts_at",
+  "ends_at",
+  "set_label",
+  "set_planned_at",
+  "set_moved",
+  "group_size",
+  "group_peak_party",
+  "over_capacity",
+  "project_id",
+]);
+
 const shipments = source("app.shipments", [
   "shipment_number",
   "direction",
@@ -731,6 +792,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "hospitality/accommodation_blocks": blocks,
   "hospitality/beos": beos,
   "hospitality/fulfillments": fulfillments,
+  "hospitality/rooms": spaceBookings,
+  "hospitality/transfers": transfers,
+  "hospitality/travel": travelGrid,
 
   "knowledge/documents": documents,
   "knowledge/feed": source("app.feed_posts", [
@@ -812,6 +876,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     fulfillments: inProject(fulfillments),
     beos: inProject(beos),
     blocks: inProject(blocks),
+    travel: inProject(travelGrid),
+    transfers: inProject(transfers),
+    rooms: inProject(spaceBookings),
   }),
   "project/logistics": sections("section", "shipments", {
     shipments: inProject(shipments),

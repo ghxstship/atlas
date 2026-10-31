@@ -59,7 +59,10 @@
       "hospitality": {
         "fulfillments": "Servicios atendidos",
         "beos": "Órdenes de banquete",
-        "accommodationBlocks": "Bloqueos de habitaciones"
+        "accommodationBlocks": "Bloqueos de habitaciones",
+        "travel": "Viajes",
+        "transfers": "Traslados",
+        "rooms": "Camerinos y salas de espera"
       },
       "assets": {
         "assetClasses": "Catálogo de clases de activos",

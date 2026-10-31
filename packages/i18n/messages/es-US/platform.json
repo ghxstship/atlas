@@ -709,6 +709,12 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "accommodation_block": {
+        "release_due": "Se acerca la liberación del bloque"
+      },
+      "transfer": {
+        "assigned": "Traslado para conducir"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

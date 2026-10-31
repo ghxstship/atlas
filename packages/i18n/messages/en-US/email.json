@@ -340,6 +340,18 @@
         "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was withdrawn",
         "body": "{cause, select, engagement_ended {The engagement ended.} entry_removed {You are no longer on the roster.} other {{orgName} withdrew it.}}"
       }
+    },
+    "accommodation_block": {
+      "release_due": {
+        "subject": "{blockKey} {blockTitle} releases {days, plural, =0 {today} one {in # day} other {in # days}}",
+        "body": "{freeRoomNights, plural, one {# room night is} other {# room nights are}} still free in {blockTitle} for {projectName}. Unassigned rooms return to the hotel on {releaseOn}."
+      }
+    },
+    "transfer": {
+      "assigned": {
+        "subject": "You are driving {transferKey}",
+        "body": "Pickup at {pickupPlace}, {startsAt, date, medium} at {startsAt, time, short}, to {dropoffPlace}, with {passengerCount, plural, one {# passenger} other {# passengers}}."
+      }
     }
   },
   "notification": {
