@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { DocsBrandMark } from "@/components/docs-brand.tsx";
 import { BoundaryCopyProvider } from "@/components/error-copy.tsx";
 import { DocsSidebar, type NavGroup } from "@/components/nav.tsx";
 import { AppShell, ThemeSwitch, XOSProvider } from "@/components/ui.tsx";
 import { GUIDE_SECTIONS, guides } from "@/lib/content.ts";
 import type { Locale } from "@/lib/i18n.ts";
 import { LOCALES, isLocale, translator, uiMessages } from "@/lib/i18n.ts";
+import { BRAND_SCRIPT } from "@/lib/brand.ts";
 import { THEME_SCRIPT } from "@/lib/theme.ts";
 import "../globals.css";
 
@@ -51,7 +53,10 @@ function navigation(locale: Locale): NavGroup[] {
   ];
 }
 
-/** The docs document: dark by default, the saved or system theme applied before paint, one shell for every page. */
+/**
+ * The docs document: dark by default, the saved or system theme applied before paint, one shell for every page. In an
+ * org's docs (A138), its accent is applied before paint too and the brand mark shows its logo and name.
+ */
 export default async function LocaleLayout({
   children,
   params,
@@ -68,6 +73,7 @@ export default async function LocaleLayout({
     <html lang={locale} dir="ltr" data-theme="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: BRAND_SCRIPT }} />
       </head>
       <body>
         <a
@@ -78,14 +84,7 @@ export default async function LocaleLayout({
         </a>
         <XOSProvider locale={locale} {...(ui ? { messages: ui } : {})}>
           <AppShell
-            brand={
-              <a
-                href={`/${locale}`}
-                className="font-semibold text-text-14 text-text-primary no-underline"
-              >
-                {t("name")}
-              </a>
-            }
+            brand={<DocsBrandMark locale={locale} platformName={t("name")} />}
             sidebar={<DocsSidebar label={t("nav.label")} groups={navigation(locale)} />}
             header={
               <div className="flex flex-1 flex-wrap items-center justify-end gap-12">

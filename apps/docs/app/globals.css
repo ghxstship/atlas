@@ -21,6 +21,17 @@
     background-color: var(--color-bg-canvas);
   }
 
+  /* An org's docs (A138): the platform mark stays hidden until the org's logo and name swap in, and
+     each theme shows its own logo. */
+  html[data-docs-brand] [data-docs-platform-mark] {
+    visibility: hidden;
+  }
+
+  html[data-theme="light"] .docs-logo-dark,
+  html:not([data-theme="light"]) .docs-logo-light {
+    display: none;
+  }
+
   :focus-visible {
     outline: var(--stroke-width-focus) solid var(--color-focus-ring);
     outline-offset: var(--stroke-width-focus);

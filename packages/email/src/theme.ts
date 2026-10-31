@@ -1,3 +1,4 @@
+import { ratio } from "@xos/tokens/ratio";
 import tokens from "@xos/tokens/tokens.json" with { type: "json" };
 
 /**
@@ -81,3 +82,18 @@ export function text(name: string): { fontSize: string; lineHeight: number; font
 
 /** The sans font stack. */
 export const fontFamily: string = tokens.type.families.sans;
+
+/**
+ * An org's accent for its email (A138, Section 12), or null when it fails the contrast check, so the
+ * email keeps the platform accent. Email renders in the Light theme only, so the accent is checked
+ * there against the two pairs the email draws with it, at the thresholds of the token gate
+ * (contrast-pairs.json): the button label on the accent fill at 4.5:1, and the accent fill against
+ * the surface and raised grounds at 3:1.
+ */
+export function brandAccent(hex: string | null | undefined): string | null {
+  if (hex === null || hex === undefined || !/^#[0-9a-fA-F]{6}$/.test(hex)) return null;
+  const accent = hex.toUpperCase();
+  const label = ratio(color("accent-text-on"), accent) >= 4.5;
+  const grounds = ["bg-surface", "bg-raised"].every((g) => ratio(accent, color(g)) >= 3);
+  return label && grounds ? accent : null;
+}
