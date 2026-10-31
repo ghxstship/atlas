@@ -211,6 +211,7 @@ function scriptedClient(overrides: Partial<AuroraClient>): AuroraClient {
     getIntake: unused,
     closeIntake: unused,
     applyItineraries: unused,
+    checkItineraries: unused,
     applyContracts: unused,
     applyAdvanceAnswer: unused,
     summarize: unused,

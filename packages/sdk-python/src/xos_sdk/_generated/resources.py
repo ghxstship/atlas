@@ -187,11 +187,13 @@ if TYPE_CHECKING:
         AuroraApplyItinerariesRequest,
         AuroraAskRequest,
         AuroraBindCodeRequest,
+        AuroraCheckItinerariesRequest,
         AuroraClosedIntake,
         AuroraDraftRequest,
         AuroraExtractRequest,
         AuroraFilterRequest,
         AuroraIntake,
+        AuroraItineraryCheck,
         AuroraMapColumnsRequest,
         AuroraPreview,
         AuroraPreviewRequest,
@@ -33910,6 +33912,23 @@ class AuroraIntakesResource(Resource):
         Requires the capability ``home.dashboard.read``.
         """
         return self._client.request(OPERATIONS["auroraIntakes.applyItineraries"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def check_itineraries(
+        self,
+        id: str,
+        body: AuroraCheckItinerariesRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraItineraryCheck]:
+        """Check an intake's segments
+
+        Says which preview rows of the caller's itinerary intake the traveler already has as a live segment of the org with the same service and departure, so the preview leaves them out: the rows applying would refuse as itinerary_duplicate. Rows without a traveler, service or departure are never booked. Returns positions only. Writes nothing, calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/intakes/{id}/check-itineraries`` (operation ``auroraIntakes.checkItineraries``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["auroraIntakes.checkItineraries"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
     def apply_contracts(
         self,

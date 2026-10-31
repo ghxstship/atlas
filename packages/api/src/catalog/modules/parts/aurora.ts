@@ -804,6 +804,36 @@ const ApplyItinerariesBody = z
     description: "The segments of an itinerary intake to add.",
   });
 
+const CheckItinerariesBody = z
+  .object({
+    segments: z
+      .array(
+        z.object({
+          person_id: fields.ref("traveler the person picked"),
+          service_identifier: orNull(
+            fields.text("Flight or service number of the row.", "GA 100", 40),
+          ).optional(),
+          departs_at: orNull(fields.instant("Departure of the row.")).optional(),
+        }),
+      )
+      .max(1500)
+      .meta({ description: "The preview's rows, in order.", example: [] }),
+  })
+  .meta({
+    id: "AuroraCheckItinerariesRequest",
+    description: "Preview rows of an itinerary intake to check against the traveler's segments.",
+  });
+
+const ItineraryCheck = z
+  .object({
+    booked: z.array(z.number().int().min(1)).meta({
+      description:
+        "Positions, from 1, of the rows the traveler already has as a live segment of the org with the same service and departure.",
+      example: [2],
+    }),
+  })
+  .meta({ id: "AuroraItineraryCheck", description: "Which preview rows are already booked." });
+
 const AppliedIntake = z
   .object({
     written: z
@@ -1052,6 +1082,13 @@ export const auroraResources: readonly ResourceSpec[] = [
           "Adds the kept segments of an itinerary intake in one transaction under its Travel fulfillment, with the person's traveler, times and values. A segment repeating a live one of the same person refuses itinerary_duplicate and nothing is written. The other suggestions are rejected and the batch is closed. Calls no model and meters nothing.",
         body: ApplyItinerariesBody,
         response: AppliedIntake,
+      }),
+      itemAction("checkItineraries", {
+        summary: "Check an intake's segments",
+        description:
+          "Says which preview rows of the caller's itinerary intake the traveler already has as a live segment of the org with the same service and departure, so the preview leaves them out: the rows applying would refuse as itinerary_duplicate. Rows without a traveler, service or departure are never booked. Returns positions only. Writes nothing, calls no model and meters nothing.",
+        body: CheckItinerariesBody,
+        response: ItineraryCheck,
       }),
       itemAction("applyContracts", {
         summary: "Book an intake's acts",

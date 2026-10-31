@@ -208,6 +208,9 @@ export interface GovernanceItem {
  * engagements), each record once. `aurora.draft` and `aurora.preview` share it, so the panel lists
  * exactly what is sent.
  */
+/** Insurance certificates an approval pack sends at most, all of them the project vendors'. */
+const MAX_CERTIFICATES = 20;
+
 export async function governanceItems(
   api: PublicApi,
   specs: readonly ResourceSpec[],
@@ -252,6 +255,37 @@ export async function governanceItems(
   )) {
     add("records", risk);
   }
+  // Project vendors (correction 29): the vendors of the project's purchase orders and of its live Vendor
+  // engagements' counterparties. The approval pack sends only their insurance certificates, since a certificate
+  // belongs to a vendor and not to a project.
+  const vendorIds = new Set<string>();
+  const vendorEngagements: Row[] = [];
+  if (kind === "approval_pack" || kind === "waste_plan") {
+    for (const order of await list(
+      "purchase-orders",
+      { "filter[project_id][eq]": projectId },
+      50,
+    )) {
+      if (typeof order["vendor_id"] === "string") vendorIds.add(order["vendor_id"]);
+    }
+    for (const engagement of await list(
+      "engagements",
+      { "filter[project_id][eq]": projectId, "filter[role_type][eq]": "Vendor" },
+      20,
+    )) {
+      if (["Complete", "Canceled"].includes(String(engagement["engagement_state"]))) continue;
+      vendorEngagements.push(engagement);
+      if (typeof engagement["counterparty_id"] !== "string") continue;
+      for (const vendor of await list(
+        "vendors",
+        { "filter[counterparty_id][eq]": engagement["counterparty_id"] },
+        1,
+      )) {
+        if (typeof vendor["id"] === "string") vendorIds.add(vendor["id"]);
+      }
+    }
+  }
+  const vendors = [...vendorIds].slice(0, 20);
   if (kind === "approval_pack") {
     for (const permit of await list(
       "records",
@@ -260,8 +294,18 @@ export async function governanceItems(
     )) {
       add("records", permit);
     }
-    for (const certificate of await list("insurance-certificates", {}, 20))
-      add("insurance-certificates", certificate);
+    let certificates = 0;
+    for (const vendorId of vendors) {
+      for (const certificate of await list(
+        "insurance-certificates",
+        { "filter[vendor_id][eq]": vendorId },
+        MAX_CERTIFICATES - certificates,
+      )) {
+        add("insurance-certificates", certificate);
+        certificates += 1;
+      }
+      if (certificates >= MAX_CERTIFICATES) break;
+    }
   }
   if (kind === "waste_plan") {
     for (const catering of await list(
@@ -271,26 +315,11 @@ export async function governanceItems(
     )) {
       add("fulfillments", catering);
     }
-    const vendorIds = new Set<string>();
-    for (const order of await list(
-      "purchase-orders",
-      { "filter[project_id][eq]": projectId },
-      50,
-    )) {
-      if (typeof order["vendor_id"] === "string") vendorIds.add(order["vendor_id"]);
-    }
-    for (const vendorId of [...vendorIds].slice(0, 20)) {
+    for (const vendorId of vendors) {
       const vendor = await api.get(`/vendors/${vendorId}`, {});
       if (vendor.status === 200) add("vendors", vendor.body);
     }
-    for (const engagement of await list(
-      "engagements",
-      { "filter[project_id][eq]": projectId, "filter[role_type][eq]": "Vendor" },
-      20,
-    )) {
-      if (!["Complete", "Canceled"].includes(String(engagement["engagement_state"])))
-        add("engagements", engagement);
-    }
+    for (const engagement of vendorEngagements) add("engagements", engagement);
   }
   return out;
 }

@@ -41010,6 +41010,42 @@ export interface AuroraApplyItinerariesRequest {
 }
 
 /**
+ * Which preview rows are already booked.
+ */
+export interface AuroraItineraryCheck {
+  /**
+   * Positions, from 1, of the rows the traveler already has as a live segment of the org with the same service and departure.
+   */
+  readonly booked: ReadonlyArray<number>;
+}
+
+/**
+ * Preview rows of an itinerary intake to check against the traveler's segments.
+ */
+export interface AuroraCheckItinerariesRequest {
+  /**
+   * The preview's rows, in order.
+   */
+  readonly segments: ReadonlyArray<{
+    /**
+     * Identifier of the traveler the person picked.
+     * Format: `uuid`.
+     */
+    readonly person_id: string;
+    /**
+     * Flight or service number of the row.
+     * Length: 1 to 40.
+     */
+    readonly service_identifier?: string | null;
+    /**
+     * Departure of the row.
+     * Format: `date-time`.
+     */
+    readonly departs_at?: string | null;
+  }>;
+}
+
+/**
  * What an applied contract intake wrote.
  */
 export interface AuroraAppliedContracts {

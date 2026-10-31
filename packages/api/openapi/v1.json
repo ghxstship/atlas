@@ -55082,6 +55082,57 @@
         "required": ["items"],
         "description": "The segments of an itinerary intake to add."
       },
+      "AuroraItineraryCheck": {
+        "type": "object",
+        "properties": {
+          "booked": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1 },
+            "description": "Positions, from 1, of the rows the traveler already has as a live segment of the org with the same service and departure.",
+            "example": [2]
+          }
+        },
+        "required": ["booked"],
+        "description": "Which preview rows are already booked."
+      },
+      "AuroraCheckItinerariesRequest": {
+        "type": "object",
+        "properties": {
+          "segments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "person_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the traveler the person picked.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "service_identifier": {
+                  "type": ["string", "null"],
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "description": "Flight or service number of the row.",
+                  "example": "GA 100"
+                },
+                "departs_at": {
+                  "type": ["string", "null"],
+                  "format": "date-time",
+                  "description": "Departure of the row.",
+                  "example": "2026-10-08T14:30:00Z"
+                }
+              },
+              "required": ["person_id"]
+            },
+            "maxItems": 1500,
+            "description": "The preview's rows, in order.",
+            "example": []
+          }
+        },
+        "required": ["segments"],
+        "description": "Preview rows of an itinerary intake to check against the traveler's segments."
+      },
       "AuroraAppliedContracts": {
         "type": "object",
         "properties": {
@@ -150696,6 +150747,63 @@
               "application/json": {
                 "example": { "written": [], "rejected": 2 },
                 "schema": { "$ref": "#/components/schemas/AuroraAppliedIntake" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/intakes/{id}/check-itineraries": {
+      "post": {
+        "operationId": "auroraIntakes.checkItineraries",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_intake_batches",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Check an intake's segments",
+        "description": "Says which preview rows of the caller's itinerary intake the traveler already has as a live segment of the org with the same service and departure, so the preview leaves them out: the rows applying would refuse as itinerary_duplicate. Rows without a traveler, service or departure are never booked. Returns positions only. Writes nothing, calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the aurora intake.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the aurora intake.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "segments": [] },
+              "schema": { "$ref": "#/components/schemas/AuroraCheckItinerariesRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "booked": [2] },
+                "schema": { "$ref": "#/components/schemas/AuroraItineraryCheck" }
               }
             }
           },

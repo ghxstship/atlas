@@ -4,6 +4,7 @@ import {
   applyContractIntake,
   applyDraftedAdvanceAnswer,
   applyItineraryIntake,
+  bookedItinerarySegments,
   closeIntake,
   draftableAdvanceSections,
   getIntake,
@@ -285,6 +286,44 @@ describe("drafted advance answers (B15)", () => {
     ).toMatchObject({
       error: { kind: "refusal", rule: "advance_answer_pending" },
     });
+  });
+
+  it("finds the preview rows the traveler already has, in the caller's session", async () => {
+    const { db, calls } = fakeClient({
+      "from:travel_segments": [
+        okResponse([
+          {
+            person_id: "p2",
+            service_identifier: " ga 101 ",
+            departs_at: "2027-06-02T08:15:00+00:00",
+          },
+          {
+            person_id: "p1",
+            service_identifier: "GA 100",
+            departs_at: "2027-06-09T12:15:00+00:00",
+          },
+        ]),
+      ],
+    });
+    const rows = [
+      { person_id: "p1", service_identifier: "GA 100", departs_at: "2027-06-01T12:15:00Z" },
+      { person_id: "p2", service_identifier: "GA 101", departs_at: "2027-06-02T04:15:00-04:00" },
+      { person_id: "p3", service_identifier: null, departs_at: "2027-06-02T04:15:00Z" },
+      { person_id: "p3", service_identifier: "GA 102", departs_at: null },
+    ];
+    expect(await bookedItinerarySegments(db, "o1", rows)).toEqual({ ok: true, data: [2] });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["org_id", "o1"]]);
+    expect(calls[0]?.steps).toContainEqual(["in", ["person_id", ["p1", "p2"]]]);
+    expect(calls[0]?.steps).toContainEqual([
+      "in",
+      ["departs_at", ["2027-06-01T12:15:00.000Z", "2027-06-02T08:15:00.000Z"]],
+    ]);
+    // Nothing to check reads nothing.
+    expect(await bookedItinerarySegments(db, "o1", [rows[2] as never])).toEqual({
+      ok: true,
+      data: [],
+    });
+    expect(calls).toHaveLength(1);
   });
 
   it("asks the database whether the caller reads pay rates, and which airports are active", async () => {

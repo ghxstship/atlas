@@ -54,6 +54,7 @@ import {
   applyDraftedAdvanceAnswer,
   applyDraftedList,
   applyItineraryIntake,
+  bookedItinerarySegments,
   closeIntake,
   createAuroraStore,
   draftableAdvanceSections,
@@ -1295,6 +1296,30 @@ export function auroraHandlers(
         items: { suggestion_id: string; values: Record<string, unknown> }[];
       };
       return ok(unwrap(await applyItineraryIntake(context.db, batch.id, body.items)));
+    },
+
+    "auroraIntakes.checkItineraries": async (request, context) => {
+      requireOrg(context);
+      const batch = await ownIntake(context, String(request.params["id"]));
+      const body = request.body as {
+        segments: {
+          person_id: string;
+          service_identifier?: string | null;
+          departs_at?: string | null;
+        }[];
+      };
+      const booked = unwrap(
+        await bookedItinerarySegments(
+          context.db,
+          batch.org_id,
+          body.segments.map((s) => ({
+            person_id: s.person_id,
+            service_identifier: s.service_identifier ?? null,
+            departs_at: s.departs_at ?? null,
+          })),
+        ),
+      );
+      return ok({ booked });
     },
 
     "auroraIntakes.applyContracts": async (request, context) => {

@@ -1370,6 +1370,8 @@ __all__ = [
     "AuroraClosedIntake",
     "AuroraAppliedIntake",
     "AuroraApplyItinerariesRequest",
+    "AuroraItineraryCheck",
+    "AuroraCheckItinerariesRequest",
     "AuroraAppliedContracts",
     "AuroraApplyContractsRequest",
     "AiSuggestionPage",
@@ -22552,6 +22554,20 @@ class AuroraApplyItinerariesRequest(TypedDict):
 
     #: The kept segments: 25 files of at most 60.
     items: List[Dict[str, Any]]
+
+
+class AuroraItineraryCheck(TypedDict):
+    """Which preview rows are already booked."""
+
+    #: Positions, from 1, of the rows the traveler already has as a live segment of the org with the same service and departure.
+    booked: List[int]
+
+
+class AuroraCheckItinerariesRequest(TypedDict):
+    """Preview rows of an itinerary intake to check against the traveler's segments."""
+
+    #: The preview's rows, in order.
+    segments: List[Dict[str, Any]]
 
 
 class AuroraAppliedContracts(TypedDict):

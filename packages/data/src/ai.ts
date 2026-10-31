@@ -568,6 +568,54 @@ export async function applyItineraryIntake(
   });
 }
 
+/** A preview row of an itinerary intake, as the already-booked check reads it. */
+export interface ItineraryCheckRow {
+  readonly person_id: string;
+  readonly service_identifier: string | null;
+  readonly departs_at: string | null;
+}
+
+const serviceKey = (service: string) => service.trim().toUpperCase();
+
+/**
+ * Which preview rows of an itinerary intake the traveler already has as a live segment of the org with the same
+ * service identifier and departure, the rule app.apply_itinerary_intake refuses as itinerary_duplicate. It reads
+ * app.travel_segments in the caller's session, so row level security decides what it sees: the answer is a hint
+ * for the preview, and the apply still decides. Rows without a traveler, service or departure are never booked.
+ * Positions from 1.
+ */
+export async function bookedItinerarySegments(
+  db: XosClient,
+  orgId: string,
+  rows: readonly ItineraryCheckRow[],
+): Promise<Result<readonly number[]>> {
+  const checked = rows.flatMap((row, i) => {
+    const at = row.departs_at ? Date.parse(row.departs_at) : Number.NaN;
+    const service = row.service_identifier?.trim() ?? "";
+    return row.person_id && service && Number.isFinite(at)
+      ? [{ position: i + 1, person: row.person_id, service: serviceKey(service), at }]
+      : [];
+  });
+  if (checked.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("travel_segments")
+    .select("person_id, service_identifier, departs_at")
+    .eq("org_id", orgId)
+    .in("person_id", [...new Set(checked.map((c) => c.person))])
+    .in("departs_at", [...new Set(checked.map((c) => new Date(c.at).toISOString()))])
+    .not("service_identifier", "is", null)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  const live = new Set(
+    (data ?? []).map(
+      (s) => `${s.person_id}|${serviceKey(s.service_identifier ?? "")}|${Date.parse(s.departs_at)}`,
+    ),
+  );
+  return ok(
+    checked.filter((c) => live.has(`${c.person}|${c.service}|${c.at}`)).map((c) => c.position),
+  );
+}
+
 export interface AppliedContractIntake {
   readonly applied: readonly { readonly suggestion_id: string; readonly id: string }[];
   readonly engagements: number;

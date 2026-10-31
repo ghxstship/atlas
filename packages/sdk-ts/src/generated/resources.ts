@@ -148,11 +148,13 @@ import type {
   AuroraApplyItinerariesRequest,
   AuroraAskRequest,
   AuroraBindCodeRequest,
+  AuroraCheckItinerariesRequest,
   AuroraClosedIntake,
   AuroraDraftRequest,
   AuroraExtractRequest,
   AuroraFilterRequest,
   AuroraIntake,
+  AuroraItineraryCheck,
   AuroraMapColumnsRequest,
   AuroraPreview,
   AuroraPreviewRequest,
@@ -36445,6 +36447,26 @@ export class AuroraIntakesResource extends $Resource {
   ): Promise<$ApiResponse<AuroraAppliedIntake>> {
     return this.client.request<AuroraAppliedIntake>(
       $OPERATIONS["auroraIntakes.applyItineraries"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Check an intake's segments
+   *
+   * Says which preview rows of the caller's itinerary intake the traveler already has as a live segment of the org with the same service and departure, so the preview leaves them out: the rows applying would refuse as itinerary_duplicate. Rows without a traveler, service or departure are never booked. Returns positions only. Writes nothing, calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/intakes/{id}/check-itineraries` (operation `auroraIntakes.checkItineraries`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  checkItineraries(
+    id: string,
+    body: AuroraCheckItinerariesRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraItineraryCheck>> {
+    return this.client.request<AuroraItineraryCheck>(
+      $OPERATIONS["auroraIntakes.checkItineraries"],
       { path: { id }, body },
       options,
     );

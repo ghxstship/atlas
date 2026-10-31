@@ -1275,6 +1275,13 @@ export interface Components {
     description: string | null;
     candidates: Array<{ element_id: string; name: string; urid: string }>;
   };
+  AuroraCheckItinerariesRequest: {
+    segments: Array<{
+      person_id: string;
+      service_identifier?: string | null;
+      departs_at?: string | null;
+    }>;
+  };
   AuroraClosedIntake: { rejected: number };
   AuroraDraftRequest: {
     kind:
@@ -1368,6 +1375,7 @@ export interface Components {
     applied_id: string | null;
     proposed_fields: Array<Components["AiSuggestionField"]>;
   };
+  AuroraItineraryCheck: { booked: Array<number> };
   AuroraMapColumnsRequest: {
     collection: string;
     columns: Array<{ header: string; samples: Array<string> }>;
@@ -25469,6 +25477,15 @@ export interface Operations {
     body: Components["AuroraApplyItinerariesRequest"];
     responses: { 200: Components["AuroraAppliedIntake"] };
   };
+  "auroraIntakes.checkItineraries": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/intakes/{id}/check-itineraries";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AuroraCheckItinerariesRequest"];
+    responses: { 200: Components["AuroraItineraryCheck"] };
+  };
   "auroraIntakes.applyContracts": {
     module: "Settings";
     method: "post";
@@ -29678,6 +29695,7 @@ export interface ModuleOperations {
     | "auroraIntakes.start"
     | "auroraIntakes.close"
     | "auroraIntakes.applyItineraries"
+    | "auroraIntakes.checkItineraries"
     | "auroraIntakes.applyContracts"
     | "aiSuggestions.list"
     | "aiSuggestions.get"

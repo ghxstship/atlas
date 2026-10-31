@@ -1430,6 +1430,7 @@ export type OperationId =
   | "auroraIntakes.start"
   | "auroraIntakes.close"
   | "auroraIntakes.applyItineraries"
+  | "auroraIntakes.checkItineraries"
   | "auroraIntakes.applyContracts"
   | "aiSuggestions.list"
   | "aiSuggestions.get"
@@ -34457,6 +34458,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "home.dashboard.read",
     scopes: ["home"],
   },
+  "auroraIntakes.checkItineraries": {
+    id: "auroraIntakes.checkItineraries",
+    resource: "auroraIntakes",
+    verb: "checkItineraries",
+    method: "POST",
+    path: "/aurora/intakes/{id}/check-itineraries",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "AuroraCheckItinerariesRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "AuroraItineraryCheck",
+    item: null,
+    tag: "Settings",
+    summary: "Check an intake's segments",
+    capability: "home.dashboard.read",
+    scopes: ["home"],
+  },
   "auroraIntakes.applyContracts": {
     id: "auroraIntakes.applyContracts",
     resource: "auroraIntakes",
@@ -43993,6 +44017,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "auroraIntakes.start",
       "auroraIntakes.close",
       "auroraIntakes.applyItineraries",
+      "auroraIntakes.checkItineraries",
       "auroraIntakes.applyContracts",
     ],
   },

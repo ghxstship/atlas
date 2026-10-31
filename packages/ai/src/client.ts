@@ -273,6 +273,13 @@ export interface AuroraItineraryItem {
   readonly values: Readonly<Record<string, unknown>>;
 }
 
+/** One preview row of an itinerary intake, checked against the traveler's live segments. */
+export interface AuroraItineraryCheckRow {
+  readonly person_id: string;
+  readonly service_identifier?: string | null;
+  readonly departs_at?: string | null;
+}
+
 /** One act of a contract intake (aurora.applyContracts). */
 export interface AuroraContractGroup {
   readonly act_name: string;
@@ -508,6 +515,11 @@ export interface AuroraClient {
     id: string,
     items: readonly AuroraItineraryItem[],
   ): Promise<AuroraCall<AuroraAppliedDraft>>;
+  /** Which preview rows the traveler already has as live segments (positions from 1), to start them unchecked. */
+  checkItineraries(
+    id: string,
+    segments: readonly AuroraItineraryCheckRow[],
+  ): Promise<AuroraCall<{ readonly booked: readonly number[] }>>;
   /** Books the kept acts of a contract intake with their riders in one step. */
   applyContracts(
     id: string,
@@ -644,6 +656,8 @@ export function createAuroraClient(options: AuroraClientOptions): AuroraClient {
     closeIntake: (id) => call("POST", `/aurora/intakes/${encodeURIComponent(id)}/close`, {}),
     applyItineraries: (id, items) =>
       call("POST", `/aurora/intakes/${encodeURIComponent(id)}/apply-itineraries`, { items }),
+    checkItineraries: (id, segments) =>
+      call("POST", `/aurora/intakes/${encodeURIComponent(id)}/check-itineraries`, { segments }),
     applyContracts: (id, groups) =>
       call("POST", `/aurora/intakes/${encodeURIComponent(id)}/apply-contracts`, { groups }),
     applyAdvanceAnswer: (input) => call("POST", "/aurora/apply-advance-answer", input),

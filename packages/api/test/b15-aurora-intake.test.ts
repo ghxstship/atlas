@@ -136,14 +136,18 @@ const post = (body: unknown) => ({
   body: JSON.stringify(body),
 });
 
-function app(queues: Record<string, Response[]>, script: ModelResponse[] = []) {
+function app(
+  queues: Record<string, Response[]>,
+  script: ModelResponse[] = [],
+  readApi: PublicApi = fixtureApi,
+) {
   const fake = fakeDb(queues);
   const model = new Scripted(script);
   const handlers = defineHandlers(
     "Settings",
     auroraHandlers({
       model: () => model,
-      readApi: () => fixtureApi,
+      readApi: () => readApi,
       today: () => "2026-10-30",
       timeZone: () => "America/New_York",
     }) as unknown as HandlerSet<"Settings">,
@@ -427,6 +431,43 @@ describe("extraction into an intake batch", () => {
     expect(argsOf(calls, "rpc:intake_party_candidates")).toMatchObject({
       p_names: ["The Midnight Owls", ""],
     });
+  });
+});
+
+describe("already-booked itinerary rows", () => {
+  it("returns the rows the traveler already has, for the caller's own batch only", async () => {
+    const { api, calls } = app({
+      "from:ai_intake_batches": [ok(batchRow()), ok(batchRow({ created_by: id(9) }))],
+      "from:ai_requests": [ok([]), ok([])],
+      "from:travel_segments": [
+        ok([
+          {
+            person_id: id(11),
+            service_identifier: "GA 101",
+            departs_at: "2027-11-05T03:30:00+00:00",
+          },
+        ]),
+      ],
+    });
+    const rows = [
+      { person_id: id(10), service_identifier: "GA 100", departs_at: "2027-11-04T03:30:00Z" },
+      { person_id: id(11), service_identifier: "GA 101", departs_at: "2027-11-05T03:30:00Z" },
+      { person_id: id(12) },
+    ];
+    const res = await api.request(
+      `/aurora/intakes/${BATCH}/check-itineraries`,
+      post({ segments: rows }),
+    );
+    expect(await expectContract(res, "auroraIntakes.checkItineraries")).toEqual({ booked: [2] });
+    const read = calls.find((c) => c.target === "from:travel_segments");
+    expect(read?.steps).toContainEqual(["eq", ["org_id", ORG]]);
+    expect(read?.steps).toContainEqual(["in", ["person_id", [id(10), id(11)]]]);
+    expect(metered(calls)).toBe(false);
+    const other = await api.request(
+      `/aurora/intakes/${BATCH}/check-itineraries`,
+      post({ segments: [] }),
+    );
+    expect(other.status).toBe(404);
   });
 });
 
@@ -926,5 +967,65 @@ describe("governance drafts", () => {
       }),
     );
     expect(await mismatch.json()).toMatchObject({ rule: "aurora_draft_target_mismatch" });
+  });
+
+  it("sends an approval pack only the certificates of the project's vendors", async () => {
+    const vendorA = id(410);
+    const vendorB = id(411);
+    const asked: string[] = [];
+    const readApi: PublicApi = {
+      async get(path, query) {
+        asked.push(`${path}?${new URLSearchParams(query).toString()}`);
+        if (path === `/projects/${PROJECT}`) return { status: 200, body: project };
+        if (path === "/purchase-orders") {
+          return { status: 200, body: { data: [{ id: id(401), vendor_id: vendorA }] } };
+        }
+        if (path === "/engagements") {
+          return {
+            status: 200,
+            body: {
+              data: [
+                { id: id(402), engagement_state: "Active", counterparty_id: id(420) },
+                { id: id(403), engagement_state: "Canceled", counterparty_id: id(421) },
+              ],
+            },
+          };
+        }
+        if (path === "/vendors" && query["filter[counterparty_id][eq]"] === id(420)) {
+          return { status: 200, body: { data: [{ id: vendorB }] } };
+        }
+        if (path === "/insurance-certificates") {
+          const vendor = query["filter[vendor_id][eq]"];
+          if (!vendor) {
+            return { status: 200, body: { data: [{ id: id(499), vendor_id: id(498) }] } };
+          }
+          const certificate = vendor === vendorA ? id(910) : id(911);
+          return { status: 200, body: { data: [{ id: certificate, vendor_id: vendor }] } };
+        }
+        return { status: 200, body: { data: [], next_cursor: null } };
+      },
+    };
+    const { api } = app({ "from:ai_never_send": [NEVER_SEND] }, [], readApi);
+    const preview = await api.request(
+      "/aurora/preview",
+      post({
+        feature: "drafting",
+        draft_kind: "approval_pack",
+        target: { collection: "projects", id: PROJECT },
+        items: [],
+      }),
+    );
+    const shown = (await expectContract(preview, "aurora.preview")) as {
+      records: { id: string }[];
+    };
+    const ids = shown.records.map((r) => r.id);
+    expect(ids).toEqual(expect.arrayContaining([id(910), id(911)]));
+    expect(ids).not.toContain(id(499));
+    expect(
+      asked
+        .filter((q) => q.startsWith("/insurance-certificates?"))
+        .every((q) => q.includes("vendor_id")),
+    ).toBe(true);
+    expect(asked).not.toContainEqual(expect.stringContaining(id(421)));
   });
 });
