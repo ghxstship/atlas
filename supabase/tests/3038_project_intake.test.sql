@@ -7,12 +7,13 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(17);
+select plan(23);
 
 create function pg_temp.project(p_key text) returns uuid
 language sql as $$ select p.id from app.projects p where p.project_key = p_key and p.deleted_at is null $$;
 
--- Fixture: a Music Festival type whose Large template carries one task, and a hotel block on NWL to copy.
+-- Fixture: a Music Festival type whose Large template carries one task, a House Plan template whose version sets every
+-- header default, and a hotel block on NWL to copy.
 select pg_temp.as_user('carol');
 with x as (insert into app.templates (org_id, name) values (pg_temp.id('org_a'), 'Large Festival Plan') returning id)
   insert into world select 'tpl', id from x;
@@ -21,6 +22,13 @@ with x as (insert into app.template_versions (template_id, default_time_zone, du
 insert into app.template_items (template_version_id, item_kind, sort_order, name, record_kind, xyz, due_offset_days)
   values (pg_temp.id('tv'), 'Record', 1, 'Book the stage builder', 'Task', 'Y', -30);
 select app.publish_template_version(pg_temp.id('tv'));
+with x as (insert into app.templates (org_id, name, description) values (pg_temp.id('org_a'), 'House Plan', 'The house plan.') returning id)
+  insert into world select 'tpl_house', id from x;
+with x as (insert into app.template_versions (template_id, default_time_zone, default_jurisdiction_id, default_region_code,
+    default_tier_code, default_currency_code, duration_days)
+  values (pg_temp.id('tpl_house'), 'America/New_York', 'US', 'NA-NE-NYC', '04', 'EUR', 2) returning id)
+  insert into world select 'tv_house', id from x;
+select app.publish_template_version(pg_temp.id('tv_house'));
 with x as (insert into app.event_types (org_id, name) values (pg_temp.id('org_a'), 'Music Festival') returning id)
   insert into world select 'type_fest', id from x;
 insert into app.event_type_templates (event_type_id, event_scale, template_id) values (pg_temp.id('type_fest'), 'Large', pg_temp.id('tpl'));
@@ -52,6 +60,19 @@ select lives_ok($$insert into world select 'p3', app.create_project_from_intake(
   'America/New_York', '2027-09-01', p_template_choice => 'template', p_template_id => pg_temp.id('tpl'))$$, 'a chosen template is applied');
 select is((select ends_on from app.projects where id = pg_temp.id('p3')), '2027-09-03'::date,
   'the template''s duration gives the last show day when none is given');
+-- The header fields: on the blank path they go to app.create_project; over a template they replace only the defaults
+-- given, and the currency is upper-cased either way.
+select lives_ok($$insert into world select 'p6', app.create_project_from_intake(pg_temp.id('org_a'), 'NWJ', 'Northwind Fair',
+  'America/New_York', p_template_choice => 'none', p_jurisdiction_id => 'US-FL-MIAMI-DADE', p_region_code => 'NA-SE-MIA',
+  p_tier_code => '05', p_currency_code => ' usd ', p_description => 'A two-day fair.')$$, 'a blank intake takes the header fields');
+select is((select row(jurisdiction_id, region_code, tier_code, currency::text, description)::text from app.projects where id = pg_temp.id('p6')),
+  row('US-FL-MIAMI-DADE', 'NA-SE-MIA', '05', 'USD', 'A two-day fair.')::text, 'the blank project carries them, the currency upper-cased');
+select lives_ok($$insert into world select 'p7', app.create_project_from_intake(pg_temp.id('org_a'), 'NWK', 'Northwind House',
+  'America/New_York', '2027-08-01', p_template_choice => 'template', p_template_id => pg_temp.id('tpl_house'),
+  p_currency_code => 'gbp', p_description => 'Our own words.')$$, 'a templated intake takes some header fields');
+select is((select row(jurisdiction_id, region_code, tier_code, currency::text, description)::text from app.projects where id = pg_temp.id('p7')),
+  row('US', 'NA-NE-NYC', '04', 'GBP', 'Our own words.')::text,
+  'the given currency and description replace the template''s, and its jurisdiction, region and tier stay');
 select throws_ok($$select app.create_project_from_intake(pg_temp.id('org_a'), 'NWQ', 'Northwind Q', 'America/New_York',
   p_template_choice => 'copy')$$, '22023', null, 'an unknown template choice is refused');
 select throws_like($$select app.create_project_from_intake(pg_temp.id('org_a'), 'NWQ', 'Northwind Q', 'America/New_York',
@@ -83,6 +104,12 @@ select pg_temp.as_user('gina');
 select lives_ok($$insert into world select 'p5', app.create_project_from_intake(pg_temp.id('org_a'), 'NWG', 'Northwind Gina',
   'America/New_York', '2027-10-01', p_event_type_id => pg_temp.id('type_fest'), p_event_scale => 'Small', p_template_choice => 'type')$$,
   'a role with create but not projects.settings.write completes intake with a type');
+select lives_ok($$insert into world select 'p8', app.create_project_from_intake(pg_temp.id('org_a'), 'NWM', 'Northwind Gina House',
+  'America/New_York', '2027-10-01', p_template_choice => 'template', p_template_id => pg_temp.id('tpl_house'),
+  p_tier_code => '03')$$,
+  'the same role sets a header field over a template, through t44 and the project guard');
+select is((select row(tier_code, currency::text, description)::text from app.projects where id = pg_temp.id('p8')),
+  row('03', 'EUR', 'The house plan.')::text, 'the given tier stands, and the template''s currency and description stay');
 select throws_ok($$select app.create_project_from_intake(pg_temp.id('org_a'), 'NWH', 'Northwind Bump', 'America/New_York', '2027-10-01',
   p_template_choice => 'none', p_load_in_from => '2027-09-29', p_load_in_to => '2027-09-30')$$,
   '42501', 'schedule.timeline.write is required on the project', 'bump days need schedule.timeline.write, and nothing is left');
