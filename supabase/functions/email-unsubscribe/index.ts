@@ -25,7 +25,7 @@ serve(async (request) => {
         303,
       );
     }
-    await serviceDb().rpc("unsubscribe_guest_email", { p_token: guest });
+    await serviceDb("api_public").rpc("unsubscribe_guest_email", { p_token: guest });
     return new Response(null, { status: 204 });
   }
   const token = url.searchParams.get("token");

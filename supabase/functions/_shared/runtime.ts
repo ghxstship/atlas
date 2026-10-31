@@ -20,9 +20,12 @@ export function env(name: string): string {
   return value;
 }
 
-/** The service-role database seam over PostgREST. Never exposed to callers. */
-export function serviceDb(): PlatformDb {
-  return restDb({ url: env("SUPABASE_URL"), serviceKey: env("SUPABASE_SERVICE_ROLE_KEY") });
+/**
+ * The service-role database seam over PostgREST, in the app schema unless another is named (api_public, for
+ * example). Never exposed to callers.
+ */
+export function serviceDb(schema = "app"): PlatformDb {
+  return restDb({ url: env("SUPABASE_URL"), serviceKey: env("SUPABASE_SERVICE_ROLE_KEY"), schema });
 }
 
 export function json(status: number, body: unknown): Response {

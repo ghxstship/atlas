@@ -634,6 +634,24 @@ describe("stores", () => {
       expect(JSON.parse(String(calls[0]?.init.body))).toEqual({ p_pin: "4821", p_photo_uri: null });
     });
 
+    it("posts to another schema when one is named, as the guest unsubscribe does in api_public", async () => {
+      const calls: { url: string; init: RequestInit }[] = [];
+      const db = restDb({
+        url: "http://kong:8000",
+        serviceKey,
+        schema: "api_public",
+        fetch: async (url, init) => {
+          calls.push({ url, init });
+          return Response.json({ org_name: null });
+        },
+      });
+      await db.rpc("unsubscribe_guest_email", { p_token: "t" });
+      expect(calls[0]?.url).toBe("http://kong:8000/rest/v1/rpc/unsubscribe_guest_email");
+      expect((calls[0]?.init.headers as Record<string, string>)["Content-Profile"]).toBe(
+        "api_public",
+      );
+    });
+
     it("answers null for an empty body and a scalar for a scalar function", async () => {
       const { db } = fakeRest((url) =>
         url.endsWith("/finish") ? new Response(null, { status: 204 }) : Response.json("acme"),

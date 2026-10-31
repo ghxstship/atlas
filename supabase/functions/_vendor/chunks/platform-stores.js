@@ -27,6 +27,7 @@ function restDb(options) {
     apikey: options.serviceKey,
     Authorization: `Bearer ${options.serviceKey}`,
   };
+  const schema = options.schema ?? "app";
   async function call(operation, url, init) {
     const response = await send(url, init);
     const body = await response.text();
@@ -53,7 +54,7 @@ function restDb(options) {
         headers: {
           ...auth,
           "Content-Type": "application/json",
-          "Content-Profile": "app",
+          "Content-Profile": schema,
         },
         body: JSON.stringify(args),
       });
@@ -68,7 +69,7 @@ function restDb(options) {
             method: "GET",
             headers: {
               ...auth,
-              "Accept-Profile": "app",
+              "Accept-Profile": schema,
             },
           }),
         )[0] ?? null

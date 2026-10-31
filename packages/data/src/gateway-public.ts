@@ -2,7 +2,6 @@ import type { XosClient } from "./client.ts";
 import { advanceAnswerLines, type AdvanceAnswerLine } from "./gateway-operations.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * Gateway's `api_public` functions, callable without a session: the org brand for a host or slug
@@ -839,7 +838,7 @@ export async function unsubscribeGuestEmail(
   db: XosClient,
   token: string,
 ): Promise<Result<string | null>> {
-  const { data, error } = await untyped(db).rpc("unsubscribe_guest_email", { p_token: token });
+  const { data, error } = await publicSchema(db).rpc("unsubscribe_guest_email", { p_token: token });
   if (error) return fail(toDataError(error));
   return ok(typeof data === "string" ? data : null);
 }
