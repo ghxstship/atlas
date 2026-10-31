@@ -52,7 +52,12 @@ export function text(value: string): ModelResponse {
 }
 
 export interface StoreLog {
-  begun: { orgId: string; feature: string; model: string }[];
+  begun: {
+    orgId: string;
+    feature: string;
+    model: string;
+    subject?: { table: string; id: string } | null;
+  }[];
   completed: Parameters<AuroraStore["complete"]>[0][];
   proposed: { requestId: string; change: ProposedChange }[];
 }
@@ -68,8 +73,8 @@ export function memoryStore(
   const log: StoreLog = { begun: [], completed: [], proposed: [] };
   let n = 0;
   const store: AuroraStore = {
-    async begin(orgId, feature, model) {
-      log.begun.push({ orgId, feature, model });
+    async begin(orgId, feature, model, subject) {
+      log.begun.push({ orgId, feature, model, ...(subject ? { subject } : {}) });
       return options.begin ?? { ok: true, data: "req-1" };
     },
     async complete(input) {

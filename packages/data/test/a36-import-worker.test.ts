@@ -63,6 +63,14 @@ function lookups(writes: Row[]): TargetLookups {
       writes.push({ op: "update", target, id, ...values });
       return { id };
     },
+    // Cue and guest list lookups (P3); the org-wide targets here never reach them.
+    runOfShow: async () => null,
+    spaceId: async () => null,
+    scopeNodeId: async () => null,
+    counterpartyIdByName: async () => null,
+    destinationKeyMatch: async () => null,
+    nextCuePosition: async () => 1,
+    cueCalled: async () => false,
   };
 }
 
@@ -159,7 +167,9 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
           fieldName: null,
         }),
       );
+      return cols.map((_c, i) => `col${i}`);
     },
+    async recordColumnSamples() {},
     async insertSheets(_id, list) {
       sheets.push(...list);
     },

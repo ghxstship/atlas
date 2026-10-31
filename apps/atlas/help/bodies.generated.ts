@@ -66,12 +66,59 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
+      { t: "h2", v: "Allocations" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Allocations say what each party and person is given for a production: badges, parking passes, radios and carts, catering, rooms, trips and per diems. A coordinator requests one for a party's pool or for one person; a reviewer who did not request it approves or declines it. Approving equipment holds it from class stock, a lot or the order it arrives on, and the dialog shows how many are available for those dates and how much of the allowance remains. Split a party's pool to its people, then issue each item: issuing confirms the person has it. The status reads held, ordered, received, issued and returned from the rows that record them. Holds that no longer fit what can supply them show in a banner. Radio allocations take channels, and Print radio hand-out gives the sheet people sign.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
           { t: "text", v: "Related: " },
           { t: "link", v: "Venues, spaces and site plans", href: "help:places" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Draft advance answers with Aurora" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a party answers by email or sends a tour book or rider, a reviewer can choose ",
+          },
+          { t: "strong", v: "Draft advance answers" },
+          {
+            t: "text",
+            v: " on a recipient of a sent packet, or on a verified message in the project inbox. Aurora drafts at most one answer per open section from that source, with the words it read, and lists the sections the source does not answer. A time, quantity, item or person the source does not show is left out. Each answer you accept is recorded on the party's behalf: you become its submitter, so someone else reviews it, and the party sees that your org recorded it. To change it, return it.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contracts and riders with Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "On a project's Engagements tab, " },
+          { t: "strong", v: "Import contracts and riders" },
+          {
+            t: "text",
+            v: " reads booking contracts and riders, sorts them by act and books each act you keep as an Artist engagement at Onboarding, with its riders. You choose each act's party and the terms for the batch; the fee is read only for someone who may see pay rates.",
+          },
         ],
       },
     ],
@@ -395,6 +442,23 @@ export const HELP_BODIES: HelpBodies = {
               v: " lists contractors paid the 1099-NEC threshold and downloads the filing file. Full tax identifiers need a Restricted export with step-up.",
             },
           ],
+        ],
+      },
+      { t: "h2", v: "Read invoice lines with Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "On a Proposed payable invoice, " },
+          { t: "strong", v: "Read lines from a document" },
+          {
+            t: "text",
+            v: " reads the vendor's lines and printed totals. Choose each line's budget line yourself; earlier lines of the same vendor are shown as hints, with a badge when the price differs by 10% or more. The tie-out compares the lines with the printed total on every edit, rounding as the invoice does. When they differ, check ",
+          },
+          { t: "strong", v: "I checked the difference" },
+          {
+            t: "text",
+            v: " before you add the lines. A receipt read with Aurora shows its items and the same tie-out, read-only.",
+          },
         ],
       },
     ],
@@ -739,6 +803,20 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Import itineraries with Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "On a Travel fulfillment, " },
+          { t: "strong", v: "Import itineraries with Aurora" },
+          {
+            t: "text",
+            v: " reads up to 25 booking confirmations, as files or as verified messages in the project inbox, into one preview. Each file is one Aurora request from this month's allowance, and the panel says how many you use. Every row is one passenger on one segment, with the excerpt it was read from. You always choose the traveler: a suggested name is only a hint. Zones are read from each place, so check them; a date or time the confirmation does not print is left empty. A row the traveler already has as a segment, with the same flight or service and departure, is marked Already booked and left out; ",
+          },
+          { t: "strong", v: "Add segments" },
+          { t: "text", v: " adds the rows you keep in one step." },
+        ],
+      },
     ],
     "import-and-trash": [
       { t: "h2", v: "Import" },
@@ -751,6 +829,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "You can undo the whole batch for 7 days." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Instead of a file you can paste rows copied from Excel, Google Sheets or Shoflo, header row first. A preview shows the first rows as they will be read. While you map the columns, each one shows its first values, and a preview lays the first rows out by your choices.",
+          },
+        ],
+      },
+      { t: "h2", v: "Import a rundown" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a running order and choose Import cues, or choose Run of show cues on the import page and pick the running order. The rows become cues of that running order only.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "A cue number such as 12, Q12 or CUE-07 sets the cue's position. Fractions such as 12.5 are refused.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Rows without a cue number are added after the highest cue, in the order of the sheet, once the numbered rows are in.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Times such as 19:30 or 7:30 PM are read on the show date, in the project's time zone. Durations are minutes, m:ss or h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importing the same rundown again updates the cues it matches, by cue number or, without one, by cue and time. It never adds them twice, and it never changes a cue that was already called.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Two rows with the same cue number in one sheet are refused as repeats.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Import a guest list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a project's guest list and choose Import guests, or choose Guest list on the import page and pick the project.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Every imported guest is added as Requested. An import never approves, declines or checks in a guest.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "A guest already on the list under the same name for the same show is updated instead of added. A similar name, or the same name for another show, waits for you to decide: merge into the guest on the list, or keep them separate. Nothing merges on its own.",
+            },
+          ],
+          [{ t: "text", v: "A merge keeps the guest's name and show." }],
+          [
+            {
+              t: "text",
+              v: "Neither the person who uploaded the list nor the person who committed it may approve or decline those guests. Another reviewer decides them.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Undo removes the cues and guests the batch added and restores the ones it changed, for 7 days. A cue called or a guest decided or checked in after the import is kept, and the batch says why.",
+          },
+        ],
+      },
       { t: "h2", v: "Trash" },
       {
         t: "p",
@@ -2275,6 +2450,53 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Asignaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
+          },
+        ],
+      },
+      { t: "h2", v: "Redactar respuestas del avance con Aurora" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una parte responde por correo o envía un tour book o un rider, quien revisa puede elegir ",
+          },
+          { t: "strong", v: "Redactar respuestas del avance" },
+          {
+            t: "text",
+            v: " en un destinatario de un paquete enviado, o en un mensaje verificado del buzón del proyecto. Aurora redacta como máximo una respuesta por sección abierta a partir de esa fuente, con las palabras que leyó, y enumera las secciones que la fuente no responde. Se omite una hora, cantidad, artículo o persona que la fuente no muestra. Cada respuesta que acepta se registra en nombre de la parte: usted queda como quien la envió, así que la revisa otra persona, y la parte ve que su organización la registró. Para cambiarla, devuélvala.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contratos y riders con Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En la pestaña Contrataciones de un proyecto, " },
+          { t: "strong", v: "Importar contratos y riders" },
+          {
+            t: "text",
+            v: " lee contratos de actuación y riders, los agrupa por acto y contrata cada acto que conserva como una contratación de artista en Incorporación, con sus riders. Usted elige la parte de cada acto y las condiciones del lote; el honorario solo se lee para alguien que puede ver tarifas de pago.",
+          },
+        ],
+      },
     ],
     assets: [
       { t: "h2", v: "Clases, unidades y lotes" },
@@ -2602,6 +2824,23 @@ export const HELP_BODIES: HelpBodies = {
               v: " lista a los contratistas que alcanzaron el umbral del 1099-NEC y descarga el archivo para presentarlo. Los identificadores fiscales completos requieren una exportación Restringida con verificación adicional.",
             },
           ],
+        ],
+      },
+      { t: "h2", v: "Leer líneas de factura con Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En una factura por pagar en estado Propuesta, " },
+          { t: "strong", v: "Leer líneas de un documento" },
+          {
+            t: "text",
+            v: " lee las líneas y los totales impresos del proveedor. Elija usted la partida presupuestaria de cada línea; las líneas anteriores del mismo proveedor se muestran como pistas, con una insignia cuando el precio difiere un 10 % o más. La conciliación compara las líneas con el total impreso en cada edición, redondeando como la factura. Si difieren, marque ",
+          },
+          { t: "strong", v: "Revisé la diferencia" },
+          {
+            t: "text",
+            v: " antes de agregar las líneas. Un recibo leído con Aurora muestra sus artículos y la misma conciliación, solo para lectura.",
+          },
         ],
       },
     ],
@@ -2961,6 +3200,20 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Importar itinerarios con Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En un servicio de viaje, " },
+          { t: "strong", v: "Importar itinerarios con Aurora" },
+          {
+            t: "text",
+            v: " lee hasta 25 confirmaciones de reserva, como archivos o como mensajes verificados del buzón del proyecto, en una sola vista previa. Cada archivo es una solicitud de Aurora de la asignación de este mes, y el panel indica cuántas usa. Cada fila es un pasajero en un tramo, con el fragmento del que se leyó. Usted siempre elige al viajero: un nombre sugerido es solo una pista. Las zonas se leen de cada lugar, así que revíselas; una fecha u hora que la confirmación no imprime queda vacía. Una fila que el viajero ya tiene como tramo, con el mismo vuelo o servicio y la misma salida, se marca como Ya reservado y queda fuera; ",
+          },
+          { t: "strong", v: "Agregar tramos" },
+          { t: "text", v: " agrega en un solo paso las filas que conserva." },
+        ],
+      },
     ],
     "import-and-trash": [
       { t: "h2", v: "Importación" },
@@ -2973,6 +3226,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "Puede deshacer el lote completo durante 7 días." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En lugar de un archivo puede pegar filas copiadas de Excel, Google Sheets o Shoflo, con la fila de encabezados primero. Una vista previa muestra las primeras filas tal como se leerán. Mientras asocia las columnas, cada una muestra sus primeros valores y una vista previa ordena las primeras filas según sus opciones.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar una escaleta" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra una escaleta y elija Importar cues, o elija Cues de la escaleta en la página de importación y seleccione la escaleta. Las filas se convierten en cues de esa escaleta solamente.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Un número de cue como 12, Q12 o CUE-07 fija la posición del cue. Las fracciones como 12.5 se rechazan.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las filas sin número de cue se agregan después del cue más alto, en el orden de la hoja, una vez que entran las filas numeradas.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las horas como 19:30 o 7:30 PM se leen en la fecha del show, en la zona horaria del proyecto. Las duraciones van en minutos, m:ss o h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importar la misma escaleta otra vez actualiza los cues que coinciden, por número de cue o, sin él, por cue y hora. Nunca los agrega dos veces y nunca cambia un cue que ya se dio.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Dos filas con el mismo número de cue en una hoja se rechazan como repetidas.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Importar una lista de invitados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra la lista de invitados de un proyecto y elija Importar invitados, o elija Lista de invitados en la página de importación y seleccione el proyecto.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Cada invitado importado se agrega como Solicitado. Una importación nunca aprueba, rechaza ni registra la llegada de un invitado.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Un invitado que ya está en la lista con el mismo nombre para el mismo show se actualiza en lugar de agregarse. Un nombre parecido, o el mismo nombre para otro show, espera su decisión: combinarlo con el invitado de la lista o mantenerlos separados. Nada se combina solo.",
+            },
+          ],
+          [{ t: "text", v: "Una combinación conserva el nombre y el show del invitado." }],
+          [
+            {
+              t: "text",
+              v: "Ni la persona que subió la lista ni la persona que la confirmó pueden aprobar o rechazar esos invitados. Los decide otro revisor.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Deshacer quita los cues e invitados que agregó el lote y restaura los que cambió, durante 7 días. Un cue dado, o un invitado decidido o registrado después de la importación, se conserva, y el lote indica por qué.",
+          },
+        ],
+      },
       { t: "h2", v: "Papelera" },
       {
         t: "p",

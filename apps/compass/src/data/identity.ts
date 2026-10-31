@@ -65,19 +65,81 @@ export function scopeFor(
   readableProjectIds: readonly string[],
 ): DownloadScope {
   const open = identity.engagements.filter((e) => e.state === "Active" || e.state === "Closing");
+  // A party's engagement reached through its roster is never the person's own (R8): they hold their
+  // roster entry, and the engagement's project.
+  const own = open.filter((e) => e.via !== "roster");
   return {
     audience: identity.audience,
     personIds: [identity.personId],
     orgIds,
     membershipIds: identity.membershipId ? [identity.membershipId] : [],
     readableProjectIds,
-    engagementIds: open.map((e) => e.id),
+    engagementIds: own.map((e) => e.id),
     engagedProjectIds: [...new Set(open.map((e) => e.projectId))],
     // The onboarding checklist opens before operational access does (A92).
     onboardingEngagementIds: identity.engagements
-      .filter((e) => e.state !== "Complete" && e.state !== "Canceled")
+      .filter((e) => e.via !== "roster" && e.state !== "Complete" && e.state !== "Canceled")
       .map((e) => e.id),
+    rosterEntryIds: open.flatMap((e) =>
+      e.via === "roster" && e.rosterEntryId ? [e.rosterEntryId] : [],
+    ),
   };
+}
+
+interface EngagementRow {
+  readonly id: unknown;
+  readonly org_id: unknown;
+  readonly org_name: unknown;
+  readonly project_id: unknown;
+  readonly project_name: unknown;
+  readonly role_type: unknown;
+  readonly engagement_state: unknown;
+  readonly roster_entry_id?: unknown;
+  readonly lead_name?: unknown;
+}
+
+/**
+ * The person's engagements as Compass summaries: their own (api_external.engagements), then the ones they
+ * work only on a party's roster (api_external.my_roster_engagements, R8) as crew, each once.
+ */
+export function engagementSummaries(
+  own: readonly EngagementRow[],
+  rostered: readonly EngagementRow[],
+): EngagementSummary[] {
+  const summaries: EngagementSummary[] = [];
+  for (const e of own) {
+    const audience = audienceForRoleType(String(e.role_type));
+    if (!audience) continue;
+    summaries.push({
+      id: String(e.id),
+      orgId: String(e.org_id),
+      orgName: String(e.org_name),
+      projectId: String(e.project_id),
+      projectName: String(e.project_name),
+      roleType: audience,
+      state: e.engagement_state as EngagementState,
+      via: "engagement",
+      rosterEntryId: null,
+    });
+  }
+  const seen = new Set(summaries.map((s) => s.id));
+  for (const e of rostered) {
+    if (seen.has(String(e.id)) || !e.roster_entry_id) continue;
+    seen.add(String(e.id));
+    summaries.push({
+      id: String(e.id),
+      orgId: String(e.org_id),
+      orgName: String(e.org_name),
+      projectId: String(e.project_id),
+      projectName: String(e.project_name),
+      roleType: "crew",
+      state: e.engagement_state as EngagementState,
+      via: "roster",
+      rosterEntryId: String(e.roster_entry_id),
+      leadName: e.lead_name ? String(e.lead_name) : null,
+    });
+  }
+  return summaries;
 }
 
 export interface ProjectRef {
@@ -356,20 +418,17 @@ export async function resolveIdentity(
   // A member whose engagement read fails still opens their own orgs; only an external sign-in needs it.
   if (engagements.error && members.length === 0)
     throw new IdentityError("engagements", engagements.error.message);
-  const summaries: EngagementSummary[] = [];
-  for (const e of engagements.error ? [] : engagements.data) {
-    const audience = audienceForRoleType(String(e.role_type));
-    if (!audience) continue;
-    summaries.push({
-      id: String(e.id),
-      orgId: String(e.org_id),
-      orgName: String(e.org_name),
-      projectId: String(e.project_id),
-      projectName: String(e.project_name),
-      roleType: audience,
-      state: e.engagement_state as EngagementState,
-    });
-  }
+  // The engagements the person works only on a party's roster (R8); a failed read leaves them out.
+  const rostered = await client
+    .schema("api_external")
+    .from("my_roster_engagements")
+    .select(
+      "id, org_id, org_name, project_id, project_name, role_type, engagement_state, roster_entry_id, lead_name",
+    );
+  const summaries = engagementSummaries(
+    engagements.error ? [] : (engagements.data as EngagementRow[]),
+    rostered.error ? [] : (rostered.data as EngagementRow[]),
+  );
   const contexts = [
     ...members,
     ...engagedContexts(personId, displayName, summaries, new Set(members.map((c) => c.orgId))),

@@ -5,6 +5,7 @@ import {
   listProjectInbox,
   type InboxItem,
 } from "@xos/data/project-inbox";
+import { listDraftRecipients, listDraftSources } from "@xos/data/ai";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { getFormatter } from "next-intl/server";
@@ -15,6 +16,7 @@ import {
   fileInboxMessageAction,
   replaceProjectInboxAction,
 } from "@/app/[org]/p/[projectKey]/documents/inbox-actions";
+import { AdvanceAnswersEntry } from "@/components/aurora/entry/answers-entry";
 import { ActionButton } from "@/components/collection-kit/kit";
 import { InlineAlert } from "@/components/ui";
 import { env } from "@/lib/env";
@@ -138,13 +140,20 @@ export async function ProjectInboxSection({
 }) {
   if (!ctx.capabilities.has("knowledge.document.write")) return null;
   const db = ctx.org.viewer.db;
-  const [t, format, inbox, items, targets] = await Promise.all([
+  const [t, format, inbox, items, targets, sources, recipients] = await Promise.all([
     getTranslate(),
     getFormatter(),
     getProjectInbox(db, ctx.project.id),
     listProjectInbox(db, ctx.project.id),
     listFilingTargets(db, ctx.project.id, ctx.project.key),
+    // B15: verified mail Aurora may draft advance answers from, and the recipients it may answer for.
+    listDraftSources(db, ctx.project.id),
+    ctx.capabilities.has("advancing.submission.review")
+      ? listDraftRecipients(db, ctx.project.id)
+      : Promise.resolve(null),
   ]);
+  const draftable = new Map((sources.ok ? sources.data : []).map((m) => [m.id, m]));
+  const answerFor = recipients?.ok ? recipients.data : [];
   if (!inbox.ok || !items.ok || !targets.ok) {
     return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
   }
@@ -225,6 +234,13 @@ export async function ProjectInboxSection({
               ) : null}
               {item.state === "open" || item.state === "rejected" ? (
                 <div className="flex flex-wrap gap-8">
+                  {draftable.has(item.id) ? (
+                    <AdvanceAnswersEntry
+                      recipients={answerFor}
+                      inbox={[...draftable.values()]}
+                      messageId={item.id}
+                    />
+                  ) : null}
                   {item.state === "open" ? (
                     <ActionButton
                       action={fileInboxMessageAction}

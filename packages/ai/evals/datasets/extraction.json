@@ -1,6 +1,6 @@
 {
   "feature": "extraction",
-  "description": "Fixed test set for document extraction: every expected value must match, and every field the document does not state must come back NO_ANSWER.",
+  "description": "Fixed test set for document extraction: every expected value must match, and every field the document does not state must come back NO_ANSWER. B15 adds itineraries, booking contracts, intake riders and invoice and receipt line items with their tie-out.",
   "cases": [
     {
       "id": "coi-full",
@@ -102,7 +102,215 @@
       "expected": {
         "title": "Technical Rider"
       },
-      "expectedLines": [{ "quantity": 4 }, { "quantity": 1 }, { "quantity": 2 }]
+      "expectedLines": [
+        {
+          "quantity": 4
+        },
+        {
+          "quantity": 1
+        },
+        {
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "itinerary-multi-passenger",
+      "kind": "itinerary",
+      "document": "E-TICKET ITINERARY Issued 01 OCT 2027\nRecord locator: QX7P2A\nPassengers: MARCHETTI/IVY  BELL/ARTURO\nPassport No: X1234567\nGA 100 03NOV MIA 22:30 JFK 06:55 +1\nTotal fare USD 900.00 for 2 passengers",
+      "expected": {},
+      "expectedLines": [
+        {
+          "passenger_name": "Ivy",
+          "service_identifier": "100",
+          "departs_from": "MIA",
+          "departs_local": "2027-11-03T22:30",
+          "arrives_local": "2027-11-04T06:55",
+          "price_minor": "NO_ANSWER"
+        },
+        {
+          "passenger_name": "Arturo",
+          "service_identifier": "100",
+          "departs_from": "MIA",
+          "departs_local": "2027-11-03T22:30",
+          "arrives_local": "2027-11-04T06:55",
+          "price_minor": "NO_ANSWER"
+        }
+      ],
+      "mustNotContainExcerpt": ["X1234567"]
+    },
+    {
+      "id": "itinerary-missing-arrival",
+      "kind": "itinerary",
+      "document": "Car service confirmation 2027-06-01\nPassenger: Ivy Marchetti\nPickup 2027-06-01 14:30 at Hotel Lobby, 100 Ocean Dr\nDrop-off: Northwind Pier Pavilion (arrival time not confirmed)",
+      "expected": {},
+      "expectedLines": [
+        {
+          "passenger_name": "Ivy Marchetti",
+          "travel_mode": "Ground",
+          "departs_local": "2027-06-01T14:30",
+          "arrives_local": "NO_ANSWER"
+        }
+      ]
+    },
+    {
+      "id": "itinerary-no-printed-zone",
+      "kind": "itinerary",
+      "document": "Booking 2027 season\nKOWALSKI/SAM\nGA 412 12JUN ORD 07:05 MIA 11:20",
+      "expected": {},
+      "expectedLines": [
+        {
+          "passenger_name": "Sam",
+          "departs_from": "ORD",
+          "arrives_at_place": "MIA",
+          "departs_local": "2027-06-12T07:05",
+          "price_minor": "NO_ANSWER"
+        }
+      ]
+    },
+    {
+      "id": "contract-with-fee",
+      "kind": "contract",
+      "readable": ["data.restricted.read.payroll"],
+      "document": "PERFORMANCE AGREEMENT\nArtist: The Midnight Owls f/s/o Owl Touring LLC\nEngagement date: June 4, 2027\nGuarantee: $7,500.00 (USD)",
+      "expected": {
+        "act_name": "Midnight Owls",
+        "contracting_party": "Owl Touring",
+        "start_date": "2027-06-04",
+        "fee_minor": 750000,
+        "currency_code": "USD"
+      }
+    },
+    {
+      "id": "contract-without-fee",
+      "kind": "contract",
+      "document": "PERFORMANCE AGREEMENT\nArtist: Coastal Drift\nEngagement date: July 9, 2027\nGuarantee: $3,000.00 (USD)",
+      "expected": {
+        "act_name": "Coastal Drift",
+        "start_date": "2027-07-09",
+        "fee_minor": "NO_ANSWER"
+      }
+    },
+    {
+      "id": "contract-residency-span",
+      "kind": "contract",
+      "readable": ["data.restricted.read.payroll"],
+      "document": "RESIDENCY AGREEMENT\nArtist: Lumen Quartet\nResidency from August 1, 2027 through August 28, 2027, four Saturdays.\nFee: to be agreed separately.",
+      "expected": {
+        "act_name": "Lumen Quartet",
+        "start_date": "2027-08-01",
+        "end_date": "2027-08-28",
+        "fee_minor": "NO_ANSWER"
+      }
+    },
+    {
+      "id": "intake-rider-with-act",
+      "kind": "intake_rider",
+      "document": "THE MIDNIGHT OWLS - TECHNICAL RIDER 2027\n1. 4 x wedge monitors\n2. One drum riser 8x8\n3. Bottled water (quantity per show to be advised)",
+      "expected": {
+        "act_name": "Midnight Owls",
+        "title": "Technical Rider"
+      },
+      "expectedLines": [
+        {
+          "description": "wedge",
+          "quantity": 4
+        },
+        {
+          "description": "riser",
+          "quantity": 1
+        },
+        {
+          "description": "water",
+          "quantity": "NO_ANSWER"
+        }
+      ]
+    },
+    {
+      "id": "invoice-lines-balanced",
+      "kind": "invoice_lines",
+      "invoiceCurrency": "USD",
+      "document": "BAYSIDE AUDIO INVOICE INV-0099\n4 Wedge monitor rental @ $45.00 = $180.00\n1 Delivery @ $50.00 = $50.00\nSubtotal $230.00\nTax $16.10\nTotal $246.10 USD",
+      "expected": {},
+      "expectedLines": [
+        {
+          "description": "Wedge",
+          "quantity": 4,
+          "unit_price_minor": 4500
+        },
+        {
+          "description": "Delivery",
+          "quantity": 1,
+          "unit_price_minor": 5000
+        }
+      ],
+      "expectedCheck": {
+        "printed_total_minor": 24610
+      },
+      "expectedTieOut": "ties"
+    },
+    {
+      "id": "invoice-lines-residual",
+      "kind": "invoice_lines",
+      "invoiceCurrency": "USD",
+      "document": "COASTAL STAGING INVOICE CS-7\n6 Stagehand labor @ $35.00 = $210.00\nTotal due $260.00 USD",
+      "expected": {},
+      "expectedLines": [
+        {
+          "description": "Stagehand",
+          "quantity": 6,
+          "unit_price_minor": 3500
+        }
+      ],
+      "expectedCheck": {
+        "printed_total_minor": 26000
+      },
+      "expectedTieOut": "residual"
+    },
+    {
+      "id": "invoice-lines-unpriced",
+      "kind": "invoice_lines",
+      "invoiceCurrency": "USD",
+      "document": "HARBOR RIGGING INVOICE HR-12\n2 Chain motor rental @ $120.00 = $240.00\n1 Rigging supervisor (rate per contract)\nTotal $590.00 USD",
+      "expected": {},
+      "expectedLines": [
+        {
+          "description": "Chain motor",
+          "quantity": 2,
+          "unit_price_minor": 12000
+        },
+        {
+          "description": "supervisor",
+          "quantity": 1,
+          "unit_price_minor": "NO_ANSWER"
+        }
+      ],
+      "expectedTieOut": "incomplete"
+    },
+    {
+      "id": "receipt-with-tip",
+      "kind": "receipt",
+      "document": "HARBOR GRILL 2027-06-05\n2 Burger 36.00\n4 Soda 20.00\nSubtotal 56.00\nTip 10.00\nTOTAL 66.00 USD",
+      "expected": {
+        "amount_minor": 6600,
+        "currency_code": "USD",
+        "incurred_on": "2027-06-05"
+      },
+      "expectedCheck": {
+        "printed_tip_minor": 1000,
+        "printed_total_minor": 6600
+      },
+      "expectedTieOut": "ties"
+    },
+    {
+      "id": "receipt-torn-total",
+      "kind": "receipt",
+      "document": "DOCKSIDE COFFEE 2027-06-06\n6 Latte 30.00\n2 Muffin 8.00\n[receipt torn below this line]",
+      "expected": {
+        "amount_minor": "NO_ANSWER",
+        "incurred_on": "2027-06-06"
+      },
+      "expectedTieOut": "incomplete"
     }
   ]
 }

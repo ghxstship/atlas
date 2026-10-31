@@ -106,7 +106,7 @@
       },
       "drafting": {
         "label": "Redacción",
-        "description": "Redacta SOP, paquetes de avance, correos, hojas del día y descripciones de órdenes de cambio con tu vocabulario."
+        "description": "Redacta SOP, paquetes de avance, correos, hojas del día, descripciones de órdenes de cambio, órdenes de show y evaluaciones de riesgos con tu vocabulario."
       },
       "summaries": {
         "label": "Resúmenes",
@@ -166,6 +166,7 @@
       "notConfigured": "Aurora no está configurada en esta implementación. Pida al operador de la plataforma que conecte el proveedor del modelo.",
       "offline": "No se pudo contactar a Aurora. Revise su conexión e inténtelo de nuevo. No se cambió nada.",
       "forbidden": "No tiene acceso para hacer esto. No se cambió nada.",
+      "listNotEmpty": "Esta lista ya tiene entradas. Aurora solo redacta en una lista vacía.",
       "refused": "Aurora no pudo hacer esto: {detail}",
       "unexpected": "Algo salió mal y no se cambió nada. Inténtelo de nuevo.",
       "failed": "El modelo no respondió y no se cambió nada. Inténtelo de nuevo en un momento."
@@ -187,7 +188,9 @@
         "sop": "Redactar un POE con Aurora",
         "advance_packet": "Redactar una sección con Aurora",
         "change_order_description": "Redactar una descripción con Aurora",
-        "day_sheet": "Redactar una hoja del día con Aurora"
+        "day_sheet": "Redactar una hoja del día con Aurora",
+        "run_of_show": "Redactar una orden de show con Aurora",
+        "risk_assessment": "Redactar una evaluación de riesgos con Aurora"
       },
       "instructions": "¿Qué debe decir el borrador?",
       "instructionsHelp": {
@@ -200,7 +203,9 @@
         "sop": "Procedimiento operativo estándar",
         "advance_packet": "Sección del paquete de avance",
         "change_order_description": "Descripción de la orden de cambio",
-        "day_sheet": "Hoja del día"
+        "day_sheet": "Hoja del día",
+        "run_of_show": "Orden de show",
+        "risk_assessment": "Evaluación de riesgos"
       },
       "sentKind": "Borrador",
       "sentInstructions": "Sus instrucciones",
@@ -214,6 +219,86 @@
       "used": "El borrador está en el formulario. Revíselo y luego guárdelo.",
       "ready": "El borrador de Aurora está listo. Revíselo y edítelo antes de usarlo.",
       "tooLong": "El formulario admite como máximo {max, number} caracteres. Acorte el borrador antes de usarlo."
+    },
+    "listDraft": {
+      "button": {
+        "run_of_show": "Redactar la orden de show con Aurora",
+        "risk_assessment": "Redactar la evaluación de riesgos con Aurora"
+      },
+      "title": {
+        "run_of_show": "Redactar una orden de show con Aurora",
+        "risk_assessment": "Redactar una evaluación de riesgos con Aurora"
+      },
+      "instructions": "¿Qué debe redactar Aurora?",
+      "instructionsHelp": {
+        "run_of_show": "Por ejemplo: apertura de puertas a las 18:00, dos teloneros, el artista principal a las 21:00 y cierre a las 23:00. Aurora deja una hora vacía cuando los registros no la indican.",
+        "risk_assessment": "Por ejemplo: un festival al aire libre a orillas de un río en agosto, dos escenarios y 8,000 asistentes por día."
+      },
+      "defaultInstructions": {
+        "run_of_show": "Redacte la orden de show de {name}.",
+        "risk_assessment": "Redacte la evaluación de riesgos de {name}."
+      },
+      "kind": {
+        "run_of_show": "Orden de show",
+        "risk_assessment": "Evaluación de riesgos"
+      },
+      "sentKind": "Borrador",
+      "sentTarget": "La lista que llena",
+      "sentCategories": "Categorías",
+      "ready": "El borrador de Aurora está listo. Revise cada línea antes de agregarla.",
+      "review": "Nada se guarda hasta que agregue las líneas que conserve. Descartar rechaza todas las líneas; si cierra el panel, las líneas vencen en 7 días.",
+      "qualified": "Revise cada riesgo con una persona calificada antes de confiar en él.",
+      "rowsLabel": {
+        "run_of_show": "Cues redactados",
+        "risk_assessment": "Riesgos redactados"
+      },
+      "include": "Incluir la línea {n}",
+      "columns": {
+        "label": "Etiqueta",
+        "time": "Hora ({zone})",
+        "duration": "Duración en Minutos",
+        "segment": "Segmento",
+        "description": "Descripción",
+        "title": "Título",
+        "category": "Categoría",
+        "likelihood": "Probabilidad",
+        "impact": "Impacto",
+        "mitigation": "Mitigación"
+      },
+      "unrated": "Sin calificar",
+      "required": "Obligatorio.",
+      "minutesInvalid": "Ingrese minutos enteros, hasta 1,440.",
+      "flags": {
+        "overlap": "Se superpone con el cue anterior por {minutes, plural, one {# minuto} other {# minutos}}.",
+        "gap": "{minutes, plural, one {# minuto} other {# minutos}} sin actividad antes de este cue.",
+        "untimed": "Aún sin hora.",
+        "outOfOrder": "Es anterior al cue que lo precede."
+      },
+      "gapsTitle": "Aurora dejó vacíos que no pudo llenar",
+      "droppedTitle": "Líneas omitidas porque no cumplían una regla de la lista",
+      "dropped": "Línea {line}: {reason}",
+      "dropReason": {
+        "label": "la etiqueta está vacía o tiene más de 200 caracteres.",
+        "title": "el título está vacío o tiene más de 200 caracteres.",
+        "segment": "el segmento tiene más de 200 caracteres.",
+        "description": "la descripción tiene más de 2,000 caracteres.",
+        "mitigation": "la mitigación está vacía o tiene más de 2,000 caracteres.",
+        "category": "la categoría no es una de las categorías de riesgo canónicas.",
+        "rating": "una calificación no es un número entero del 1 al 5.",
+        "time": "la hora cae fuera del día del show y de las 06:00 de la mañana siguiente.",
+        "duration": "la duración no es en minutos enteros de hasta 24 horas.",
+        "too_many": "el borrador superó el máximo de líneas que admite una lista."
+      },
+      "verbiage": "Revise estos términos con su biblioteca de vocabulario: {terms}",
+      "add": {
+        "run_of_show": "Agregar {count, plural, one {# cue} other {# cues}}",
+        "risk_assessment": "Agregar {count, plural, one {# riesgo} other {# riesgos}}"
+      },
+      "added": {
+        "run_of_show": "Se {count, plural, one {agregó # cue} other {agregaron # cues}} a la orden de show.",
+        "risk_assessment": "Se {count, plural, one {agregó # riesgo} other {agregaron # riesgos}} al proyecto."
+      },
+      "discarded": "Se descartaron las líneas redactadas. No se agregó nada."
     },
     "summary": {
       "button": "Resumir",
@@ -363,6 +448,225 @@
         "expenses": "gastos",
         "changeOrders": "órdenes de cambio"
       }
+    },
+    "intake": {
+      "reading": "Leyendo el archivo {done} de {total}…",
+      "files": "Archivos",
+      "filesHelp": "PDF, texto o imágenes, hasta {max} archivos de 10 MB cada uno. Cada archivo es una solicitud de Aurora.",
+      "file": "Archivo",
+      "inbox": "Mensajes del buzón del proyecto",
+      "inboxEmpty": "Aún no hay mensajes verificados en el buzón del proyecto.",
+      "inboxItem": "{subject} de {from}",
+      "noSubject": "Sin asunto",
+      "allowance": "Usa {count, plural, one {# solicitud} other {# solicitudes}} de {left} disponibles este mes.",
+      "allowanceUnlimited": "Usa {count, plural, one {# solicitud} other {# solicitudes}}. Tu plan no fija un límite mensual.",
+      "allowanceLoading": "Revisando las solicitudes de Aurora de este mes…",
+      "tooMany": "Elige como máximo {max} archivos y mensajes.",
+      "tooBig": "Un archivo pesa más de 10 MB. Elige uno más pequeño.",
+      "read": "Leer {count, plural, =0 {archivos} one {# archivo} other {# archivos}}",
+      "nothingRead": "Aurora no leyó nada que pudiera proponer en estos archivos.",
+      "unread": "No leído",
+      "required": "Obligatorio.",
+      "candidate": "{name} (sugerido)",
+      "excerpt": "Del documento: “{excerpt}”",
+      "itineraries": {
+        "button": "Importar itinerarios con Aurora",
+        "title": "Importar itinerarios con Aurora",
+        "ready": "Aurora leyó los itinerarios. Revisa cada tramo antes de agregarlo.",
+        "added": "{count, plural, one {# tramo agregado} other {# tramos agregados}} a este servicio.",
+        "add": "Agregar {count, plural, one {# tramo} other {# tramos}}",
+        "sent": "Aurora recibe cada archivo o mensaje que elijas, uno a la vez. Nunca se guardan números de pasaporte ni fechas de nacimiento.",
+        "review": "No se agrega nada hasta que agregues los tramos que conservas. Tú eliges siempre al viajero; un nombre sugerido es solo una pista. Las zonas se leen de cada lugar, así que revísalas.",
+        "rows": "Tramos propuestos",
+        "include": "Incluir a {passenger}: de {from} a {to}",
+        "traveler": "Viajero",
+        "pickTraveler": "Elige un viajero",
+        "departsLocal": "Sale (hora local)",
+        "departsZone": "Zona horaria de salida",
+        "departsFrom": "Desde",
+        "arrivesLocal": "Llega (hora local)",
+        "arrivesZone": "Zona horaria de llegada",
+        "flags": {
+          "arrival_before_departure": "Llega antes de salir",
+          "unknown_airport": "Sin código de aeropuerto conocido",
+          "duplicate_in_batch": "Repite otro tramo",
+          "inferred_zone": "Zona leída del lugar",
+          "inferred_year": "Año tomado del documento",
+          "already_booked": "Ya reservado para este viajero"
+        }
+      },
+      "contracts": {
+        "button": "Importar contratos y riders",
+        "title": "Importar contratos y riders con Aurora",
+        "ready": "Aurora leyó los contratos y riders y los agrupó por acto. Revisa cada acto antes de contratarlo.",
+        "booked": "{count, plural, one {# acto contratado} other {# actos contratados}} con {riders, plural, one {# rider} other {# riders}}.",
+        "book": "Contratar {count, plural, one {# acto} other {# actos}}",
+        "fileKind": "Qué es {name}",
+        "kinds": {
+          "contract": "Contrato de actuación",
+          "intake_rider": "Rider"
+        },
+        "defaults": "Condiciones para cada acto nuevo",
+        "defaultsHelp": "Aurora nunca elige la función, la clasificación, la base de pago ni la modalidad. Tú las fijas aquí para cada acto que contrates.",
+        "role": "Función",
+        "classification": "Clasificación del trabajador",
+        "payBasis": "Base de pago",
+        "arrangement": "Modalidad",
+        "sentFee": "Aurora recibe cada archivo que elijas y lee el honorario, porque puedes ver tarifas de pago.",
+        "sentNoFee": "Aurora recibe cada archivo que elijas. No lee honorarios, porque solo alguien que puede ver tarifas de pago lo hace.",
+        "review": "No se contrata nada hasta que contrates los actos que conservas. Elige la parte de cada acto: una persona, una cuenta o ambas.",
+        "rows": "Actos",
+        "status": {
+          "booked": "Ya contratado (adjuntar riders)",
+          "new": "Contratación nueva",
+          "party": "Falta la parte",
+          "error": "Error: no se leyó la fecha de inicio"
+        },
+        "dates": "{start} a {end}",
+        "fee": "Honorario {fee}",
+        "riders": "{count, plural, =0 {Sin rider} one {# rider} other {# riders}}",
+        "person": "Persona",
+        "account": "Cuenta",
+        "noPerson": "Sin persona",
+        "noAccount": "Sin cuenta"
+      },
+      "invoiceLines": {
+        "button": "Leer líneas de un documento",
+        "title": "Leer líneas de factura con Aurora",
+        "ready": "Aurora leyó las líneas. Elige la partida presupuestaria de cada línea y revisa la conciliación.",
+        "sent": "Aurora recibe el archivo que elijas y lee sus líneas y totales impresos. La partida presupuestaria siempre la eliges tú.",
+        "review": "No se agrega nada hasta que agregues las líneas que conservas. Las líneas anteriores de este proveedor son solo pistas.",
+        "rows": "Líneas propuestas",
+        "description": "Descripción",
+        "quantity": "Cantidad",
+        "quantityRequired": "Escribe la cantidad; Aurora no pudo leerla.",
+        "unitPrice": "Precio unitario en unidades menores ({currency})",
+        "unitPriceHelp": "Déjalo vacío si la línea no tiene precio.",
+        "budgetLine": "Partida presupuestaria",
+        "noBudgetLine": "Sin partida presupuestaria",
+        "taxRate": "Tasa de impuesto",
+        "noTaxRate": "Sin tasa de impuesto",
+        "historyInvoice": "Último cobro {price} en {reference} ({date})",
+        "historyOrder": "En la OC {reference} línea {line}: {quantity} a {price}",
+        "variance": "{percent} % respecto al último precio",
+        "add": "Agregar {count, plural, one {# línea} other {# líneas}}",
+        "added": "{count, plural, one {# línea agregada} other {# líneas agregadas}} a la factura.",
+        "stopped": "{count, plural, one {# línea agregada} other {# líneas agregadas}}. La factura rechazó {line}, así que no se agregó el resto.",
+        "reason": "Conservada del documento que leyó Aurora.",
+        "leftOut": "Descartada al agregar las líneas."
+      },
+      "tieOut": {
+        "title": "Conciliación",
+        "lines": "Líneas: {amount}",
+        "printed": "Total impreso: {amount}",
+        "ties": "Las líneas cuadran con el total impreso.",
+        "incomplete": "No se puede conciliar: no se leyó el total o el precio de una línea.",
+        "residual": "Diferencia con el total impreso: {amount}",
+        "acknowledge": "Revisé la diferencia",
+        "currencyMismatch": "El documento muestra otra moneda distinta a {currency}, la de la factura."
+      }
+    },
+    "rules": {
+      "aurora_intake_closed": "Esta importación está cerrada. Inicia otra para leer más archivos.",
+      "aurora_intake_full": "Esta importación ya leyó todos los archivos para los que se abrió. Inicia otra para más.",
+      "aurora_intake_item_invalid": "Aurora no pudo agregar esto: {detail}",
+      "ai_suggestion_batch_apply": "Agrega estas filas juntas desde la vista previa de Aurora, para no agregar nada por partes.",
+      "itinerary_duplicate": "Ya hay un tramo reservado para este viajero: {detail}",
+      "intake_fee_restricted": "Solo alguien que puede ver tarifas de pago fija un honorario. No se contrató nada.",
+      "intake_group_party": "Cada acto necesita una parte: una persona, una cuenta o ambas. No se contrató nada.",
+      "aurora_invoice_not_proposed": "Aurora lee líneas solo en una factura por pagar en estado Propuesta.",
+      "aurora_draft_source_invalid": "Aurora lee solo un mensaje verificado del buzón de este proyecto que puedas leer, o un archivo que elijas.",
+      "aurora_extract_source": "Envía una sola fuente: un archivo con su tipo y nombre, o un mensaje del buzón del proyecto.",
+      "aurora_field_restricted": "Este valor es Restringido y no se leyó para ti.",
+      "advance_section_not_draftable": "Esta sección ya tiene respuesta o ya no acepta una respuesta de Aurora.",
+      "advance_answer_pending": "Esta sección tiene una respuesta pendiente de revisión. Devuélvela antes de registrar otra.",
+      "sod_advance_submitter": "Tú registraste esta respuesta, así que la revisa otra persona.",
+      "aurora_intake_immutable": "Una importación conserva su proyecto, tipo, servicio y número de archivos. Inicia otra para cambiarlos.",
+      "aurora_draft_request_invalid": "Esta sugerencia no es una respuesta de avance redactada por Aurora.",
+      "aurora_draft_target_required": "Elige para qué redacta Aurora antes de pedirlo: {detail}",
+      "aurora_draft_target_mismatch": "Aurora redacta esto para otro tipo de registro: {detail}",
+      "plan_limit_exceeded": "Tu organización usó la asignación de este mes: {detail}"
+    },
+    "advanceAnswers": {
+      "button": "Redactar respuestas del avance",
+      "title": "Redactar respuestas del avance con Aurora",
+      "instructions": "Redacta las respuestas del destinatario a las secciones abiertas del avance a partir de la fuente.",
+      "ready": "Aurora redactó las respuestas que encontró. Acepta o rechaza cada una.",
+      "accepted": "Aceptada",
+      "rejected": "Rechazada",
+      "rejectReason": "Rechazada en la vista previa de Aurora.",
+      "review": "Cada respuesta que aceptas se registra en nombre de la parte, con la etiqueta de que la registró tu organización. La revisa otra persona.",
+      "window": "{from} a {to}",
+      "item": "{quantity} {label} {person}",
+      "noLines": "La fuente no muestra una hora, cantidad, artículo o persona que acepte esta sección.",
+      "dropped": "Se {count, plural, one {omitió # línea} other {omitieron # líneas}}. {choices}",
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "unansweredTitle": "Secciones que la fuente no responde",
+      "recipient": "Destinatario",
+      "pickRecipient": "Elige un destinatario",
+      "file": "O un documento que envió la parte",
+      "sent": "Aurora recibe las secciones abiertas, los nombres de la lista de la parte para las secciones por persona y el mensaje o documento que elijas."
+    },
+    "governance": {
+      "button": "Redactar con Aurora",
+      "menu": "Documento por redactar",
+      "kinds": {
+        "event_plan": "Plan del evento",
+        "event_brief": "Resumen del evento",
+        "approval_pack": "Paquete de aprobación",
+        "waste_plan": "Plan de residuos"
+      },
+      "title": {
+        "event_plan": "Redactar un plan del evento con Aurora",
+        "event_brief": "Redactar un resumen del evento con Aurora",
+        "approval_pack": "Redactar un paquete de aprobación con Aurora",
+        "waste_plan": "Redactar un plan de residuos con Aurora"
+      },
+      "outline": {
+        "overview": "Resumen",
+        "schedule": "Horario",
+        "siteAndVenue": "Sitio y Recinto",
+        "staffingAndRoles": "Personal y Funciones",
+        "safetyAndRisk": "Seguridad y Riesgos",
+        "medicalAndEmergency": "Atención Médica y Emergencias",
+        "communications": "Comunicaciones",
+        "permitsAndApprovals": "Permisos y Aprobaciones",
+        "purpose": "Propósito",
+        "keyFacts": "Datos Clave",
+        "scheduleHighlights": "Momentos Clave del Horario",
+        "contactsByRole": "Contactos por Función",
+        "whatIsNeeded": "Lo que Falta",
+        "coverLetter": "Carta de Presentación",
+        "eventSummary": "Resumen del Evento",
+        "permitsHeldAndPending": "Permisos Obtenidos y Pendientes",
+        "insurance": "Seguros",
+        "riskSummary": "Resumen de Riesgos",
+        "sitePlanAndCapacity": "Plano del Sitio y Aforo",
+        "contacts": "Contactos",
+        "wasteStreams": "Flujos de Residuos",
+        "binsAndPlacement": "Contenedores y Ubicación",
+        "vendorResponsibilities": "Responsabilidades de los Proveedores",
+        "collectionSchedule": "Calendario de Recolección",
+        "diversionTargets": "Metas de Desvío",
+        "reporting": "Informes"
+      },
+      "defaultInstructions": {
+        "event_plan": "Redacta el plan del evento de {name}.",
+        "event_brief": "Redacta el resumen del evento de {name}.",
+        "approval_pack": "Redacta el paquete de aprobación de {name}.",
+        "waste_plan": "Redacta el plan de residuos de {name}."
+      },
+      "ready": "El borrador de Aurora está listo. Revísalo antes de guardarlo.",
+      "saved": "Guardado en los documentos del proyecto. El archivo será la primera versión del documento cuando el análisis lo dé por limpio.",
+      "save": "Guardar en los documentos del proyecto",
+      "review": "No se guarda nada hasta que lo guardes. Los datos que los registros no tienen se marcan [needs: ...].",
+      "missingTitle": "Encabezados que le faltan al borrador",
+      "labelNote": "El archivo guardado empieza con la etiqueta de IA, la fecha y tu nombre como revisor.",
+      "sentOutline": "Estructura",
+      "label": "Redactado con Aurora AI el {date}; revisado por {person}",
+      "saveFailed": "No se pudo guardar el borrador. No se cambió nada.",
+      "saveEmpty": "Ponle título y cuerpo al borrador antes de guardarlo."
     }
   }
 }

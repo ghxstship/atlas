@@ -45,6 +45,8 @@ type Phase =
       readonly model: string | null;
       readonly header: AuroraSuggestion;
       readonly lines: readonly AuroraSuggestion[];
+      /** A receipt's items against its printed total (B15), read-only. */
+      readonly tieOut: AuroraExtraction["tie_out"] | null;
     };
 
 async function toBase64(file: File): Promise<string> {
@@ -183,7 +185,13 @@ export function ExtractDialog({
         };
       }),
     );
-    setPhase({ kind: "review", model: outcome.model, header, lines: lineSuggestions });
+    setPhase({
+      kind: "review",
+      model: outcome.model,
+      header,
+      lines: lineSuggestions,
+      tieOut: outcome.answer.tie_out ?? null,
+    });
     setAnnouncement(t("extract.ready"));
   };
 
@@ -266,6 +274,20 @@ export function ExtractDialog({
         }
       >
         <AvailabilityNotice availability={availability} onRetry={() => void check()} />
+        {phase.kind === "review" && phase.tieOut ? (
+          <p className="m-0 text-text-12 text-text-secondary" data-testid="receipt-tie-out">
+            {phase.tieOut.status === "ties"
+              ? t("intake.tieOut.ties")
+              : phase.tieOut.status === "incomplete"
+                ? t("intake.tieOut.incomplete")
+                : t("intake.tieOut.residual", {
+                    amount: majorUnits(
+                      phase.tieOut.totalResidualMinor ?? 0,
+                      valueOf(fieldOf(phase.header, "currency_code")) || null,
+                    ),
+                  })}
+          </p>
+        ) : null}
         {phase.kind === "review" ? (
           <Review
             t={t}

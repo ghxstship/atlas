@@ -20,6 +20,7 @@ import {
   Timeline,
 } from "@xos/ui";
 import type { Route } from "next";
+import Link from "next/link";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -39,6 +40,7 @@ import {
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
+import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 
 /**
@@ -479,8 +481,10 @@ export function RunBody({
   live,
   canEdit,
   canCall,
+  draftable = false,
   setTimes = [],
   artists = [],
+  importHref = null,
   children,
 }: {
   org: string;
@@ -490,10 +494,17 @@ export function RunBody({
   live: boolean;
   canEdit: boolean;
   canCall: boolean;
+  /**
+   * Whether Aurora may draft into this running order (P6): it has no cue, also none the viewer
+   * cannot see, and the viewer may write to its project (app.drafted_list_is_empty).
+   */
+  draftable?: boolean;
   /** Cues marked as an artist's set time (app.engagement_cues), for the Set for control. */
   setTimes?: readonly CueEngagement[];
   /** The run's project's Artist engagements a cue can be set for. */
   artists?: readonly { value: string; label: string }[];
+  /** The import wizard preselected on this running order (P3); null when the viewer cannot import cues here. */
+  importHref?: string | null;
   children?: ReactNode;
 }) {
   const t = useCopy("show");
@@ -621,14 +632,38 @@ export function RunBody({
       ) : null}
 
       <section aria-labelledby={`cues-${runOfShow.id}`} className="flex flex-col gap-8">
-        <h3 id={`cues-${runOfShow.id}`} className="m-0 text-label-13 font-semibold">
-          {t("cues.title")}
-        </h3>
+        <div className="flex flex-wrap items-baseline justify-between gap-8">
+          <h3 id={`cues-${runOfShow.id}`} className="m-0 text-label-13 font-semibold">
+            {t("cues.title")}
+          </h3>
+          {importHref ? (
+            <Link href={importHref as Route} className="text-text-13 text-accent-text underline">
+              {t("importCues")}
+            </Link>
+          ) : null}
+        </div>
         <ActionErrorAlert error={cueAction.error} />
         {cues.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">
-            {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
-          </p>
+          <div className="flex flex-col gap-8">
+            <p className="m-0 text-text-13 text-text-secondary">
+              {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
+            </p>
+            {canEdit && draftable ? (
+              <ListDraftEntry
+                kind="run_of_show"
+                target={{ collection: "run-of-show", id: runOfShow.id, label: runOfShow.name }}
+                context={[
+                  {
+                    collection: "projects",
+                    id: runOfShow.projectId,
+                    label: runOfShow.projectKey,
+                  },
+                ]}
+                timeZone={tz}
+                showDate={runOfShow.showDate}
+              />
+            ) : null}
+          </div>
         ) : (
           <ol
             aria-label={t("cues.listLabel", { name: runOfShow.name })}

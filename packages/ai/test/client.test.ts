@@ -130,6 +130,60 @@ describe("Aurora API client", () => {
   });
 });
 
+describe("drafted lists (P6)", () => {
+  it("drafts into a named list and applies the kept lines in one call", async () => {
+    const applied = { written: [{ suggestion_id: "s1", id: "c1" }], rejected: 2 };
+    const { fn, seen } = recordingFetch([json({}), json(applied)]);
+    const client = createAuroraClient({ baseUrl: "/api/v1", fetch: fn, idempotencyKey: () => "k" });
+    await client.draft({
+      kind: "run_of_show",
+      instructions: "Draft the running order.",
+      target: { collection: "run-of-show", id: "r1" },
+      context: [{ collection: "projects", id: "p1" }],
+    });
+    const result = await client.applyDraft({
+      request_id: "q1",
+      items: [{ suggestion_id: "s1", values: { label: "Doors" } }],
+    });
+    expect(seen.map((s) => [s.url, s.init.method])).toEqual([
+      ["/api/v1/aurora/draft", "POST"],
+      ["/api/v1/aurora/apply-draft", "POST"],
+    ]);
+    expect(JSON.parse(String(seen[0]?.init.body))).toMatchObject({
+      kind: "run_of_show",
+      target: { collection: "run-of-show", id: "r1" },
+    });
+    expect(JSON.parse(String(seen[1]?.init.body))).toEqual({
+      request_id: "q1",
+      items: [{ suggestion_id: "s1", values: { label: "Doors" } }],
+    });
+    expect(result).toEqual({ ok: true, data: applied });
+  });
+
+  it("answers a filled list as its refusal rule", async () => {
+    const { fn } = recordingFetch([
+      json(
+        {
+          rule: "aurora_draft_list_not_empty",
+          detail: "This running order already has cues. Aurora only drafts into an empty list.",
+        },
+        422,
+      ),
+    ]);
+    const client = createAuroraClient({ baseUrl: "", fetch: fn, idempotencyKey: () => "k" });
+    expect(await client.applyDraft({ request_id: "q1", items: [{ suggestion_id: "s1" }] })).toEqual(
+      {
+        ok: false,
+        problem: {
+          status: 422,
+          rule: "aurora_draft_list_not_empty",
+          detail: "This running order already has cues. Aurora only drafts into an empty list.",
+        },
+      },
+    );
+  });
+});
+
 const suggestion: AuroraSuggestion = {
   id: "s1",
   operation_id: "savedViews.create",
@@ -152,6 +206,14 @@ function scriptedClient(overrides: Partial<AuroraClient>): AuroraClient {
     filter: unused,
     extract: unused,
     draft: unused,
+    applyDraft: unused,
+    startIntake: unused,
+    getIntake: unused,
+    closeIntake: unused,
+    applyItineraries: unused,
+    checkItineraries: unused,
+    applyContracts: unused,
+    applyAdvanceAnswer: unused,
     summarize: unused,
     mapColumns: unused,
     bindCode: unused,

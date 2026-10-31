@@ -17,3 +17,7 @@ Write your answer under the section and choose **Send answer**. The organization
 - **Returned** with the reason, when they need more; answer again
 
 Artists send their rider and hospitality needs through the advance. An artist's representative with the Advance scope answers for the artist.
+
+## Answers your organization recorded
+
+When you answer by email or send a tour book, the organization may record your answer for you from what you sent. Such an answer says **Recorded by** the organization, and **from an email to the project** when it was read from mail. To change it, ask the organization to return it, then answer again.

@@ -102,7 +102,127 @@ export function fixtureDraft(request: ModelRequest): ModelResponse {
     ...named.map((n, i) => `${i + 2}. Confirm the details of ${n}.`),
   ];
   if (/\b(price|cost|fee)\b/i.test(instructions)) lines.push("Cost: [needs: the agreed price]");
+  // A governance draft (B15) follows its outline: one heading each, the records under the first, and
+  // a gap where a figure would go.
+  const outline =
+    /Use exactly these headings, in this order, each as a Markdown ## heading: (.+)\.$/m.exec(
+      request.system,
+    );
+  if (outline) {
+    const headings = (outline[1] ?? "").split("; ");
+    const body = headings
+      .map((h, i) =>
+        i === 0
+          ? `## ${h}\n${lines.join("\n")}`
+          : `## ${h}\n[needs: the ${h.toLowerCase()} details]`,
+      )
+      .join("\n\n");
+    return toolCall("draft", { title, body, gaps: [] });
+  }
   return toolCall("draft", { title, body: lines.join("\n"), gaps: [] });
+}
+
+// Drafted lists (P6) ------------------------------------------------------------------------------
+
+/** The data of the first context record of a table, or null. */
+function contextRecord(request: ModelRequest, table: string): Record<string, unknown> | null {
+  const records = (dataOf(first(request), "context records") ?? []) as {
+    table?: string;
+    data?: Record<string, unknown>;
+  }[];
+  return records.find((r) => r.table === table)?.data ?? null;
+}
+
+/**
+ * A run of show built only from the context: the running order's name and the event's title. Its
+ * support act starts 15 minutes before doors end, so the overlap flag shows, and the walk-in music
+ * has no time the context gives, so it is an untimed [needs: ...] line. Without a running order in
+ * the context, no line is drafted.
+ */
+export function fixtureRunOfShow(request: ModelRequest): ModelResponse {
+  const run = contextRecord(request, "app.run_of_show");
+  if (!run) {
+    return toolCall("draft_run_of_show", {
+      title: "Run of Show",
+      lines: [],
+      gaps: ["the running order"],
+    });
+  }
+  const event = contextRecord(request, "app.records");
+  const headliner = typeof event?.["title"] === "string" ? event["title"] : "Headliner";
+  return toolCall("draft_run_of_show", {
+    title: String(run["name"] ?? "Run of Show"),
+    lines: [
+      {
+        label: "Doors",
+        local_time: "18:00",
+        day_offset: 0,
+        duration_minutes: 60,
+        segment: "Arrival",
+      },
+      { label: "Support Act", local_time: "18:45", day_offset: 0, duration_minutes: 45 },
+      {
+        label: "Walk-In Music",
+        local_time: null,
+        day_offset: 0,
+        duration_minutes: null,
+        description: "Plays as guests arrive. [needs: the walk-in music time]",
+      },
+      { label: headliner.slice(0, 200), local_time: "20:00", day_offset: 0, duration_minutes: 90 },
+      { label: "House Lights Up", local_time: "21:30", day_offset: 0, duration_minutes: 15 },
+    ],
+    gaps: [],
+  });
+}
+
+const FIXTURE_RISKS: readonly {
+  title: string;
+  category: string;
+  likelihood: number | null;
+  impact: number | null;
+  mitigation: string;
+}[] = [
+  {
+    title: "Crowd Surge at the Barricade",
+    category: "Safety",
+    likelihood: 2,
+    impact: 5,
+    mitigation: "Staff the barricade with trained crowd managers and brief them before doors.",
+  },
+  {
+    title: "Afternoon Thunderstorm",
+    category: "Operational",
+    likelihood: 3,
+    impact: 4,
+    mitigation: "Hold a weather call at noon and keep a shelter plan for every stage.",
+  },
+  {
+    title: "Changeover Overrun",
+    category: "Schedule",
+    likelihood: 3,
+    impact: 2,
+    mitigation: "Run a changeover clock at side stage and cut the encore first.",
+  },
+  {
+    title: "Sponsor Signage Delay",
+    category: "Commercial",
+    likelihood: null,
+    impact: 2,
+    mitigation: "Confirm the delivery with the sponsor. [needs: the signage delivery date]",
+  },
+];
+
+/** A risk assessment in the categories the request gives, for the project the context names. */
+export function fixtureRisks(request: ModelRequest): ModelResponse {
+  const project = contextRecord(request, "app.projects");
+  const categories = (dataOf(first(request), "categories") ?? []) as string[];
+  if (!project)
+    return toolCall("draft_risks", { title: "Risks", lines: [], gaps: ["the project"] });
+  return toolCall("draft_risks", {
+    title: `${String(project["name"] ?? "Project")} Risks`.slice(0, 200),
+    lines: FIXTURE_RISKS.filter((r) => categories.includes(r.category)),
+    gaps: [],
+  });
 }
 
 // Summaries ---------------------------------------------------------------------------------------

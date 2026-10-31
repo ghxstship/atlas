@@ -42,6 +42,8 @@ export interface ToolCallOutput<T> {
   readonly usage: ModelUsage;
   readonly prompt: string;
   readonly output: string;
+  /** Why the model stopped; `max_tokens` means the answer was cut off at the token limit. */
+  readonly stopReason: ModelResponse["stopReason"];
 }
 
 /** The prompt as logged: system and user text, never document bytes. */
@@ -87,6 +89,7 @@ export async function callTool<S extends z.ZodType>(
     usage: response.usage,
     prompt: promptLog(input.system, input.content),
     output: responseText(response),
+    stopReason: response.stopReason,
   };
 }
 

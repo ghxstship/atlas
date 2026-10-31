@@ -10,8 +10,11 @@ import {
   fixtureDocument,
   fixtureDraft,
   fixtureFilter,
+  fixtureRisks,
+  fixtureRunOfShow,
   fixtureSummary,
 } from "./fixture-entry";
+import { fixtureAdvanceAnswers, fixtureIntake } from "./fixture-intake";
 
 /**
  * Aurora's end-to-end fixture model (finding A24-007). Browser journeys 35 and 36 run Aurora
@@ -127,15 +130,21 @@ export class FixtureModelClient implements ModelClient {
     const tools = new Set((request.tools ?? []).map((t) => t.name));
     if (tools.has("record_fields")) {
       return (
+        fixtureIntake(request) ??
         fixtureDocument(request, documentText(request.messages[0]?.content ?? [])) ??
         this.extract(request)
       );
     }
+    // B15: advance answers drafted from a message or file (fixture-intake.ts).
+    if (tools.has("draft_advance_answers")) return fixtureAdvanceAnswers(request);
     if (tools.has("map_columns")) return this.mapColumns(request);
     if (tools.has("answer")) return this.assist(request);
     // The A95 entry points (fixture-entry.ts).
     if (tools.has("build_filter")) return fixtureFilter(request);
     if (tools.has("draft")) return fixtureDraft(request);
+    // The drafted lists (P6).
+    if (tools.has("draft_run_of_show")) return fixtureRunOfShow(request);
+    if (tools.has("draft_risks")) return fixtureRisks(request);
     if (tools.has("summary")) return fixtureSummary(request);
     if (tools.has("bind_code")) return fixtureBinding(request);
     return {

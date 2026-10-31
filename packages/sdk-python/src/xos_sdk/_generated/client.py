@@ -348,17 +348,32 @@ from .resources import (
     EarnedMediaItemsResource,
     ProjectMeasurementSummaryResource,
     CueCallsResource,
+    RosterEntriesResource,
+    AdvanceAllocationsResource,
+    AssetReservationConflictsResource,
+    AdvanceSectionChoicesResource,
+    AdvanceSubmissionLinesResource,
+    AdvanceSubmissionFilesResource,
     GuestListEntriesResource,
+    AssetUnitHireResource,
+    AssetReservationsResource,
     Form1099NecResource,
+    GoodsReturnsResource,
+    ReturnLinesResource,
+    PoLineHireWarningsResource,
     InsuranceCertificateInsuredsResource,
     RequiredAdditionalInsuredsResource,
     CanonStdEmergencyProtocolsResource,
     ReportScheduleRecipientsResource,
     ReportDeliveriesResource,
     AuroraResource,
+    AuroraIntakesResource,
     AiSuggestionsResource,
     AiRequestsResource,
     AiUsageResource,
+    EngagedAllocationsResource,
+    RequestableItemsResource,
+    MyParkingPassesResource,
     WorkDetailsResource,
     EmergencyContactsResource,
     LoyaltyProgramsResource,
@@ -778,17 +793,32 @@ class XosClient(XosClientCore):
     earned_media_items: EarnedMediaItemsResource
     project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
+    roster_entries: RosterEntriesResource
+    advance_allocations: AdvanceAllocationsResource
+    asset_reservation_conflicts: AssetReservationConflictsResource
+    advance_section_choices: AdvanceSectionChoicesResource
+    advance_submission_lines: AdvanceSubmissionLinesResource
+    advance_submission_files: AdvanceSubmissionFilesResource
     guest_list_entries: GuestListEntriesResource
+    asset_unit_hire: AssetUnitHireResource
+    asset_reservations: AssetReservationsResource
     form1099_nec: Form1099NecResource
+    goods_returns: GoodsReturnsResource
+    return_lines: ReturnLinesResource
+    po_line_hire_warnings: PoLineHireWarningsResource
     insurance_certificate_insureds: InsuranceCertificateInsuredsResource
     required_additional_insureds: RequiredAdditionalInsuredsResource
     canon_std_emergency_protocols: CanonStdEmergencyProtocolsResource
     report_schedule_recipients: ReportScheduleRecipientsResource
     report_deliveries: ReportDeliveriesResource
     aurora: AuroraResource
+    aurora_intakes: AuroraIntakesResource
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
     ai_usage: AiUsageResource
+    engaged_allocations: EngagedAllocationsResource
+    requestable_items: RequestableItemsResource
+    my_parking_passes: MyParkingPassesResource
     work_details: WorkDetailsResource
     emergency_contacts: EmergencyContactsResource
     loyalty_programs: LoyaltyProgramsResource
@@ -1196,17 +1226,32 @@ class XosClient(XosClientCore):
         self.earned_media_items = EarnedMediaItemsResource(self)
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
+        self.roster_entries = RosterEntriesResource(self)
+        self.advance_allocations = AdvanceAllocationsResource(self)
+        self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
+        self.advance_section_choices = AdvanceSectionChoicesResource(self)
+        self.advance_submission_lines = AdvanceSubmissionLinesResource(self)
+        self.advance_submission_files = AdvanceSubmissionFilesResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.asset_unit_hire = AssetUnitHireResource(self)
+        self.asset_reservations = AssetReservationsResource(self)
         self.form1099_nec = Form1099NecResource(self)
+        self.goods_returns = GoodsReturnsResource(self)
+        self.return_lines = ReturnLinesResource(self)
+        self.po_line_hire_warnings = PoLineHireWarningsResource(self)
         self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
         self.required_additional_insureds = RequiredAdditionalInsuredsResource(self)
         self.canon_std_emergency_protocols = CanonStdEmergencyProtocolsResource(self)
         self.report_schedule_recipients = ReportScheduleRecipientsResource(self)
         self.report_deliveries = ReportDeliveriesResource(self)
         self.aurora = AuroraResource(self)
+        self.aurora_intakes = AuroraIntakesResource(self)
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
         self.ai_usage = AiUsageResource(self)
+        self.engaged_allocations = EngagedAllocationsResource(self)
+        self.requestable_items = RequestableItemsResource(self)
+        self.my_parking_passes = MyParkingPassesResource(self)
         self.work_details = WorkDetailsResource(self)
         self.emergency_contacts = EmergencyContactsResource(self)
         self.loyalty_programs = LoyaltyProgramsResource(self)

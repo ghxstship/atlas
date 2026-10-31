@@ -25,6 +25,7 @@ import { InvoiceForm } from "./forms-invoice-form";
 import { CustomFieldList } from "@/components/custom-fields/list";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { customFieldList } from "@/lib/custom-fields/server";
+import { InvoiceLinesEntry } from "@/components/aurora/entry/intake-entry";
 import { InvoiceLineForm } from "./forms-invoice-line-form";
 import { RecordPaymentForm } from "./forms-record-payment-form";
 import { SelfBillForm } from "./forms-self-bill-form";
@@ -245,6 +246,18 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
                 {editable ? t("finance.invoices.noLines") : t("finance.invoices.noLinesRead")}
               </p>
             )}
+            {editable && peek.direction === "Payable" && budgetLines.ok ? (
+              <InvoiceLinesEntry
+                invoiceId={peek.id}
+                currencyCode={peek.currency}
+                lastLineNumber={lines.ok ? Math.max(0, ...lines.data.map((l) => l.lineNumber)) : 0}
+                budgetLines={budgetLines.data.map((l) => ({
+                  value: l.id,
+                  label: `${l.budgetName} · ${l.lineNumber} ${l.description}`,
+                }))}
+                taxRates={[]}
+              />
+            ) : null}
             {editable && budgetLines.ok ? (
               <InvoiceLineForm
                 org={ctx.org.slug}

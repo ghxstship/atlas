@@ -334,29 +334,137 @@ const FilterBody = z
   })
   .meta({ id: "AuroraFilterRequest", description: "A sentence to turn into a saved view." });
 
+/** Media types a document may be sent in. */
+const MediaType = z
+  .enum(["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"])
+  .meta({ description: "Media type of the content.", example: "application/pdf" });
+
 const ExtractBody = z
   .object({
     kind: z
-      .enum(["rider", "insurance_certificate", "invoice", "receipt", "quote"])
+      .enum([
+        "rider",
+        "insurance_certificate",
+        "invoice",
+        "receipt",
+        "quote",
+        "itinerary",
+        "contract",
+        "intake_rider",
+        "invoice_lines",
+      ])
       .meta({ description: "What the document is.", example: "insurance_certificate" }),
     document_id: orNull(fields.ref("stored document read, when the file is one")).optional(),
-    media_type: z
-      .enum(["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"])
-      .meta({ description: "Media type of the content.", example: "application/pdf" }),
-    content_base64: z.string().min(1).max(14_000_000).meta({
-      description: "The document content in base64, read by the caller from storage.",
+    intake_batch_id: fields
+      .ref("intake batch the file is read into (auroraIntakes.start); the request's subject")
+      .optional(),
+    invoice_id: fields
+      .ref(
+        "Proposed payable invoice whose lines are read, required for invoice_lines; the subject, ahead of document_id",
+      )
+      .optional(),
+    inbound_message_id: fields
+      .ref(
+        "DKIM-verified project inbox message read instead of a file, for an itinerary; exactly one of this and content_base64",
+      )
+      .optional(),
+    media_type: MediaType.optional(),
+    content_base64: z.string().min(1).max(14_000_000).optional().meta({
+      description:
+        "The document content in base64, read by the caller from storage. Exactly one of this and inbound_message_id; with it, media_type and file_name are required.",
       example: "JVBERi0xLjcK",
     }),
-    file_name: fields.text("File name shown in the log.", "coi-atlantic.pdf", 300),
+    file_name: fields.text("File name shown in the log.", "coi-atlantic.pdf", 300).optional(),
   })
   .meta({ id: "AuroraExtractRequest", description: "A document to extract into proposed fields." });
+
+/** The most lines one drafted list proposes or applies (`@xos/ai/lists` MAX_CUES, P6). */
+const MAX_DRAFTED_LINES = 60;
+
+const ListDraftKind = z.enum(["run_of_show", "risk_assessment"]);
+
+const DraftTarget = z
+  .object({
+    collection: z
+      .string()
+      .regex(/^[a-z][a-z0-9-]*$/)
+      .meta({ description: "Collection of the list's record.", example: "run-of-show" }),
+    id: z.uuid().meta({
+      description: "The running order or project.",
+      example: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+    }),
+  })
+  .meta({
+    description:
+      "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Advance answers name the recipient (advance-recipients); an event plan, brief, approval pack or waste plan names its project (projects). Required for those kinds.",
+    example: { collection: "run-of-show", id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+  });
+
+/** Governance drafts (B15): prose with a fixed outline, saved as a labeled project document. */
+const GOVERNANCE_KINDS = ["event_plan", "event_brief", "approval_pack", "waste_plan"] as const;
+
+const DraftSource = z
+  .object({
+    inbound_message_id: fields
+      .ref("DKIM-verified, live message of the project inbox of the recipient's packet")
+      .optional(),
+    document: z
+      .object({
+        media_type: MediaType,
+        content_base64: z.string().min(1).max(14_000_000).meta({
+          description: "The document content in base64.",
+          example: "JVBERi0xLjcK",
+        }),
+        file_name: fields.text(
+          "File name shown in the log and the answer's provenance.",
+          "tour-book.pdf",
+          300,
+        ),
+      })
+      .optional()
+      .meta({
+        description: "A document the party sent: a tour book, a rider or a reply.",
+        example: {
+          media_type: "text/plain",
+          content_base64: "TG9hZCBpbiAwNzowMA==",
+          file_name: "tour-book.txt",
+        },
+      }),
+  })
+  .meta({
+    id: "AuroraDraftSource",
+    description:
+      "What advance answers are drafted from: exactly one of a project inbox message and a document. A message that is not a verified Project Inbox message of the packet's project the caller can read refuses aurora_draft_source_invalid before any model call.",
+    example: { inbound_message_id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+  });
 
 const DraftBody = z
   .object({
     kind: z
-      .enum(["sop", "advance_packet", "email", "day_sheet", "change_order_description"])
+      .enum([
+        "sop",
+        "advance_packet",
+        "email",
+        "day_sheet",
+        "change_order_description",
+        ...ListDraftKind.options,
+        "advance_answers",
+        ...GOVERNANCE_KINDS,
+      ])
       .meta({ description: "What to draft.", example: "sop" }),
     instructions: text("What the draft should say.", "Write the load-in SOP for the main stage."),
+    target: DraftTarget.optional(),
+    source: DraftSource.optional(),
+    outline: z
+      .array(z.string().min(1).max(120))
+      .min(1)
+      .max(12)
+      .optional()
+      .meta({
+        description:
+          "For a governance kind, its outline headings in the caller's locale, in order; the English outline when absent.",
+        example: ["Waste Streams", "Bins and Placement"],
+      }),
     context: z
       .array(z.object({ collection: z.string().regex(/^[a-z][a-z0-9-]*$/), id: z.uuid() }))
       .max(20)
@@ -459,6 +567,16 @@ const PreviewBody = z
     feature: z
       .enum(["drafting", "summaries"])
       .meta({ description: "The feature whose request is previewed.", example: "drafting" }),
+    draft_kind: z
+      .enum([...ListDraftKind.options, "advance_answers", ...GOVERNANCE_KINDS])
+      .optional()
+      .meta({
+        description:
+          "For a drafted list, advance answers or a governance draft, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.",
+        example: "run_of_show",
+      }),
+    target: DraftTarget.optional(),
+    source: DraftSource.optional(),
     kind: z
       .enum(["record_activity", "project_week", "gate_readiness"])
       .optional()
@@ -518,11 +636,329 @@ const AuroraPreview = z
       example: [],
     }),
     vocabulary_terms: fields.int("Verbiage library terms a draft follows.", 12),
+    categories: z
+      .array(z.string())
+      .optional()
+      .meta({
+        description: "For a risk assessment, the canon Risk categories the draft may use.",
+        example: ["Operational", "Commercial", "Safety", "Reputational", "Schedule"],
+      }),
   })
   .meta({
     id: "AuroraPreview",
     description:
       "What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered.",
+  });
+
+const ApplyDraftBody = z
+  .object({
+    request_id: fields.ref("drafting request whose list is confirmed"),
+    items: z
+      .array(
+        z.object({
+          suggestion_id: fields.ref("suggestion holding the line"),
+          values: z
+            .record(z.string(), z.unknown())
+            .optional()
+            .meta({
+              description:
+                "Values the person changed, overriding the proposed ones key by key. Cues take label, planned_at, duration, segment and description; risks take record_subtype, title, risk.likelihood, risk.impact and risk.mitigation.",
+              example: { label: "Doors Open" },
+            }),
+        }),
+      )
+      .min(1)
+      .max(MAX_DRAFTED_LINES)
+      .meta({
+        description: "The kept lines in list order: at most 60 cues or 40 risks.",
+        example: [{ suggestion_id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }],
+      }),
+  })
+  .meta({ id: "AuroraApplyDraftRequest", description: "The lines of a drafted list to add." });
+
+const AppliedDraft = z
+  .object({
+    written: z
+      .array(
+        z.object({
+          suggestion_id: fields.ref("suggestion applied"),
+          id: fields.ref("cue or Risk record written"),
+        }),
+      )
+      .meta({
+        description: "Each kept line with the row it wrote, in list order.",
+        example: [
+          {
+            suggestion_id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+            id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e70",
+          },
+        ],
+      }),
+    rejected: fields.int("Lines of the draft left out and rejected.", 2),
+  })
+  .meta({ id: "AuroraAppliedDraft", description: "What a confirmed drafted list wrote." });
+
+// Intake batches and drafted answers (B15) ------------------------------------------------------
+
+const IntakeKind = z.enum(["Itineraries", "Contracts and Riders"]).meta({
+  id: "AuroraIntakeKind",
+  description: "What an intake batch reads: Itineraries or Contracts and Riders.",
+  example: "Itineraries",
+});
+
+const StartIntakeBody = z
+  .object({
+    project_id: fields.ref("project the files are read for"),
+    kind: IntakeKind,
+    file_count: z.number().int().min(1).max(25).meta({
+      description:
+        "Files the batch reads, 1 to 25: one metered request each, checked against this month's allowance first.",
+      example: 3,
+    }),
+    fulfillment_id: fields
+      .ref("Travel fulfillment of the project the segments are filed under, for Itineraries")
+      .optional(),
+  })
+  .meta({ id: "AuroraStartIntakeRequest", description: "An intake batch to open." });
+
+const IntakeSuggestion = z
+  .object({
+    id: fields.ref("suggestion"),
+    request_id: fields.ref("request that proposed it"),
+    operation_id: fields.text("Operation that applies it.", "auroraIntakes.applyItineraries", 100),
+    target_id: orNull(fields.ref("record it updates")),
+    summary: fields.text("What will change.", "Add segment 1: MIA to ORD.", 1000),
+    suggestion_state: SuggestionState,
+    expires_at: fields.instant("After this time it can no longer be applied."),
+    applied_id: orNull(fields.ref("record written, once Applied")),
+    proposed_fields: z.array(SuggestionField).meta({
+      description:
+        "Proposed fields in order; a Restricted field is left out for anyone who may not read it.",
+      example: [],
+    }),
+  })
+  .meta({ id: "AuroraIntakeSuggestion", description: "A Proposed suggestion of an intake batch." });
+
+/** Audit people are nullable: updated_by stays null until the batch is closed. */
+const AuroraIntake = editDefinition(
+  defineResource({
+    name: "AuroraIntake",
+    table: "app.ai_intake_batches",
+    description:
+      "An Aurora intake batch (B15): the files it reads, its requests and its Proposed suggestions, read with the caller's permissions, so a preview reloads within the seven-day expiry.",
+    fields: {
+      project_id: fields.ref("project"),
+      intake_kind: IntakeKind,
+      fulfillment_id: orNull(fields.ref("Travel fulfillment the segments are filed under")),
+      file_count: fields.int("Files the batch reads.", 3),
+      closed_at: orNull(fields.instant("When the batch was applied or closed.")),
+      requests: z
+        .array(
+          z.object({
+            id: fields.ref("request"),
+            outcome: RequestOutcome,
+            failure_code: orNull(fields.text("Why it failed.", "model_error", 64)),
+            created_at: fields.instant("When the file was read."),
+          }),
+        )
+        .meta({ description: "One request per file read, oldest first.", example: [] }),
+      suggestions: z
+        .array(IntakeSuggestion)
+        .meta({ description: "Proposed suggestions, oldest first.", example: [] }),
+    },
+    serverSet: [
+      "project_id",
+      "intake_kind",
+      "fulfillment_id",
+      "file_count",
+      "closed_at",
+      "requests",
+      "suggestions",
+    ],
+  }),
+  AUDIT_NULLABLE,
+);
+
+const ApplyItinerariesBody = z
+  .object({
+    items: z
+      .array(
+        z.object({
+          suggestion_id: fields.ref("segment suggestion kept"),
+          values: z.record(z.string(), z.unknown()).meta({
+            description:
+              "The person's values, overriding the proposed fields key by key: person_id (required), engagement_id, fulfillment_id, departs_at and arrives_at (instants), the zones, places, operator, service and confirmation, travel_mode, price_minor and currency_code.",
+            example: {
+              person_id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              departs_at: "2027-06-01T12:15:00Z",
+            },
+          }),
+        }),
+      )
+      .min(1)
+      .max(1500)
+      .meta({ description: "The kept segments: 25 files of at most 60.", example: [] }),
+  })
+  .meta({
+    id: "AuroraApplyItinerariesRequest",
+    description: "The segments of an itinerary intake to add.",
+  });
+
+const CheckItinerariesBody = z
+  .object({
+    segments: z
+      .array(
+        z.object({
+          person_id: fields.ref("traveler the person picked"),
+          service_identifier: orNull(
+            fields.text("Flight or service number of the row.", "GA 100", 40),
+          ).optional(),
+          departs_at: orNull(fields.instant("Departure of the row.")).optional(),
+        }),
+      )
+      .max(1500)
+      .meta({ description: "The preview's rows, in order.", example: [] }),
+  })
+  .meta({
+    id: "AuroraCheckItinerariesRequest",
+    description: "Preview rows of an itinerary intake to check against the traveler's segments.",
+  });
+
+const ItineraryCheck = z
+  .object({
+    booked: z.array(z.number().int().min(1)).meta({
+      description:
+        "Positions, from 1, of the rows the traveler already has as a live segment of the org with the same service and departure.",
+      example: [2],
+    }),
+  })
+  .meta({ id: "AuroraItineraryCheck", description: "Which preview rows are already booked." });
+
+const AppliedIntake = z
+  .object({
+    written: z
+      .array(
+        z.object({
+          suggestion_id: fields.ref("suggestion applied"),
+          id: fields.ref("row written"),
+        }),
+      )
+      .meta({ description: "Each kept suggestion with the row it wrote.", example: [] }),
+    rejected: fields.int("Suggestions of the batch left out and rejected.", 2),
+  })
+  .meta({ id: "AuroraAppliedIntake", description: "What an applied intake wrote." });
+
+const ApplyContractsBody = z
+  .object({
+    groups: z
+      .array(
+        z.object({
+          act_name: fields.text("The act, as grouped.", "The Midnight Owls", 200),
+          engagement: z.object({
+            mode: z.enum(["new", "existing"]).meta({
+              description: "Book a new Artist engagement, or attach riders to a live one.",
+              example: "new",
+            }),
+            engagement_id: fields
+              .ref("live Artist engagement of the project, for existing")
+              .optional(),
+            contract_suggestion_id: fields
+              .ref("contract suggestion whose dates, fee and currency are kept")
+              .optional(),
+            values: z
+              .record(z.string(), z.unknown())
+              .optional()
+              .meta({
+                description:
+                  "The person's party and terms: person_id and/or counterparty_id, role_code, worker_classification, pay_basis, arrangement, and any start_date, end_date, agreed_rate_minor or currency_code to change.",
+                example: {
+                  person_id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  role_code: "2000.50.02",
+                },
+              }),
+          }),
+          riders: z
+            .array(
+              z.object({
+                header_suggestion_id: fields.ref("rider suggestion kept"),
+                title: fields
+                  .text("The rider's title, when changed.", "Technical Rider", 200)
+                  .optional(),
+                line_suggestion_ids: z
+                  .array(z.uuid())
+                  .max(100)
+                  .optional()
+                  .meta({ description: "Rider lines kept.", example: [] }),
+                line_values: z
+                  .record(z.string(), z.record(z.string(), z.unknown()))
+                  .optional()
+                  .meta({
+                    description: "Changed description or quantity by line suggestion id.",
+                    example: {},
+                  }),
+              }),
+            )
+            .max(25)
+            .optional()
+            .meta({ description: "The act's riders.", example: [] }),
+        }),
+      )
+      .min(1)
+      .max(25)
+      .meta({ description: "The acts to book, at most 25.", example: [] }),
+  })
+  .meta({
+    id: "AuroraApplyContractsRequest",
+    description: "The acts of a contract intake to book.",
+  });
+
+const AppliedContracts = z
+  .object({
+    applied: z
+      .array(
+        z.object({
+          suggestion_id: fields.ref("suggestion applied"),
+          id: fields.ref("engagement, rider or rider line written"),
+        }),
+      )
+      .meta({ description: "Each kept suggestion with what it wrote.", example: [] }),
+    engagements: fields.int("Artist engagements booked.", 2),
+    riders: fields.int("Riders written.", 3),
+    rider_lines: fields.int("Rider lines written.", 12),
+    rejected: fields.int("Suggestions of the batch left out and rejected.", 1),
+  })
+  .meta({ id: "AuroraAppliedContracts", description: "What an applied contract intake wrote." });
+
+const ApplyAdvanceAnswerBody = z
+  .object({
+    suggestion_id: fields.ref("drafted advance answer accepted"),
+    values: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .meta({
+        description: "The person's changes: body, lines (R9's line shape) or note.",
+        example: { body: "Two trucks at 07:00." },
+      }),
+    source: z
+      .object({
+        inbound_message_id: fields.ref("project inbox message the draft was read from").optional(),
+        file_name: fields.text("File the draft was read from.", "tour-book.pdf", 300).optional(),
+      })
+      .meta({
+        description: "The draft's source, checked again: exactly one of a message and a file name.",
+        example: { file_name: "tour-book.pdf" },
+      }),
+  })
+  .meta({
+    id: "AuroraApplyAdvanceAnswerRequest",
+    description: "A drafted advance answer to record on the party's behalf.",
+  });
+
+const AppliedAdvanceAnswer = z
+  .object({ submission_id: fields.ref("advance answer recorded") })
+  .meta({
+    id: "AuroraAppliedAdvanceAnswer",
+    description: "The advance answer a drafted answer recorded.",
   });
 
 const action = (verb: string, summary: string, description: string, body: z.ZodType): ActionSpec =>
@@ -566,15 +1002,22 @@ export const auroraResources: readonly ResourceSpec[] = [
       action(
         "extract",
         "Extract a document",
-        "Reads a rider, insurance certificate, invoice, receipt or quote into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms.",
+        "Reads a rider, insurance certificate, invoice, receipt or quote into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. B15: an itinerary, contract or intake rider read into an intake batch (intake_batch_id), whose suggestions are applied together; the lines of a Proposed payable invoice (invoice_lines with invoice_id, aurora_invoice_not_proposed otherwise); a receipt's items. The answer adds the tie-out against printed totals, the vendor's line history, the itinerary checks and traveler or party candidates. Every refusal comes before any model call and is not metered.",
         ExtractBody,
       ),
       action(
         "draft",
         "Draft text",
-        "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent.",
+        "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. B15: advance answers for a recipient of a sent packet (`target` advance-recipients) from one `source`, each answer a suggestion for `aurora.applyAdvanceAnswer`, the sections the source does not answer listed; and an event plan, event brief, approval pack or waste plan from a project's own records (`target` projects), held to its outline.",
         DraftBody,
       ),
+      collectionAction("applyDraft", {
+        summary: "Add a drafted list",
+        description:
+          "Adds the kept lines of a drafted run of show or risk assessment in one transaction, with the values the person changed, only while the list is still empty (aurora_draft_list_not_empty otherwise, with nothing written). Every other line of the draft is rejected. A line the database refuses names its line number and nothing is written. Calls no model and meters nothing.",
+        body: ApplyDraftBody,
+        response: AppliedDraft,
+      }),
       action(
         "summarize",
         "Summarize activity",
@@ -593,12 +1036,66 @@ export const auroraResources: readonly ResourceSpec[] = [
         "Suggests the catalog element an unknown scanned code identifies, only from the candidates given, and proposes `catalogBindings.create` for confirmation.",
         BindCodeBody,
       ),
+      collectionAction("applyAdvanceAnswer", {
+        summary: "Record a drafted advance answer",
+        description:
+          "Records one advance answer Aurora drafted, on the recipient's behalf, through the single writer of advance answers (B15, ADR 0154): the caller holds advancing.submission.review on the packet's project and asked for the draft. The source is checked again. The caller becomes the answer's submitter, so someone else reviews it, and Gateway labels it as recorded by the org. An open answer refuses advance_answer_pending. Calls no model and meters nothing.",
+        body: ApplyAdvanceAnswerBody,
+        response: AppliedAdvanceAnswer,
+      }),
       collectionAction("preview", {
         summary: "Preview what a request would send",
         description:
           "Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95).",
         body: PreviewBody,
         response: AuroraPreview,
+      }),
+    ],
+  }),
+  // Its own op, since every resource names one: auroraIntakes.start, get, close and the applies. get
+  // returns a batch of the caller with its requests and Proposed suggestions, so a preview reloads
+  // within the seven-day expiry; another person's batch is not found.
+  resource("Settings", "/aurora/intakes", AuroraIntake, {
+    op: "auroraIntakes",
+    label: "Aurora intake",
+    verbs: ["get"],
+    actions: [
+      collectionAction("start", {
+        segment: "",
+        summary: "Start an intake",
+        description:
+          "Opens an intake batch for up to 25 itineraries or contracts and riders (B15). Itineraries need hospitality.fulfillment.write on the project; contracts and riders need opportunities.engagement.write and advancing.rider.write. The plan, the extraction switch and this month's remaining allowance are checked for every file first (XR001 plan_limit_exceeded). Each file is then read with aurora.extract and the batch's intake_batch_id, one metered request each.",
+        body: StartIntakeBody,
+        response: AuroraIntake.read,
+      }),
+      itemAction("close", {
+        summary: "Close an intake",
+        description:
+          "Closes the caller's intake batch, rejecting its Proposed suggestions. A closed batch reads no more files.",
+        response: z
+          .object({ rejected: fields.int("Suggestions rejected.", 4) })
+          .meta({ id: "AuroraClosedIntake", description: "What closing an intake rejected." }),
+      }),
+      itemAction("applyItineraries", {
+        summary: "Add an intake's travel segments",
+        description:
+          "Adds the kept segments of an itinerary intake in one transaction under its Travel fulfillment, with the person's traveler, times and values. A segment repeating a live one of the same person refuses itinerary_duplicate and nothing is written. The other suggestions are rejected and the batch is closed. Calls no model and meters nothing.",
+        body: ApplyItinerariesBody,
+        response: AppliedIntake,
+      }),
+      itemAction("checkItineraries", {
+        summary: "Check an intake's segments",
+        description:
+          "Says which preview rows of the caller's itinerary intake the traveler already has as a live segment of the org with the same service and departure, so the preview leaves them out: the rows applying would refuse as itinerary_duplicate. Rows without a traveler, service or departure are never booked. Returns positions only. Writes nothing, calls no model and meters nothing.",
+        body: CheckItinerariesBody,
+        response: ItineraryCheck,
+      }),
+      itemAction("applyContracts", {
+        summary: "Book an intake's acts",
+        description:
+          "Books the kept acts of a contract intake in one transaction (ADR 0154): an Artist engagement at Onboarding per new act with the person's party, role and terms and the contract's dates, fee and currency, and each act's riders and lines. A fee from a caller who may not read pay rates refuses intake_fee_restricted; an act without a party refuses intake_group_party; the engagement plan limit refuses XR001. Any refusal writes nothing. The other suggestions are rejected and the batch is closed.",
+        body: ApplyContractsBody,
+        response: AppliedContracts,
       }),
     ],
   }),
@@ -669,6 +1166,7 @@ export const auroraResources: readonly ResourceSpec[] = [
 export const auroraCapabilities: Readonly<Record<string, CapabilityRule>> = {
   aurora: { read: "home.dashboard.read", write: "home.dashboard.read" },
   aiSuggestions: { read: "home.dashboard.read", write: "home.dashboard.read" },
+  auroraIntakes: { read: "home.dashboard.read", write: "home.dashboard.read" },
   aiRequests: { read: "audit.log.read" },
   aiUsage: { read: "org.usage.read" },
   aiSettings: { actions: { save: "org.ai.write" } },

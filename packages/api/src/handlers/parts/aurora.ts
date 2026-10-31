@@ -11,15 +11,31 @@
  * Restricted masking, so Aurora can never see more than the caller. What comes back is scrubbed of
  * Restricted columns, masked values and excluded tables (app.ai_never_send) before any prompt.
  *
+ * A run of show or risk assessment (P6) is drafted only into an empty list: the database answers
+ * whether it is empty (app.drafted_list_is_empty) before any model call or metering, the draft reads
+ * the list's own records through `listDraftItems` (which the preview shares, so the panel lists
+ * exactly what is sent), and `aurora.applyDraft` writes the kept lines in one transaction
+ * (app.apply_drafted_list), again only while the list is empty.
+ *
  * The model client is the Anthropic client unless a test passes another; the API key stays in the
  * server environment, read only by the SDK.
  */
 import type { ModelClient, ModelConfig, PublicApi, ApiCollection, AuroraResult } from "@xos/ai";
 import {
+  airportCodes,
   askAssistant,
   buildFilter,
+  checkItinerary,
   draft,
+  draftAdvanceAnswers,
+  draftList,
+  isGovernanceKind,
+  isListDraftKind,
   extractDocument,
+  withholdIdentity,
+  type DocumentKind,
+  type GovernanceKind,
+  type RestrictedCapability,
   loadModelConfig,
   NeverSendList,
   scrubRecord,
@@ -29,22 +45,46 @@ import {
   type AuroraContext,
   type FilterCollection,
   type CatalogField,
+  type ListDraftKind,
   type VocabularyTerm,
 } from "@xos/ai";
 import {
+  activeAirportCodes,
+  applyContractIntake,
+  applyDraftedAdvanceAnswer,
+  applyDraftedList,
+  applyItineraryIntake,
+  bookedItinerarySegments,
+  closeIntake,
   createAuroraStore,
+  draftableAdvanceSections,
+  draftedListIsEmpty,
   getAiAllowance,
+  intakePartyCandidates,
+  itineraryTravelerCandidates,
   listAiNeverSend,
   listEnabledAiFeatures,
+  readsPayroll,
   saveAiSettings,
+  startIntake,
   transitionAiSuggestion,
+  vendorLineHistory,
+  type AiIntake,
+  type AiIntakeKind,
 } from "@xos/data/ai";
 import { todayIn } from "@xos/data/calendar";
 import { readOrgTimeZone } from "@xos/data/settings";
 import { z } from "zod";
 import type { ResourceSpec } from "../../catalog/types.ts";
-import { ApiProblem, fromDatabaseError, isDatabaseError, refused } from "../../problem.ts";
+import {
+  ApiProblem,
+  fromDatabaseError,
+  isDatabaseError,
+  notFound,
+  refused,
+} from "../../problem.ts";
 import type { RequestContext } from "../../runtime/context.ts";
+import { etagOf } from "../../runtime/etag.ts";
 import { requireOrg, requirePerson } from "../../runtime/context.ts";
 import {
   ok,
@@ -53,6 +93,17 @@ import {
   type ErasedResult,
 } from "../../runtime/handler.ts";
 import { from, run, tableResource, unwrap, type Row } from "../support/table.ts";
+import {
+  GOVERNANCE_OUTLINES,
+  governanceItems,
+  INTAKE_KIND_OF,
+  intakeBody,
+  itineraryLines,
+  ownIntake,
+  proposedValue,
+  readInboxMessage,
+  readProposedInvoice,
+} from "./aurora-intake.ts";
 
 export interface AuroraDeps {
   /** The model client for one request. */
@@ -281,6 +332,111 @@ async function readItems(
   return out;
 }
 
+// Drafted lists (P6) ---------------------------------------------------------------------------
+
+/** The collection and table of the list each kind fills. */
+const LIST_TARGETS: Readonly<Record<ListDraftKind, { collection: string; table: string }>> = {
+  run_of_show: { collection: "run-of-show", table: "app.run_of_show" },
+  risk_assessment: { collection: "projects", table: "app.projects" },
+};
+
+/** The refusal sentence for a list that already has entries, as app.apply_drafted_list words it. */
+const NOT_EMPTY: Readonly<Record<ListDraftKind, string>> = {
+  run_of_show: "This running order already has cues. Aurora only drafts into an empty list.",
+  risk_assessment:
+    "This list already has entries, including archived or canceled ones. Aurora only drafts into an empty list.",
+};
+
+/** The list a drafted run of show or risk assessment fills, refused when absent or of another kind. */
+export function listTarget(
+  kind: ListDraftKind,
+  target: { collection: string; id: string } | undefined,
+): { collection: string; id: string } {
+  if (!target) {
+    throw refused(
+      "REFUSE",
+      "Name the list to draft into: a running order for a run of show, a project for a risk assessment.",
+      "aurora_draft_target_required",
+    );
+  }
+  if (target.collection !== LIST_TARGETS[kind].collection) {
+    throw refused(
+      "REFUSE",
+      `A ${kind === "run_of_show" ? "run of show" : "risk assessment"} is drafted into ${LIST_TARGETS[kind].collection}, not ${target.collection}.`,
+      "aurora_draft_target_mismatch",
+    );
+  }
+  return target;
+}
+
+export interface DraftItem {
+  readonly collection: string;
+  readonly id: string;
+  readonly table: string;
+  readonly data: Row;
+}
+
+/**
+ * Everything a drafted list sends, read with the caller's permissions: the list's record (the
+ * running order, or the project), for a run of show its project and its schedule record (usually the
+ * Event, whose subtype is the event type), for a risk assessment up to 10 Event records of the
+ * project, then the context the request names (at most 20), each record once. `aurora.draft` and
+ * `aurora.preview` both read through it, so the preview lists exactly what is sent.
+ */
+export async function listDraftItems(
+  api: PublicApi,
+  specs: readonly ResourceSpec[],
+  kind: ListDraftKind,
+  target: { collection: string; id: string },
+  context: readonly { collection: string; id: string }[],
+): Promise<DraftItem[]> {
+  const out: DraftItem[] = [];
+  const add = (collection: string, id: string, data: unknown) => {
+    const spec = specs.find((s) => s.path === `/${collection}`);
+    if (!spec || typeof data !== "object" || data === null) return;
+    if (out.some((r) => r.collection === collection && r.id === id)) return;
+    out.push({ collection, id, table: spec.def.table, data: data as Row });
+  };
+  const read = async (collection: string, id: unknown) => {
+    if (typeof id !== "string") return null;
+    const response = await api.get(`/${collection}/${id}`, {});
+    if (response.status !== 200) return null;
+    add(collection, id, response.body);
+    return response.body as Row;
+  };
+  const listed = await read(target.collection, target.id);
+  if (kind === "run_of_show" && listed) {
+    await read("projects", listed["project_id"]);
+    await read("records", listed["record_id"]);
+  }
+  if (kind === "risk_assessment" && listed) {
+    const events = await api.get("/records", {
+      "filter[project_id][eq]": target.id,
+      "filter[record_kind][eq]": "Event",
+      limit: "10",
+    });
+    const rows = (events.body as { data?: unknown } | null)?.data;
+    if (events.status === 200 && Array.isArray(rows)) {
+      for (const row of rows as Row[]) {
+        if (typeof row["id"] === "string") add("records", row["id"], row);
+      }
+    }
+  }
+  for (const item of context.slice(0, 20)) await read(item.collection, item.id);
+  return out;
+}
+
+/** The canon Risk subtypes, in canon order, read as the caller (xpms is readable by every member). */
+async function readRiskCategories(context: RequestContext): Promise<string[]> {
+  const rows = await run<{ record_subtype: string }[]>(
+    from(context.db, "dim_record_subtype", "xpms")
+      .select("record_subtype, ordinal")
+      .eq("record_kind", "Risk")
+      .order("ordinal", { ascending: true }),
+  );
+  return rows.map((r) => String(r.record_subtype));
+}
+
 type SummaryKind = "record_activity" | "project_week" | "gate_readiness";
 
 /**
@@ -436,6 +592,43 @@ const TRANSITIONS: Readonly<Record<string, Transition>> = {
   reopen: { expected: "Confirmed", next: "Proposed" },
 };
 
+/** The source of drafted advance answers, as the request sends it. */
+interface DraftSourceBody {
+  readonly inbound_message_id?: string;
+  readonly document?: {
+    readonly media_type:
+      "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    readonly content_base64: string;
+    readonly file_name: string;
+  };
+}
+
+const ADVANCE_LABEL = "Advance answers";
+const GOVERNANCE_LABEL = "Event plans, briefs, approval packs and waste plans";
+
+/** The record a B15 draft is about, refused when absent or of another collection. */
+export function draftTarget(
+  target: { collection: string; id: string } | undefined,
+  collection: string,
+  label: string,
+): { collection: string; id: string } {
+  if (!target) {
+    throw refused(
+      "REFUSE",
+      `${label} need a target in ${collection}.`,
+      "aurora_draft_target_required",
+    );
+  }
+  if (target.collection !== collection) {
+    throw refused(
+      "REFUSE",
+      `${label} are drafted for ${collection}, not ${target.collection}.`,
+      "aurora_draft_target_mismatch",
+    );
+  }
+  return target;
+}
+
 /** The Aurora handler set, keyed by operationId, for the Settings module file to spread. */
 export function auroraHandlers(
   overrides: Partial<AuroraDeps> = {},
@@ -453,17 +646,235 @@ export function auroraHandlers(
     return { neverSend, specs, api };
   };
 
+  /** The request context a feature runs with: the model, the store over the caller's session. */
+  const modelSetup = async (context: RequestContext): Promise<AuroraContext> => ({
+    orgId: requireOrg(context).id,
+    client: await deps.model(),
+    store: createAuroraStore(context.db),
+    config: deps.config(),
+    today: await deps.today(context),
+  });
+
   const setup = async (context: RequestContext) => {
-    const org = requireOrg(context);
     const read = await readSetup(context);
-    const ctx: AuroraContext = {
-      orgId: org.id,
-      client: await deps.model(),
-      store: createAuroraStore(context.db),
-      config: deps.config(),
-      today: await deps.today(context),
-    };
-    return { ctx, ...read };
+    return { ctx: await modelSetup(context), ...read };
+  };
+
+  /** A run of show or risk assessment, drafted only into an empty list (P6). */
+  const draftIntoList = async (
+    context: RequestContext,
+    kind: ListDraftKind,
+    body: {
+      instructions: string;
+      target?: { collection: string; id: string };
+      context?: { collection: string; id: string }[];
+      verbiage?: { term: string; preferred: string }[];
+    },
+  ) => {
+    const target = listTarget(kind, body.target);
+    const { neverSend, specs, api } = await readSetup(context);
+    // Before any model call or metering: a caller who may not write to the list gets 404, and a
+    // list with entries (also ones the caller cannot see) is refused.
+    if (!unwrap(await draftedListIsEmpty(context.db, kind, target.id))) {
+      throw refused("REFUSE", NOT_EMPTY[kind], "aurora_draft_list_not_empty");
+    }
+    const [records, vocabulary, categories] = await Promise.all([
+      listDraftItems(api, specs, kind, target, body.context ?? []),
+      readVocabulary(api),
+      kind === "risk_assessment" ? readRiskCategories(context) : Promise.resolve([]),
+    ]);
+    const listed = records.find((r) => r.collection === target.collection && r.id === target.id);
+    if (!listed) throw notFound("The list to draft into is not visible to you.");
+    let runOfShow: { runOfShowId: string; showDate: string; timeZone: string } | undefined;
+    if (kind === "run_of_show") {
+      const project = records.find(
+        (r) => r.collection === "projects" && r.id === listed.data["project_id"],
+      );
+      const zone = project?.data["time_zone"];
+      runOfShow = {
+        runOfShowId: target.id,
+        showDate: String(listed.data["show_date"]),
+        timeZone: typeof zone === "string" && zone !== "" ? zone : await deps.timeZone(context),
+      };
+    }
+    const result = await draftList(await modelSetup(context), {
+      kind,
+      instructions: body.instructions,
+      target: { table: LIST_TARGETS[kind].table, id: target.id },
+      context: records,
+      verbiage: body.verbiage ?? [],
+      vocabulary,
+      neverSend,
+      ...(runOfShow ? { runOfShow } : {}),
+      ...(kind === "risk_assessment" ? { risks: { projectId: target.id, categories } } : {}),
+    });
+    if (result.kind !== "answer") return toResponse(result);
+    // Each line carries the suggestion that holds it; proposals come in line order.
+    const items = (result.value.items as readonly object[]).map((item, i) => ({
+      suggestion_id: result.proposals[i]?.suggestionId ?? null,
+      ...item,
+    }));
+    return toResponse({
+      ...result,
+      value: {
+        ...result.value,
+        items,
+        ...(kind === "risk_assessment" ? { categories } : {}),
+      },
+    });
+  };
+
+  /** The recipient's draftable sections and the source, read and checked before any model call (B15). */
+  const answerSetup = async (
+    context: RequestContext,
+    recipientId: string,
+    source: DraftSourceBody | undefined,
+  ) => {
+    const hasMessage = typeof source?.inbound_message_id === "string";
+    const hasDocument = source?.document !== undefined;
+    if (hasMessage === hasDocument) {
+      throw refused(
+        "REFUSE",
+        "Name one source: a project inbox message or a file.",
+        "aurora_draft_source_invalid",
+      );
+    }
+    const sections = unwrap(await draftableAdvanceSections(context.db, recipientId));
+    const message = hasMessage
+      ? await readInboxMessage(context, String(source?.inbound_message_id), sections.project_id)
+      : null;
+    return { sections, message, document: source?.document ?? null };
+  };
+
+  /** What drafted answers send, as preview records: the sections, the roster's names and the source. */
+  const answerPreview = (
+    read: Awaited<ReturnType<typeof answerSetup>>,
+    neverSend: NeverSendList,
+  ) => [
+    ...read.sections.sections.map((s) => ({
+      collection: "advance-sections",
+      id: s.id,
+      sent: true,
+      fields: ["title", "prompt", "kind", "window_kind", "max_lines", "per_person", "choices"],
+      withheld: [],
+      data: {
+        title: s.title,
+        prompt: s.prompt,
+        kind: s.kind,
+        window_kind: s.window_kind,
+        max_lines: s.max_lines,
+        per_person: s.per_person,
+        choices: s.choices.map((c) => c.name),
+      },
+    })),
+    ...read.sections.roster.map((r) => ({
+      collection: "engagement-roster-entries",
+      id: r.id,
+      sent: true,
+      fields: ["name"],
+      withheld: [],
+      data: { name: r.name },
+    })),
+    ...(read.message
+      ? [
+          {
+            collection: "inbound-messages",
+            id: read.message.id,
+            sent: true,
+            fields: ["body_text"],
+            withheld: [],
+            data: scrubRecord("app.inbound_messages", { body_text: read.message.body }, neverSend),
+          },
+        ]
+      : []),
+  ];
+
+  /** Advance answers for a recipient of a sent packet, from one source (B15, G-173). */
+  const draftAnswers = async (
+    context: RequestContext,
+    body: { target?: { collection: string; id: string }; source?: DraftSourceBody },
+  ) => {
+    const target = draftTarget(body.target, "advance-recipients", ADVANCE_LABEL);
+    const read = await answerSetup(context, target.id, body.source);
+    if (read.sections.sections.length === 0) {
+      throw refused(
+        "REFUSE",
+        "This recipient has no open section Aurora can draft.",
+        "advance_section_not_draftable",
+      );
+    }
+    const { neverSend } = await readSetup(context);
+    const document = read.document;
+    const result = await draftAdvanceAnswers(await modelSetup(context), {
+      recipientId: target.id,
+      sections: read.sections.sections,
+      roster: read.sections.roster,
+      timeZone: read.sections.time_zone,
+      source: read.message
+        ? { kind: "message", messageId: read.message.id, body: read.message.body }
+        : {
+            kind: "document",
+            fileName: String(document?.file_name),
+            document: {
+              type: "document",
+              mediaType: document?.media_type ?? "text/plain",
+              data:
+                document?.media_type === "text/plain"
+                  ? Buffer.from(String(document.content_base64), "base64").toString("utf8")
+                  : String(document?.content_base64),
+            },
+          },
+      neverSend,
+    });
+    if (result.kind !== "answer") return toResponse(result);
+    const title = (id: string) => read.sections.sections.find((s) => s.id === id)?.title ?? "";
+    // Answers and their suggestions come in the same order.
+    return toResponse({
+      ...result,
+      value: {
+        answers: result.value.answers.map((a, i) => ({
+          suggestion_id: result.proposals[i]?.suggestionId ?? null,
+          section_title: title(a.section_id),
+          ...a,
+        })),
+        unanswered: result.value.unanswered.map((id) => ({ section_id: id, title: title(id) })),
+      },
+    });
+  };
+
+  /** An event plan, brief, approval pack or waste plan from the project's own records (B15, G-240). */
+  const draftGovernance = async (
+    context: RequestContext,
+    kind: GovernanceKind,
+    body: {
+      instructions: string;
+      target?: { collection: string; id: string };
+      verbiage?: { term: string; preferred: string }[];
+      outline?: string[];
+    },
+  ) => {
+    const target = draftTarget(body.target, "projects", GOVERNANCE_LABEL);
+    const { ctx, neverSend, specs, api } = await setup(context);
+    const [records, vocabulary] = await Promise.all([
+      governanceItems(api, specs, kind, target.id),
+      readVocabulary(api),
+    ]);
+    if (!records.some((r) => r.collection === "projects" && r.id === target.id)) {
+      throw notFound("The project is not visible to you.");
+    }
+    // Subject null: a drafting request about app.projects is reserved for P6's drafted risk list.
+    return toResponse(
+      await draft(ctx, {
+        kind,
+        instructions: body.instructions,
+        context: records,
+        verbiage: body.verbiage ?? [],
+        vocabulary,
+        neverSend,
+        subject: null,
+        outline: body.outline && body.outline.length > 0 ? body.outline : GOVERNANCE_OUTLINES[kind],
+      }),
+    );
   };
 
   const handlers: Record<string, ErasedHandler> = {
@@ -556,34 +967,179 @@ export function auroraHandlers(
 
     "aurora.extract": async (request, context) => {
       const body = request.body as {
-        kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+        kind: DocumentKind;
         document_id?: string | null;
-        media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
-        content_base64: string;
-        file_name: string;
+        intake_batch_id?: string;
+        invoice_id?: string;
+        inbound_message_id?: string;
+        media_type?: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+        content_base64?: string;
+        file_name?: string;
       };
-      const { ctx } = await setup(context);
-      const data =
-        body.media_type === "text/plain"
-          ? Buffer.from(body.content_base64, "base64").toString("utf8")
-          : body.content_base64;
-      return toResponse(
-        await extractDocument(ctx, {
-          kind: body.kind,
-          document: { type: "document", mediaType: body.media_type, data },
-          fileName: body.file_name,
-          subject: body.document_id ? { table: "app.documents", id: body.document_id } : null,
-        }),
-      );
+      // Every check below comes before app.ai_begin_request, so a refused file is never metered.
+      const hasFile = typeof body.content_base64 === "string";
+      const hasMessage = typeof body.inbound_message_id === "string";
+      if (hasFile === hasMessage) {
+        throw refused(
+          "REFUSE",
+          "Send exactly one source: a file or a project inbox message.",
+          "aurora_extract_source",
+        );
+      }
+      if (hasMessage && body.kind !== "itinerary") {
+        throw refused(
+          "REFUSE",
+          "Only an itinerary is read from a project inbox message.",
+          "aurora_extract_source",
+        );
+      }
+      if (hasFile && (!body.media_type || !body.file_name)) {
+        throw refused(
+          "REFUSE",
+          "A file is sent with its media type and file name.",
+          "aurora_extract_source",
+        );
+      }
+      requireOrg(context);
+      requirePerson(context);
+      const intakeKind = INTAKE_KIND_OF[body.kind];
+      let batch: AiIntake | null = null;
+      if (body.intake_batch_id) {
+        batch = await ownIntake(context, body.intake_batch_id);
+        if (batch.intake_kind !== intakeKind) {
+          throw refused(
+            "REFUSE",
+            "This file is not of the kind the intake reads.",
+            "aurora_intake_item_invalid",
+          );
+        }
+      } else if (intakeKind) {
+        throw refused(
+          "REFUSE",
+          "Read this file into an intake, so its rows are added together.",
+          "aurora_intake_item_invalid",
+        );
+      }
+      let invoice: { id: string; currencyCode: string } | null = null;
+      if (body.kind === "invoice_lines") {
+        if (!body.invoice_id) {
+          throw refused(
+            "REFUSE",
+            "Aurora reads lines only into a Proposed payable invoice.",
+            "aurora_invoice_not_proposed",
+          );
+        }
+        invoice = await readProposedInvoice(context, body.invoice_id);
+      }
+      const message =
+        hasMessage && batch
+          ? await readInboxMessage(context, String(body.inbound_message_id), batch.project_id)
+          : null;
+      const readable: RestrictedCapability[] =
+        body.kind === "contract" &&
+        batch &&
+        unwrap(await readsPayroll(context.db, batch.project_id))
+          ? ["data.restricted.read.payroll"]
+          : [];
+      const subject = batch
+        ? { table: "app.ai_intake_batches", id: batch.id }
+        : invoice
+          ? { table: "app.invoices", id: invoice.id }
+          : body.document_id
+            ? { table: "app.documents", id: body.document_id }
+            : null;
+      const { ctx, neverSend } = await setup(context);
+      // An inbox body goes as a text document, which the request log records as [document text/plain].
+      const document = message
+        ? {
+            type: "document" as const,
+            mediaType: "text/plain" as const,
+            data: withholdIdentity(
+              String(
+                scrubRecord("app.inbound_messages", { body_text: message.body }, neverSend)?.[
+                  "body_text"
+                ] ?? "",
+              ),
+            ),
+          }
+        : {
+            type: "document" as const,
+            mediaType: body.media_type ?? "text/plain",
+            data:
+              body.media_type === "text/plain"
+                ? Buffer.from(String(body.content_base64), "base64").toString("utf8")
+                : String(body.content_base64),
+          };
+      const result = await extractDocument(ctx, {
+        kind: body.kind,
+        document,
+        fileName: message ? (message.subject ?? "Project inbox message") : String(body.file_name),
+        subject,
+        readable,
+        ...(invoice ? { invoiceCurrency: invoice.currencyCode } : {}),
+      });
+      if (result.kind !== "answer") return toResponse(result);
+
+      // Hints read after the model call, with the caller's permissions: never a value Aurora writes.
+      let extra: Record<string, unknown> = {};
+      if (body.kind === "itinerary" && batch) {
+        const lines = itineraryLines(result.proposals);
+        const airports = unwrap(
+          await activeAirportCodes(
+            context.db,
+            lines.flatMap((l) => [
+              ...airportCodes(l.departsFrom),
+              ...airportCodes(l.arrivesAtPlace),
+            ]),
+          ),
+        );
+        const names = lines.map((l) => l.passengerName ?? "");
+        extra = {
+          checks: checkItinerary(lines, airports, {
+            inferredYear: result.value.inferred_year ?? [],
+          }),
+          candidates: unwrap(await itineraryTravelerCandidates(context.db, batch.id, names)),
+        };
+      } else if ((body.kind === "contract" || body.kind === "intake_rider") && batch) {
+        const header = result.proposals[0];
+        const names = header
+          ? [proposedValue(header, "act_name"), proposedValue(header, "contracting_party")].map(
+              (v) => (typeof v === "string" ? v : ""),
+            )
+          : [];
+        extra = { candidates: unwrap(await intakePartyCandidates(context.db, batch.id, names)) };
+      } else if (body.kind === "invoice_lines" && invoice) {
+        const descriptions = result.proposals.map((p) => {
+          const v = proposedValue(p, "description");
+          return typeof v === "string" ? v : "";
+        });
+        extra = { history: unwrap(await vendorLineHistory(context.db, invoice.id, descriptions)) };
+      }
+      return toResponse({ ...result, value: { ...result.value, ...extra } });
     },
 
     "aurora.draft": async (request, context) => {
       const body = request.body as {
-        kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+        kind:
+          | "sop"
+          | "advance_packet"
+          | "email"
+          | "day_sheet"
+          | "change_order_description"
+          | ListDraftKind
+          | "advance_answers"
+          | GovernanceKind;
         instructions: string;
+        target?: { collection: string; id: string };
         context?: { collection: string; id: string }[];
         verbiage?: { term: string; preferred: string }[];
+        source?: DraftSourceBody;
+        outline?: string[];
       };
+      if (isListDraftKind(body.kind)) return draftIntoList(context, body.kind, body);
+      if (body.kind === "advance_answers") return draftAnswers(context, body);
+      if (isGovernanceKind(body.kind)) return draftGovernance(context, body.kind, body);
+      const kind = body.kind;
       const { ctx, neverSend, specs, api } = await setup(context);
       const [records, vocabulary] = await Promise.all([
         readItems(api, specs, body.context ?? []),
@@ -591,7 +1147,7 @@ export function auroraHandlers(
       ]);
       return toResponse(
         await draft(ctx, {
-          kind: body.kind,
+          kind,
           instructions: body.instructions,
           context: records,
           verbiage: body.verbiage ?? [],
@@ -605,6 +1161,9 @@ export function auroraHandlers(
     "aurora.preview": async (request, context) => {
       const body = request.body as {
         feature: "drafting" | "summaries";
+        draft_kind?: ListDraftKind | "advance_answers" | GovernanceKind;
+        target?: { collection: string; id: string };
+        source?: DraftSourceBody;
         kind?: SummaryKind;
         subject_collection?: string;
         subject_id?: string;
@@ -612,6 +1171,48 @@ export function auroraHandlers(
       };
       const { neverSend, specs, api } = await readSetup(context);
       const drafting = body.feature === "drafting";
+      if (drafting && body.draft_kind === "advance_answers") {
+        // Exactly what drafted answers send (B15): the open sections, the roster's names and the source.
+        const target = draftTarget(body.target, "advance-recipients", ADVANCE_LABEL);
+        const read = await answerSetup(context, target.id, body.source);
+        return ok({ records: answerPreview(read, neverSend), vocabulary_terms: 0 });
+      }
+      if (drafting && body.draft_kind && isGovernanceKind(body.draft_kind)) {
+        const target = draftTarget(body.target, "projects", GOVERNANCE_LABEL);
+        const [read, vocabulary] = await Promise.all([
+          governanceItems(api, specs, body.draft_kind, target.id),
+          readVocabulary(api),
+        ]);
+        return ok({
+          records: previewRecords(
+            read.map((r) => ({ collection: r.collection, id: r.id })),
+            read,
+            specs,
+            neverSend,
+          ),
+          vocabulary_terms: vocabulary.length,
+        });
+      }
+      if (drafting && body.draft_kind && isListDraftKind(body.draft_kind)) {
+        // Exactly what the drafted list reads and sends (P6, S4.7, A95).
+        const kind = body.draft_kind;
+        const target = listTarget(kind, body.target);
+        const [read, vocabulary, categories] = await Promise.all([
+          listDraftItems(api, specs, kind, target, body.items),
+          readVocabulary(api),
+          kind === "risk_assessment" ? readRiskCategories(context) : Promise.resolve(null),
+        ]);
+        return ok({
+          records: previewRecords(
+            read.map((r) => ({ collection: r.collection, id: r.id })),
+            read,
+            specs,
+            neverSend,
+          ),
+          vocabulary_terms: vocabulary.length,
+          ...(categories ? { categories } : {}),
+        });
+      }
       const [read, vocabulary] = await Promise.all([
         drafting ? readItems(api, specs, body.items) : summaryItems(api, specs, body),
         drafting ? readVocabulary(api) : Promise.resolve([]),
@@ -640,6 +1241,121 @@ export function auroraHandlers(
           neverSend,
         }),
       );
+    },
+
+    "aurora.applyDraft": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as {
+        request_id: string;
+        items: { suggestion_id: string; values?: Record<string, unknown> }[];
+      };
+      return ok(
+        unwrap(
+          await applyDraftedList(context.db, { requestId: body.request_id, items: body.items }),
+        ),
+      );
+    },
+
+    "auroraIntakes.start": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as {
+        project_id: string;
+        kind: AiIntakeKind;
+        file_count: number;
+        fulfillment_id?: string;
+      };
+      const id = unwrap(
+        await startIntake(context.db, {
+          projectId: body.project_id,
+          kind: body.kind,
+          fileCount: body.file_count,
+          fulfillmentId: body.fulfillment_id ?? null,
+        }),
+      );
+      return ok(intakeBody(await ownIntake(context, id)));
+    },
+
+    "auroraIntakes.get": async (request, context) => {
+      requireOrg(context);
+      const body = intakeBody(await ownIntake(context, String(request.params["id"])));
+      return ok(body, { ETag: etagOf(body) });
+    },
+
+    "auroraIntakes.close": async (request, context) => {
+      requireOrg(context);
+      const batch = await ownIntake(context, String(request.params["id"]));
+      return ok({ rejected: unwrap(await closeIntake(context.db, batch.id)) });
+    },
+
+    "auroraIntakes.applyItineraries": async (request, context) => {
+      requireOrg(context);
+      const batch = await ownIntake(context, String(request.params["id"]));
+      const body = request.body as {
+        items: { suggestion_id: string; values: Record<string, unknown> }[];
+      };
+      return ok(unwrap(await applyItineraryIntake(context.db, batch.id, body.items)));
+    },
+
+    "auroraIntakes.checkItineraries": async (request, context) => {
+      requireOrg(context);
+      const batch = await ownIntake(context, String(request.params["id"]));
+      const body = request.body as {
+        segments: {
+          person_id: string;
+          service_identifier?: string | null;
+          departs_at?: string | null;
+        }[];
+      };
+      const booked = unwrap(
+        await bookedItinerarySegments(
+          context.db,
+          batch.org_id,
+          body.segments.map((s) => ({
+            person_id: s.person_id,
+            service_identifier: s.service_identifier ?? null,
+            departs_at: s.departs_at ?? null,
+          })),
+        ),
+      );
+      return ok({ booked });
+    },
+
+    "auroraIntakes.applyContracts": async (request, context) => {
+      requireOrg(context);
+      const batch = await ownIntake(context, String(request.params["id"]));
+      const body = request.body as { groups: unknown[] };
+      return ok(unwrap(await applyContractIntake(context.db, batch.id, body.groups)));
+    },
+
+    "aurora.applyAdvanceAnswer": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as {
+        suggestion_id: string;
+        values?: Record<string, unknown>;
+        source: { inbound_message_id?: string; file_name?: string };
+      };
+      const source = body.source.inbound_message_id
+        ? { inbound_message_id: body.source.inbound_message_id }
+        : { file_name: String(body.source.file_name ?? "") };
+      if (body.source.inbound_message_id && body.source.file_name) {
+        throw refused(
+          "REFUSE",
+          "Name one source: a project inbox message or a file.",
+          "aurora_draft_source_invalid",
+        );
+      }
+      return ok({
+        submission_id: unwrap(
+          await applyDraftedAdvanceAnswer(context.db, {
+            suggestionId: body.suggestion_id,
+            ...(body.values ? { values: body.values } : {}),
+            source,
+          }),
+        ),
+      });
     },
 
     "aurora.mapColumns": async (request, context) => {

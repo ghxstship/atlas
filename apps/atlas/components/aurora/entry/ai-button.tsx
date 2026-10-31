@@ -20,6 +20,8 @@ export function AiButton({
   onPreload,
   size = "sm",
   variant = "secondary",
+  expanded,
+  controls,
 }: {
   feature: AiFeature;
   label: string;
@@ -27,6 +29,10 @@ export function AiButton({
   onPreload: () => void;
   size?: "sm" | "md";
   variant?: "secondary" | "ghost";
+  /** Set when the button discloses a list of choices instead of opening a panel. */
+  expanded?: boolean;
+  /** The id of the list the button discloses. */
+  controls?: string;
 }) {
   const on = useAiFeature(feature);
   if (!on) return null;
@@ -37,6 +43,8 @@ export function AiButton({
       size={size}
       variant={variant}
       data-ai-entry={feature}
+      aria-expanded={expanded}
+      aria-controls={expanded === undefined ? undefined : controls}
       onPointerEnter={onPreload}
       onFocus={onPreload}
       onClick={onOpen}
