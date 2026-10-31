@@ -285,7 +285,9 @@ begin
     perform private.refuse('allocation_not_your_engagement', 'Only the people who answer for this engagement ask for and share out what it needs.');
   end if;
   select e.* into v_engagement from app.engagements e where e.id = private.allocation_engagement(v_allocation);
-  -- The person on the roster takes back a request they made; anything else is the party side's.
+  -- The person on the roster takes back a request they made (one asked while they answered for the party side) while
+  -- the engagement is live: my_roster_entry_ids('roster') holds no entry of a Complete or Canceled engagement, so that
+  -- falls to the party side's check. Anything else is the party side's.
   if not (v_allocation.roster_entry_id is not null
           and v_allocation.roster_entry_id in (select private.my_roster_entry_ids('roster'))
           and private.allocation_requester(v_allocation.id) = v_me) then

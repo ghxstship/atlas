@@ -2,7 +2,8 @@
 -- representative, an Account Owner, an Account Admin and an Advancing Lead request; a plain Account Member, a duty
 -- Member and the worker a company sends are refused allocation_not_your_engagement, and a Complete engagement refuses.
 -- Requestable items (allocation_not_requestable, allocation_item_kind, offering_not_offered) and both caps. A split makes
--- approved shares, moves holds and sends allocation.assigned; an unsplit gives them back; a withdrawal refuses what was
+-- approved shares, moves holds and sends allocation.assigned; an unsplit gives them back; the person on the roster
+-- withdraws a request they made while the engagement is live; a withdrawal refuses what was
 -- issued. The bulk resource previews, commits, undoes through its inverse and refuses bulk_stale.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -204,6 +205,33 @@ select is(app.bulk_update_engaged_allocation_assignments(pg_temp.assign_rows('3'
 select pg_temp.as_user('kai');
 select is(app.bulk_update_engaged_allocation_assignments(pg_temp.assign_rows('2')) #>> '{refused,0,rule}', 'bulk_row_not_found',
   'a plain member reaches no row');
+
+-- The person on the roster takes back their own request -------------------------------------------------------------------------
+-- A per diem Kai asked for himself while he still answered for the company's side: the fixture stamps him as its
+-- requester (created_by), past the audit trigger that keeps created_by on an update.
+insert into world select 'kai_pd', pg_temp.req('victor', 'eng_vendor_a', 'e_kai', 'service', null, 1, 'Per Diem');
+select pg_temp.as_platform();
+alter table app.advance_allocations disable trigger t90_stamp_audit_columns;
+update app.advance_allocations set created_by = pg_temp.id('kai') where id = pg_temp.id('kai_pd');
+alter table app.advance_allocations enable trigger t90_stamp_audit_columns;
+select pg_temp.as_user('kai');
+select lives_ok(format($$select app.withdraw_engaged_allocation(%L, 'Driving in.')$$, pg_temp.id('kai_pd')),
+  'Kai, now a plain member, withdraws the per diem he asked for');
+select is(pg_temp.state_of(pg_temp.id('kai_pd')), 'Withdrawn', 'it is Withdrawn');
+insert into world select 'kai_pd2', pg_temp.req('victor', 'eng_vendor_a', 'e_kai', 'service', null, 1, 'Per Diem');
+select pg_temp.as_platform();
+alter table app.advance_allocations disable trigger t90_stamp_audit_columns;
+update app.advance_allocations set created_by = pg_temp.id('kai') where id = pg_temp.id('kai_pd2');
+alter table app.advance_allocations enable trigger t90_stamp_audit_columns;
+select pg_temp.move_engagement('eng_vendor_a', 'Active', 'Closing');
+select pg_temp.move_engagement('eng_vendor_a', 'Closing', 'Complete');
+select pg_temp.as_user('kai');
+select throws_ok(format($$select app.withdraw_engaged_allocation(%L, 'Driving in.')$$, pg_temp.id('kai_pd2')), 'XR001',
+  'allocation_not_your_engagement: Only the people who answer for this engagement ask for and share out what it needs.',
+  'once the engagement is complete, his roster entry no longer reaches it');
+select pg_temp.as_user('victor');
+select throws_ok(format($$select app.withdraw_engaged_allocation(%L, 'Driving in.')$$, pg_temp.id('kai_pd2')), 'XR001',
+  'allocation_engagement_closed: The engagement is complete or canceled.', 'and the party side reads it as closed');
 
 select * from finish();
 rollback;
