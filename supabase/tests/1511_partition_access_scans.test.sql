@@ -26,7 +26,8 @@ select triggers_are('app', 'access_scans', array[
   't90_emit_access_scan_denied', 't90_stamp_audit_columns', 't95_append_only'], 'every trigger, and the id guard');
 select indexes_are('app', 'access_scans', array[
   'access_scans_pkey', 'access_scans_created_by_idx', 'access_scans_credential_idx', 'access_scans_org_id_idx',
-  'access_scans_project_id_idx', 'access_scans_updated_by_idx', 'access_scans_zone_idx'], 'every index');
+  'access_scans_override_idx', 'access_scans_project_id_idx', 'access_scans_updated_by_idx', 'access_scans_zone_idx'],
+  'every index (B8 2970 adds the override lookup)');
 select table_privs_are('app', 'access_scans', 'authenticated', array['SELECT', 'INSERT'], 'signed-in people read and insert, as before');
 select table_privs_are('app', 'access_scans', 'anon', array[]::text[], 'anon has no grant');
 select is((select relrowsecurity from pg_class where oid = 'app.access_scans'::regclass), true, 'row level security is on');

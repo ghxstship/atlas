@@ -42,7 +42,10 @@ with c as (insert into app.credential_categories (project_id, code, name) values
   insert into world select 'cat_a', id from c;
 with c as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat_a'), pg_temp.id('frank')) returning id)
   insert into world select 'cred_frank', id from c;
-with c as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat_a'), pg_temp.id('frank')) returning id)
+-- B8 (2973) refuses a second live badge of one Access category for one holder, so frank's second badge is of another category.
+with c as (insert into app.credential_categories (project_id, code, name) values (pg_temp.id('prj_a'), 'STAFF', 'Staff') returning id)
+  insert into world select 'cat_b', id from c;
+with c as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat_b'), pg_temp.id('frank')) returning id)
   insert into world select 'cred_frank2', id from c;
 with c as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat_a'), pg_temp.id('gina')) returning id)
   insert into world select 'cred_gina', id from c;

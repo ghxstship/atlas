@@ -162,6 +162,12 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
     description:
       "Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.",
   },
+  {
+    code: "guest_message",
+    transactional: false,
+    description:
+      "An org's email to a guest on its guest list: an invitation, the guest's pass (the guest-pass PDF attached) or a message, with the unsubscribe link and the postal address (B8, ADR 0147 decision 7).",
+  },
 ];
 
 /** The templates index: every notification kind. */
@@ -354,6 +360,48 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.weather.alert.subject",
       body: "kinds.weather.alert.body",
+    },
+  },
+  {
+    kind: "weather.warning",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.warning.subject",
+      body: "kinds.weather.warning.body",
+    },
+  },
+  {
+    kind: "weather.hold",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.hold.subject",
+      body: "kinds.weather.hold.body",
+    },
+  },
+  {
+    kind: "weather.all_clear",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.all_clear.subject",
+      body: "kinds.weather.all_clear.body",
     },
   },
   {
@@ -804,6 +852,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.credential_photo.requested.subject",
       body: "kinds.credential_photo.requested.body",
+    },
+  },
+  {
+    kind: "guest.arrived",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.guest.arrived.subject",
+      body: "kinds.guest.arrived.body",
     },
   },
   {

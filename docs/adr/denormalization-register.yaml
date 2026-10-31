@@ -645,6 +645,10 @@ restated:
     parent: app.time_entry_corrections.reason
     kind: own
     note: Why the state changed; the correction's reason is why the entry is wrong.
+  - column: app.credential_category_requirements.certification_id
+    parent: app.training_courses.certification_id
+    kind: own
+    note: The certification a category requires; a course row names none, and the course's own certification is the course's fact (B8, migration 2972).
   - column: app.credential_photos.person_id
     parent: app.consent_records.person_id
     kind: own
@@ -786,6 +790,10 @@ restated:
     parent: app.engagements.person_id
     kind: own
     note: Person whose list the guest is on; the engagement link is optional.
+  - column: app.guest_list_entries.project_id
+    parent: app.credential_categories.project_id
+    kind: own
+    note: The entry's project; the pass type is a category of the same project, checked by `t39_guest_list_pass_project` (private.assert_same_project, B8 migration 2974).
   - column: app.guest_list_entries.project_id
     parent: app.engagements.project_id
     kind: own
@@ -1520,6 +1528,22 @@ restated:
     kind: finding
     note: The reading is required and is for one project, so the alert's project is the reading's.
     finding: A108-003
+  - column: app.weather_holds.cleared_at
+    parent: app.weather_alerts.cleared_at
+    kind: own
+    note: When the hold's all-clear was given; the alert that prompted it clears on its own readings (B8, migration 2977).
+  - column: app.weather_holds.hazard
+    parent: app.weather_alerts.hazard
+    kind: own
+    note: The hazard the dispatcher named for the hold; the alert link is optional and need not be of it (B8, migration 2977).
+  - column: app.weather_holds.project_id
+    parent: app.weather_alerts.project_id
+    kind: own
+    note: The hold's project; the optional alert is of the same project, checked by `t39_weather_holds_same_project` (B8, migration 2977).
+  - column: app.weather_holds.project_id
+    parent: app.weather_warnings.project_id
+    kind: own
+    note: The hold's project; the optional warning is of the same project, checked by `t39_weather_holds_same_project` (B8, migration 2977).
   - column: app.work_detail_events.engagement_id
     parent: app.engagement_roster_entries.engagement_id
     kind: fact
@@ -1768,6 +1792,9 @@ stored:
   - column: app.warehouse_delivery_files.row_count
     kind: fact
     note: Rows in the file delivered to the warehouse (migration 1401).
+  - column: app.weather_forecast_periods.precipitation_percent
+    kind: input
+    note: Probability of precipitation as the provider (NWS) gives it; a cache replaced on each fetch (B8, migration 2976).
   - column: app.webhook_deliveries.attempt_count
     kind: fact
     note: No attempts table exists, so the count is the only record (A22 review).

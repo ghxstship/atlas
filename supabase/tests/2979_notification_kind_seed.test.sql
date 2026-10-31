@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:supabase/tests/2698_notification_kind_seed.test.sql
--- 2698_notification_kind_seed.test.sql
-========
--- 2829_notification_kind_seed.test.sql
->>>>>>>> orch-p5-photo-badges:supabase/tests/2829_notification_kind_seed.test.sql
+-- 2979_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -36,7 +32,8 @@ select set_eq(
   ('dsar_received', 'Acknowledges a data subject request and states its due date.', true),
   ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
   ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
-  ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true)$$,
+  ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true),
+  ('guest_message', 'An org''s email to a guest on its guest list: an invitation, the guest''s pass (the guest-pass PDF attached) or a message, with the unsubscribe link and the postal address (B8, ADR 0147 decision 7).', false)$$,
   'email templates match notification-kinds.yaml');
 
 select set_eq(
@@ -122,6 +119,18 @@ select set_eq(
   ('weather.alert', 'Email', 'safety', 'notification'),
   ('weather.alert', 'SMS', 'safety', null::text),
   ('weather.alert', 'Push', 'safety', null::text),
+  ('weather.warning', 'In App', 'safety', null::text),
+  ('weather.warning', 'Email', 'safety', 'notification'),
+  ('weather.warning', 'SMS', 'safety', null::text),
+  ('weather.warning', 'Push', 'safety', null::text),
+  ('weather.hold', 'In App', 'safety', null::text),
+  ('weather.hold', 'Email', 'safety', 'notification'),
+  ('weather.hold', 'SMS', 'safety', null::text),
+  ('weather.hold', 'Push', 'safety', null::text),
+  ('weather.all_clear', 'In App', 'safety', null::text),
+  ('weather.all_clear', 'Email', 'safety', 'notification'),
+  ('weather.all_clear', 'SMS', 'safety', null::text),
+  ('weather.all_clear', 'Push', 'safety', null::text),
   ('account.security_changed', 'In App', 'account', null::text),
   ('account.security_changed', 'Email', 'account', 'notification'),
   ('account.security_changed', 'SMS', 'account', null::text),
@@ -268,6 +277,10 @@ select set_eq(
   ('credential_photo.requested', 'Email', 'assignments', 'notification'),
   ('credential_photo.requested', 'SMS', 'assignments', null::text),
   ('credential_photo.requested', 'Push', 'assignments', null::text),
+  ('guest.arrived', 'In App', 'assignments', null::text),
+  ('guest.arrived', 'Email', 'assignments', 'notification'),
+  ('guest.arrived', 'SMS', 'assignments', null::text),
+  ('guest.arrived', 'Push', 'assignments', null::text),
   ('opportunity.matched', 'In App', 'opportunities', null::text),
   ('opportunity.matched', 'Email', 'opportunities', 'notification'),
   ('opportunity.matched', 'Push', 'opportunities', null::text),
@@ -329,6 +342,9 @@ select set_eq(
   ('incident.reported', null::interval),
   ('occupancy.threshold', null::interval),
   ('weather.alert', null::interval),
+  ('weather.warning', null::interval),
+  ('weather.hold', null::interval),
+  ('weather.all_clear', null::interval),
   ('account.security_changed', null::interval),
   ('account.recovery_code_used', null::interval),
   ('access.break_glass_started', null::interval)$$,

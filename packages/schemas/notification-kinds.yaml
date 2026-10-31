@@ -83,6 +83,9 @@ email_templates:
   - code: party_invitation
     transactional: true
     description: Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.
+  - code: guest_message
+    transactional: false
+    description: "An org's email to a guest on its guest list: an invitation, the guest's pass (the guest-pass PDF attached) or a message, with the unsubscribe link and the postal address (B8, ADR 0147 decision 7)."
 
 categories:
   - code: mentions
@@ -222,8 +225,29 @@ kinds:
     category: safety
     bypasses_quiet_hours: true
     emitted_by:
-      - emitter: supabase/migrations/0806_workforce_site_operations.sql#app.record_weather_reading
-        test: supabase/tests/0806_workforce_site_operations.test.sql
+      # 2976 (B8): the threshold logic moved into private.apply_weather_level, which manual readings and the NWS feed
+      # both call.
+      - emitter: supabase/migrations/2976_weather_feed.sql#private.apply_weather_level
+        test: supabase/tests/2976_weather_feed.test.sql
+  # Weather feed, holds and all-clear (B8, 2976 and 2977)
+  - kind: weather.warning
+    category: safety
+    bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/2976_weather_feed.sql#app.record_weather_feed
+        test: supabase/tests/2976_weather_feed.test.sql
+  - kind: weather.hold
+    category: safety
+    bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/2977_weather_holds.sql#app.call_weather_hold
+        test: supabase/tests/2977_weather_holds.test.sql
+  - kind: weather.all_clear
+    category: safety
+    bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/2977_weather_holds.sql#app.give_weather_all_clear
+        test: supabase/tests/2977_weather_holds.test.sql
   # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
     category: account
@@ -452,6 +476,12 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/2822_credential_photo_functions.sql#app.request_credential_photos
         test: supabase/tests/2822_credential_photo_functions.test.sql
+  # Guest arrivals (B8, 2974): the host of a guest hears when the door checks them in.
+  - kind: guest.arrived
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2974_guest_passes.sql#app.check_in_guest
+        test: supabase/tests/2974_guest_passes.test.sql
   # Marketplace alerts and expiry reminders (A89: 1462 matcher, 1463 reminder job)
   - kind: opportunity.matched
     category: opportunities
