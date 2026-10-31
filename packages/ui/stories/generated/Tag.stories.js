@@ -25,6 +25,8 @@ export const Preview = {
       h(X.Tag, { tone: "success" }, "Verified"),
       h(X.Tag, { tone: "warning" }, "Expiring"),
       h(X.Tag, { tone: "danger" }, "Overdue"),
+      h(X.Tag, { swatch: "cat-2" }, "Wide shot"),
+      h(X.Tag, { swatch: "cat-6" }, "Pyro"),
     );
   },
 };
