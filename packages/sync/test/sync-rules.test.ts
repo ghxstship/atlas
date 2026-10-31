@@ -94,7 +94,7 @@ function grantsFromYaml(): Grant[] {
     const domain =
       key === "engagementIds" || key === "engagedProjectIds"
         ? EXTERNAL_AUDIENCES
-        : key === "personIds" || key === null
+        : key === "personIds" || key === "rosterEntryIds" || key === null
           ? ALL
           : INTERNAL_AUDIENCES;
     return { table: q.table, column: q.column, key, audiences: q.audiences ?? domain };
@@ -156,6 +156,7 @@ describe("sync rules (Section 13: tested against the same scope rules as RLS)", 
       if (
         q.bucket.startsWith("external_") ||
         q.bucket === "own_person" ||
+        q.bucket === "roster_entry" ||
         q.bucket === "canon_reference"
       )
         expect(q.columns, `${q.bucket} ${q.source}`).not.toContain("*");
