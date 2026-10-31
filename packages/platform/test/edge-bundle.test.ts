@@ -105,14 +105,18 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
-  "notification-dispatch": 180,
+  // A138: the email sender reads the org's branding, and its accent check brings the token contrast ratio to
+  // boot; 182.3 KB on 2026-10-31 (merge train 2). About 10 percent above that, as for A89 and A90.
+  "notification-dispatch": 200,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
-  // which the org export reaches at boot; 211.5 KB on 2026-10-25.
-  "org-lifecycle": 215,
+  // which the org export reaches at boot; 211.5 KB on 2026-10-25. A138's email branding in the shared stores
+  // brought it to 215.9 KB on 2026-10-31 (merge train 2); about 10 percent above that.
+  "org-lifecycle": 237,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 145,
+  // A138's email branding in the shared platform stores brought it to 145.1 KB on 2026-10-31 (merge train 2).
+  "sms-webhook": 160,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,
