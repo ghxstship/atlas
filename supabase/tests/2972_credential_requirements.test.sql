@@ -14,7 +14,7 @@ select no_plan();
 
 -- Fixture: a published course, a certification, a category with an existing badge ---------------------------------------
 select pg_temp.as_platform();
-with x as (insert into app.training_courses (org_id, title, course_state) values (pg_temp.id('org_a'), 'Rigging Safety', 'Published') returning id) insert into world select 'course', id from x;
+with x as (insert into app.training_courses (org_id, title) values (pg_temp.id('org_a'), 'Rigging Safety') returning id) insert into world select 'course', id from x;
 select pg_temp.as_user('carol');
 with x as (insert into app.certifications (name, issuing_body) values ('Site Induction', 'Northwind Live') returning id) insert into world select 'cert', id from x;
 with x as (insert into app.credential_categories (project_id, code, name) values (pg_temp.id('prj_a'), 'RIG', 'Riggers') returning id) insert into world select 'cat_rig', id from x;
