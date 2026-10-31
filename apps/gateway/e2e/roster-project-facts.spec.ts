@@ -213,13 +213,13 @@ test("crew tab: the company enters a member's vehicle, and the names lock", asyn
       ),
     ).toBeGreaterThan(0);
 
-    // The member sees the notice in Gateway's updates, opens their own details from it and corrects the plate; the
-    // vehicle is then theirs, so the company can no longer change it.
+    // The member sees the notice in Gateway's For Your Information list (A127), opens their own details from it and
+    // corrects the plate; the vehicle is then theirs, so the company can no longer change it.
     const member = await browser.newContext({ reducedMotion: "reduce" });
     const memberPage = await member.newPage();
     await signIn(memberPage, "staff.one@example.com", "/home");
     const notice = memberPage
-      .getByRole("list", { name: "Updates" })
+      .getByRole("list", { name: "For your information" })
       .getByRole("listitem")
       .filter({ hasText: `added your vehicle details for Names Lock Run ${project.key}` });
     await expect(notice).toBeVisible();
