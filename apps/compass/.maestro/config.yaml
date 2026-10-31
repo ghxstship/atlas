@@ -22,6 +22,7 @@ executionOrder:
     - field-shift-second-device
     - field-claim-open-shift
     - field-clock-offline
+    - field-search-offline
     - field-incident-report
     - field-resumable-upload
     - field-inspection-walk

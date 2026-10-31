@@ -6,7 +6,7 @@ nodes: [home]
 order: 1
 ---
 
-Inicio empieza con un cuadro de búsqueda: escribe un rol, una habilidad o una organización para buscar en Explorar.
+Inicio empieza con un cuadro de búsqueda. Mientras escribes, muestra tus propios documentos, mensajes, contrataciones y oportunidades, y las acciones y la configuración que coinciden. Elige uno para abrirlo, o pulsa Intro para buscar todas las oportunidades en Explorar.
 
 ## A continuación
 

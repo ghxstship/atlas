@@ -19,7 +19,7 @@ test("the ? key opens help for the page, with search, shortcuts and What's New",
   await settle(page);
 
   // Typing a question mark in a field is typing, not a shortcut.
-  const search = page.getByRole("searchbox", { name: "Search opportunities" });
+  const search = page.getByRole("searchbox", { name: "Search Gateway" });
   await search.fill("?");
   await expect(panel(page)).toHaveCount(0);
   await search.fill("");

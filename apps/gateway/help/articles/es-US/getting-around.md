@@ -28,7 +28,7 @@ Si perteneces a una cuenta de empresa, el menú de la cuenta te deja actuar como
 
 ## Búsqueda y ayuda
 
-Elige Buscar para ir a cualquier página, contratación u oportunidad. Elige Ayuda en cualquier página para ver sus artículos, los atajos, las novedades y [Contactar a soporte](help:contact-support).
+Pulsa **Mod+K** o elige Buscar para ir a cualquier página, o para encontrar por sus palabras tus documentos, mensajes, contrataciones, oportunidades, acciones y configuración. Pulsa **?** o elige Ayuda en cualquier página para ver sus artículos, los atajos, las novedades y [Contactar a soporte](help:contact-support).
 
 ## Con el teclado
 
