@@ -33,6 +33,7 @@ import { errorMessage } from "@/lib/crew/errors";
 import { toMinor } from "@/lib/crew/money";
 import { getOrgContext } from "@/lib/shell/context";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
+import * as enums from "@xos/data/enums";
 
 /**
  * People server actions. Each resolves the viewer's org context (404 when it is gone), validates the
@@ -87,7 +88,7 @@ export async function createAssignmentAction(_: State, form: FormData): Promise<
       projectId: uuid,
       roleCode: z.string().regex(/^\d{4}\.\d{2}\.\d{2}$/),
       personId: uuid,
-      staffingBasis: z.enum(["Ratio", "Fixed", "Declared"]),
+      staffingBasis: z.enum(enums.staffingBasis),
       startsOn: optionalDate,
       endsOn: optionalDate,
     })
@@ -111,7 +112,7 @@ export async function createAssignmentAction(_: State, form: FormData): Promise<
   );
 }
 
-const ASSIGNMENT_STATE = z.enum(["Proposed", "Active", "Complete", "Canceled"]);
+const ASSIGNMENT_STATE = z.enum(enums.roleAssignmentState);
 
 export async function transitionAssignmentAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -239,7 +240,7 @@ export async function rejectRequisitionAction(_: State, form: FormData): Promise
   return done(ctx.org.slug, await rejectRequisition(db, parsed.data.id, parsed.data.reason), t);
 }
 
-const REQ_STATE = z.enum(["Proposed", "Approved", "Rejected", "Filled", "Canceled"]);
+const REQ_STATE = z.enum(enums.requisitionState);
 
 export async function transitionRequisitionAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -329,7 +330,7 @@ export async function sendAgreementAction(_: State, form: FormData): Promise<Sta
   };
 }
 
-const AGREEMENT_STATE = z.enum(["Proposed", "Sent", "Signed", "Superseded", "Expired", "Canceled"]);
+const AGREEMENT_STATE = z.enum(enums.agreementState);
 
 export async function transitionAgreementAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);

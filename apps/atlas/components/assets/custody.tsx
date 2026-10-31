@@ -8,8 +8,9 @@ import { custodyScanAction, resolveCodeAction, type ScanLookup } from "@/app/[or
 import { useAssetsCopy } from "./copy";
 import { ActionDialog } from "./dialog";
 import type { Option } from "./forms";
+import type { Database } from "@xos/data/database.types";
 
-type ScanAction = "check-out" | "check-in" | "transfer";
+type ScanAction = Database["app"]["Enums"]["asset_scan_action"];
 
 const ACTION_KEY: Record<ScanAction, string> = {
   "check-out": "checkOut",

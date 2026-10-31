@@ -11,6 +11,7 @@ import dynamic from "next/dynamic";
 import { InlineAlert } from "@/components/ui";
 import type { Translate } from "@/lib/shell/translate";
 import type { OfferingRuleCopy, OfferingRuleScope } from "./offering-rule-form";
+import * as enums from "@xos/data/enums";
 
 /**
  * The audience rules of the org's offerings (R3, owner decision 7), for the whole org (Settings,
@@ -29,16 +30,7 @@ const RemoveOfferingRule = dynamic(() =>
 
 const O = "projects.settings.offerings";
 
-const ROLE_TYPES: readonly ExternalRoleType[] = [
-  "Client",
-  "Vendor",
-  "Contractor",
-  "Crew",
-  "Staff",
-  "Artist",
-  "Artist Representative",
-  "Sponsor",
-];
+const ROLE_TYPES: readonly ExternalRoleType[] = enums.externalRoleType;
 
 const ERROR_KEYS = ["conflict", "invalid", "crossOrg", "notFound", "unexpected"] as const;
 

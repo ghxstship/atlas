@@ -3,6 +3,7 @@ import type { Database, XosClient } from "./client.ts";
 import { csvField } from "./csv.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Finance repository (Sections 3.7, 3.11, 7.4 and 8.1 to 8.2): budgets and budget lines, expenses,
@@ -25,39 +26,14 @@ export type CostCenterKind = Enums["cost_center_kind"];
 export type MoneyDirection = Enums["money_direction"];
 export type XyzTag = "X" | "Y" | "Z";
 
-export const EXPENSE_STATES: readonly ExpenseState[] = [
-  "Proposed",
-  "Approved",
-  "Rejected",
-  "Paid",
-  "Canceled",
-];
-export const CHANGE_ORDER_STATES: readonly ChangeOrderState[] = [
-  "Proposed",
-  "Priced",
-  "Approved",
-  "Rejected",
-  "Canceled",
-];
-export const INVOICE_STATES: readonly InvoiceState[] = [
-  "Proposed",
-  "Issued",
-  "Approved",
-  "Disputed",
-  "Canceled",
-];
-export const PAYMENT_STATES: readonly PaymentState[] = ["Proposed", "Approved", "Canceled"];
-export const JOURNAL_STATES: readonly JournalState[] = ["Proposed", "Posted", "Canceled"];
-export const PERIOD_STATES: readonly PeriodState[] = [
-  "Open",
-  "In Period",
-  "Closing",
-  "Closed",
-  "Audited",
-  "Archived",
-];
-export const BUDGET_LINE_TYPES: readonly BudgetLineType[] = ["Cost", "Labor", "Fee", "Contingency"];
-export const COST_CENTER_KINDS: readonly CostCenterKind[] = ["Standing", "Overhead", "Event"];
+export const EXPENSE_STATES: readonly ExpenseState[] = enums.expenseState;
+export const CHANGE_ORDER_STATES: readonly ChangeOrderState[] = enums.changeOrderState;
+export const INVOICE_STATES: readonly InvoiceState[] = enums.invoiceState;
+export const PAYMENT_STATES: readonly PaymentState[] = enums.paymentState;
+export const JOURNAL_STATES: readonly JournalState[] = enums.journalState;
+export const PERIOD_STATES: readonly PeriodState[] = enums.accountingPeriodState;
+export const BUDGET_LINE_TYPES: readonly BudgetLineType[] = enums.budgetLineType;
+export const COST_CENTER_KINDS: readonly CostCenterKind[] = enums.costCenterKind;
 
 /**
  * The next states a lifecycle allows from a state, as A03's transition rules declare them (0320,
@@ -73,6 +49,8 @@ export const NEXT_STATES = {
   },
   change_order: {
     Proposed: ["Priced", "Canceled"],
+    // The moves out of Priced, which happen to be every po_change_order_state value; not that enum.
+    // eslint-disable-next-line xos/no-restated-enums
     Priced: ["Proposed", "Approved", "Rejected", "Canceled"],
     Rejected: ["Proposed"],
     Approved: [],
@@ -912,7 +890,7 @@ export interface BudgetLine {
   readonly unitBasis: string | null;
   readonly unitPriceMinor: number | null;
   readonly xyz: XyzTag;
-  readonly xyzBasis: "Category" | "Declared";
+  readonly xyzBasis: Database["app"]["Enums"]["xyz_basis"];
   readonly extendedMinor: number | null;
   readonly accountCode: string | null;
   readonly actualMinor: number;
@@ -942,7 +920,7 @@ function toLine(r: Raw, amounts?: Raw): BudgetLine {
     unitBasis: strOrNull(r["unit_basis"]),
     unitPriceMinor: unitPrice,
     xyz: str(r["xyz"]).trim() as XyzTag,
-    xyzBasis: str(r["xyz_basis"]) as "Category" | "Declared",
+    xyzBasis: str(r["xyz_basis"]) as Database["app"]["Enums"]["xyz_basis"],
     extendedMinor: amounts
       ? numOrNull(amounts["extended_minor"])
       : extendedMinor(quantity, unitPrice),
@@ -1056,7 +1034,7 @@ export interface BudgetLineInput {
   /** Minor units; null is unpriced and is stored as NULL. */
   readonly unitPriceMinor: number | null;
   readonly xyz: XyzTag;
-  readonly xyzBasis: "Category" | "Declared";
+  readonly xyzBasis: Database["app"]["Enums"]["xyz_basis"];
 }
 
 /**
@@ -1067,7 +1045,7 @@ export function xyzFor(
   urid: string,
   options: readonly UridOption[],
   declared: XyzTag | null,
-): { xyz: XyzTag; xyzBasis: "Category" | "Declared" } | null {
+): { xyz: XyzTag; xyzBasis: Database["app"]["Enums"]["xyz_basis"] } | null {
   const option = options.find((o) => o.urid === urid);
   if (option?.xyz && (declared === null || declared === option.xyz))
     return { xyz: option.xyz, xyzBasis: "Category" };

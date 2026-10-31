@@ -18,6 +18,7 @@ import {
   workDetailCorrections,
   workDetailResources,
 } from "./parts/work-details.ts";
+import { Constants } from "@xos/data/database.types";
 
 /** A profile handle as app.person_profiles and app.organization_profiles store it (0860). */
 const handle = {
@@ -214,10 +215,7 @@ export const additions = defineAdditions("Identity", {
               update: false,
             },
             project_role: {
-              schema: label(
-                ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
-                "Project role.",
-              ),
+              schema: label(Constants.app.Enums.project_role, "Project role."),
               create: "required",
             },
             valid_from: {
@@ -256,16 +254,13 @@ export const additions = defineAdditions("Identity", {
               update: false,
             },
             purpose: {
-              schema: label(
-                ["Atlas", "Gateway", "Email Sending", "Verified Domain"],
-                "What the domain is for.",
-              ),
+              schema: label(Constants.app.Enums.org_domain_purpose, "What the domain is for."),
               create: "required",
               update: false,
             },
             verification_state: {
               schema: label(
-                ["Pending", "Verified", "Failed"],
+                Constants.app.Enums.domain_verification_state,
                 "DNS verification state; changed only by app.record_domain_verification.",
               ),
             },
@@ -305,7 +300,7 @@ export const additions = defineAdditions("Identity", {
           add: {
             method: {
               schema: label(
-                ["Stripe Identity", "Business Registry"],
+                Constants.app.Enums.organization_verification_method,
                 "How the organization was verified.",
               ),
               create: "required",
@@ -346,30 +341,15 @@ export const additions = defineAdditions("Identity", {
           add: {
             person_id: { schema: fields.ref("profile owner"), create: "required", update: false },
             section: {
-              schema: label(
-                [
-                  "photo",
-                  "pronouns",
-                  "headline",
-                  "bio",
-                  "location",
-                  "skills",
-                  "certifications",
-                  "portfolio",
-                  "rates",
-                  "availability",
-                  "languages",
-                  "references",
-                  "links",
-                  "organizations",
-                ],
-                "Profile section.",
-              ),
+              schema: label(Constants.app.Enums.profile_section, "Profile section."),
               create: "required",
               update: false,
             },
             visibility: {
-              schema: label(["Private", "Network", "Public"], "Visibility chosen for the section."),
+              schema: label(
+                Constants.app.Enums.profile_visibility,
+                "Visibility chosen for the section.",
+              ),
               create: "required",
             },
           },

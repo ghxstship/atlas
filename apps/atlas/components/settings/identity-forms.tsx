@@ -24,6 +24,7 @@ import {
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { ScanNotice } from "@/components/platform/scan-notice";
+import * as enums from "@xos/data/enums";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Catalog lookups with keys built at run time (refusal rules, choices); next-intl types only literals. */
@@ -167,7 +168,7 @@ export function BrandForm(props: BrandFormProps) {
           label={t("radius")}
           value={props.brand.radiusScale}
           disabled={disabled}
-          options={(["Compact", "Default", "Rounded"] as const).map((r) => ({
+          options={enums.brandRadiusScale.map((r) => ({
             value: r,
             label: t(`radius${r}`),
           }))}

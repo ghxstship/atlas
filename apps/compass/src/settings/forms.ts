@@ -6,6 +6,7 @@
  * key the screen shows under the field, so a refused value never leaves the phone.
  */
 import { looksLikeRecoveryCode } from "@xos/data/account-security";
+import { Constants } from "@xos/data/database.types";
 
 /** Field name to the message key of what is wrong with it. */
 export type FieldErrors = Readonly<Record<string, string>>;
@@ -31,7 +32,7 @@ function optionalText(value: string, max: number): string | null | false {
 
 // Profile -------------------------------------------------------------------------------------------------------------
 
-export const RATE_UNITS = ["Hour", "Day", "Week", "Project"] as const;
+export const RATE_UNITS = Constants.app.Enums.rate_unit;
 export type RateUnit = (typeof RATE_UNITS)[number];
 
 /** The profile facts as typed into the form. */
@@ -158,7 +159,7 @@ export function changedColumns(
 
 // Profile lists ---------------------------------------------------------------------------------------------------------
 
-export const PROFICIENCIES = ["Basic", "Conversational", "Fluent", "Native"] as const;
+export const PROFICIENCIES = Constants.app.Enums.language_proficiency;
 export type Proficiency = (typeof PROFICIENCIES)[number];
 
 /** A canon category URID, such as 0101.01.02. */
@@ -247,7 +248,7 @@ export function checkCertification(input: {
 
 // Privacy -------------------------------------------------------------------------------------------------------------
 
-export const VISIBILITIES = ["Private", "Network", "Public"] as const;
+export const VISIBILITIES = Constants.app.Enums.profile_visibility;
 export type Visibility = (typeof VISIBILITIES)[number];
 
 /** Who sees the profile. Only a Public profile may be indexed by search engines (person_profiles_indexing_public). */

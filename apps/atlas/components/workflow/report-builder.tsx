@@ -26,6 +26,7 @@ import {
 } from "@/app/[org]/reports/builder/actions";
 import type { WorkflowActionState } from "@/lib/workflow/state";
 import { Feedback, useWorkflowT } from "./kit";
+import * as enums from "@xos/data/enums";
 
 interface Draft {
   id: string | null;
@@ -429,7 +430,7 @@ export function ReportBuilder({
             <Select
               label={t("builder.runFormat")}
               value={format}
-              options={["CSV", "XLSX", "PDF"].map((f) => ({ value: f, label: f }))}
+              options={enums.exportFormat.map((f) => ({ value: f, label: f }))}
               onChange={(e) => setFormat(e.target.value)}
             />
             <Button onClick={queue} loading={pending}>

@@ -1,6 +1,7 @@
 import { Constants, type Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Assets repository (Section 4.2 Assets, Section 3.9 grain, migration 0352): asset classes bound to
@@ -707,7 +708,7 @@ async function lotBalances(
   );
 }
 
-export type LotMovementKind = "Count" | "Check Out" | "Check In";
+export type LotMovementKind = Database["app"]["Enums"]["asset_lot_movement_kind"];
 
 export interface LotMovement {
   readonly id: string;
@@ -1023,8 +1024,8 @@ export async function reportAssetDamage(
 
 // Scan resolution (the Compass back end) ---------------------------------------------------------
 
-export type ScanAction = "check-out" | "check-in" | "transfer";
-export const SCAN_ACTIONS: readonly ScanAction[] = ["check-out", "check-in", "transfer"];
+export type ScanAction = Database["app"]["Enums"]["asset_scan_action"];
+export const SCAN_ACTIONS: readonly ScanAction[] = enums.assetScanAction;
 
 /** The states each scan action starts from, mirroring app.apply_asset_scan (migration 0975). */
 const SCAN_FROM: Record<ScanAction, readonly AssetState[]> = {

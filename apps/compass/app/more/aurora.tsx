@@ -175,7 +175,9 @@ function TurnCard({
             <Text>{turn.answer.text}</Text>
             {turn.answer.citations.length > 0 ? (
               <Text variant="text13" tone="secondary">
-                {`${t("aurora.panel.citations")}: ${turn.answer.citations.map((c) => c.label).join(", ")}`}
+                {t("aurora.panel.citations")}
+                {": "}
+                {turn.answer.citations.map((c) => c.label).join(", ")}
               </Text>
             ) : null}
             {turn.model ? (

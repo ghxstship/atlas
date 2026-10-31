@@ -9,6 +9,9 @@ import { untyped } from "./untyped.ts";
  * list and triage it; a screenshot opens for them only once its upload scan found it Clean.
  */
 
+// The feedback_submissions_app check of migration 1531, which equals app.shortcut_shell by
+// coincidence; not that enum.
+// eslint-disable-next-line xos/no-restated-enums
 export type FeedbackApp = "Atlas" | "Gateway";
 export type FeedbackState = "New" | "Read" | "Planned" | "Closed";
 export const FEEDBACK_STATES: readonly FeedbackState[] = ["New", "Read", "Planned", "Closed"];

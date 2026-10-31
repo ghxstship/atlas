@@ -6,6 +6,7 @@ import { enumKey, formatMoney } from "@/lib/opportunities/format";
 import { must, setupPage, type PageSetup, type SearchParams } from "@/lib/opportunities/page";
 import { nodeHref } from "@/lib/shell/sitemap";
 import type { RecordState } from "@xos/ui";
+import * as enums from "@xos/data/enums";
 
 /**
  * Requisitions turned into opportunities (Section 4.4.4 stage 1, Section 4.5.5): the org's staffing requisitions from
@@ -177,7 +178,7 @@ function RequisitionBoard({
   canPost: boolean;
 }) {
   const { t } = page;
-  const states = ["Proposed", "Approved", "Filled", "Rejected", "Canceled"] as const;
+  const states = enums.requisitionState;
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-12">
       {states.map((s) => {

@@ -6,6 +6,7 @@
 import type { Context } from "hono";
 import type { z } from "@hono/zod-openapi";
 import { PROBLEM_MEDIA_TYPE } from "./conventions/components.ts";
+import type { Database } from "@xos/data/database.types";
 
 export interface ProblemBody {
   readonly type: string;
@@ -61,7 +62,7 @@ export function validationHook(result: HookResult, c: Context): Response | undef
 }
 
 /** Refusal codes of Section 3.7. */
-export type RefusalCode = "NO_ANSWER" | "UNRATIFIED" | "REFUSE";
+export type RefusalCode = Database["xpms"]["Enums"]["refusal"];
 
 /**
  * A problem a handler raises. The runtime serializes it as `application/problem+json`, adds

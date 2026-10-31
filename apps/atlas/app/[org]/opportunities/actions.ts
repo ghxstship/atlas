@@ -10,6 +10,7 @@ import { gatewayUrl } from "@/lib/gateway-url";
 import { parseMoney } from "@/lib/opportunities/format";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * Opportunities server actions. Each one resolves the viewer's org context again (404 when it is gone), validates the
@@ -320,7 +321,7 @@ export const shortlistAction: Action = action(
 export const scheduleInterviewAction: Action = action(
   z.object({
     applicationId: uuid,
-    kind: z.enum(["Interview", "Audition"]),
+    kind: z.enum(enums.interviewKind),
     scheduledAt: z
       .string()
       .trim()
@@ -448,15 +449,7 @@ export const createDocumentAction: Action = action(
     }),
 );
 
-const documentStates = [
-  "Proposed",
-  "Sent",
-  "Signed",
-  "Executed",
-  "Expired",
-  "Superseded",
-  "Canceled",
-] as const;
+const documentStates = enums.engagementDocumentState;
 
 export const transitionDocumentAction: Action = action(
   z.object({
@@ -491,7 +484,7 @@ export const issueSigningLinkAction: Action = action(
 );
 
 export const verifyItemAction: Action = action(
-  z.object({ itemId: uuid, outcome: z.enum(["Passed", "Failed"]), note: optionalText(2000) }),
+  z.object({ itemId: uuid, outcome: z.enum(enums.verificationOutcome), note: optionalText(2000) }),
   (ctx, v) =>
     repo.verifyOnboardingItem(ctx.viewer.db, {
       itemId: v.itemId,
@@ -503,7 +496,7 @@ export const verifyItemAction: Action = action(
 export const decideDeliverableAction: Action = action(
   z.object({
     deliverableId: uuid,
-    decision: z.enum(["Approved", "Rejected"]),
+    decision: z.enum(enums.approvalDecision),
     reason: optionalText(2000),
   }),
   (ctx, v) => repo.decideDeliverable(ctx.viewer.db, v.deliverableId, v.decision, v.reason),
@@ -553,7 +546,7 @@ export const createRequirementAction: Action = action(
     roleType: z
       .union([z.enum(repo.ROLE_TYPES as unknown as [string, ...string[]]), z.literal("")])
       .default(""),
-    method: z.enum(["Reviewer", "Automatic"]),
+    method: z.enum(enums.verificationMethod),
     blocking: z
       .string()
       .default("")
@@ -579,13 +572,13 @@ export const createRequirementAction: Action = action(
 // Pools -----------------------------------------------------------------------------------------------------------------------------
 
 export const createPoolAction: Action = action(
-  z.object({ name: text(200), kind: z.enum(["Talent", "Vendor"]) }),
+  z.object({ name: text(200), kind: z.enum(enums.poolKind) }),
   (ctx, v) => repo.createPool(ctx.viewer.db, { orgId: ctx.org.id, name: v.name, kind: v.kind }),
 );
 
 const standingSchema = z
   .object({
-    standing: z.enum(["Preferred", "Approved", "Do Not Engage"]),
+    standing: z.enum(enums.poolStanding),
     reason: optionalText(1000),
     reviewOn: optionalDate,
   })

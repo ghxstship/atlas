@@ -1,6 +1,8 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Dashboards and scheduled report email (A43, finding A38-004; Section 4.6.4, journey 29), over A18's
@@ -203,10 +205,10 @@ export async function removeTile(db: XosClient, id: string): Promise<Result<null
 
 // Schedules -----------------------------------------------------------------------------------------------
 
-export type Cadence = "Daily" | "Weekly" | "Monthly";
-export type ExportFormat = "CSV" | "XLSX" | "PDF";
-export const CADENCES: readonly Cadence[] = ["Daily", "Weekly", "Monthly"];
-export const EXPORT_FORMATS: readonly ExportFormat[] = ["PDF", "CSV", "XLSX"];
+export type Cadence = Database["app"]["Enums"]["schedule_cadence"];
+export type ExportFormat = Database["app"]["Enums"]["export_format"];
+export const CADENCES: readonly Cadence[] = enums.scheduleCadence;
+export const EXPORT_FORMATS: readonly ExportFormat[] = enums.exportFormat;
 
 export interface ReportSchedule {
   readonly id: string;

@@ -18,19 +18,13 @@ import type { CorrectionInput } from "../../corrections.ts";
 import { editDefinition, editShape, orNull } from "../../correct.ts";
 import { collectionAction, collectionQuery, itemAction, resource } from "../../define.ts";
 import type { ActionSpec, ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
 const AUDIT_NULLABLE = { nullable: ["created_by", "updated_by"] } as const;
 
-export const AI_FEATURES = [
-  "assistant",
-  "plain_language",
-  "extraction",
-  "drafting",
-  "summaries",
-  "mapping",
-] as const;
+export const AI_FEATURES = Constants.app.Enums.ai_feature;
 
 const Feature = z.enum(AI_FEATURES).meta({
   id: "AiFeature",
@@ -38,14 +32,14 @@ const Feature = z.enum(AI_FEATURES).meta({
   example: "assistant",
 });
 
-const SuggestionState = z.enum(["Proposed", "Confirmed", "Applied", "Rejected", "Expired"]).meta({
+const SuggestionState = z.enum(Constants.app.Enums.ai_suggestion_state).meta({
   id: "AiSuggestionState",
   description:
     "Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.",
   example: "Proposed",
 });
 
-const RequestOutcome = z.enum(["Pending", "Answered", "No Answer", "Failed"]).meta({
+const RequestOutcome = z.enum(Constants.app.Enums.ai_request_outcome).meta({
   id: "AiRequestOutcome",
   description: "How a model call ended. No Answer is the silence rule (Section 3.7).",
   example: "Answered",
@@ -317,7 +311,7 @@ const FilterBody = z
             example: "Unpaid invoices past their due date on the org's calendar.",
           }),
           ops: z
-            .array(z.enum(["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"]))
+            .array(z.enum(Constants.app.Enums.filter_operator))
             .min(1)
             .optional()
             .meta({ description: "The only operators the filter takes.", example: ["eq"] }),

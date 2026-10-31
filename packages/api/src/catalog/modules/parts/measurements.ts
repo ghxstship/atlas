@@ -13,10 +13,11 @@ import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
 import { resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const DIMENSIONS = ["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"] as const;
 const SOURCE = z
-  .enum(["Manual", "Import", "Integration"])
+  .enum(Constants.app.Enums.measurement_source)
   .meta({ description: "How the figure reached XOS.", example: "Import" });
 const unitCode = (description: string) =>
   z
@@ -125,7 +126,7 @@ const ProjectObjective = editDefinition(
     fields: {
       project_id: fields.ref("project"),
       metric_code: metricCode,
-      direction: z.enum(["At Least", "At Most"]).meta({
+      direction: z.enum(Constants.app.Enums.objective_direction).meta({
         description: "Met by reaching the target (At Least) or by staying within it (At Most).",
         example: "At Most",
       }),
@@ -190,7 +191,7 @@ const ProjectMeasurementCorrection = editDefinition(
     fields: {
       project_measurement_id: fields.ref("figure that changed"),
       correction_kind: z
-        .enum(["Corrected", "Withdrawn", "Restored"])
+        .enum(Constants.app.Enums.measurement_correction_kind)
         .meta({ description: "What changed the figure.", example: "Corrected" }),
       previous_value: orNull(figure("Value before the change; null when Unmeasured.", 1200)),
       previous_unit_code: orNull(unitCode("Unit before the change.")),
@@ -218,7 +219,7 @@ const EarnedMediaItem = editDefinition(
       title: fields.text("Headline or title of the coverage.", "Summer Series opens on the pier"),
       outlet: fields.text("Publication, station, channel or account that ran it.", "WLRN", 200),
       medium: z
-        .enum(["Online", "Print", "Broadcast", "Podcast", "Social"])
+        .enum(Constants.app.Enums.coverage_medium)
         .meta({ description: "Where the coverage ran.", example: "Broadcast" }),
       published_on: fields.date("Day it ran, on the project's calendar; never after today there."),
       url: orNull(fields.url("Link to the coverage; one live row per link in a project.")),
@@ -226,7 +227,7 @@ const EarnedMediaItem = editDefinition(
         fields.int("Audience the outlet reports for the piece; null when unreported.", 120000),
       ),
       tone: orNull(
-        z.enum(["Positive", "Neutral", "Negative"]).meta({
+        z.enum(Constants.app.Enums.coverage_tone).meta({
           description: "Sentiment of the coverage; null until rated.",
           example: "Positive",
         }),
@@ -261,7 +262,7 @@ const ProjectMeasurementSummary = defineResource({
     objective_id: orNull(fields.ref("live gate 1 objective for the metric")),
     direction: orNull(
       z
-        .enum(["At Least", "At Most"])
+        .enum(Constants.app.Enums.objective_direction)
         .meta({ description: "Direction of the objective.", example: "At Most" }),
     ),
     target_value: orNull(figure("Target as set, in target_unit_code.", 2)),

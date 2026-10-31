@@ -7,6 +7,7 @@ import {
   type MemberRef,
   type TransitionEntry,
 } from "./shared.ts";
+import * as enums from "../enums.generated.ts";
 
 /**
  * Shift swaps (app.shift_swaps): the person on a shift asks to hand it to another member; someone with
@@ -16,7 +17,7 @@ import {
 
 export type SwapState = Database["app"]["Enums"]["swap_state"];
 export type ApprovalDecision = Database["app"]["Enums"]["approval_decision"];
-export const SWAP_STATES: readonly SwapState[] = ["Proposed", "Approved", "Rejected", "Canceled"];
+export const SWAP_STATES: readonly SwapState[] = enums.swapState;
 
 export interface ShiftSwap {
   readonly id: string;

@@ -13,6 +13,7 @@ import {
   type Raw,
 } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Org lifecycle beyond cancellation (A79, migrations 1350 to 1355; Section 4.6.1, Section 12, Section 14.7,
@@ -451,8 +452,7 @@ export function leavePartner(
 
 // Custom domains ---------------------------------------------------------------------------------------------------------
 
-export type ProvisioningStatus =
-  "Not Started" | "Requested" | "Pending DNS" | "Active" | "Failed" | "Released";
+export type ProvisioningStatus = Database["app"]["Enums"]["domain_provisioning_status"];
 
 export interface DnsRecord {
   readonly type: string;

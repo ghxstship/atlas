@@ -17,6 +17,8 @@ import {
   strOrNull,
   type Raw,
 } from "./workforce-shared.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Site operations (Section 4.9 production-specific additions; migration 0806), imported as
@@ -26,35 +28,23 @@ import {
  * safety.incident.write on the project; claims are settled with safety.incident.close.
  */
 
-export type OccupancyLoadBasis = "Space Capacity" | "Occupant Load Factor" | "Permit";
-export type WeatherHazard = "Wind" | "Lightning" | "Heat";
-export type WeatherAlertLevel = "Monitor" | "Restrict" | "Evacuate";
-export type LostItemCategory =
-  "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
-export type LostItemState = "Logged" | "Claimed" | "Returned" | "Disposed";
+export type OccupancyLoadBasis = Database["app"]["Enums"]["occupancy_load_basis"];
+export type WeatherHazard = Database["app"]["Enums"]["weather_hazard"];
+export type WeatherAlertLevel = Database["app"]["Enums"]["weather_alert_level"];
+export type LostItemCategory = Database["app"]["Enums"]["lost_item_category"];
+export type LostItemState = Database["app"]["Enums"]["lost_item_state"];
 
-export const WEATHER_HAZARDS: readonly WeatherHazard[] = ["Wind", "Lightning", "Heat"];
-export const WEATHER_LEVELS: readonly WeatherAlertLevel[] = ["Monitor", "Restrict", "Evacuate"];
-export const LOST_ITEM_CATEGORIES: readonly LostItemCategory[] = [
-  "Bag",
-  "Clothing",
-  "Electronics",
-  "Jewelry",
-  "Keys",
-  "Documents",
-  "Wallet",
-  "Other",
-];
-export const LOST_ITEM_STATES: readonly LostItemState[] = [
-  "Logged",
-  "Claimed",
-  "Returned",
-  "Disposed",
-];
+export const WEATHER_HAZARDS: readonly WeatherHazard[] = enums.weatherHazard;
+export const WEATHER_LEVELS: readonly WeatherAlertLevel[] = enums.weatherAlertLevel;
+export const LOST_ITEM_CATEGORIES: readonly LostItemCategory[] = enums.lostItemCategory;
+export const LOST_ITEM_STATES: readonly LostItemState[] = enums.lostItemState;
 
 /** The unit each hazard is read in, and how a reading meets a threshold. */
 export const HAZARD_UNITS: Readonly<
-  Record<WeatherHazard, { unit: "mph" | "mi" | "F"; comparison: "At or Above" | "At or Below" }>
+  Record<
+    WeatherHazard,
+    { unit: "mph" | "mi" | "F"; comparison: Database["app"]["Enums"]["threshold_comparison"] }
+  >
 > = {
   Wind: { unit: "mph", comparison: "At or Above" },
   Lightning: { unit: "mi", comparison: "At or Below" },

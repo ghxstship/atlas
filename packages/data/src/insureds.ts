@@ -1,6 +1,7 @@
 import type { Database, XosClient } from "./client.ts";
 import { deletedNow, insertedId, readRows, rpcValue, touched } from "./commercial-common.ts";
 import { fail, ok, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Additional insureds (migration 1130, finding A38-001, journey 43): the parties a certificate of
@@ -11,11 +12,7 @@ import { fail, ok, type Result } from "./result.ts";
 
 export type EndorsementKind = Database["app"]["Enums"]["endorsement_kind"];
 
-export const ENDORSEMENT_KINDS: readonly EndorsementKind[] = [
-  "Additional Insured",
-  "Primary and Noncontributory",
-  "Waiver of Subrogation",
-];
+export const ENDORSEMENT_KINDS: readonly EndorsementKind[] = enums.endorsementKind;
 
 export interface CertificateInsured {
   readonly id: string;
@@ -188,7 +185,7 @@ export async function listCertificateChecks(
 }
 
 export interface InsuredVerification {
-  readonly outcome: "Passed" | "Failed";
+  readonly outcome: Database["app"]["Enums"]["verification_outcome"];
   readonly missing: readonly string[];
 }
 

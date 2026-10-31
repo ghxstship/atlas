@@ -2,6 +2,7 @@ import { URL } from "node:url";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import { designValues, xosPlugin } from "./eslint/no-raw-design-values.mjs";
+import { restatedEnums } from "./eslint/no-restated-enums.mjs";
 import { loadCapabilityCodes, loadExpoRoutes, loadSitemapRoutes } from "./eslint/registries.mjs";
 
 /**
@@ -10,6 +11,7 @@ import { loadCapabilityCodes, loadExpoRoutes, loadSitemapRoutes } from "./eslint
  * Raw colors, pixel sizes and durations are refused in TypeScript (Section 3.15); packages/tokens
  * turns that rule off because it is the home of the values. Capability codes a check names must be
  * in packages/schemas/capabilities.yaml (S3.15-10); apps add `sitemapRoutes` for their paths.
+ * States and kinds the database defines as enums are read from @xos/data, never written out again.
  */
 const SOURCES = ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"];
 const TESTS = ["**/test/**", "**/tests/**", "**/*.test.ts", "**/*.test.tsx"];
@@ -73,11 +75,14 @@ export const base = tseslint.config(
     },
   },
   ...designValues,
+  ...restatedEnums.map((block) => ({ ...block, plugins: { xos: xosPlugin } })),
   ...capabilities,
 );
 
 export { designValues, noRawDesignValues, xosPlugin } from "./eslint/no-raw-design-values.mjs";
 export { noServerConsole, serverConsole } from "./eslint/no-server-console.mjs";
+export { noRestatedEnums, restatedEnums } from "./eslint/no-restated-enums.mjs";
+export { copyLiterals, copyLiteralsRules, jsxNoLiterals } from "./eslint/copy-literals.mjs";
 export { registeredCapability } from "./eslint/registered-capability.mjs";
 export { registeredRoute } from "./eslint/registered-route.mjs";
 

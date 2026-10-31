@@ -1,5 +1,6 @@
 import type { PhaseCode, RecordState } from "@xos/ui";
 import type { ProductionState, ProjectState } from "@xos/data/projects";
+import * as enums from "@xos/data/enums";
 
 /**
  * The state icon a project or production state shows. The lifecycles use the shared state
@@ -25,15 +26,10 @@ export function stateIcon(state: ProjectState | ProductionState): RecordState {
 /**
  * Project states in enum order (app.project_state), for client components: importing
  * PROJECT_STATES from @xos/data/projects ships the whole generated enum table to the browser
- * (A24-009). test/projects-format.test.ts holds it equal to PROJECT_STATES.
+ * (A24-009), where @xos/data/enums brings only this list. test/projects-format.test.ts holds it
+ * equal to PROJECT_STATES.
  */
-export const PROJECT_STATE_ORDER: readonly ProjectState[] = [
-  "Proposed",
-  "Active",
-  "Blocked",
-  "Complete",
-  "Canceled",
-];
+export const PROJECT_STATE_ORDER: readonly ProjectState[] = enums.projectState;
 
 /** A canon phase code as the design system's phase code type; canon holds exactly these nine. */
 export function phaseCode(code: string): PhaseCode {

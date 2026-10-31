@@ -10,6 +10,7 @@ import {
   type TransitionEntry,
   type WorkerRef,
 } from "./shared.ts";
+import * as enums from "../enums.generated.ts";
 
 /**
  * Shifts (app.shifts, migrations 0340 and 0460): one person or an open slot, in one canon role, for
@@ -19,7 +20,7 @@ import {
  */
 
 export type ShiftState = Database["app"]["Enums"]["shift_state"];
-export const SHIFT_STATES: readonly ShiftState[] = ["Draft", "Published", "Accepted", "Canceled"];
+export const SHIFT_STATES: readonly ShiftState[] = enums.shiftState;
 
 export interface Shift {
   readonly id: string;

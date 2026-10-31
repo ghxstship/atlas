@@ -7,6 +7,7 @@ import type { OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
 import { Problem, RefusalProblem, ValidationProblem } from "@xos/schemas";
 import type { CapabilityRegistry } from "@xos/schemas/capabilities";
+import { Constants } from "@xos/data/database.types";
 
 export const PROBLEM_MEDIA_TYPE = "application/problem+json";
 
@@ -14,17 +15,7 @@ export const MAX_PAGE_SIZE = 200;
 export const DEFAULT_PAGE_SIZE = 50;
 
 /** Filter operators from ADR 0003. */
-export const FILTER_OPERATORS = [
-  "eq",
-  "ne",
-  "lt",
-  "lte",
-  "gt",
-  "gte",
-  "in",
-  "is_null",
-  "contains",
-] as const;
+export const FILTER_OPERATORS = Constants.app.Enums.filter_operator;
 
 type Registry = OpenAPIHono["openAPIRegistry"];
 

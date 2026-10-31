@@ -5,6 +5,7 @@
  * its library loads only in the worker.
  */
 
+import type { Database } from "./database.types.ts";
 export interface Sheet {
   readonly name: string;
   /** Every row as cell text, in spreadsheet order. Row 1 is the first line. */
@@ -237,7 +238,7 @@ export function playbookFieldMap(
   return map;
 }
 
-export type SuggestionSource = "Profile" | "Playbook" | "Header";
+export type SuggestionSource = Database["app"]["Enums"]["import_suggestion_source"];
 
 export interface Suggestion {
   readonly field: string | null;

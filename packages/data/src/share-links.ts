@@ -1,6 +1,7 @@
 import type { Database, XosClient } from "./client.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Share links and classified downloads (Section 8.6, finding A65-016; migration 1380).
@@ -23,12 +24,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 export type DataClassification = Database["app"]["Enums"]["data_classification"];
 
-export const CLASSIFICATIONS: readonly DataClassification[] = [
-  "Public",
-  "Internal",
-  "Confidential",
-  "Restricted",
-];
+export const CLASSIFICATIONS: readonly DataClassification[] = enums.dataClassification;
 
 export function isClassification(value: unknown): value is DataClassification {
   return typeof value === "string" && (CLASSIFICATIONS as readonly string[]).includes(value);

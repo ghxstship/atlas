@@ -3,6 +3,7 @@ import { fillRoute, getNode, isNodeVisible, type NavContext, type Sitemap } from
 import { normalizeState } from "@xos/data/search-query";
 import type { SettingDefinition } from "@xos/schemas/settings";
 import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * The command menu's server-side index (Section 11.10 item 1, Section 11.11 Settings "any setting reached
@@ -54,7 +55,7 @@ export const RECORD_STATES = [
   "Deferred",
   "Canceled",
 ] as const;
-export const INCIDENT_STATES = ["Reported", "Dispatched", "Contained", "Closed"] as const;
+export const INCIDENT_STATES = enums.incidentState;
 
 function lower(text: string): string {
   return text.toLocaleLowerCase("es-US").trim();

@@ -2,6 +2,7 @@ import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 import { listRecords, type RecordSummary } from "./work.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Schedule repository (Section 4.2 Schedule): timeline records and their dependencies, baselines
@@ -52,7 +53,7 @@ export async function addDependency(
     readonly orgId: string;
     readonly predecessorId: string;
     readonly successorId: string;
-    readonly type?: "Finish to Start" | "Start to Start" | "Finish to Finish" | "Start to Finish";
+    readonly type?: Database["app"]["Enums"]["dependency_type"];
     readonly lagMinutes?: number;
   },
 ): Promise<Result<{ id: string }>> {

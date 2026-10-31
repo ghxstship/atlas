@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Gateway's `api_public` functions, callable without a session: the org brand for a host or slug
@@ -321,7 +322,7 @@ export interface AdvanceSection {
   readonly answer: string | null;
   readonly answeredAt: string | null;
   /** Review of the latest answer: Accepted, Returned, or null while it waits (or is unanswered). */
-  readonly reviewOutcome: "Accepted" | "Returned" | null;
+  readonly reviewOutcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
   /** Why the latest answer was returned, shown to the recipient. */
   readonly returnReason: string | null;
 }
@@ -360,7 +361,7 @@ interface AdvanceRow {
   section_prompt: string | null;
   answer_body: string | null;
   answered_at: string | null;
-  review_outcome: "Accepted" | "Returned" | null;
+  review_outcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
   return_reason: string | null;
 }
 

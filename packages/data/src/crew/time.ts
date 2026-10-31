@@ -10,6 +10,7 @@ import {
   type WorkerRef,
   type TransitionEntry,
 } from "./shared.ts";
+import * as enums from "../enums.generated.ts";
 
 /**
  * Time entries (app.time_entries): clock-in and clock-out punches. One person's entries never overlap
@@ -393,12 +394,7 @@ export async function decideCorrection(
 // Timesheets ------------------------------------------------------------------------------------------
 
 export type TimesheetState = Database["app"]["Enums"]["timesheet_state"];
-export const TIMESHEET_STATES: readonly TimesheetState[] = [
-  "Proposed",
-  "Submitted",
-  "Approved",
-  "Rejected",
-];
+export const TIMESHEET_STATES: readonly TimesheetState[] = enums.timesheetState;
 
 export interface Timesheet {
   readonly id: string;

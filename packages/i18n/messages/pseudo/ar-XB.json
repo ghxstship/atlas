@@ -39,7 +39,8 @@
       "booked": "‮ꓭooʞǝp‬"
     },
     "avatar": {
-      "more": "‮{n} ɯoɹǝ‬"
+      "more": "‮{n} ɯoɹǝ‬",
+      "overflow": "‮+{n}‬"
     },
     "badge": {
       "brightness": "‮ꓤɐısǝ qɹıƃɥʇuǝss‬",
@@ -253,6 +254,7 @@
       "whatFailed": "‮Mɥɐʇ ɟɐılǝp?‬"
     },
     "key": {
+      "enter": "‮↵‬",
       "esc": "‮Ǝsɔ‬",
       "space": "‮Sdɐɔǝ‬"
     },
@@ -330,6 +332,7 @@
       "account": "‮∀ɔɔonuʇ Nnɯqǝɹ‬",
       "accountHelp": "‮Ǝuɔɹʎdʇǝp ou ǝuʇɹʎ. Oulʎ ʇɥǝ lɐsʇ ɟonɹ pıƃıʇs ɐɹǝ sɥoʍu ɐɟʇǝɹ sɐʌıuƃ.‬",
       "checking": "‮Ɔɥǝɔʞıuƃ‬",
+      "masked": "‮•••• {last4}‬",
       "routing": "‮ꓤonʇıuƃ Nnɯqǝɹ‬",
       "routingHint": "‮9 pıƃıʇs‬",
       "save": "‮Sɐʌǝ Sǝɔnɹǝlʎ‬",
@@ -358,6 +361,9 @@
     "profile": {
       "complete": "‮{n}% ɔoɯdlǝʇǝ‬",
       "title": "‮Ԁɹoɟılǝ‬"
+    },
+    "progress": {
+      "percent": "‮{n}%‬"
     },
     "provenance": {
       "rank": "‮Ԁɹoʌǝuɐuɔǝ ɹɐuʞ {rank}‬",

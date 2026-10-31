@@ -20,6 +20,7 @@ import { workforceRoles } from "@/lib/people/roles";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { LiveList } from "@/components/live/live-list";
+import * as enums from "@xos/data/enums";
 
 /**
  * People > Directory (Section 4.5.5): the org's members with their roles, role assignments and
@@ -173,7 +174,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
             label: t("people.assignments.basis"),
             value: "Declared",
             help: t("people.assignments.basisHelp"),
-            options: ["Declared", "Ratio", "Fixed"].map((b) => ({
+            options: enums.staffingBasis.map((b) => ({
               value: b,
               label: t(`people.basis.${b}`),
             })),

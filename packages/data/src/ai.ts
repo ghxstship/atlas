@@ -1,6 +1,7 @@
 import type { Database, Json } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Aurora AI repository (Section 4.7, migration 0650). Every call runs with the signed-in person's
@@ -12,14 +13,7 @@ export type AiFeature = Database["app"]["Enums"]["ai_feature"];
 export type AiSuggestionState = Database["app"]["Enums"]["ai_suggestion_state"];
 
 /** The features in settings order (Section 4.7 table order). */
-export const AI_FEATURE_ORDER: readonly AiFeature[] = [
-  "assistant",
-  "plain_language",
-  "extraction",
-  "drafting",
-  "summaries",
-  "mapping",
-];
+export const AI_FEATURE_ORDER: readonly AiFeature[] = enums.aiFeature;
 
 export type AiSettings = Readonly<Record<AiFeature, boolean>>;
 

@@ -22,6 +22,7 @@ import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import * as enums from "@xos/data/enums";
 import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
@@ -84,7 +85,7 @@ export async function VendorPrequalification({
   const decide = (q: Prequalification) =>
     canDecide && q.decision === null ? (
       <div className="flex flex-wrap gap-8">
-        {(["Approved", "Rejected"] as const).map((decision) => (
+        {enums.approvalDecision.map((decision) => (
           <ActionButton
             key={decision}
             action={decidePrequalificationAction}

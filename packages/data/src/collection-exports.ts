@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Exports of a collection's current view (A102, RRR-146; migration 2030; Section 4.6.4, 8.6). Atlas's export menu
@@ -16,7 +17,7 @@ export type ExportFormat = Database["app"]["Enums"]["export_format"];
 export type ExportStatus = Database["app"]["Enums"]["export_status"];
 export type ExportClassification = Database["app"]["Enums"]["data_classification"];
 
-export const EXPORT_FORMATS: readonly ExportFormat[] = ["CSV", "XLSX", "PDF"];
+export const EXPORT_FORMATS: readonly ExportFormat[] = enums.exportFormat;
 
 /**
  * An equality on a column of the source, a list of values one of which it holds (comma-separated, as the

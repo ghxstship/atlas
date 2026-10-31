@@ -31,6 +31,7 @@ import {
   removePoolMemberAction,
   setStandingAction,
 } from "../actions";
+import * as enums from "@xos/data/enums";
 
 /**
  * Pools (Section 4.4.3, Section 4.4.4 stage 9 re-engagement): the org's talent and vendor pools with Preferred and
@@ -93,7 +94,7 @@ export default async function PoolsPage({
                 label: t("fields.kind"),
                 kind: "select",
                 defaultValue: "Talent",
-                options: (["Talent", "Vendor"] as const).map((k) => ({
+                options: enums.poolKind.map((k) => ({
                   value: k,
                   label: t(`poolKinds.${enumKey(k)}`),
                 })),
@@ -164,7 +165,7 @@ function standingFields(page: PageSetup, member?: PoolMember): FieldSpec[] {
       label: t("fields.standing"),
       kind: "select",
       defaultValue: member?.standing ?? "Approved",
-      options: (["Preferred", "Approved", "Do Not Engage"] as const).map((s) => ({
+      options: enums.poolStanding.map((s) => ({
         value: s,
         label: t(`standings.${enumKey(s)}`),
       })),

@@ -10,6 +10,7 @@ import {
   type Transition,
 } from "./commercial-common.ts";
 import { fail, ok, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Vendors repository (Section 4.2 Vendors, Section 7.4): the vendor facet of a counterparty with
@@ -22,13 +23,7 @@ type Tables = Database["app"]["Tables"];
 export type VendorState = Database["app"]["Enums"]["vendor_state"];
 export type ApprovalDecision = Database["app"]["Enums"]["approval_decision"];
 
-export const VENDOR_STATES: readonly VendorState[] = [
-  "Prospect",
-  "Onboarded",
-  "Active",
-  "Blocked",
-  "Canceled",
-];
+export const VENDOR_STATES: readonly VendorState[] = enums.vendorState;
 
 /** A lifecycle rule as the database states it. */
 export interface TransitionRule<S extends string = string> {
@@ -845,13 +840,7 @@ export async function addVendorBankAccount(
 export type SponsorAssetKind = Database["app"]["Enums"]["sponsor_asset_kind"];
 export type ReviewState = Database["app"]["Enums"]["review_state"];
 
-export const SPONSOR_ASSET_KINDS: readonly SponsorAssetKind[] = [
-  "Logo",
-  "Artwork",
-  "Copy",
-  "Video",
-  "Other",
-];
+export const SPONSOR_ASSET_KINDS: readonly SponsorAssetKind[] = enums.sponsorAssetKind;
 
 export interface SponsorAsset {
   readonly id: string;

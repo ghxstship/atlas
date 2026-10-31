@@ -18,6 +18,7 @@ import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
 import { bidTotal } from "@xos/data/gateway-marketplace";
 import { from, handlersFor, run, tableResource } from "./support/table.ts";
 import type { Row, TableResource } from "./support/table.ts";
+import type { Database } from "@xos/data/database.types";
 
 type Engagement = Components["Engagement"];
 type OnboardingItem = Components["OnboardingItem"];
@@ -243,7 +244,7 @@ const VERIFICATION_COLUMNS =
 
 interface VerificationRow extends Omit<AuditRow, "deleted_at"> {
   onboarding_item_id: string;
-  outcome: "Passed" | "Failed";
+  outcome: Database["app"]["Enums"]["verification_outcome"];
   verified_by: string | null;
   verified_at: string;
   note: string | null;

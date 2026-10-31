@@ -39,7 +39,8 @@
       "booked": "[Böökéd ··]"
     },
     "avatar": {
-      "more": "[{n} möré ···]"
+      "more": "[{n} möré ···]",
+      "overflow": "[+{n} ·]"
     },
     "badge": {
       "brightness": "[Ràîsé brîghtñéss ······]",
@@ -253,6 +254,7 @@
       "whatFailed": "[Whàt fàîléd? ····]"
     },
     "key": {
+      "enter": "[↵ ·]",
       "esc": "[Ésç ·]",
       "space": "[Spàçé ·]"
     },
@@ -330,6 +332,7 @@
       "account": "[Àççöûñt Ñûmbér ·····]",
       "accountHelp": "[Éñçrýptéd öñ éñtrý. Öñlý thé làst föûr dîgîts àré shöwñ àftér sàvîñg. ···························]",
       "checking": "[Çhéçkîñg ···]",
+      "masked": "[•••• {last4} ··]",
       "routing": "[Röûtîñg Ñûmbér ·····]",
       "routingHint": "[9 dîgîts ···]",
       "save": "[Sàvé Séçûrélý ·····]",
@@ -358,6 +361,9 @@
     "profile": {
       "complete": "[{n}% çömplété ·····]",
       "title": "[Pröfîlé ··]"
+    },
+    "progress": {
+      "percent": "[{n}% ·]"
     },
     "provenance": {
       "rank": "[Prövéñàñçé ràñk {rank} ········]",

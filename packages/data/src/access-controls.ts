@@ -444,8 +444,7 @@ export async function unblock(db: XosClient, blockId: string): Promise<Result<st
 
 // Project roles on an assignment (Section 4.8.1, migration 1204) ------------------------------------------
 
-export type ProjectRole =
-  "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
+export type ProjectRole = Database["app"]["Enums"]["project_role"];
 
 export interface ProjectMemberRole {
   readonly id: string;

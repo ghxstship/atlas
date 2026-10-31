@@ -1,6 +1,8 @@
 import type { XosClient } from "./client.ts";
 import type { Result } from "./result.ts";
 import { bool, num, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Reporting and blocking (ADR 0033 decision 57, App Store Review Guideline 1.2; migrations 1630 and 1631), imported as
@@ -11,27 +13,15 @@ import { bool, num, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
  * A90's console does for listings. Listing and lifting blocks are access-controls' listMyBlocks and unblock.
  */
 
-export type ContentSubjectKind = "Feed Post" | "Comment" | "Chat Message";
-export type ContentReportReason =
-  "Harassment" | "Hate" | "Sexual Content" | "Violence" | "Spam" | "Other";
-export type ContentModerationAction = "Removed" | "No Action";
-export type ContentModerationGround = "Illegal Content" | "Terms Violation" | "No Violation";
+export type ContentSubjectKind = Database["app"]["Enums"]["content_subject_kind"];
+export type ContentReportReason = Database["app"]["Enums"]["content_report_reason"];
+export type ContentModerationAction = Database["app"]["Enums"]["content_moderation_action"];
+export type ContentModerationGround = Database["app"]["Enums"]["moderation_ground"];
 
 /** The reasons in the order a reporter is offered them. */
-export const CONTENT_REPORT_REASONS: readonly ContentReportReason[] = [
-  "Harassment",
-  "Hate",
-  "Sexual Content",
-  "Violence",
-  "Spam",
-  "Other",
-];
+export const CONTENT_REPORT_REASONS: readonly ContentReportReason[] = enums.contentReportReason;
 
-export const CONTENT_SUBJECT_KINDS: readonly ContentSubjectKind[] = [
-  "Feed Post",
-  "Comment",
-  "Chat Message",
-];
+export const CONTENT_SUBJECT_KINDS: readonly ContentSubjectKind[] = enums.contentSubjectKind;
 
 /** How many hours the moderators have to decide a report (app.content_reports.due_at). */
 export const REPORT_RESPONSE_HOURS = 24;

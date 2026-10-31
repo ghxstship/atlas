@@ -64,6 +64,7 @@ import { FilterSelect } from "./views-filter-select";
 // The table and calendar views and the drawers render only in some states (A24-009).
 import { DrawerForm, PeekCalendar, PeekTable, ShiftQuickAdd } from "./lazy";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import * as enums from "@xos/data/enums";
 
 /**
  * Shifts in every view the registry offers (resource schedule, list, table, calendar), for the org
@@ -108,9 +109,7 @@ export async function ShiftsCollection(props: {
       ? addDays(`${addDays(monthStart, 32).slice(0, 7)}-01`, 0)
       : addDays(week, 7);
 
-  const stateFilter = ["Draft", "Published", "Accepted", "Canceled"].find(
-    (s) => s === search["state"],
-  );
+  const stateFilter = enums.shiftState.find((s) => s === search["state"]);
   const result = await listShifts(db, {
     orgId: crew.orgId,
     from: startOfDayIn(from, zone),
@@ -607,7 +606,7 @@ export async function ShiftsCollection(props: {
         value={stateFilter ?? ""}
         options={[
           { value: "", label: t("crew.common.allStates") },
-          ...["Draft", "Published", "Accepted", "Canceled"].map((v) => ({
+          ...enums.shiftState.map((v) => ({
             value: v,
             label: t(`crew.states.shift.${v}`),
           })),

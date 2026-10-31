@@ -4,6 +4,7 @@
  * the person's own credential, so Aurora can never see or do more than they can. It holds no model
  * provider code and no secrets, so it is safe in any bundle.
  */
+import type { FilterOperator } from "./features/filters.ts";
 import type { AiFeature } from "./model.ts";
 
 export interface AuroraProposalSummary {
@@ -46,6 +47,7 @@ export interface AuroraSuggestion {
   readonly operation_id: string;
   readonly target_id: string | null;
   readonly summary: string;
+  // eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
   readonly suggestion_state: "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
   readonly expires_at: string;
   readonly applied_id: string | null;
@@ -67,9 +69,7 @@ export interface AuroraFilterField {
   readonly type: "string" | "number" | "date" | "boolean" | "enum";
   readonly values?: readonly string[];
   readonly description?: string;
-  readonly ops?: readonly (
-    "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains"
-  )[];
+  readonly ops?: readonly FilterOperator[];
 }
 
 /** The answer of `aurora.filter`. */

@@ -14,6 +14,7 @@ import { cache } from "react";
 import { getCanonLabels } from "@/lib/canon/labels";
 import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The context every People and Crew page shares: the org context (404 when hidden, Section 4.5.9),
@@ -21,7 +22,7 @@ import type { OrgContext } from "@/lib/shell/context";
  * level security decides every row; reach only decides which controls render (Section 5, rule 1).
  */
 
-export type Reach = "own" | "assigned" | "organization";
+export type Reach = Database["app"]["Enums"]["capability_reach"];
 
 export interface CrewContext {
   readonly ctx: OrgContext;

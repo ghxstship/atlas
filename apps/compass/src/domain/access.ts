@@ -10,9 +10,9 @@ import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { Audience } from "@xos/sync";
 import { isInternal } from "@xos/sync";
 import { navigation } from "../navigation.generated";
+import type { Database } from "@xos/data/database.types";
 
-export type EngagementState =
-  "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
+export type EngagementState = Database["app"]["Enums"]["engagement_state"];
 
 export interface EngagementSummary {
   readonly id: string;

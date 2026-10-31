@@ -10,21 +10,12 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions } from "../correct.ts";
 import { collectionAction } from "../define.ts";
+import { Constants } from "@xos/data/database.types";
 import { assetUnitBulkActions, fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
 
 const SINCE = "1.0.0-draft.2";
 
-const ASSET_STATES = [
-  "Proposed",
-  "Received",
-  "Available",
-  "Reserved",
-  "Deployed",
-  "In Maintenance",
-  "Damaged",
-  "Lost",
-  "Retired",
-] as const;
+const ASSET_STATES = Constants.app.Enums.asset_state;
 
 const assetState = (description: string) =>
   z.enum(ASSET_STATES).meta({ description, example: "Available" });
@@ -42,7 +33,7 @@ const AssetScanEvent = z
         "The scanned asset tag, external identifier (serial, GTIN) or lot label (LOT:<lot id>).",
       example: "NWL-RAD-014",
     }),
-    action: z.enum(["check-out", "check-in", "transfer"]).meta({
+    action: z.enum(Constants.app.Enums.asset_scan_action).meta({
       description:
         "check-out hands the item to one custodian (the unit becomes Deployed); check-in returns it to a venue (the unit becomes Available); transfer passes a deployed unit to another custodian.",
       example: "check-out",

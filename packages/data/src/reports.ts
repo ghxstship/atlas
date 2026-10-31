@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { XosClient } from "./client.ts";
 import { nullAwareSum } from "./finance.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Built-in reports (Section 4.2 Reports, Section 7.4 Analytics): gate readiness, the coordinate
@@ -911,7 +913,7 @@ export async function incidentsReport(
     g.ids.push(str(i["id"]));
     groups.set(key, g);
   }
-  const states = ["Reported", "Dispatched", "Contained", "Closed"];
+  const states: readonly string[] = enums.incidentState;
   return ok({
     rows: [...groups.values()]
       .map((g) => ({
@@ -1020,7 +1022,10 @@ export async function listMyRuns(
 /** Queues a run of a saved report for the viewer (A18's app.run_report). */
 export async function runReport(
   db: XosClient,
-  input: { readonly reportDefinitionId: string; readonly format: "CSV" | "XLSX" | "PDF" },
+  input: {
+    readonly reportDefinitionId: string;
+    readonly format: Database["app"]["Enums"]["export_format"];
+  },
 ): Promise<Result<{ id: string }>> {
   const { data, error } = await untyped(db).rpc("run_report", {
     p_report_definition_id: input.reportDefinitionId,

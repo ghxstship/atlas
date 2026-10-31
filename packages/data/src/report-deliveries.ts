@@ -7,6 +7,7 @@ import {
   type ResultStorage,
   type RunLabels,
 } from "./report-runs.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * The report.deliver worker (A43, finding A38-004; Section 4.6.4, journey 29; migration 1127). The
@@ -25,7 +26,7 @@ export interface ReportDelivery {
   readonly deliveryId: string;
   readonly orgName: string;
   readonly reportName: string;
-  readonly exportFormat: "CSV" | "XLSX" | "PDF";
+  readonly exportFormat: Database["app"]["Enums"]["export_format"];
   readonly storagePath: string | null;
   readonly rowCount: number | null;
   readonly unpricedCount: number | null;
