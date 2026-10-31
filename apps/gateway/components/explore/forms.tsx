@@ -1,6 +1,8 @@
 "use client";
 
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, Checkbox, Dialog, InlineAlert, Input, Textarea } from "@xos/ui";
+import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { useTranslations } from "next-intl";
@@ -94,6 +96,9 @@ export interface ApplyFormProps {
   readonly roster: readonly { readonly personId: string; readonly name: string }[];
 }
 
+// A sent application completes the Apply funnel (A146); submitting it is the funnel's step.
+const applied = () => emitWorkflow("gateway.apply:done");
+
 /**
  * Apply in one step (Section 4.4.3, Section 11.12 Apply): the person sees exactly what they share,
  * answers the org's questions and confirms availability. Vendors bid line by line, artists accept
@@ -103,6 +108,7 @@ export interface ApplyFormProps {
 export function ApplyForm(props: ApplyFormProps) {
   const t = useTranslations("gateway.explore.applyForm") as unknown as Translate;
   const [state, action, pending] = useActionState<ApplyState, FormData>(applyAction, {});
+  useActionOutcome(state, pending, (s) => s.sent === true, applied);
   const [lines, setLines] = useState([0]);
   const [next, setNext] = useState(1);
   if (state.sent) {
@@ -122,6 +128,7 @@ export function ApplyForm(props: ApplyFormProps) {
       className="flex flex-col gap-16"
       noValidate
       aria-label={t("title", { role: props.role })}
+      data-workflow="gateway.apply:step1"
     >
       <input type="hidden" name="opportunityId" value={props.opportunityId} />
       {state.fieldError ? (

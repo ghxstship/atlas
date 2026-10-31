@@ -6,6 +6,7 @@ import {
   onboardingStanding,
   readView,
 } from "@xos/data/gateway";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
 import { InlineAlert, Tag } from "@/components/ui";
@@ -438,46 +439,50 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
           />
         </Section>
       ) : null}
-      {compliance.length > 0 ? (
-        <Section title={t("gateway.engagement.compliance.items")}>
-          {toUpload.length > 0 ? (
-            <RowList
-              label={t("gateway.engagement.compliance.items")}
-              items={toUpload.map((i) => ({
-                id: i.id,
-                title: i.name,
-                meta: [
-                  t(enumLabelKey("onboardingItemKind", i.kind)),
-                  i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
-                ],
-                tag: {
-                  label: t(
-                    `gateway.engagement.onboarding.standing.${onboardingStanding(i, view.today)}`,
+      {/* An uploaded item leaves the list, and its form with it, in the commit that brings the result; the scope stays
+          to hear of it (funnel signals, A146). */}
+      <ActionOutcomeScope token={toUpload.map((i) => i.id).join(",")}>
+        {compliance.length > 0 ? (
+          <Section title={t("gateway.engagement.compliance.items")}>
+            {toUpload.length > 0 ? (
+              <RowList
+                label={t("gateway.engagement.compliance.items")}
+                items={toUpload.map((i) => ({
+                  id: i.id,
+                  title: i.name,
+                  meta: [
+                    t(enumLabelKey("onboardingItemKind", i.kind)),
+                    i.blocking ? t("gateway.engagement.onboarding.blocking") : null,
+                  ],
+                  tag: {
+                    label: t(
+                      `gateway.engagement.onboarding.standing.${onboardingStanding(i, view.today)}`,
+                    ),
+                    tone: onboardingStanding(i, view.today) === "expired" ? "danger" : "warning",
+                  },
+                  detail: (
+                    <OnboardingUploadForm
+                      orgId={view.engagement.orgId}
+                      engagementId={view.engagement.id}
+                      itemId={i.id}
+                      name={i.name}
+                    />
                   ),
-                  tone: onboardingStanding(i, view.today) === "expired" ? "danger" : "warning",
-                },
-                detail: (
-                  <OnboardingUploadForm
-                    orgId={view.engagement.orgId}
-                    engagementId={view.engagement.id}
-                    itemId={i.id}
-                    name={i.name}
-                  />
-                ),
-              }))}
-            />
-          ) : null}
-          {onFile.length > 0 ? (
-            <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
-              {onFile.map((i) => (
-                <li key={i.id}>
-                  <Tag tone={i.satisfied ? "success" : "warning"}>{i.name}</Tag>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </Section>
-      ) : null}
+                }))}
+              />
+            ) : null}
+            {onFile.length > 0 ? (
+              <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
+                {onFile.map((i) => (
+                  <li key={i.id}>
+                    <Tag tone={i.satisfied ? "success" : "warning"}>{i.name}</Tag>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </Section>
+        ) : null}
+      </ActionOutcomeScope>
     </div>
   );
 }

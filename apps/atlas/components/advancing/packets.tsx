@@ -13,6 +13,7 @@ import {
   type PacketState,
   type PacketSummary,
 } from "@xos/data/advancing";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
 import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
@@ -385,6 +386,8 @@ async function PacketPage({
       label: `${partyLabel(p, t)} · ${t(p.kind === "person" ? "advancing.common.person" : "advancing.common.counterparty")}`,
     }));
   const latest = packet.submissions.filter((s) => s.latest);
+  // A reviewed answer's review form leaves in the commit that brings the result; the scope stays to hear of it (A146).
+  const reviews = latest.map((s) => `${s.id}:${s.reviewedAt ?? ""}`).join(",");
   const recipientName = (id: string) => {
     const r = packet.recipients.find((x) => x.id === id);
     return r ? partyLabel(r.party, t) : t("advancing.recipients.removed");
@@ -618,76 +621,78 @@ async function PacketPage({
         ) : null}
       </Panel>
       <Panel id="packet-answers" title={t("advancing.answers.title")}>
-        {!sent ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("advancing.answers.unsent")}</p>
-        ) : latest.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("advancing.answers.none")}</p>
-        ) : (
-          <ul className="m-0 flex list-none flex-col gap-12 p-0">
-            {latest.map((s) => {
-              const section = packet.sections.find((x) => x.id === s.sectionId);
-              return (
-                <li
-                  key={s.id}
-                  className="flex flex-col gap-8 rounded-card border border-border-subtle p-12"
-                >
-                  <div className="flex flex-wrap items-center gap-8 text-text-12 text-text-secondary">
-                    <span className="text-label-13 font-medium text-text-primary">
-                      {section?.title ?? t("advancing.answers.removedSection")}
-                    </span>
-                    <span>{recipientName(s.recipientId)}</span>
-                    <span>{when(s.submittedAt)}</span>
-                    {s.viaLink ? <Tag tone="accent">{t("advancing.answers.viaLink")}</Tag> : null}
-                    {s.reviewOutcome ? (
-                      <Tag tone={s.reviewOutcome === "Accepted" ? "success" : "warning"}>
-                        {t(`advancing.review.outcomes.${s.reviewOutcome}`)}
-                      </Tag>
+        <ActionOutcomeScope token={reviews}>
+          {!sent ? (
+            <p className="m-0 text-text-13 text-text-secondary">{t("advancing.answers.unsent")}</p>
+          ) : latest.length === 0 ? (
+            <p className="m-0 text-text-13 text-text-secondary">{t("advancing.answers.none")}</p>
+          ) : (
+            <ul className="m-0 flex list-none flex-col gap-12 p-0">
+              {latest.map((s) => {
+                const section = packet.sections.find((x) => x.id === s.sectionId);
+                return (
+                  <li
+                    key={s.id}
+                    className="flex flex-col gap-8 rounded-card border border-border-subtle p-12"
+                  >
+                    <div className="flex flex-wrap items-center gap-8 text-text-12 text-text-secondary">
+                      <span className="text-label-13 font-medium text-text-primary">
+                        {section?.title ?? t("advancing.answers.removedSection")}
+                      </span>
+                      <span>{recipientName(s.recipientId)}</span>
+                      <span>{when(s.submittedAt)}</span>
+                      {s.viaLink ? <Tag tone="accent">{t("advancing.answers.viaLink")}</Tag> : null}
+                      {s.reviewOutcome ? (
+                        <Tag tone={s.reviewOutcome === "Accepted" ? "success" : "warning"}>
+                          {t(`advancing.review.outcomes.${s.reviewOutcome}`)}
+                        </Tag>
+                      ) : null}
+                    </div>
+                    {section?.kind && section.kind !== "Text" && details?.ok ? null : (
+                      <p className="m-0 whitespace-pre-wrap text-text-14">{s.body}</p>
+                    )}
+                    {details?.ok ? (
+                      <AnswerDetails
+                        org={org}
+                        note={s.note}
+                        accepted={s.reviewOutcome === "Accepted"}
+                        bookable={can.review && dockSections.has(s.sectionId)}
+                        lines={details.data.lines.filter((l) => l.submissionId === s.id)}
+                        files={details.data.files.filter((f) => f.submissionId === s.id)}
+                        zones={(zones?.ok ? zones.data : []).map((z) => ({
+                          value: z.id,
+                          label: `${z.code} · ${z.name}`,
+                        }))}
+                        t={t}
+                        when={(iso, zone) =>
+                          format.dateTime(new Date(iso), {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                            timeZone: zone ?? timeZone,
+                          })
+                        }
+                      />
                     ) : null}
-                  </div>
-                  {section?.kind && section.kind !== "Text" && details?.ok ? null : (
-                    <p className="m-0 whitespace-pre-wrap text-text-14">{s.body}</p>
-                  )}
-                  {details?.ok ? (
-                    <AnswerDetails
-                      org={org}
-                      note={s.note}
-                      accepted={s.reviewOutcome === "Accepted"}
-                      bookable={can.review && dockSections.has(s.sectionId)}
-                      lines={details.data.lines.filter((l) => l.submissionId === s.id)}
-                      files={details.data.files.filter((f) => f.submissionId === s.id)}
-                      zones={(zones?.ok ? zones.data : []).map((z) => ({
-                        value: z.id,
-                        label: `${z.code} · ${z.name}`,
-                      }))}
-                      t={t}
-                      when={(iso, zone) =>
-                        format.dateTime(new Date(iso), {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                          timeZone: zone ?? timeZone,
-                        })
-                      }
-                    />
-                  ) : null}
-                  {s.returnReason ? (
-                    <p className="m-0 text-text-13 text-text-secondary">
-                      {t("advancing.review.returnedBecause", { reason: s.returnReason })}
-                    </p>
-                  ) : null}
-                  {can.review && s.reviewedAt === null ? (
-                    <ReviewForm
-                      org={org}
-                      submissionId={s.id}
-                      typed={
-                        section?.kind === "Item Request" || section?.kind === "Credential Request"
-                      }
-                    />
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                    {s.returnReason ? (
+                      <p className="m-0 text-text-13 text-text-secondary">
+                        {t("advancing.review.returnedBecause", { reason: s.returnReason })}
+                      </p>
+                    ) : null}
+                    {can.review && s.reviewedAt === null ? (
+                      <ReviewForm
+                        org={org}
+                        submissionId={s.id}
+                        typed={
+                          section?.kind === "Item Request" || section?.kind === "Credential Request"
+                        }
+                      />
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </ActionOutcomeScope>
         {sent && can.review && packet.sections.length > 0 && packet.recipients.length > 0 ? (
           <details className="rounded-card border border-border-subtle p-12">
             <summary className="cursor-pointer text-label-13 font-medium">

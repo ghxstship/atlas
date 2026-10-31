@@ -2,6 +2,8 @@
 
 import { Button, Dialog, IconButton, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { RiderLineProposal } from "@xos/data/advancing";
+import { emitWorkflow } from "@xos/data/workflow-signal";
+import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import type { Route } from "next";
 import dynamic from "next/dynamic";
 import { useFormatter } from "next-intl";
@@ -957,6 +959,10 @@ export function RevokeLinkButton({ org, linkId }: { org: string; linkId: string 
 
 // Submissions ---------------------------------------------------------------------------------------
 
+// A reviewed answer completes the Advancing funnel (A146). The reviewed row can leave the page with the result, so
+// the pages that list answers wrap them in an ActionOutcomeScope.
+const reviewed = () => emitWorkflow("atlas.advancing:done");
+
 /** Accept or return an answer; returning needs a reason the recipient will read. */
 export function ReviewForm({
   org,
@@ -970,6 +976,7 @@ export function ReviewForm({
 }) {
   const t = useCopy("advancing.review");
   const [state, action, pending] = useActionState(reviewSubmissionAction, INITIAL);
+  useActionOutcome(state, pending, (s) => s.ok === true, reviewed);
   const [returning, setReturning] = useState(false);
   const id = useId();
   return (

@@ -495,6 +495,7 @@ export async function ShiftsCollection(props: {
         submitLabel={t("crew.shifts.create")}
         action={createShiftAction}
         fields={shiftFields(null)}
+        signal="atlas.crew:step1"
       />
     ) : editing && canWrite ? (
       <DrawerForm
@@ -536,6 +537,7 @@ export async function ShiftsCollection(props: {
           defaultReason={t("crew.shifts.publishReason")}
           action={publishShiftsAction}
           hidden={{ org: crew.slug, ids: drafts.map((d) => d.id).join(",") }}
+          signal="atlas.crew:done"
         />
       ) : null}
       {projects.length > 0 ? (

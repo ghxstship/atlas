@@ -399,6 +399,7 @@ async function ReportForm({
         successKey="incidents.filed"
         layout="inline"
         resetOnSuccess
+        signals={{ submit: "atlas.safety:step1", done: "atlas.safety:done" }}
       >
         <TextField
           id="incident-title"

@@ -1,6 +1,9 @@
 "use client";
 
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, Checkbox, InlineAlert, Input, Textarea } from "@xos/ui";
+import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -31,6 +34,14 @@ export function useCopy(): Translate {
   return useTranslations("gateway.engagement.forms") as unknown as Translate;
 }
 
+// Workflow funnel signals (A146): a submitted invoice completes Get paid, an uploaded item is Onboard's step, and a
+// sent reply completes Communicate. An uploaded item can leave its list with the result, so the tabs that list them
+// wrap the rows in an ActionOutcomeScope.
+const done = (s: FormResult) => s.done === true;
+const invoiced = () => emitWorkflow("gateway.get_paid:done");
+const uploaded = () => emitWorkflow("gateway.onboard:step1");
+const replied = () => emitWorkflow("gateway.communicate:done");
+
 /** Shared form chrome: field and outcome errors, a success line, refresh on success. */
 export function FormShell({
   state,
@@ -41,6 +52,7 @@ export function FormShell({
   action,
   label,
   row = false,
+  submitSignal,
 }: {
   state: FormResult;
   pending: boolean;
@@ -52,6 +64,8 @@ export function FormShell({
   /** One of several forms in a list (an answer per section, a decision per row): its submit is
    *  secondary, so the screen keeps one primary action (Section 11.10; finding A59-029). */
   row?: boolean;
+  /** Workflow funnel signal sent when the form is submitted (A146). */
+  submitSignal?: WorkflowSignal;
 }) {
   const t = useCopy();
   const router = useRouter();
@@ -70,6 +84,7 @@ export function FormShell({
       onSubmit={keepInputOnSubmit(action)}
       className="flex w-full flex-col gap-12"
       aria-label={label}
+      data-workflow={submitSignal}
     >
       {state.fieldError ? (
         <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert>
@@ -223,6 +238,7 @@ export function InvoiceForm(props: {
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState<FormResult, FormData>(submitInvoiceAction, {});
+  useActionOutcome(state, pending, done, invoiced);
   const [lines, setLines] = useState([0]);
   const [next, setNext] = useState(1);
   return (
@@ -230,6 +246,7 @@ export function InvoiceForm(props: {
       state={state}
       pending={pending}
       action={action}
+      submitSignal="gateway.get_paid:step1"
       submitLabel={t("invoice.submit")}
       doneLabel={t("invoice.done")}
       label={t("invoice.title")}
@@ -329,6 +346,7 @@ export function OnboardingUploadForm(props: {
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState<FormResult, FormData>(uploadOnboardingAction, {});
+  useActionOutcome(state, pending, done, uploaded);
   return (
     <FormShell
       row
@@ -472,6 +490,7 @@ export function MessageComposer(props: { threadId: string; action?: "engagement"
     sendMessageAction,
     {},
   );
+  useActionOutcome(state, pending, (s) => s.sent !== undefined, replied);
   useEffect(() => {
     if (state.sent) {
       ref.current?.reset();
@@ -485,6 +504,7 @@ export function MessageComposer(props: { threadId: string; action?: "engagement"
       onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-8"
       aria-label={t("message.label")}
+      data-workflow="gateway.communicate:step1"
     >
       <OutcomeAlert outcome={state.outcome} />
       <input type="hidden" name="threadId" value={props.threadId} />
