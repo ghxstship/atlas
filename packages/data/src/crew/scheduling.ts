@@ -152,17 +152,26 @@ export async function createShiftsFromTemplate(
 // Fill rate --------------------------------------------------------------------------------------------------
 
 export interface FillRate {
-  /** Live shifts with someone on them. */
+  /** Live shifts with someone on them: a member, an engaged external or agency staff on a roster entry. */
   readonly filled: number;
   /** Live shifts: every shift that is not Canceled. */
   readonly total: number;
   /** Whole percent filled; 0 with no live shift. */
   readonly percent: number;
+  /** Live agency slots: allocated to a staffing agency that has not placed anyone from its roster yet (R12). */
+  readonly allocated: number;
 }
 
-/** How many of the live shifts have someone on them (Section 11.11 crew fill). Canceled shifts do not count. */
+/**
+ * How many of the live shifts have someone on them (Section 11.11 crew fill). Canceled shifts do not count. An agency
+ * slot is allocated but not filled until the agency places someone on it (R12), so it counts apart.
+ */
 export function fillRate(
-  shifts: ReadonlyArray<{ readonly state: string; readonly assigned: boolean }>,
+  shifts: ReadonlyArray<{
+    readonly state: string;
+    readonly assigned: boolean;
+    readonly agencySlot?: boolean;
+  }>,
 ): FillRate {
   const live = shifts.filter((s) => s.state !== "Canceled");
   const filled = live.filter((s) => s.assigned).length;
@@ -170,6 +179,7 @@ export function fillRate(
     filled,
     total: live.length,
     percent: live.length === 0 ? 0 : Math.round((filled / live.length) * 100),
+    allocated: live.filter((s) => !s.assigned && s.agencySlot === true).length,
   };
 }
 

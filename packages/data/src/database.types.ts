@@ -355,6 +355,13 @@ export type Database = {
             referencedRelation: "my_roster_entries";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "asset_custody_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_training";
+            referencedColumns: ["roster_entry_id"];
+          },
         ];
       };
       availability: {
@@ -563,6 +570,7 @@ export type Database = {
           id: string | null;
           project_id: string | null;
           punch_kind: Database["app"]["Enums"]["punch_kind"] | null;
+          roster_entry_id: string | null;
           shift_id: string | null;
           skew_flagged: boolean | null;
           source: Database["app"]["Enums"]["punch_source"] | null;
@@ -577,6 +585,7 @@ export type Database = {
           id?: string | null;
           project_id?: string | null;
           punch_kind?: Database["app"]["Enums"]["punch_kind"] | null;
+          roster_entry_id?: string | null;
           shift_id?: string | null;
           skew_flagged?: boolean | null;
           source?: Database["app"]["Enums"]["punch_source"] | null;
@@ -590,6 +599,7 @@ export type Database = {
           id?: string | null;
           project_id?: string | null;
           punch_kind?: Database["app"]["Enums"]["punch_kind"] | null;
+          roster_entry_id?: string | null;
           shift_id?: string | null;
           skew_flagged?: boolean | null;
           source?: Database["app"]["Enums"]["punch_source"] | null;
@@ -630,6 +640,34 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clock_punches_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clock_punches_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["roster_entry_id"];
+          },
+          {
+            foreignKeyName: "clock_punches_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clock_punches_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_training";
+            referencedColumns: ["roster_entry_id"];
           },
           {
             foreignKeyName: "clock_punches_shift_id_fkey";
@@ -1047,6 +1085,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "my_roster_entries";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
+            columns: ["replaces_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_training";
+            referencedColumns: ["roster_entry_id"];
           },
           {
             foreignKeyName: "engagements_project_id_fkey";
@@ -1909,6 +1954,19 @@ export type Database = {
           },
         ];
       };
+      my_roster_training: {
+        Row: {
+          acknowledged_at: string | null;
+          is_satisfied: boolean | null;
+          item_kind: Database["app"]["Enums"]["onboarding_item_kind"] | null;
+          name: string | null;
+          onboarding_requirement_id: string | null;
+          roster_entry_id: string | null;
+          verification_outcome: Database["app"]["Enums"]["verification_outcome"] | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       my_saved_opportunities: {
         Row: {
           id: string | null;
@@ -2450,6 +2508,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "my_roster_entries";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "per_diems_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_training";
+            referencedColumns: ["roster_entry_id"];
           },
         ];
       };
@@ -3026,11 +3091,14 @@ export type Database = {
         Row: {
           ends_at: string | null;
           engagement_id: string | null;
+          holder_name: string | null;
           id: string | null;
+          is_agency_slot: boolean | null;
           job_title: string | null;
           project_id: string | null;
           project_name: string | null;
           role_code: string | null;
+          roster_entry_id: string | null;
           scope_node_id: string | null;
           scope_node_name: string | null;
           shift_state: Database["app"]["Enums"]["shift_state"] | null;
@@ -3073,6 +3141,34 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["roster_entry_id"];
+          },
+          {
+            foreignKeyName: "shifts_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_training";
+            referencedColumns: ["roster_entry_id"];
           },
         ];
       };
@@ -3261,6 +3357,7 @@ export type Database = {
           engagement_id: string | null;
           id: string | null;
           project_id: string | null;
+          roster_entry_id: string | null;
           shift_id: string | null;
           source: Database["app"]["Enums"]["time_entry_source"] | null;
         };
@@ -3272,6 +3369,7 @@ export type Database = {
           engagement_id?: string | null;
           id?: string | null;
           project_id?: string | null;
+          roster_entry_id?: string | null;
           shift_id?: string | null;
           source?: Database["app"]["Enums"]["time_entry_source"] | null;
         };
@@ -3282,6 +3380,7 @@ export type Database = {
           engagement_id?: string | null;
           id?: string | null;
           project_id?: string | null;
+          roster_entry_id?: string | null;
           shift_id?: string | null;
           source?: Database["app"]["Enums"]["time_entry_source"] | null;
         };
@@ -3322,6 +3421,34 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "time_entries_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["roster_entry_id"];
+          },
+          {
+            foreignKeyName: "time_entries_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_training";
+            referencedColumns: ["roster_entry_id"];
+          },
+          {
             foreignKeyName: "time_entries_shift_id_fkey";
             columns: ["shift_id"];
             isOneToOne: false;
@@ -3339,6 +3466,7 @@ export type Database = {
           period_start: string | null;
           project_id: string | null;
           project_name: string | null;
+          roster_entry_id: string | null;
           submitted_at: string | null;
           timesheet_state: Database["app"]["Enums"]["timesheet_state"] | null;
           worked_minutes: number | null;
@@ -3379,6 +3507,34 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["roster_entry_id"];
+          },
+          {
+            foreignKeyName: "timesheets_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_training";
+            referencedColumns: ["roster_entry_id"];
           },
         ];
       };
@@ -13013,6 +13169,7 @@ export type Database = {
           project_id: string;
           punch_kind: Database["app"]["Enums"]["punch_kind"];
           received_at: string;
+          roster_entry_id: string | null;
           shift_id: string | null;
           skew_flagged: boolean;
           source: Database["app"]["Enums"]["punch_source"];
@@ -13043,6 +13200,7 @@ export type Database = {
           project_id: string;
           punch_kind: Database["app"]["Enums"]["punch_kind"];
           received_at?: string;
+          roster_entry_id?: string | null;
           shift_id?: string | null;
           skew_flagged?: boolean;
           source: Database["app"]["Enums"]["punch_source"];
@@ -13072,6 +13230,7 @@ export type Database = {
           project_id?: string;
           punch_kind?: Database["app"]["Enums"]["punch_kind"];
           received_at?: string;
+          roster_entry_id?: string | null;
           shift_id?: string | null;
           skew_flagged?: boolean;
           source?: Database["app"]["Enums"]["punch_source"];
@@ -13177,6 +13336,20 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clock_punches_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clock_punches_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
             referencedColumns: ["id"];
           },
           {
@@ -46305,6 +46478,105 @@ export type Database = {
           },
         ];
       };
+      roster_training_records: {
+        Row: {
+          acknowledged_at: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          onboarding_requirement_id: string;
+          org_id: string;
+          roster_entry_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          verification_outcome: Database["app"]["Enums"]["verification_outcome"] | null;
+          verified_at: string | null;
+          verified_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          acknowledged_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          onboarding_requirement_id: string;
+          org_id: string;
+          roster_entry_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          verification_outcome?: Database["app"]["Enums"]["verification_outcome"] | null;
+          verified_at?: string | null;
+          verified_by?: string | null;
+        };
+        Update: {
+          acknowledged_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          onboarding_requirement_id?: string;
+          org_id?: string;
+          roster_entry_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          verification_outcome?: Database["app"]["Enums"]["verification_outcome"] | null;
+          verified_at?: string | null;
+          verified_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "roster_training_records_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_training_records_onboarding_requirement_id_fkey";
+            columns: ["onboarding_requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "onboarding_requirements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_training_records_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_training_records_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_training_records_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_training_records_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_training_records_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       roster_travel_requests: {
         Row: {
           created_at: string;
@@ -49433,6 +49705,77 @@ export type Database = {
           },
         ];
       };
+      shift_templates: {
+        Row: {
+          break_minutes: number;
+          call_time: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          headcount: number;
+          id: string;
+          name: string;
+          org_id: string;
+          role_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          wrap_time: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          break_minutes?: number;
+          call_time: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          headcount?: number;
+          id?: string;
+          name: string;
+          org_id: string;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          wrap_time: string;
+        };
+        Update: {
+          break_minutes?: number;
+          call_time?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          headcount?: number;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          wrap_time?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_templates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_templates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_templates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shifts: {
         Row: {
           created_at: string;
@@ -49446,6 +49789,7 @@ export type Database = {
           project_id: string;
           record_id: string | null;
           role_code: string | null;
+          roster_entry_id: string | null;
           scheduled_break_minutes: number | null;
           scope_node_id: string | null;
           shift_state: Database["app"]["Enums"]["shift_state"];
@@ -49467,6 +49811,7 @@ export type Database = {
           project_id: string;
           record_id?: string | null;
           role_code?: string | null;
+          roster_entry_id?: string | null;
           scheduled_break_minutes?: number | null;
           scope_node_id?: string | null;
           shift_state?: Database["app"]["Enums"]["shift_state"];
@@ -49487,6 +49832,7 @@ export type Database = {
           project_id?: string;
           record_id?: string | null;
           role_code?: string | null;
+          roster_entry_id?: string | null;
           scheduled_break_minutes?: number | null;
           scope_node_id?: string | null;
           shift_state?: Database["app"]["Enums"]["shift_state"];
@@ -49592,6 +49938,20 @@ export type Database = {
             columns: ["record_id"];
             isOneToOne: false;
             referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
             referencedColumns: ["id"];
           },
           {
@@ -54519,6 +54879,7 @@ export type Database = {
           needs_review: boolean;
           org_id: string;
           project_id: string;
+          roster_entry_id: string | null;
           shift_id: string | null;
           source: Database["app"]["Enums"]["time_entry_source"];
           updated_at: string;
@@ -54540,6 +54901,7 @@ export type Database = {
           needs_review?: boolean;
           org_id: string;
           project_id: string;
+          roster_entry_id?: string | null;
           shift_id?: string | null;
           source?: Database["app"]["Enums"]["time_entry_source"];
           updated_at?: string;
@@ -54560,6 +54922,7 @@ export type Database = {
           needs_review?: boolean;
           org_id?: string;
           project_id?: string;
+          roster_entry_id?: string | null;
           shift_id?: string | null;
           source?: Database["app"]["Enums"]["time_entry_source"];
           updated_at?: string;
@@ -54648,6 +55011,20 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
             referencedColumns: ["id"];
           },
           {
@@ -55222,6 +55599,7 @@ export type Database = {
           period_end: string;
           period_start: string;
           project_id: string;
+          roster_entry_id: string | null;
           submitted_by: string | null;
           timesheet_state: Database["app"]["Enums"]["timesheet_state"];
           updated_at: string;
@@ -55239,6 +55617,7 @@ export type Database = {
           period_end: string;
           period_start: string;
           project_id: string;
+          roster_entry_id?: string | null;
           submitted_by?: string | null;
           timesheet_state?: Database["app"]["Enums"]["timesheet_state"];
           updated_at?: string;
@@ -55255,6 +55634,7 @@ export type Database = {
           period_end?: string;
           period_start?: string;
           project_id?: string;
+          roster_entry_id?: string | null;
           submitted_by?: string | null;
           timesheet_state?: Database["app"]["Enums"]["timesheet_state"];
           updated_at?: string;
@@ -55336,6 +55716,20 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
             referencedColumns: ["id"];
           },
           {
@@ -63898,6 +64292,7 @@ export type Database = {
           has_open_entry: boolean | null;
           membership_id: string | null;
           project_id: string | null;
+          roster_entry_id: string | null;
           timesheet_id: string | null;
           worked_minutes: number | null;
         };
@@ -63907,6 +64302,7 @@ export type Database = {
           has_open_entry?: never;
           membership_id?: string | null;
           project_id?: string | null;
+          roster_entry_id?: string | null;
           timesheet_id?: string | null;
           worked_minutes?: never;
         };
@@ -63915,6 +64311,7 @@ export type Database = {
           has_open_entry?: never;
           membership_id?: string | null;
           project_id?: string | null;
+          roster_entry_id?: string | null;
           timesheet_id?: string | null;
           worked_minutes?: never;
         };
@@ -63980,6 +64377,20 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
             referencedColumns: ["id"];
           },
         ];
@@ -64113,6 +64524,10 @@ export type Database = {
       acknowledge_feed_post: { Args: { p_post_id: string }; Returns: string };
       acknowledge_handbook_article: { Args: { p_article_id: string }; Returns: string };
       acknowledge_purchase_order: { Args: { p_purchase_order_id: string }; Returns: string };
+      acknowledge_roster_training: {
+        Args: { p_requirement_id: string; p_roster_entry_id: string };
+        Returns: string;
+      };
       act_on_notification: {
         Args: { p_action: string; p_comment?: string; p_notification_id: string };
         Returns: string;
@@ -64404,6 +64819,11 @@ export type Database = {
           p_help_desk_team_id?: string;
           p_ticket_id: string;
         };
+        Returns: string;
+      };
+      assign_open_shift: { Args: { p_membership_id: string; p_shift_id: string }; Returns: string };
+      assign_roster_shift: {
+        Args: { p_roster_entry_id: string; p_shift_id: string };
         Returns: string;
       };
       assign_training: {
@@ -65503,6 +65923,10 @@ export type Database = {
           token: string;
         }[];
       };
+      create_shifts_from_template: {
+        Args: { p_days: string[]; p_project_id: string; p_template_id: string };
+        Returns: string[];
+      };
       create_survey: {
         Args: {
           p_audience_kind?: Database["app"]["Enums"]["audience_kind"];
@@ -65777,6 +66201,10 @@ export type Database = {
           p_subject_entity?: Database["app"]["Enums"]["integration_entity"];
           p_subject_id?: string;
         };
+        Returns: string;
+      };
+      ensure_member_availability_calendar: {
+        Args: { p_org_id: string; p_time_zone?: string };
         Returns: string;
       };
       ensure_my_profile: { Args: Record<PropertyKey, never>; Returns: string };
@@ -66274,6 +66702,18 @@ export type Database = {
           label: string;
         }[];
       };
+      my_availability_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          availability_calendar_id: string;
+          horizon_days: number;
+          locked_until: string;
+          notice_days: number;
+          required: boolean;
+          time_zone: string;
+          unstated_days: string[];
+        }[];
+      };
       my_blocks: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -66467,6 +66907,12 @@ export type Database = {
           signed_in_at: string;
           surface: string;
           user_agent: string;
+        }[];
+      };
+      my_shift_planning_projects: {
+        Args: { p_org_id: string };
+        Returns: {
+          project_id: string;
         }[];
       };
       my_sms_status: {
@@ -66944,6 +67390,20 @@ export type Database = {
           tags_issued: string[];
         }[];
       };
+      rank_shift_candidates: {
+        Args: { p_shift_id: string; p_week_start?: string };
+        Returns: {
+          availability: string;
+          candidate_rank: number;
+          conflict: boolean;
+          full_name: string;
+          membership_id: string;
+          overdue: boolean;
+          person_id: string;
+          week_minutes: number;
+          worked_role: boolean;
+        }[];
+      };
       react_to_feed_post: {
         Args: { p_on?: boolean; p_post_id: string; p_reaction_code: string };
         Returns: boolean;
@@ -67334,6 +67794,7 @@ export type Database = {
           project_id: string;
           punch_kind: Database["app"]["Enums"]["punch_kind"];
           received_at: string;
+          roster_entry_id: string | null;
           shift_id: string | null;
           skew_flagged: boolean;
           source: Database["app"]["Enums"]["punch_source"];
@@ -67431,6 +67892,21 @@ export type Database = {
           is_new: boolean;
           stripe_event_row_id: string;
         }[];
+      };
+      record_supervisor_punches: {
+        Args: {
+          p_accuracy_m?: number;
+          p_batch_id: string;
+          p_device_time: string;
+          p_geofence_id?: string;
+          p_latitude?: number;
+          p_longitude?: number;
+          p_monotonic_offset_ms?: number;
+          p_project_id: string;
+          p_punch_kind: Database["app"]["Enums"]["punch_kind"];
+          p_punches: Json;
+        };
+        Returns: Json;
       };
       record_tracking_update: {
         Args: {
@@ -67873,6 +68349,14 @@ export type Database = {
       roster_project_facts: { Args: { p_roster_entry_id: string }; Returns: Json };
       roster_project_facts_for_engagement: { Args: { p_engagement_id: string }; Returns: Json[] };
       roster_shared_work_details: { Args: { p_roster_entry_id: string }; Returns: Json };
+      roster_training_summary: {
+        Args: { p_roster_entry_ids: string[] };
+        Returns: {
+          awaiting_verification: number;
+          due_count: number;
+          roster_entry_id: string;
+        }[];
+      };
       roster_travel_day_counts: {
         Args: { p_project_id: string };
         Returns: {
@@ -68933,6 +69417,7 @@ export type Database = {
         Returns: undefined;
       };
       unassign_engagement_member: { Args: { p_assignment_id: string }; Returns: undefined };
+      unassign_roster_shift: { Args: { p_reason: string; p_shift_id: string }; Returns: string };
       undo_import_batch: {
         Args: { p_import_batch_id: string; p_reason: string };
         Returns: {
@@ -69015,6 +69500,10 @@ export type Database = {
           p_item_id: string;
           p_outcome: Database["app"]["Enums"]["verification_outcome"];
         };
+        Returns: string;
+      };
+      verify_roster_training: {
+        Args: { p_outcome: Database["app"]["Enums"]["verification_outcome"]; p_record_id: string };
         Returns: string;
       };
       view_as_capabilities: {
@@ -69495,7 +69984,7 @@ export type Database = {
       project_role: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
       project_state: "Proposed" | "Active" | "Blocked" | "Complete" | "Canceled";
       punch_kind: "In" | "Break Start" | "Break End" | "Out";
-      punch_source: "Mobile" | "Kiosk";
+      punch_source: "Mobile" | "Kiosk" | "Supervisor";
       purge_method: "Delete" | "Drop Partition" | "Account Lifecycle";
       rate_type: "Hourly" | "Day" | "Flat" | "Milestone" | "Bid";
       rate_unit: "Hour" | "Day" | "Week" | "Project";
@@ -76151,7 +76640,7 @@ export const Constants = {
       project_role: ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
       project_state: ["Proposed", "Active", "Blocked", "Complete", "Canceled"],
       punch_kind: ["In", "Break Start", "Break End", "Out"],
-      punch_source: ["Mobile", "Kiosk"],
+      punch_source: ["Mobile", "Kiosk", "Supervisor"],
       purge_method: ["Delete", "Drop Partition", "Account Lifecycle"],
       rate_type: ["Hourly", "Day", "Flat", "Milestone", "Bid"],
       rate_unit: ["Hour", "Day", "Week", "Project"],

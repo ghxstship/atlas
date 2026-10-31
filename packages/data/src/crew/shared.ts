@@ -102,11 +102,13 @@ export function toMemberRef(row: MembershipRow | null, membershipId: string): Me
 }
 
 /**
- * A worker: an org member (membership) or external crew working through an engagement (migration
- * 0940). Externals never hold memberships (Section 4.4), so `membershipId` is empty for them.
+ * A worker: an org member (membership), external crew working through an engagement (migration
+ * 0940) or agency staff working through a staffing agency's roster entry (R12, migration 2750).
+ * Externals never hold memberships (Section 4.4), so `membershipId` is empty for them.
  */
 export interface WorkerRef extends MemberRef {
   readonly engagementId: string | null;
+  readonly rosterEntryId?: string | null;
 }
 
 export interface EngagementRow {

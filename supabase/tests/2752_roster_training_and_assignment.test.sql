@@ -132,7 +132,7 @@ select app.verify_roster_training(t.id, 'Passed') from app.roster_training_recor
 where t.roster_entry_id = pg_temp.id('e_theo') and t.onboarding_requirement_id = pg_temp.id('req_crowd');
 select pg_temp.as_user('olga');
 select is(app.assign_roster_shift(pg_temp.id('slot_2'), pg_temp.id('e_theo')), pg_temp.id('slot_2'), 'the agency''s lead places Theo');
-select is((select array_agg(roster_entry_id || ':' || name order by roster_entry_id, name) from api_external.my_roster_training where is_satisfied),
+select is((select array_agg(roster_entry_id || ':' || name order by roster_entry_id = pg_temp.id('e_theo'), name) from api_external.my_roster_training where is_satisfied),
   array[pg_temp.id('e_stella') || ':Code of Conduct', pg_temp.id('e_stella') || ':Crowd Safety Training',
         pg_temp.id('e_theo') || ':Code of Conduct', pg_temp.id('e_theo') || ':Crowd Safety Training'],
   'the lead reads the training of the whole roster');

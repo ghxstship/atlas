@@ -118,7 +118,16 @@ export const TABLE_RULES: readonly TableRule[] = [
       { column: "id", key: "engagedProjectIds", audiences: OPERATIONAL_EXTERNAL },
     ],
   },
-  { table: "shifts", anyOf: [...ownOrEngaged, internalProject] },
+  {
+    table: "shifts",
+    anyOf: [
+      ...ownOrEngaged,
+      internalProject,
+      // A staffing agency's lead holds its slots and its roster's shifts on the project, which api_external.shifts
+      // returns to them alone (R12), so they clock the team in offline.
+      { column: "project_id", key: "engagedProjectIds", audiences: ["staff"], restOnly: true },
+    ],
+  },
   {
     table: "shift_swaps",
     anyOf: [

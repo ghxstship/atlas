@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   acceptEngagedShift,
+  acknowledgeRosterTraining,
+  assignRosterShift,
+  unassignRosterShift,
   acceptOffer,
   acknowledgePurchaseOrder,
   advanceSectionOpen,
@@ -103,6 +106,12 @@ describe("party RPCs", () => {
     ["rpc:revoke_self_billing", (db) => revokeSelfBilling(db, "e1")],
     ["rpc:submit_timesheet", (db) => submitTimesheet(db, "t1")],
     ["rpc:accept_engaged_shift", (db) => acceptEngagedShift(db, "s1")],
+    [
+      "rpc:acknowledge_roster_training",
+      (db) => acknowledgeRosterTraining(db, { rosterEntryId: "re1", requirementId: "q1" }),
+    ],
+    ["rpc:assign_roster_shift", (db) => assignRosterShift(db, "s1", "re1")],
+    ["rpc:unassign_roster_shift", (db) => unassignRosterShift(db, "s1", "Moved to the gate.")],
     ["rpc:acknowledge_purchase_order", (db) => acknowledgePurchaseOrder(db, "po1")],
     [
       "rpc:submit_engaged_submittal",
