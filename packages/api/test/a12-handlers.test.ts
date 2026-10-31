@@ -82,6 +82,19 @@ function world() {
       ],
     },
     {
+      // R7 (2692): custody is recorded through the scan; the fake appends the row it would write.
+      record_asset_custody: (args, self) => {
+        const row = tenantRow(id(91), ORG, {
+          asset_unit_id: args["p_asset_unit_id"],
+          custodian_membership_id: args["p_custodian_membership_id"] ?? null,
+          custodian_engagement_id: args["p_custodian_engagement_id"] ?? null,
+          venue_id: args["p_venue_id"] ?? null,
+          project_id: args["p_project_id"] ?? null,
+          note: args["p_note"] ?? null,
+        });
+        self.tables["asset_custody"]?.push(row);
+        return row["id"];
+      },
       transition_asset: (args, self) => {
         const unit = self.tables["asset_units"]?.find(
           (u) => u["id"] === args["p_asset_unit_id"],
@@ -387,7 +400,12 @@ describe("Assets contract: identifiers, custody, maintenance and damage", () => 
       }),
     );
     await expectContract(r12, "assetCustodyEntries.create");
-    db.fail("asset_custody", refusal("asset_custody_somewhere"));
+    expect(db.calls.find((c) => c.name === "record_asset_custody")?.args).toEqual({
+      p_asset_unit_id: UNIT,
+      p_venue_id: VENUE,
+      p_note: "Back on the shelf.",
+    });
+    db.fail("rpc:record_asset_custody", refusal("asset_custody_somewhere"));
     expect((await http.post("/asset-custody", { asset_unit_id: UNIT })).status).toBe(422);
   });
 

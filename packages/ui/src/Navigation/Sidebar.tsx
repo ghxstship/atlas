@@ -17,7 +17,9 @@ function NavLink({
   const body = (
     <>
       {item.icon ? <Icon name={item.icon} /> : null}
-      <span className="flex-1 min-w-0 truncate">{item.label}</span>
+      <span className="flex-1 min-w-0 truncate" title={item.label}>
+        {item.label}
+      </span>
       {item.badge !== undefined ? (
         <span className="text-text-11 text-text-secondary tabular-nums">{item.badge}</span>
       ) : null}
@@ -37,7 +39,8 @@ function NavLink({
 
 /**
  * The sitemap navigation. Group headings collapse and expand; the active item is the current page. An item may list
- * items under it (the recent projects under Projects), indented one step.
+ * items under it (the recent projects under Projects), indented one step. A label longer than the sidebar (a project
+ * name, a longer translation) shrinks with an ellipsis and keeps its whole text as a title (Section 15, gate 16).
  */
 export function Sidebar({ label, active, groups }: SidebarProps): ReactElement {
   const t = useT();

@@ -629,6 +629,22 @@ nodes:
                 label: nav.compass.reference.sops
                 route: /reference/sops
                 list: { views: [list, document], default: list }
+          - id: project-details
+            kind: page
+            label: nav.compass.more.projectDetails
+            route: /project-details
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: full
+              contractor: full
+              crew: full
+              staff: full
+              artist: full
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
           - id: offline-queue
             kind: page
             label: nav.compass.more.offlineQueue

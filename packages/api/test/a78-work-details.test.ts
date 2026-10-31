@@ -29,10 +29,11 @@ describe("Identity: work details", () => {
       ? [
           globalRow(DETAILS, {
             person_id: ME,
-            shirt_size: "M",
+            // Retired in R6a (2664): always null.
+            shirt_size: null,
             jacket_size: null,
-            pants_size: "32x32",
-            shoe_size: "US 9",
+            pants_size: null,
+            shoe_size: null,
             glove_size: null,
             hat_size: null,
             uniform_notes: null,
@@ -41,9 +42,9 @@ describe("Identity: work details", () => {
             dietary_notes: null,
             accessibility_needs: [],
             accessibility_notes: null,
-            seat_preference: "Aisle",
+            seat_preference: null,
             meal_preference: null,
-            home_airport: "MIA",
+            home_airport: null,
             passport_number_last4: "TEST",
             passport_issuing_country: "IT",
             passport_expires_on: "2031-04-30",
@@ -78,20 +79,24 @@ describe("Identity: work details", () => {
           return null;
         },
         reveal_my_passport_number: () => "YA0000TEST",
+        // Allergies are Restricted (R6a, 2663): the owner reads them through their own RPC.
+        my_allergies: () => (rows[0]?.["allergies"] as string | undefined) ?? null,
       },
     );
     return { db, http: requests(contractApp({ handlers: [identity], db })) };
   }
 
   it("lists and reads the owner's details with the passport number always masked", async () => {
-    const { http } = world();
+    const { db, http } = world();
     const page = (await expectContract(
       await success(http.get("/work-details")),
       "workDetails.list",
     )) as {
-      data: { passport_number: unknown; passport_number_last4: string }[];
+      data: { passport_number: unknown; passport_number_last4: string; allergies: string }[];
     };
     expect(page.data[0]?.passport_number).toEqual(MASKED);
+    expect(page.data[0]?.allergies).toBe("Peanuts, severe");
+    expect(db.calls.map((c) => c.name)).toContain("my_allergies");
     expect(page.data[0]?.passport_number_last4).toBe("TEST");
     await expectContract(await success(http.get(`/work-details/${DETAILS}`)), "workDetails.get");
     expect((await http.get(`/work-details/${MISSING}`)).status).toBe(404);
@@ -100,20 +105,21 @@ describe("Identity: work details", () => {
   it("creates through ensure_my_work_details and encrypts the passport number through its RPC", async () => {
     const { db, http } = world(false);
     const response1 = await success(
-      http.post("/work-details", { shirt_size: "L", passport_number: "ya 0000-test" }),
+      http.post("/work-details", { dietary_notes: "No pork.", passport_number: "ya 0000-test" }),
     );
     const made = (await expectContract(response1, "workDetails.create")) as {
       id: string;
-      shirt_size: string;
+      dietary_notes: string;
       passport_number_last4: string;
       passport_number: unknown;
     };
-    expect(made.shirt_size).toBe("L");
+    expect(made.dietary_notes).toBe("No pork.");
     expect(made.passport_number_last4).toBe("TEST");
     expect(made.passport_number).toEqual(MASKED);
     expect(db.calls.map((c) => c.name)).toEqual([
       "ensure_my_work_details",
       "set_my_passport_number",
+      "my_allergies",
     ]);
     expect(db.writes.some((w) => JSON.stringify(w.values).includes('passport_number"'))).toBe(
       false,
@@ -140,6 +146,20 @@ describe("Identity: work details", () => {
       await success(http.delete(`/work-details/${DETAILS}`)),
       "workDetails.delete",
     );
+  });
+
+  it("refuses a retired uniform size or travel preference with work_detail_field_moved (R6a)", async () => {
+    const { db, http } = world();
+    db.fail(
+      "person_work_details",
+      refusal(
+        "work_detail_field_moved",
+        "Uniform sizes and travel preferences are no longer kept on your profile.",
+      ),
+    );
+    const moved = await http.patch(`/work-details/${DETAILS}`, { shirt_size: "L" });
+    expect(moved.status).toBe(422);
+    expect(JSON.stringify(await moved.json())).toContain("work_detail_field_moved");
   });
 });
 
@@ -252,6 +272,7 @@ describe("Identity: work detail shares and the access log", () => {
   const SHARE = id(31);
   const ENGAGEMENT = id(41);
   const CONSENT = id(51);
+  const ENTRY = id(81);
 
   function world() {
     const shares: Row[] = [
@@ -259,11 +280,45 @@ describe("Identity: work detail shares and the access log", () => {
         engagement_id: ENGAGEMENT,
         person_id: ME,
         consent_record_id: CONSENT,
-        categories: ["Dietary Needs", "Passport"],
+        categories: ["Dietary Needs", "Contact", "Passport"],
         shared_at: "2026-10-01T12:00:00.000Z",
         revoked_at: null,
+        roster_entry_id: ENTRY,
       }),
     ];
+    const details = (rosterEntryId: unknown) => ({
+      engagement_id: ENGAGEMENT,
+      person_id: ME,
+      org_id: ORG,
+      roster_entry_id: rosterEntryId,
+      reader: "org",
+      work_detail_share_id: SHARE,
+      shared_at: "2026-10-01T12:00:00.000Z",
+      sharing_open: true,
+      categories: ["Dietary Needs", "Contact", "Passport"],
+      readable: ["Contact", "Dietary Needs", "Passport"],
+      emergency_contacts: null,
+      contact: { email: "ivy@freelance.test", phone: null },
+      uniform: null,
+      dietary: {
+        dietary_needs: ["Vegan"],
+        allergies: "Peanuts, severe",
+        allergies_masked: false,
+        allergies_on_file: true,
+        dietary_notes: null,
+      },
+      medical: { allergies: "Peanuts, severe" },
+      accessibility: null,
+      travel: null,
+      passport: {
+        passport_number: null,
+        passport_number_last4: "TEST",
+        passport_number_masked: true,
+        passport_issuing_country: "IT",
+        passport_expires_on: "2031-04-30",
+        passport_name: "IVY MARCHETTI",
+      },
+    });
     const db = memoryDb(
       {
         work_detail_shares: shares,
@@ -275,9 +330,12 @@ describe("Identity: work detail shares and the access log", () => {
             org_id: ORG,
             engagement_id: ENGAGEMENT,
             action: "work_details.viewed",
-            categories: ["Dietary Needs"],
+            categories: ["Contact", "Dietary Needs"],
             changed_columns: [],
             reason: null,
+            // R5 (2654): the event names its roster entry and the project fact kinds; a work details read has none.
+            roster_entry_id: null,
+            fact_kinds: [],
             created_at: "2026-10-02T12:00:00.000Z",
           },
         ],
@@ -287,8 +345,11 @@ describe("Identity: work detail shares and the access log", () => {
           const live = shares.find(
             (s) => s["engagement_id"] === args["p_engagement_id"] && s["revoked_at"] === null,
           );
+          const categories = args["p_categories"] as string[];
+          // 2664: the retired category is refused.
+          if (categories.includes("Uniform Sizes")) throw refusal("work_detail_category_retired");
           if (live) {
-            live["categories"] = args["p_categories"];
+            live["categories"] = categories;
             return live["id"];
           }
           const row = tenantRow(id(32), ORG, {
@@ -307,29 +368,14 @@ describe("Identity: work detail shares and the access log", () => {
           row["revoked_at"] = "2026-10-04T12:00:00.000Z";
           return null;
         },
-        shared_work_details: (args) => ({
-          engagement_id: args["p_engagement_id"],
-          person_id: ME,
-          org_id: ORG,
-          work_detail_share_id: SHARE,
-          shared_at: "2026-10-01T12:00:00.000Z",
-          sharing_open: true,
-          categories: ["Dietary Needs", "Passport"],
-          readable: ["Dietary Needs", "Passport"],
-          emergency_contacts: null,
-          uniform: null,
-          dietary: { dietary_needs: ["Vegan"], allergies: "Peanuts, severe", dietary_notes: null },
-          accessibility: null,
-          travel: null,
-          passport: {
-            passport_number: null,
-            passport_number_last4: "TEST",
-            passport_number_masked: true,
-            passport_issuing_country: "IT",
-            passport_expires_on: "2031-04-30",
-            passport_name: "IVY MARCHETTI",
-          },
-        }),
+        // A share made before roster entries reads by its engagement (shared_work_details).
+        shared_work_details: () => details(null),
+        roster_shared_work_details: (args) => details(args["p_roster_entry_id"]),
+        reveal_roster_passport_number: (args) => {
+          if (args["p_roster_entry_id"] !== ENTRY) throw refusal("work_detail_not_shared");
+          if (String(args["p_reason"]).length < 10) throw refusal("passport_reveal_reason");
+          return "YA0000TEST";
+        },
         reveal_shared_passport_number: (args) => {
           if (String(args["p_reason"]).length < 10) throw refusal("passport_reveal_reason");
           return "YA0000TEST";
@@ -342,31 +388,63 @@ describe("Identity: work detail shares and the access log", () => {
   it("lists, creates and narrows shares through share_work_details", async () => {
     const { db, http } = world();
     await expectContract(await success(http.get("/work-detail-shares")), "workDetailShares.list");
-    await expectContract(
+    const read = (await expectContract(
       await success(http.get(`/work-detail-shares/${SHARE}`)),
       "workDetailShares.get",
-    );
+    )) as { categories: string[]; contact_shared: boolean };
+    // v1's category enum is frozen: Contact (R6a) is its own field.
+    expect(read).toMatchObject({ categories: ["Dietary Needs", "Passport"], contact_shared: true });
     const response7 = await success(
       http.post("/work-detail-shares", {
         engagement_id: id(42),
         categories: ["Emergency Contacts"],
+        share_contact: true,
       }),
     );
     const made = (await expectContract(response7, "workDetailShares.create")) as {
       id: string;
       categories: string[];
+      contact_shared: boolean;
     };
-    expect(made.categories).toEqual(["Emergency Contacts"]);
+    expect(made).toMatchObject({ categories: ["Emergency Contacts"], contact_shared: true });
+    expect(db.calls.find((c) => c.name === "share_work_details")?.args["p_categories"]).toEqual([
+      "Emergency Contacts",
+      "Contact",
+    ]);
     const response8 = await success(
       http.patch(`/work-detail-shares/${SHARE}`, { categories: ["Dietary Needs"] }),
     );
     const narrowed = (await expectContract(response8, "workDetailShares.update")) as {
       categories: string[];
+      contact_shared: boolean;
     };
-    expect(narrowed.categories).toEqual(["Dietary Needs"]);
-    expect(db.calls.filter((c) => c.name === "share_work_details")).toHaveLength(2);
+    // Omitted, share_contact keeps the contact the share already named.
+    expect(narrowed).toMatchObject({ categories: ["Dietary Needs"], contact_shared: true });
+    const response8b = await success(
+      http.patch(`/work-detail-shares/${SHARE}`, { share_contact: false }),
+    );
+    expect(
+      (await expectContract(response8b, "workDetailShares.update")) as { contact_shared: boolean },
+    ).toMatchObject({ categories: ["Dietary Needs"], contact_shared: false });
+    expect(db.calls.filter((c) => c.name === "share_work_details")).toHaveLength(3);
+    const retired = await http.post("/work-detail-shares", {
+      engagement_id: id(44),
+      categories: ["Uniform Sizes", "Dietary Needs"],
+    });
+    expect(retired.status).toBe(422);
+    expect(JSON.stringify(await retired.json())).toContain("work_detail_category_retired");
     expect(
       (await http.post("/work-detail-shares", { engagement_id: id(42), categories: [] })).status,
+    ).toBe(422);
+    // A share of Contact alone would read back with no categories, so v1 never makes one (2664).
+    expect(
+      (
+        await http.post("/work-detail-shares", {
+          engagement_id: id(42),
+          categories: [],
+          share_contact: true,
+        })
+      ).status,
     ).toBe(422);
     db.fail("rpc:share_work_details", refusal("work_detail_share_closed"));
     expect(
@@ -380,9 +458,24 @@ describe("Identity: work detail shares and the access log", () => {
     const details = (await expectContract(
       await success(http.get(`/work-detail-shares/${SHARE}/details`)),
       "workDetailShares.details",
-    )) as { passport: { passport_number: null; passport_number_masked: boolean } };
+    )) as {
+      passport: { passport_number: null; passport_number_masked: boolean };
+      categories: string[];
+      readable: string[];
+      contact: { email: string };
+      dietary: { allergies_masked: boolean };
+      medical: { allergies: string };
+    };
     expect(details.passport.passport_number).toBeNull();
+    // R6a: the medical read, masked allergies and the contact, which leaves v1's category lists.
+    expect(details.dietary.allergies_masked).toBe(false);
+    expect(details.medical.allergies).toBe("Peanuts, severe");
+    expect(details.contact.email).toBe("ivy@freelance.test");
+    expect(details.categories).toEqual(["Dietary Needs", "Passport"]);
+    expect(details.readable).toEqual(["Dietary Needs", "Passport"]);
     expect(details.passport.passport_number_masked).toBe(true);
+    // The share keys on a roster entry (R4), so the read and the reveal go through it.
+    expect((details as unknown as { roster_entry_id: string }).roster_entry_id).toBe(ENTRY);
     expect(
       (await http.post(`/work-detail-shares/${SHARE}/reveal-passport`, { reason: "Flights" }))
         .status,
@@ -414,8 +507,12 @@ describe("Identity: work detail shares and the access log", () => {
       await success(http.get("/work-detail-events")),
       "workDetailEvents.list",
     )) as {
-      data: { action: string }[];
+      data: { action: string; categories: string[]; includes_contact: boolean }[];
     };
-    expect(page.data[0]?.action).toBe("work_details.viewed");
+    expect(page.data[0]).toMatchObject({
+      action: "work_details.viewed",
+      categories: ["Dietary Needs"],
+      includes_contact: true,
+    });
   });
 });

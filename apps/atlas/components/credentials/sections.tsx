@@ -168,6 +168,16 @@ export async function CategoriesSection({ page }: { page: ModulePage }) {
                 required
                 maxLength={100}
               />
+              <SelectField
+                id="category-kind"
+                name="kind"
+                label={t("credentials.categories.categoryKind")}
+                help={t("credentials.categories.categoryKindHelp")}
+                options={[
+                  { value: "Access", label: t("credentials.categories.categoryKinds.access") },
+                  { value: "Parking", label: t("credentials.categories.categoryKinds.parking") },
+                ]}
+              />
             </ActionForm>
           </RecordSection>
         ) : (
@@ -293,6 +303,17 @@ async function CategoryRecord({
                 defaultValue={c.name}
                 required
                 maxLength={100}
+              />
+              <SelectField
+                id="edit-category-kind"
+                name="kind"
+                label={t("credentials.categories.categoryKind")}
+                help={t("credentials.categories.categoryKindHelp")}
+                defaultValue={c.kind}
+                options={[
+                  { value: "Access", label: t("credentials.categories.categoryKinds.access") },
+                  { value: "Parking", label: t("credentials.categories.categoryKinds.parking") },
+                ]}
               />
             </ActionForm>
           </RecordSection>

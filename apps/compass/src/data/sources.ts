@@ -273,18 +273,62 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     projectColumn: "project_id",
   },
   {
-    // The gear the person's engagements hold now; the view's names map back to the table's.
+    // The gear the person's engagements hold now, and what they hold on their own roster entry (R8); the
+    // view's names map back to the table's.
     table: "asset_custody",
     schema: "api_external",
     relation: "asset_custody",
-    select: "id,asset_unit_id,engagement_id,project_id,held_since",
+    select:
+      "id,asset_unit_id,asset_tag,class_name,engagement_id,project_id,held_since,roster_entry_id",
     map: (r) => ({
       id: r["id"],
       asset_unit_id: r["asset_unit_id"],
+      asset_tag: r["asset_tag"],
+      class_name: r["class_name"],
       custodian_engagement_id: r["engagement_id"],
+      roster_entry_id: r["roster_entry_id"],
       project_id: r["project_id"],
       created_at: r["held_since"],
     }),
+  },
+  // A person on a party's roster (R8): their own entries accepted by both sides, what is allocated on them,
+  // and their parking passes. Pool rows and entries still in review stay off the device.
+  {
+    table: "roster_entries",
+    schema: "api_external",
+    relation: "my_roster_entries",
+    select:
+      "id,engagement_id,project_id,org_name,project_name,party_name,role_type,role_code,job_title,arrival_starts_at,arrival_ends_at,arrival_time_zone,entry_state,person_response,is_self",
+    projectColumn: "project_id",
+    // An entry still in review, or the self entry of the person's own engagement, has no id here and is dropped.
+    map: (r) => ({
+      ...r,
+      id:
+        r["entry_state"] === "Accepted" &&
+        r["person_response"] === "Accepted" &&
+        r["is_self"] !== true
+          ? r["id"]
+          : null,
+    }),
+  },
+  {
+    table: "advance_allocations",
+    schema: "api_external",
+    relation: "advance_allocations",
+    select:
+      "allocation_id,engagement_id,roster_entry_id,kind,item_name,quantity,allocation_state,display_status,issued_quantity,needed_from,needed_to,needed_time_zone",
+    // The party's pool has no entry and stays off the device.
+    map: (r) => ({ ...r, id: r["roster_entry_id"] ? r["allocation_id"] : null }),
+  },
+  {
+    table: "parking_passes",
+    schema: "api_external",
+    relation: "my_parking_passes",
+    select:
+      "credential_id,project_id,credential_number,category_name,valid_from,valid_to,revoked_at,zone_codes,zone_names,vehicle_make,vehicle_model,vehicle_color,holder_person_id",
+    projectColumn: "project_id",
+    personColumn: "holder_person_id",
+    map: (r) => ({ ...r, id: r["credential_id"] }),
   },
   {
     table: "shifts",
