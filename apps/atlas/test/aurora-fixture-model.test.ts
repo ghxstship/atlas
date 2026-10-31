@@ -1,6 +1,13 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { ModelRequest } from "@xos/ai";
+import {
+  draftList,
+  loadModelConfig,
+  NeverSendList,
+  type AuroraContext,
+  type ModelRequest,
+  type ProposedChange,
+} from "@xos/ai";
 import { describe, expect, it } from "vitest";
 import {
   createFixtureModel,
@@ -165,5 +172,98 @@ describe("fixture model answers", () => {
     const other = await model.complete(extract("Some other certificate"));
     const none = (other.content[0] as { input: { fields: { value: unknown }[] } }).input.fields;
     expect(none.every((f) => f.value === null)).toBe(true);
+  });
+});
+
+describe("fixture drafted lists (P6)", () => {
+  const proposals: ProposedChange[] = [];
+  const ctx: AuroraContext = {
+    orgId: "o1",
+    client: new FixtureModelClient(),
+    config: loadModelConfig({}),
+    today: "2026-10-30",
+    store: {
+      begin: async () => ({ ok: true, data: "req-1" }),
+      complete: async () => ({ ok: true, data: null }),
+      propose: async (_id, change) => {
+        proposals.push(change);
+        return { ok: true, data: `s${proposals.length}` };
+      },
+    },
+  };
+  const neverSend = new NeverSendList([]);
+
+  it("drafts a run of show from the context, with an overlap and an untimed [needs:] line", async () => {
+    proposals.length = 0;
+    const result = await draftList(ctx, {
+      kind: "run_of_show",
+      instructions: "Draft the running order.",
+      target: { table: "app.run_of_show", id: "r1" },
+      context: [
+        {
+          table: "app.run_of_show",
+          id: "r1",
+          data: { name: "Opening Night", show_date: "2027-06-05" },
+        },
+        { table: "app.records", id: "e1", data: { title: "Harbor Lights Headline Set" } },
+      ],
+      verbiage: [],
+      neverSend,
+      runOfShow: { runOfShowId: "r1", showDate: "2027-06-05", timeZone: "America/New_York" },
+    });
+    if (result.kind !== "answer" || result.value.kind !== "run_of_show")
+      throw new Error("no draft");
+    expect(result.value.items.map((c) => c.label)).toEqual([
+      "Doors",
+      "Support Act",
+      "Harbor Lights Headline Set",
+      "House Lights Up",
+      "Walk-In Music",
+    ]);
+    expect(result.value.flags).toEqual([
+      { type: "overlap", positions: [1, 2], minutes: 15 },
+      { type: "untimed", positions: [5] },
+    ]);
+    expect(result.value.gaps).toEqual(["the walk-in music time"]);
+    expect(proposals).toHaveLength(5);
+  });
+
+  it("answers NO ANSWER for a run of show without its running order in the context", async () => {
+    const result = await draftList(ctx, {
+      kind: "run_of_show",
+      instructions: "Draft it.",
+      target: { table: "app.run_of_show", id: "r1" },
+      context: [],
+      verbiage: [],
+      neverSend,
+      runOfShow: { runOfShowId: "r1", showDate: "2027-06-05", timeZone: "UTC" },
+    });
+    expect(result.kind).toBe("no-answer");
+  });
+
+  it("drafts risks only in the categories it is given", async () => {
+    proposals.length = 0;
+    const result = await draftList(ctx, {
+      kind: "risk_assessment",
+      instructions: "Assess the festival.",
+      target: { table: "app.projects", id: "p1" },
+      context: [{ table: "app.projects", id: "p1", data: { name: "Bayfront Festival" } }],
+      verbiage: [],
+      neverSend,
+      risks: { projectId: "p1", categories: ["Safety", "Operational", "Schedule"] },
+    });
+    if (result.kind !== "answer" || result.value.kind !== "risk_assessment") {
+      throw new Error("no draft");
+    }
+    expect(result.value.items.map((r) => [r.title, r.category])).toEqual([
+      ["Crowd Surge at the Barricade", "Safety"],
+      ["Afternoon Thunderstorm", "Operational"],
+      ["Changeover Overrun", "Schedule"],
+    ]);
+    expect(proposals.map((p) => p.operationId)).toEqual([
+      "records.create",
+      "records.create",
+      "records.create",
+    ]);
   });
 });

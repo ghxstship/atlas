@@ -96,6 +96,7 @@ export function RecordCollection({
   hideKindFilter = false,
   bulk,
   quickAdd,
+  emptyAction,
 }: {
   title: string;
   label: string;
@@ -129,6 +130,8 @@ export function RecordCollection({
   bulk?: BulkConfig | null;
   /** The inline quick add row (Section 11.7), for people who may create records here. */
   quickAdd?: RecordQuickAddProps | null;
+  /** Shown under either empty state, such as Aurora's draft of an empty risk list (P6). */
+  emptyAction?: ReactNode;
 }) {
   const t = useCopy("work");
   const format = useFormatter();
@@ -523,6 +526,14 @@ export function RecordCollection({
           />
         ))}
       </RecordList>
+    );
+  }
+  if (emptyAction && records.length === 0) {
+    body = (
+      <div className="flex flex-col items-center gap-12">
+        {body}
+        {emptyAction}
+      </div>
     );
   }
 

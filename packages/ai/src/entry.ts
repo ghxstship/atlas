@@ -36,6 +36,7 @@ export function featureAvailability(
  * - `not-configured`: the deployment has no model provider.
  * - `offline`: the request did not reach the API.
  * - `forbidden`: the person may not do this.
+ * - `list-not-empty`: a drafted run of show or risk assessment found its list no longer empty.
  * - `refused`: the API refused with a rule, named in the detail.
  * - `unexpected`: anything else.
  */
@@ -47,6 +48,7 @@ export type AuroraProblemKind =
   | "not-configured"
   | "offline"
   | "forbidden"
+  | "list-not-empty"
   | "refused"
   | "unexpected";
 
@@ -62,6 +64,8 @@ export function problemKind(problem: AuroraProblem): AuroraProblemKind {
       return "off";
     case "aurora_not_configured":
       return "not-configured";
+    case "aurora_draft_list_not_empty":
+      return "list-not-empty";
     default:
       break;
   }

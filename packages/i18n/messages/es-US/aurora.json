@@ -106,7 +106,7 @@
       },
       "drafting": {
         "label": "Redacción",
-        "description": "Redacta SOP, paquetes de avance, correos, hojas del día y descripciones de órdenes de cambio con tu vocabulario."
+        "description": "Redacta SOP, paquetes de avance, correos, hojas del día, descripciones de órdenes de cambio, órdenes de show y evaluaciones de riesgos con tu vocabulario."
       },
       "summaries": {
         "label": "Resúmenes",
@@ -166,6 +166,7 @@
       "notConfigured": "Aurora no está configurada en esta implementación. Pida al operador de la plataforma que conecte el proveedor del modelo.",
       "offline": "No se pudo contactar a Aurora. Revise su conexión e inténtelo de nuevo. No se cambió nada.",
       "forbidden": "No tiene acceso para hacer esto. No se cambió nada.",
+      "listNotEmpty": "Esta lista ya tiene entradas. Aurora solo redacta en una lista vacía.",
       "refused": "Aurora no pudo hacer esto: {detail}",
       "unexpected": "Algo salió mal y no se cambió nada. Inténtelo de nuevo.",
       "failed": "El modelo no respondió y no se cambió nada. Inténtelo de nuevo en un momento."
@@ -187,7 +188,9 @@
         "sop": "Redactar un POE con Aurora",
         "advance_packet": "Redactar una sección con Aurora",
         "change_order_description": "Redactar una descripción con Aurora",
-        "day_sheet": "Redactar una hoja del día con Aurora"
+        "day_sheet": "Redactar una hoja del día con Aurora",
+        "run_of_show": "Redactar una orden de show con Aurora",
+        "risk_assessment": "Redactar una evaluación de riesgos con Aurora"
       },
       "instructions": "¿Qué debe decir el borrador?",
       "instructionsHelp": {
@@ -200,7 +203,9 @@
         "sop": "Procedimiento operativo estándar",
         "advance_packet": "Sección del paquete de avance",
         "change_order_description": "Descripción de la orden de cambio",
-        "day_sheet": "Hoja del día"
+        "day_sheet": "Hoja del día",
+        "run_of_show": "Orden de show",
+        "risk_assessment": "Evaluación de riesgos"
       },
       "sentKind": "Borrador",
       "sentInstructions": "Sus instrucciones",
@@ -214,6 +219,86 @@
       "used": "El borrador está en el formulario. Revíselo y luego guárdelo.",
       "ready": "El borrador de Aurora está listo. Revíselo y edítelo antes de usarlo.",
       "tooLong": "El formulario admite como máximo {max, number} caracteres. Acorte el borrador antes de usarlo."
+    },
+    "listDraft": {
+      "button": {
+        "run_of_show": "Redactar la orden de show con Aurora",
+        "risk_assessment": "Redactar la evaluación de riesgos con Aurora"
+      },
+      "title": {
+        "run_of_show": "Redactar una orden de show con Aurora",
+        "risk_assessment": "Redactar una evaluación de riesgos con Aurora"
+      },
+      "instructions": "¿Qué debe redactar Aurora?",
+      "instructionsHelp": {
+        "run_of_show": "Por ejemplo: apertura de puertas a las 18:00, dos teloneros, el artista principal a las 21:00 y cierre a las 23:00. Aurora deja una hora vacía cuando los registros no la indican.",
+        "risk_assessment": "Por ejemplo: un festival al aire libre a orillas de un río en agosto, dos escenarios y 8,000 asistentes por día."
+      },
+      "defaultInstructions": {
+        "run_of_show": "Redacte la orden de show de {name}.",
+        "risk_assessment": "Redacte la evaluación de riesgos de {name}."
+      },
+      "kind": {
+        "run_of_show": "Orden de show",
+        "risk_assessment": "Evaluación de riesgos"
+      },
+      "sentKind": "Borrador",
+      "sentTarget": "La lista que llena",
+      "sentCategories": "Categorías",
+      "ready": "El borrador de Aurora está listo. Revise cada línea antes de agregarla.",
+      "review": "Nada se guarda hasta que agregue las líneas que conserve. Descartar rechaza todas las líneas; si cierra el panel, las líneas vencen en 7 días.",
+      "qualified": "Revise cada riesgo con una persona calificada antes de confiar en él.",
+      "rowsLabel": {
+        "run_of_show": "Cues redactados",
+        "risk_assessment": "Riesgos redactados"
+      },
+      "include": "Incluir la línea {n}",
+      "columns": {
+        "label": "Etiqueta",
+        "time": "Hora ({zone})",
+        "duration": "Duración en Minutos",
+        "segment": "Segmento",
+        "description": "Descripción",
+        "title": "Título",
+        "category": "Categoría",
+        "likelihood": "Probabilidad",
+        "impact": "Impacto",
+        "mitigation": "Mitigación"
+      },
+      "unrated": "Sin calificar",
+      "required": "Obligatorio.",
+      "minutesInvalid": "Ingrese minutos enteros, hasta 1,440.",
+      "flags": {
+        "overlap": "Se superpone con el cue anterior por {minutes, plural, one {# minuto} other {# minutos}}.",
+        "gap": "{minutes, plural, one {# minuto} other {# minutos}} sin actividad antes de este cue.",
+        "untimed": "Aún sin hora.",
+        "outOfOrder": "Es anterior al cue que lo precede."
+      },
+      "gapsTitle": "Aurora dejó vacíos que no pudo llenar",
+      "droppedTitle": "Líneas omitidas porque no cumplían una regla de la lista",
+      "dropped": "Línea {line}: {reason}",
+      "dropReason": {
+        "label": "la etiqueta está vacía o tiene más de 200 caracteres.",
+        "title": "el título está vacío o tiene más de 200 caracteres.",
+        "segment": "el segmento tiene más de 200 caracteres.",
+        "description": "la descripción tiene más de 2,000 caracteres.",
+        "mitigation": "la mitigación está vacía o tiene más de 2,000 caracteres.",
+        "category": "la categoría no es una de las categorías de riesgo canónicas.",
+        "rating": "una calificación no es un número entero del 1 al 5.",
+        "time": "la hora cae fuera del día del show y de las 06:00 de la mañana siguiente.",
+        "duration": "la duración no es en minutos enteros de hasta 24 horas.",
+        "too_many": "el borrador superó el máximo de líneas que admite una lista."
+      },
+      "verbiage": "Revise estos términos con su biblioteca de vocabulario: {terms}",
+      "add": {
+        "run_of_show": "Agregar {count, plural, one {# cue} other {# cues}}",
+        "risk_assessment": "Agregar {count, plural, one {# riesgo} other {# riesgos}}"
+      },
+      "added": {
+        "run_of_show": "Se {count, plural, one {agregó # cue} other {agregaron # cues}} a la orden de show.",
+        "risk_assessment": "Se {count, plural, one {agregó # riesgo} other {agregaron # riesgos}} al proyecto."
+      },
+      "discarded": "Se descartaron las líneas redactadas. No se agregó nada."
     },
     "summary": {
       "button": "Resumir",
