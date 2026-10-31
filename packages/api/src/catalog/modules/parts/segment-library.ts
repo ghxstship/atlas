@@ -16,7 +16,7 @@ const ColorKey = z
   .string()
   .regex(/^cat-[1-7]$/)
   .meta({
-    description: "One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).",
+    description: "One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).",
     example: "cat-4",
   });
 
@@ -259,8 +259,30 @@ export const showChannelActions = [
     segment: "open-show-channel",
     summary: "Open a project's show channel",
     description:
-      "Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project, with the caller as Owner and the project's members, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project.",
-    body: projectBody("ShowChannelOpenRequest"),
+      "Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project (after `name_prefix`, Show channel by default), with the caller as Owner and the project's members who can read its running orders, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project.",
+    body: z
+      .object({
+        project_id: fields.ref("project of the show channel"),
+        name_prefix: fields
+          .text(
+            "What the channel's name starts with, before a middle dot and the project's name, in the opener's language. Defaults to Show channel.",
+            "Canal del show",
+            60,
+          )
+          .optional(),
+        description: fields
+          .text(
+            "What the channel is for, in the opener's language. Defaults to the en-US description.",
+            "Canal del show: el chat del equipo junto al cue en curso.",
+            2000,
+          )
+          .optional(),
+      })
+      .meta({
+        id: "ShowChannelOpenRequest",
+        description:
+          "The project whose show channel to open, and optionally its name prefix and description.",
+      }),
     response: ShowChannel,
     rpc: "open_show_channel",
   }),

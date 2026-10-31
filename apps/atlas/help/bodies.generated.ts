@@ -2663,7 +2663,7 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
-      { t: "h3", v: "Cue fields and colours" },
+      { t: "h3", v: "Cue fields and colors" },
       {
         t: "p",
         c: [
@@ -2675,7 +2675,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Choice" },
           {
             t: "text",
-            v: " field can give each option one of seven colours; the option's name always shows beside its colour. For each cue field, choose who it is for: ",
+            v: " field can give each option one of seven colors; the option's name always shows beside its color. For each cue field, choose who it is for: ",
           },
           { t: "strong", v: "Crew" },
           { t: "text", v: " sees it in Atlas, " },
@@ -2694,14 +2694,14 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Fill the fields in the cue editor. The editor also holds the cue's " },
           { t: "strong", v: "Segment" },
           { t: "text", v: " and its " },
-          { t: "strong", v: "Segment colour" },
-          { t: "text", v: ", which colours the whole segment at once, the " },
+          { t: "strong", v: "Segment color" },
+          { t: "text", v: ", which colors the whole segment at once, the " },
           { t: "strong", v: "Description" },
           { t: "text", v: ", and the " },
           { t: "strong", v: "Script" },
           {
             t: "text",
-            v: ", up to 20,000 characters. In live mode the running cue shows its segment colour and a ",
+            v: ", up to 20,000 characters. In live mode the running cue shows its segment color and a ",
           },
           { t: "strong", v: "Script" },
           { t: "text", v: " you can open." },
@@ -2718,7 +2718,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Show, Segment library" },
           {
             t: "text",
-            v: ": each segment has a name, a colour, a description and cues with their department calls. To use one, open a running order and choose ",
+            v: ": each segment has a name, a color, a description and cues with their department calls. To use one, open a running order and choose ",
           },
           { t: "strong", v: "Insert segment" },
           {

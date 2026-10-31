@@ -83,7 +83,7 @@ export interface CueFieldChip {
   readonly colorKey: SegmentColor | null;
 }
 
-/** A segment's name, with its colour as the Tag's swatch when the running order gives it one. */
+/** A segment's name, with its color as the Tag's swatch when the running order gives it one. */
 function SegmentMark({ segment, color }: { segment: string; color: SegmentColor | null }) {
   return color ? (
     <Tag swatch={color}>{segment}</Tag>
@@ -92,7 +92,7 @@ function SegmentMark({ segment, color }: { segment: string; color: SegmentColor 
   );
 }
 
-/** Crew-audience custom values of a cue as chips; a choice with a colour shows it beside the label. */
+/** Crew-audience custom values of a cue as chips; a choice with a color shows it beside the label. */
 function FieldChips({ chips }: { chips: readonly CueFieldChip[] | undefined }) {
   const t = useCopy("show");
   if (!chips || chips.length === 0) return null;
@@ -661,7 +661,7 @@ export function RunBody({
   department?: CueCallKind | null;
   /** The import wizard preselected on this running order (P3); null when the viewer cannot import cues here. */
   importHref?: string | null;
-  /** Segment colours of the running order, by segment name lowercased and trimmed (app.run_segment_colors). */
+  /** Segment colors of the running order, by segment name lowercased and trimmed (app.run_segment_colors). */
   segmentColors?: Readonly<Record<string, SegmentColor>>;
   /** Crew-audience custom values by cue id, as chips (ADR 0142). */
   fieldChips?: Readonly<Record<string, readonly CueFieldChip[]>>;

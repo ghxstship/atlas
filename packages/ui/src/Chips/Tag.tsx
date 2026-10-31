@@ -21,9 +21,9 @@ const TAG_SWATCH: Record<TagSwatch, string> = {
 };
 
 /**
- * A status word with a colored dot; the word carries the meaning. A swatch colours the dot with a themed
+ * A status word with a colored dot; the word carries the meaning. A swatch colors the dot with a themed
  * categorical token (light, dark and sunlight) for a user-defined choice; in forced colors the dot takes the text
- * colour and the tag keeps its border.
+ * color and the tag keeps its border.
  */
 export function Tag({ tone = "neutral", swatch, children }: TagProps): ReactElement {
   return (

@@ -32680,7 +32680,7 @@ class ShowcallerLinksResource(Resource):
     ) -> ApiResponse[ShowcallerLinkRegenerated]:
         """Regenerate a showcaller link
 
-        Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. Its creator, or a holder of show.run_of_show.write on the project, may. A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. The caller must be a member of the org and hold both show.run_of_show.write and show.cue.call on the project, as when making a link, the creator included (422 `showcaller_link_capability`). A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /showcaller-links/{id}/regenerate`` (operation ``showcallerLinks.regenerate``).
         Requires the capability ``show.run_of_show.read``.
@@ -37793,7 +37793,7 @@ class WorkforceGroupsResource(Resource):
     ) -> ApiResponse[ShowChannelConversation]:
         """Open a project's show channel
 
-        Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project, with the caller as Owner and the project's members, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project (after `name_prefix`, Show channel by default), with the caller as Owner and the project's members who can read its running orders, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /groups/open-show-channel`` (operation ``workforceGroups.openShowChannel``).
         Requires the capability ``show.run_of_show.read``.

@@ -569,9 +569,9 @@ export async function saveCueCalls(
   return ok(null);
 }
 
-// Segment colours (app.run_segment_colors, ADR 0142) ---------------------------------------------------
+// Segment colors (app.run_segment_colors, ADR 0142) ---------------------------------------------------
 
-/** The seven themed categorical colours a segment or a choice may take (color.viz.cat-1..7). */
+/** The seven themed categorical colors a segment or a choice may take (color.viz.cat-1..7). */
 export const SEGMENT_COLORS = [
   "cat-1",
   "cat-2",
@@ -592,7 +592,7 @@ export function segmentKey(segment: string | null | undefined): string {
   return (segment ?? "").trim().toLowerCase();
 }
 
-/** The running order's segment colours, keyed by segmentKey(name). */
+/** The running order's segment colors, keyed by segmentKey(name). */
 export async function listSegmentColors(
   db: XosClient,
   runOfShowId: string,
@@ -611,7 +611,7 @@ export async function listSegmentColors(
 }
 
 /**
- * Sets or clears (null) the colour of a segment of a running order (app.set_segment_color), in one
+ * Sets or clears (null) the color of a segment of a running order (app.set_segment_color), in one
  * statement: every cue whose segment text matches shows it.
  */
 export async function setSegmentColor(

@@ -20867,7 +20867,7 @@ class SegmentLibrarySegment(TypedDict):
     name: str
     #: What the segment is.
     description: Optional[str]
-    #: One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+    #: One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).
     color_key: Optional[str]
     #: Change counter, set by the database: one more for each change of the segment, its cues or their calls.
     version: int
@@ -20883,7 +20883,7 @@ class SegmentLibrarySegmentCreate(_SegmentLibrarySegmentCreateRequired, total=Fa
 
     #: What the segment is.
     description: Optional[str]
-    #: One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+    #: One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).
     color_key: Optional[str]
 
 
@@ -20894,7 +20894,7 @@ class SegmentLibrarySegmentUpdate(TypedDict, total=False):
     name: str
     #: What the segment is.
     description: Optional[str]
-    #: One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+    #: One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).
     color_key: Optional[str]
 
 
@@ -25231,11 +25231,18 @@ class ShowChannelConversation(TypedDict):
     conversation_id: str
 
 
-class ShowChannelOpenRequest(TypedDict):
-    """The project whose show channel to use."""
-
+class _ShowChannelOpenRequestRequired(TypedDict):
     #: Identifier of the project of the show channel.
     project_id: str
+
+
+class ShowChannelOpenRequest(_ShowChannelOpenRequestRequired, total=False):
+    """The project whose show channel to open, and optionally its name prefix and description."""
+
+    #: What the channel's name starts with, before a middle dot and the project's name, in the opener's language. Defaults to Show channel.
+    name_prefix: str
+    #: What the channel is for, in the opener's language. Defaults to the en-US description.
+    description: str
 
 
 class ShowChannelJoinRequest(TypedDict):

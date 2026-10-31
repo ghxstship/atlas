@@ -385,12 +385,12 @@ export async function addCustomFieldChoiceAction(
 
 const COLOR = /^cat-[1-7]$/;
 
-/** A choice colour from a form: cat-1 to cat-7, or none. */
+/** A choice color from a form: cat-1 to cat-7, or none. */
 function color(value: string | null): string | null {
   return value !== null && COLOR.test(value) ? value : null;
 }
 
-/** Recolours a choice (2920): one of the seven categorical colours, or none. */
+/** Recolors a choice (2920): one of the seven categorical colors, or none. */
 export async function setCustomFieldChoiceColorAction(
   _: SurfaceState,
   form: FormData,

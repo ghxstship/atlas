@@ -8625,7 +8625,7 @@ export interface Components {
   ShortlistUpdate: { rank?: number | null };
   ShowChannelConversation: { conversation_id: string };
   ShowChannelJoinRequest: { project_id: string };
-  ShowChannelOpenRequest: { project_id: string };
+  ShowChannelOpenRequest: { project_id: string; name_prefix?: string; description?: string };
   ShowChannelStatus: {
     channel_exists: boolean;
     conversation_id: string | null;

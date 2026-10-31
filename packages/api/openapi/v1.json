@@ -50347,7 +50347,7 @@
           "color_key": {
             "type": ["string", "null"],
             "pattern": "^cat-[1-7]$",
-            "description": "One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).",
+            "description": "One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).",
             "example": "cat-4"
           },
           "version": {
@@ -50391,7 +50391,7 @@
           "color_key": {
             "type": ["string", "null"],
             "pattern": "^cat-[1-7]$",
-            "description": "One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).",
+            "description": "One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).",
             "example": "cat-4"
           }
         },
@@ -50418,7 +50418,7 @@
           "color_key": {
             "type": ["string", "null"],
             "pattern": "^cat-[1-7]$",
-            "description": "One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).",
+            "description": "One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).",
             "example": "cat-4"
           }
         },
@@ -62635,10 +62635,24 @@
             "format": "uuid",
             "description": "Identifier of the project of the show channel.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name_prefix": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "What the channel's name starts with, before a middle dot and the project's name, in the opener's language. Defaults to Show channel.",
+            "example": "Canal del show"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the channel is for, in the opener's language. Defaults to the en-US description.",
+            "example": "Canal del show: el chat del equipo junto al cue en curso."
           }
         },
         "required": ["project_id"],
-        "description": "The project whose show channel to use."
+        "description": "The project whose show channel to open, and optionally its name prefix and description."
       },
       "ShowChannelJoinRequest": {
         "type": "object",
@@ -147639,7 +147653,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
         "x-xos-rpc": "regenerate_showcaller_link",
         "summary": "Regenerate a showcaller link",
-        "description": "Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. Its creator, or a holder of show.run_of_show.write on the project, may. A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. The caller must be a member of the org and hold both show.run_of_show.write and show.cue.call on the project, as when making a link, the creator included (422 `showcaller_link_capability`). A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -161557,13 +161571,17 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
         "x-xos-rpc": "open_show_channel",
         "summary": "Open a project's show channel",
-        "description": "Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project, with the caller as Owner and the project's members, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project (after `name_prefix`, Show channel by default), with the caller as Owner and the project's members who can read its running orders, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "name_prefix": "Canal del show",
+                "description": "Canal del show: el chat del equipo junto al cue en curso."
+              },
               "schema": { "$ref": "#/components/schemas/ShowChannelOpenRequest" }
             }
           }

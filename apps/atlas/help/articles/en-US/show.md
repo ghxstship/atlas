@@ -42,15 +42,15 @@ Put the running order on any TV or laptop with no sign-in. Open the running orde
 
 When a cue runs past its duration the timer turns red and reads **Over by** the time, until the next cue is called. On the screen, keys 1, 2 and 3 switch modes, **Open in new window** pops the screen out to a second display, and **Fullscreen** fills the screen. The screen follows cues within a few seconds of them being called. Revoke the link to take it off every screen.
 
-### Cue fields and colours
+### Cue fields and colors
 
-Add your own columns to cues in **Settings, Custom fields**: choose **Cues** as the table, then a type. A **Choice** field can give each option one of seven colours; the option's name always shows beside its colour. For each cue field, choose who it is for: **Crew** sees it in Atlas, **Showcaller** shows it on showcaller links, and **Client** shows it in Gateway to a Client engaged on the project. Every new cue field starts with Crew. Person, Money and Email fields stay with the crew. Crew is a display choice: members still see every value their access allows.
+Add your own columns to cues in **Settings, Custom fields**: choose **Cues** as the table, then a type. A **Choice** field can give each option one of seven colors; the option's name always shows beside its color. For each cue field, choose who it is for: **Crew** sees it in Atlas, **Showcaller** shows it on showcaller links, and **Client** shows it in Gateway to a Client engaged on the project. Every new cue field starts with Crew. Person, Money and Email fields stay with the crew. Crew is a display choice: members still see every value their access allows.
 
-Fill the fields in the cue editor. The editor also holds the cue's **Segment** and its **Segment colour**, which colours the whole segment at once, the **Description**, and the **Script**, up to 20,000 characters. In live mode the running cue shows its segment colour and a **Script** you can open.
+Fill the fields in the cue editor. The editor also holds the cue's **Segment** and its **Segment color**, which colors the whole segment at once, the **Description**, and the **Script**, up to 20,000 characters. In live mode the running cue shows its segment color and a **Script** you can open.
 
 ### Segment library
 
-Keep blocks you run in many shows, such as a walk-in, an awards block or a sponsor moment, in **Show, Segment library**: each segment has a name, a colour, a description and cues with their department calls. To use one, open a running order and choose **Insert segment**: pick the segment, where it goes (after the last called cue) and, if you like, the time it starts. The copies are yours to edit in that running order.
+Keep blocks you run in many shows, such as a walk-in, an awards block or a sponsor moment, in **Show, Segment library**: each segment has a name, a color, a description and cues with their department calls. To use one, open a running order and choose **Insert segment**: pick the segment, where it goes (after the last called cue) and, if you like, the time it starts. The copies are yours to edit in that running order.
 
 When you change a library segment, it shows **Library updated**. Choose the shows to update under **Publish to shows**: in each, the segment's uncalled cues are replaced with the current version, and local edits to those cues, their custom field values included, are lost. Shows where a cue of the segment was called (**Has called cues**) or is an artist's set time (**Has set times**) are left as they are.
 

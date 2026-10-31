@@ -133,6 +133,7 @@
     "calledAt": "Called",
     "calledBy": "Called by",
     "notCalled": "Not called",
+    "calledViaLink": "{caller} (showcaller link)",
     "noCues": "This running order has no cues.",
     "curfew": "Curfew",
     "tbc": "TBC",

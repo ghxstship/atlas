@@ -37497,7 +37497,7 @@ export interface SegmentLibrarySegment {
    */
   readonly description: string | null;
   /**
-   * One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+   * One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).
    * Pattern: `^cat-[1-7]$`.
    */
   readonly color_key: string | null;
@@ -37523,7 +37523,7 @@ export interface SegmentLibrarySegmentCreate {
    */
   readonly description?: string | null;
   /**
-   * One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+   * One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).
    * Pattern: `^cat-[1-7]$`.
    */
   readonly color_key?: string | null;
@@ -37544,7 +37544,7 @@ export interface SegmentLibrarySegmentUpdate {
    */
   readonly description?: string | null;
   /**
-   * One of the seven themed categorical colours, cat-1 to cat-7 (color.viz.cat-*).
+   * One of the seven themed categorical colors, cat-1 to cat-7 (color.viz.cat-*).
    * Pattern: `^cat-[1-7]$`.
    */
   readonly color_key?: string | null;
@@ -46441,7 +46441,7 @@ export interface ShowChannelConversation {
 }
 
 /**
- * The project whose show channel to use.
+ * The project whose show channel to open, and optionally its name prefix and description.
  */
 export interface ShowChannelOpenRequest {
   /**
@@ -46449,6 +46449,16 @@ export interface ShowChannelOpenRequest {
    * Format: `uuid`.
    */
   readonly project_id: string;
+  /**
+   * What the channel's name starts with, before a middle dot and the project's name, in the opener's language. Defaults to Show channel.
+   * Length: 1 to 60.
+   */
+  readonly name_prefix?: string;
+  /**
+   * What the channel is for, in the opener's language. Defaults to the en-US description.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string;
 }
 
 /**

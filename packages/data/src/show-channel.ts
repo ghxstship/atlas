@@ -48,12 +48,24 @@ export async function showChannelStatus(
   });
 }
 
+/** The channel's name prefix and description in the opener's language; the database's en-US text otherwise. */
+export interface ShowChannelNaming {
+  /** Put before " · " and the project's name, at most 60 characters. */
+  readonly namePrefix?: string;
+  readonly description?: string;
+}
+
 /** Opens the project's show channel, or answers the live one (app.open_show_channel). Returns its conversation. */
 export async function openShowChannel(
   db: XosClient,
   projectId: string,
+  naming: ShowChannelNaming = {},
 ): Promise<Result<{ conversationId: string }>> {
-  const { data, error } = await untyped(db).rpc("open_show_channel", { p_project_id: projectId });
+  const { data, error } = await untyped(db).rpc("open_show_channel", {
+    p_project_id: projectId,
+    p_name_prefix: naming.namePrefix ?? null,
+    p_description: naming.description ?? null,
+  });
   if (error) return fail(toDataError(error));
   return ok({ conversationId: String(data) });
 }

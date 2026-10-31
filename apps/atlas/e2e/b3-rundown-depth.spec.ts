@@ -2,9 +2,9 @@ import { expect, test, type Page } from "./engine-test";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
 /**
- * B3 rundown depth (RRR-227, ADR 0142; gap G-73) on a fresh org: a cue field with a colour-coded choice and the
+ * B3 rundown depth (RRR-227, ADR 0142; gap G-73) on a fresh org: a cue field with a color-coded choice and the
  * Client audience is defined in Settings and filled in the cue editor, where its chip shows in the cue's row; a
- * segment gets a colour; a library segment is made, inserted into the running order, edited in the library and
+ * segment gets a color; a library segment is made, inserted into the running order, edited in the library and
  * published back, with the outcome listed.
  */
 
@@ -31,10 +31,10 @@ async function newOwnerOrg(page: Page): Promise<string> {
   return slug;
 }
 
-test("cue fields with colours, segment colours and the segment library", async ({ page }) => {
+test("cue fields with colors, segment colors and the segment library", async ({ page }) => {
   const slug = await newOwnerOrg(page);
 
-  // A Choice cue field with a coloured option, for the crew and the Client.
+  // A Choice cue field with a colored option, for the crew and the Client.
   await page.goto(`/${slug}/settings/custom-fields`);
   const add = page.getByRole("form", { name: "Add a field" });
   await add.getByLabel("Records").selectOption({ label: "Cues" });
@@ -44,7 +44,7 @@ test("cue fields with colours, segment colours and the segment library", async (
   const row = page.getByRole("listitem").filter({ hasText: "Camera" });
   const choice = page.getByRole("form", { name: "Add a choice to Camera" });
   await choice.getByLabel("New choice").fill("Wide");
-  await choice.getByLabel("Colour").selectOption({ label: "Sky blue" });
+  await choice.getByLabel("Color").selectOption({ label: "Sky blue" });
   await choice.getByRole("button", { name: "Add choice" }).click();
   await expect(row.getByText(/Choices: .*Wide \(Sky blue\)/)).toBeVisible();
   await expect(row.getByText("For: Crew")).toBeVisible();
@@ -53,7 +53,7 @@ test("cue fields with colours, segment colours and the segment library", async (
   await audiences.getByRole("button", { name: "Save audiences" }).click();
   await expect(row.getByText("For: Crew, Client")).toBeVisible();
 
-  // A running order with a cue in a coloured segment, and the field filled in.
+  // A running order with a cue in a colored segment, and the field filled in.
   await page.goto(`/${slug}/show/run-of-show?create=1`);
   const sheet = page.getByRole("dialog", { name: "New running order" });
   await sheet.getByLabel("Name").fill("Opening Night Running Order");
@@ -65,7 +65,7 @@ test("cue fields with colours, segment colours and the segment library", async (
   await page.getByRole("button", { name: "Edit House to Half" }).click();
   const editor = page.getByRole("form", { name: "Edit cue House to Half" });
   await editor.getByLabel("Segment", { exact: true }).fill("Act I");
-  await editor.getByLabel("Segment colour").selectOption({ label: "Vermillion" });
+  await editor.getByLabel("Segment color").selectOption({ label: "Vermillion" });
   await editor.getByLabel("Script").fill("Ladies and gentlemen, welcome.");
   await editor.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Act I").first()).toBeVisible();
@@ -87,7 +87,7 @@ test("cue fields with colours, segment colours and the segment library", async (
   await page.goto(`/${slug}/show/segments?create=1`);
   const create = page.getByRole("dialog", { name: "New segment" });
   await create.getByLabel("Segment name").fill("Awards Block");
-  await create.getByLabel("Colour").selectOption({ label: "Yellow" });
+  await create.getByLabel("Color").selectOption({ label: "Yellow" });
   await create.getByRole("button", { name: "Save segment" }).click();
   await page.waitForURL(/peek=/);
   for (const label of ["Award One", "Walk-off"]) {

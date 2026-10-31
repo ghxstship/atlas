@@ -330,6 +330,31 @@ describe("run of show version 2 (ADR 0131)", () => {
       expect(text).not.toMatch(/^runOfShow\./);
   });
 
+  it("names a showcaller link's caller for a cue called through the link (ADR 0142)", () => {
+    const data = {
+      ...v2Data,
+      cues: v2Data.cues.map((c) =>
+        c.id === "q2"
+          ? {
+              ...c,
+              calledAt: "2026-11-08T00:10:00Z",
+              calledByName: null,
+              calledViaLink: "Sam Okafor",
+            }
+          : c,
+      ),
+    };
+    const rows = (model: ReturnType<typeof render>) => {
+      const table = model.blocks.find((b) => b.kind === "table");
+      if (table?.kind !== "table") throw new Error("no cues");
+      return table.rows;
+    };
+    const en = rows(render("en-US", data));
+    expect(en[1]?.[6]).toBe("Sam Okafor (showcaller link)");
+    expect(en[0]?.[6]).toBe("Sam Lee");
+    expect(rows(render("es-US", data))[1]?.[6]).toBe("Sam Okafor (enlace de llamado)");
+  });
+
   it("leaves the curfew out when none is set", () => {
     const model = render("en-US", { ...v2Data, run: { ...v2Data.run, curfewAt: null } });
     expect(strings(model)).not.toContain("Curfew");

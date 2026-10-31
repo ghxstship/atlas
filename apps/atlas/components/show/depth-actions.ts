@@ -36,6 +36,7 @@ import {
 } from "@xos/data/showcaller-links";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { done, failed, invalid, type ActionResult } from "@/components/work/action-result";
 import { env } from "@/lib/env";
@@ -43,7 +44,7 @@ import { showcallerExpiryFor } from "@/lib/showcaller/expiry";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
- * Run-of-show depth actions (B3, ADR 0142): segment colours, the segment library, the show channel and showcaller
+ * Run-of-show depth actions (B3, ADR 0142): segment colors, the segment library, the show channel and showcaller
  * links. Each runs as the signed-in person in the org named by the slug; the database applies every rule (who may,
  * placement, the 300-cue cap, Clients kept out of the channel, link limits and expiry) and the actions report its
  * refusals by rule under `work.errors`. A new showcaller link's address and code come back once.
@@ -63,7 +64,7 @@ const id = z.uuid();
 const instant = z.iso.datetime({ offset: true });
 const color = z.enum(["cat-1", "cat-2", "cat-3", "cat-4", "cat-5", "cat-6", "cat-7"]).nullable();
 
-// Segment colours ---------------------------------------------------------------------------------
+// Segment colors ---------------------------------------------------------------------------------
 
 export async function setSegmentColorAction(
   org: string,
@@ -286,7 +287,12 @@ export async function openShowChannelAction(
 ): Promise<ActionResult<{ conversationId: string }>> {
   const ctx = await context(org);
   if (!id.safeParse(projectId).success) return invalid();
-  const result = await openShowChannel(ctx.viewer.db, projectId);
+  // The channel is named in the opener's language; members who read another see it as a group name, as any group.
+  const t = await getTranslations("show.showChannel");
+  const result = await openShowChannel(ctx.viewer.db, projectId, {
+    namePrefix: t("namePrefix"),
+    description: t("description"),
+  });
   return result.ok ? done(result.data) : failed(result.error);
 }
 

@@ -555,7 +555,10 @@ export const TEMPLATES: TemplateRegistry = {
                 )
                 .join("\n"),
               c.calledAt ? f.time(c.calledAt) : t("runOfShow.notCalled"),
-              c.calledByName ?? t("common.none"),
+              // A cue called through a showcaller link has no person (ADR 0142): name the link's caller.
+              c.calledViaLink
+                ? t("runOfShow.calledViaLink", { caller: c.calledViaLink })
+                : (c.calledByName ?? t("common.none")),
             ]),
             empty: t("runOfShow.noCues"),
           },

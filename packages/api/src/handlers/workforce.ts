@@ -144,7 +144,11 @@ export const handlers = defineHandlers("Workforce", {
   },
   // A project's show channel (2922, ADR 0142): the RPCs decide who may open, join or read it.
   "workforceGroups.openShowChannel": async ({ body }, context) => {
-    const id = await call<string>(context, "open_show_channel", { p_project_id: body.project_id });
+    const id = await call<string>(context, "open_show_channel", {
+      p_project_id: body.project_id,
+      p_name_prefix: body.name_prefix ?? null,
+      p_description: body.description ?? null,
+    });
     return ok({ conversation_id: String(id) } as never);
   },
   "workforceGroups.joinShowChannel": async ({ body }, context) => {

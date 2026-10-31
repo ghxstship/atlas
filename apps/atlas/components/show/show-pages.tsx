@@ -89,7 +89,7 @@ const UUID = /^[0-9a-f-]{36}$/;
 
 /**
  * The Crew-audience custom values of a running order's cues, as chips (B3, ADR 0142). Crew is presentation only:
- * the values are the ones the viewer's own access reads; a choice keeps its colour.
+ * the values are the ones the viewer's own access reads; a choice keeps its color.
  */
 async function crewChips(
   ctx: OrgContext,

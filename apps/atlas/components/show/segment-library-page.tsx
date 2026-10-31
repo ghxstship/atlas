@@ -16,7 +16,7 @@ const UUID = /^[0-9a-f-]{36}$/;
 
 /**
  * Show > Segment library (B3, G-73, ADR 0142): the org's reusable segments as a list or table; the peek edits a
- * segment's name, colour, description and cues with their department calls, and publishes its current version to
+ * segment's name, color, description and cues with their department calls, and publishes its current version to
  * the running orders that hold a copy. Every member reads the library; editing it takes show.run_of_show.write
  * org-wide, which the database checks again.
  */

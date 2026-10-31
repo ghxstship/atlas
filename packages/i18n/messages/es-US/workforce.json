@@ -781,6 +781,7 @@
     "feed_post_publish_past": "Elige una hora futura, o déjala en blanco para publicar ahora.",
     "feed_post_not_author": "Solo el autor o un administrador de comunicación puede cambiar esta publicación.",
     "audience_target": "Elige el proyecto, equipo, rol o grupo de la audiencia.",
+    "show_channel_audience": "Un canal del show es solo para su chat; elige otra audiencia.",
     "poll_options": "Una encuesta necesita de 2 a 10 opciones.",
     "poll_closed": "Esta encuesta ya cerró.",
     "poll_already_voted": "Ya votaste en esta encuesta.",

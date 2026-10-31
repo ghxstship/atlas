@@ -133,6 +133,7 @@
     "calledAt": "Llamado",
     "calledBy": "Llamado por",
     "notCalled": "Sin llamar",
+    "calledViaLink": "{caller} (enlace de llamado)",
     "noCues": "Este orden del espectáculo no tiene cues.",
     "curfew": "Hora límite",
     "tbc": "Por confirmar",

@@ -29,9 +29,9 @@ function timeOf(at: string | null, zone: string): string {
 }
 
 /**
- * One cue edited in place of its row: label, planned time, Time to be confirmed, length, segment and its colour,
+ * One cue edited in place of its row: label, planned time, Time to be confirmed, length, segment and its color,
  * description, script (B3, ADR 0142) and the five department calls, then the cue's custom fields (A117). Save
- * writes the cue, the segment's colour when it changed (one colour for the whole segment), then its calls; when a
+ * writes the cue, the segment's color when it changed (one color for the whole segment), then its calls; when a
  * step fails the editor stays open with what the person typed and says why. Escape cancels.
  */
 export function CueEditor({
@@ -46,7 +46,7 @@ export function CueEditor({
   run: RunOfShow;
   cue: Cue;
   calls: readonly CueCall[];
-  /** The colour of the cue's segment in this running order (app.run_segment_colors). */
+  /** The color of the cue's segment in this running order (app.run_segment_colors). */
   segmentColor?: SegmentColor | null;
   onClose: () => void;
 }) {
@@ -84,7 +84,7 @@ export function CueEditor({
           script,
         });
         if (!updated.ok) return updated;
-        // The colour belongs to the segment, so it is set once for every cue of it.
+        // The color belongs to the segment, so it is set once for every cue of it.
         if (segment.trim() !== "" && color !== (segmentColor ?? "")) {
           const colored = await setSegmentColorAction(
             org,

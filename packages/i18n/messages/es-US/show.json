@@ -331,6 +331,8 @@
   },
   "showChannel": {
     "title": "Canal del show",
+    "namePrefix": "Canal del show",
+    "description": "Canal del show: el chat del equipo junto al cue en curso. Los clientes nunca están en él.",
     "clientsNever": "Los clientes nunca están en este canal.",
     "unread": "{count, plural, one {# sin leer} other {# sin leer}}",
     "open": "Abrir el canal del show",

@@ -394,6 +394,8 @@
     "openClock": "Open clock",
     "grantEnding": "This device's access ends at {time}. Enter the code again then to keep calling.",
     "called": "Called {time}",
+    "calledViaLink": "Called {time} through a showcaller link",
+    "removeSetTime": "{label} is an artist's set time; only the production removes it.",
     "expires": "This link works until {date}.",
     "editNote": "Called cues cannot be edited. Changes reach the crew within a second or two.",
     "yes": "Yes",

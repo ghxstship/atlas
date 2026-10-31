@@ -304,6 +304,20 @@ describe("Workforce: show channels", () => {
     expect(opened["conversation_id"]).toBe(id(60));
     expect(db.calls.find((c) => c.name === "open_show_channel")?.args).toEqual({
       p_project_id: PROJECT,
+      p_name_prefix: null,
+      p_description: null,
+    });
+    await success(
+      http.post("/groups/open-show-channel", {
+        project_id: PROJECT,
+        name_prefix: "Canal del show",
+        description: "El chat del equipo.",
+      }),
+    );
+    expect(db.calls.filter((c) => c.name === "open_show_channel")[1]?.args).toEqual({
+      p_project_id: PROJECT,
+      p_name_prefix: "Canal del show",
+      p_description: "El chat del equipo.",
     });
     const refused = await http.post("/groups/join-show-channel", { project_id: PROJECT });
     expect(refused.status).toBe(422);

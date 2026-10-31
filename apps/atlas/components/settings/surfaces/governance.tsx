@@ -299,7 +299,7 @@ function targetLabel(f: Formatters, table: string): string {
   return f.t(key);
 }
 
-/** The palette a choice may take: none, then the seven themed categorical colours, each by name. */
+/** The palette a choice may take: none, then the seven themed categorical colors, each by name. */
 function colorOptions(f: Formatters) {
   return [
     { value: "", label: f.t(`${P}.customFields.colors.none`) },

@@ -489,7 +489,9 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
                 </span>
                 <span className="flex items-center gap-4">
                   <span className="text-text-12 text-text-secondary">
-                    {c.calledAt ? t("called", { time: time(c.calledAt) }) : show("cues.notCalled")}
+                    {c.calledAt
+                      ? t(c.calledViaLink ? "calledViaLink" : "called", { time: time(c.calledAt) })
+                      : show("cues.notCalled")}
                   </span>
                   {movable ? (
                     <>
@@ -520,9 +522,15 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
                           )
                         }
                       />
+                      {/* An artist's set time is the production's to remove (showcaller_cue_linked). */}
                       <IconButton
                         icon="X"
-                        label={show("cues.remove", { label: c.label })}
+                        label={
+                          c.setTime
+                            ? t("removeSetTime", { label: c.label })
+                            : show("cues.remove", { label: c.label })
+                        }
+                        disabled={c.setTime}
                         onClick={() =>
                           start(async () => void (await write({ op: "remove", cueId: c.id })))
                         }

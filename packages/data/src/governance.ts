@@ -204,7 +204,7 @@ export interface CustomFieldChoice {
   readonly id: string;
   readonly key: string;
   readonly label: string;
-  /** The option's colour (cat-1 to cat-7, the themed categorical tokens), or null (2920). */
+  /** The option's color (cat-1 to cat-7, the themed categorical tokens), or null (2920). */
   readonly colorKey?: string | null;
 }
 
@@ -217,7 +217,7 @@ interface ChoiceRow {
   deleted_at: string | null;
 }
 
-/** A field's live choices in option order, with their colours. */
+/** A field's live choices in option order, with their colors. */
 export function liveChoices(rows: readonly ChoiceRow[] | null): CustomFieldChoice[] {
   return (rows ?? [])
     .filter((c) => c.deleted_at === null)
@@ -339,7 +339,7 @@ export async function addCustomFieldChoice(
     readonly key: string;
     readonly label: string;
     readonly sortOrder: number;
-    /** cat-1 to cat-7, or null for no colour (2920). */
+    /** cat-1 to cat-7, or null for no color (2920). */
     readonly colorKey?: string | null;
   },
 ): Promise<Result<{ id: string }>> {
@@ -359,7 +359,7 @@ export async function addCustomFieldChoice(
   return ok({ id: (data as { id: string }).id });
 }
 
-/** Sets or clears (null) a choice's colour; the database takes cat-1 to cat-7 only (2920). */
+/** Sets or clears (null) a choice's color; the database takes cat-1 to cat-7 only (2920). */
 export async function setCustomFieldChoiceColor(
   db: XosClient,
   choiceId: string,

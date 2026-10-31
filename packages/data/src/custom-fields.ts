@@ -80,7 +80,7 @@ export interface CustomFieldParseContext {
 const SELECT_DEFINITIONS =
   "id, target_table, field_key, label, data_type, required, filterable, sort_order, custom_field_choices(id, choice_key, label, sort_order, color_key, deleted_at)";
 
-/** The org's live custom fields on one table, in form order, with their live choices and colours. */
+/** The org's live custom fields on one table, in form order, with their live choices and colors. */
 export async function listCustomFieldDefinitions(
   db: XosClient,
   orgId: string,

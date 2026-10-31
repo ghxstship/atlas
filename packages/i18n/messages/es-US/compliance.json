@@ -394,6 +394,8 @@
     "openClock": "Abrir reloj",
     "grantEnding": "El acceso de este dispositivo termina a las {time}. Ingrese el código otra vez entonces para seguir llamando.",
     "called": "Llamado {time}",
+    "calledViaLink": "Llamado {time} con un enlace de llamado",
+    "removeSetTime": "{label} es el horario de un artista; solo la producción lo quita.",
     "expires": "Este enlace funciona hasta el {date}.",
     "editNote": "Los cues llamados no se pueden editar. Los cambios llegan al equipo en uno o dos segundos.",
     "yes": "Sí",

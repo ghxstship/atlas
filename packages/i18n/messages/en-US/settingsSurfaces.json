@@ -250,7 +250,7 @@
       "cues": "Cues"
     },
     "colors": {
-      "none": "No colour",
+      "none": "No color",
       "cat-1": "Orange",
       "cat-2": "Sky blue",
       "cat-3": "Green",
@@ -259,8 +259,8 @@
       "cat-6": "Vermillion",
       "cat-7": "Purple"
     },
-    "choiceColor": "Colour",
-    "choiceColorHelp": "Optional. The label always shows beside the colour.",
+    "choiceColor": "Color",
+    "choiceColorHelp": "Optional. The label always shows beside the color.",
     "choiceWithColor": "{label} ({color})",
     "audienceList": "For: {audiences}",
     "audiencesFor": "Who {label} is for",

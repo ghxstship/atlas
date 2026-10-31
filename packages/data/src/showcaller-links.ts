@@ -354,6 +354,10 @@ export interface ShowcallerCue {
   readonly startTbc: boolean;
   readonly durationSeconds: number | null;
   readonly calledAt: string | null;
+  /** Called through a showcaller link; never which link or who (ADR 0142). */
+  readonly calledViaLink: boolean;
+  /** An artist's set time (app.engagement_cues), which the portal never removes. */
+  readonly setTime: boolean;
   readonly standbyAt: string | null;
   readonly description: string | null;
   readonly script: string | null;
@@ -418,6 +422,8 @@ function toShowcallerCue(raw: Record<string, unknown>): ShowcallerCue {
     startTbc: raw["start_tbc"] === true,
     durationSeconds: num(raw["duration_seconds"]),
     calledAt: str(raw["called_at"]),
+    calledViaLink: raw["called_via_link"] === true,
+    setTime: raw["set_time"] === true,
     standbyAt: str(raw["standby_at"]),
     description: str(raw["description"]),
     script: str(raw["script"]),

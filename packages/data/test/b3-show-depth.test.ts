@@ -41,7 +41,7 @@ const argsOf = (call: { steps: [string, unknown[]][] } | undefined) =>
 const stepOf = (call: { steps: [string, unknown[]][] } | undefined, name: string) =>
   call?.steps.filter(([step]) => step === name).map(([, args]) => args);
 
-describe("cues and segment colours (2920)", () => {
+describe("cues and segment colors (2920)", () => {
   it("reads the new cue columns and the link a cue was called through", async () => {
     const { db } = fakeClient({
       "from:cues": [
@@ -90,7 +90,7 @@ describe("cues and segment colours (2920)", () => {
     });
   });
 
-  it("knows the seven colours and matches segment names as the database does", () => {
+  it("knows the seven colors and matches segment names as the database does", () => {
     expect(isSegmentColor("cat-7")).toBe(true);
     expect(isSegmentColor("cat-8")).toBe(false);
     expect(isSegmentColor(null)).toBe(false);
@@ -98,7 +98,7 @@ describe("cues and segment colours (2920)", () => {
     expect(segmentKey(null)).toBe("");
   });
 
-  it("lists, sets and clears segment colours", async () => {
+  it("lists, sets and clears segment colors", async () => {
     const { db, calls } = fakeClient({
       "from:run_segment_colors": [
         okResponse([
@@ -122,7 +122,7 @@ describe("cues and segment colours (2920)", () => {
   });
 });
 
-describe("cue field audiences and choice colours (2920)", () => {
+describe("cue field audiences and choice colors (2920)", () => {
   it("keeps Person, Money and Email with the crew", () => {
     expect(CUE_FIELD_AUDIENCES).toEqual(["Crew", "Showcaller", "Client"]);
     expect(audiencesFor("Choice")).toEqual(CUE_FIELD_AUDIENCES);
@@ -169,7 +169,7 @@ describe("cue field audiences and choice colours (2920)", () => {
     expect(refused.ok).toBe(false);
   });
 
-  it("adds a choice with a colour and recolours one", async () => {
+  it("adds a choice with a color and recolors one", async () => {
     const { db, calls } = fakeClient({
       "from:custom_field_choices": [
         okResponse({ id: "ch1" }),
@@ -495,7 +495,7 @@ describe("show channels (2922)", () => {
   });
 
   it("opens and joins, answering the conversation", async () => {
-    const { db } = fakeClient({
+    const { db, calls } = fakeClient({
       "rpc:open_show_channel": [okResponse("cv1"), errorResponse("42501", "denied")],
       "rpc:join_show_channel": [
         okResponse("cv1"),
@@ -503,7 +503,20 @@ describe("show channels (2922)", () => {
       ],
     });
     expect(await openShowChannel(db, "p1")).toEqual({ ok: true, data: { conversationId: "cv1" } });
-    expect((await openShowChannel(db, "p1")).ok).toBe(false);
+    expect(argsOf(calls[0])).toEqual({
+      p_project_id: "p1",
+      p_name_prefix: null,
+      p_description: null,
+    });
+    expect(
+      (await openShowChannel(db, "p1", { namePrefix: "Canal del show", description: "El chat." }))
+        .ok,
+    ).toBe(false);
+    expect(argsOf(calls[1])).toEqual({
+      p_project_id: "p1",
+      p_name_prefix: "Canal del show",
+      p_description: "El chat.",
+    });
     expect(await joinShowChannel(db, "p1")).toEqual({ ok: true, data: { conversationId: "cv1" } });
     expect((await joinShowChannel(db, "p1")).ok).toBe(false);
   });

@@ -69,6 +69,8 @@ const RUN = {
       start_tbc: false,
       duration_seconds: 120,
       called_at: null,
+      called_via_link: true,
+      set_time: true,
       standby_at: "2027-06-05T22:59:00Z",
       description: null,
       script: "Ladies and gentlemen",
@@ -272,6 +274,8 @@ describe("the portal", () => {
       segmentColor: "cat-2",
       durationSeconds: 120,
       script: "Ladies and gentlemen",
+      calledViaLink: true,
+      setTime: true,
     });
     expect(cue?.calls.map((c) => c.kind)).toEqual(["Audio", "Lighting"]);
     expect(cue?.fields[0]).toMatchObject({ choiceLabel: "Wide", colorKey: "cat-3" });
