@@ -372,6 +372,19 @@ export async function listAllowedTransitions(
   return ok(data.flatMap((r) => (r.to_state ? [r.to_state] : [])));
 }
 
+/** The states a lifecycle can move out of, read from the same rule table (Section 3.12). */
+export async function listMovableStates(
+  db: XosClient,
+  lifecycle: "project" | "production",
+): Promise<Result<string[]>> {
+  const { data, error } = await db
+    .from("lifecycle_transition_rules")
+    .select("from_state")
+    .eq("lifecycle", lifecycle);
+  if (error) return fail(toDataError(error));
+  return ok([...new Set(data.flatMap((r) => (r.from_state ? [r.from_state] : [])))]);
+}
+
 export interface TransitionInput<S extends string> {
   readonly projectId: string;
   readonly expected: S;
