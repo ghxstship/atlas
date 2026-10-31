@@ -101,6 +101,28 @@ describe("opportunities action state", () => {
     expect(errorState({ kind: "unexpected", message: "x" }).error).toBe("unexpected");
   });
 
+  it("points the hidden-client refusals at their fields (2870)", () => {
+    expect(
+      errorState(
+        { kind: "refusal", rule: "opportunity_hidden_client_named", message: "x" },
+        { title: "Lakeshore Brands Audio" },
+      ),
+    ).toEqual({
+      error: "refusal.opportunity_hidden_client_named",
+      fieldErrors: { title: "hiddenClientNamed", description: "hiddenClientNamed" },
+      values: { title: "Lakeshore Brands Audio" },
+    });
+    expect(
+      errorState({ kind: "refusal", rule: "opportunity_hidden_client_published", message: "x" }),
+    ).toEqual({
+      error: "refusal.opportunity_hidden_client_published",
+      fieldErrors: { hideClientUntilBooked: "hiddenClientPublished" },
+    });
+    const fieldErrors = en.fieldErrors as Record<string, string>;
+    expect(fieldErrors["hiddenClientNamed"]).toBeTypeOf("string");
+    expect(fieldErrors["hiddenClientPublished"]).toBeTypeOf("string");
+  });
+
   it("has a catalog sentence for every known rule", () => {
     const refusals = en.errors.refusal as Record<string, string>;
     for (const rule of KNOWN_RULES)

@@ -8,6 +8,12 @@ order: 1
 
 La página muestra la organización, el pago, las fechas y el lugar, de qué trata el trabajo, sus requisitos y sus llamados. La tarjeta lateral agrega el tipo de tarifa, el número de puestos, la fecha límite, quién puede verla y la edad mínima, si la hay.
 
+## Cliente confidencial
+
+Algunas organizaciones mantienen en privado el cliente y el evento hasta que te contratan. Una publicación con **Cliente confidencial** muestra igual la organización, la ciudad, las fechas y el pago, pero no el lugar, y la distancia desde un sitio se mide hasta un punto cercano al lugar y no hasta el lugar mismo. El lugar aparece cuando aceptan tu postulación.
+
+El título y la descripción de la organización no pueden nombrar el proyecto, su cliente ni el lugar. Algunos detalles son palabras de la propia organización y no se revisan: los nombres de los puestos, las preguntas de la postulación, las descripciones de los requisitos, los lugares de entrevistas y audiciones, y los mensajes de una oferta. Tampoco se vuelve a revisar un proyecto, un lugar o un cliente cuyo nombre cambió después de publicar. Si alguno de ellos revela al cliente, reporta la publicación.
+
 ## Requisitos
 
 Cada requisito es una certificación, un seguro o un equipo. Donde Gateway puede revisar tu perfil, marca lo que tienes y lo que falta; agrega a tu perfil las certificaciones que faltan. La organización lo verifica todo durante la incorporación.

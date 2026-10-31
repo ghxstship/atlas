@@ -24,6 +24,7 @@ import {
   UndoToast,
   type GridColumn,
 } from "@xos/ui";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
@@ -45,6 +46,7 @@ import {
   savedVersion,
   typedLine,
 } from "@/lib/finance/live-lines";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { parsePastedLines } from "@/lib/finance/paste";
 import { BudgetPresence } from "./budget-presence";
 import { ActionFeedback } from "./kit-action-feedback";
@@ -66,7 +68,15 @@ import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
  * what this person typed and the version they started from, so a later save is still checked against
  * it and nothing is overwritten unseen. Who else has the budget open, and the line each is editing,
  * shows above the grid.
+ *
+ * The org's filterable custom fields on budget lines (tags, 2872) show as read-only columns, and
+ * Line fields edits one line's custom fields.
  */
+
+// The Line fields drawer's editor loads when the drawer opens, inside this already-lazy chunk.
+const CustomFieldsSection = dynamic(() =>
+  import("@/components/custom-fields/custom-fields-section").then((m) => m.CustomFieldsSection),
+);
 
 export interface CostCenterOption {
   readonly id: string;
@@ -86,7 +96,12 @@ interface Props {
   readonly me: PresenceMe | null;
   readonly currency: string;
   readonly exponent: number;
+  /** The lines shown: the whole budget, or those the grid's custom field conditions keep. */
   readonly lines: readonly BudgetLine[];
+  /** Every line of the budget, so filtering never hides a contingency source or target; defaults to `lines`. */
+  readonly allLines?: readonly BudgetLine[];
+  /** The org has custom fields on budget lines, so Line fields is offered (with finance.budget.write). */
+  readonly lineFields?: boolean;
   readonly urids: readonly UridOption[];
   readonly accounts: readonly GlAccount[];
   readonly costCenters: readonly CostCenterOption[];
@@ -139,8 +154,12 @@ export function BudgetEditor(props: Props) {
   const [undo, setUndo] = useState<{ ids: string[]; message: string; restore: boolean } | null>(
     null,
   );
-  const [sheet, setSheet] = useState<"add" | "catalog" | "paste" | "delete" | "draw" | null>(null);
+  const [sheet, setSheet] = useState<
+    "add" | "catalog" | "paste" | "delete" | "draw" | "fields" | null
+  >(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const custom = useCustomFieldColumns();
+  const allLines = props.allLines ?? lines;
   const [, start] = useTransition();
   // Saves in flight per line, chained so a second edit saves against the version the first returns.
   const saves = useRef(new LineSaves());
@@ -204,8 +223,9 @@ export function BudgetEditor(props: Props) {
         // Blank when withheld or unpriced, so the column total stays blank too (the silence rule).
         committed: l.committedWithheld ? null : toMajor(l.committedMinor, props.exponent),
         actual: toMajor(l.actualMinor, props.exponent),
+        ...custom.cells(l.id),
       })),
-    [lines, centerCode, props.exponent, t],
+    [lines, centerCode, props.exponent, t, custom],
   );
   const withheld = lines.some((l) => l.committedWithheld);
   const otherCurrencyLines = lines.flatMap((l, i) =>
@@ -286,6 +306,14 @@ export function BudgetEditor(props: Props) {
       total: true,
       width: 128,
     },
+    // Tags and the other filterable custom fields, read-only here; Line fields edits them.
+    ...custom.columns.map((c): GridColumn => ({
+      key: c.key,
+      label: c.label,
+      type: "text",
+      editable: false,
+      width: 140,
+    })),
   ];
 
   /**
@@ -388,9 +416,18 @@ export function BudgetEditor(props: Props) {
           <Button icon="Trash2" onClick={() => setSheet("delete")} disabled={lines.length === 0}>
             {t("budgets.deleteLines")}
           </Button>
-          {lines.some((l) => l.lineType === "Contingency") ? (
+          {allLines.some((l) => l.lineType === "Contingency") ? (
             <Button icon="ArrowRightLeft" onClick={() => setSheet("draw")}>
               {t("budgets.drawContingency")}
+            </Button>
+          ) : null}
+          {props.lineFields ? (
+            <Button
+              icon="SlidersHorizontal"
+              onClick={() => setSheet("fields")}
+              disabled={allLines.length === 0}
+            >
+              {t("budgets.lineFields")}
             </Button>
           ) : null}
         </div>
@@ -479,7 +516,10 @@ export function BudgetEditor(props: Props) {
         />
       ) : null}
       {sheet === "draw" ? (
-        <DrawDialog {...props} lines={lines} onClose={() => setSheet(null)} />
+        <DrawDialog {...props} lines={allLines} onClose={() => setSheet(null)} />
+      ) : null}
+      {sheet === "fields" ? (
+        <LineFieldsDialog lines={allLines} onClose={() => setSheet(null)} />
       ) : null}
       <ToastRegion label={t("common.notifications")}>
         {undo ? (
@@ -1001,6 +1041,37 @@ function DeleteLinesDialog(
         ))}
       </fieldset>
       <ActionFeedback state={state} />
+    </Drawer>
+  );
+}
+
+/** Line fields: pick a line, then edit its custom fields (saveCustomFieldsAction, as the 0540 and 2110 rules allow). */
+function LineFieldsDialog({
+  lines,
+  onClose,
+}: {
+  lines: readonly BudgetLine[];
+  onClose: () => void;
+}) {
+  const t = useFinanceT();
+  const [lineId, setLineId] = useState(lines[0]?.id ?? "");
+  return (
+    <Drawer
+      open
+      onClose={onClose}
+      title={t("budgets.lineFields")}
+      footer={<Button onClick={onClose}>{t("common.close")}</Button>}
+    >
+      <p className="m-0 text-text-13 text-text-secondary">{t("budgets.lineFieldsSentence")}</p>
+      <Select
+        id="line-fields-line"
+        name="lineId"
+        label={t("budgets.lineFieldsLine")}
+        value={lineId}
+        onChange={(e) => setLineId(e.target.value)}
+        options={lines.map((l) => ({ value: l.id, label: `${l.lineNumber} · ${l.description}` }))}
+      />
+      {lineId ? <CustomFieldsSection key={lineId} table="app.budget_lines" id={lineId} /> : null}
     </Drawer>
   );
 }

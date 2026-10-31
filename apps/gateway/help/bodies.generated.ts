@@ -2527,6 +2527,30 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Client confidential" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some organizations keep the client and the event private until you are booked. A ",
+          },
+          { t: "strong", v: "Client confidential" },
+          {
+            t: "text",
+            v: " listing still shows the organization, the city, the dates and the pay, but not the venue, and distance from a place is measured to a point near the venue rather than the venue itself. The venue appears once your application is accepted.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization's title and description cannot name the project, its client or the venue. Some details are the organization's own words and are not checked: position labels, application questions, requirement descriptions, interview and audition locations, and messages in an offer. A project, venue or client renamed after the listing was posted is not checked again either. If one of these gives the client away, report the listing.",
+          },
+        ],
+      },
       { t: "h2", v: "Requirements" },
       {
         t: "p",
@@ -6064,6 +6088,30 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "La página muestra la organización, el pago, las fechas y el lugar, de qué trata el trabajo, sus requisitos y sus llamados. La tarjeta lateral agrega el tipo de tarifa, el número de puestos, la fecha límite, quién puede verla y la edad mínima, si la hay.",
+          },
+        ],
+      },
+      { t: "h2", v: "Cliente confidencial" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunas organizaciones mantienen en privado el cliente y el evento hasta que te contratan. Una publicación con ",
+          },
+          { t: "strong", v: "Cliente confidencial" },
+          {
+            t: "text",
+            v: " muestra igual la organización, la ciudad, las fechas y el pago, pero no el lugar, y la distancia desde un sitio se mide hasta un punto cercano al lugar y no hasta el lugar mismo. El lugar aparece cuando aceptan tu postulación.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El título y la descripción de la organización no pueden nombrar el proyecto, su cliente ni el lugar. Algunos detalles son palabras de la propia organización y no se revisan: los nombres de los puestos, las preguntas de la postulación, las descripciones de los requisitos, los lugares de entrevistas y audiciones, y los mensajes de una oferta. Tampoco se vuelve a revisar un proyecto, un lugar o un cliente cuyo nombre cambió después de publicar. Si alguno de ellos revela al cliente, reporta la publicación.",
           },
         ],
       },

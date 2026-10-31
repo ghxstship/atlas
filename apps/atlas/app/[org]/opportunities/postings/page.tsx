@@ -1,3 +1,10 @@
+import {
+  defaultDeadline,
+  defaultVisibility,
+  getOpportunityDefaults,
+  listQuestionTemplates,
+  NO_DEFAULTS,
+} from "@xos/data/opportunity-templates";
 import { listProjects } from "@xos/data/projects";
 import { resolveSettings } from "@xos/data/settings";
 import { allowedVisibilities } from "@/lib/shell/org-settings";
@@ -33,7 +40,7 @@ import {
   TemplateCollection,
   TemplateRecord,
 } from "@/components/opportunities/ui";
-import { ButtonLink, EmptyStateLink } from "@/components/ui";
+import { ButtonLink, Checkbox, EmptyStateLink } from "@/components/ui";
 import { enumKey, formatPayRange, opportunityIcon } from "@/lib/opportunities/format";
 import {
   knownParties,
@@ -51,6 +58,7 @@ import {
   createOpportunityAction,
   removeOpportunityChildAction,
   transitionOpportunityAction,
+  updateHiddenClientAction,
   updateOpportunityAction,
 } from "../actions";
 
@@ -157,7 +165,14 @@ function PostingList({ page, rows }: { page: PageSetup; rows: readonly Opportuni
           {
             key: "title",
             label: t("fields.title"),
-            cell: (o) => <RowLink href={open(o)}>{o.title}</RowLink>,
+            cell: (o) => (
+              <span className="inline-flex flex-wrap items-center gap-8">
+                <RowLink href={open(o)}>{o.title}</RowLink>
+                {o.hideClientUntilBooked ? (
+                  <Tag tone="neutral">{t("postings.clientHidden")}</Tag>
+                ) : null}
+              </span>
+            ),
           },
           {
             key: "state",
@@ -214,6 +229,9 @@ function PostingList({ page, rows }: { page: PageSetup; rows: readonly Opportuni
                   {t(`visibilities.${enumKey(o.visibility)}`)}
                 </p>
                 <p className="m-0 text-text-13">{payLabel(page, o)}</p>
+                {o.hideClientUntilBooked ? (
+                  <Tag tone="neutral">{t("postings.clientHidden")}</Tag>
+                ) : null}
                 <p className="m-0 text-text-12 text-text-secondary">
                   {t("postings.counts", {
                     positions: o.positionCount,
@@ -241,6 +259,9 @@ function PostingList({ page, rows }: { page: PageSetup; rows: readonly Opportuni
             </span>
           </div>
           <div className="flex items-center gap-8">
+            {o.hideClientUntilBooked ? (
+              <Tag tone="neutral">{t("postings.clientHidden")}</Tag>
+            ) : null}
             <span className="text-text-12 text-text-secondary">
               {t("postings.applicationsCount", { count: o.applicationCount })}
             </span>
@@ -258,10 +279,16 @@ function PostingList({ page, rows }: { page: PageSetup; rows: readonly Opportuni
 
 async function CreatePosting({ page }: { page: PageSetup }) {
   const { ctx, t, param } = page;
-  const [projects, requisitions] = await Promise.all([
+  const [projects, requisitions, savedDefaults, templates] = await Promise.all([
     listProjects(ctx.viewer.db, ctx.org.id),
     listRequisitions(ctx.viewer.db, ctx.org.id),
+    getOpportunityDefaults(ctx.viewer.db, ctx.org.id),
+    listQuestionTemplates(ctx.viewer.db, ctx.org.id),
   ]);
+  // The org's opportunity defaults and question templates prefill the form (2290); every value stays editable.
+  const defaults = savedDefaults.ok ? savedDefaults.data : NO_DEFAULTS;
+  const templateRows = templates.ok ? templates.data : [];
+  const deadline = defaultDeadline(new Date(), defaults.applicationWindowDays);
   const approved = must(requisitions, "requisitions").filter((r) => r.state === "Approved");
   const fromRequisition = approved.find((r) => r.id === param("requisition"));
   // gateway.marketplace_visibility caps how widely a posting reaches (1327).
@@ -323,7 +350,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
       name: "visibility",
       label: t("fields.visibility"),
       kind: "select",
-      defaultValue: "Invited",
+      defaultValue: defaultVisibility(defaults.visibility, visibilities),
       help: t("postings.visibilityHelp"),
       options: visibilities.map((v) => ({ value: v, label: t(`visibilities.${enumKey(v)}`) })),
     },
@@ -331,7 +358,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
       name: "rateType",
       label: t("fields.rateType"),
       kind: "select",
-      defaultValue: "",
+      defaultValue: defaults.rateType ?? "",
       options: [
         { value: "", label: t("rateOnRequest") },
         ...RATE_TYPES.map((r) => ({ value: r, label: t(`rateTypes.${enumKey(r)}`) })),
@@ -341,10 +368,17 @@ async function CreatePosting({ page }: { page: PageSetup }) {
     { name: "payMax", label: t("fields.payMax"), kind: "text" },
     { name: "isRemote", label: t("fields.isRemote"), kind: "checkbox" },
     {
+      name: "hideClientUntilBooked",
+      label: t("fields.hideClientUntilBooked"),
+      kind: "checkbox",
+      defaultValue: defaults.hideClientUntilBooked ? "true" : "",
+      help: t("postings.hideClientHelp"),
+    },
+    {
       name: "currencyCode",
       label: t("fields.currency"),
       kind: "text",
-      defaultValue: fromRequisition?.currencyCode ?? "USD",
+      defaultValue: fromRequisition?.currencyCode ?? defaults.currencyCode ?? "USD",
     },
     {
       name: "startsOn",
@@ -358,8 +392,30 @@ async function CreatePosting({ page }: { page: PageSetup }) {
       kind: "date",
       defaultValue: fromRequisition?.endsOn ?? "",
     },
-    { name: "deadlineAt", label: t("fields.deadline"), kind: "datetime-local" },
+    {
+      name: "deadlineAt",
+      label: t("fields.deadline"),
+      kind: "datetime-local",
+      defaultValue: deadline ? deadline.slice(0, 16) : "",
+    },
     { name: "description", label: t("fields.description"), kind: "textarea" },
+    {
+      name: "questionTemplateId",
+      label: t("postings.questionTemplate"),
+      kind: "select",
+      defaultValue: defaults.questionTemplateId ?? "",
+      help: t("postings.questionTemplateHelp"),
+      options: [
+        { value: "", label: t("postings.noQuestionTemplate") },
+        ...templateRows.map((tpl) => ({
+          value: tpl.id,
+          label: t("postings.questionTemplateOption", {
+            name: tpl.name,
+            count: tpl.questions.length,
+          }),
+        })),
+      ],
+    },
   ];
   return (
     <Card title={t("postings.createTitle")}>
@@ -372,6 +428,52 @@ async function CreatePosting({ page }: { page: PageSetup }) {
         successLabel={t("postings.created")}
       />
     </Card>
+  );
+}
+
+/**
+ * The hidden-client choice once a posting is past Pending Approval (2870): a listing that already showed its client and
+ * event cannot hide them again, so the box is disabled while it is off; while it is on, it can still be turned off.
+ */
+function PostedClientHidden({
+  page,
+  opportunity: o,
+}: {
+  page: PageSetup;
+  opportunity: OpportunityDetail;
+}) {
+  const { ctx, t } = page;
+  if (!o.hideClientUntilBooked) {
+    return (
+      <div className="flex flex-col gap-4" data-testid="posted-client-hidden">
+        <Checkbox
+          id={`client-hidden-${o.id}`}
+          label={t("fields.hideClientUntilBooked")}
+          disabled
+          aria-describedby={`client-hidden-${o.id}-help`}
+        />
+        <p id={`client-hidden-${o.id}-help`} className="m-0 text-text-12 text-text-secondary">
+          {t("postings.hideClientLocked")}
+        </p>
+      </div>
+    );
+  }
+  return (
+    <ActionForm
+      action={updateHiddenClientAction}
+      hidden={{ org: ctx.org.slug, opportunityId: o.id }}
+      title={t("postings.clientHiddenTitle")}
+      fields={[
+        {
+          name: "hideClientUntilBooked",
+          label: t("fields.hideClientUntilBooked"),
+          kind: "checkbox",
+          defaultValue: "true",
+          help: t("postings.hideClientLocked"),
+        },
+      ]}
+      submitLabel={t("postings.clientHiddenSave")}
+    />
   );
 }
 
@@ -412,6 +514,9 @@ async function PostingRecord({
               label={t(`opportunityStates.${enumKey(o.state)}`)}
             />
             <Tag tone="neutral">{t(`visibilities.${enumKey(o.visibility)}`)}</Tag>
+            {o.hideClientUntilBooked ? (
+              <Tag tone="neutral">{t("postings.clientHidden")}</Tag>
+            ) : null}
           </div>
         </header>
       }
@@ -534,10 +639,18 @@ async function PostingRecord({
                 kind: "textarea",
                 defaultValue: o.description ?? "",
               },
+              {
+                name: "hideClientUntilBooked",
+                label: t("fields.hideClientUntilBooked"),
+                kind: "checkbox",
+                defaultValue: o.hideClientUntilBooked ? "true" : "",
+                help: t("postings.hideClientHelp"),
+              },
             ]}
             submitLabel={t("save")}
           />
         ) : null}
+        {canWrite && !draft ? <PostedClientHidden page={page} opportunity={o} /> : null}
       </Section>
       <Section
         id="posting-positions"
