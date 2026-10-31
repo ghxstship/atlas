@@ -16,8 +16,9 @@
 --     fresh unsubscribe token for the row.
 --   * api_public.unsubscribe_guest_email follows 1382: it refuses a read-only (GET) transaction first, counts only
 --     failed token lookups by client address (20 in 10 minutes), never a success, and answers the same shape either
---     way. The email-unsubscribe Edge Function calls it with the service role, so a per-call limit would count the
---     function's own address and block real guests.
+--     way. Its callers are servers (the email-unsubscribe Edge Function and the Gateway), so the address is theirs:
+--     a valid token is looked up before the limit and always unsubscribes, and a full bucket only stops recording
+--     further failures.
 --   * An org queues at most 2,000 guest emails a day: app.queue_guest_emails counts the org's rows of the last 24
 --     hours (guest_email_rate). Nothing is written to rate_limit_events.
 --   * pg_cron asks the function to run every minute while Queued rows exist, through Vault as 1542 and 2030 do.
@@ -372,15 +373,16 @@ declare
   v_email app.guest_emails;
 begin
   perform private.require_read_write();
-  v_client := coalesce(host(private.request_ip()), 'unknown');
-  if private.rate_limit_exceeded('guest_email.token.failure', v_client, 20, interval '10 minutes') then
-    return null;
-  end if;
+  -- The lookup comes before the limit: both callers are servers (the email-unsubscribe function and the Gateway), so
+  -- the client address is theirs, and failures by anyone must not stop a real guest's token from working.
   select e.* into v_email from private.guest_email_unsubscribe_tokens t
   join app.guest_emails e on e.id = t.guest_email_id
   where t.token_hash = extensions.digest(coalesce(p_token, ''), 'sha256');
   if v_email.id is null or v_email.to_email is null then
-    perform private.note_rate_event('guest_email.token.failure', v_client);
+    v_client := coalesce(host(private.request_ip()), 'unknown');
+    if not private.rate_limit_exceeded('guest_email.token.failure', v_client, 20, interval '10 minutes') then
+      perform private.note_rate_event('guest_email.token.failure', v_client);
+    end if;
     return null;
   end if;
   insert into app.suppression_list (org_id, channel, address, reason, category_code)
@@ -392,7 +394,7 @@ begin
   return (select o.name from app.organizations o where o.id = v_email.org_id);
 end;
 $$;
-comment on function api_public.unsubscribe_guest_email(text) is 'A guest stops every email from the org that sent them a guest email (gap G-71): the token from the email''s unsubscribe link adds the address to the org''s suppression list once (Unsubscribe, every category). Refuses a read-only (GET) call first, so a mail scanner that only fetches the link unsubscribes nobody. Returns the org name, or NULL for an unknown token; only failed lookups count, 20 per client address in 10 minutes.';
+comment on function api_public.unsubscribe_guest_email(text) is 'A guest stops every email from the org that sent them a guest email (gap G-71): the token from the email''s unsubscribe link adds the address to the org''s suppression list once (Unsubscribe, every category). Refuses a read-only (GET) call first, so a mail scanner that only fetches the link unsubscribes nobody. Returns the org name, or NULL for an unknown token. Only failed lookups count, 20 per client address in 10 minutes, and a valid token unsubscribes even when that bucket is full, because the callers are servers whose address every guest shares.';
 revoke all on function api_public.unsubscribe_guest_email(text) from public;
 grant execute on function api_public.unsubscribe_guest_email(text) to anon, authenticated, service_role;
 

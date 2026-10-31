@@ -132,6 +132,14 @@ select is((select count(*)::int from app.suppression_list where org_id = pg_temp
              and reason = 'Unsubscribe' and category_code is null and lifted_at is null), 1, 'the address is suppressed once for every category');
 select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_b') and address = 'sasha@example.test'), 0, 'for that org only');
 select is((select count(*)::int from private.rate_limit_events where bucket = 'guest_email.token.failure'), 1, 'only the failed lookup counts');
+insert into private.rate_limit_events (bucket, subject_hash)
+select 'guest_email.token.failure', extensions.digest(coalesce(host(private.request_ip()), 'unknown'), 'sha256') from generate_series(1, 25);
+select pg_temp.as_anon();
+select is(api_public.unsubscribe_guest_email((select unsubscribe_token from claimed where email_kind = 'Pass')), 'Northwind Live',
+  'a valid token unsubscribes even when failed lookups from the same server address have filled the bucket');
+select pg_temp.as_platform();
+select is((select count(*)::int from private.rate_limit_events where bucket = 'guest_email.token.failure'), 26,
+  'and a full bucket records no further failures');
 select pg_temp.as_user('carol');
 insert into world values ('send_after', app.queue_guest_emails(pg_temp.id('prj_a'), array[pg_temp.id('g_pass')], 'Message', 'Doors at 7', 'Doors open at 7.'));
 select is((select send_state::text from app.guest_emails where guest_email_send_id = pg_temp.id('send_after')), 'Suppressed', 'later emails to the address are Suppressed');
