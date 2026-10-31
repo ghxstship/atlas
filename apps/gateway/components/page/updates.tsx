@@ -20,6 +20,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "document.expiring": "documentExpiring",
   // A company entered project details for the person (R5): they open their details here and correct them.
   "roster_entry.project_facts_entered": "projectFactsEntered",
+  // P5: an org asks for a badge photo (2822); the item opens Profile, Badge photos.
+  "credential_photo.requested": "badgePhotoRequested",
 };
 
 /**

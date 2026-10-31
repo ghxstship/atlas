@@ -299,6 +299,12 @@
         "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
       }
     },
+    "credential_photo": {
+      "requested": {
+        "subject": "{orgName} asks for your badge photo",
+        "body": "{actorName} at {orgName} asked for a photo to print on your credential badge. Add it in Gateway, under Profile, Badge photos."
+      }
+    },
     "roster_entry": {
       "invited": {
         "subject": "You are on the {partyName} crew for {projectName}",

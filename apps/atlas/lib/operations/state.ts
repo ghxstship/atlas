@@ -48,6 +48,13 @@ export const KNOWN_RULES = [
   "incident_party_id_taken",
   "incident_media_id_taken",
   "dispatch_id_taken",
+  // P5 badge photos (2822).
+  "credential_photo_batch_size",
+  "credential_photo_path",
+  "credential_photo_no_credential",
+  "credential_photo_not_issuer",
+  "credential_photo_scanning",
+  "credential_photo_unscanned",
 ] as const;
 
 const KNOWN = new Set<string>(KNOWN_RULES);

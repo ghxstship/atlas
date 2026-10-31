@@ -444,6 +444,22 @@ export async function getIssuedCredential(
   return ok(credential as IssuedCredential);
 }
 
+/** Credentials by id, as the caller reads them, for a batch of badges (P5). Order follows credential number. */
+export async function getIssuedCredentials(
+  db: XosClient,
+  ids: readonly string[],
+): Promise<Result<IssuedCredential[]>> {
+  if (ids.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("credentials")
+    .select(CREDENTIAL_COLUMNS)
+    .in("id", [...ids])
+    .is("deleted_at", null)
+    .order("credential_number");
+  if (error) return fail(toDataError(error));
+  return ok(await namedHolders(db, (data as unknown as CredentialRow[]).map(toCredential)));
+}
+
 /** A credential by its printed number, for scanning a badge whose id is not on the device. */
 export async function lookupCredentialByNumber(
   db: XosClient,

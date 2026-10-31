@@ -1,6 +1,7 @@
 import { radioHandout } from "../allocations.ts";
 import type { XosClient } from "../client.ts";
 import { getIssuedCredential } from "../credentials.ts";
+import { badgePhotos, loadBadgePhotoBytes } from "../credential-photos.ts";
 import {
   listChangeOrderLines,
   listChangeOrders,
@@ -20,7 +21,7 @@ import {
 } from "../safety-permits.ts";
 import { getRunOfShow, listCallSheets, listCalls, listCues, listDaySheets } from "../show.ts";
 import type { DocumentKind } from "./model.ts";
-import type { DocumentDataMap, DocumentProject } from "./templates.ts";
+import type { BadgePhoto, DocumentDataMap, DocumentProject } from "./templates.ts";
 
 /**
  * Loads the data of one document from the existing records, through the caller's own client, so
@@ -49,6 +50,19 @@ export async function documentProject(
     name: data.name,
     timeZone: data.time_zone ?? "UTC",
   });
+}
+
+/**
+ * The photo a badge prints, read as the caller (P5): the org's badge photo once Clean, else a profile photo the
+ * caller may see. A credential that is no longer live, or a photo that cannot be read, prints the placeholder.
+ */
+export async function credentialBadgePhoto(
+  db: XosClient,
+  credentialId: string,
+): Promise<BadgePhoto | null> {
+  const rows = await badgePhotos(db, [credentialId]);
+  if (!rows.ok) return null;
+  return (await loadBadgePhotoBytes(db, rows.data)).get(credentialId) ?? null;
 }
 
 async function personNames(
@@ -184,7 +198,11 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     if (!credential.ok) return credential;
     const project = await documentProject(db, orgId, credential.data.projectId);
     if (!project.ok) return project;
-    return ok({ project: project.data, credential: credential.data });
+    return ok({
+      project: project.data,
+      credential: credential.data,
+      photo: await credentialBadgePhoto(db, id),
+    });
   },
 
   "inspection-report": async (db, orgId, id) => {

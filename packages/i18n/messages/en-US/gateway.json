@@ -40,6 +40,9 @@
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
       "submittal_note_length": "Write a note of 1 to 500 characters.",
+      "credential_photo_path": "That photo did not reach your own folder. Upload it again.",
+      "credential_photo_no_credential": "You hold no live credential with this organization, so it takes no badge photo from you.",
+      "credential_photo_notice": "Reload the page to see the current notice, then save your photo again.",
       "roster_closed": "This engagement is complete or canceled, so its roster is closed.",
       "roster_role_type": "This engagement carries no crew roster. Only artist engagements and company engagements of a vendor, contractor, staffing company or sponsor do.",
       "roster_person_not_in_team": "Add people who confirmed their membership in your company, or artists you represent. Invite anyone else by email.",
@@ -1492,6 +1495,7 @@
         "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
         "certificationExpiring": "Your {title} certification expires on {expiresOn}",
         "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}",
+        "badgePhotoRequested": "{orgName} asks for your badge photo",
         "projectFactsEntered": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}} for {projectName}. Check them and correct anything that is wrong."
       }
     },
@@ -2415,5 +2419,47 @@
       "nothingToRedo": "Nothing to redo.",
       "dismiss": "Dismiss"
     }
+  },
+  "badgePhotos": {
+    "title": "Badge photos",
+    "lead": "The photo each organization prints on your credential badge.",
+    "none": "No organization holds a live credential for you, so none asks for a badge photo.",
+    "notice": "{org}'s credential staff see this photo, and so does anyone who sees your badge: it prints on it. Choose Remove at any time to take it back; the organization then prints your badge without it.",
+    "noticeVersion": "Notice {version}",
+    "stateLabel": "Photo",
+    "states": {
+      "Provided": "On your badge",
+      "Scanning": "Being checked",
+      "Refused": "Not accepted",
+      "Profile": "Your profile photo",
+      "Requested": "Requested",
+      "Missing": "None yet"
+    },
+    "stateHelp": {
+      "Provided": "Your photo prints on this badge.",
+      "Scanning": "Your photo is being checked and prints in a few minutes.",
+      "Refused": "Your photo did not pass the virus check. Upload another.",
+      "Profile": "You gave no badge photo, so your profile photo prints.",
+      "Requested": "The organization asked for your photo.",
+      "Missing": "Your badge prints without a photo."
+    },
+    "providedOn": "Given {date}",
+    "thumbnailAlt": "Your badge photo for {org}",
+    "upload": "Upload or take photo",
+    "choose": "Choose a photo",
+    "cropHelp": "Drag the photo to choose what shows. The badge prints a 3 by 4 portrait.",
+    "cropLabel": "Crop the photo",
+    "save": "Save photo",
+    "cancel": "Cancel",
+    "saved": "Photo saved. It prints once it is checked, in a few minutes.",
+    "useProfile": "Use my profile photo",
+    "remove": "Remove",
+    "removed": "Photo removed and your consent withdrawn.",
+    "lapsed": "You no longer hold a live credential with {org}, so your badges there print no photo. The organization still keeps this photo until you remove it.",
+    "fileType": "Choose a JPEG or PNG photo.",
+    "fileSize": "That photo is too large. Choose one under 25 MB.",
+    "section": "Badge photos",
+    "sectionLead": "Give the organizations you work with a photo for your credential badge.",
+    "open": "Open badge photos"
   }
 }

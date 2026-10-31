@@ -695,6 +695,9 @@
       "content": {
         "removed": "Se eliminó tu contenido"
       },
+      "credential_photo": {
+        "requested": "Foto de credencial solicitada"
+      },
       "roster_entry": {
         "invited": "Incluido en una lista de equipo",
         "returned": "Entrada de la lista devuelta",

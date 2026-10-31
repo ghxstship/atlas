@@ -132,6 +132,10 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
+  // P5 badge photos (2822): the holder records a photo from their own folder while they hold a live credential.
+  "credential_photo_path",
+  "credential_photo_no_credential",
+  "credential_photo_notice",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

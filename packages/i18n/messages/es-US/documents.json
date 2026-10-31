@@ -1,7 +1,9 @@
 {
   "actions": {
     "download": "Descargar PDF",
-    "downloadA4": "PDF (A4)"
+    "downloadA4": "PDF (A4)",
+    "size": "Tamaño de papel",
+    "downloadSize": "Descargar PDF"
   },
   "kinds": {
     "purchase-order": "Orden de compra",
@@ -158,7 +160,14 @@
       "active": "Activa",
       "expired": "Vencida",
       "revoked": "Revocada"
-    }
+    },
+    "photoAlt": "Foto de {name}, titular de la credencial",
+    "noPhoto": "No hay foto registrada",
+    "scanAlt": "Código de acceso de la credencial {number}",
+    "scanCaption": "Escanear en el acceso",
+    "scanNoteV2": "Escanee el código de acceso para verificar esta credencial. El escaneo decide el acceso en el momento en que se hace, así que una credencial impresa nunca sobrevive a una revocación. El código del encabezado abre el registro.",
+    "window": "Válida del {from} al {to}",
+    "batchTitle": "Credenciales ({count})"
   },
   "inspectionReport": {
     "title": "Informe de inspección: {template}",
@@ -453,6 +462,12 @@
       "wages": "A todos los trabajadores del proyecto se les pagó el salario semanal completo ganado, y no se hicieron ni se harán reembolsos ni deducciones, directa o indirectamente, salvo las deducciones permitidas según 29 CFR parte 3.",
       "warning": "La falsificación intencional de cualquiera de las declaraciones anteriores puede exponer al contratista o subcontratista a un proceso civil o penal (consulta la sección 1001 del título 18 y la sección 3729 del título 31 del Código de los Estados Unidos), así como a la inhabilitación para futuros contratos federales y con asistencia federal."
     }
+  },
+  "paper": {
+    "letter": "Carta (EE. UU.)",
+    "a4": "A4",
+    "a6": "A6",
+    "cr80": "Tarjeta CR80"
   },
   "radioHandout": {
     "title": "Hoja de radios",

@@ -482,6 +482,11 @@ nodes:
           account-admin: full
           account-finance: full
           account-member: full
+        children:
+          - id: profile.badge-photos
+            kind: page
+            label: nav.gateway.profile.badgePhotos
+            route: /profile/badge-photos
       - id: documents
         kind: item
         label: nav.gateway.avatar.documents

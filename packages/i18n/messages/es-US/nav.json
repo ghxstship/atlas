@@ -451,6 +451,9 @@
       "companyProfile": "Perfil de empresa",
       "advanceForm": "Formulario de coordinación previa",
       "agreementSigning": "Firma de acuerdo"
+    },
+    "profile": {
+      "badgePhotos": "Fotos de credencial"
     }
   },
   "compass": {
