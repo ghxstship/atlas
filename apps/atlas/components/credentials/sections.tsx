@@ -1,5 +1,7 @@
 import {
   CREDENTIAL_STATUSES,
+  credentialBookingsElsewhere,
+  credentialReviews,
   credentialStatus,
   getCredentialCategory,
   getIssuedCredential,
@@ -7,20 +9,26 @@ import {
   listAccessGrid,
   listAccessLevels,
   listAccessScans,
+  listCategoryRequirements,
   listCredentialCategories,
   listIssuedCredentials,
   listProjectZones,
+  needsAttention,
   refusalReasonKey,
   SCAN_DIRECTIONS,
   type AccessGridEntry,
   type AccessScan,
+  type CategoryRequirement,
   type CredentialCategory,
+  type CredentialReview,
   type CredentialStatus,
   type IssuedCredential,
   type OperationsProject,
   type Zone,
 } from "@xos/data/credentials";
 import { badgePhotos, badgePhotoThumbnail } from "@xos/data/credential-photos";
+import { listCertifications } from "@xos/data/people";
+import { listTrainingCourses } from "@xos/data/workforce-training";
 import { printSizesFor } from "@xos/data/documents/model";
 import type { Route } from "next";
 import dynamic from "next/dynamic";
@@ -54,6 +62,7 @@ import { RecordCollab } from "@/components/operations/record-collab";
 import { projectPeople, projectPersonLabel } from "@/lib/people/project-people";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
+  addRequirementAction,
   archiveCategoryAction,
   createCategoryAction,
   grantZoneAccessAction,
@@ -61,6 +70,7 @@ import {
   overrideScanAction,
   recordScanAction,
   removeCredentialPhotoAction,
+  removeRequirementAction,
   requestCredentialPhotosAction,
   revokeCredentialAction,
   updateCategoryAction,
@@ -80,6 +90,8 @@ import { BadgePrint, PHOTO_TONE } from "./badge-print";
 
 // The scan log's Inside now section refreshes in the browser; it loads with that page only (bundle budget).
 const InsideNow = dynamic(() => import("./inside-now").then((m) => m.InsideNow));
+// The issue form's checks read again as the form changes; they load with the form only.
+const IssueChecks = dynamic(() => import("./issue-checks").then((m) => m.IssueChecks));
 
 /**
  * The Credentials module (Section 4.2: categories, issuance, the access grid and scans), one
@@ -294,6 +306,7 @@ async function CategoryRecord({
           {t("credentials.categories.issuedSummary", { count: c.activeCount })}
         </p>
       </RecordSection>
+      <RequirementsSection page={page} categoryId={c.id} canWrite={canWrite} />
       {canWrite ? (
         <>
           <RecordSection id="category-edit" title={t("credentials.common.edit")}>
@@ -351,6 +364,125 @@ async function CategoryRecord({
   );
 }
 
+/**
+ * The category's Required before issue (B8, 2972): the courses and certifications a person must hold before it is
+ * issued to them, from the org's Published courses and its certifications. Issuing to someone who does not meet one
+ * is refused (credential_training_incomplete).
+ */
+async function RequirementsSection({
+  page,
+  categoryId,
+  canWrite,
+}: {
+  page: ModulePage;
+  categoryId: string;
+  canWrite: boolean;
+}) {
+  const t = page.t;
+  const db = page.ctx.viewer.db;
+  const [requirements, courses, certifications] = await Promise.all([
+    listCategoryRequirements(db, categoryId),
+    canWrite ? listTrainingCourses(db, page.ctx.org.id) : Promise.resolve(null),
+    canWrite ? listCertifications(db, page.ctx.org.id) : Promise.resolve(null),
+  ]);
+  const list: readonly CategoryRequirement[] = requirements.ok ? requirements.data : [];
+  const taken = new Set(list.flatMap((r) => [r.trainingCourseId, r.certificationId]));
+  const options = [
+    ...(courses?.ok ? courses.data : [])
+      .filter((c) => c.state === "Published" && !taken.has(c.id))
+      .map((c) => ({
+        value: `course:${c.id}`,
+        label: `${t("credentials.requirements.course")}: ${c.title}`,
+      })),
+    ...(certifications?.ok ? certifications.data : [])
+      .filter((c) => !taken.has(c.id))
+      .map((c) => ({
+        value: `certification:${c.id}`,
+        label: `${t("credentials.requirements.certification")}: ${c.name}`,
+      })),
+  ];
+  return (
+    <RecordSection id="category-requirements" title={t("credentials.requirements.title")}>
+      <p className="m-0 text-text-13 text-text-secondary">{t("credentials.requirements.what")}</p>
+      {list.length === 0 ? (
+        <p className="m-0 text-text-13">{t("credentials.requirements.empty")}</p>
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
+          {list.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center justify-between gap-8">
+              <span>
+                {t(
+                  r.trainingCourseId
+                    ? "credentials.requirements.course"
+                    : "credentials.requirements.certification",
+                )}
+                : {r.title}
+              </span>
+              {canWrite ? (
+                <ActionForm
+                  action={removeRequirementAction}
+                  hidden={{ org: page.ctx.org.slug, id: r.id }}
+                  submitLabel={t("credentials.requirements.remove")}
+                  variant="ghost"
+                  layout="inline"
+                />
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+      {canWrite && options.length > 0 ? (
+        <ActionForm
+          action={addRequirementAction}
+          hidden={{ org: page.ctx.org.slug, categoryId }}
+          submitLabel={t("credentials.requirements.add")}
+          variant="secondary"
+          layout="inline"
+        >
+          <SelectField
+            id={`requirement-${categoryId}`}
+            name="requirement"
+            label={t("credentials.requirements.kind")}
+            options={options}
+            required
+          />
+        </ActionForm>
+      ) : null}
+    </RecordSection>
+  );
+}
+
+/** The chips of a credential's accreditation checks (B8, 2973), and none when nothing needs attention. */
+function CheckChips({ page, review }: { page: ModulePage; review: CredentialReview | undefined }) {
+  if (!review) return null;
+  const t = page.t;
+  const chips: { key: string; tone: "danger" | "warning"; label: string }[] = [];
+  if (review.duplicateLive)
+    chips.push({ key: "dup", tone: "danger", label: t("credentials.checks.chips.duplicate") });
+  if (review.missingRequirements > 0)
+    chips.push({ key: "train", tone: "danger", label: t("credentials.checks.chips.training") });
+  if (review.otherBadgesOnProject > 0)
+    chips.push({ key: "other", tone: "warning", label: t("credentials.checks.chips.otherBadge") });
+  if (review.sameNameOnProject > 0)
+    chips.push({ key: "name", tone: "warning", label: t("credentials.checks.chips.sameName") });
+  if (review.bookedElsewhere)
+    chips.push({
+      key: "booked",
+      tone: "warning",
+      label: t("credentials.checks.chips.bookedElsewhere"),
+    });
+  if (chips.length === 0) return null;
+  return (
+    <span className="inline-flex flex-wrap gap-4">
+      {chips.map((c) => (
+        <ToneChip key={c.key} tone={c.tone}>
+          {c.label}
+        </ToneChip>
+      ))}
+    </span>
+  );
+}
+
 // Issued -----------------------------------------------------------------------------------------
 
 export async function IssuedSection({ page }: { page: ModulePage }) {
@@ -372,9 +504,24 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
     }),
   ]);
   const now = new Date();
-  const issued = unwrap(all, "issued credentials").filter(
+  const attention = param(page.search, "attention") === "1";
+  const listed = unwrap(all, "issued credentials").filter(
     (c) => !statusFilter || credentialStatus(c, now) === statusFilter,
   );
+  // The accreditation checks of the listed credentials, in one call (2973); the page still lists without them.
+  const reviewResult = await credentialReviews(
+    page.ctx.viewer.db,
+    listed.map((c) => c.id),
+  );
+  const reviews: ReadonlyMap<string, CredentialReview> = reviewResult.ok
+    ? reviewResult.data
+    : new Map();
+  const issued = attention
+    ? listed.filter((c) => {
+        const r = reviews.get(c.id);
+        return r !== undefined && needsAttention(r);
+      })
+    : listed;
   const categoryList = unwrap(categories, "credential categories");
   const peekId = param(page.search, "peek");
   const creating = param(page.search, "create") === "1";
@@ -409,6 +556,19 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
       render: (c) => (c.validTo ? dateTime(format, c.validTo) : t("credentials.issued.openEnded")),
     },
     { key: "status", label: t("credentials.issued.statusLabel"), primary: true, render: status },
+    {
+      key: "source",
+      label: t("credentials.sources.title"),
+      render: (c) => {
+        const r = reviews.get(c.id);
+        return r ? t(`credentials.sources.${r.holderSource}`) : "";
+      },
+    },
+    {
+      key: "checks",
+      label: t("credentials.checks.title"),
+      render: (c) => <CheckChips page={page} review={reviews.get(c.id)} />,
+    },
   ];
 
   let body: ReactNode;
@@ -417,7 +577,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
       <EmptyStateLink
         icon="IdCard"
         sentence={t(
-          statusFilter || categoryFilter
+          statusFilter || categoryFilter || attention
             ? "credentials.issued.emptyFiltered"
             : "credentials.issued.empty",
         )}
@@ -523,6 +683,15 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
               })),
             ],
           },
+          {
+            name: "attention",
+            label: t("credentials.checks.needsAttention"),
+            value: attention ? "1" : "",
+            options: [
+              { value: "", label: t("credentials.checks.anyCheck") },
+              { value: "1", label: t("credentials.checks.needsAttention") },
+            ],
+          },
         ]}
       />
       {creating && canIssue ? (
@@ -563,7 +732,18 @@ async function IssueForm({
   }
   // Members and the people engaged on the project (R1); a badge under an engagement names its person.
   const me = page.ctx.viewer.person?.id;
-  const holders = (await projectPeople(page.ctx, project.id)).filter((p) => p.personId !== me);
+  const [people, requirementLists] = await Promise.all([
+    projectPeople(page.ctx, project.id),
+    Promise.all(categories.map((c) => listCategoryRequirements(page.ctx.viewer.db, c.id))),
+  ]);
+  const holders = people.filter((p) => p.personId !== me);
+  // Each requirement's link in the checks: its course on Training, or Certifications.
+  const requirementHrefs: Record<string, string> = {};
+  for (const r of requirementLists.flatMap((l) => (l.ok ? l.data : []))) {
+    requirementHrefs[r.id] = r.trainingCourseId
+      ? `/${page.ctx.org.slug}/knowledge/training?peek=${r.trainingCourseId}`
+      : `/${page.ctx.org.slug}/people/certifications?peek=${r.certificationId}`;
+  }
   return (
     <RecordSection id="issue-credential" title={t("credentials.issued.new")}>
       <ActionForm
@@ -606,6 +786,11 @@ async function IssueForm({
           label={t("credentials.issued.validTo")}
           help={t("credentials.issued.validToHelp")}
         />
+        <IssueChecks
+          org={page.ctx.org.slug}
+          timeZone={project.timeZone}
+          requirementHrefs={requirementHrefs}
+        />
       </ActionForm>
     </RecordSection>
   );
@@ -628,11 +813,12 @@ async function CredentialRecord({
   const c = result.data;
   const project = page.projects.find((p) => p.id === c.projectId);
   const timeZone = project?.timeZone ?? "UTC";
-  const [scans, grid] = await Promise.all([
+  const [scans, grid, bookings] = await Promise.all([
     listAccessScans(page.ctx.viewer.db, { orgId: page.ctx.org.id, credentialId: c.id, limit: 20 }),
     project
       ? listAccessGrid(page.ctx.viewer.db, page.ctx.org.id, project.id)
       : Promise.resolve(null),
+    credentialBookingsElsewhere(page.ctx.viewer.db, c.id),
   ]);
   const status = credentialStatus(c);
   const zones = grid?.ok
@@ -758,6 +944,22 @@ async function CredentialRecord({
               {t("credentials.issued.revokeConfirm", { number: c.number })}
             </label>
           </ActionForm>
+        </RecordSection>
+      ) : null}
+      {bookings.ok && bookings.data.length > 0 ? (
+        <RecordSection id="credential-bookings" title={t("credentials.checks.bookingsTitle")}>
+          <ul className="m-0 flex list-none flex-col gap-4 p-0 text-text-13">
+            {bookings.data.map((b, i) => (
+              <li key={`${b.projectId ?? "other"}-${b.kind}-${i}`}>
+                {joined(
+                  b.projectKey ?? t("credentials.checks.anotherProduction"),
+                  t(`credentials.checks.bookingKinds.${b.kind}`),
+                  b.startsAt ? dateTime(format, b.startsAt, timeZone) : null,
+                  b.endsAt ? dateTime(format, b.endsAt, timeZone) : null,
+                )}
+              </li>
+            ))}
+          </ul>
         </RecordSection>
       ) : null}
       <RecordSection id="credential-scans" title={t("credentials.issued.recentScans")}>

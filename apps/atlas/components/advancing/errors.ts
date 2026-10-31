@@ -28,6 +28,15 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "guest_entry_state",
   "guest_entry_stamped",
   "sod_guest_requester",
+  // B8: guest passes and guest emails (migrations 2974 and 2975).
+  "guest_pass_category",
+  "guest_host_not_on_project",
+  "guest_entry_production_fields",
+  "guest_entry_checked_in",
+  "guest_email_batch",
+  "guest_email_rate",
+  "guest_email_message",
+  "guest_email_format",
   "sod_allocation_requester",
   // R9: typed sections, their choices, recipient engagements, dock slots from answers and the naming deadline
   // (migrations 2710 to 2716).
@@ -94,7 +103,9 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "asset_reserved_for_other",
   "availability_window",
   "bulk_decision_final",
+  "credential_duplicate",
   "credential_self_issue",
+  "credential_training_incomplete",
   "credential_vehicle_not_holders",
   "credential_vehicle_not_parking",
   "custody_not_reserved_holder",

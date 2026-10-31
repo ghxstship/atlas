@@ -777,7 +777,12 @@
     "admittedLine": "Admitido con {plusOnes, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}} en {door}.",
     "checkedInCount": "Registrados de {expected}",
     "peopleIn": "Personas adentro",
-    "emptyAction": "Abrir la lista de invitados"
+    "emptyAction": "Abrir la lista de invitados",
+    "passType": "Tipo de pase",
+    "table": "Mesa",
+    "host": "Anfitrión",
+    "passCode": "Código de pase",
+    "search": "Nombre o código de pase"
   },
   "lostFound": {
     "title": "Objetos perdidos",

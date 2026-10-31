@@ -777,7 +777,12 @@
     "admittedLine": "Admitted with {plusOnes, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}} at {door}.",
     "checkedInCount": "Checked in of {expected}",
     "peopleIn": "People in",
-    "emptyAction": "Open the guest list"
+    "emptyAction": "Open the guest list",
+    "passType": "Pass type",
+    "table": "Table",
+    "host": "Host",
+    "passCode": "Pass code",
+    "search": "Name or pass code"
   },
   "lostFound": {
     "title": "Lost and Found",

@@ -2247,11 +2247,15 @@ export async function addGuest(
     readonly orgId: string;
     readonly projectId: string;
     readonly approve?: boolean;
+    /** The pass fields (B8, 2974), set by the production with the guest. */
+    readonly pass?: GuestPassInput;
   },
 ): Promise<Result<{ id: string }>> {
   const guest = cleanGuest(input);
   if (guest === null) return fail({ kind: "invalid", message: "guest" });
-  const { data, error } = await db
+  const pass = input.pass ? cleanGuestPass(input.pass) : null;
+  if (pass === undefined) return fail({ kind: "invalid", message: "guest_pass" });
+  const { data, error } = await untyped(db)
     .from("guest_list_entries")
     .insert({
       org_id: input.orgId,
@@ -2261,11 +2265,19 @@ export async function addGuest(
       plus_ones: guest.plusOnes,
       note: guest.note,
       entry_state: input.approve === true ? "Approved" : "Requested",
+      ...(pass
+        ? {
+            pass_category_id: pass.passCategoryId,
+            table_label: pass.tableLabel,
+            host_person_id: pass.hostPersonId,
+            guest_email: pass.guestEmail,
+          }
+        : {}),
     })
     .select("id")
     .single();
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({ id: (data as { id: string }).id });
 }
 
 /** Changes a requested guest; a decided guest keeps its guest (0431 guard). */
@@ -2311,23 +2323,33 @@ export function cleanGuestEmail(value: string | null | undefined): string | null
  * project (guest_pass_category), the host a project person (guest_host_not_on_project), and keeps them once the
  * guest is checked in (guest_entry_checked_in).
  */
+/** The pass fields trimmed and checked, or undefined when one is out of range. */
+function cleanGuestPass(input: GuestPassInput): GuestPassInput | undefined {
+  const tableLabel = input.tableLabel?.trim() ? input.tableLabel.trim() : null;
+  const guestEmail = cleanGuestEmail(input.guestEmail);
+  if ((tableLabel !== null && tableLabel.length > 40) || guestEmail === undefined) return undefined;
+  return {
+    passCategoryId: input.passCategoryId,
+    tableLabel,
+    hostPersonId: input.hostPersonId,
+    guestEmail,
+  };
+}
+
 export async function updateGuestPass(
   db: XosClient,
   guestId: string,
   input: GuestPassInput,
 ): Promise<Result<null>> {
-  const tableLabel = input.tableLabel?.trim() ? input.tableLabel.trim() : null;
-  const guestEmail = cleanGuestEmail(input.guestEmail);
-  if ((tableLabel !== null && tableLabel.length > 40) || guestEmail === undefined) {
-    return fail({ kind: "invalid", message: "guest_pass" });
-  }
+  const pass = cleanGuestPass(input);
+  if (pass === undefined) return fail({ kind: "invalid", message: "guest_pass" });
   const { data, error } = await untyped(db)
     .from("guest_list_entries")
     .update({
-      pass_category_id: input.passCategoryId,
-      table_label: tableLabel,
-      host_person_id: input.hostPersonId,
-      guest_email: guestEmail,
+      pass_category_id: pass.passCategoryId,
+      table_label: pass.tableLabel,
+      host_person_id: pass.hostPersonId,
+      guest_email: pass.guestEmail,
     })
     .eq("id", guestId)
     .is("deleted_at", null)
@@ -2482,6 +2504,84 @@ export async function guestEmailSendSummary(
     skippedNotLive: r["skipped_not_live"] ?? 0,
     skippedNoPass: r["skipped_no_pass"] ?? 0,
   });
+}
+
+export interface GuestEmailRow {
+  readonly guestListEntryId: string;
+  readonly state: GuestEmailState;
+  readonly skipReason: "No Email" | "Not Live" | "No Pass" | null;
+  readonly sentAt: string | null;
+}
+
+export interface GuestEmailSend {
+  readonly id: string;
+  readonly kind: GuestEmailKind;
+  readonly subject: string | null;
+  readonly locale: "en-US" | "es-US";
+  readonly createdAt: string;
+  readonly createdBy: string | null;
+  readonly rows: readonly GuestEmailRow[];
+}
+
+/** A project's guest email sends, newest first, each with its rows' states (advancing.packet.read). */
+export async function listGuestEmailSends(
+  db: XosClient,
+  projectId: string,
+  limit = 20,
+): Promise<Result<GuestEmailSend[]>> {
+  const { data, error } = await untyped(db)
+    .from("guest_email_sends")
+    .select(
+      "id, email_kind, subject, locale, created_at, created_by, guest_emails(guest_list_entry_id, send_state, skip_reason, sent_at)",
+    )
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as unknown as {
+    id: string;
+    email_kind: GuestEmailKind;
+    subject: string | null;
+    locale: "en-US" | "es-US";
+    created_at: string;
+    created_by: string | null;
+    guest_emails: {
+      guest_list_entry_id: string;
+      send_state: GuestEmailState;
+      skip_reason: GuestEmailRow["skipReason"];
+      sent_at: string | null;
+    }[];
+  }[];
+  return ok(
+    rows.map((r) => ({
+      id: r.id,
+      kind: r.email_kind,
+      subject: r.subject,
+      locale: r.locale,
+      createdAt: r.created_at,
+      createdBy: r.created_by,
+      rows: (r.guest_emails ?? []).map((e) => ({
+        guestListEntryId: e.guest_list_entry_id,
+        state: e.send_state,
+        skipReason: e.skip_reason,
+        sentAt: e.sent_at,
+      })),
+    })),
+  );
+}
+
+/**
+ * Why a guest would get no email of this kind, before it is queued: no address, or, for a Pass, not approved with a
+ * code. The database decides again when it queues (2975) and also suppresses addresses on the org's list.
+ */
+export function guestEmailSkip(
+  guest: Pick<GuestEntry, "guestEmail" | "state" | "passCode">,
+  kind: GuestEmailKind,
+): "No Email" | "Not Live" | "No Pass" | null {
+  if (guest.state === "Declined") return "Not Live";
+  if (!guest.guestEmail) return "No Email";
+  if (kind === "Pass" && (guest.state === "Requested" || guest.passCode === null)) return "No Pass";
+  return null;
 }
 
 async function moveGuest(

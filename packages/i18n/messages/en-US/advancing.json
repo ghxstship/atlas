@@ -115,7 +115,9 @@
     "asset_reserved_for_other": "This unit is held for someone else now.",
     "availability_window": "Choose dates from a start to a later end, at most 400 days apart.",
     "bulk_decision_final": "An allocation is decided once. Withdraw it instead of undoing the decision.",
+    "credential_duplicate": "This person already holds a live badge of this category for an overlapping window. Revoke the earlier badge first, or issue for another window.",
     "credential_self_issue": "You never issue a credential to yourself.",
+    "credential_training_incomplete": "This person has not completed the training or certifications this badge requires. Record them first, then issue.",
     "credential_vehicle_not_holders": "Choose the holder's own vehicle on this engagement.",
     "credential_vehicle_not_parking": "Only a parking pass names a vehicle.",
     "custody_not_reserved_holder": "That unit or quantity is held for someone else.",
@@ -590,7 +592,10 @@
       "code": "Pass code",
       "print": "Print pass",
       "download": "Download pass",
-      "notApproved": "A pass is issued once the guest is approved."
+      "notApproved": "A pass is issued once the guest is approved.",
+      "edit": "Pass details for {name}",
+      "emailError": "Enter one email address, or leave it empty.",
+      "someHost": "A host on this project"
     },
     "email": {
       "action": "Email guests",
@@ -627,7 +632,14 @@
         "NoEmail": "No email",
         "NotLive": "No longer on the list",
         "NoPass": "Not approved"
-      }
+      },
+      "recipients": "Guests",
+      "previews": {
+        "Invitation": "You are on the guest list for {project}. Your name is at the door; bring a photo ID.",
+        "Pass": "Your pass for {project} is attached. Show it at the door, on your phone or printed.",
+        "Message": "Your subject and message, sent from your organization with an unsubscribe link and its postal address."
+      },
+      "removedGuest": "A guest no longer listed"
     }
   },
   "crew": {

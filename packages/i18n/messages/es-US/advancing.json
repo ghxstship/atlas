@@ -115,7 +115,9 @@
     "asset_reserved_for_other": "Esta unidad está reservada para otra persona ahora.",
     "availability_window": "Elige fechas de un inicio a un fin posterior, con un máximo de 400 días.",
     "bulk_decision_final": "Una asignación se decide una vez. Retírala en lugar de deshacer la decisión.",
+    "credential_duplicate": "Esta persona ya tiene una credencial vigente de esta categoría para un periodo que se superpone. Primero revoque la anterior o emita para otro periodo.",
     "credential_self_issue": "Nunca te emites una credencial a ti.",
+    "credential_training_incomplete": "Esta persona no ha completado la capacitación o las certificaciones que exige esta credencial. Regístrelas primero y luego emita.",
     "credential_vehicle_not_holders": "Elige el vehículo del titular en esta contratación.",
     "credential_vehicle_not_parking": "Solo un pase de estacionamiento nombra un vehículo.",
     "custody_not_reserved_holder": "Esa unidad o cantidad está reservada para otra persona.",
@@ -590,7 +592,10 @@
       "code": "Código del pase",
       "print": "Imprimir pase",
       "download": "Descargar pase",
-      "notApproved": "El pase se emite cuando se aprueba al invitado."
+      "notApproved": "El pase se emite cuando se aprueba al invitado.",
+      "edit": "Datos del pase de {name}",
+      "emailError": "Escriba una dirección de correo o déjelo vacío.",
+      "someHost": "Un anfitrión de este proyecto"
     },
     "email": {
       "action": "Escribir a invitados",
@@ -627,7 +632,14 @@
         "NoEmail": "Sin correo",
         "NotLive": "Ya no está en la lista",
         "NoPass": "No aprobado"
-      }
+      },
+      "recipients": "Invitados",
+      "previews": {
+        "Invitation": "Está en la lista de invitados de {project}. Su nombre está en la puerta; traiga una identificación con foto.",
+        "Pass": "Adjuntamos su pase para {project}. Muéstrelo en la puerta, en el teléfono o impreso.",
+        "Message": "Su asunto y su mensaje, enviados por su organización con un enlace para darse de baja y su dirección postal."
+      },
+      "removedGuest": "Un invitado que ya no está en la lista"
     }
   },
   "crew": {

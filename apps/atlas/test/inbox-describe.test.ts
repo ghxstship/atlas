@@ -189,7 +189,10 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     headline: "Severe Thunderstorm Warning until 9:45 PM EDT",
     ends_at: "2027-06-04T01:45:00Z",
   },
-  "weather.hold": { message: "Lightning within 8 miles: stop work and shelter.", hazard: "Lightning" },
+  "weather.hold": {
+    message: "Lightning within 8 miles: stop work and shelter.",
+    hazard: "Lightning",
+  },
   "weather.all_clear": { message: "All clear: resume work.", hazard: "Lightning" },
   "guest.arrived": {
     guest_name: "Sasha Bell",

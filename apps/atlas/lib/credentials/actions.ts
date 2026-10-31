@@ -1,8 +1,10 @@
 "use server";
 
 import {
+  addCategoryRequirement,
   archiveCredentialCategory,
   createCredentialCategory,
+  credentialIssueCheck,
   grantZoneAccess,
   insideNow,
   issueCredential,
@@ -11,6 +13,7 @@ import {
   overrideScan,
   recordScan,
   refusalReasonKey,
+  removeCategoryRequirement,
   revokeCredential,
   updateCredentialCategory,
   updateCredentialWindow,
@@ -18,6 +21,7 @@ import {
   withdrawZoneAccess,
   CATEGORY_CODE,
   type InsideZone,
+  type IssueCheck,
 } from "@xos/data/credentials";
 import {
   countOutcomes,
@@ -472,4 +476,70 @@ export async function removeCredentialPhotoAction(
   const gone = await removeCredentialPhotoObjects(ctx.viewer.db, removed.data);
   if (!gone.ok) return failed(gone.error);
   return done(ctx.org.slug);
+}
+
+// Required before issue and the issue checks (B8, 2972 and 2973) ---------------------------------------------------
+
+/** Adds a course (course:<id>) or a certification (certification:<id>) a category requires before issue. */
+export async function addRequirementAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const categoryId = z.uuid().safeParse(form.get("categoryId"));
+  const raw = String(form.get("requirement") ?? "");
+  const [kind, id] = raw.split(":");
+  if (
+    !categoryId.success ||
+    !z.uuid().safeParse(id).success ||
+    (kind !== "course" && kind !== "certification")
+  ) {
+    return { error: "requirementInput" };
+  }
+  const result = await addCategoryRequirement(ctx.viewer.db, {
+    categoryId: categoryId.data,
+    ...(kind === "course" ? { trainingCourseId: id as string } : { certificationId: id as string }),
+  });
+  if (!result.ok) return failed(result.error);
+  return done(ctx.org.slug);
+}
+
+export async function removeRequirementAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const id = z.uuid().safeParse(form.get("id"));
+  if (!id.success) return { error: "notFound" };
+  const result = await removeCategoryRequirement(ctx.viewer.db, id.data);
+  if (!result.ok) return failed(result.error);
+  return done(ctx.org.slug);
+}
+
+/**
+ * What the issue form shows before Issue (app.credential_issue_check): read again whenever the category, the holder or
+ * the window changes. The window is typed in the project's time zone. Nothing is shown until both are chosen.
+ */
+export async function loadIssueChecks(input: {
+  readonly org: string;
+  readonly timeZone: string;
+  readonly categoryId: string;
+  readonly holderPersonId: string;
+  readonly validFrom: string;
+  readonly validTo: string;
+}): Promise<readonly IssueCheck[]> {
+  const ctx = await getOrgContext(input.org);
+  if (!ctx) return [];
+  if (
+    !z.uuid().safeParse(input.categoryId).success ||
+    !z.uuid().safeParse(input.holderPersonId).success
+  ) {
+    return [];
+  }
+  const zone = TimeZone.safeParse(input.timeZone);
+  if (!zone.success) return [];
+  const result = await credentialIssueCheck(ctx.viewer.db, {
+    categoryId: input.categoryId,
+    holderPersonId: input.holderPersonId,
+    validFrom: localToInstant(input.validFrom, zone.data),
+    validTo: localToInstant(input.validTo, zone.data),
+  });
+  return result.ok ? result.data : [];
 }
