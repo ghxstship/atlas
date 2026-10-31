@@ -30327,6 +30327,7 @@ export type Database = {
       };
       org_legal_entities: {
         Row: {
+          administrative_area: string | null;
           base_currency: string;
           country_code: string;
           created_at: string;
@@ -30336,7 +30337,10 @@ export type Database = {
           id: string;
           is_primary: boolean;
           legal_name: string;
+          locality: string | null;
           org_id: string;
+          postal_code: string | null;
+          street_address: string | null;
           tax_identifier: string | null;
           tax_identifier_last4: string | null;
           updated_at: string;
@@ -30344,6 +30348,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          administrative_area?: string | null;
           base_currency: string;
           country_code: string;
           created_at?: string;
@@ -30353,13 +30358,17 @@ export type Database = {
           id?: string;
           is_primary?: boolean;
           legal_name: string;
+          locality?: string | null;
           org_id: string;
+          postal_code?: string | null;
+          street_address?: string | null;
           tax_identifier?: string | null;
           tax_identifier_last4?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
+          administrative_area?: string | null;
           base_currency?: string;
           country_code?: string;
           created_at?: string;
@@ -30369,7 +30378,10 @@ export type Database = {
           id?: string;
           is_primary?: boolean;
           legal_name?: string;
+          locality?: string | null;
           org_id?: string;
+          postal_code?: string | null;
+          street_address?: string | null;
           tax_identifier?: string | null;
           tax_identifier_last4?: string | null;
           updated_at?: string;
@@ -55502,7 +55514,9 @@ export type Database = {
       };
       vendors: {
         Row: {
+          administrative_area: string | null;
           counterparty_id: string;
+          country_code: string | null;
           created_at: string;
           created_by: string | null;
           default_account_code: string | null;
@@ -55510,15 +55524,20 @@ export type Database = {
           default_currency_code: string | null;
           deleted_at: string | null;
           id: string;
+          locality: string | null;
           org_id: string;
           payment_terms_days: number | null;
+          postal_code: string | null;
+          street_address: string | null;
           updated_at: string;
           updated_by: string | null;
           vendor_state: Database["app"]["Enums"]["vendor_state"];
         };
         ComputedFields: never;
         Insert: {
+          administrative_area?: string | null;
           counterparty_id: string;
+          country_code?: string | null;
           created_at?: string;
           created_by?: string | null;
           default_account_code?: string | null;
@@ -55526,14 +55545,19 @@ export type Database = {
           default_currency_code?: string | null;
           deleted_at?: string | null;
           id?: string;
+          locality?: string | null;
           org_id: string;
           payment_terms_days?: number | null;
+          postal_code?: string | null;
+          street_address?: string | null;
           updated_at?: string;
           updated_by?: string | null;
           vendor_state?: Database["app"]["Enums"]["vendor_state"];
         };
         Update: {
+          administrative_area?: string | null;
           counterparty_id?: string;
+          country_code?: string | null;
           created_at?: string;
           created_by?: string | null;
           default_account_code?: string | null;
@@ -55541,8 +55565,11 @@ export type Database = {
           default_currency_code?: string | null;
           deleted_at?: string | null;
           id?: string;
+          locality?: string | null;
           org_id?: string;
           payment_terms_days?: number | null;
+          postal_code?: string | null;
+          street_address?: string | null;
           updated_at?: string;
           updated_by?: string | null;
           vendor_state?: Database["app"]["Enums"]["vendor_state"];
@@ -60252,6 +60279,7 @@ export type Database = {
       };
       org_legal_entities_masked: {
         Row: {
+          administrative_area: string | null;
           base_currency: string | null;
           country_code: string | null;
           created_at: string | null;
@@ -60261,7 +60289,10 @@ export type Database = {
           is_masked: boolean | null;
           is_primary: boolean | null;
           legal_name: string | null;
+          locality: string | null;
           org_id: string | null;
+          postal_code: string | null;
+          street_address: string | null;
           tax_identifier: string | null;
           tax_identifier_last4: string | null;
           updated_at: string | null;
@@ -60269,6 +60300,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          administrative_area?: string | null;
           base_currency?: string | null;
           country_code?: string | null;
           created_at?: string | null;
@@ -60278,13 +60310,17 @@ export type Database = {
           is_masked?: never;
           is_primary?: boolean | null;
           legal_name?: string | null;
+          locality?: string | null;
           org_id?: string | null;
+          postal_code?: string | null;
+          street_address?: string | null;
           tax_identifier?: never;
           tax_identifier_last4?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
         Update: {
+          administrative_area?: string | null;
           base_currency?: string | null;
           country_code?: string | null;
           created_at?: string | null;
@@ -60294,7 +60330,10 @@ export type Database = {
           is_masked?: never;
           is_primary?: boolean | null;
           legal_name?: string | null;
+          locality?: string | null;
           org_id?: string | null;
+          postal_code?: string | null;
+          street_address?: string | null;
           tax_identifier?: never;
           tax_identifier_last4?: string | null;
           updated_at?: string | null;

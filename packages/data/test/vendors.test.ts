@@ -33,6 +33,7 @@ import {
   updateScorecard,
   updateSponsorEntitlement,
   updateVendor,
+  updateVendorAddress,
   updateVendorClass,
 } from "../src/vendors.ts";
 import { nextStates } from "../src/commercial-common.ts";
@@ -44,6 +45,11 @@ const vendorRow = (id: string, name: string | null, classes: string[] = []) => (
   vendor_state: "Prospect",
   payment_terms_days: 30,
   default_currency_code: "USD",
+  country_code: "CA",
+  street_address: "1 Front Street W",
+  locality: "Toronto",
+  administrative_area: "ON",
+  postal_code: "M5J 2X5",
   created_at: "2026-10-01T00:00:00Z",
   created_by: "p1",
   counterparty: { counterparty_name: name, counterparty_type: "Audio Supply" },
@@ -80,6 +86,51 @@ describe("vendors", () => {
     expect(await getVendor(db, "v9")).toEqual({ ok: false, error: { kind: "not-found" } });
     const found = await getVendor(db, "v1");
     expect(found.ok && found.data.name).toBeNull();
+    expect(found.ok && found.data.address).toEqual({
+      countryCode: "CA",
+      streetAddress: "1 Front Street W",
+      locality: "Toronto",
+      administrativeArea: "ON",
+      postalCode: "M5J 2X5",
+    });
+  });
+
+  it("records a mailing address, blank fields cleared, and surfaces the postal code refusal", async () => {
+    const { db, calls } = commercialClient({
+      "from:vendors": [
+        okResponse([{ id: "v1" }]),
+        errorResponse(
+          "XR001",
+          "postal_code_invalid: 3313 is not a postal code in US.",
+          "postal_code_invalid",
+        ),
+      ],
+    });
+    const address = {
+      countryCode: "US",
+      streetAddress: " 548 Market St ",
+      locality: "San Francisco",
+      administrativeArea: " ",
+      postalCode: "94104",
+    };
+    expect(await updateVendorAddress(db, "v1", address)).toEqual({ ok: true, data: null });
+    expect(calls[0]?.steps[0]).toEqual([
+      "update",
+      [
+        {
+          country_code: "US",
+          street_address: "548 Market St",
+          locality: "San Francisco",
+          administrative_area: null,
+          postal_code: "94104",
+        },
+      ],
+    ]);
+    const refused = await updateVendorAddress(db, "v1", { ...address, postalCode: "3313" });
+    expect(refused.ok === false && refused.error).toMatchObject({
+      kind: "refusal",
+      rule: "postal_code_invalid",
+    });
   });
 
   it("creates a new company as a counterparty, then the vendor facet", async () => {

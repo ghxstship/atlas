@@ -35,6 +35,7 @@ const KNOWN_REFUSALS = new Set([
   "transition_reason_required",
   "production_closed",
   "enumeration_domain",
+  "postal_code_invalid",
 ]);
 
 export function errorKey(error: DataError): string {

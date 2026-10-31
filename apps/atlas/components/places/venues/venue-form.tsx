@@ -5,6 +5,8 @@ import type { Jurisdiction, Venue } from "@xos/data/places";
 import { Input, Select } from "@xos/ui";
 import { useMemo } from "react";
 import { saveVenueAction } from "@/app/[org]/places/actions";
+import { AddressInputs } from "@/components/address/address-inputs";
+import type { AddressFormat } from "@/lib/address";
 import { ActionForm, useCopy } from "../kit/form";
 import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 
@@ -17,18 +19,22 @@ function timeZones(current: string | undefined): string[] {
 /**
  * Create and edit a venue: name, canon jurisdiction, IANA time zone, address and an optional
  * location. A blank location stays NULL; the map never guesses one. A new venue starts in the
- * org's location defaults (Settings, Locations and Venues Defaults, migration 1431).
+ * org's location defaults (Settings, Locations and Venues Defaults, migration 1431). The address
+ * follows the format of the jurisdiction's country (`addressFormat`, computed on the server); the
+ * action checks it against the jurisdiction chosen when it is saved.
  */
 export function VenueForm({
   org,
   venue,
   jurisdictions,
   defaults = NO_LOCATION_DEFAULTS,
+  addressFormat,
 }: {
   org: string;
   venue?: Venue;
   jurisdictions: readonly Jurisdiction[];
   defaults?: LocationDefaults;
+  addressFormat: AddressFormat;
 }) {
   const t = useCopy("places");
   const start = venueStartValues(
@@ -81,30 +87,27 @@ export function VenueForm({
             options={zones.map((z) => ({ value: z, label: z }))}
             error={error("timeZone")}
           />
-          <Input
-            id="venue-street"
-            name="streetAddress"
-            width="100%"
-            autoComplete="street-address"
-            label={t("venues.fields.streetAddress")}
-            defaultValue={venue?.streetAddress ?? ""}
+          <AddressInputs
+            idPrefix="venue"
+            format={addressFormat}
+            values={
+              venue
+                ? {
+                    streetAddress: venue.streetAddress,
+                    locality: venue.locality,
+                    administrativeArea: null,
+                    postalCode: venue.postalCode,
+                  }
+                : null
+            }
+            labels={{
+              streetAddress: t("venues.fields.streetAddress"),
+              locality: t("venues.fields.locality"),
+              administrativeArea: t("venues.fields.administrativeArea"),
+              postalCode: t("venues.fields.postalCode"),
+            }}
+            error={error}
           />
-          <div className="flex flex-wrap gap-12">
-            <Input
-              id="venue-locality"
-              name="locality"
-              autoComplete="address-level2"
-              label={t("venues.fields.locality")}
-              defaultValue={venue?.locality ?? ""}
-            />
-            <Input
-              id="venue-postal"
-              name="postalCode"
-              autoComplete="postal-code"
-              label={t("venues.fields.postalCode")}
-              defaultValue={venue?.postalCode ?? ""}
-            />
-          </div>
           <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
             <legend className="mb-4 text-label-13 font-medium">
               {t("venues.fields.location")}

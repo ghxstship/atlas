@@ -22,6 +22,15 @@ export interface LegalEntity {
   readonly fiscalYearStartMonth: number;
   readonly baseCurrency: string;
   readonly isPrimary: boolean;
+  /** The registered address in the format of `countryCode` (migration 2320); every field null when none. */
+  readonly address: LegalEntityAddress;
+}
+
+export interface LegalEntityAddress {
+  readonly streetAddress: string | null;
+  readonly locality: string | null;
+  readonly administrativeArea: string | null;
+  readonly postalCode: string | null;
 }
 
 export async function listLegalEntities(
@@ -31,7 +40,7 @@ export async function listLegalEntities(
   const { data, error } = await db
     .from("org_legal_entities_masked")
     .select(
-      "id, legal_name, country_code, tax_identifier, tax_identifier_last4, is_masked, fiscal_year_start_month, base_currency, is_primary",
+      "id, legal_name, country_code, tax_identifier, tax_identifier_last4, is_masked, fiscal_year_start_month, base_currency, is_primary, street_address, locality, administrative_area, postal_code",
     )
     .eq("org_id", orgId)
     .order("is_primary", { ascending: false })
@@ -48,6 +57,12 @@ export async function listLegalEntities(
       fiscalYearStartMonth: r.fiscal_year_start_month ?? 1,
       baseCurrency: r.base_currency ?? "",
       isPrimary: r.is_primary === true,
+      address: {
+        streetAddress: r.street_address,
+        locality: r.locality,
+        administrativeArea: r.administrative_area,
+        postalCode: r.postal_code,
+      },
     })),
   );
 }
@@ -114,10 +129,34 @@ export async function removeLegalEntity(
   return updateEntity(db, legalEntityId, { deleted_at: new Date().toISOString() });
 }
 
+/**
+ * Records or clears the registered address. The database refuses a postal code that does not fit the
+ * entity's country (postal_code_invalid).
+ */
+export async function setLegalEntityAddress(
+  db: XosClient,
+  legalEntityId: string,
+  address: LegalEntityAddress,
+): Promise<Result<string>> {
+  return updateEntity(db, legalEntityId, {
+    street_address: address.streetAddress,
+    locality: address.locality,
+    administrative_area: address.administrativeArea,
+    postal_code: address.postalCode,
+  });
+}
+
 async function updateEntity(
   db: XosClient,
   id: string,
-  patch: { is_primary?: boolean; deleted_at?: string },
+  patch: {
+    is_primary?: boolean;
+    deleted_at?: string;
+    street_address?: string | null;
+    locality?: string | null;
+    administrative_area?: string | null;
+    postal_code?: string | null;
+  },
 ): Promise<Result<string>> {
   const { data, error } = await db
     .from("org_legal_entities")

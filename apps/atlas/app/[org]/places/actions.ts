@@ -29,6 +29,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { count, errorKey, text, type ActionState } from "@/components/places/kit/action-state";
+import { ADDRESS_ERROR, readAddress, VENUE_ADDRESS } from "@/lib/address";
 import { customFieldsOf } from "@/lib/custom-fields/form";
 import { getOrgContext } from "@/lib/shell/context";
 
@@ -68,6 +69,14 @@ export async function saveVenueAction(_: ActionState, form: FormData): Promise<A
   const longitude = text(form, "longitude");
   const lat = latitude === null ? null : Number(latitude);
   const lng = longitude === null ? null : Number(longitude);
+  // The venue's state is its jurisdiction's, so the form does not ask for it; the other fields are
+  // optional, but a postal code must fit the jurisdiction's country.
+  const address = readAddress(form, jurisdictionId?.slice(0, 2) ?? null, VENUE_ADDRESS);
+  if (!address.ok) {
+    for (const [field, problem] of Object.entries(address.problems)) {
+      fieldErrors[field] = ADDRESS_ERROR[problem];
+    }
+  }
   if ((lat === null) !== (lng === null)) fieldErrors["latitude"] = "locationPair";
   if (lat !== null && (!Number.isFinite(lat) || lat < -90 || lat > 90)) {
     fieldErrors["latitude"] = "latitude";
@@ -75,16 +84,16 @@ export async function saveVenueAction(_: ActionState, form: FormData): Promise<A
   if (lng !== null && (!Number.isFinite(lng) || lng < -180 || lng > 180)) {
     fieldErrors["longitude"] = "longitude";
   }
-  if (Object.keys(fieldErrors).length > 0 || !name || !jurisdictionId || !timeZone) {
+  if (Object.keys(fieldErrors).length > 0 || !name || !jurisdictionId || !timeZone || !address.ok) {
     return { fieldErrors };
   }
   const input = {
     name,
     jurisdictionId,
     timeZone,
-    streetAddress: text(form, "streetAddress"),
-    locality: text(form, "locality"),
-    postalCode: text(form, "postalCode"),
+    streetAddress: address.value.streetAddress,
+    locality: address.value.locality,
+    postalCode: address.value.postalCode,
   };
   const id = text(form, "id");
   // An edit saves custom fields from the venue's own section, so only a create is held to them here.

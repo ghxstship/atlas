@@ -12,7 +12,13 @@
     "chooseVendor": "Choose a vendor",
     "project": "Project",
     "chooseProject": "Choose a project",
-    "description": "Description"
+    "description": "Description",
+    "address": "Mailing address",
+    "country": "Country",
+    "streetAddress": "Street address",
+    "locality": "City",
+    "administrativeArea": "State or province",
+    "postalCode": "Postal code"
   },
   "states": {
     "Prospect": "Prospect",
@@ -69,7 +75,11 @@
     "prequalLine": "Prequalification for {scope}: {decision}",
     "scoreLine": "Period ending {period}: average {average}",
     "products": "Products",
-    "noProducts": "No products recorded for this vendor. Add them from the procurement catalog."
+    "noProducts": "No products recorded for this vendor. Add them from the procurement catalog.",
+    "address": "Mailing address",
+    "noAddress": "No address",
+    "saveAddress": "Save address",
+    "countryHelp": "Two-letter country code, for example US or CA. After you save, the fields follow that country's address format."
   },
   "bank": {
     "title": "Bank accounts",
@@ -267,7 +277,8 @@
     "review_decide_rpc": "Approve or return assets with the review buttons.",
     "cross_org_reference": "That item belongs to another organization.",
     "insureds_none_required": "The organization requires no additional insureds for this project. Add them under Required insureds first.",
-    "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization."
+    "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization.",
+    "postal_code_invalid": "That postal code does not fit the country. Check it against the address, or correct the country."
   },
   "insureds": {
     "what": "additional insureds",

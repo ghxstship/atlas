@@ -15,13 +15,16 @@ import {
 } from "@xos/data/vendors";
 import { listCurrencies, listVendorProducts } from "@xos/data/procurement";
 import { nextStates } from "@xos/data/commercial-common";
-import { getFormatter } from "next-intl/server";
+import { regionFromLocale } from "@xos/i18n/formats";
+import { getFormatter, getLocale } from "next-intl/server";
+import { addressFormat, addressLines } from "@/lib/address";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   addBankAccountAction,
   createVendorAction,
   transitionVendorAction,
   updateVendorAction,
+  updateVendorAddressAction,
 } from "@/app/[org]/vendors/actions";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
@@ -68,11 +71,12 @@ export async function VendorDirectory({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, vendors, classes, rules, custom] = await Promise.all([
+  const [t, vendors, classes, rules, locale, custom] = await Promise.all([
     getCopy("vendors"),
     listVendors(db, ctx.org.id),
     listVendorClasses(db, ctx.org.id),
     listTransitionRules<VendorState>(db, "vendor"),
+    getLocale(),
     customFieldList(ctx, "app.vendors", search),
   ]);
   const title = t("directory.title");
@@ -137,7 +141,7 @@ export async function VendorDirectory({
           state={{ state: recordStateOf(vendor.state), label: stateLabel(vendor.state) }}
           closeHref={withQuery(path, state)}
           fullHref={withQuery(path, state, { peek: vendor.id, full: "1" })}
-          properties={vendorProperties(vendor, t, className)}
+          properties={vendorProperties(vendor, t, className, locale)}
           actions={
             canWrite ? (
               <TransitionButtons
@@ -204,7 +208,61 @@ export async function VendorDirectory({
 
 type T = Copy;
 
-function vendorProperties(vendor: Vendor, t: T, className: Map<string, string>) {
+/**
+ * The vendor's mailing address (A139): the country first, then its fields in that country's order
+ * with its required fields marked. A vendor without one starts in the viewer's country.
+ */
+function VendorAddressForm({
+  vendor,
+  org,
+  t,
+  locale,
+}: {
+  vendor: Vendor;
+  org: string;
+  t: T;
+  locale: string;
+}) {
+  const country = vendor.address.countryCode ?? regionFromLocale(locale) ?? "US";
+  const format = addressFormat(country);
+  return (
+    <EntityForm
+      id="vendor-address-edit"
+      action={updateVendorAddressAction}
+      hidden={{ org, id: vendor.id }}
+      refusals={REFUSALS}
+      submitLabel={t("directory.saveAddress")}
+      fields={[
+        {
+          kind: "text",
+          name: "countryCode",
+          label: t("fields.country"),
+          help: t("directory.countryHelp"),
+          defaultValue: country,
+        },
+        ...format.rows.flat().map((name) => ({
+          kind: "text" as const,
+          name,
+          label: t(`fields.${name}`),
+          required: format.required.includes(name),
+          defaultValue: vendor.address[name] ?? "",
+        })),
+      ]}
+    />
+  );
+}
+
+/** The vendor's mailing address on one line in its country's format (Section 15), or null. */
+function vendorAddress(vendor: Vendor, locale: string): string | null {
+  const { countryCode, ...address } = vendor.address;
+  const lines = addressLines(address, countryCode, {
+    locale,
+    viewerCountry: regionFromLocale(locale),
+  });
+  return lines ? lines.join(", ") : null;
+}
+
+function vendorProperties(vendor: Vendor, t: T, className: Map<string, string>, locale: string) {
   return [
     {
       label: t("fields.counterpartyType"),
@@ -218,6 +276,10 @@ function vendorProperties(vendor: Vendor, t: T, className: Map<string, string>) 
           : t("directory.termsDays", { days: vendor.paymentTermsDays }),
     },
     { label: t("fields.currency"), value: vendor.defaultCurrencyCode ?? t("directory.noCurrency") },
+    {
+      label: t("fields.address"),
+      value: vendorAddress(vendor, locale) ?? t("directory.noAddress"),
+    },
     {
       label: t("fields.classes"),
       value:
@@ -319,7 +381,7 @@ async function VendorRecord({
   rules: readonly { from: VendorState; to: VendorState }[];
 }) {
   const db = ctx.viewer.db;
-  const [t, format, vendor, classes, banks, certs, prequals, scores, products, currencies] =
+  const [t, format, vendor, classes, banks, certs, prequals, scores, products, currencies, locale] =
     await Promise.all([
       getCopy("vendors"),
       getFormatter(),
@@ -331,6 +393,7 @@ async function VendorRecord({
       listScorecards(db, ctx.org.id, id),
       listVendorProducts(db, { vendorId: id }),
       listCurrencies(db),
+      getLocale(),
     ]);
   if (!vendor.ok) {
     return vendor.error.kind === "not-found" ? (
@@ -356,7 +419,7 @@ async function VendorRecord({
       recordKey={v.counterpartyType ?? t("directory.untyped")}
       title={v.name ?? t("directory.unnamed")}
       state={{ state: recordStateOf(v.state), label: stateLabel(v.state) }}
-      properties={vendorProperties(v, t, className)}
+      properties={vendorProperties(v, t, className, locale)}
       actions={
         canWrite ? (
           <TransitionButtons
@@ -414,6 +477,12 @@ async function VendorRecord({
               },
             ]}
           />
+        </KitSection>
+      ) : null}
+
+      {canWrite ? (
+        <KitSection id="vendor-address" title={t("directory.address")}>
+          <VendorAddressForm vendor={v} org={ctx.org.slug} t={t} locale={locale} />
         </KitSection>
       ) : null}
 

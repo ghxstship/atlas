@@ -66,7 +66,8 @@
     "commentRequired": "Write something before posting.",
     "fileRequired": "Choose a file to upload.",
     "fileTooLarge": "Files can be at most 50 MB. Choose a smaller file.",
-    "fileScanning": "This file is still being scanned. Try the download again in a minute."
+    "fileScanning": "This file is still being scanned. Try the download again in a minute.",
+    "postal_code_invalid": "That postal code does not fit the venue's country. Check it against the address, or choose the right jurisdiction."
   },
   "fields": {
     "name": "Enter a name of 1 to 200 characters.",
@@ -97,7 +98,10 @@
     "replanReason": "Give the replan reason.",
     "template": "Choose a template.",
     "result": "Choose a result.",
-    "prompt": "Describe what is checked in 1 to 500 characters."
+    "prompt": "Describe what is checked in 1 to 500 characters.",
+    "addressRequired": "Addresses in this country need this. Fill it in, or clear the whole address.",
+    "postalCode": "That is not a postal code in this country. Check it against the address.",
+    "addressTooLong": "Shorten this part of the address."
   },
   "venues": {
     "title": "Venues",
@@ -133,7 +137,8 @@
       "location": "Location",
       "locationHelp": "Optional. Leave both blank if the venue has not been located; it will not appear on the map.",
       "latitude": "Latitude",
-      "longitude": "Longitude"
+      "longitude": "Longitude",
+      "administrativeArea": "State or province"
     }
   },
   "collab": {
