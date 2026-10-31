@@ -12,16 +12,16 @@ import {
   ROLE_ACCOUNTS,
   ROLE_PEOPLE,
   suffix,
-  transition,
 } from "./role-fixtures";
 import { expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
 
 /**
  * Journey 42 (Section 20.2; R12, RRR-190), staffing agency, with no fixture for the staff engagement or its shifts.
- * The agency submits a slate of named staff in Gateway and wins the award; the one Staff engagement made from the
- * application seeds a Draft roster entry for each slate member who confirmed their membership. Each staff member
- * accepts their entry on Home, the agency submits the roster and the production accepts the entries in Atlas. A
- * briefing is due before anyone's first shift: the production allocates two agency slots in Atlas, the agency's lead
+ * The agency submits a slate of named staff in Gateway and wins the award; the production makes the one Staff
+ * engagement from the application in Atlas's Pipeline, which seeds a Draft roster entry for each slate member who
+ * confirmed their membership. Each staff member accepts their entry on Home, the agency submits the roster, the
+ * production accepts the entries and activates the engagement in Atlas. A briefing is due before anyone's first shift:
+ * the production allocates two agency slots in Atlas and publishes each from its peek, the agency's lead
  * is refused placing Staff One until they acknowledge it in Gateway and the production verifies it in Atlas, then
  * places Staff One and Two. Staff One accepts the shift, clocks in and out (the Compass punch's server half, as
  * Staff One), submits the timesheet in Gateway, and the production approves it. Step 8's variant: the lead clocks
@@ -81,6 +81,9 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
     const party = (await value<string>("select name as v from app.organizations where id = $1", [
       ROLE_ACCOUNTS.agency,
     ])) as string;
+    const lead = (await value<string>("select full_name as v from app.people where id = $1", [
+      ROLE_PEOPLE.agency,
+    ])) as string;
 
     // 1. The agency, acting as its company, puts two named staff forward and accepts the award.
     await signIn(page, "agency@example.com", "/home");
@@ -111,14 +114,27 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
       )
       .toBe("Accepted");
 
-    // The org makes the one Staff engagement from the application; it seeds a Draft entry for each slate member.
-    const [made] = await asPerson<{ id: string }>(
-      PEOPLE.owner,
-      `select app.create_engagement_from_application($1, 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement',
-         null, null) as id`,
-      [applicationId],
-    );
-    engagementId = made?.id as string;
+    // The production makes the one Staff engagement from the application in Atlas's Pipeline; it seeds a Draft entry
+    // for each slate member.
+    const atlas = await atlasAs(browser, "owner@example.com");
+    await atlas.page.goto(`/${ORG}/opportunities/pipeline?id=${applicationId}`);
+    await atlas.page.waitForLoadState("networkidle");
+    await atlas.page.getByLabel("Worker classification").selectOption("INDEPENDENT_CONTRACTOR");
+    await atlas.page.getByRole("button", { name: "Create engagement", exact: true }).click();
+    await expect(
+      atlas.page.getByText("Engagement created. Its onboarding packet is ready."),
+    ).toBeVisible();
+    await expect
+      .poll(async () => {
+        engagementId =
+          (await value<string>(
+            "select id as v from app.engagements where application_id = $1 and deleted_at is null",
+            [applicationId],
+          )) ?? null;
+        return engagementId;
+      })
+      .not.toBeNull();
+    if (!engagementId) throw new Error("The Pipeline made no engagement from the application.");
     const key = toDisplayKey("engagement", engagementId);
     const entries = await sql<{ id: string; person_id: string; entry_state: string }>(
       `select id, person_id, entry_state::text as entry_state from app.engagement_roster_entries
@@ -176,13 +192,26 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
       await expect(entry).toContainText("Accepted");
     }
     await admin.context.close();
-    await transition("engagement", engagementId, "Onboarding", "Active", "Roster accepted.");
+
+    // The production activates the engagement from its record in Atlas.
+    await atlas.page.goto(`/${ORG}/opportunities/engagements?id=${engagementId}`);
+    const moveTo = atlas.page.getByRole("form", { name: "Move to" });
+    await moveTo.getByLabel("Next state").selectOption("Active");
+    await moveTo.getByLabel("Reason").fill("Roster accepted.");
+    await moveTo.getByRole("button", { name: "Move" }).click();
+    await expect
+      .poll(() =>
+        value<string>("select engagement_state::text as v from app.engagements where id = $1", [
+          engagementId,
+        ]),
+      )
+      .toBe("Active");
 
     // A briefing is now due on every Staff roster entry before its first shift.
     rules = await requirements("Staff", [{ name: briefing, kind: "Acknowledgment" }]);
 
-    // 6. The production allocates two agency slots in Atlas Crew, covering the next hours.
-    const atlas = await atlasAs(browser, "owner@example.com");
+    // 6. The production allocates two agency slots in Atlas Crew, covering the next hours, and publishes each from its
+    // peek.
     const startsAt = local(new Date(Date.now() - 60 * 60_000));
     const endsAt = local(new Date(Date.now() + 6 * 60 * 60_000));
     for (let i = 0; i < 2; i += 1) {
@@ -202,7 +231,22 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
     );
     expect(slots).toHaveLength(2);
     for (const slot of slots) {
-      await transition("shift", slot.id, "Draft", "Published", "Allocated to the agency.");
+      await atlas.page.goto(`/${ORG}/p/NWS/crew?peek=${slot.id}`);
+      await atlas.page.waitForLoadState("networkidle");
+      await atlas.page
+        .getByRole("dialog")
+        .first()
+        .getByRole("button", { name: "Publish", exact: true })
+        .click();
+      const confirmPublish = atlas.page
+        .getByRole("dialog")
+        .filter({ has: atlas.page.getByRole("button", { name: "Cancel", exact: true }) });
+      await confirmPublish.getByRole("button", { name: "Publish", exact: true }).click();
+      await expect
+        .poll(() =>
+          value<string>("select shift_state::text as v from app.shifts where id = $1", [slot.id]),
+        )
+        .toBe("Published");
     }
 
     // 4. Staff One holds no shift yet, and the lead is refused placing them while the briefing is due.
@@ -346,7 +390,7 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
     }
     const sheetTwo = await sheetFor(entryTwo);
     await asPerson(ROLE_PEOPLE.staffTwo, "select app.submit_timesheet($1)", [sheetTwo]);
-    await approve(sheetTwo, "Clocked by");
+    await approve(sheetTwo, `Clocked by ${lead}`);
     await expectAccessible(atlas.page);
     await atlas.context.close();
     await one.context().close();
