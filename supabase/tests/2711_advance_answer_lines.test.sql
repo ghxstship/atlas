@@ -3,8 +3,8 @@
 -- line validation for each kind with max_lines, a person exactly when per person, a person of the engagement's roster;
 -- a direct line insert refused. Item and credential lines become Requested allocations linked to their line; accepting
 -- approves them, one that needs sources stays Requested while the review commits, returning declines them. Dock slots
--- from an accepted Load In window: the Accepted rule, booked once, overlap refused. The section 8.7 matrix on the new
--- api_external views.
+-- from an accepted Load In window: the Accepted rule, booked once, overlap refused. Separation of duties on the review.
+-- The section 8.7 matrix on the new api_external views: the account, a person for themselves, their representative.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -75,6 +75,9 @@ insert into app.advance_section_choices (advance_section_id, asset_class_id) val
 insert into app.advance_section_choices (advance_section_id, credential_category_id) values (pg_temp.id('s_cred'), pg_temp.id('cat_crew'));
 with x as (insert into app.advance_recipients (advance_packet_id, counterparty_id, engagement_id)
   values (pg_temp.id('pkt'), pg_temp.id('cp_v_a'), pg_temp.id('eng_vendor_a')) returning id) insert into world select 'rcp', id from x;
+-- art answers for himself; rita, his agency's Owner, represents him with the Advance scope.
+with x as (insert into app.advance_recipients (advance_packet_id, person_id, engagement_id)
+  values (pg_temp.id('pkt'), pg_temp.id('art'), pg_temp.id('eng_art_a')) returning id) insert into world select 'rcp_art', id from x;
 select app.send_advance_packet(pg_temp.id('pkt'));
 select pg_temp.as_platform();
 
@@ -193,6 +196,36 @@ select is((select t.reason from app.advance_allocation_state_transitions t join 
   join app.advance_submission_lines l on l.id = a.advance_submission_line_id
   where l.advance_submission_id = pg_temp.id('a_cred') and t.to_state = 'Declined' limit 1), 'Name everyone instead.', 'with the return reason');
 
+-- Separation of duties on the review -------------------------------------------------------------------------------------------
+-- The submitter never reviews (sod_advance_submitter), and the requester of an allocation never decides it through a review:
+-- a refusal other than the queue's four rolls the whole review back. created_by is replayed with triggers off, inside the
+-- test transaction only, to make carol the requester of one allocation.
+insert into world values ('a_cred2', pg_temp.answer('s_cred', jsonb_build_array(pg_temp.line('category', 'cat_crew', 2))));
+select pg_temp.as_platform();
+alter table app.advance_allocations disable trigger user;
+update app.advance_allocations set created_by = pg_temp.id('carol')
+where advance_submission_line_id in (select id from app.advance_submission_lines where advance_submission_id = pg_temp.id('a_cred2'));
+alter table app.advance_allocations enable trigger user;
+select pg_temp.as_user('carol');
+select throws_ok($$update app.advance_submissions set review_outcome = 'Accepted' where id = (select id from world where key = 'a_cred2')$$,
+  'XR001', null, 'the requester of an allocation cannot approve it by accepting the answer (sod_allocation_requester)');
+select pg_temp.as_platform();
+select is((select review_outcome::text from app.advance_submissions where id = pg_temp.id('a_cred2')), null, 'and the review rolls back');
+select is((select a.allocation_state::text from app.advance_allocations a join app.advance_submission_lines l on l.id = a.advance_submission_line_id
+  where l.advance_submission_id = pg_temp.id('a_cred2')), 'Requested', 'leaving the allocation Requested');
+select pg_temp.as_user('alice');
+select lives_ok($$update app.advance_submissions set review_outcome = 'Accepted' where id = (select id from world where key = 'a_cred2')$$,
+  'another reviewer accepts it');
+select pg_temp.as_platform();
+select is((select a.allocation_state::text from app.advance_allocations a join app.advance_submission_lines l on l.id = a.advance_submission_line_id
+  where l.advance_submission_id = pg_temp.id('a_cred2')), 'Approved', 'and approves the allocation');
+
+-- A person answers for themselves ----------------------------------------------------------------------------------------------------
+select pg_temp.as_user('art');
+insert into world values ('a_art', app.submit_advance_answer(pg_temp.id('rcp_art'), pg_temp.id('s_win'), null, null,
+  jsonb_build_array(pg_temp.window_line('2027-06-02 14:00+00', '2027-06-02 15:00+00')), '{}'));
+select pg_temp.as_platform();
+
 -- Dock slots from an accepted window ----------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');
 with x as (insert into app.zones (venue_id, code, name) values (pg_temp.id('venue_a'), 'DOCK-1', 'Loading Dock') returning id) insert into world select 'dock', id from x;
@@ -222,10 +255,20 @@ select throws_ok($$update app.dock_slots set advance_submission_line_id = null w
   'XR001', null, 'a slot keeps its answer line');
 
 -- Section 8.7 on the new views --------------------------------------------------------------------------------------------------------------------
-select is(pg_temp.n('victor', 'select 1 from api_external.advance_submission_lines'), 6, 'the account Owner reads the lines of its answers');
+select is(pg_temp.n('victor', 'select 1 from api_external.advance_submission_lines'), 7, 'the account Owner reads the lines of its answers');
 select is(pg_temp.n('victor', 'select 1 from api_external.advance_section_choices'), 4, 'and the choices of its sections');
-select is(pg_temp.n('victor', 'select 1 from api_external.advance_submission_lines where allocation_id is not null'), 4,
+select is(pg_temp.n('victor', 'select 1 from api_external.advance_submission_lines where allocation_id is not null'), 5,
   'item and credential lines show the allocation they asked for');
+select is(pg_temp.n('victor', $$select 1 from api_external.advance_submission_lines where advance_submission_id = (select id from world where key = 'a_art')$$), 0,
+  'but not another recipient''s lines');
+select is(pg_temp.n('art', 'select 1 from api_external.advance_submission_lines'), 1, 'a person reads the lines of their own engagement''s answer');
+select is(pg_temp.n('art', 'select 1 from api_external.advance_section_choices'), 4, 'and the choices of the packet''s sections');
+select is(pg_temp.n('art', $$select 1 from api_external.my_advance_recipients where engagement_id = (select id from world where key = 'eng_art_a')$$), 1,
+  'and their own recipient');
+select is(pg_temp.n('rita', 'select 1 from api_external.advance_submission_lines'), 1, 'their Advance representative reads the same lines');
+select is(pg_temp.n('rita', 'select 1 from api_external.advance_section_choices'), 4, 'and choices');
+select is(pg_temp.n('rita', 'select 1 from api_external.advance_submission_files'), 0, 'and no files, since the answer has none');
+select is(pg_temp.n('ivy', 'select 1 from api_external.advance_submission_lines'), 0, 'another person reads no lines');
 select is(pg_temp.n('victor', $$select 1 from api_external.my_advance_recipients where engagement_id = (select id from world where key = 'eng_vendor_a')$$), 1,
   'the recipient shows its engagement');
 select is(pg_temp.n('victor', $$select 1 from api_external.advance_sections where section_kind = 'Item Request' and max_lines = 3$$), 1,
