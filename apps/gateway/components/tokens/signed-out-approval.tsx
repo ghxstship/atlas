@@ -16,7 +16,8 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
  * The signed-out approval page of an outside approver (P9, ADR 0138; Section 7.5 invariant 8). The link alone shows
  * only what it does, for which org and to which masked address the code goes. "Email me a code" sends a 6-digit code;
  * the code shows the request and its step; the link's own action then decides it, a rejection with its reason. Wrong
- * codes say how many tries are left, and five lock the link. Nothing happens on opening the page.
+ * codes say how many tries are left, and five lock the link; a code that expires before the decision returns the page to
+ * the code form. Nothing happens on opening the page.
  */
 export function SignedOutApproval({
   token,
@@ -112,7 +113,15 @@ export function SignedOutApproval({
           className="flex flex-col gap-12"
           onSubmit={(event: FormEvent) => {
             event.preventDefault();
-            start(async () => setResult(await decideApprovalLinkAction({ token, code, reason })));
+            start(async () => {
+              const next = await decideApprovalLinkAction({ token, code, reason });
+              setResult(next);
+              // The code expired or a newer one replaced it since the preview: back to the code form, with Send again.
+              if (next.outcome === "approval_link_code_wrong") {
+                setPreview(null);
+                setCode("");
+              }
+            });
           }}
         >
           <section
