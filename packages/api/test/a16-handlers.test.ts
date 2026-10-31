@@ -166,6 +166,8 @@ function world() {
           quantity: 4,
           unit_basis: null,
           unit_price_minor: 4500,
+          acquisition_kind: "Purchase",
+          hire_period: null,
         }),
       ],
       po_change_orders: [
@@ -336,6 +338,8 @@ function world() {
         element_id: null,
         unit_basis: null,
         unit_price_minor: null,
+        acquisition_kind: "Purchase",
+        hire_period: null,
       },
       po_change_orders: { amount_delta_minor: null, po_change_order_state: "Proposed" },
       goods_receipts: { received_at: "2026-10-14T12:00:00.000Z", received_by: ME, note: null },

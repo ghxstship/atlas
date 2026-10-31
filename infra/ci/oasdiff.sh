@@ -12,12 +12,20 @@
 # oasdiff runs from its Docker image, pinned by version and digest. Set OASDIFF_BIN to a local
 # oasdiff binary of the same version to run without Docker. The documents are mounted read-only,
 # and external $refs are refused, so a document can never make oasdiff fetch anything.
+#
+# A one-off exception (ADR 0014) is a line in an err-ignore file next to the ADR that accepts it,
+# docs/adr/<number>-oasdiff-err-ignore.txt; a line names the operation and the change exactly as oasdiff
+# reports it, and lines starting with # are comments. Only the files EXCEPTIONS lists below are read, each
+# beside an Accepted ADR: a new exception is a reviewed change to this script, made once the owner has
+# accepted that break of v1, never a file that appears on its own.
 
 set -euo pipefail
 
 OASDIFF_VERSION="v1.33.0"
 OASDIFF_IMAGE="tufin/oasdiff:${OASDIFF_VERSION}@sha256:6263a96dd2ef0726c54e21fea9b8e1607eac4841add0079324b424c1f52b819c"
 DOCUMENT="packages/api/openapi/v1.json"
+# The owner-accepted exceptions (ADR 0014). 0104: the Returned asset state in the asset_state responses.
+EXCEPTIONS=("docs/adr/0104-oasdiff-err-ignore.txt")
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 BASE_REF=""
@@ -56,10 +64,31 @@ if ! git -C "$REPO" cat-file -e "${BASE_REF}:${DOCUMENT}" 2>/dev/null; then
 fi
 git -C "$REPO" show "${BASE_REF}:${DOCUMENT}" >"$WORK/base.json"
 cp "$REVISION" "$WORK/revision.json"
+IGNORES=()
+for file in "${EXCEPTIONS[@]}"; do
+  [[ -f "$REPO/$file" ]] || { echo "oasdiff: exception file $file not found" >&2; exit 2; }
+  adr="$(ls "$REPO/$(dirname "$file")/$(basename "$file" -oasdiff-err-ignore.txt)"-*.md 2>/dev/null | head -1 || true)"
+  if [[ -z "$adr" ]] || ! grep -qE '^- Status: Accepted' "$adr"; then
+    echo "oasdiff: $file is not beside an Accepted ADR" >&2
+    exit 2
+  fi
+  IGNORES+=("$REPO/$file")
+done
+for file in "$REPO"/docs/adr/*-oasdiff-err-ignore.txt; do
+  case " ${EXCEPTIONS[*]} " in
+    *" ${file#"$REPO"/} "*) ;;
+    *) [[ -f "$file" ]] && echo "Gate 20: ${file#"$REPO"/} is not an accepted exception (EXCEPTIONS in this script); not read." ;;
+  esac
+done
 
 echo "Gate 20: comparing ${DOCUMENT} at ${BASE_REF} (base) with $( [[ "$REVISION" == "$REPO/$DOCUMENT" ]] && git -C "$REPO" rev-parse --short HEAD || echo "$REVISION") (revision), oasdiff ${OASDIFF_VERSION}"
 
 ARGS=(breaking base.json revision.json --fail-on ERR --format "$FORMAT" --allow-external-refs=false)
+if [[ ${#IGNORES[@]} -gt 0 ]]; then
+  grep -hv -e '^#' -e '^[[:space:]]*$' "${IGNORES[@]}" >"$WORK/err-ignore.txt" || true
+  echo "Gate 20: $(wc -l <"$WORK/err-ignore.txt" | tr -d ' ') recorded exceptions from ${#IGNORES[@]} ADR err-ignore files."
+  ARGS+=(--err-ignore err-ignore.txt)
+fi
 # --color applies only to the text formats.
 if [[ "$FORMAT" == "text" || "$FORMAT" == "singleline" ]]; then ARGS+=(--color never); fi
 set +e

@@ -111,7 +111,8 @@ test("journey 21: assign lodging and catering, generate a BEO and confirm it", a
   await expect(approving.getByText(/Approved .* by Demo Producer/)).toBeVisible();
   await expectAccessibleInBothThemes(producer);
   await producer.goto(`/${ORG}/hospitality/fulfillments?view=table`);
-  await producer.getByRole("gridcell", { name: `Artist Dinner ${run}` }).dblclick();
+  // The title cell; the row's select box is named "Select Artist Dinner ..." (bulk edit, A121).
+  await producer.getByRole("gridcell", { name: `Artist Dinner ${run}`, exact: true }).dblclick();
   const confirm = producer.getByRole("dialog", { name: `Artist Dinner ${run}` });
   await expect(confirm.getByText("Approved")).toBeVisible();
   await confirm.getByLabel("Move to").selectOption("Active");
