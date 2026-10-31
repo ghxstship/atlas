@@ -121,7 +121,10 @@ function toAllocation(row: ExternalRow<"advance_allocations">): EngagedAllocatio
 }
 
 /** True once a credential allocation's naming deadline has passed: only production renames it (G-141). */
-export function namesClosed(a: Pick<EngagedAllocation, "namesDueAt">, now: Date = new Date()): boolean {
+export function namesClosed(
+  a: Pick<EngagedAllocation, "namesDueAt">,
+  now: Date = new Date(),
+): boolean {
   return a.namesDueAt !== null && new Date(a.namesDueAt).getTime() <= now.getTime();
 }
 

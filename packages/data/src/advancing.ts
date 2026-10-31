@@ -376,15 +376,19 @@ export function sectionConfig(input: {
   readonly perPerson?: boolean;
 }): SectionConfig | null {
   const limit = SECTION_LINE_LIMITS[input.kind];
-  if (limit === undefined) return { kind: input.kind, windowKind: null, maxLines: null, perPerson: false };
+  if (limit === undefined)
+    return { kind: input.kind, windowKind: null, maxLines: null, perPerson: false };
   const maxLines = input.maxLines ?? null;
-  if (maxLines === null || !Number.isInteger(maxLines) || maxLines < 1 || maxLines > limit) return null;
+  if (maxLines === null || !Number.isInteger(maxLines) || maxLines < 1 || maxLines > limit)
+    return null;
   if (input.kind === "Schedule Window") {
     if (!input.windowKind) return null;
     return { kind: input.kind, windowKind: input.windowKind, maxLines, perPerson: false };
   }
   const perPerson =
-    input.kind === "Item Request" || input.kind === "Credential Request" ? input.perPerson === true : false;
+    input.kind === "Item Request" || input.kind === "Credential Request"
+      ? input.perPerson === true
+      : false;
   return { kind: input.kind, windowKind: null, maxLines, perPerson };
 }
 
@@ -785,7 +789,12 @@ export async function addSection(
 ): Promise<Result<{ id: string }>> {
   const title = cleanTitle(input.title);
   if (title === null) return fail({ kind: "invalid", message: "title" });
-  const config = input.config ?? { kind: "Text", windowKind: null, maxLines: null, perPerson: false };
+  const config = input.config ?? {
+    kind: "Text",
+    windowKind: null,
+    maxLines: null,
+    perPerson: false,
+  };
   const { data: last, error: readError } = await db
     .from("advance_sections")
     .select("position")
@@ -903,8 +912,14 @@ export async function listSectionChoiceOptions(
   if (classes.error) return fail(toDataError(classes.error));
   if (categories.error) return fail(toDataError(categories.error));
   return ok({
-    assetClasses: classes.data.flatMap((c) => (c.offering ? [{ id: c.id, name: c.name, offering: c.offering }] : [])),
-    credentialCategories: categories.data.map((k) => ({ id: k.id, name: k.name, kind: k.category_kind })),
+    assetClasses: classes.data.flatMap((c) =>
+      c.offering ? [{ id: c.id, name: c.name, offering: c.offering }] : [],
+    ),
+    credentialCategories: categories.data.map((k) => ({
+      id: k.id,
+      name: k.name,
+      kind: k.category_kind,
+    })),
   });
 }
 
@@ -1327,7 +1342,9 @@ export function windowBounds(range: string | null): { from: string | null; to: s
   if (!range) return { from: null, to: null };
   const match = /^[[(]"?([^",]*)"?,"?([^")]*)"?[)\]]$/.exec(range);
   if (!match) return { from: null, to: null };
-  const iso = (v: string | undefined) => (v ? new Date(v.replace(" ", "T")).toISOString() : null);
+  // Postgres writes "2027-06-01 08:00:00+00"; Date wants a T and a full offset.
+  const iso = (v: string | undefined) =>
+    v ? new Date(v.replace(" ", "T").replace(/([+-]\d\d)$/, "$1:00")).toISOString() : null;
   return { from: iso(match[1]), to: iso(match[2]) };
 }
 
@@ -1348,7 +1365,9 @@ export async function listAnswerDetails(
       .order("line_number"),
     db
       .from("advance_submission_files")
-      .select("id, advance_submission_id, position, document:documents(title, versions:document_versions(id, version_number))")
+      .select(
+        "id, advance_submission_id, position, document:documents(title, versions:document_versions(id, version_number))",
+      )
       .in("advance_submission_id", ids)
       .order("position"),
   ]);
@@ -1359,13 +1378,23 @@ export async function listAnswerDetails(
   const [allocations, slots, entries] = await Promise.all([
     lineIds.length === 0
       ? Promise.resolve({ data: [], error: null })
-      : db.from("advance_allocations").select("id, advance_submission_line_id, quantity").in("advance_submission_line_id", lineIds),
+      : db
+          .from("advance_allocations")
+          .select("id, advance_submission_line_id, quantity")
+          .in("advance_submission_line_id", lineIds),
     lineIds.length === 0
       ? Promise.resolve({ data: [], error: null })
-      : db.from("dock_slots").select("id, advance_submission_line_id").in("advance_submission_line_id", lineIds).is("deleted_at", null),
+      : db
+          .from("dock_slots")
+          .select("id, advance_submission_line_id")
+          .in("advance_submission_line_id", lineIds)
+          .is("deleted_at", null),
     entryIds.length === 0
       ? Promise.resolve({ data: [], error: null })
-      : db.from("engagement_roster_entries").select("id, person_id, is_self, engagement:engagements(person_id)").in("id", entryIds),
+      : db
+          .from("engagement_roster_entries")
+          .select("id, person_id, is_self, engagement:engagements(person_id)")
+          .in("id", entryIds),
   ]);
   if (allocations.error) return fail(toDataError(allocations.error));
   if (slots.error) return fail(toDataError(slots.error));
@@ -1374,7 +1403,10 @@ export async function listAnswerDetails(
   const [status, shares] = await Promise.all([
     allocationIds.length === 0
       ? Promise.resolve({ data: [], error: null })
-      : db.from("advance_allocation_status").select("allocation_id, display_status").in("allocation_id", allocationIds),
+      : db
+          .from("advance_allocation_status")
+          .select("allocation_id, display_status")
+          .in("allocation_id", allocationIds),
     allocationIds.length === 0
       ? Promise.resolve({ data: [], error: null })
       : db
@@ -1387,7 +1419,10 @@ export async function listAnswerDetails(
   if (status.error) return fail(toDataError(status.error));
   if (shares.error) return fail(toDataError(shares.error));
   const personByEntry = new Map(
-    entries.data.map((e) => [e.id, e.person_id ?? (e.is_self ? (e.engagement?.person_id ?? null) : null)]),
+    entries.data.map((e) => [
+      e.id,
+      e.person_id ?? (e.is_self ? (e.engagement?.person_id ?? null) : null),
+    ]),
   );
   const names = await partyNames(
     db,
@@ -1395,7 +1430,9 @@ export async function listAnswerDetails(
     [],
   );
   if (!names.ok) return fail(names.error);
-  const allocationByLine = new Map(allocations.data.map((a) => [a.advance_submission_line_id ?? "", a]));
+  const allocationByLine = new Map(
+    allocations.data.map((a) => [a.advance_submission_line_id ?? "", a]),
+  );
   const statusById = new Map(status.data.map((r) => [r.allocation_id ?? "", r.display_status]));
   const named = new Map<string, number>();
   for (const share of shares.data) {
@@ -1408,7 +1445,8 @@ export async function listAnswerDetails(
       const window = windowBounds(l.needed_window as string | null);
       const allocation = allocationByLine.get(l.id);
       const person = l.roster_entry_id ? (personByEntry.get(l.roster_entry_id) ?? null) : null;
-      const isPool = allocation !== undefined && l.credential_category_id !== null && l.roster_entry_id === null;
+      const isPool =
+        allocation !== undefined && l.credential_category_id !== null && l.roster_entry_id === null;
       return {
         id: l.id,
         submissionId: l.advance_submission_id,
@@ -1429,7 +1467,9 @@ export async function listAnswerDetails(
       };
     }),
     files: files.data.map((f): AnswerFile => {
-      const versions = [...(f.document?.versions ?? [])].sort((a, b) => b.version_number - a.version_number);
+      const versions = [...(f.document?.versions ?? [])].sort(
+        (a, b) => b.version_number - a.version_number,
+      );
       return {
         id: f.id,
         submissionId: f.advance_submission_id,
@@ -1462,7 +1502,11 @@ export async function listProjectZones(
   db: XosClient,
   projectId: string,
 ): Promise<Result<{ id: string; code: string; name: string }[]>> {
-  const { data: project, error } = await db.from("projects").select("venue_id").eq("id", projectId).maybeSingle();
+  const { data: project, error } = await db
+    .from("projects")
+    .select("venue_id")
+    .eq("id", projectId)
+    .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!project?.venue_id) return ok([]);
   const zones = await db

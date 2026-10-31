@@ -69,7 +69,11 @@ export async function supplySponsorAsset(
 /** The sponsor resubmits a returned asset it supplied, with new files (app.resubmit_sponsor_asset). */
 export async function resubmitSponsorAsset(
   db: XosClient,
-  input: { readonly assetId: string; readonly documentIds: readonly string[]; readonly reason: string | null },
+  input: {
+    readonly assetId: string;
+    readonly documentIds: readonly string[];
+    readonly reason: string | null;
+  },
 ): Promise<Result<null>> {
   const { error } = await db.rpc("resubmit_sponsor_asset", {
     p_sponsor_asset_id: input.assetId,
