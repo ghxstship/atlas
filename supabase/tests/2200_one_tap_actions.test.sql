@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(68);
+select plan(73);
 
 create temporary table k (key text primary key, id uuid, token text);
 grant select, insert, update on k to public;
@@ -273,6 +273,10 @@ insert into world select 'offer', id from k where key = 'offer';
 insert into world select 'n_offer', pg_temp.note('quinn', 'offer.sent', 'offer');
 insert into world select 'offer_i', id from k where key = 'offer_i';
 insert into world select 'n_offer_i', pg_temp.note('ivy', 'offer.sent', 'offer_i');
+-- A later migration that recreates private.party_org_ids must keep 2200's open-offer clause, or offer.sent stops
+-- reaching an applicant who has no other tie to the org.
+select ok(pg_temp.id('org_a') in (select private.party_org_ids(pg_temp.id('quinn'))),
+  'while the offer waits on them, the applicant works with the org that sent it');
 select is((select message_args ->> 'title' from app.notifications where id = pg_temp.id('n_offer')), 'Summer Series Riggers',
   'the applicant is told about the offer');
 select set_eq(format($$select channel::text from app.notification_deliveries where notification_id = %L$$, pg_temp.id('n_offer')),
@@ -292,6 +296,14 @@ select lives_ok(format($$select app.act_on_notification(%L, 'accept')$$, pg_temp
   'the applicant accepts the offer from the notification');
 select pg_temp.as_platform();
 select is((select offer_state::text from app.offers where id = pg_temp.id('offer')), 'Accepted', 'the offer is accepted');
+select ok(pg_temp.id('org_a') not in (select private.party_org_ids(pg_temp.id('quinn'))),
+  'once answered, the offer no longer makes the applicant someone the org works with');
+select pg_temp.as_user('quinn');
+-- notifications.act reads the notification back under the caller's row level security after acting (the push path).
+select is((select (archived_at is not null)::text from app.notifications where id = pg_temp.id('n_offer')), 'true',
+  'the applicant still reads their offer notice after accepting it, now handled');
+select is((select count(*)::integer from app.notifications where id = pg_temp.id('n_stray')), 0,
+  'but not the org''s other notices');
 select pg_temp.as_user('quinn');
 select throws_ok(format($$select app.act_on_notification(%L, 'decline', 'Not for me.')$$, pg_temp.id('n_offer_i')), '42501', null,
   'nobody declines another applicant''s offer from their notification');
@@ -300,6 +312,9 @@ select lives_ok(format($$select app.act_on_notification(%L, 'decline', 'Booked t
   'the other applicant declines their offer from the notification');
 select pg_temp.as_platform();
 select is((select offer_state::text from app.offers where id = pg_temp.id('offer_i')), 'Declined', 'the offer is declined');
+select pg_temp.as_user('ivy');
+select is((select count(*)::integer from app.notifications where id = pg_temp.id('n_offer_i')), 1,
+  'the applicant still reads their offer notice after declining it');
 
 -- 6. An external party clears and snoozes their own notifications; approving stays a member's ---------------------------
 select pg_temp.as_user('ivy');
