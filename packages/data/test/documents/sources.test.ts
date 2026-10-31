@@ -190,9 +190,32 @@ describe("loaders read each record as the caller", () => {
     const day = fakeClient({
       "from:day_sheets": [okResponse([sheet])],
       "from:projects": [project],
+      // The day's local contacts (B5): read with the sheet for template version 2.
+      "from:project_local_contacts": [
+        okResponse([
+          {
+            id: "c1",
+            project_id: "p1",
+            venue_id: null,
+            day: null,
+            contact_role: "Transport",
+            contact_title: "Dispatch",
+            source: "Contact",
+            membership_id: null,
+            display_name: "Harbor Car Service",
+            organization_name: null,
+            phone: "+13055550100",
+            email: null,
+            audience: "Shared",
+            member_active: true,
+            notes: null,
+          },
+        ]),
+      ],
     });
     const d = await loadDocumentData(day.db, ORG, "day-sheet", "s1");
     expect(d.ok && d.data.sheet.body).toBe("Gates at 16:00");
+    expect(d.ok && d.data.contacts?.map((c) => c.displayName)).toEqual(["Harbor Car Service"]);
 
     const call = fakeClient({
       "from:call_sheets": [okResponse([sheet])],

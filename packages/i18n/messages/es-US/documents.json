@@ -109,7 +109,24 @@
   "daySheet": {
     "title": "Hoja del día {project}, {day}",
     "body": "Notas del día",
-    "emptyBody": "Esta hoja del día aún no tiene notas."
+    "emptyBody": "Esta hoja del día aún no tiene notas.",
+    "localContacts": "Contactos locales",
+    "contactRole": "Función",
+    "contactName": "Nombre",
+    "contactTitle": "Cargo",
+    "contactPhone": "Teléfono",
+    "contactEmail": "Correo",
+    "noContacts": "No hay contactos locales para este día.",
+    "roles": {
+      "Promoter": "Promotor",
+      "Venue": "Recinto",
+      "Production": "Producción",
+      "Security": "Seguridad",
+      "Transport": "Transporte",
+      "Hospitality": "Hospitalidad",
+      "Medical": "Atención médica",
+      "Other": "Otro"
+    }
   },
   "callSheet": {
     "title": "Hoja de llamados {project}, {day}",

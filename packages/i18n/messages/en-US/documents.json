@@ -109,7 +109,24 @@
   "daySheet": {
     "title": "Day sheet {project}, {day}",
     "body": "Notes for the day",
-    "emptyBody": "This day sheet has no notes yet."
+    "emptyBody": "This day sheet has no notes yet.",
+    "localContacts": "Local contacts",
+    "contactRole": "Role",
+    "contactName": "Name",
+    "contactTitle": "Title",
+    "contactPhone": "Phone",
+    "contactEmail": "Email",
+    "noContacts": "No local contacts for this day.",
+    "roles": {
+      "Promoter": "Promoter",
+      "Venue": "Venue",
+      "Production": "Production",
+      "Security": "Security",
+      "Transport": "Transport",
+      "Hospitality": "Hospitality",
+      "Medical": "Medical",
+      "Other": "Other"
+    }
   },
   "callSheet": {
     "title": "Call sheet {project}, {day}",

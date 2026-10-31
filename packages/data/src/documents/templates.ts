@@ -6,6 +6,7 @@ import type { Incident, IncidentTransition } from "../incidents.ts";
 import type { AgreementDetail } from "../people.ts";
 import type { PoLine, PurchaseOrder, PurchaseOrderTotals } from "../procurement.ts";
 import type { FinalCostReport, FinalCostRow } from "../reports.ts";
+import type { LocalContact } from "../local-contacts.ts";
 import type { Inspection, InspectionItem } from "../safety-permits.ts";
 import type { Call, CallSheet, Cue, DaySheet, RunOfShow } from "../show.ts";
 import type { Formatter, Translate } from "./format.ts";
@@ -46,7 +47,12 @@ export interface DocumentDataMap {
     readonly budgetName: string | null;
     readonly currency: string;
   };
-  "day-sheet": { readonly project: DocumentProject; readonly sheet: DaySheet };
+  "day-sheet": {
+    readonly project: DocumentProject;
+    readonly sheet: DaySheet;
+    /** The day's local contacts (B5): the venue's, every day's and that day's. Version 1 shows none. */
+    readonly contacts?: readonly LocalContact[];
+  };
   "call-sheet": {
     readonly project: DocumentProject;
     readonly sheet: CallSheet;
@@ -204,6 +210,8 @@ function lineColumns(t: Translate) {
 }
 
 const V1 = "2026-01-01T00:00:00Z";
+/** Day sheets issued from this instant list the day's local contacts (B5, ADR 0144). */
+const DAY_SHEET_CONTACTS = "2026-11-01T00:00:00Z";
 
 export const TEMPLATES: TemplateRegistry = {
   "purchase-order": [
@@ -407,6 +415,52 @@ export const TEMPLATES: TemplateRegistry = {
           {
             kind: "paragraph",
             text: sheet.body.trim() === "" ? t("daySheet.emptyBody") : sheet.body,
+          },
+        ],
+      }),
+    },
+    // B5 (G-56): the day's local contacts follow the notes.
+    {
+      version: 2,
+      effectiveFrom: DAY_SHEET_CONTACTS,
+      build: ({ project, sheet, contacts }, { t, f }) => ({
+        title: t("daySheet.title", { project: project.key, day: f.day(sheet.day) }),
+        blocks: [
+          {
+            kind: "fields",
+            caption: t("common.details"),
+            fields: [
+              field(t("common.project"), projectLabel(project)),
+              field(t("common.day"), f.day(sheet.day)),
+              field(
+                t("common.published"),
+                sheet.publishedAt ? f.dateTime(sheet.publishedAt) : t("common.draft"),
+              ),
+            ],
+          },
+          { kind: "heading", text: t("daySheet.body") },
+          {
+            kind: "paragraph",
+            text: sheet.body.trim() === "" ? t("daySheet.emptyBody") : sheet.body,
+          },
+          {
+            kind: "table",
+            caption: t("daySheet.localContacts"),
+            columns: [
+              { label: t("daySheet.contactRole") },
+              { label: t("daySheet.contactName"), weight: 2 },
+              { label: t("daySheet.contactTitle"), weight: 1.6 },
+              { label: t("daySheet.contactPhone"), weight: 1.6 },
+              { label: t("daySheet.contactEmail"), weight: 2 },
+            ],
+            rows: (contacts ?? []).map((c) => [
+              t(`daySheet.roles.${c.role}`),
+              [c.displayName, c.organizationName].filter(Boolean).join(", ") || t("common.none"),
+              c.title ?? "",
+              c.phone ?? "",
+              c.email ?? "",
+            ]),
+            empty: t("daySheet.noContacts"),
           },
         ],
       }),

@@ -1,4 +1,5 @@
 import { radioHandout } from "../allocations.ts";
+import { listProjectLocalContacts } from "../local-contacts.ts";
 import type { XosClient } from "../client.ts";
 import { getIssuedCredential } from "../credentials.ts";
 import {
@@ -134,7 +135,9 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     if (!sheet) return fail({ kind: "not-found" });
     const project = await documentProject(db, orgId, sheet.projectId);
     if (!project.ok) return project;
-    return ok({ project: project.data, sheet });
+    // The day's local contacts (B5); a reader who cannot read them gets the sheet without.
+    const contacts = await listProjectLocalContacts(db, sheet.projectId, sheet.day);
+    return ok({ project: project.data, sheet, contacts: contacts.ok ? contacts.data : [] });
   },
 
   "call-sheet": async (db, orgId, id) => {
