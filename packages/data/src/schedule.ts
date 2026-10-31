@@ -133,13 +133,39 @@ export interface TimelineBar {
   readonly dependsOn?: number;
   readonly baselineStart?: number;
   readonly baselineEnd?: number;
+  /** The record stays put when the schedule moves (complete, or locked into a baseline). */
+  readonly locked?: boolean;
+}
+
+/** A dependency between two bars, by bar index, for the reschedule preview. */
+export interface TimelineEdge {
+  readonly from: number;
+  readonly to: number;
+  readonly type: string;
+  /** The dependency's lag in hours; negative for lead. */
+  readonly lagHours: number;
 }
 
 export interface TimelineModel {
   readonly days: readonly TimelineDay[];
   readonly bars: readonly TimelineBar[];
+  /** Every dependency between two drawn bars. */
+  readonly edges?: readonly TimelineEdge[];
   /** Index of today, when today falls inside the timeline. */
   readonly today?: number;
+}
+
+/** Hours in a Postgres interval as PostgREST prints it: `02:00:00`, `1 day`, `-3 days 04:30:00`. */
+export function intervalHours(text: string): number {
+  let hours = 0;
+  const days = /(-?\d+)\s+days?/.exec(text);
+  if (days) hours += Number(days[1]) * 24;
+  const clock = /(-)?(\d+):(\d{2})(?::(\d{2}(?:\.\d+)?))?/.exec(text);
+  if (clock) {
+    const value = Number(clock[2]) + Number(clock[3]) / 60 + Number(clock[4] ?? 0) / 3600;
+    hours += clock[1] ? -value : value;
+  }
+  return hours;
 }
 
 /**
@@ -150,6 +176,8 @@ export function buildTimeline(input: {
   readonly records: readonly RecordSummary[];
   readonly dependencies?: readonly Dependency[];
   readonly baseline?: ReadonlyMap<string, { start: string | null; end: string | null }>;
+  /** Ids of records that stay put when the schedule moves. */
+  readonly locked?: ReadonlySet<string>;
   readonly timeZone: string;
   readonly now?: Date;
   /** Days of padding on each side. */
@@ -208,6 +236,7 @@ export function buildTimeline(input: {
       end,
       milestone: record.kind === "Milestone" || (window.start === window.end && !record.startsAt),
       ...(dependsOn !== undefined ? { dependsOn } : {}),
+      ...(input.locked?.has(record.id) ? { locked: true } : {}),
       ...(plannedStart && plannedEnd
         ? {
             baselineStart: clamp(dayDiff(firstDay, localDay(plannedStart, tz))),
@@ -216,10 +245,19 @@ export function buildTimeline(input: {
         : {}),
     };
   });
+  const edges: TimelineEdge[] = [];
+  for (const d of input.dependencies ?? []) {
+    const from = index.get(d.predecessorId);
+    const to = index.get(d.successorId);
+    if (from !== undefined && to !== undefined) {
+      edges.push({ from, to, type: d.type, lagHours: intervalHours(d.lag) });
+    }
+  }
   const todayIndex = dayDiff(firstDay, localDay(input.now ?? new Date(), tz));
   return {
     days,
     bars,
+    edges,
     ...(todayIndex >= 0 && todayIndex < count ? { today: todayIndex } : {}),
   };
 }
@@ -239,6 +277,88 @@ export function calendarEvents(
     for (let i = 0; i <= span; i += 1) events.push({ date: addDays(first, i), record });
   }
   return events.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// Reschedule -----------------------------------------------------------------------------------------
+
+/** A record a reschedule moves, or the record rescheduled itself (`isTarget`). */
+export interface RescheduleMove {
+  readonly recordId: string;
+  readonly isTarget: boolean;
+  /** Whole days of the project's calendar the start and the end move. */
+  readonly shiftStartDays: number;
+  readonly shiftEndDays: number;
+  readonly startsAt: string | null;
+  readonly endsAt: string | null;
+  readonly dueAt: string | null;
+  readonly oldStartsAt: string | null;
+  readonly oldEndsAt: string | null;
+  readonly oldDueAt: string | null;
+  /** The record's window in the project's latest locked baseline, which a reschedule never touches. */
+  readonly baselineStartsAt: string | null;
+  readonly baselineEndsAt: string | null;
+}
+
+/**
+ * Moves or resizes a record by whole days and pushes the successors its dependencies need moved
+ * (app.reschedule_record, migration 2260, ADR 0111). Without `commit` it only previews: the same
+ * rows, nothing written. Cycles, locked records and impossible windows come back as refusals.
+ */
+export async function rescheduleRecord(
+  db: XosClient,
+  input: {
+    readonly recordId: string;
+    readonly startDays: number;
+    readonly endDays: number;
+    readonly commit?: boolean;
+    readonly reason?: string;
+  },
+): Promise<Result<RescheduleMove[]>> {
+  const { data, error } = await db.rpc("reschedule_record", {
+    p_record_id: input.recordId,
+    p_start_days: input.startDays,
+    p_end_days: input.endDays,
+    p_commit: input.commit ?? false,
+    ...(input.reason ? { p_reason: input.reason } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      recordId: r.record_id,
+      isTarget: r.is_target,
+      shiftStartDays: r.shift_start_days,
+      shiftEndDays: r.shift_end_days,
+      startsAt: r.starts_at ?? null,
+      endsAt: r.ends_at ?? null,
+      dueAt: r.due_at ?? null,
+      oldStartsAt: r.old_starts_at ?? null,
+      oldEndsAt: r.old_ends_at ?? null,
+      oldDueAt: r.old_due_at ?? null,
+      baselineStartsAt: r.baseline_starts_at ?? null,
+      baselineEndsAt: r.baseline_ends_at ?? null,
+    })),
+  );
+}
+
+/**
+ * Records among the given ones that a reschedule leaves where they are: Complete records and
+ * Timeline windows locked into a baseline (the same rule app.reschedule_record applies).
+ */
+export async function lockedRecordIds(
+  db: XosClient,
+  records: readonly RecordSummary[],
+): Promise<Result<Set<string>>> {
+  const locked = new Set(records.filter((r) => r.state === "Complete").map((r) => r.id));
+  const windows = records.filter((r) => r.kind === "Timeline").map((r) => r.id);
+  if (windows.length === 0) return ok(locked);
+  const { data, error } = await db
+    .from("record_timeline")
+    .select("record_id")
+    .in("record_id", windows)
+    .not("baseline_locked_at", "is", null);
+  if (error) return fail(toDataError(error));
+  for (const row of data) locked.add(row.record_id);
+  return ok(locked);
 }
 
 // Baselines ------------------------------------------------------------------------------------------
