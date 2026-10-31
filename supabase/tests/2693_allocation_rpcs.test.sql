@@ -178,8 +178,13 @@ select is((select count(*)::int from app.credentials where allocation_id = pg_te
 select pg_temp.as_user('carol');
 select throws_ok(format($$select app.issue_allocation(%L, %L, '[{"asset_tag": "NWL-RAD-001"}]')$$, pg_temp.id('ev1'), pg_temp.id('kai_radios')),
   'XR001', 'issue_event_reused: This issue event already issued another allocation.', 'an event id issues one allocation');
-select throws_ok(format($$select app.issue_allocation(%L, %L, '[{}]')$$, pg_temp.id('ev2'), pg_temp.id('badge')), 'XR001',
+-- A second badge in another window is beyond the quantity; one for the same window is a duplicate badge (B8, 2973).
+select throws_ok(format($$select app.issue_allocation(%L, %L, '[{"valid_from": "2028-01-01T00:00:00Z", "valid_to": "2028-01-02T00:00:00Z"}]')$$,
+    pg_temp.id('ev2'), pg_temp.id('badge')), 'XR001',
   'allocation_issue_exceeds: This allocation is for 1; the issue goes beyond it.', 'never more than the quantity');
+select throws_ok(format($$select app.issue_allocation(%L, %L, '[{}]')$$, pg_temp.id('ev2'), pg_temp.id('badge')), 'XR001',
+  'credential_duplicate: This person already holds a live credential of this category for an overlapping window. Revoke the earlier credential first, or change the window.',
+  'and a second badge for the same window is a duplicate');
 select is(pg_temp.notified('kai', 'allocation.issued', pg_temp.id('badge')), 1, 'allocation.issued reaches Kai');
 
 -- Radios by tag, against the holds.

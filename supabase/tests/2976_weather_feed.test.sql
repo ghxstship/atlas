@@ -43,7 +43,8 @@ insert into app.weather_thresholds (org_id, project_id, hazard, alert_level, thr
   (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Wind', 'Monitor', 20, 'mph', 'At or Above', 'Emergency plan 4.2'),
   (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Wind', 'Restrict', 30, 'mph', 'At or Above', 'Emergency plan 4.2'),
   (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Heat', 'Monitor', 95, 'F', 'At or Above', 'Emergency plan 4.4');
-insert into app.role_assignments (project_id, role_code, person_id) values (pg_temp.id('prj_a'), (select role_code from xpms.dim_role order by role_code limit 1), pg_temp.id('erin'));
+-- frank (Field) is not a dispatcher (1110), so he hears only what his role is named for.
+insert into app.role_assignments (project_id, role_code, person_id) values (pg_temp.id('prj_a'), (select role_code from xpms.dim_role order by role_code limit 1), pg_temp.id('frank'));
 insert into app.weather_alert_roles (org_id, project_id, alert_level, role_code) values
   (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Monitor', (select role_code from xpms.dim_role order by role_code limit 1));
 
@@ -72,10 +73,10 @@ select is((select string_agg(hazard::text || ':' || reading_value::text || ':' |
   'Wind:33.6:NWS,Heat:91.4:NWS', 'both with source NWS and no recorder');
 select is((select alert_level::text from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 'Restrict',
   'a wind reading above a threshold raises the alert as a manual reading does');
-select ok(pg_temp.notified('erin', 'weather.alert') = 0, 'erin''s role is named for Monitor only');
+select ok(pg_temp.notified('frank', 'weather.alert') = 0, 'frank''s role is named for Monitor only');
 select is((select nws_station_id from app.weather_feeds where id = pg_temp.id('feed')), 'KMIA', 'the station is cached');
 select is((select count(*)::int from app.weather_warnings where project_id = pg_temp.id('prj_a')), 2, 'both alerts are stored');
-select is(pg_temp.notified('erin', 'weather.warning'), 1, 'a Severe warning tells the alert-role people');
+select is(pg_temp.notified('frank', 'weather.warning'), 1, 'a Severe warning tells the alert-role people');
 select is(pg_temp.notified('carol', 'weather.warning'), 1, 'and the dispatchers, once each');
 select is((select count(*)::int from app.weather_forecast_periods where project_id = pg_temp.id('prj_a')), 2, 'the forecast is stored');
 select is((select count(*)::int from app.due_weather_feeds() where feed_id = pg_temp.id('feed')), 0, 'a feed polled in the last 9 minutes is not due');
@@ -88,7 +89,7 @@ select is(app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object(
   'forecast', jsonb_build_array(
     jsonb_build_object('starts_at', now() + interval '2 hours', 'ends_at', now() + interval '3 hours', 'temperature_f', 84, 'precipitation_percent', 20)))) ->> 'readings',
   '0', 'a rerun with the same observation writes no reading');
-select is(pg_temp.notified('erin', 'weather.warning'), 1, 'a known warning notifies nobody again');
+select is(pg_temp.notified('frank', 'weather.warning'), 1, 'a known warning notifies nobody again');
 select is((select ended_at is not null from app.weather_warnings where provider_alert_id = 'urn:oid:2.49.0.1.840.0.b'), true, 'an alert dropped from the active list ends');
 select is((select count(*)::int from app.weather_forecast_periods where project_id = pg_temp.id('prj_a')), 1, 'the forecast is replaced');
 
@@ -98,7 +99,7 @@ select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', 
     'message_type', 'Cancel', 'references', jsonb_build_array('urn:oid:2.49.0.1.840.0.a')),
   jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.d', 'event', 'Wind Advisory', 'severity', 'Moderate', 'status', 'Actual', 'message_type', 'Alert'))));
 select is((select ended_at is not null from app.weather_warnings where provider_alert_id = 'urn:oid:2.49.0.1.840.0.a'), true, 'a Cancel ends the warning it references');
-select is(pg_temp.notified('erin', 'weather.warning'), 1, 'neither the Cancel nor a Moderate alert notifies');
+select is(pg_temp.notified('frank', 'weather.warning'), 1, 'neither the Cancel nor a Moderate alert notifies');
 
 -- An NWS reading never lowers a Manual alert ----------------------------------------------------------------------------------------------
 select pg_temp.as_user('frank');
@@ -119,7 +120,7 @@ select is((select count(*)::int from app.weather_alerts where project_id = pg_te
 -- Failures and status ------------------------------------------------------------------------------------------------------------------
 update private.weather_feed_runs set ran_at = ran_at - interval '1 minute' where weather_feed_id = pg_temp.id('feed');
 select app.record_weather_feed_failure(pg_temp.id('feed'), 'XOS_WEATHER_USER_AGENT is not set');
-select pg_temp.as_user('gina');
+select pg_temp.as_user('dave');
 select is((select last_error || ':' || failures_since_success from app.weather_feed_status(pg_temp.id('prj_a'))), 'XOS_WEATHER_USER_AGENT is not set:1',
   'the status shows the failure and how many since the last success');
 select is((select supported from app.weather_feed_status(pg_temp.id('prj_a'))), true, 'and that the official feed covers the venue');

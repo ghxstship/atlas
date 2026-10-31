@@ -101,8 +101,10 @@ select is((select string_agg(check_code || ':' || blocking::text, ',' order by c
   'the issue check lists the duplicates as blocking and the rest as warnings');
 select is((select project_key from app.credential_issue_check(pg_temp.id('cat'), pg_temp.id('frank'), '2027-06-02 09:00+00', '2027-06-02 10:00+00') where check_code = 'booked_elsewhere'),
   'NWX', 'with the other project''s key for a reader of it');
+select is((select count(*)::int from app.credential_review(array[pg_temp.id('c3')])), 1, 'an issuer reads the review of the project''s credentials');
 select pg_temp.as_user('gina');
-select is((select count(*)::int from app.credential_review(array[pg_temp.id('c3')])), 1, 'a Viewer reads the review of credentials they can read');
+select is((select count(*)::int from app.credential_review(array[pg_temp.id('c3')])),
+  (select count(*)::int from app.credentials where id = pg_temp.id('c3')), 'anyone else reads the review of exactly the credentials they can read');
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.credential_review(array[pg_temp.id('c3'), pg_temp.id('c_ivy')])), 0, 'another org reads none');
 select pg_temp.as_platform();

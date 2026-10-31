@@ -78,7 +78,9 @@ select pg_temp.as_user('art');
 select throws_ok($$select app.request_engaged_guest((select id from world where key = 'eng_art_a'), 'Kim Lee', 0, null, null, 'not an email')$$,
   'XR001', 'guest_email_format: Enter one email address for the guest, or leave it empty.', 'a party''s guest email is checked before the insert');
 insert into world values ('g_party', app.request_engaged_guest(pg_temp.id('eng_art_a'), 'Kim Lee', 1, null, null, '  Kim.Lee@Example.TEST '));
+select pg_temp.as_platform();
 select is((select guest_email from app.guest_list_entries where id = pg_temp.id('g_party')), 'kim.lee@example.test', 'a party gives the guest''s email, stored lowercase');
+select pg_temp.as_user('art');
 select throws_ok($$select app.request_engaged_guest((select id from world where key = 'eng_art_a'), 'Max Ray', 2)$$,
   'XR001', null, 'R9''s cap still applies');
 select pg_temp.as_platform();

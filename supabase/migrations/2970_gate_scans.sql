@@ -46,6 +46,23 @@ comment on column app.access_scans.refusal_reason is 'Why the database denied an
 comment on column app.access_scans.override_of_scan_id is 'The Denied In scan this Granted In row overrides; written only by app.override_access_scan. No foreign key into the partitioned table; the RPC checks it.';
 comment on column app.access_scans.override_reason is 'Why the supervisor let the person in, 1 to 300 characters; set with override_of_scan_id.';
 
+-- A column added to the partitioned parent reaches the monthly partitions, but its comment does not: copy it to each
+-- existing partition, as private.create_month_partition (0500) does for a new one (pgTAP 0202).
+do $$
+declare
+  v_part regclass;
+  v_col text;
+begin
+  for v_part in select i.inhrelid::regclass from pg_catalog.pg_inherits i where i.inhparent = 'app.access_scans'::regclass loop
+    foreach v_col in array array['direction', 'refusal_reason', 'override_of_scan_id', 'override_reason'] loop
+      execute format('comment on column %s.%I is %L', v_part, v_col,
+        col_description('app.access_scans'::regclass,
+          (select a.attnum from pg_catalog.pg_attribute a where a.attrelid = 'app.access_scans'::regclass and a.attname = v_col)));
+    end loop;
+  end loop;
+end
+$$;
+
 -- The decision (from 0352, its only definition) -----------------------------------------------------------------------
 
 create or replace function private.decide_access_scan()

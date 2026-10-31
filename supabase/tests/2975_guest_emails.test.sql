@@ -51,8 +51,8 @@ select throws_ok($$insert into app.guest_email_sends (project_id, email_kind) va
   '42501', null, 'staff never insert a send directly');
 select throws_ok($$update app.guest_emails set send_state = 'Sent' where guest_email_send_id = (select id from world where key = 'send_inv')$$,
   '42501', null, 'nor update a recipient row');
-select pg_temp.as_user('gina');
-select is((select count(*)::int from app.guest_emails where guest_email_send_id = pg_temp.id('send_pass')), 5, 'a reader of advance packets sees the rows');
+select pg_temp.as_user('dave');
+select is((select count(*)::int from app.guest_emails where guest_email_send_id = pg_temp.id('send_pass')), 5, 'a project member who reads advance packets sees the rows');
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.guest_emails), 0, 'another org sees none');
 select throws_ok($$select * from app.guest_email_send_summary((select id from world where key = 'send_pass'))$$, '42501', null, 'nor the summary');
@@ -63,9 +63,8 @@ select is((select classification::text from private.column_classifications where
 -- The daily org limit ------------------------------------------------------------------------------------------------------------
 set local session_replication_role = replica;
 insert into app.guest_emails (org_id, guest_email_send_id, guest_list_entry_id, to_email, send_state, created_at)
-select pg_temp.id('org_a'), pg_temp.id('send_inv'), e.id, 'bulk' || n || '@example.test', 'Queued', now() - interval '1 hour'
-from generate_series(1, 1997) n
-cross join lateral (select gen_random_uuid() as id) e;
+select pg_temp.id('org_a'), pg_temp.id('send_inv'), gen_random_uuid(), 'bulk' || n || '@example.test', 'Queued', now() - interval '1 hour'
+from generate_series(1, 1997) n;
 set local session_replication_role = origin;
 select pg_temp.as_user('carol');
 select throws_ok($$select app.queue_guest_emails((select id from world where key = 'prj_a'), array[(select id from world where key = 'g_pass')], 'Invitation')$$,

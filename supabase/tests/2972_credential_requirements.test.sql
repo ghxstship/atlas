@@ -16,7 +16,7 @@ select no_plan();
 select pg_temp.as_platform();
 with x as (insert into app.training_courses (org_id, title) values (pg_temp.id('org_a'), 'Rigging Safety') returning id) insert into world select 'course', id from x;
 select pg_temp.as_user('carol');
-with x as (insert into app.certifications (name, issuing_body) values ('Site Induction', 'Northwind Live') returning id) insert into world select 'cert', id from x;
+with x as (insert into app.certifications (org_id, name, issuing_body) values (pg_temp.id('org_a'), 'Site Induction', 'Northwind Live') returning id) insert into world select 'cert', id from x;
 with x as (insert into app.credential_categories (project_id, code, name) values (pg_temp.id('prj_a'), 'RIG', 'Riggers') returning id) insert into world select 'cat_rig', id from x;
 with x as (insert into app.credential_categories (project_id, code, name) values (pg_temp.id('prj_a'), 'IND', 'Inducted') returning id) insert into world select 'cat_ind', id from x;
 with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat_rig'), pg_temp.id('erin')) returning id) insert into world select 'old_badge', id from x;
@@ -37,9 +37,9 @@ select throws_ok($$insert into app.credential_category_requirements (credential_
 select throws_ok($$insert into app.credential_category_requirements (credential_category_id, training_course_id)
   values ((select id from world where key = 'cat_rig'), (select id from world where key = 'course'))$$,
   '23505', null, 'a course is required once per category');
-select pg_temp.as_user('gina');
+select pg_temp.as_user('dave');
 select is((select count(*)::int from app.credential_category_requirements where credential_category_id in (pg_temp.id('cat_rig'), pg_temp.id('cat_ind'))), 2,
-  'a Viewer with credentials.credential.read sees the requirements');
+  'a project member with credentials.credential.read sees the requirements');
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.credential_category_requirements), 0, 'another org sees none');
 select pg_temp.as_platform();

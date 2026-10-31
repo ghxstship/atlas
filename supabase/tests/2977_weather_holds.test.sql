@@ -57,22 +57,23 @@ select throws_ok($$select app.call_weather_hold((select id from world where key 
   'XR001', 'weather_hold_id_taken: Another hold already uses this id.', 'another person cannot replay the id');
 select pg_temp.as_platform();
 select is(pg_temp.notified('bob', 'weather.hold'), 1, 'the alert-role person hears the hold once');
-select is(pg_temp.notified('frank', 'weather.hold'), 1, 'a dispatcher hears it once');
+select is(pg_temp.notified('dave', 'weather.hold'), 1, 'a dispatcher hears it once');
+select is(pg_temp.notified('frank', 'weather.hold'), 0, 'a Field member is no dispatcher (1110)');
 select is(pg_temp.notified('gina', 'weather.hold'), 1, 'someone present in a zone of the project hears it');
 select is(pg_temp.notified('mia', 'weather.hold'), 0, 'someone neither present nor named does not');
 
 -- The all-clear -------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('gina');
 select throws_ok($$select app.give_weather_all_clear((select id from world where key = 'hold'), 'All clear')$$, '42501', null, 'a Viewer cannot give the all-clear');
-select pg_temp.as_user('frank');
+select pg_temp.as_user('erin');
 select is(app.give_weather_all_clear(pg_temp.id('hold'), 'All clear: back to work.', '01920000-0000-7000-8977-000000000002'), pg_temp.id('hold'),
-  'a Field dispatcher gives the all-clear');
+  'a project dispatcher gives the all-clear');
 select is(app.give_weather_all_clear(pg_temp.id('hold'), 'All clear: back to work.', '01920000-0000-7000-8977-000000000002'), pg_temp.id('hold'),
   'a replay returns the hold');
 select throws_ok($$select app.give_weather_all_clear((select id from world where key = 'hold'), 'Again')$$,
   'XR001', 'weather_hold_closed: This weather hold already has its all-clear.', 'a closed hold takes no second all-clear');
 select pg_temp.as_platform();
-select is((select row(cleared_by = pg_temp.id('frank'), all_clear_message)::text from app.weather_holds where id = pg_temp.id('hold')),
+select is((select row(cleared_by = pg_temp.id('erin'), all_clear_message)::text from app.weather_holds where id = pg_temp.id('hold')),
   '(t,"All clear: back to work.")', 'the hold records who cleared it and the message');
 select is(pg_temp.notified('gina', 'weather.all_clear'), 1, 'the all-clear reaches the same people');
 select is(pg_temp.notified('bob', 'weather.all_clear'), 1, 'each once');
