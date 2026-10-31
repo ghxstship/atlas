@@ -1,3 +1,4 @@
+import pg from "pg";
 import { expect, test } from "./engine-test";
 import { expectAccessible } from "./support";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support";
@@ -194,8 +195,56 @@ test("guest list: a requested guest is approved by another person and checked in
   await expectAccessibleInBothThemes(page);
 });
 
+const DEMO_ORG_ID = "01920000-0000-7000-8000-000000000001";
+const DEMO_OWNER = "01920000-0000-7000-8000-000000000101";
+const DEMO_PROJECT_ID = "01920000-0000-7000-8000-000000001001";
+
+/** One statement against the local stack only, under the demo Owner's claims. */
+async function asOwner<T extends Record<string, unknown>>(
+  text: string,
+  args: unknown[] = [],
+): Promise<T[]> {
+  const url =
+    process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
+  if (!/@(127\.0\.0\.1|localhost):/.test(url)) throw new Error("Only a local stack is changed.");
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    await client.query("begin");
+    await client.query("select set_config('request.jwt.claims', $1, true)", [
+      JSON.stringify({ sub: DEMO_OWNER, role: "authenticated" }),
+    ]);
+    await client.query("set local role authenticated");
+    const result = await client.query(text, args);
+    await client.query("commit");
+    return result.rows as T[];
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * R9 (RRR-189): a packet takes every section kind, each held to its kind. Reviewing a typed answer,
+ * booking its Load In window as a dock slot and reading "Named 2 of 4" need the party's answer from
+ * Gateway, so they run in the cross-app journey of apps/gateway/e2e/vendor.spec.ts, which drives these
+ * same Atlas screens.
+ */
 test("R9: a packet takes typed sections, each held to its kind", async ({ page }) => {
   const stamp = Date.now().toString(36);
+  // What request sections offer: the org's radio class and a crew pass of the project.
+  const [radios] = await asOwner<{ name: string }>(
+    `select c.name from app.asset_classes c where c.id = app.ensure_offering_asset_class($1, 'Radios')`,
+    [DEMO_ORG_ID],
+  );
+  const radioName = radios?.name as string;
+  const passName = `Crew Pass ${stamp}`;
+  await asOwner(
+    "insert into app.credential_categories (project_id, code, name) values ($1, $2, $3)",
+    [DEMO_PROJECT_ID, `CP${stamp}`.slice(0, 12).toUpperCase(), passName],
+  );
   const title = `Vendor Typed Advance ${stamp}`;
   await signIn(page, "producer@example.com");
   await page.goto(`/${ORG}/advancing/packets?create=1`);
@@ -225,6 +274,29 @@ test("R9: a packet takes typed sections, each held to its kind", async ({ page }
   await page.getByRole("button", { name: "Add section" }).click();
   await expect(page.getByText("Choose at least one item or pass to offer.")).toBeVisible();
   await expectAccessibleInBothThemes(page);
+
+  // With a choice it goes in: radios per person, and crew passes for the whole team.
+  const pick = async (label: string, name: string) => {
+    const box = page.getByRole("combobox", { name: label });
+    await box.click();
+    await box.fill(name);
+    await page.getByRole("option", { name }).click();
+    await box.press("Escape");
+  };
+  await page.getByLabel("New section").fill("Radios");
+  await page.getByLabel("Kind", { exact: true }).selectOption({ label: "Item request" });
+  await page.getByLabel("Each line names a person on the crew roster").check();
+  await pick("Items offered", radioName);
+  await page.getByRole("button", { name: "Add section" }).click();
+  await expect(page.getByText(/\d+\. Radios$/)).toBeVisible();
+  await page.getByLabel("New section").fill("Crew passes");
+  await page.getByLabel("Kind", { exact: true }).selectOption({ label: "Credential request" });
+  await pick("Passes offered", passName);
+  await page.getByRole("button", { name: "Add section" }).click();
+  await expect(page.getByText(/\d+\. Crew passes$/)).toBeVisible();
+  await expect(page.getByRole("list", { name: "Items offered" })).toContainText(radioName);
+  await expect(page.getByRole("list", { name: "Passes offered" })).toContainText(passName);
+  await expectAccessible(page);
 
   // The recipient answers under its engagement, with a naming deadline once one is chosen.
   await expect(page.getByLabel("Names due")).toBeDisabled();
