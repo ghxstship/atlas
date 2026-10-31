@@ -84,6 +84,40 @@ describe("platform emails", () => {
     ]);
   });
 
+  it("sends an account or roster invitation that links to Gateway sign-in, never with the address", async () => {
+    const transport = new RecordingTransport();
+    const { s, finished } = store([
+      {
+        id: "e4",
+        template: "party_invitation",
+        to: "nell@touring.test",
+        locale: "en-US",
+        args: {
+          kind: "roster",
+          inviter_name: "Victor Osei",
+          org_name: "Northwind Live",
+          project_name: "Northwind Summer Series",
+          party_name: "Bayside Audio",
+          expires_at: "2027-06-01T12:00:00Z",
+        },
+      },
+    ]);
+    const summary = await dispatchPlatformEmails(s, transport, {
+      ...OPTIONS,
+      gatewayUrl: "https://gateway.xos.test",
+    });
+    expect(finished[0]?.[3] ?? null).toBeNull();
+    expect(summary).toEqual({ attempted: 1, sent: 1, failed: 0 });
+    const [invitation] = transport.sent;
+    expect(invitation?.subject).toBe(
+      "Victor Osei invites you onto the Bayside Audio crew for Northwind Summer Series",
+    );
+    expect(invitation?.html).toContain("https://gateway.xos.test/auth/sign-in");
+    expect(invitation?.html).not.toContain("nell%40touring.test");
+    expect(invitation?.headers?.["List-Unsubscribe"]).toBeUndefined();
+    expect(finished).toEqual([["e4", true, "recorded-1", null]]);
+  });
+
   it("records a failure instead of dropping it", async () => {
     const { s, finished } = store([
       {

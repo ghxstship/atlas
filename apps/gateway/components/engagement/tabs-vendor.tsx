@@ -14,12 +14,7 @@ import { hasArea, isLiveEngagement, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
-import {
-  AdvanceAnswerForm,
-  OnboardingUploadForm,
-  SubmittalResponseForm,
-  TaxFormForm,
-} from "./forms";
+import { OnboardingUploadForm, SubmittalResponseForm, TaxFormForm } from "./forms";
 import { canUpload, isUpload } from "./tabs-common";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
@@ -326,109 +321,6 @@ function SubmittalDetail({
     );
   }
   return null;
-}
-
-/** The advance packet (Section 4.4.4 Artist and Vendor): each section, its answer and its review. */
-export async function AdvanceTab({ view, t, locale, engagementKey }: TabProps) {
-  const [packets, recipients] = await Promise.all([
-    readView(view.ctx.db, "advance_packets", {
-      eq: { project_id: view.engagement.projectId },
-      order: ["due_at", "asc"],
-    }),
-    readView(view.ctx.db, "my_advance_recipients", {}),
-  ]);
-  if (!packets.ok || !recipients.ok) return <RegionError />;
-  const packetIds = packets.data.flatMap((p) => (p.id ? [p.id] : []));
-  const [sections, submissions] = await Promise.all([
-    readView(view.ctx.db, "advance_sections", {
-      in: ["advance_packet_id", packetIds],
-      order: ["position", "asc"],
-    }),
-    readView(view.ctx.db, "advance_submissions", { order: ["submitted_at", "desc"] }),
-  ]);
-  if (!sections.ok || !submissions.ok) return <RegionError />;
-  if (packets.data.length === 0) {
-    return (
-      <TabEmpty
-        icon="ClipboardList"
-        sentence={t("gateway.engagement.advance.empty")}
-        actionLabel={t("gateway.engagement.messagesAction")}
-        href={tabHref(engagementKey, "engagement.messages")}
-      />
-    );
-  }
-  return (
-    <div className="flex flex-col gap-24">
-      {packets.data.map((packet) => {
-        const recipient = recipients.data.find((r) => r.advance_packet_id === packet.id);
-        return (
-          <Section key={packet.id ?? ""} id={`packet-${packet.id}`} title={packet.title ?? ""}>
-            {packet.due_at ? (
-              <p className="m-0 text-text-13 text-text-secondary">
-                {t("gateway.engagement.due", { date: formatDateTime(locale, packet.due_at) })}
-              </p>
-            ) : null}
-            <RowList
-              label={packet.title ?? ""}
-              items={sections.data
-                .filter((s) => s.advance_packet_id === packet.id)
-                .map((s) => {
-                  const latest = submissions.data.find(
-                    (sub) =>
-                      sub.advance_section_id === s.id &&
-                      (!recipient || sub.advance_recipient_id === recipient.id),
-                  );
-                  const returned = latest?.review_outcome === "Returned";
-                  return {
-                    id: s.id ?? "",
-                    title: `${s.position}. ${s.title ?? ""}`,
-                    meta: [s.prompt],
-                    ...(latest
-                      ? {
-                          tag: latest.review_outcome
-                            ? {
-                                label: t(
-                                  enumLabelKey("advanceReviewOutcome", latest.review_outcome),
-                                ),
-                                tone: toneFor(
-                                  latest.review_outcome === "Accepted" ? "Accepted" : "Returned",
-                                ),
-                              }
-                            : {
-                                label: t("gateway.engagement.advance.awaitingReview"),
-                                tone: "accent" as const,
-                              },
-                        }
-                      : {}),
-                    detail: (
-                      <div className="flex flex-col gap-8">
-                        {latest ? (
-                          <p className="m-0 whitespace-pre-line rounded-control bg-bg-surface p-8 text-text-13">
-                            {latest.body}
-                          </p>
-                        ) : null}
-                        {returned && latest?.return_reason ? (
-                          <p className="m-0 text-text-13 text-danger-text">
-                            {latest.return_reason}
-                          </p>
-                        ) : null}
-                        {recipient?.id && s.id && (!latest || returned) ? (
-                          <AdvanceAnswerForm
-                            recipientId={recipient.id}
-                            sectionId={s.id}
-                            prompt={s.title ?? ""}
-                          />
-                        ) : null}
-                      </div>
-                    ),
-                  };
-                })}
-            />
-          </Section>
-        );
-      })}
-    </div>
-  );
 }
 
 /** Vendor compliance (Section 4.4.4): insurance certificates, prequalification and compliance items. */

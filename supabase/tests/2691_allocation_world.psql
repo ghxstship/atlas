@@ -1,0 +1,140 @@
+-- Shared pgTAP fixture for the R7 allocation suites (2691 to 2697), included with \ir inside each test transaction after
+-- the engagement world (0700_engagement_world.psql) and the project facts world (2654_project_facts_world.psql). Every
+-- name is fictional; nothing persists.
+--
+-- On prj_a (Northwind Summer Series):
+--   eng_vendor_a (Bayside Audio) is Active; kai (e_kai) and mo (e_mo) are accepted by carol and by themselves, una
+--   (e_una) is a Draft, sam is the engaged person (self_sam).
+--   dave (member, Coordinator on prj_a) requests; carol (manager) reviews; alice (owner) issues.
+--   Northwind provides travel, lodging, uniforms, parking, radios, catering and per diem.
+--   cls_radio: the org's Radios class, four Available units NWL-RAD-001 to 004 (r1 to r4) at venue_a.
+--   cls_cable: a class kept as a lot, lot_cable of 150.5 at venue_a.
+--   po_rent (Sent) with l_rent: 2 radios on hire 2027-05-01 to 2027-07-01.
+--   cat_crew (Access) and cat_park (Parking) credential categories; ful_cat (Catering) and ful_trv (Travel) fulfillments;
+--   blk (an accommodation block of 10 rooms, 2027-05-31 to 2027-06-06).
+-- The default window is 2027-06-01 12:00 to 2027-06-05 12:00 UTC.
+
+create function pg_temp.build_allocation_world() returns void
+language plpgsql as $$
+declare
+  v_id uuid;
+  v_tag text;
+begin
+  perform pg_temp.as_user('carol');
+  perform app.review_roster_entry(pg_temp.id('e_kai'), 'Accepted');
+  perform app.review_roster_entry(pg_temp.id('e_mo'), 'Accepted');
+  perform pg_temp.move_engagement('eng_vendor_a', 'Onboarding', 'Active');
+
+  perform pg_temp.as_user('alice');
+  perform app.set_setting(pg_temp.id('org_a'), 'offerings.' || o, 'Organization', null, 'provided')
+  from unnest(array['radios', 'catering', 'per_diem']) o;
+  insert into world values ('cls_radio', app.ensure_offering_asset_class(pg_temp.id('org_a'), 'Radios'));
+  foreach v_tag in array array['NWL-RAD-001', 'NWL-RAD-002', 'NWL-RAD-003', 'NWL-RAD-004'] loop
+    insert into app.asset_units (asset_class_id, asset_tag, home_venue_id) values (pg_temp.id('cls_radio'), v_tag, pg_temp.id('venue_a'))
+    returning id into v_id;
+    insert into world values ('r' || right(v_tag, 1), v_id);
+  end loop;
+  insert into app.asset_classes (org_id, element_id, name) values (pg_temp.id('org_a'), '8000.01.01-XPMS-001', 'Cable Run')
+  returning id into v_id;
+  insert into world values ('cls_cable', v_id);
+  insert into app.asset_lots (asset_class_id, venue_id, quantity) values (pg_temp.id('cls_cable'), pg_temp.id('venue_a'), 150.5)
+  returning id into v_id;
+  insert into world values ('lot_cable', v_id);
+
+  insert into app.credential_categories (project_id, code, name) values (pg_temp.id('prj_a'), 'CREW', 'Crew') returning id into v_id;
+  insert into world values ('cat_crew', v_id);
+  insert into app.credential_categories (project_id, code, name, category_kind) values (pg_temp.id('prj_a'), 'PARK', 'Crew Parking', 'Parking')
+  returning id into v_id;
+  insert into world values ('cat_park', v_id);
+  insert into app.fulfillments (project_id, fulfillment_kind, title) values (pg_temp.id('prj_a'), 'Catering', 'Crew Catering') returning id into v_id;
+  insert into world values ('ful_cat', v_id);
+  insert into app.fulfillments (project_id, fulfillment_kind, title) values (pg_temp.id('prj_a'), 'Travel', 'Crew Flights') returning id into v_id;
+  insert into world values ('ful_trv', v_id);
+  insert into app.accommodation_blocks (project_id, title, check_in_on, check_out_on, rooms_held)
+  values (pg_temp.id('prj_a'), 'Crew Hotel', '2027-05-31', '2027-06-06', 10) returning id into v_id;
+  insert into world values ('blk', v_id);
+
+  -- A rental order for two more radios.
+  insert into world values ('cp_rent', app.create_counterparty(pg_temp.id('org_a'), 'Harborline Staging', 'Equipment Rental'));
+  insert into app.spend_authorities (org_id, role_id, document_type, currency_code, limit_minor)
+  values (pg_temp.id('org_a'), pg_temp.system_role('admin'), 'Purchase Order', 'USD', 10000000);
+  perform pg_temp.as_user('carol');
+  insert into app.vendors (counterparty_id, payment_terms_days) values (pg_temp.id('cp_rent'), 30) returning id into v_id;
+  insert into world values ('ven', v_id);
+  perform app.transition_vendor(pg_temp.id('ven'), 'Prospect', 'Onboarded', 'Paperwork in.');
+  perform app.transition_vendor(pg_temp.id('ven'), 'Onboarded', 'Active', 'Approved for use.');
+  insert into app.purchase_orders (project_id, vendor_id, currency_code) values (pg_temp.id('prj_a'), pg_temp.id('ven'), 'USD')
+  returning id into v_id;
+  insert into world values ('po_rent', v_id);
+  insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor, acquisition_kind, hire_period)
+  values (pg_temp.id('po_rent'), 1, 'Two-way radios on hire.', '3000.05.01-GHXST-013', 2, 5000, 'Rental', '[2027-05-01 00:00+00,2027-07-01 00:00+00)')
+  returning id into v_id;
+  insert into world values ('l_rent', v_id);
+  perform pg_temp.as_user('bob');
+  perform app.approve_purchase_order(pg_temp.id('po_rent'), 'Within limit.');
+  perform pg_temp.as_user('carol');
+  perform app.transition_purchase_order(pg_temp.id('po_rent'), 'Approved', 'Sent', 'Emailed.');
+
+  perform pg_temp.as_platform();
+  perform private.transition_lifecycle('asset', 'app.asset_units', 'asset_state', 'app.asset_state_transitions', 'asset_unit_id',
+    u.id, 'Proposed', 'Received', 'Fixture.') from app.asset_units u where u.asset_class_id = pg_temp.id('cls_radio');
+  perform private.transition_lifecycle('asset', 'app.asset_units', 'asset_state', 'app.asset_state_transitions', 'asset_unit_id',
+    u.id, 'Received', 'Available', 'Fixture.') from app.asset_units u where u.asset_class_id = pg_temp.id('cls_radio');
+end $$;
+
+select pg_temp.build_allocation_world();
+
+-- Requests (p_how 'request') or assigns (p_how 'assign') an allocation as p_who, by world keys. p_target_kind is
+-- category, class, fulfillment, block, travel or per_diem; the holder is an engagement key or an entry key.
+create function pg_temp.alloc(p_how text, p_who text, p_holder text, p_target_kind text, p_target text, p_quantity numeric,
+  p_note text default null, p_sources jsonb default null,
+  p_from timestamptz default '2027-06-01 12:00+00', p_to timestamptz default '2027-06-05 12:00+00') returns uuid
+language plpgsql as $$
+declare
+  v_engagement uuid;
+  v_entry uuid;
+  v_id uuid;
+begin
+  if p_holder like 'eng_%' then v_engagement := pg_temp.id(p_holder); else v_entry := pg_temp.id(p_holder); end if;
+  perform pg_temp.as_user(p_who);
+  if p_how = 'request' then
+    v_id := app.request_allocation(pg_temp.id('prj_a'), v_engagement, v_entry,
+      case when p_target_kind = 'category' then pg_temp.id(p_target) end,
+      case when p_target_kind = 'class' then pg_temp.id(p_target) end,
+      case when p_target_kind = 'fulfillment' then pg_temp.id(p_target) end,
+      case when p_target_kind = 'block' then pg_temp.id(p_target) end,
+      case p_target_kind when 'travel' then 'Travel' when 'per_diem' then 'Per Diem' end::app.allocation_service_kind,
+      p_quantity, p_from, p_to, 'America/New_York', p_note);
+  else
+    v_id := app.assign_allocation(pg_temp.id('prj_a'), v_engagement, v_entry,
+      case when p_target_kind = 'category' then pg_temp.id(p_target) end,
+      case when p_target_kind = 'class' then pg_temp.id(p_target) end,
+      case when p_target_kind = 'fulfillment' then pg_temp.id(p_target) end,
+      case when p_target_kind = 'block' then pg_temp.id(p_target) end,
+      case p_target_kind when 'travel' then 'Travel' when 'per_diem' then 'Per Diem' end::app.allocation_service_kind,
+      p_quantity, p_from, p_to, 'America/New_York', p_note, p_sources);
+  end if;
+  return v_id;
+end $$;
+
+-- The state of an allocation, read as the platform.
+create function pg_temp.state_of(p_id uuid) returns text
+language sql security definer as $$ select a.allocation_state::text from app.advance_allocations a where a.id = p_id $$;
+
+create function pg_temp.status_of(p_id uuid) returns text
+language plpgsql as $$
+declare v text;
+begin
+  perform pg_temp.as_user('carol');
+  select s.display_status into v from app.advance_allocation_status s where s.allocation_id = p_id;
+  return v;
+end $$;
+
+-- Live holds of an allocation as source:quantity, sorted.
+create function pg_temp.holds(p_id uuid) returns text
+language sql security definer as $$
+  select coalesce(string_agg(h.label, ',' order by h.label), '') from (
+    select case when r.asset_unit_id is not null then 'unit' when r.asset_lot_id is not null then 'lot'
+      when r.po_line_id is not null then 'line' else 'stock' end || ':' || r.quantity as label
+    from app.asset_reservations r where r.advance_allocation_id = p_id and r.released_at is null) h
+$$;

@@ -1,11 +1,12 @@
 /**
  * One external More screen (A92, Section 4.5.7): the page's sections from the rows on the device, so it reads
  * offline, and one button that opens the engagement's tab in Gateway, where submitting, uploading and signing live.
+ * A page that writes from Compass itself (proof-of-performance photos, A140) adds an action under its items.
  */
 import { toDisplayKey } from "@xos/data/gateway-keys";
 import type { Row } from "@xos/sync";
 import * as Linking from "expo-linking";
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { moreMenu } from "../domain/access";
@@ -93,7 +94,17 @@ function Item({
   );
 }
 
-export function ExternalPageScreen({ page: id }: { readonly page: ExternalPageId }): ReactElement {
+export function ExternalPageScreen({
+  page: id,
+  itemAction,
+  children,
+}: {
+  readonly page: ExternalPageId;
+  /** An action under a top-level item of a section, or null for none. */
+  readonly itemAction?: (item: ExternalItem, sectionId: string) => ReactNode;
+  /** Shown after the sections, such as a capture sheet. */
+  readonly children?: ReactNode;
+}): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
   const page = EXTERNAL_PAGES[id];
@@ -184,11 +195,15 @@ export function ExternalPageScreen({ page: id }: { readonly page: ExternalPageId
               />
             ) : null}
             {s.items.map((item) => (
-              <Item key={item.id} item={item} depth={0} />
+              <View key={item.id}>
+                <Item item={item} depth={0} />
+                {itemAction?.(item, s.id) ?? null}
+              </View>
             ))}
           </Card>
         ))
       )}
+      {children}
     </Screen>
   );
 }

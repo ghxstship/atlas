@@ -3,7 +3,7 @@ import { requireNode } from "@/lib/shell/require-node";
 import { readQuery } from "@/lib/assets/views";
 
 /**
- * Assets > Units (Section 4.5.5): serialized gear at unit grain with the nine-value lifecycle and
+ * Assets > Units (Section 4.5.5): serialized gear at unit grain with the ten-value lifecycle and
  * the current custodian. `?peek=<asset tag>` opens the record beside the list; `&full=1` opens it
  * as a full page.
  */

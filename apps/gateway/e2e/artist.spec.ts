@@ -1,3 +1,4 @@
+import { expectNoSidewaysScroll, sendTypedPacket } from "./advance-builder";
 import { expect as baseExpect, test } from "./engine-test";
 import {
   artistAdvance,
@@ -10,10 +11,11 @@ import {
   roleEngagement,
   ROLE_PEOPLE,
   submittedSettlement,
+  suffix,
   transition,
 } from "./role-fixtures";
 import { atlasAs, ORG } from "./atlas";
-import { expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
+import { DEMO, expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
 import { toDisplayKey } from "@xos/data/gateway-keys";
 
 /**
@@ -196,4 +198,101 @@ test("R2: an individual artist reads the rider Atlas assigned to their engagemen
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
   await expect(page.getByText("Two wedge monitors")).toBeVisible();
   await expectAccessible(page);
+});
+
+/**
+ * R9 (RRR-189, migration 2715): the guest list cap on an artist's advance. The run makes its own
+ * project, so its cap of three places per engagement touches no other journey. The org sends a packet
+ * with a Guest List section; the artist reads how many places are used of the cap, plus-ones
+ * included, fills it with one guest and two plus-ones, is refused the next guest, and confirms the
+ * list.
+ */
+test("R9: the guest list cap is shown on the advance and enforced", async ({ page, browser }) => {
+  const tag = suffix();
+  const key = `G${Array.from({ length: 4 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join("")}`;
+  const name = `Guest Cap Run ${key}`;
+  const [project] = await sql<{ id: string }>(
+    `insert into app.projects (org_id, project_key, name, time_zone)
+     values ($1, $2, $3, 'America/New_York') returning id`,
+    [DEMO.org, key, name],
+    PEOPLE.owner,
+  );
+  const projectId = project?.id as string;
+  let atlas: { close: () => Promise<void> } | null = null;
+  try {
+    await sql(
+      `insert into app.offering_rules (org_id, project_id, offering, offering_mode, cap_per_engagement)
+       values ($1, $2, 'Guest List', 'Provided', 3)`,
+      [DEMO.org, projectId],
+      PEOPLE.owner,
+    );
+    const [engagement] = await sql<{ id: string }>(
+      `insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis,
+         arrangement, currency_code, start_date, end_date)
+       values ($1, $2, 'Artist', '2000.50.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', 'USD',
+         '2027-06-04', '2027-06-06')
+       returning id`,
+      [projectId, ROLE_PEOPLE.artist],
+      PEOPLE.owner,
+    );
+    const engagementId = engagement?.id as string;
+    await transition("engagement", engagementId, "Onboarding", "Active");
+    const guests = `Guests ${tag}`;
+    const sent = await sendTypedPacket(browser, {
+      project: `${key} · ${name}`,
+      title: `Artist Advance ${tag}`,
+      sections: [{ title: guests, kind: "Guest list" }],
+      party: `person:${ROLE_PEOPLE.artist}`,
+      engagementId,
+    });
+    atlas = sent.context;
+
+    await signIn(
+      page,
+      "artist@example.com",
+      `/work/engagements/${toDisplayKey("engagement", engagementId)}/advance`,
+    );
+    await expect(page.getByText("0 of 3 places used, plus-ones included.")).toBeVisible();
+    await expectAccessibleInBothThemes(page);
+    const add = page.getByRole("form", { name: "Add a guest" });
+    await add.getByLabel("Guest name").fill("Sasha Bell");
+    await add.getByLabel("Plus-ones").fill("2");
+    await add.getByRole("button", { name: "Add guest" }).click();
+    await expect(
+      page.getByText("Guest added. The production confirms them before the show."),
+    ).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText("3 of 3 places used, plus-ones included.")).toBeVisible();
+    await add.getByLabel("Guest name").fill("Rowan Hale");
+    await add.getByRole("button", { name: "Add guest" }).click();
+    await expect(page.getByText(/^Your guest list is full, plus-ones included\./)).toBeVisible();
+    const [count] = await sql<{ n: number }>(
+      `select count(*)::int as n from app.guest_list_entries where engagement_id = $1 and deleted_at is null`,
+      [engagementId],
+    );
+    expect(count?.n).toBe(1);
+
+    await page
+      .getByRole("form", { name: guests })
+      .getByRole("button", { name: "Confirm guest list" })
+      .click();
+    await expect(page.getByText("Sent. The organization reviews your answer.")).toBeVisible();
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.reload();
+    await expect(page.getByText("You confirmed the guest list.")).toBeVisible();
+    await expectNoSidewaysScroll(page);
+  } finally {
+    await atlas?.close();
+    for (const statement of [
+      `update app.guest_list_entries set deleted_at = now()
+        where engagement_id in (select id from app.engagements where project_id = $1) and deleted_at is null`,
+      "update app.advance_packets set deleted_at = now() where project_id = $1 and deleted_at is null",
+      "update app.offering_rules set deleted_at = now() where project_id = $1 and deleted_at is null",
+      "update app.engagements set deleted_at = now() where project_id = $1 and deleted_at is null",
+      "update app.projects set deleted_at = now() where id = $1 and deleted_at is null",
+    ]) {
+      await sql(statement, [projectId]).catch(() => undefined);
+    }
+  }
 });

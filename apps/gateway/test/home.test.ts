@@ -65,6 +65,7 @@ describe("upNextDetails", () => {
       call: null,
       where: null,
       contact: "Northwind Live",
+      parking: [],
       bring: [],
       bringMore: 0,
     });

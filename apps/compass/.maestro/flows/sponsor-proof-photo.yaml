@@ -1,0 +1,90 @@
+appId: pro.ghxstship.compass
+# A140 (Section 4.5.7 role table, journey 47): a sponsor photographs an entitlement being delivered, offline, and the
+# photo uploads to their engagement's folder and is recorded once on reconnect. The Demo Activation Sponsor (seed
+# 2332) holds an Active Sponsor engagement on the demo project with one entitlement, the LED wall logo.
+# Named after its file: config.yaml orders flows by name.
+name: sponsor-proof-photo
+# Goes offline: airplane mode on Android, the network helper on iOS (apps/compass/scripts/maestro-network.ts).
+tags:
+  - airplane-mode
+# Back online however the flow ends, so a failure part way through never leaves the gateway down for the next flow.
+onFlowComplete:
+  - runFlow:
+      when:
+        platform: Android
+      commands:
+        - setAirplaneMode: disabled
+  - runFlow:
+      when:
+        platform: iOS
+      commands:
+        - runScript:
+            file: ../scripts/network.js
+            env:
+              STEP: online
+---
+- evalScript: ${output.since = new Date().toISOString()}
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: activation.sponsor@example.com
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-proof-of-performance"
+- extendedWaitUntil:
+    visible:
+      id: "external-section-entitlements"
+    timeout: 60000
+- assertVisible: "Logo on the LED wall between sets"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
+# The simulator's capture returns an image without a camera.
+- tapOn:
+    id: "proof-photo-01920000-0000-7000-8000-000023320901"
+- tapOn:
+    id: "photo-take"
+- extendedWaitUntil:
+    visible: ".*1 photo.*"
+    timeout: 20000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
+      - assertTrue: ${output.network.ok}
+# The retry backoff grows while the server is away, so the drain may wait for the next attempt.
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: offline-queue
+- extendedWaitUntil:
+    notVisible: ".*Proof of performance photo.*"
+    timeout: 120000
+- runScript:
+    file: ../scripts/proof-photo-recorded.js
+    env:
+      EMAIL: activation.sponsor@example.com
+      ENTITLEMENT: "01920000-0000-7000-8000-000023320901"
+      SINCE: ${output.since}
+- assertTrue: ${output.proof.status == 200 && output.proof.photos == 1 && output.proof.inFolder == 1}

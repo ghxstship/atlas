@@ -106,16 +106,17 @@ begin
     (a_supplier, 'demo-lighting-rentals', 'Demo Lighting Rentals', 'For-Profit', p_supplier)
   on conflict (id) do nothing;
 
-  insert into app.account_memberships (id, org_id, person_id)
+  -- Demo members have confirmed their memberships (R4, 2630).
+  insert into app.account_memberships (id, org_id, person_id, accepted_at)
   values
-    ('01920000-0000-7000-8000-000010800201', a_agency, p_agency),
-    ('01920000-0000-7000-8000-000010800202', a_agency, p_staff1),
-    ('01920000-0000-7000-8000-000010800203', a_agency, p_staff2),
-    ('01920000-0000-7000-8000-000010800204', a_studio, p_contractor),
-    ('01920000-0000-7000-8000-000010800205', a_talent, p_agent),
-    ('01920000-0000-7000-8000-000010800206', a_client, p_client),
-    ('01920000-0000-7000-8000-000010800207', a_sponsor, p_sponsor),
-    ('01920000-0000-7000-8000-000010800208', a_supplier, p_supplier)
+    ('01920000-0000-7000-8000-000010800201', a_agency, p_agency, now()),
+    ('01920000-0000-7000-8000-000010800202', a_agency, p_staff1, now()),
+    ('01920000-0000-7000-8000-000010800203', a_agency, p_staff2, now()),
+    ('01920000-0000-7000-8000-000010800204', a_studio, p_contractor, now()),
+    ('01920000-0000-7000-8000-000010800205', a_talent, p_agent, now()),
+    ('01920000-0000-7000-8000-000010800206', a_client, p_client, now()),
+    ('01920000-0000-7000-8000-000010800207', a_sponsor, p_sponsor, now()),
+    ('01920000-0000-7000-8000-000010800208', a_supplier, p_supplier, now())
   on conflict (id) do nothing;
 
   insert into app.account_membership_roles (account_membership_id, account_role, granted_by)

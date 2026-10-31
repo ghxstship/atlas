@@ -289,6 +289,10 @@
       "label": "Supplier diversity program",
       "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
     },
+    "keepPhotoLocation": {
+      "label": "Keep photo location",
+      "help": "Keep where a Compass photo was taken in the photo's file. When off, Compass removes the location as it resizes the photo."
+    },
     "offeringsTravel": {
       "label": "Travel",
       "help": "Flights and ground transport for the people you engage. Offered, the Travel and lodging and Hospitality tabs appear on their Gateway engagements."
@@ -332,6 +336,18 @@
     "partnerLayout": {
       "label": "Partner console layout",
       "help": "Widen or narrow a partner console tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
+    },
+    "projectFactsKeepDays": {
+      "label": "Keep project details for (days)",
+      "help": "How long the travel, uniform and vehicle details people enter on a roster entry stay after the engagement is complete or canceled. 30 to 365 days."
+    },
+    "companyMaySubmitProjectFacts": {
+      "label": "Companies may enter project details for their people",
+      "help": "When on, the company that rosters someone may enter their travel, uniform and vehicle details for them. The person is notified and can correct anything they did not enter themselves."
+    },
+    "advancingAllowanceOverflow": {
+      "label": "Requests beyond the allowance",
+      "help": "Refuse turns away a request above an offering's cap. Review lets it in as requested; approving it, or assigning above the cap, then needs a reason that is kept with the allocation."
     }
   },
   "choices": {
@@ -476,6 +492,10 @@
       "provided": "Provided",
       "reimbursed": "Reimbursed",
       "buyout": "Buyout"
+    },
+    "advancing_allowance_overflow": {
+      "refuse": "Refuse",
+      "review": "Send to review"
     }
   },
   "brand": {

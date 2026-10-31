@@ -19,7 +19,8 @@
 # downloader until a replicable source exists.
 #
 # Scope keys: membershipIds, readableProjectIds and orgIds (internal audiences), engagementIds and
-# engagedProjectIds (external audiences, operational area open), personIds (everyone).
+# engagedProjectIds (external audiences, operational area open), rosterEntryIds (a person's own roster entries
+# accepted by both sides on an Active or Closing engagement, R8), personIds (everyone).
 bucket_definitions:
   own_person:
     parameters: >-
@@ -106,6 +107,13 @@ bucket_definitions:
       - SELECT id, project_id, day, body FROM app.day_sheets WHERE project_id = bucket.project_id AND bucket.audience IN ('crew', 'staff', 'artist', 'artist-representative', 'client')
       - SELECT id, project_id, name, show_date FROM app.run_of_show WHERE project_id = bucket.project_id AND bucket.audience = 'client'
       - SELECT id, run_of_show_id, position, label, planned_at, duration, called_at, project_id FROM app.cues WHERE project_id = bucket.project_id AND bucket.audience = 'client'
+
+  roster_entry:
+    parameters: >-
+      SELECT scope_value AS roster_entry_id FROM private.sync_scope_grants
+      WHERE person_user_id = request.user_id() AND scope_key = 'rosterEntryIds'
+    data:
+      - SELECT id, asset_unit_id, custodian_engagement_id, roster_entry_id, project_id, created_at FROM app.asset_custody WHERE roster_entry_id = bucket.roster_entry_id
 
   canon_reference:
     data:

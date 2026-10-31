@@ -1,9 +1,10 @@
 /**
  * Settings, Work Details in Compass (Section 4.5.6 personal settings item 10, A111, ADR 0071): the work phone, and
- * the person's uniform sizes, dietary and accessibility needs, travel profile and emergency contacts. The forms read
- * and save online with the person's session (owner-only rows, migration 1340), checked by the parsers Atlas and
- * Gateway share; nothing of them stays on the phone. The passport, loyalty programs, sharing with engagements and the
- * access log open in Gateway. The Profile keeps showing the contacts and sizes read-only (WorkDetailsCards).
+ * the person's dietary and accessibility needs and emergency contacts. The forms read and save online with the
+ * person's session (owner-only rows, migration 1340), checked by the parsers Atlas and Gateway share; nothing of them
+ * stays on the phone. The passport, loyalty programs, sharing with engagements and the access log open in Gateway.
+ * Uniform sizes and travel preferences are asked per project since R6a (2664, ADR 0071 amendment): a notice says so,
+ * and Project details holds them. The Profile keeps showing the contacts read-only (WorkDetailsCards).
  */
 import type { XosClient } from "@xos/data";
 import type { Result } from "@xos/data/result";
@@ -15,7 +16,6 @@ import {
   listMyEmergencyContacts,
   removeEmergencyContact,
   saveMyWorkDetails,
-  SEAT_PREFERENCES,
   workDetailLabelKey,
   type EmergencyContact,
   type WorkDetails,
@@ -25,8 +25,6 @@ import {
   parseAccessibilityForm,
   parseContactForm,
   parseDietaryForm,
-  parseTravelForm,
-  parseUniformForm,
   type Parsed,
 } from "@xos/data/work-details-forms";
 import { formatPhone, regionFromLocale, toE164 } from "@xos/i18n/formats";
@@ -41,14 +39,9 @@ import {
   NEW_CONTACT,
   nextSortOrder,
   saveErrorKey,
-  SIZE_CHOICES,
   toggled,
-  travelFields,
-  uniformFields,
 } from "../../settings/workDetails";
 import { Button, Card, InlineAlert, ListRow, Switch, Text, TextField } from "../../ui";
-import { ChoiceRow, ChoiceSheet } from "./ChoiceSheet";
-import { LabeledChoice } from "./parts";
 import { RegistrySettingsScreen } from "./RegistrySettings";
 
 const W = "workDetails";
@@ -107,66 +100,6 @@ function usePatchSave(db: XosClient, onSaved: () => void) {
     if (parsed.ok) void save.run(() => saveMyWorkDetails(db, parsed.value));
   };
   return { state: save.state, errors, submit };
-}
-
-function UniformCard({ db, details, onSaved }: FormProps): ReactElement {
-  const { t } = useTranslation();
-  const [fields, setFields] = useState(() => uniformFields(details));
-  const [sheet, setSheet] = useState<string | null>(null);
-  const patch = usePatchSave(db, onSaved);
-  const set = (name: string) => (value: string) => setFields((f) => ({ ...f, [name]: value }));
-  const size = (name: "shirtSize" | "jacketSize" | "gloveSize", label: string) => (
-    <>
-      <ChoiceRow
-        testID={`work-uniform-${name}`}
-        title={label}
-        value={fields[name] || t(`${W}.notSet`)}
-        onPress={() => setSheet(name)}
-      />
-      <ChoiceSheet
-        testID={`work-uniform-${name}-sheet`}
-        open={sheet === name}
-        title={label}
-        value={fields[name] ?? ""}
-        choices={SIZE_CHOICES.map((s) => ({ value: s, label: s || t(`${W}.notSet`) }))}
-        onChoose={set(name)}
-        onClose={() => setSheet(null)}
-      />
-    </>
-  );
-  const text = (name: string, label: string, help?: string, multiline?: boolean) => (
-    <TextField
-      testID={`work-uniform-${name}`}
-      label={label}
-      {...(help ? { help } : {})}
-      value={fields[name] ?? ""}
-      onChangeText={set(name)}
-      multiline={multiline ?? false}
-      autoComplete="off"
-      {...patch.errors.of(name)}
-    />
-  );
-  return (
-    <Card title={t(`${W}.uniform.title`)} testID="work-uniform">
-      <Text variant="text13" tone="secondary">
-        {t(`${W}.uniform.description`)}
-      </Text>
-      {size("shirtSize", t(`${W}.uniform.shirt`))}
-      {size("jacketSize", t(`${W}.uniform.jacket`))}
-      {text("pantsSize", t(`${W}.uniform.pants`), t(`${W}.uniform.pantsHelp`))}
-      {text("shoeSize", t(`${W}.uniform.shoe`), t(`${W}.uniform.shoeHelp`))}
-      {size("gloveSize", t(`${W}.uniform.gloves`))}
-      {text("hatSize", t(`${W}.uniform.hat`))}
-      {text("uniformNotes", t(`${W}.uniform.notes`), undefined, true)}
-      <Button
-        testID="work-uniform-save"
-        label={t("compass.common.save")}
-        loading={patch.state.kind === "saving"}
-        onPress={() => patch.submit(parseUniformForm(formFields(fields)))}
-      />
-      <SaveNotice state={patch.state} testID="work-uniform" />
-    </Card>
-  );
 }
 
 /** Dietary or accessibility needs: one switch per need, then the notes. */
@@ -236,58 +169,6 @@ function NeedsCard({
         }}
       />
       <SaveNotice state={patch.state} testID={`work-${kind}`} />
-    </Card>
-  );
-}
-
-function TravelCard({ db, details, onSaved }: FormProps): ReactElement {
-  const { t } = useTranslation();
-  const [fields, setFields] = useState(() => travelFields(details));
-  const patch = usePatchSave(db, onSaved);
-  const set = (name: string) => (value: string) => setFields((f) => ({ ...f, [name]: value }));
-  return (
-    <Card title={t(`${W}.travel.title`)} testID="work-travel">
-      <Text variant="text13" tone="secondary">
-        {t(`${W}.travel.description`)}
-      </Text>
-      <LabeledChoice
-        testID="work-travel-seat"
-        label={t(`${W}.travel.seat`)}
-        value={fields["seatPreference"] ?? ""}
-        options={[
-          { value: "", label: t(`${W}.notSet`) },
-          ...SEAT_PREFERENCES.map((s) => ({
-            value: s,
-            label: t(`${W}.seatPreferences.${workDetailLabelKey(s)}`),
-          })),
-        ]}
-        onChange={set("seatPreference")}
-      />
-      <TextField
-        testID="work-travel-meal"
-        label={t(`${W}.travel.meal`)}
-        help={t(`${W}.travel.mealHelp`)}
-        value={fields["mealPreference"] ?? ""}
-        onChangeText={set("mealPreference")}
-        autoComplete="off"
-        {...patch.errors.of("mealPreference")}
-      />
-      <TextField
-        testID="work-travel-airport"
-        label={t(`${W}.travel.airport`)}
-        help={t(`${W}.travel.airportHelp`)}
-        value={fields["homeAirport"] ?? ""}
-        onChangeText={set("homeAirport")}
-        autoComplete="off"
-        {...patch.errors.of("homeAirport")}
-      />
-      <Button
-        testID="work-travel-save"
-        label={t("compass.common.save")}
-        loading={patch.state.kind === "saving"}
-        onPress={() => patch.submit(parseTravelForm(formFields(fields)))}
-      />
-      <SaveNotice state={patch.state} testID="work-travel" />
     </Card>
   );
 }
@@ -445,11 +326,10 @@ export function WorkDetailsSettings(): ReactElement {
         <Text tone="tertiary">{t("compass.common.loading")}</Text>
       ) : (
         <>
+          <InlineAlert testID="work-details-moved" tone="info" message={t(`${W}.notice.body`)} />
           {/* Each form starts from what the server held when the section opened and keeps what was saved. */}
-          <UniformCard db={db} details={loaded.details} onSaved={reload} />
           <NeedsCard kind="dietary" db={db} details={loaded.details} onSaved={reload} />
           <NeedsCard kind="accessibility" db={db} details={loaded.details} onSaved={reload} />
-          <TravelCard db={db} details={loaded.details} onSaved={reload} />
           {personId ? (
             <ContactsCard db={db} contacts={loaded.contacts} personId={personId} onSaved={reload} />
           ) : null}

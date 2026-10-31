@@ -1,5 +1,11 @@
 import type { AssetState } from "@xos/data/assets";
 import type { RecordState } from "@xos/ui";
+import {
+  conditionsOf,
+  matchesShown,
+  type Condition,
+  type ConditionOperator,
+} from "@/lib/views/conditions";
 
 /**
  * View helpers for the assets pages. View types per page come from the sitemap (`list.views`), the
@@ -46,7 +52,66 @@ export const ASSET_STATE_TONE: Record<AssetState, RecordState> = {
   Damaged: "blocked",
   Lost: "blocked",
   Retired: "canceled",
+  Returned: "canceled",
 };
+
+/**
+ * The units list's declared filter fields (A117), matched on the unit's stored values rather than the words shown,
+ * so a view saved in one language opens the same in the other: `f.state` is its asset state and `f.acquisition`
+ * Purchase or Rental (from app.asset_unit_hire, Rental when it arrived on a rental order line).
+ */
+export const UNIT_FILTER_FIELDS = ["state", "acquisition"] as const;
+export type UnitFilterField = (typeof UNIT_FILTER_FIELDS)[number];
+
+/** What the units list's conditions read of a unit. */
+export interface UnitViewFacts {
+  readonly state: AssetState;
+  readonly acquisitionKind: "Purchase" | "Rental";
+}
+
+/**
+ * The built-in views of the units list (R7a, G-96), listed first in the saved views menu under Built-in: presets
+ * in the A117 filter model, so their conditions show as filter chips, no one edits or deletes them, and a person
+ * saves a copy as their own saved view. Each name is the catalog key `assets.views.builtIn.<id>`.
+ */
+export const BUILT_IN_UNIT_PRESETS: readonly {
+  readonly id: "damaged" | "hiredIn" | "unavailable";
+  readonly filters: readonly Condition[];
+}[] = [
+  { id: "damaged", filters: [{ scope: "field", key: "state", operator: "eq", value: "Damaged" }] },
+  {
+    id: "hiredIn",
+    filters: [
+      { scope: "field", key: "acquisition", operator: "eq", value: "Rental" },
+      { scope: "field", key: "state", operator: "ne", value: "Returned" },
+    ],
+  },
+  {
+    id: "unavailable",
+    filters: [{ scope: "field", key: "state", operator: "ne", value: "Available" }],
+  },
+];
+
+/** A preset's conditions as saved view filters (`f.state`, `ne`, `Available`). */
+export function presetFilters(
+  conditions: readonly Condition[],
+): { field: string; operator: ConditionOperator; value: string }[] {
+  return conditions.map((c) => ({ field: `f.${c.key}`, operator: c.operator, value: c.value }));
+}
+
+/** The query's conditions on the units list's declared fields. */
+export function unitConditions(conditions: string | undefined): Condition[] {
+  return conditionsOf(new URLSearchParams(conditions ?? "")).filter(
+    (c) => c.scope === "field" && (UNIT_FILTER_FIELDS as readonly string[]).includes(c.key),
+  );
+}
+
+/** True when a unit passes every condition on the declared fields. */
+export function unitMatches(conditions: readonly Condition[], unit: UnitViewFacts): boolean {
+  return conditions.every((c) =>
+    matchesShown(c.key === "acquisition" ? unit.acquisitionKind : unit.state, c),
+  );
+}
 
 /** Query string values a list route keeps across view switches (Section 4.5.3). */
 export interface ListQuery {

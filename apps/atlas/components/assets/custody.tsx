@@ -3,8 +3,14 @@
 import { assetStateKey } from "@xos/data/assets";
 import { Button, Input, Select, Textarea } from "@xos/ui";
 import { RefusalNotice } from "@/components/refusal-notice";
-import { useState, useTransition } from "react";
-import { custodyScanAction, resolveCodeAction, type ScanLookup } from "@/app/[org]/assets/actions";
+import { useEffect, useState, useTransition } from "react";
+import {
+  allocationHoldsAction,
+  custodyScanAction,
+  resolveCodeAction,
+  type AllocationHoldOption,
+  type ScanLookup,
+} from "@/app/[org]/assets/actions";
 import { useAssetsCopy } from "./copy";
 import { ActionDialog } from "./dialog";
 import type { Option } from "./forms";
@@ -57,6 +63,18 @@ export function CustodyMoveDialog({
   const [eventId] = useState(() => crypto.randomUUID());
   const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const key = ACTION_KEY[action];
+  // R7: a unit checked out may be issued against an allocation's hold, read when the dialog opens.
+  const [holds, setHolds] = useState<readonly AllocationHoldOption[]>([]);
+  useEffect(() => {
+    if (!open || action !== "check-out" || lot) return;
+    let live = true;
+    void allocationHoldsAction(org, code).then((h) => {
+      if (live) setHolds(h);
+    });
+    return () => {
+      live = false;
+    };
+  }, [open, action, lot, org, code]);
   // One Custodian select: members as m:<membership>, and the engagements of the chosen project (or,
   // with Keep project, of the project the item is out for) as e:<engagement>.
   const custodyProject = projectId || defaultProjectId || "";
@@ -109,6 +127,16 @@ export function CustodyMoveDialog({
           onChange={(e) => setProjectId(e.target.value)}
         />
       )}
+      {holds.length > 0 ? (
+        <Select
+          id="custody-allocation"
+          name="hold"
+          label={t("reservations.allocation")}
+          help={t("reservations.allocationHelp")}
+          value=""
+          options={[{ value: "", label: t("reservations.noAllocation") }, ...holds]}
+        />
+      ) : null}
       {lot ? (
         <Input
           id="custody-quantity"

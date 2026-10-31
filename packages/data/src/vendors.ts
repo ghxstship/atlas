@@ -865,6 +865,15 @@ export interface SponsorAsset {
   readonly decidedBy: string | null;
   readonly decidedAt: string | null;
   readonly createdBy: string | null;
+  /** Org Supplied, or Sponsor Supplied from Gateway (R9, migration 2713). */
+  readonly source: Database["app"]["Enums"]["sponsor_asset_source"];
+  /** Files of the current revision, with the version Atlas serves at /files/party/<version>. */
+  readonly files: readonly { readonly title: string; readonly versionId: string | null }[];
+}
+
+/** The org's moves on a sponsor-supplied asset: approve, return or cancel a submitted one (2713). */
+export function sponsorSuppliedMoves(state: ReviewState): readonly ReviewState[] {
+  return state === "Submitted" ? ["Approved", "Returned", "Canceled"] : [];
 }
 
 export async function listSponsorAssets(
@@ -875,7 +884,7 @@ export async function listSponsorAssets(
     db
       .from("sponsor_assets")
       .select(
-        "id, sponsor_entitlement_id, asset_kind, title, usage_note, due_on, revision, asset_state, decided_by, decided_at, created_by",
+        "id, sponsor_entitlement_id, asset_kind, title, usage_note, due_on, revision, asset_state, decided_by, decided_at, created_by, asset_source, files:sponsor_asset_files(revision, position, document:documents(title, versions:document_versions(id, version_number)))",
       )
       .eq("org_id", orgId)
       .is("deleted_at", null)
@@ -892,6 +901,16 @@ export async function listSponsorAssets(
       decidedBy: row.decided_by,
       decidedAt: row.decided_at,
       createdBy: row.created_by,
+      source: row.asset_source,
+      files: [...(row.files ?? [])]
+        .filter((f) => f.revision === row.revision)
+        .sort((a, b) => a.position - b.position)
+        .map((f) => ({
+          title: f.document?.title ?? "",
+          versionId:
+            [...(f.document?.versions ?? [])].sort((a, b) => b.version_number - a.version_number)[0]
+              ?.id ?? null,
+        })),
     }),
   );
 }

@@ -151,3 +151,103 @@ test("journey 47: package, asset approval, fulfillment and proof of performance 
   await expectAccessible(atlas.page);
   await atlas.context.close();
 });
+
+/** A one-pixel PNG, enough for party-uploads to take as a logo. */
+const PIXEL = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  "base64",
+);
+
+/**
+ * Journey 47 extended (R9, migration 2713): the sponsor supplies its own logo for an entitlement in
+ * Gateway, the org returns it with what to change, the sponsor resubmits it with a new file at the
+ * next revision, and the org approves it. The org's two decisions run as the Producer through
+ * app.transition_sponsor_asset, as Atlas makes them; the sponsor never approves its own asset.
+ */
+test("journey 47: the sponsor supplies a logo, the org returns it, the sponsor resubmits, the org approves", async ({
+  page,
+}) => {
+  const engagement = await roleEngagement({
+    person: ROLE_PEOPLE.sponsor,
+    account: ROLE_ACCOUNTS.sponsor,
+    roleType: "Sponsor",
+  });
+  // Assets are supplied while the engagement's operational area is open.
+  await transition("engagement", engagement.id, "Onboarding", "Active", "Package accepted.");
+  const tag = suffix();
+  const entitlement = `Logo on the LED wall ${tag}`;
+  await sponsorEntitlement(entitlement);
+  const title = `Brightwave logo ${tag}`;
+
+  await signIn(page, "sponsor@example.com", `/work/engagements/${engagement.key}/asset-approvals`);
+  await expect(page.getByRole("heading", { name: "Assets you supply" })).toBeVisible();
+  const supply = page.getByRole("form", { name: "Supply an asset" });
+  await supply.getByLabel("Entitlement", { exact: true }).selectOption({ label: entitlement });
+  await supply.getByLabel("Kind", { exact: true }).selectOption({ label: "Logo" });
+  await supply.getByLabel("What it is", { exact: true }).fill(title);
+  await supply
+    .getByLabel("Files", { exact: true })
+    .setInputFiles({ name: "logo-dark.png", mimeType: "image/png", buffer: PIXEL });
+  await expectAccessible(page);
+  await supply.getByRole("button", { name: "Send for approval" }).click();
+  await expect(page.getByText("Sent. The organization reviews it.")).toBeVisible();
+
+  await page.reload();
+  const supplied = page.getByRole("list", { name: "Assets you supply" });
+  const row = supplied.getByRole("listitem").filter({ hasText: title });
+  await expect(row.getByText("Files: logo-dark.png")).toBeVisible();
+  const [asset] = await sql<{ id: string; asset_source: string }>(
+    "select id, asset_source::text from app.sponsor_assets where title = $1 and deleted_at is null",
+    [title],
+  );
+  expect(asset?.asset_source).toBe("Sponsor Supplied");
+  // The sponsor's own approval path is closed to it: the org approves what the sponsor supplies.
+  await expect(
+    asPerson(
+      ROLE_PEOPLE.sponsor,
+      "select app.respond_sponsor_asset($1, 'Submitted', 'Approved', null)",
+      [asset?.id],
+    ),
+  ).rejects.toThrow(/sponsor_asset_source/);
+
+  // The org returns it; the sponsor resubmits a white version.
+  await asPerson(
+    PEOPLE.producer,
+    `select app.transition_sponsor_asset($1, 'Submitted', 'Returned', 'Use the white logo on the dark wall.')`,
+    [asset?.id],
+  );
+  await page.reload();
+  await expect(row.getByText("Returned", { exact: true })).toBeVisible();
+  const resubmit = row.getByRole("form", { name: title });
+  await resubmit
+    .getByLabel("Files", { exact: true })
+    .setInputFiles({ name: "logo-white.png", mimeType: "image/png", buffer: PIXEL });
+  await expectAccessibleInBothThemes(page);
+  await resubmit.getByRole("button", { name: "Resubmit with new files" }).click();
+  await expect(
+    page.getByText("Resubmitted. The organization reviews the new revision."),
+  ).toBeVisible();
+  await page.reload();
+  await expect(row.getByText("Revision 1")).toBeVisible();
+  await expect(row.getByText("Files: logo-white.png")).toBeVisible();
+
+  // The org approves the new revision.
+  await asPerson(
+    PEOPLE.producer,
+    `select app.transition_sponsor_asset($1, 'Submitted', 'Approved', 'White version works.')`,
+    [asset?.id],
+  );
+  await page.reload();
+  await expect(row.getByText("Approved", { exact: true })).toBeVisible();
+  const [decided] = await sql<{ decided_by: string; asset_state: string }>(
+    "select decided_by, asset_state::text from app.sponsor_assets where id = $1",
+    [asset?.id],
+  );
+  expect(decided).toEqual({ decided_by: PEOPLE.producer, asset_state: "Approved" });
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.reload();
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});

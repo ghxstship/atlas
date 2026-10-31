@@ -44,6 +44,7 @@ import enUS_peek from "../messages/en-US/peek.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
 import enUS_permits from "../messages/en-US/permits.json" with { type: "json" };
 import enUS_places from "../messages/en-US/places.json" with { type: "json" };
+import enUS_planLimits from "../messages/en-US/planLimits.json" with { type: "json" };
 import enUS_platform from "../messages/en-US/platform.json" with { type: "json" };
 import enUS_procurement from "../messages/en-US/procurement.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
@@ -110,6 +111,7 @@ import esUS_peek from "../messages/es-US/peek.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
 import esUS_permits from "../messages/es-US/permits.json" with { type: "json" };
 import esUS_places from "../messages/es-US/places.json" with { type: "json" };
+import esUS_planLimits from "../messages/es-US/planLimits.json" with { type: "json" };
 import esUS_platform from "../messages/es-US/platform.json" with { type: "json" };
 import esUS_procurement from "../messages/es-US/procurement.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
@@ -178,6 +180,7 @@ export const enUS = {
   people: enUS_people,
   permits: enUS_permits,
   places: enUS_places,
+  planLimits: enUS_planLimits,
   platform: enUS_platform,
   procurement: enUS_procurement,
   profiles: enUS_profiles,
@@ -247,6 +250,7 @@ export const esUS = {
   people: esUS_people,
   permits: esUS_permits,
   places: esUS_places,
+  planLimits: esUS_planLimits,
   platform: esUS_platform,
   procurement: esUS_procurement,
   profiles: esUS_profiles,
