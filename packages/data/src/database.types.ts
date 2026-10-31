@@ -9,8 +9,70 @@ export type Database = {
       [_ in never]: never;
     };
     Views: {
+      account_engagement_assignments: {
+        Row: {
+          account_membership_id: string | null;
+          duty: Database["app"]["Enums"]["account_engagement_duty"] | null;
+          engagement_id: string | null;
+          full_name: string | null;
+          id: string | null;
+          person_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "account_engagement_assignments_account_membership_id_fkey";
+            columns: ["account_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "account_members";
+            referencedColumns: ["account_membership_id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_offerings";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_up_next";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      account_invitations: {
+        Row: {
+          account_id: string | null;
+          account_role: Database["app"]["Enums"]["account_role"] | null;
+          email: string | null;
+          expires_at: string | null;
+          id: string | null;
+          invited_by_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "account_invitations_org_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+        ];
+      };
       account_members: {
         Row: {
+          accepted_at: string | null;
           account_id: string | null;
           account_membership_id: string | null;
           full_name: string | null;
@@ -808,6 +870,76 @@ export type Database = {
         ComputedFields: never;
         Relationships: [];
       };
+      engagement_roster: {
+        Row: {
+          arrival_ends_at: string | null;
+          arrival_starts_at: string | null;
+          arrival_time_zone: string | null;
+          engagement_id: string | null;
+          entry_state: Database["app"]["Enums"]["roster_entry_state"] | null;
+          full_name: string | null;
+          id: string | null;
+          invitation_expires_at: string | null;
+          invited_email: string | null;
+          is_self: boolean | null;
+          job_title: string | null;
+          party_name: string | null;
+          person_id: string | null;
+          person_response: Database["app"]["Enums"]["roster_person_response"] | null;
+          project_id: string | null;
+          replaces_entry_id: string | null;
+          responded_at: string | null;
+          return_reason: string | null;
+          role_code: string | null;
+          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          share_categories: Database["app"]["Enums"]["work_detail_category"][] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_offerings";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_up_next";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
+            columns: ["replaces_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
+            columns: ["replaces_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       engagement_threads: {
         Row: {
           created_at: string | null;
@@ -1130,6 +1262,16 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      my_account_talent: {
+        Row: {
+          account_id: string | null;
+          full_name: string | null;
+          person_id: string | null;
+          source: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
       };
       my_accounts: {
         Row: {
@@ -1479,6 +1621,57 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "my_accounts";
             referencedColumns: ["account_id"];
+          },
+        ];
+      };
+      my_roster_entries: {
+        Row: {
+          arrival_ends_at: string | null;
+          arrival_starts_at: string | null;
+          arrival_time_zone: string | null;
+          engagement_id: string | null;
+          entry_state: Database["app"]["Enums"]["roster_entry_state"] | null;
+          id: string | null;
+          is_self: boolean | null;
+          job_title: string | null;
+          org_name: string | null;
+          party_name: string | null;
+          person_response: Database["app"]["Enums"]["roster_person_response"] | null;
+          project_id: string | null;
+          project_name: string | null;
+          role_code: string | null;
+          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          share_categories: Database["app"]["Enums"]["work_detail_category"][] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_offerings";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_up_next";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -3612,6 +3805,204 @@ export type Database = {
           },
         ];
       };
+      account_engagement_assignments: {
+        Row: {
+          account_membership_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          duty: Database["app"]["Enums"]["account_engagement_duty"];
+          engagement_id: string;
+          granted_by: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          account_membership_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          duty: Database["app"]["Enums"]["account_engagement_duty"];
+          engagement_id: string;
+          granted_by?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          account_membership_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          duty?: Database["app"]["Enums"]["account_engagement_duty"];
+          engagement_id?: string;
+          granted_by?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "account_engagement_assignments_account_membership_id_fkey";
+            columns: ["account_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "account_memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_granted_by_fkey";
+            columns: ["granted_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_engagement_assignments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      account_invitations: {
+        Row: {
+          accepted_at: string | null;
+          accepted_person_id: string | null;
+          account_role: Database["app"]["Enums"]["account_role"];
+          created_at: string;
+          created_by: string | null;
+          declined_at: string | null;
+          deleted_at: string | null;
+          email: string;
+          expires_at: string;
+          id: string;
+          invited_by: string;
+          org_id: string;
+          revoked_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          accepted_at?: string | null;
+          accepted_person_id?: string | null;
+          account_role: Database["app"]["Enums"]["account_role"];
+          created_at?: string;
+          created_by?: string | null;
+          declined_at?: string | null;
+          deleted_at?: string | null;
+          email: string;
+          expires_at: string;
+          id?: string;
+          invited_by: string;
+          org_id: string;
+          revoked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          accepted_at?: string | null;
+          accepted_person_id?: string | null;
+          account_role?: Database["app"]["Enums"]["account_role"];
+          created_at?: string;
+          created_by?: string | null;
+          declined_at?: string | null;
+          deleted_at?: string | null;
+          email?: string;
+          expires_at?: string;
+          id?: string;
+          invited_by?: string;
+          org_id?: string;
+          revoked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "account_invitations_accepted_person_id_fkey";
+            columns: ["accepted_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_invitations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_invitations_invited_by_fkey";
+            columns: ["invited_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_invitations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_invitations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       account_membership_roles: {
         Row: {
           account_membership_id: string;
@@ -3690,6 +4081,7 @@ export type Database = {
       };
       account_memberships: {
         Row: {
+          accepted_at: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -3703,6 +4095,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          accepted_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -3715,6 +4108,7 @@ export type Database = {
           valid_to?: string | null;
         };
         Update: {
+          accepted_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -16692,6 +17086,138 @@ export type Database = {
           },
           {
             foreignKeyName: "engagement_messages_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      engagement_roster_entries: {
+        Row: {
+          arrival_time_zone: string | null;
+          arrival_window: unknown;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_id: string;
+          entry_state: Database["app"]["Enums"]["roster_entry_state"];
+          id: string;
+          is_self: boolean;
+          org_id: string;
+          person_id: string | null;
+          person_response: Database["app"]["Enums"]["roster_person_response"];
+          replaces_entry_id: string | null;
+          responded_at: string | null;
+          role_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          arrival_time_zone?: string | null;
+          arrival_window?: unknown;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id: string;
+          entry_state?: Database["app"]["Enums"]["roster_entry_state"];
+          id?: string;
+          is_self?: boolean;
+          org_id: string;
+          person_id?: string | null;
+          person_response?: Database["app"]["Enums"]["roster_person_response"];
+          replaces_entry_id?: string | null;
+          responded_at?: string | null;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          arrival_time_zone?: string | null;
+          arrival_window?: unknown;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string;
+          entry_state?: Database["app"]["Enums"]["roster_entry_state"];
+          id?: string;
+          is_self?: boolean;
+          org_id?: string;
+          person_id?: string | null;
+          person_response?: Database["app"]["Enums"]["roster_person_response"];
+          replaces_entry_id?: string | null;
+          responded_at?: string | null;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "engagement_roster_entries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
+            columns: ["replaces_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
+            columns: ["replaces_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -43862,6 +44388,190 @@ export type Database = {
           },
         ];
       };
+      roster_entry_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["roster_entry_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          roster_entry_id: string;
+          to_state: Database["app"]["Enums"]["roster_entry_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["roster_entry_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          roster_entry_id: string;
+          to_state: Database["app"]["Enums"]["roster_entry_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["roster_entry_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          roster_entry_id?: string;
+          to_state?: Database["app"]["Enums"]["roster_entry_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "roster_entry_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_entry_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_entry_state_transitions_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_entry_state_transitions_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_entry_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      roster_invitations: {
+        Row: {
+          claimed_at: string | null;
+          claimed_person_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          declined_at: string | null;
+          deleted_at: string | null;
+          email: string;
+          expires_at: string;
+          id: string;
+          invited_by: string;
+          org_id: string;
+          revoked_at: string | null;
+          roster_entry_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          claimed_at?: string | null;
+          claimed_person_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          declined_at?: string | null;
+          deleted_at?: string | null;
+          email: string;
+          expires_at: string;
+          id?: string;
+          invited_by: string;
+          org_id: string;
+          revoked_at?: string | null;
+          roster_entry_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          claimed_at?: string | null;
+          claimed_person_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          declined_at?: string | null;
+          deleted_at?: string | null;
+          email?: string;
+          expires_at?: string;
+          id?: string;
+          invited_by?: string;
+          org_id?: string;
+          revoked_at?: string | null;
+          roster_entry_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "roster_invitations_claimed_person_id_fkey";
+            columns: ["claimed_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_invitations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_invitations_invited_by_fkey";
+            columns: ["invited_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_invitations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_invitations_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_invitations_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_invitations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       run_of_show: {
         Row: {
           created_at: string;
@@ -56108,6 +56818,7 @@ export type Database = {
           person_id: string;
           reason: string | null;
           request_id: string | null;
+          roster_entry_id: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -56122,6 +56833,7 @@ export type Database = {
           person_id: string;
           reason?: string | null;
           request_id?: string | null;
+          roster_entry_id?: string | null;
         };
         Update: {
           action?: string;
@@ -56135,6 +56847,7 @@ export type Database = {
           person_id?: string;
           reason?: string | null;
           request_id?: string | null;
+          roster_entry_id?: string | null;
         };
         Relationships: [
           {
@@ -56186,6 +56899,20 @@ export type Database = {
             referencedRelation: "people";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "work_detail_events_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_detail_events_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
         ];
       };
       work_detail_shares: {
@@ -56200,6 +56927,7 @@ export type Database = {
           org_id: string;
           person_id: string;
           revoked_at: string | null;
+          roster_entry_id: string | null;
           shared_at: string;
           updated_at: string;
           updated_by: string | null;
@@ -56216,6 +56944,7 @@ export type Database = {
           org_id: string;
           person_id: string;
           revoked_at?: string | null;
+          roster_entry_id?: string | null;
           shared_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -56231,6 +56960,7 @@ export type Database = {
           org_id?: string;
           person_id?: string;
           revoked_at?: string | null;
+          roster_entry_id?: string | null;
           shared_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -56290,6 +57020,20 @@ export type Database = {
             columns: ["person_id"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_detail_shares_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_detail_shares_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
             referencedColumns: ["id"];
           },
           {
@@ -60322,6 +61066,112 @@ export type Database = {
         };
         Relationships: [];
       };
+      roster_entry_people: {
+        Row: {
+          arrival_ends_at: string | null;
+          arrival_starts_at: string | null;
+          arrival_time_zone: string | null;
+          engagement_id: string | null;
+          entry_state: Database["app"]["Enums"]["roster_entry_state"] | null;
+          full_name: string | null;
+          id: string | null;
+          invitation_expires_at: string | null;
+          invited_email: string | null;
+          is_self: boolean | null;
+          job_title: string | null;
+          org_id: string | null;
+          party_name: string | null;
+          person_id: string | null;
+          person_response: Database["app"]["Enums"]["roster_person_response"] | null;
+          project_id: string | null;
+          replaces_entry_id: string | null;
+          responded_at: string | null;
+          return_reason: string | null;
+          role_code: string | null;
+          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          share_categories: Database["app"]["Enums"]["work_detail_category"][] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
+            columns: ["replaces_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_roster_entries_replaces_entry_id_fkey";
+            columns: ["replaces_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       separation_of_duties_options: {
         Row: {
           code: string | null;
@@ -60844,6 +61694,7 @@ export type Database = {
     };
     Functions: {
       abandon_idempotent_request: { Args: { p_key: string; p_org_id: string }; Returns: undefined };
+      accept_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
       accept_engaged_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       accept_invite: {
         Args: { p_token: string };
@@ -60947,6 +61798,18 @@ export type Database = {
           p_to: string;
         };
         Returns: number;
+      };
+      add_roster_entry: {
+        Args: {
+          p_arrival_ends_at?: string;
+          p_arrival_starts_at?: string;
+          p_arrival_time_zone?: string;
+          p_engagement_id: string;
+          p_person_id: string;
+          p_replaces_entry_id?: string;
+          p_role_code?: string;
+        };
+        Returns: string;
       };
       add_supplier_diversity_certification: {
         Args: {
@@ -61094,6 +61957,14 @@ export type Database = {
       approve_requisition: {
         Args: { p_reason: string; p_requisition_id: string };
         Returns: boolean;
+      };
+      assign_engagement_member: {
+        Args: {
+          p_account_membership_id: string;
+          p_duty: Database["app"]["Enums"]["account_engagement_duty"];
+          p_engagement_id: string;
+        };
+        Returns: string;
       };
       assign_help_desk_request: {
         Args: {
@@ -61250,6 +62121,10 @@ export type Database = {
         Returns: Json;
       };
       bulk_update_records: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_roster_entries: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
@@ -62744,12 +63619,33 @@ export type Database = {
           stored_at: string;
         }[];
       };
+      invite_account_member: {
+        Args: {
+          p_account_id: string;
+          p_email: string;
+          p_role: Database["app"]["Enums"]["account_role"];
+          p_valid_for?: string;
+        };
+        Returns: string;
+      };
       invite_member: {
         Args: { p_email: string; p_org_id: string; p_role_id: string; p_valid_for?: string };
         Returns: {
           invite_id: string;
           invite_token: string;
         }[];
+      };
+      invite_to_roster: {
+        Args: {
+          p_arrival_ends_at?: string;
+          p_arrival_starts_at?: string;
+          p_arrival_time_zone?: string;
+          p_email: string;
+          p_engagement_id: string;
+          p_role_code?: string;
+          p_valid_for?: string;
+        };
+        Returns: string;
       };
       issue_advance_token: {
         Args: { p_recipient_email: string; p_recipient_id: string; p_valid_for?: string };
@@ -62999,6 +63895,21 @@ export type Database = {
         Returns: {
           org_id: string;
           org_name: string;
+        }[];
+      };
+      my_pending_invitations: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          account_name: string;
+          account_role: Database["app"]["Enums"]["account_role"];
+          expires_at: string;
+          invitation_id: string;
+          invitation_kind: string;
+          inviter_name: string;
+          job_title: string;
+          org_name: string;
+          party_name: string;
+          project_name: string;
         }[];
       };
       my_project_role_capabilities: {
@@ -64036,6 +64947,10 @@ export type Database = {
         Args: { p_app: string; p_auth: string; p_endpoint: string; p_p256dh: string };
         Returns: number;
       };
+      reissue_roster_invitation: {
+        Args: { p_roster_entry_id: string; p_valid_for?: string };
+        Returns: string;
+      };
       reject_expense: { Args: { p_expense_id: string; p_reason: string }; Returns: string };
       reject_requisition: { Args: { p_reason: string; p_requisition_id: string }; Returns: string };
       release_deletion_certificate: {
@@ -64227,6 +65142,17 @@ export type Database = {
           value_type: Database["app"]["Enums"]["setting_value_type"];
         }[];
       };
+      respond_party_invitation: {
+        Args: { p_accept: boolean; p_invitation_id: string; p_invitation_kind: string };
+        Returns: string;
+      };
+      respond_roster_entry: {
+        Args: {
+          p_response: Database["app"]["Enums"]["roster_person_response"];
+          p_roster_entry_id: string;
+        };
+        Returns: undefined;
+      };
       respond_sponsor_asset: {
         Args: {
           p_expected: Database["app"]["Enums"]["review_state"];
@@ -64256,6 +65182,10 @@ export type Database = {
       };
       retry_integration_sync: { Args: { p_reason: string; p_run_id: string }; Returns: string };
       reveal_my_passport_number: { Args: Record<PropertyKey, never>; Returns: string };
+      reveal_roster_passport_number: {
+        Args: { p_reason: string; p_roster_entry_id: string };
+        Returns: string;
+      };
       reveal_shared_passport_number: {
         Args: { p_engagement_id: string; p_reason: string };
         Returns: string;
@@ -64263,6 +65193,14 @@ export type Database = {
       reveal_shared_supplier_diversity_number: {
         Args: { p_reason: string; p_share_id: string };
         Returns: string;
+      };
+      review_roster_entry: {
+        Args: {
+          p_outcome: Database["app"]["Enums"]["roster_entry_state"];
+          p_reason?: string;
+          p_roster_entry_id: string;
+        };
+        Returns: undefined;
       };
       revise_offer: {
         Args: {
@@ -64277,6 +65215,7 @@ export type Database = {
         };
         Returns: string;
       };
+      revoke_account_invitation: { Args: { p_account_invitation_id: string }; Returns: undefined };
       revoke_advance_token: { Args: { p_token_id: string }; Returns: undefined };
       revoke_api_key: { Args: { p_api_key_id: string }; Returns: undefined };
       revoke_certification_share: {
@@ -64298,6 +65237,7 @@ export type Database = {
       revoke_supplier_diversity_share: { Args: { p_share_id: string }; Returns: undefined };
       revoke_web_push: { Args: { p_endpoint: string }; Returns: number };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
+      roster_shared_work_details: { Args: { p_roster_entry_id: string }; Returns: Json };
       rotate_calendar_feed: {
         Args: { p_calendar_feed_id: string };
         Returns: {
@@ -64890,6 +65830,7 @@ export type Database = {
         Args: { p_document_id?: string; p_item_id: string };
         Returns: undefined;
       };
+      submit_roster: { Args: { p_engagement_id: string }; Returns: number };
       submit_settlement: { Args: { p_reason: string; p_settlement_id: string }; Returns: boolean };
       submit_tax_form: {
         Args: {
@@ -65289,6 +66230,7 @@ export type Database = {
         Args: { p_id: string; p_note?: string; p_state: string };
         Returns: undefined;
       };
+      unassign_engagement_member: { Args: { p_assignment_id: string }; Returns: undefined };
       undo_import_batch: {
         Args: { p_import_batch_id: string; p_reason: string };
         Returns: {
@@ -65317,6 +66259,16 @@ export type Database = {
           p_medical_encounter_id: string;
           p_patient_description?: string;
           p_treatment_notes?: string;
+        };
+        Returns: undefined;
+      };
+      update_roster_entry: {
+        Args: {
+          p_arrival_ends_at: string;
+          p_arrival_starts_at: string;
+          p_arrival_time_zone: string;
+          p_role_code: string;
+          p_roster_entry_id: string;
         };
         Returns: undefined;
       };
@@ -65413,6 +66365,10 @@ export type Database = {
         Returns: boolean;
       };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
+      withdraw_roster_entry: {
+        Args: { p_reason: string; p_roster_entry_id: string };
+        Returns: undefined;
+      };
       withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
       work_order_display_key: {
         Args: {
@@ -65453,6 +66409,7 @@ export type Database = {
         | "Service Animal"
         | "Quiet Space"
         | "Assistance on Arrival";
+      account_engagement_duty: "Advancing Lead" | "Member";
       account_role: "Account Owner" | "Account Admin" | "Account Finance" | "Account Member";
       accounting_period_state: "Open" | "In Period" | "Closing" | "Closed" | "Audited" | "Archived";
       actor_kind: "Person" | "Service" | "System";
@@ -65828,6 +66785,8 @@ export type Database = {
       review_state: "Proposed" | "Submitted" | "Approved" | "Returned" | "Canceled";
       rfq_state: "Proposed" | "Issued" | "Closed" | "Awarded" | "Canceled";
       role_assignment_state: "Proposed" | "Active" | "Complete" | "Canceled";
+      roster_entry_state: "Draft" | "Submitted" | "Accepted" | "Returned" | "Withdrawn";
+      roster_person_response: "Pending" | "Accepted" | "Declined";
       rsvp_response: "Going" | "Maybe" | "Declined";
       run_status: "Queued" | "Running" | "Succeeded" | "Failed";
       scan_mode: "Asset" | "Credential" | "Shipment" | "Inventory" | "Lookup";
@@ -72031,6 +72990,7 @@ export const Constants = {
         "Quiet Space",
         "Assistance on Arrival",
       ],
+      account_engagement_duty: ["Advancing Lead", "Member"],
       account_role: ["Account Owner", "Account Admin", "Account Finance", "Account Member"],
       accounting_period_state: ["Open", "In Period", "Closing", "Closed", "Audited", "Archived"],
       actor_kind: ["Person", "Service", "System"],
@@ -72468,6 +73428,8 @@ export const Constants = {
       review_state: ["Proposed", "Submitted", "Approved", "Returned", "Canceled"],
       rfq_state: ["Proposed", "Issued", "Closed", "Awarded", "Canceled"],
       role_assignment_state: ["Proposed", "Active", "Complete", "Canceled"],
+      roster_entry_state: ["Draft", "Submitted", "Accepted", "Returned", "Withdrawn"],
+      roster_person_response: ["Pending", "Accepted", "Declined"],
       rsvp_response: ["Going", "Maybe", "Declined"],
       run_status: ["Queued", "Running", "Succeeded", "Failed"],
       scan_mode: ["Asset", "Credential", "Shipment", "Inventory", "Lookup"],
