@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import { endAccountMembership } from "@xos/data/gateway";
 import {
   acceptAccountMembership,
@@ -189,7 +190,7 @@ export async function inviteAccountMemberAction(
     .object({
       accountId: z.uuid(),
       email: z.email().max(320),
-      role: z.enum(["Account Owner", "Account Admin", "Account Finance", "Account Member"]),
+      role: z.enum(Constants.app.Enums.account_role),
     })
     .safeParse({
       accountId: form.get("accountId"),
@@ -220,7 +221,7 @@ export async function assignEngagementMemberAction(
     .object({
       engagementId: z.uuid(),
       accountMembershipId: z.uuid(),
-      duty: z.enum(["Advancing Lead", "Member"]),
+      duty: z.enum(Constants.app.Enums.account_engagement_duty),
     })
     .safeParse({
       engagementId: form.get("engagementId"),
