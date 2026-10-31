@@ -822,6 +822,90 @@ var NOTIFICATION_KINDS = [
       body: "kinds.allocation.withdrawn.body",
     },
   },
+  {
+    kind: "advance_packet.reminder",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.advance_packet.reminder.subject",
+      body: "kinds.advance_packet.reminder.body",
+    },
+  },
+  {
+    kind: "advance_submission.returned",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.advance_submission.returned.subject",
+      body: "kinds.advance_submission.returned.body",
+    },
+  },
+  {
+    kind: "submittal.returned",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.submittal.returned.subject",
+      body: "kinds.submittal.returned.body",
+    },
+  },
+  {
+    kind: "roster_entry.removed",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.removed.subject",
+      body: "kinds.roster_entry.removed.body",
+    },
+  },
+  {
+    kind: "roster_entry.facts_requested",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.facts_requested.subject",
+      body: "kinds.roster_entry.facts_requested.body",
+    },
+  },
+  {
+    kind: "roster_entry.share_revoked",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.share_revoked.subject",
+      body: "kinds.roster_entry.share_revoked.body",
+    },
+  },
+  {
+    kind: "credential.revoked",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.credential.revoked.subject",
+      body: "kinds.credential.revoked.body",
+    },
+  },
 ];
 //#endregion
 //#region ../schemas/src/notifications/parse.ts
@@ -876,7 +960,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/2698_notification_kind_seed.sql"
+"supabase/migrations/2749_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

@@ -702,7 +702,10 @@
         "invited": "Put on a crew roster",
         "returned": "Roster entry returned",
         "declined": "Roster entry declined",
-        "project_facts_entered": "Project details entered for you"
+        "project_facts_entered": "Project details entered for you",
+        "removed": "Taken off a crew roster",
+        "facts_requested": "Project details needed",
+        "share_revoked": "Work details no longer shared"
       },
       "engagement": {
         "roster_lock_changed": "Names lock changed"
@@ -712,6 +715,18 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "advance_packet": {
+        "reminder": "Advance reminder"
+      },
+      "advance_submission": {
+        "returned": "Advance answer returned"
+      },
+      "submittal": {
+        "returned": "Submittal returned"
+      },
+      "credential": {
+        "revoked": "Credential revoked"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

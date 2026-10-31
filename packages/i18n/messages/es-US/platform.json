@@ -702,7 +702,10 @@
         "invited": "Incluido en una lista de equipo",
         "returned": "Entrada de la lista devuelta",
         "declined": "Entrada de la lista rechazada",
-        "project_facts_entered": "Datos del proyecto ingresados para ti"
+        "project_facts_entered": "Datos del proyecto ingresados para ti",
+        "removed": "Retirado de una lista de equipo",
+        "facts_requested": "Faltan datos del proyecto",
+        "share_revoked": "Datos de trabajo ya no compartidos"
       },
       "engagement": {
         "roster_lock_changed": "Cambió el cierre de nombres"
@@ -712,6 +715,18 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "advance_packet": {
+        "reminder": "Recordatorio de avance"
+      },
+      "advance_submission": {
+        "returned": "Respuesta de avance devuelta"
+      },
+      "submittal": {
+        "returned": "Entregable devuelto"
+      },
+      "credential": {
+        "revoked": "Credencial revocada"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

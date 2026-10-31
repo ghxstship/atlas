@@ -59,8 +59,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473) and the four
     // reported content kinds of ADR 0033 decision 57 (1630), A127's offer.sent (2200), the three crew roster kinds of
     // R4 (2642), and R5's project facts and names lock kinds (2655, 2656), R6a's account.work_details_moved (2664),
-    // and R7's four allocation kinds (2698).
-    expect(registry.kinds).toHaveLength(65);
+    // R7's four allocation kinds (2698), and R11's seven advancing reminders and notices (2741, 2742).
+    expect(registry.kinds).toHaveLength(72);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",

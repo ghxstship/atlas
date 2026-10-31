@@ -1,4 +1,4 @@
--- 2698_notification_kind_seed.test.sql
+-- 2749_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -263,6 +263,9 @@ select set_eq(
   ('opportunity.matched', 'In App', 'opportunities', null::text),
   ('opportunity.matched', 'Email', 'opportunities', 'notification'),
   ('opportunity.matched', 'Push', 'opportunities', null::text),
+  ('offer.sent', 'In App', 'opportunities', null::text),
+  ('offer.sent', 'Email', 'opportunities', 'notification'),
+  ('offer.sent', 'Push', 'opportunities', null::text),
   ('onboarding.item_expiring', 'In App', 'expiry_reminders', null::text),
   ('onboarding.item_expiring', 'Email', 'expiry_reminders', 'notification'),
   ('onboarding.item_expiring', 'SMS', 'expiry_reminders', null::text),
@@ -310,7 +313,35 @@ select set_eq(
   ('allocation.withdrawn', 'In App', 'assignments', null::text),
   ('allocation.withdrawn', 'Email', 'assignments', 'notification'),
   ('allocation.withdrawn', 'SMS', 'assignments', null::text),
-  ('allocation.withdrawn', 'Push', 'assignments', null::text)$$,
+  ('allocation.withdrawn', 'Push', 'assignments', null::text),
+  ('advance_packet.reminder', 'In App', 'assignments', null::text),
+  ('advance_packet.reminder', 'Email', 'assignments', 'notification'),
+  ('advance_packet.reminder', 'SMS', 'assignments', null::text),
+  ('advance_packet.reminder', 'Push', 'assignments', null::text),
+  ('advance_submission.returned', 'In App', 'assignments', null::text),
+  ('advance_submission.returned', 'Email', 'assignments', 'notification'),
+  ('advance_submission.returned', 'SMS', 'assignments', null::text),
+  ('advance_submission.returned', 'Push', 'assignments', null::text),
+  ('submittal.returned', 'In App', 'approvals', null::text),
+  ('submittal.returned', 'Email', 'approvals', 'notification'),
+  ('submittal.returned', 'SMS', 'approvals', null::text),
+  ('submittal.returned', 'Push', 'approvals', null::text),
+  ('roster_entry.removed', 'In App', 'assignments', null::text),
+  ('roster_entry.removed', 'Email', 'assignments', 'notification'),
+  ('roster_entry.removed', 'SMS', 'assignments', null::text),
+  ('roster_entry.removed', 'Push', 'assignments', null::text),
+  ('roster_entry.facts_requested', 'In App', 'assignments', null::text),
+  ('roster_entry.facts_requested', 'Email', 'assignments', 'notification'),
+  ('roster_entry.facts_requested', 'SMS', 'assignments', null::text),
+  ('roster_entry.facts_requested', 'Push', 'assignments', null::text),
+  ('roster_entry.share_revoked', 'In App', 'assignments', null::text),
+  ('roster_entry.share_revoked', 'Email', 'assignments', 'notification'),
+  ('roster_entry.share_revoked', 'SMS', 'assignments', null::text),
+  ('roster_entry.share_revoked', 'Push', 'assignments', null::text),
+  ('credential.revoked', 'In App', 'assignments', null::text),
+  ('credential.revoked', 'Email', 'assignments', 'notification'),
+  ('credential.revoked', 'SMS', 'assignments', null::text),
+  ('credential.revoked', 'Push', 'assignments', null::text)$$,
   'notification kinds by channel match notification-kinds.yaml');
 
 select set_eq(

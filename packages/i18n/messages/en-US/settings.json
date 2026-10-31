@@ -348,6 +348,18 @@
     "advancingAllowanceOverflow": {
       "label": "Requests beyond the allowance",
       "help": "Refuse turns away a request above an offering's cap. Review lets it in as requested; approving it, or assigning above the cap, then needs a reason that is kept with the allocation."
+    },
+    "advancingReminders": {
+      "label": "Send advance reminders",
+      "help": "Remind the people answering an advance packet before it is due and while it is overdue. Reminders reach the person, the company's Owners and Admins and its assigned Advancing Leads."
+    },
+    "advancingReminderDaysBefore": {
+      "label": "First reminder, days before the due date",
+      "help": "How many days before a packet is due the first reminder goes out, from 1 to 30. People on a crew roster are also asked for missing project details this many days before they arrive, and again the day before."
+    },
+    "advancingOverdueEvery": {
+      "label": "Overdue reminders, every so many days",
+      "help": "How often an overdue packet is reminded again, from 0 to 14 days, at most five times. 0 sends no overdue reminders."
     }
   },
   "choices": {

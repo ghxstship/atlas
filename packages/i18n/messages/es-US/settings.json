@@ -348,6 +348,18 @@
     "advancingAllowanceOverflow": {
       "label": "Solicitudes por encima de la asignación permitida",
       "help": "Rechazar no admite una solicitud por encima del límite de una oferta. Revisar la admite como solicitada; aprobarla, o asignar por encima del límite, requiere entonces un motivo que se guarda con la asignación."
+    },
+    "advancingReminders": {
+      "label": "Enviar recordatorios de avance",
+      "help": "Recuerda a quienes responden un paquete de avance antes de su vencimiento y mientras esté vencido. Los recordatorios llegan a la persona, a los Propietarios y Administradores de la empresa y a sus Responsables de avance asignados."
+    },
+    "advancingReminderDaysBefore": {
+      "label": "Primer recordatorio, días antes del vencimiento",
+      "help": "Cuántos días antes del vencimiento de un paquete sale el primer recordatorio, de 1 a 30. A las personas de una lista de equipo también se les piden los datos del proyecto que falten esa misma cantidad de días antes de llegar, y otra vez el día anterior."
+    },
+    "advancingOverdueEvery": {
+      "label": "Recordatorios de vencido, cada cierta cantidad de días",
+      "help": "Cada cuánto se vuelve a recordar un paquete vencido, de 0 a 14 días, como máximo cinco veces. Con 0 no se envían recordatorios de vencido."
     }
   },
   "choices": {

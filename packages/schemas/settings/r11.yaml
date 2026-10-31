@@ -1,0 +1,51 @@
+# Settings registry: R11 (advancing heatmap, reminders and notices, RRR-192). Section 11.11, owner decision 6.
+# Field reference: see a30.yaml.
+#
+# Automatic advance reminders: whether they go out, how many days before a packet is due the first one does, and how
+# often an overdue packet is reminded again (at most five times; 0 sends none). The org sets its values and may lock
+# them, and a project overrides an unlocked value on R3's project settings panel with the other advancing.* settings.
+# Reminders reach only the person answering, the account's Owners and Admins and its assigned Advancing Leads, never
+# an unassigned Account Member (decision 6).
+contributor: r11
+settings:
+  # Gateway and marketplace -----------------------------------------------------------------------------------------
+  - key: advancing.reminders
+    type: boolean
+    default: true
+    scopes: [organization, project]
+    lockable: true
+    capability: advancing.packet.send
+    label: settings.fields.advancingReminders.label
+    help: settings.fields.advancingReminders.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2741_advance_reminders.sql#private.send_advance_reminders
+        test: supabase/tests/2741_advance_reminders.test.sql
+  - key: advancing.reminder_days_before
+    type: integer
+    min: 1
+    max: 30
+    default: 3
+    scopes: [organization, project]
+    lockable: true
+    capability: advancing.packet.send
+    label: settings.fields.advancingReminderDaysBefore.label
+    help: settings.fields.advancingReminderDaysBefore.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2741_advance_reminders.sql#private.send_advance_reminders
+        test: supabase/tests/2741_advance_reminders.test.sql
+  - key: advancing.overdue_reminder_every_days
+    type: integer
+    min: 0
+    max: 14
+    default: 2
+    scopes: [organization, project]
+    lockable: true
+    capability: advancing.packet.send
+    label: settings.fields.advancingOverdueEvery.label
+    help: settings.fields.advancingOverdueEvery.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2741_advance_reminders.sql#private.send_advance_reminders
+        test: supabase/tests/2741_advance_reminders.test.sql

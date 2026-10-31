@@ -528,3 +528,42 @@ kinds:
         test: supabase/tests/2694_allocation_cascades.test.sql
       - emitter: supabase/migrations/2694_allocation_cascades.sql#private.withdraw_entry_allocations
         test: supabase/tests/2694_allocation_cascades.test.sql
+  # Advancing reminders and notices (R11: 2741, 2742). Owner decision 6: reminders and the party's notices reach the
+  # Account Owners, Account Admins and assigned Advancing Leads, never an unassigned Account Member.
+  - kind: advance_packet.reminder
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2741_advance_reminders.sql#private.queue_advance_reminder
+        test: supabase/tests/2741_advance_reminders.test.sql
+  - kind: advance_submission.returned
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2742_advancing_notices.sql#private.notify_advance_answer_returned
+        test: supabase/tests/2742_advancing_notices.test.sql
+  - kind: submittal.returned
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/2742_advancing_notices.sql#private.notify_submittal_returned
+        test: supabase/tests/2742_advancing_notices.test.sql
+  - kind: roster_entry.removed
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2742_advancing_notices.sql#private.notify_roster_entry_removed
+        test: supabase/tests/2742_advancing_notices.test.sql
+  - kind: roster_entry.facts_requested
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2742_advancing_notices.sql#private.notify_roster_entry_accepted
+        test: supabase/tests/2742_advancing_notices.test.sql
+      - emitter: supabase/migrations/2741_advance_reminders.sql#private.send_roster_fact_reminders
+        test: supabase/tests/2741_advance_reminders.test.sql
+  - kind: roster_entry.share_revoked
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2742_advancing_notices.sql#private.notify_roster_share_revoked
+        test: supabase/tests/2742_advancing_notices.test.sql
+  - kind: credential.revoked
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2742_advancing_notices.sql#private.notify_credential_revoked
+        test: supabase/tests/2742_advancing_notices.test.sql

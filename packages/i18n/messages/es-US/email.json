@@ -321,6 +321,18 @@
       "project_facts_entered": {
         "subject": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}}",
         "body": "{actorName} los ingresó para {projectName}. Revísalos y corrige lo que esté mal."
+      },
+      "removed": {
+        "subject": "Ya no estás en el equipo de {partyName} para {projectName}",
+        "body": "Se retiró tu entrada de la lista. No necesitas hacer nada más para este equipo."
+      },
+      "facts_requested": {
+        "subject": "{projectName} necesita tus {kind, select, uniform {tallas de uniforme} travel {datos de viaje} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "body": "Ingrésalos en Gateway antes de llegar, para que {partyName} y el equipo de producción se organicen."
+      },
+      "share_revoked": {
+        "subject": "{personName} dejó de compartir sus datos de trabajo para {projectName}",
+        "body": "Los datos de trabajo que {personName} compartió en el equipo de {partyName} ya no se comparten."
       }
     },
     "engagement": {
@@ -345,6 +357,30 @@
       "withdrawn": {
         "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
         "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
+      }
+    },
+    "advance_packet": {
+      "reminder": {
+        "subject": "{reminder, select, overdue {Vencido: {title}} other {Recordatorio: {title}}} para {projectName}",
+        "body": "{outstanding, plural, one {Queda # sección} other {Quedan # secciones}} por responder para {orgName}. {due, select, set {{reminder, select, overdue {Venció el {dueAt, date, medium}.} other {Vence el {dueAt, date, medium} a las {dueAt, time, short}.}}} other {Respóndela en Gateway.}}"
+      }
+    },
+    "advance_submission": {
+      "returned": {
+        "subject": "Se devolvió tu respuesta a {title}",
+        "body": "{packetTitle}: {reason} Vuelve a responder la sección en Gateway."
+      }
+    },
+    "submittal": {
+      "returned": {
+        "subject": "Entregable devuelto: {title}",
+        "body": "{projectName}: {reason} Revísalo y vuelve a enviarlo en Gateway."
+      }
+    },
+    "credential": {
+      "revoked": {
+        "subject": "Se revocó tu credencial {title} para {projectName}",
+        "body": "Ya no da acceso. Consulta al equipo de producción si crees que es un error."
       }
     }
   },
