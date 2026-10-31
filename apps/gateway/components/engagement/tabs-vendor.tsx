@@ -207,7 +207,9 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
                 (() => {
                   const state = approvalOf.get(d.id ?? "")?.state;
                   return state && state !== "Canceled"
-                    ? t(`gateway.engagement.deliveries.approval.${state === "In Review" ? "waiting" : state.toLowerCase()}`)
+                    ? t(
+                        `gateway.engagement.deliveries.approval.${state === "In Review" ? "waiting" : state.toLowerCase()}`,
+                      )
                     : null;
                 })(),
               ],

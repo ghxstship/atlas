@@ -88,7 +88,12 @@ describe("signed-out approval links", () => {
       "notification_action_invalid",
     );
     const { db, calls } = publicClient([
-      { outcome: "ok", attempts_left: 5, title: "Pass CR-000123 for Jane Doe", current_step_name: "Crew chief" },
+      {
+        outcome: "ok",
+        attempts_left: 5,
+        title: "Pass CR-000123 for Jane Doe",
+        current_step_name: "Crew chief",
+      },
     ]);
     const preview = await previewSignedOutApprovalLink(db, { token: TOKEN, code: " 123456 " });
     expect(preview.ok && preview.data).toEqual({
@@ -105,8 +110,14 @@ describe("signed-out approval links", () => {
   });
 
   it("passes a rejection's reason trimmed, and none when blank", async () => {
-    const { db, calls } = publicClient([{ outcome: "decided", attempts_left: 4, notification_id: "n1" }]);
-    const decided = await decideThroughSignedOutLink(db, { token: TOKEN, code: "654321", comment: "  " });
+    const { db, calls } = publicClient([
+      { outcome: "decided", attempts_left: 4, notification_id: "n1" },
+    ]);
+    const decided = await decideThroughSignedOutLink(db, {
+      token: TOKEN,
+      code: "654321",
+      comment: "  ",
+    });
     expect(decided.ok && decided.data).toEqual({ outcome: "decided", attemptsLeft: 4 });
     expect(calls[0]).toEqual({
       fn: "use_approval_link",
@@ -135,7 +146,10 @@ describe("the Inbox acts on approval reminders and subject approvals", () => {
     expect(isActionableApproval(baseItem)).toBe(true);
     expect(isActionableApproval({ ...baseItem, kind: "approval.reminder" })).toBe(true);
     expect(
-      isActionableApproval({ ...baseItem, subjectApproval: { state: "Approved", subject: "Pass", currentStep: null } }),
+      isActionableApproval({
+        ...baseItem,
+        subjectApproval: { state: "Approved", subject: "Pass", currentStep: null },
+      }),
     ).toBe(false);
     expect(isActionableApproval({ ...baseItem, kind: "approval.decided" })).toBe(false);
     expect(isActionableApproval({ ...baseItem, kind: "approval.link_code" })).toBe(false);
@@ -196,7 +210,11 @@ describe("subject approvals and reminder status", () => {
   });
 
   it("keys the latest live approval by its pass, over a canceled one", () => {
-    const map = approvalBySubject([row("a2", "c1", "Canceled"), row("a3", "c1", "In Review"), row("a4", "c2", "Approved")]);
+    const map = approvalBySubject([
+      row("a2", "c1", "Canceled"),
+      row("a3", "c1", "In Review"),
+      row("a4", "c2", "Approved"),
+    ]);
     expect(map.get("c1")?.id).toBe("a3");
     expect(map.get("c2")?.state).toBe("Approved");
   });

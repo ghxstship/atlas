@@ -59,9 +59,7 @@ export function SignedOutApproval({
 
   return (
     <div className="flex flex-col gap-16">
-      {problem ? (
-        <InlineAlert tone={finished ? "warning" : "danger"}>{problem}</InlineAlert>
-      ) : null}
+      {problem ? <InlineAlert tone={finished ? "warning" : "danger"}>{problem}</InlineAlert> : null}
       {result?.outcome === "code_sent" ? (
         <InlineAlert tone="success">{t("codeSent")}</InlineAlert>
       ) : null}

@@ -1085,9 +1085,7 @@ export async function saveApprovalRule(
     [RULE_FILTER_COLUMN[input.subject]]: input.filterId,
   };
   if (input.id)
-    return write(
-      untyped(db).from("approval_rules").update(values).eq("id", input.id).select("id"),
-    );
+    return write(untyped(db).from("approval_rules").update(values).eq("id", input.id).select("id"));
   return write(
     untyped(db)
       .from("approval_rules")
@@ -1111,7 +1109,11 @@ export type ApprovalRuleApprover =
 /** Adds a step after the rule's last one: a role, a member, or an engagement of the project. */
 export async function saveApprovalRuleStep(
   db: XosClient,
-  input: { readonly ruleId: string; readonly name: string; readonly approver: ApprovalRuleApprover },
+  input: {
+    readonly ruleId: string;
+    readonly name: string;
+    readonly approver: ApprovalRuleApprover;
+  },
 ): Promise<Result<string>> {
   const last = await rows(
     untyped(db)

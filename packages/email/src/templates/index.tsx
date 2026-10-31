@@ -435,7 +435,9 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             <Greeting ctx={ctx} />
             <Paragraph>{ctx.t("approval_link_code.body", { orgName })}</Paragraph>
             <Text style={codeStyle}>{code}</Text>
-            <Paragraph>{ctx.t("approval_link_code.expiry", { minutes: expiresInMinutes })}</Paragraph>
+            <Paragraph>
+              {ctx.t("approval_link_code.expiry", { minutes: expiresInMinutes })}
+            </Paragraph>
             <Paragraph>{ctx.t("approval_link_code.ignore")}</Paragraph>
           </Layout>
         ),

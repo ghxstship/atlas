@@ -21,7 +21,11 @@ const CLAIM: ClaimedEmail = {
   address: "ivy@freelance.test",
   kind: "approval.link_code",
   emailTemplateCode: "approval_link_code",
-  messageArgs: { title: "Pass CR-000123 for Frank Ortiz", orgName: "Northwind Live", actorName: "Northwind Live" },
+  messageArgs: {
+    title: "Pass CR-000123 for Frank Ortiz",
+    orgName: "Northwind Live",
+    actorName: "Northwind Live",
+  },
   subjectTable: "notification_action_tokens",
   subjectId: "tok-1",
   notificationId: "n-code",

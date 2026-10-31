@@ -79,7 +79,11 @@ export interface SignedOutApprovalResult {
 
 const signedOutInput = z.object({
   token: z.string().refine(isActionToken),
-  code: z.string().trim().regex(/^[0-9]{6}$/).optional(),
+  code: z
+    .string()
+    .trim()
+    .regex(/^[0-9]{6}$/)
+    .optional(),
   reason: z.string().max(2000).optional(),
 });
 
