@@ -25,6 +25,8 @@ const sponsor: EngagementSummary = {
   projectName: "Northwind Summer Series",
   roleType: "sponsor",
   state: "Active",
+  via: "engagement",
+  rosterEntryId: null,
 };
 const T0 = Date.UTC(2027, 5, 12, 19, 30);
 const PHOTO_ID = "0199ffff-0000-7000-8000-000000000001";
