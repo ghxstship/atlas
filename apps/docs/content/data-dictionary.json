@@ -306,7 +306,7 @@
           "type": "text"
         },
         {
-          "comment": "For a credential pool or a share of one requested through an advance answer, when the party stops naming people on it (G-141, R9); NULL otherwise.",
+          "comment": "For a credential or parking pass pool, or a share of one, requested through an advance answer, when the party stops naming people on it (G-141, R9); NULL otherwise.",
           "name": "names_due_at",
           "nullable": true,
           "references": null,

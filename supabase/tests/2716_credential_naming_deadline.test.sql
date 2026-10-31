@@ -3,7 +3,7 @@
 -- unsplit or withdraw a named share (credential_names_closed) while production can; cascades still withdraw the named
 -- share when the entry is withdrawn or the person declines; an answer naming a person after the deadline is refused
 -- while a pool line goes in; allocations not requested through an answer are unaffected; the external views end with
--- names_due_at; with allowance overflow at review an over-allowance credential line stays Requested and the review
+-- names_due_at, read by the account, a person and their representative, and on parking pass pools too; with allowance overflow at review an over-allowance credential line stays Requested and the review
 -- commits.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -60,6 +60,10 @@ insert into world select 'rcp', id from x;
 select throws_ok($$update app.advance_recipients set names_due_at = now() + interval '1 day' where id = (select id from world where key = 'rcp')$$,
   '23514', null, 'a naming deadline needs an engagement (advance_recipients_names_due_engagement)');
 update app.advance_recipients set engagement_id = pg_temp.id('eng_vendor_a'), names_due_at = now() + interval '7 days' where id = pg_temp.id('rcp');
+-- art answers for himself; rita represents him with the Advance scope.
+with x as (insert into app.advance_recipients (advance_packet_id, person_id, engagement_id, names_due_at)
+  values (pg_temp.id('pkt'), pg_temp.id('art'), pg_temp.id('eng_art_a'), now() + interval '5 days') returning id)
+insert into world select 'rcp_art', id from x;
 select app.send_advance_packet(pg_temp.id('pkt'));
 select lives_ok($$update app.advance_recipients set names_due_at = now() + interval '3 days' where id = (select id from world where key = 'rcp')$$,
   'the deadline stays editable after send');
@@ -132,6 +136,12 @@ select is((select column_name::text from information_schema.columns where table_
   order by ordinal_position desc limit 1), 'names_due_at', 'api_external.my_advance_recipients ends with names_due_at');
 select pg_temp.as_user('victor');
 select ok((select names_due_at < now() from api_external.my_advance_recipients where id = pg_temp.id('rcp')), 'the party reads its deadline');
+select pg_temp.as_user('art');
+select ok((select names_due_at > now() from api_external.my_advance_recipients where id = pg_temp.id('rcp_art')), 'a person reads their own deadline');
+select is((select count(*)::int from api_external.my_advance_recipients where id = pg_temp.id('rcp')), 0, 'and not the account''s');
+select pg_temp.as_user('rita');
+select ok((select names_due_at > now() from api_external.my_advance_recipients where id = pg_temp.id('rcp_art')),
+  'their Advance representative reads it too');
 select pg_temp.as_user('quinn');
 select is((select count(*)::int from api_external.my_advance_recipients where id = pg_temp.id('rcp')), 0, 'another party reads nothing');
 select pg_temp.as_user('kai');
@@ -148,6 +158,9 @@ select lives_ok($$update app.advance_submissions set review_outcome = 'Accepted'
   'accepting an answer with an over-allowance parking line commits');
 select pg_temp.as_platform();
 select is(pg_temp.state_of(pg_temp.pool_of('a_park')), 'Requested', 'and leaves that allocation Requested for a reviewer to decide with a reason');
+select pg_temp.as_user('victor');
+select ok((select names_due_at < now() from api_external.advance_allocations where allocation_id = pg_temp.pool_of('a_park')),
+  'a parking pass pool reads its deadline in Gateway too, as the guard holds it to one');
 
 select * from finish();
 rollback;

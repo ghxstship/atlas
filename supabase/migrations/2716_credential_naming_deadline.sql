@@ -303,7 +303,7 @@ left join lateral (
   join app.advance_submission_lines l on l.id = coalesce(pool.advance_submission_line_id, a.advance_submission_line_id)
   join app.advance_submissions sub on sub.id = l.advance_submission_id
   join app.advance_recipients r on r.id = sub.advance_recipient_id
-  where a.id = s.allocation_id and s.kind = 'Credential'
+  where a.id = s.allocation_id and s.kind in ('Credential', 'Parking Pass')
 ) nd on true
 where x.engagement_id in (select private.my_engagement_ids('roster'))
    or s.roster_entry_id in (select private.my_roster_entry_ids('roster'));
@@ -327,7 +327,7 @@ call private.describe('api_external.advance_allocations', 'What a party''s engag
   'needed_time_zone', 'IANA time zone of the window.',
   'requested_by_me', 'True when the caller asked for it.',
   'decline_reason', 'Why production declined it.',
-  'names_due_at', 'For a credential pool or a share of one requested through an advance answer, when the party stops naming people on it (G-141, R9); NULL otherwise.'
+  'names_due_at', 'For a credential or parking pass pool, or a share of one, requested through an advance answer, when the party stops naming people on it (G-141, R9); NULL otherwise.'
 ]);
 
 revoke all on api_external.my_advance_recipients, api_external.advance_allocations from public, anon;
