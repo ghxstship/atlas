@@ -32,6 +32,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import { CreateRunDialog, RunBody, RunCollection, RunPeek } from "./runs";
 import { CallSheetPeek, DaySheetPeek, SheetCollection } from "./sheets";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { DisplayScreensAction } from "./display-screens-action";
 
 type Subject = { table: "app.run_of_show" | "app.day_sheets" | "app.call_sheets"; id: string };
 
@@ -134,7 +135,15 @@ export async function RunsPage({
           >
             {param(search, "live") === "1" ? null : (
               <>
-                <DocumentActions org={ctx.org.slug} kind="run-of-show" id={run.data.id} />
+                <span className="inline-flex flex-wrap items-center gap-8">
+                  <DocumentActions org={ctx.org.slug} kind="run-of-show" id={run.data.id} />
+                  {canEdit ? (
+                    <DisplayScreensAction
+                      org={ctx.org.slug}
+                      run={{ id: run.data.id, name: run.data.name }}
+                    />
+                  ) : null}
+                </span>
                 {await collab(ctx, meta, { table: "app.run_of_show", id: run.data.id })}
               </>
             )}

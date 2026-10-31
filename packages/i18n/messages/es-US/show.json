@@ -149,5 +149,42 @@
     "table": "Tabla",
     "timeline": "Cronograma",
     "calendar": "Calendario"
+  },
+  "display": {
+    "action": "Pantallas",
+    "title": "Pantallas de {name}",
+    "description": "Un reloj de sala, temporizador de presentador o pantalla de backstage en cualquier televisor o computadora, sin iniciar sesión. Necesita el enlace y su código de acceso, y sigue los cues a medida que se llaman.",
+    "defaultMode": "Se abre en",
+    "expiresOn": "Vence",
+    "expiresHelp": "Déjelo vacío para el final del día siguiente al show. Como máximo 90 días.",
+    "note": "Nota",
+    "noteHelp": "Por ejemplo, Monitor lateral izquierdo. Nunca se muestra en la pantalla.",
+    "submit": "Crear enlace de pantalla",
+    "close": "Cerrar",
+    "modes": {
+      "Room Clock": "Reloj de sala",
+      "Presenter Timer": "Temporizador de presentador",
+      "Backstage": "Backstage"
+    },
+    "modeKeys": "Las teclas 1, 2 y 3 cambian de modo.",
+    "now": "Ahora",
+    "next": "Siguiente",
+    "following": "Después",
+    "timeLeft": "Quedan {time}",
+    "elapsed": "Lleva {time}",
+    "overBy": "Excedido por {time}",
+    "countUp": "{time} en curso",
+    "startsIn": "En {time}",
+    "lateBy": "{time} de retraso",
+    "late": "Con {minutes, plural, one {# min} other {# min}} de retraso",
+    "onTime": "A tiempo",
+    "notStarted": "Esperando el primer cue.",
+    "complete": "Todos los cues se llamaron.",
+    "noCue": "Ningún cue en curso.",
+    "plannedAt": "Planificado a las {time}",
+    "openWindow": "Abrir en una ventana nueva",
+    "fullscreen": "Pantalla completa",
+    "exitFullscreen": "Salir de pantalla completa",
+    "localTime": "Hora local"
   }
 }

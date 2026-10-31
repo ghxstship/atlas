@@ -382,7 +382,10 @@ export interface CueProgress {
 }
 
 /** Where a running order stands at `now`: current and next cue and time to the next one. */
-export function cueProgress(cues: readonly Cue[], now: Date = new Date()): CueProgress {
+export function cueProgress(
+  cues: readonly Pick<Cue, "calledAt" | "plannedAt">[],
+  now: Date = new Date(),
+): CueProgress {
   let current = -1;
   cues.forEach((c, i) => {
     if (c.calledAt !== null) current = i;
