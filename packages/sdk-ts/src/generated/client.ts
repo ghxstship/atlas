@@ -349,6 +349,12 @@ import {
   AdvanceSubmissionLinesResource,
   AdvanceSubmissionFilesResource,
   GuestListEntriesResource,
+  FlightsResource,
+  TransfersResource,
+  TransferVehiclesResource,
+  SpaceBookingsResource,
+  LocalContactsResource,
+  AccommodationNightsResource,
   AssetUnitHireResource,
   AssetReservationsResource,
   Form1099NecResource,
@@ -1229,6 +1235,18 @@ export class XosClient extends XosClientCore {
     new AdvanceSubmissionFilesResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Hospitality: operations on `flights`. */
+  readonly flights: FlightsResource = new FlightsResource(this);
+  /** Hospitality: operations on `transfers`. */
+  readonly transfers: TransfersResource = new TransfersResource(this);
+  /** Hospitality: operations on `transferVehicles`. */
+  readonly transferVehicles: TransferVehiclesResource = new TransferVehiclesResource(this);
+  /** Hospitality: operations on `spaceBookings`. */
+  readonly spaceBookings: SpaceBookingsResource = new SpaceBookingsResource(this);
+  /** Hospitality: operations on `localContacts`. */
+  readonly localContacts: LocalContactsResource = new LocalContactsResource(this);
+  /** Hospitality: operations on `accommodationNights`. */
+  readonly accommodationNights: AccommodationNightsResource = new AccommodationNightsResource(this);
   /** Assets: operations on `assetUnitHire`. */
   readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
   /** Assets: operations on `assetReservations`. */

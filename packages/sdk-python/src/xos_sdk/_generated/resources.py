@@ -26,6 +26,8 @@ if TYPE_CHECKING:
         AccessScan,
         AccessScanCreate,
         AccessScanPage,
+        AccommodationNight,
+        AccommodationNightPage,
         AccountMembership,
         AccountMembershipCreate,
         AccountMembershipPage,
@@ -37,6 +39,7 @@ if TYPE_CHECKING:
         AccountingPeriodPage,
         AccountingPeriodTransitionRequest,
         ActCode,
+        ActWithoutRoomPage,
         ActivityEvent,
         ActivityEventPage,
         AdvanceAllocation,
@@ -567,6 +570,8 @@ if TYPE_CHECKING:
         FeedPostUpdate,
         FeedReactionRequest,
         FieldHistoryEventPage,
+        Flight,
+        FlightPage,
         Form1099NecRowPage,
         FormDecisionRequest,
         FormSubmission,
@@ -750,6 +755,8 @@ if TYPE_CHECKING:
         ListingReport,
         ListingReportCreate,
         ListingReportPage,
+        LocalContact,
+        LocalContactPage,
         LostFoundClaim,
         LostFoundClaimPage,
         LostFoundItem,
@@ -1169,6 +1176,7 @@ if TYPE_CHECKING:
         RoleCreate,
         RolePage,
         RoleUpdate,
+        RoomingEntryPage,
         RosterEntry,
         RosterEntryPage,
         RosterLockRequest,
@@ -1272,6 +1280,8 @@ if TYPE_CHECKING:
         SopPage,
         SopUpdate,
         Space,
+        SpaceBooking,
+        SpaceBookingPage,
         SpaceCreate,
         SpacePage,
         SpaceUpdate,
@@ -1417,6 +1427,10 @@ if TYPE_CHECKING:
         TrainingQuizQuestionCreate,
         TrainingQuizQuestionPage,
         TrainingQuizQuestionUpdate,
+        Transfer,
+        TransferPage,
+        TransferVehicle,
+        TransferVehiclePage,
         TrashItem,
         TrashItemPage,
         TrashRestoreResult,
@@ -32931,6 +32945,358 @@ class GuestListEntriesResource(Resource):
         Requires the capability ``advancing.rider.write``.
         """
         return self._client.request(OPERATIONS["guestListEntries.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class FlightsResource(Resource):
+    """Operations on ``flights``, in the Hospitality module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Flight]:
+        """List flight rows
+
+        A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears. Returns a cursor page of flight rows the caller may see. The default order is `departs_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /flights`` (operation ``flights.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request_page(OPERATIONS["flights.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Flight]:
+        """List flight rows
+
+        A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears. Returns a cursor page of flight rows the caller may see. The default order is `departs_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /flights`` (operation ``flights.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.paginate(OPERATIONS["flights.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Flight]:
+        """Get a flight
+
+        A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears. Returns one flight with its `ETag`. A flight the caller may not see returns 404.
+
+        ``GET /flights/{id}`` (operation ``flights.get``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["flights.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class TransfersResource(Resource):
+    """Operations on ``transfers``, in the Hospitality module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Transfer]:
+        """List transfer rows
+
+        A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed. Returns a cursor page of transfer rows the caller may see. The default order is `pickup_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /transfers`` (operation ``transfers.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request_page(OPERATIONS["transfers.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Transfer]:
+        """List transfer rows
+
+        A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed. Returns a cursor page of transfer rows the caller may see. The default order is `pickup_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /transfers`` (operation ``transfers.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.paginate(OPERATIONS["transfers.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Transfer]:
+        """Get a transfer
+
+        A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed. Returns one transfer with its `ETag`. A transfer the caller may not see returns 404.
+
+        ``GET /transfers/{id}`` (operation ``transfers.get``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["transfers.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class TransferVehiclesResource(Resource):
+    """Operations on ``transferVehicles``, in the Hospitality module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[TransferVehicle]:
+        """List transfer vehicle rows
+
+        A vehicle a project's ground transfers run in. No plate is stored. Returns a cursor page of transfer vehicle rows the caller may see. The default order is `label`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /transfer-vehicles`` (operation ``transferVehicles.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request_page(OPERATIONS["transferVehicles.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[TransferVehicle]:
+        """List transfer vehicle rows
+
+        A vehicle a project's ground transfers run in. No plate is stored. Returns a cursor page of transfer vehicle rows the caller may see. The default order is `label`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /transfer-vehicles`` (operation ``transferVehicles.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.paginate(OPERATIONS["transferVehicles.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TransferVehicle]:
+        """Get a transfer vehicle
+
+        A vehicle a project's ground transfers run in. No plate is stored. Returns one transfer vehicle with its `ETag`. A transfer vehicle the caller may not see returns 404.
+
+        ``GET /transfer-vehicles/{id}`` (operation ``transferVehicles.get``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["transferVehicles.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class SpaceBookingsResource(Resource):
+    """Operations on ``spaceBookings``, in the Hospitality module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SpaceBooking]:
+        """List space booking rows
+
+        A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read. Returns a cursor page of space booking rows the caller may see. The default order is `starts_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /space-bookings`` (operation ``spaceBookings.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request_page(OPERATIONS["spaceBookings.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SpaceBooking]:
+        """List space booking rows
+
+        A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read. Returns a cursor page of space booking rows the caller may see. The default order is `starts_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /space-bookings`` (operation ``spaceBookings.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.paginate(OPERATIONS["spaceBookings.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SpaceBooking]:
+        """Get a space booking
+
+        A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read. Returns one space booking with its `ETag`. A space booking the caller may not see returns 404.
+
+        ``GET /space-bookings/{id}`` (operation ``spaceBookings.get``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["spaceBookings.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class LocalContactsResource(Resource):
+    """Operations on ``localContacts``, in the Hospitality module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[LocalContact]:
+        """List local contact rows
+
+        A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live. Returns a cursor page of local contact rows the caller may see. The default order is `project_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /local-contacts`` (operation ``localContacts.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["localContacts.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[LocalContact]:
+        """List local contact rows
+
+        A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live. Returns a cursor page of local contact rows the caller may see. The default order is `project_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /local-contacts`` (operation ``localContacts.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["localContacts.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class AccommodationNightsResource(Resource):
+    """Operations on ``accommodationNights``, in the Hospitality module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AccommodationNight]:
+        """List accommodation night rows
+
+        One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard. Returns a cursor page of accommodation night rows the caller may see. The default order is `block_id`, then `night` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /accommodation-nights`` (operation ``accommodationNights.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request_page(OPERATIONS["accommodationNights.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AccommodationNight]:
+        """List accommodation night rows
+
+        One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard. Returns a cursor page of accommodation night rows the caller may see. The default order is `block_id`, then `night` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /accommodation-nights`` (operation ``accommodationNights.list``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.paginate(OPERATIONS["accommodationNights.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def acts_without_rooms(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ActWithoutRoomPage]:
+        """List the acts without rooms
+
+        Artist engagements of the project in Onboarding to Closing with Lodging offered none of whose people (the artist and live, not-declined roster people) holds a live room on the project's blocks, through `app.acts_without_rooms`. Needs hospitality.fulfillment.read on the project (404 otherwise). Reads no project fact. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /accommodation-nights/acts-without-rooms`` (operation ``accommodationNights.actsWithoutRooms``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["accommodationNights.actsWithoutRooms"], query={"project_id": project_id}, options=options)
+
+    def rooming_list(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RoomingEntryPage]:
+        """Read a project's rooming list
+
+        The travel party members whose travel request needs lodging and whose engagement offers Lodging, with suggested stays (credential access days for credentials.credential.read holders, else the travel dates), assigned stays, uncovered nights, status and cost, through `app.rooming_list`. Needs hospitality.fulfillment.read on the project (404 otherwise). Every person returned is logged as a read of their travel request. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /accommodation-nights/rooming-list`` (operation ``accommodationNights.roomingList``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["accommodationNights.roomingList"], query={"project_id": project_id}, options=options)
 
 
 class AssetUnitHireResource(Resource):

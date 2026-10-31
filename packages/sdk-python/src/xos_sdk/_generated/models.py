@@ -1312,6 +1312,25 @@ __all__ = [
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "FlightPage",
+    "Flight",
+    "TransferPage",
+    "Transfer",
+    "TransferVehiclePage",
+    "TransferVehicle",
+    "SpaceBookingPage",
+    "SpaceBooking",
+    "LocalContactPage",
+    "LocalContact",
+    "AccommodationNightPage",
+    "AccommodationNight",
+    "ActWithoutRoomPage",
+    "ActWithoutRoom",
+    "RoomingEntryPage",
+    "RoomingEntry",
+    "SuggestedStay",
+    "AssignedStay",
+    "RoomingCost",
     "AssetUnitHirePage",
     "AssetUnitHire",
     "AssetReservationPage",
@@ -21742,6 +21761,398 @@ class GuestDecisionRequest(TypedDict):
 
     #: Approved or Declined.
     outcome: Literal["Approved", "Declined"]
+
+
+class FlightPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Flight]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Flight(TypedDict):
+    """A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears."""
+
+    #: Identifier of the travel segment.
+    id: str
+    #: Identifier of the owning org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the traveller.
+    person_id: str
+    #: Traveller's name, when the caller may know it.
+    traveler_name: Optional[str]
+    #: Identifier of the engagement travelled under.
+    engagement_id: Optional[str]
+    #: Identifier of the Travel fulfillment.
+    fulfillment_id: Optional[str]
+    #: Airline.
+    operator_name: Optional[str]
+    #: Flight number.
+    service_identifier: Optional[str]
+    #: Booking confirmation code.
+    confirmation_identifier: Optional[str]
+    #: Departure airport.
+    departs_from: str
+    #: Departure instant.
+    departs_at: str
+    #: IANA zone of the departure time.
+    departs_time_zone: str
+    #: Arrival airport.
+    arrives_at_place: str
+    #: Arrival instant, when known.
+    arrives_at: Optional[str]
+    #: IANA zone of the arrival time.
+    arrives_time_zone: str
+    #: Phase now: Upcoming, In Flight, Departed (no arrival time) or Landed.
+    phase: Literal["Upcoming", "In Flight", "Departed", "Landed"]
+    #: First leg of the journey.
+    journey_id: str
+    #: Position in the journey, from 1.
+    leg_number: int
+    #: Legs in the journey.
+    leg_count: int
+    #: Arrival of the journey's last leg.
+    final_arrival_at: Optional[str]
+    #: Arrival place of the journey's last leg.
+    final_arrival_place: Optional[str]
+    #: IANA zone of the last arrival.
+    final_arrival_time_zone: Optional[str]
+
+
+class TransferPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Transfer]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Transfer(TypedDict):
+    """A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed."""
+
+    #: Identifier of the transfer.
+    id: str
+    #: Identifier of the owning org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Number within the project.
+    transfer_number: int
+    #: Display key {project_key}-{transfer_number}.
+    transfer_key: Optional[str]
+    #: Identifier of the Travel fulfillment.
+    fulfillment_id: Optional[str]
+    #: Identifier of the vehicle.
+    vehicle_id: Optional[str]
+    #: Vehicle label.
+    vehicle_label: Optional[str]
+    #: Vehicle type.
+    vehicle_type: Optional[Literal["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"]]
+    #: Passenger seats; the driver is not counted.
+    seats: Optional[int]
+    #: Identifier of the driver.
+    driver_person_id: Optional[str]
+    #: Driver's name.
+    driver_name: Optional[str]
+    #: Pickup place.
+    pickup_place: str
+    #: Pickup instant.
+    pickup_at: str
+    #: IANA zone of the pickup time.
+    pickup_time_zone: str
+    #: Drop-off place.
+    dropoff_place: str
+    #: Drop-off instant, the planner's estimate.
+    dropoff_at: str
+    #: IANA zone of the drop-off time.
+    dropoff_time_zone: str
+    #: Identifier of the flight the pickup meets.
+    meets_travel_segment_id: Optional[str]
+    #: Flight number of the met flight.
+    meets_service_identifier: Optional[str]
+    #: Arrival of the met flight.
+    meets_flight_arrives_at: Optional[str]
+    #: The met flight lands after the pickup time.
+    meets_flight_after_pickup: bool
+    #: Live passengers.
+    passenger_count: int
+    #: Identifier of the primary passenger.
+    primary_passenger_id: Optional[str]
+    #: Primary passenger's name.
+    primary_passenger_name: Optional[str]
+    #: The driver's previous drop-off plus the turnaround is after this pickup.
+    tight_turnaround: bool
+    #: Status now.
+    status: Literal["Unassigned", "Assigned", "Underway", "Done"]
+    #: Notes for the desk.
+    notes: Optional[str]
+
+
+class TransferVehiclePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TransferVehicle]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TransferVehicle(TypedDict):
+    """A vehicle a project's ground transfers run in. No plate is stored."""
+
+    #: Identifier of the vehicle.
+    id: str
+    #: Identifier of the owning org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the car service.
+    counterparty_id: Optional[str]
+    #: Label the desk and drivers know it by.
+    label: str
+    #: Vehicle type.
+    vehicle_type: Literal["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"]
+    #: Passenger seats; the driver is not counted.
+    seats: int
+
+
+class SpaceBookingPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SpaceBooking]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SpaceBooking(TypedDict):
+    """A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read."""
+
+    #: Identifier of the booking.
+    id: str
+    #: Identifier of the owning org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the space.
+    space_id: str
+    #: Space name.
+    space_name: Optional[str]
+    #: Occupant capacity of the space.
+    space_capacity: Optional[int]
+    #: Venue name.
+    venue_name: Optional[str]
+    #: Identifier of the engagement.
+    engagement_id: Optional[str]
+    #: Identifier of the set time.
+    engagement_cue_id: Optional[str]
+    #: What the space is booked as.
+    purpose: Literal["Green Room", "Dressing Room", "Production Office", "Hospitality Suite", "Other"]
+    #: Exclusive holds the space alone; Shared bookings may overlap.
+    booking_mode: Literal["Exclusive", "Shared"]
+    #: People expected.
+    party_size: Optional[int]
+    #: In.
+    starts_at: str
+    #: Out.
+    ends_at: str
+    #: Act the space is for.
+    act_name: Optional[str]
+    #: Set time label.
+    set_label: Optional[str]
+    #: Planned start of the set.
+    set_planned_at: Optional[str]
+    #: The set's planned time falls outside the booking.
+    set_moved: bool
+    #: Identifier of the first booking of the overlapping cluster.
+    conflict_group: Optional[str]
+    #: Bookings in the cluster.
+    group_size: int
+    #: Peak party at one instant in the cluster.
+    group_peak_party: int
+    #: The peak party exceeds the space's capacity.
+    over_capacity: Optional[bool]
+
+
+class LocalContactPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[LocalContact]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class LocalContact(TypedDict):
+    """A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live."""
+
+    #: Identifier of the local contact.
+    id: str
+    #: Identifier of the owning org.
+    org_id: str
+    #: Identifier of the project the row is listed for.
+    project_id: str
+    #: Identifier of the venue of a venue contact.
+    venue_id: Optional[str]
+    #: Project day the contact serves; null for every day.
+    day: Optional[str]
+    #: What the contact is called for.
+    contact_role: Literal["Promoter", "Venue", "Production", "Security", "Transport", "Hospitality", "Medical", "Other"]
+    #: Title or job.
+    contact_title: Optional[str]
+    #: Member (read live) or Contact (typed).
+    source: Literal["Member", "Contact"]
+    #: Name.
+    display_name: Optional[str]
+    #: Organization.
+    organization_name: Optional[str]
+    #: Phone, E.164 for a typed contact.
+    phone: Optional[str]
+    #: Business email of a typed contact.
+    email: Optional[str]
+    #: Internal stays inside the org; Shared also reaches the people engaged or rostered on the project.
+    audience: Literal["Internal", "Shared"]
+    #: False once a member contact's membership has ended.
+    member_active: bool
+
+
+class AccommodationNightPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AccommodationNight]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AccommodationNight(TypedDict):
+    """One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard."""
+
+    #: Identifier of the accommodation block.
+    block_id: str
+    #: Identifier of the owning org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Number of the block within the project.
+    block_number: int
+    #: Block name.
+    title: str
+    #: Night held.
+    night: str
+    #: Rooms held each night.
+    rooms_held: int
+    #: Rooms assigned on the night.
+    assigned: int
+    #: Rooms free on the night.
+    free: int
+    #: Release date.
+    release_on: Optional[str]
+    #: Nightly rate in minor units; null is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    nightly_rate_minor: Optional[int]
+    #: ISO 4217 currency of the rate.
+    currency_code: Optional[str]
+
+
+class ActWithoutRoomPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ActWithoutRoom]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ActWithoutRoom(TypedDict):
+    """An Artist engagement of the project in Onboarding to Closing with Lodging offered, none of whose people holds a live room on the project's blocks (B5, G-66)."""
+
+    #: Artist engagement.
+    engagement_id: str
+    #: Supplying account, else the artist.
+    act_name: Optional[str]
+    #: Engagement state.
+    engagement_state: str
+    #: People of the act: the artist and live roster people.
+    people_count: int
+
+
+class RoomingEntryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[RoomingEntry]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class RoomingEntry(TypedDict):
+    """A person of the travel party who needs a room (B5, G-67): suggested stays, assigned stays, what is uncovered and what it costs. Each one returned is logged as a read of the person's travel request."""
+
+    #: Roster entry.
+    roster_entry_id: str
+    #: Engagement.
+    engagement_id: str
+    #: Supplying account, else the engaged person.
+    party_name: Optional[str]
+    #: Person.
+    person_id: str
+    #: Person's name.
+    person_name: Optional[str]
+    #: Role worked.
+    role_code: Optional[str]
+    suggested_stays: List[SuggestedStay]
+    assigned_stays: List[AssignedStay]
+    #: Suggested nights no assignment covers.
+    uncovered_nights: int
+    #: Rooming status.
+    status: Literal["Covered", "Partial", "Missing", "No Dates"]
+    cost: List[RoomingCost]
+    #: An Approved block allocation of the entry not yet fully issued.
+    lodging_allocation_id: Optional[str]
+
+
+class SuggestedStay(TypedDict):
+    """A stay suggested from access days or travel dates; never stored."""
+
+    #: First night.
+    check_in_on: str
+    #: Departure day.
+    check_out_on: str
+    #: Credentials (access days, for credentials.credential.read holders) or Travel (the travel request dates).
+    source: Literal["Credentials", "Travel"]
+
+
+class AssignedStay(TypedDict):
+    """A live room assignment on one of the project's blocks."""
+
+    #: Room assignment.
+    assignment_id: str
+    #: Accommodation block.
+    block_id: str
+    #: Block name.
+    block_title: Optional[str]
+    #: First night.
+    check_in_on: str
+    #: Departure day.
+    check_out_on: str
+    #: Allocation the room was issued under.
+    allocation_id: Optional[str]
+
+
+class RoomingCost(TypedDict):
+    """The cost of a person's assigned nights in one currency."""
+
+    #: Currency of the blocks; null for unpriced blocks.
+    currency_code: Optional[str]
+    #: Assigned nights.
+    nights: int
+    #: Nights times the nightly rate; null when a block is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
 
 
 class AssetUnitHirePage(TypedDict):

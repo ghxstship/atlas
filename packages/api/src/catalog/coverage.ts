@@ -119,6 +119,24 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     operations: crud("fulfillments"),
   },
   { module: "Hospitality", entity: "BEOs", operations: [...crud("beos"), ...crud("beoLines")] },
+  // B5 (ADR 0144): the flight grid, ground transfers, space bookings, local contacts and blocks by night.
+  { module: "Hospitality", entity: "Flight grid", operations: read("flights") },
+  {
+    module: "Hospitality",
+    entity: "Ground transfers and vehicles",
+    operations: [...read("transfers"), ...read("transferVehicles")],
+  },
+  { module: "Hospitality", entity: "Green room and dressing room bookings", operations: read("spaceBookings") },
+  { module: "Hospitality", entity: "Local contacts", operations: ["localContacts.list"] },
+  {
+    module: "Hospitality",
+    entity: "Hotel blocks by night, acts without rooms and the rooming list",
+    operations: [
+      "accommodationNights.list",
+      "accommodationNights.actsWithoutRooms",
+      "accommodationNights.roomingList",
+    ],
+  },
   {
     module: "Assets",
     entity: "Assets at class, unit and lot grain",

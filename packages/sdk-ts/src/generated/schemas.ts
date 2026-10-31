@@ -39283,6 +39283,807 @@ export interface GuestDecisionRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface FlightPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Flight>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears.
+ */
+export interface Flight {
+  /**
+   * Identifier of the travel segment.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the traveller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Traveller's name, when the caller may know it.
+   */
+  readonly traveler_name: string | null;
+  /**
+   * Identifier of the engagement travelled under.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Identifier of the Travel fulfillment.
+   * Format: `uuid`.
+   */
+  readonly fulfillment_id: string | null;
+  /**
+   * Airline.
+   */
+  readonly operator_name: string | null;
+  /**
+   * Flight number.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly service_identifier: string | null;
+  /**
+   * Booking confirmation code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly confirmation_identifier: string | null;
+  /**
+   * Departure airport.
+   */
+  readonly departs_from: string;
+  /**
+   * Departure instant.
+   * Format: `date-time`.
+   */
+  readonly departs_at: string;
+  /**
+   * IANA zone of the departure time.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly departs_time_zone: string;
+  /**
+   * Arrival airport.
+   */
+  readonly arrives_at_place: string;
+  /**
+   * Arrival instant, when known.
+   * Format: `date-time`.
+   */
+  readonly arrives_at: string | null;
+  /**
+   * IANA zone of the arrival time.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly arrives_time_zone: string;
+  /**
+   * Phase now: Upcoming, In Flight, Departed (no arrival time) or Landed.
+   */
+  readonly phase: "Upcoming" | "In Flight" | "Departed" | "Landed";
+  /**
+   * First leg of the journey.
+   * Format: `uuid`.
+   */
+  readonly journey_id: string;
+  /**
+   * Position in the journey, from 1.
+   * Range: 1 to unbounded.
+   */
+  readonly leg_number: number;
+  /**
+   * Legs in the journey.
+   * Range: 1 to unbounded.
+   */
+  readonly leg_count: number;
+  /**
+   * Arrival of the journey's last leg.
+   * Format: `date-time`.
+   */
+  readonly final_arrival_at: string | null;
+  /**
+   * Arrival place of the journey's last leg.
+   */
+  readonly final_arrival_place: string | null;
+  /**
+   * IANA zone of the last arrival.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly final_arrival_time_zone: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TransferPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Transfer>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed.
+ */
+export interface Transfer {
+  /**
+   * Identifier of the transfer.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Number within the project.
+   * Range: 1 to unbounded.
+   */
+  readonly transfer_number: number;
+  /**
+   * Display key {project_key}-{transfer_number}.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly transfer_key: string | null;
+  /**
+   * Identifier of the Travel fulfillment.
+   * Format: `uuid`.
+   */
+  readonly fulfillment_id: string | null;
+  /**
+   * Identifier of the vehicle.
+   * Format: `uuid`.
+   */
+  readonly vehicle_id: string | null;
+  /**
+   * Vehicle label.
+   */
+  readonly vehicle_label: string | null;
+  /**
+   * Vehicle type.
+   */
+  readonly vehicle_type:
+    "Sedan" | "SUV" | "Van" | "Sprinter" | "Minibus" | "Coach" | "Other" | null;
+  /**
+   * Passenger seats; the driver is not counted.
+   * Range: 1 to unbounded.
+   */
+  readonly seats: number | null;
+  /**
+   * Identifier of the driver.
+   * Format: `uuid`.
+   */
+  readonly driver_person_id: string | null;
+  /**
+   * Driver's name.
+   */
+  readonly driver_name: string | null;
+  /**
+   * Pickup place.
+   */
+  readonly pickup_place: string;
+  /**
+   * Pickup instant.
+   * Format: `date-time`.
+   */
+  readonly pickup_at: string;
+  /**
+   * IANA zone of the pickup time.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly pickup_time_zone: string;
+  /**
+   * Drop-off place.
+   */
+  readonly dropoff_place: string;
+  /**
+   * Drop-off instant, the planner's estimate.
+   * Format: `date-time`.
+   */
+  readonly dropoff_at: string;
+  /**
+   * IANA zone of the drop-off time.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly dropoff_time_zone: string;
+  /**
+   * Identifier of the flight the pickup meets.
+   * Format: `uuid`.
+   */
+  readonly meets_travel_segment_id: string | null;
+  /**
+   * Flight number of the met flight.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly meets_service_identifier: string | null;
+  /**
+   * Arrival of the met flight.
+   * Format: `date-time`.
+   */
+  readonly meets_flight_arrives_at: string | null;
+  /**
+   * The met flight lands after the pickup time.
+   */
+  readonly meets_flight_after_pickup: boolean;
+  /**
+   * Live passengers.
+   * Range: 0 to unbounded.
+   */
+  readonly passenger_count: number;
+  /**
+   * Identifier of the primary passenger.
+   * Format: `uuid`.
+   */
+  readonly primary_passenger_id: string | null;
+  /**
+   * Primary passenger's name.
+   */
+  readonly primary_passenger_name: string | null;
+  /**
+   * The driver's previous drop-off plus the turnaround is after this pickup.
+   */
+  readonly tight_turnaround: boolean;
+  /**
+   * Status now.
+   */
+  readonly status: "Unassigned" | "Assigned" | "Underway" | "Done";
+  /**
+   * Notes for the desk.
+   */
+  readonly notes: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TransferVehiclePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TransferVehicle>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A vehicle a project's ground transfers run in. No plate is stored.
+ */
+export interface TransferVehicle {
+  /**
+   * Identifier of the vehicle.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the car service.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
+  /**
+   * Label the desk and drivers know it by.
+   */
+  readonly label: string;
+  /**
+   * Vehicle type.
+   */
+  readonly vehicle_type: "Sedan" | "SUV" | "Van" | "Sprinter" | "Minibus" | "Coach" | "Other";
+  /**
+   * Passenger seats; the driver is not counted.
+   * Range: 1 to unbounded.
+   */
+  readonly seats: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SpaceBookingPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SpaceBooking>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read.
+ */
+export interface SpaceBooking {
+  /**
+   * Identifier of the booking.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the space.
+   * Format: `uuid`.
+   */
+  readonly space_id: string;
+  /**
+   * Space name.
+   */
+  readonly space_name: string | null;
+  /**
+   * Occupant capacity of the space.
+   * Range: 1 to unbounded.
+   */
+  readonly space_capacity: number | null;
+  /**
+   * Venue name.
+   */
+  readonly venue_name: string | null;
+  /**
+   * Identifier of the engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Identifier of the set time.
+   * Format: `uuid`.
+   */
+  readonly engagement_cue_id: string | null;
+  /**
+   * What the space is booked as.
+   */
+  readonly purpose:
+    "Green Room" | "Dressing Room" | "Production Office" | "Hospitality Suite" | "Other";
+  /**
+   * Exclusive holds the space alone; Shared bookings may overlap.
+   */
+  readonly booking_mode: "Exclusive" | "Shared";
+  /**
+   * People expected.
+   * Range: 1 to unbounded.
+   */
+  readonly party_size: number | null;
+  /**
+   * In.
+   * Format: `date-time`.
+   */
+  readonly starts_at: string;
+  /**
+   * Out.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string;
+  /**
+   * Act the space is for.
+   */
+  readonly act_name: string | null;
+  /**
+   * Set time label.
+   */
+  readonly set_label: string | null;
+  /**
+   * Planned start of the set.
+   * Format: `date-time`.
+   */
+  readonly set_planned_at: string | null;
+  /**
+   * The set's planned time falls outside the booking.
+   */
+  readonly set_moved: boolean;
+  /**
+   * Identifier of the first booking of the overlapping cluster.
+   * Format: `uuid`.
+   */
+  readonly conflict_group: string | null;
+  /**
+   * Bookings in the cluster.
+   * Range: 1 to unbounded.
+   */
+  readonly group_size: number;
+  /**
+   * Peak party at one instant in the cluster.
+   * Range: 0 to unbounded.
+   */
+  readonly group_peak_party: number;
+  /**
+   * The peak party exceeds the space's capacity.
+   */
+  readonly over_capacity: boolean | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface LocalContactPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<LocalContact>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live.
+ */
+export interface LocalContact {
+  /**
+   * Identifier of the local contact.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project the row is listed for.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the venue of a venue contact.
+   * Format: `uuid`.
+   */
+  readonly venue_id: string | null;
+  /**
+   * Project day the contact serves; null for every day.
+   * Format: `date`.
+   */
+  readonly day: string | null;
+  /**
+   * What the contact is called for.
+   */
+  readonly contact_role:
+    | "Promoter"
+    | "Venue"
+    | "Production"
+    | "Security"
+    | "Transport"
+    | "Hospitality"
+    | "Medical"
+    | "Other";
+  /**
+   * Title or job.
+   */
+  readonly contact_title: string | null;
+  /**
+   * Member (read live) or Contact (typed).
+   */
+  readonly source: "Member" | "Contact";
+  /**
+   * Name.
+   */
+  readonly display_name: string | null;
+  /**
+   * Organization.
+   */
+  readonly organization_name: string | null;
+  /**
+   * Phone, E.164 for a typed contact.
+   */
+  readonly phone: string | null;
+  /**
+   * Business email of a typed contact.
+   * Format: `email`.
+   */
+  readonly email: string | null;
+  /**
+   * Internal stays inside the org; Shared also reaches the people engaged or rostered on the project.
+   */
+  readonly audience: "Internal" | "Shared";
+  /**
+   * False once a member contact's membership has ended.
+   */
+  readonly member_active: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AccommodationNightPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AccommodationNight>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard.
+ */
+export interface AccommodationNight {
+  /**
+   * Identifier of the accommodation block.
+   * Format: `uuid`.
+   */
+  readonly block_id: string;
+  /**
+   * Identifier of the owning org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Number of the block within the project.
+   * Range: 1 to unbounded.
+   */
+  readonly block_number: number;
+  /**
+   * Block name.
+   */
+  readonly title: string;
+  /**
+   * Night held.
+   * Format: `date`.
+   */
+  readonly night: string;
+  /**
+   * Rooms held each night.
+   * Range: 1 to unbounded.
+   */
+  readonly rooms_held: number;
+  /**
+   * Rooms assigned on the night.
+   * Range: 0 to unbounded.
+   */
+  readonly assigned: number;
+  /**
+   * Rooms free on the night.
+   * Range: 0 to unbounded.
+   */
+  readonly free: number;
+  /**
+   * Release date.
+   * Format: `date`.
+   */
+  readonly release_on: string | null;
+  /**
+   * Nightly rate in minor units; null is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly nightly_rate_minor: number | null;
+  /**
+   * ISO 4217 currency of the rate.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ActWithoutRoomPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ActWithoutRoom>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An Artist engagement of the project in Onboarding to Closing with Lodging offered, none of whose people holds a live room on the project's blocks (B5, G-66).
+ */
+export interface ActWithoutRoom {
+  /**
+   * Artist engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Supplying account, else the artist.
+   */
+  readonly act_name: string | null;
+  /**
+   * Engagement state.
+   */
+  readonly engagement_state: string;
+  /**
+   * People of the act: the artist and live roster people.
+   */
+  readonly people_count: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface RoomingEntryPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RoomingEntry>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A person of the travel party who needs a room (B5, G-67): suggested stays, assigned stays, what is uncovered and what it costs. Each one returned is logged as a read of the person's travel request.
+ */
+export interface RoomingEntry {
+  /**
+   * Roster entry.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Supplying account, else the engaged person.
+   */
+  readonly party_name: string | null;
+  /**
+   * Person.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Person's name.
+   */
+  readonly person_name: string | null;
+  /**
+   * Role worked.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly role_code: string | null;
+  readonly suggested_stays: ReadonlyArray<SuggestedStay>;
+  readonly assigned_stays: ReadonlyArray<AssignedStay>;
+  /**
+   * Suggested nights no assignment covers.
+   */
+  readonly uncovered_nights: number;
+  /**
+   * Rooming status.
+   */
+  readonly status: "Covered" | "Partial" | "Missing" | "No Dates";
+  readonly cost: ReadonlyArray<RoomingCost>;
+  /**
+   * An Approved block allocation of the entry not yet fully issued.
+   * Format: `uuid`.
+   */
+  readonly lodging_allocation_id: string | null;
+}
+
+/**
+ * A stay suggested from access days or travel dates; never stored.
+ */
+export interface SuggestedStay {
+  /**
+   * First night.
+   * Format: `date`.
+   */
+  readonly check_in_on: string;
+  /**
+   * Departure day.
+   * Format: `date`.
+   */
+  readonly check_out_on: string;
+  /**
+   * Credentials (access days, for credentials.credential.read holders) or Travel (the travel request dates).
+   */
+  readonly source: "Credentials" | "Travel";
+}
+
+/**
+ * A live room assignment on one of the project's blocks.
+ */
+export interface AssignedStay {
+  /**
+   * Room assignment.
+   * Format: `uuid`.
+   */
+  readonly assignment_id: string;
+  /**
+   * Accommodation block.
+   * Format: `uuid`.
+   */
+  readonly block_id: string;
+  /**
+   * Block name.
+   */
+  readonly block_title: string | null;
+  /**
+   * First night.
+   * Format: `date`.
+   */
+  readonly check_in_on: string;
+  /**
+   * Departure day.
+   * Format: `date`.
+   */
+  readonly check_out_on: string;
+  /**
+   * Allocation the room was issued under.
+   * Format: `uuid`.
+   */
+  readonly allocation_id: string | null;
+}
+
+/**
+ * The cost of a person's assigned nights in one currency.
+ */
+export interface RoomingCost {
+  /**
+   * Currency of the blocks; null for unpriced blocks.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string | null;
+  /**
+   * Assigned nights.
+   */
+  readonly nights: number;
+  /**
+   * Nights times the nightly rate; null when a block is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor: number | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface AssetUnitHirePage {
   /**
    * Items on this page, in the documented default order.

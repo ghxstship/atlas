@@ -52721,6 +52721,1123 @@
         "required": ["outcome"],
         "description": "Decision on a requested guest."
       },
+      "FlightPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Flight" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "Flight": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the travel segment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the traveller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "traveler_name": {
+            "type": ["string", "null"],
+            "description": "Traveller's name, when the caller may know it.",
+            "example": "Kai Morgan"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement travelled under.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "fulfillment_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Travel fulfillment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "operator_name": {
+            "type": ["string", "null"],
+            "description": "Airline.",
+            "example": "Northwind Air"
+          },
+          "service_identifier": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Flight number.",
+            "example": "NW101"
+          },
+          "confirmation_identifier": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Booking confirmation code.",
+            "example": "QX7Y2B"
+          },
+          "departs_from": {
+            "type": "string",
+            "description": "Departure airport.",
+            "example": "LHR"
+          },
+          "departs_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Departure instant.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "departs_time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA zone of the departure time.",
+            "example": "America/New_York"
+          },
+          "arrives_at_place": {
+            "type": "string",
+            "description": "Arrival airport.",
+            "example": "MIA"
+          },
+          "arrives_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Arrival instant, when known.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "arrives_time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA zone of the arrival time.",
+            "example": "America/New_York"
+          },
+          "phase": {
+            "type": "string",
+            "enum": ["Upcoming", "In Flight", "Departed", "Landed"],
+            "description": "Phase now: Upcoming, In Flight, Departed (no arrival time) or Landed.",
+            "example": "Upcoming"
+          },
+          "journey_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "First leg of the journey.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "leg_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Position in the journey, from 1.",
+            "example": 1
+          },
+          "leg_count": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Legs in the journey.",
+            "example": 2
+          },
+          "final_arrival_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Arrival of the journey's last leg.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "final_arrival_place": {
+            "type": ["string", "null"],
+            "description": "Arrival place of the journey's last leg.",
+            "example": "MIA"
+          },
+          "final_arrival_time_zone": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA zone of the last arrival.",
+            "example": "America/New_York"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "project_id",
+          "person_id",
+          "traveler_name",
+          "engagement_id",
+          "fulfillment_id",
+          "operator_name",
+          "service_identifier",
+          "confirmation_identifier",
+          "departs_from",
+          "departs_at",
+          "departs_time_zone",
+          "arrives_at_place",
+          "arrives_at",
+          "arrives_time_zone",
+          "phase",
+          "journey_id",
+          "leg_number",
+          "leg_count",
+          "final_arrival_at",
+          "final_arrival_place",
+          "final_arrival_time_zone"
+        ],
+        "description": "A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears."
+      },
+      "TransferPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Transfer" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "Transfer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the transfer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "transfer_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number within the project.",
+            "example": 3
+          },
+          "transfer_key": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Display key {project_key}-{transfer_number}.",
+            "example": "NWL-3"
+          },
+          "fulfillment_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Travel fulfillment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "vehicle_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the vehicle.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "vehicle_label": {
+            "type": ["string", "null"],
+            "description": "Vehicle label.",
+            "example": "Van 1"
+          },
+          "vehicle_type": {
+            "type": ["string", "null"],
+            "enum": ["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other", null],
+            "description": "Vehicle type.",
+            "example": "Sedan"
+          },
+          "seats": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Passenger seats; the driver is not counted.",
+            "example": 7
+          },
+          "driver_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the driver.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "driver_name": {
+            "type": ["string", "null"],
+            "description": "Driver's name.",
+            "example": "Dave Lindqvist"
+          },
+          "pickup_place": {
+            "type": "string",
+            "description": "Pickup place.",
+            "example": "Miami International Airport (MIA)"
+          },
+          "pickup_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Pickup instant.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "pickup_time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA zone of the pickup time.",
+            "example": "America/New_York"
+          },
+          "dropoff_place": {
+            "type": "string",
+            "description": "Drop-off place.",
+            "example": "Crew Hotel"
+          },
+          "dropoff_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Drop-off instant, the planner's estimate.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "dropoff_time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA zone of the drop-off time.",
+            "example": "America/New_York"
+          },
+          "meets_travel_segment_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the flight the pickup meets.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "meets_service_identifier": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Flight number of the met flight.",
+            "example": "NW101"
+          },
+          "meets_flight_arrives_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Arrival of the met flight.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "meets_flight_after_pickup": {
+            "type": "boolean",
+            "description": "The met flight lands after the pickup time.",
+            "example": false
+          },
+          "passenger_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Live passengers.",
+            "example": 2
+          },
+          "primary_passenger_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the primary passenger.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "primary_passenger_name": {
+            "type": ["string", "null"],
+            "description": "Primary passenger's name.",
+            "example": "Kai Morgan"
+          },
+          "tight_turnaround": {
+            "type": "boolean",
+            "description": "The driver's previous drop-off plus the turnaround is after this pickup.",
+            "example": false
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Unassigned", "Assigned", "Underway", "Done"],
+            "description": "Status now.",
+            "example": "Unassigned"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "description": "Notes for the desk.",
+            "example": "Meet at door 4."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "project_id",
+          "transfer_number",
+          "transfer_key",
+          "fulfillment_id",
+          "vehicle_id",
+          "vehicle_label",
+          "vehicle_type",
+          "seats",
+          "driver_person_id",
+          "driver_name",
+          "pickup_place",
+          "pickup_at",
+          "pickup_time_zone",
+          "dropoff_place",
+          "dropoff_at",
+          "dropoff_time_zone",
+          "meets_travel_segment_id",
+          "meets_service_identifier",
+          "meets_flight_arrives_at",
+          "meets_flight_after_pickup",
+          "passenger_count",
+          "primary_passenger_id",
+          "primary_passenger_name",
+          "tight_turnaround",
+          "status",
+          "notes"
+        ],
+        "description": "A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed."
+      },
+      "TransferVehiclePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TransferVehicle" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "TransferVehicle": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the vehicle.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the car service.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "label": {
+            "type": "string",
+            "description": "Label the desk and drivers know it by.",
+            "example": "Van 1"
+          },
+          "vehicle_type": {
+            "type": "string",
+            "enum": ["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"],
+            "description": "Vehicle type.",
+            "example": "Sedan"
+          },
+          "seats": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Passenger seats; the driver is not counted.",
+            "example": 7
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "project_id",
+          "counterparty_id",
+          "label",
+          "vehicle_type",
+          "seats"
+        ],
+        "description": "A vehicle a project's ground transfers run in. No plate is stored."
+      },
+      "SpaceBookingPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SpaceBooking" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SpaceBooking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the booking.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "space_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the space.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "space_name": {
+            "type": ["string", "null"],
+            "description": "Space name.",
+            "example": "Green Room A"
+          },
+          "space_capacity": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Occupant capacity of the space.",
+            "example": 10
+          },
+          "venue_name": {
+            "type": ["string", "null"],
+            "description": "Venue name.",
+            "example": "Northwind Pier Pavilion"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_cue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the set time.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "Green Room",
+              "Dressing Room",
+              "Production Office",
+              "Hospitality Suite",
+              "Other"
+            ],
+            "description": "What the space is booked as.",
+            "example": "Green Room"
+          },
+          "booking_mode": {
+            "type": "string",
+            "enum": ["Exclusive", "Shared"],
+            "description": "Exclusive holds the space alone; Shared bookings may overlap.",
+            "example": "Exclusive"
+          },
+          "party_size": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "People expected.",
+            "example": 6
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "In.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Out.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "act_name": {
+            "type": ["string", "null"],
+            "description": "Act the space is for.",
+            "example": "Arturo Bell"
+          },
+          "set_label": {
+            "type": ["string", "null"],
+            "description": "Set time label.",
+            "example": "Arturo Bell set"
+          },
+          "set_planned_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Planned start of the set.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "set_moved": {
+            "type": "boolean",
+            "description": "The set's planned time falls outside the booking.",
+            "example": false
+          },
+          "conflict_group": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the first booking of the overlapping cluster.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "group_size": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Bookings in the cluster.",
+            "example": 1
+          },
+          "group_peak_party": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Peak party at one instant in the cluster.",
+            "example": 6
+          },
+          "over_capacity": {
+            "type": ["boolean", "null"],
+            "description": "The peak party exceeds the space's capacity.",
+            "example": false
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "project_id",
+          "space_id",
+          "space_name",
+          "space_capacity",
+          "venue_name",
+          "engagement_id",
+          "engagement_cue_id",
+          "purpose",
+          "booking_mode",
+          "party_size",
+          "starts_at",
+          "ends_at",
+          "act_name",
+          "set_label",
+          "set_planned_at",
+          "set_moved",
+          "conflict_group",
+          "group_size",
+          "group_peak_party",
+          "over_capacity"
+        ],
+        "description": "A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read."
+      },
+      "LocalContactPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LocalContact" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "LocalContact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the local contact.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the row is listed for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the venue of a venue contact.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "day": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Project day the contact serves; null for every day.",
+            "example": "2026-10-08"
+          },
+          "contact_role": {
+            "type": "string",
+            "enum": [
+              "Promoter",
+              "Venue",
+              "Production",
+              "Security",
+              "Transport",
+              "Hospitality",
+              "Medical",
+              "Other"
+            ],
+            "description": "What the contact is called for.",
+            "example": "Promoter"
+          },
+          "contact_title": {
+            "type": ["string", "null"],
+            "description": "Title or job.",
+            "example": "Production Manager"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Member", "Contact"],
+            "description": "Member (read live) or Contact (typed).",
+            "example": "Member"
+          },
+          "display_name": {
+            "type": ["string", "null"],
+            "description": "Name.",
+            "example": "Pier Pavilion Desk"
+          },
+          "organization_name": {
+            "type": ["string", "null"],
+            "description": "Organization.",
+            "example": "Northwind Pier Pavilion"
+          },
+          "phone": {
+            "type": ["string", "null"],
+            "description": "Phone, E.164 for a typed contact.",
+            "example": "+13055550100"
+          },
+          "email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Business email of a typed contact.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "audience": {
+            "type": "string",
+            "enum": ["Internal", "Shared"],
+            "description": "Internal stays inside the org; Shared also reaches the people engaged or rostered on the project.",
+            "example": "Internal"
+          },
+          "member_active": {
+            "type": "boolean",
+            "description": "False once a member contact's membership has ended.",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "project_id",
+          "venue_id",
+          "day",
+          "contact_role",
+          "contact_title",
+          "source",
+          "display_name",
+          "organization_name",
+          "phone",
+          "email",
+          "audience",
+          "member_active"
+        ],
+        "description": "A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live."
+      },
+      "AccommodationNightPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AccommodationNight" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AccommodationNight": {
+        "type": "object",
+        "properties": {
+          "block_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the accommodation block.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "block_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of the block within the project.",
+            "example": 6
+          },
+          "title": {
+            "type": "string",
+            "description": "Block name.",
+            "example": "Harborview Crew Block"
+          },
+          "night": {
+            "type": "string",
+            "format": "date",
+            "description": "Night held.",
+            "example": "2026-10-08"
+          },
+          "rooms_held": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Rooms held each night.",
+            "example": 10
+          },
+          "assigned": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rooms assigned on the night.",
+            "example": 4
+          },
+          "free": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rooms free on the night.",
+            "example": 6
+          },
+          "release_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Release date.",
+            "example": "2026-10-08"
+          },
+          "nightly_rate_minor": {
+            "type": ["integer", "null"],
+            "description": "Nightly rate in minor units; null is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 18900,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the rate.",
+            "example": "USD"
+          }
+        },
+        "required": [
+          "block_id",
+          "org_id",
+          "project_id",
+          "block_number",
+          "title",
+          "night",
+          "rooms_held",
+          "assigned",
+          "free",
+          "release_on",
+          "nightly_rate_minor",
+          "currency_code"
+        ],
+        "description": "One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard."
+      },
+      "ActWithoutRoomPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ActWithoutRoom" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ActWithoutRoom": {
+        "type": "object",
+        "properties": {
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Artist engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "act_name": {
+            "type": ["string", "null"],
+            "description": "Supplying account, else the artist.",
+            "example": "Arturo Bell"
+          },
+          "engagement_state": {
+            "type": "string",
+            "description": "Engagement state.",
+            "example": "Onboarding"
+          },
+          "people_count": {
+            "type": "integer",
+            "description": "People of the act: the artist and live roster people.",
+            "example": 3
+          }
+        },
+        "required": ["engagement_id", "act_name", "engagement_state", "people_count"],
+        "description": "An Artist engagement of the project in Onboarding to Closing with Lodging offered, none of whose people holds a live room on the project's blocks (B5, G-66)."
+      },
+      "RoomingEntryPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RoomingEntry" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "RoomingEntry": {
+        "type": "object",
+        "properties": {
+          "roster_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Roster entry.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "party_name": {
+            "type": ["string", "null"],
+            "description": "Supplying account, else the engaged person.",
+            "example": "Bayside Audio"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Person.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_name": {
+            "type": ["string", "null"],
+            "description": "Person's name.",
+            "example": "Kai Morgan"
+          },
+          "role_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Role worked.",
+            "example": "9000.50.02"
+          },
+          "suggested_stays": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SuggestedStay" }
+          },
+          "assigned_stays": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssignedStay" }
+          },
+          "uncovered_nights": {
+            "type": "integer",
+            "description": "Suggested nights no assignment covers.",
+            "example": 2
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Covered", "Partial", "Missing", "No Dates"],
+            "description": "Rooming status.",
+            "example": "Partial"
+          },
+          "cost": { "type": "array", "items": { "$ref": "#/components/schemas/RoomingCost" } },
+          "lodging_allocation_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "An Approved block allocation of the entry not yet fully issued.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "roster_entry_id",
+          "engagement_id",
+          "party_name",
+          "person_id",
+          "person_name",
+          "role_code",
+          "suggested_stays",
+          "assigned_stays",
+          "uncovered_nights",
+          "status",
+          "cost",
+          "lodging_allocation_id"
+        ],
+        "description": "A person of the travel party who needs a room (B5, G-67): suggested stays, assigned stays, what is uncovered and what it costs. Each one returned is logged as a read of the person's travel request."
+      },
+      "SuggestedStay": {
+        "type": "object",
+        "properties": {
+          "check_in_on": {
+            "type": "string",
+            "format": "date",
+            "description": "First night.",
+            "example": "2026-10-08"
+          },
+          "check_out_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Departure day.",
+            "example": "2026-10-08"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Credentials", "Travel"],
+            "description": "Credentials (access days, for credentials.credential.read holders) or Travel (the travel request dates).",
+            "example": "Credentials"
+          }
+        },
+        "required": ["check_in_on", "check_out_on", "source"],
+        "description": "A stay suggested from access days or travel dates; never stored."
+      },
+      "AssignedStay": {
+        "type": "object",
+        "properties": {
+          "assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Room assignment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "block_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Accommodation block.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "block_title": {
+            "type": ["string", "null"],
+            "description": "Block name.",
+            "example": "Harborview Crew Block"
+          },
+          "check_in_on": {
+            "type": "string",
+            "format": "date",
+            "description": "First night.",
+            "example": "2026-10-08"
+          },
+          "check_out_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Departure day.",
+            "example": "2026-10-08"
+          },
+          "allocation_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Allocation the room was issued under.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "block_id",
+          "block_title",
+          "check_in_on",
+          "check_out_on",
+          "allocation_id"
+        ],
+        "description": "A live room assignment on one of the project's blocks."
+      },
+      "RoomingCost": {
+        "type": "object",
+        "properties": {
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "Currency of the blocks; null for unpriced blocks.",
+            "example": "USD"
+          },
+          "nights": { "type": "integer", "description": "Assigned nights.", "example": 3 },
+          "amount_minor": {
+            "type": ["integer", "null"],
+            "description": "Nights times the nightly rate; null when a block is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 56700,
+            "format": "int64"
+          }
+        },
+        "required": ["currency_code", "nights", "amount_minor"],
+        "description": "The cost of a person's assigned nights in one currency."
+      },
       "AssetUnitHirePage": {
         "type": "object",
         "properties": {
@@ -147539,6 +148656,783 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/flights": {
+      "get": {
+        "operationId": "flights.list",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.travel_grid",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-order": { "by": ["departs_at", "id"], "numeric": false },
+        "summary": "List flight rows",
+        "description": "A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears. Returns a cursor page of flight rows the caller may see. The default order is `departs_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of flight rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "traveler_name": "Kai Morgan",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operator_name": "Northwind Air",
+                      "service_identifier": "NW101",
+                      "confirmation_identifier": "QX7Y2B",
+                      "departs_from": "LHR",
+                      "departs_at": "2026-10-08T14:30:00Z",
+                      "departs_time_zone": "America/New_York",
+                      "arrives_at_place": "MIA",
+                      "arrives_at": "2026-10-08T14:30:00Z",
+                      "arrives_time_zone": "America/New_York",
+                      "phase": "Upcoming",
+                      "journey_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "leg_number": 1,
+                      "leg_count": 2,
+                      "final_arrival_at": "2026-10-08T14:30:00Z",
+                      "final_arrival_place": "MIA",
+                      "final_arrival_time_zone": "America/New_York"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FlightPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/flights/{id}": {
+      "get": {
+        "operationId": "flights.get",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.travel_grid",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "summary": "Get a flight",
+        "description": "A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears. Returns one flight with its `ETag`. A flight the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the travel segment.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the travel segment.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The flight.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "traveler_name": "Kai Morgan",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "operator_name": "Northwind Air",
+                  "service_identifier": "NW101",
+                  "confirmation_identifier": "QX7Y2B",
+                  "departs_from": "LHR",
+                  "departs_at": "2026-10-08T14:30:00Z",
+                  "departs_time_zone": "America/New_York",
+                  "arrives_at_place": "MIA",
+                  "arrives_at": "2026-10-08T14:30:00Z",
+                  "arrives_time_zone": "America/New_York",
+                  "phase": "Upcoming",
+                  "journey_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "leg_number": 1,
+                  "leg_count": 2,
+                  "final_arrival_at": "2026-10-08T14:30:00Z",
+                  "final_arrival_place": "MIA",
+                  "final_arrival_time_zone": "America/New_York"
+                },
+                "schema": { "$ref": "#/components/schemas/Flight" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/transfers": {
+      "get": {
+        "operationId": "transfers.list",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.transfer_board",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-order": { "by": ["pickup_at", "id"], "numeric": false },
+        "summary": "List transfer rows",
+        "description": "A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed. Returns a cursor page of transfer rows the caller may see. The default order is `pickup_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of transfer rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "transfer_number": 3,
+                      "transfer_key": "NWL-3",
+                      "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "vehicle_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "vehicle_label": "Van 1",
+                      "vehicle_type": "Sedan",
+                      "seats": 7,
+                      "driver_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "driver_name": "Dave Lindqvist",
+                      "pickup_place": "Miami International Airport (MIA)",
+                      "pickup_at": "2026-10-08T14:30:00Z",
+                      "pickup_time_zone": "America/New_York",
+                      "dropoff_place": "Crew Hotel",
+                      "dropoff_at": "2026-10-08T14:30:00Z",
+                      "dropoff_time_zone": "America/New_York",
+                      "meets_travel_segment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "meets_service_identifier": "NW101",
+                      "meets_flight_arrives_at": "2026-10-08T14:30:00Z",
+                      "meets_flight_after_pickup": false,
+                      "passenger_count": 2,
+                      "primary_passenger_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "primary_passenger_name": "Kai Morgan",
+                      "tight_turnaround": false,
+                      "status": "Unassigned",
+                      "notes": "Meet at door 4."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/TransferPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/transfers/{id}": {
+      "get": {
+        "operationId": "transfers.get",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.transfer_board",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "summary": "Get a transfer",
+        "description": "A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed. Returns one transfer with its `ETag`. A transfer the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The transfer.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "transfer_number": 3,
+                  "transfer_key": "NWL-3",
+                  "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vehicle_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vehicle_label": "Van 1",
+                  "vehicle_type": "Sedan",
+                  "seats": 7,
+                  "driver_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "driver_name": "Dave Lindqvist",
+                  "pickup_place": "Miami International Airport (MIA)",
+                  "pickup_at": "2026-10-08T14:30:00Z",
+                  "pickup_time_zone": "America/New_York",
+                  "dropoff_place": "Crew Hotel",
+                  "dropoff_at": "2026-10-08T14:30:00Z",
+                  "dropoff_time_zone": "America/New_York",
+                  "meets_travel_segment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "meets_service_identifier": "NW101",
+                  "meets_flight_arrives_at": "2026-10-08T14:30:00Z",
+                  "meets_flight_after_pickup": false,
+                  "passenger_count": 2,
+                  "primary_passenger_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "primary_passenger_name": "Kai Morgan",
+                  "tight_turnaround": false,
+                  "status": "Unassigned",
+                  "notes": "Meet at door 4."
+                },
+                "schema": { "$ref": "#/components/schemas/Transfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/transfer-vehicles": {
+      "get": {
+        "operationId": "transferVehicles.list",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.transfer_vehicles",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-order": { "by": ["label", "id"], "numeric": false },
+        "summary": "List transfer vehicle rows",
+        "description": "A vehicle a project's ground transfers run in. No plate is stored. Returns a cursor page of transfer vehicle rows the caller may see. The default order is `label`, then `id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of transfer vehicle rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "label": "Van 1",
+                      "vehicle_type": "Sedan",
+                      "seats": 7
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/TransferVehiclePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/transfer-vehicles/{id}": {
+      "get": {
+        "operationId": "transferVehicles.get",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.transfer_vehicles",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "summary": "Get a transfer vehicle",
+        "description": "A vehicle a project's ground transfers run in. No plate is stored. Returns one transfer vehicle with its `ETag`. A transfer vehicle the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vehicle.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vehicle.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The transfer vehicle.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "label": "Van 1",
+                  "vehicle_type": "Sedan",
+                  "seats": 7
+                },
+                "schema": { "$ref": "#/components/schemas/TransferVehicle" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/space-bookings": {
+      "get": {
+        "operationId": "spaceBookings.list",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.space_booking_board",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-order": { "by": ["starts_at", "id"], "numeric": false },
+        "summary": "List space booking rows",
+        "description": "A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read. Returns a cursor page of space booking rows the caller may see. The default order is `starts_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of space booking rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "space_name": "Green Room A",
+                      "space_capacity": 10,
+                      "venue_name": "Northwind Pier Pavilion",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "purpose": "Green Room",
+                      "booking_mode": "Exclusive",
+                      "party_size": 6,
+                      "starts_at": "2026-10-08T14:30:00Z",
+                      "ends_at": "2026-10-08T14:30:00Z",
+                      "act_name": "Arturo Bell",
+                      "set_label": "Arturo Bell set",
+                      "set_planned_at": "2026-10-08T14:30:00Z",
+                      "set_moved": false,
+                      "conflict_group": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "group_size": 1,
+                      "group_peak_party": 6,
+                      "over_capacity": false
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SpaceBookingPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/space-bookings/{id}": {
+      "get": {
+        "operationId": "spaceBookings.get",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.space_booking_board",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "summary": "Get a space booking",
+        "description": "A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read. Returns one space booking with its `ETag`. A space booking the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the booking.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the booking.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The space booking.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "space_name": "Green Room A",
+                  "space_capacity": 10,
+                  "venue_name": "Northwind Pier Pavilion",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "purpose": "Green Room",
+                  "booking_mode": "Exclusive",
+                  "party_size": 6,
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "act_name": "Arturo Bell",
+                  "set_label": "Arturo Bell set",
+                  "set_planned_at": "2026-10-08T14:30:00Z",
+                  "set_moved": false,
+                  "conflict_group": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "group_size": 1,
+                  "group_peak_party": 6,
+                  "over_capacity": false
+                },
+                "schema": { "$ref": "#/components/schemas/SpaceBooking" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/local-contacts": {
+      "get": {
+        "operationId": "localContacts.list",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.project_local_contacts",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-order": { "by": ["project_id", "id"], "numeric": false },
+        "summary": "List local contact rows",
+        "description": "A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live. Returns a cursor page of local contact rows the caller may see. The default order is `project_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of local contact rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "day": "2026-10-08",
+                      "contact_role": "Promoter",
+                      "contact_title": "Production Manager",
+                      "source": "Member",
+                      "display_name": "Pier Pavilion Desk",
+                      "organization_name": "Northwind Pier Pavilion",
+                      "phone": "+13055550100",
+                      "email": "alex.rivera@northwindlive.example",
+                      "audience": "Internal",
+                      "member_active": true
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/LocalContactPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/accommodation-nights": {
+      "get": {
+        "operationId": "accommodationNights.list",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.accommodation_block_nights",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-order": { "by": ["block_id", "night"], "numeric": false },
+        "summary": "List accommodation night rows",
+        "description": "One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard. Returns a cursor page of accommodation night rows the caller may see. The default order is `block_id`, then `night` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of accommodation night rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "block_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "block_number": 6,
+                      "title": "Harborview Crew Block",
+                      "night": "2026-10-08",
+                      "rooms_held": 10,
+                      "assigned": 4,
+                      "free": 6,
+                      "release_on": "2026-10-08",
+                      "nightly_rate_minor": 18900,
+                      "currency_code": "USD"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AccommodationNightPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/accommodation-nights/acts-without-rooms": {
+      "get": {
+        "operationId": "accommodationNights.actsWithoutRooms",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.accommodation_block_nights",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-rpc": "app.acts_without_rooms",
+        "summary": "List the acts without rooms",
+        "description": "Artist engagements of the project in Onboarding to Closing with Lodging offered none of whose people (the artist and live, not-declined roster people) holds a live room on the project's blocks, through `app.acts_without_rooms`. Needs hospitality.fulfillment.read on the project (404 otherwise). Reads no project fact. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Project whose rooms are read.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Project whose rooms are read.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "act_name": "Arturo Bell",
+                      "engagement_state": "Onboarding",
+                      "people_count": 3
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ActWithoutRoomPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/accommodation-nights/rooming-list": {
+      "get": {
+        "operationId": "accommodationNights.roomingList",
+        "tags": ["Hospitality"],
+        "x-xos-table": "app.accommodation_block_nights",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-rpc": "app.rooming_list",
+        "summary": "Read a project's rooming list",
+        "description": "The travel party members whose travel request needs lodging and whose engagement offers Lodging, with suggested stays (credential access days for credentials.credential.read holders, else the travel dates), assigned stays, uncovered nights, status and cost, through `app.rooming_list`. Needs hospitality.fulfillment.read on the project (404 otherwise). Every person returned is logged as a read of their travel request. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Project whose rooms are read.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Project whose rooms are read.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "party_name": "Bayside Audio",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_name": "Kai Morgan",
+                      "role_code": "9000.50.02",
+                      "suggested_stays": [
+                        {
+                          "check_in_on": "2026-10-08",
+                          "check_out_on": "2026-10-08",
+                          "source": "Credentials"
+                        }
+                      ],
+                      "assigned_stays": [
+                        {
+                          "assignment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                          "block_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                          "block_title": "Harborview Crew Block",
+                          "check_in_on": "2026-10-08",
+                          "check_out_on": "2026-10-08",
+                          "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                        }
+                      ],
+                      "uncovered_nights": 2,
+                      "status": "Partial",
+                      "cost": [{ "currency_code": "USD", "nights": 3, "amount_minor": 56700 }],
+                      "lodging_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/RoomingEntryPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }

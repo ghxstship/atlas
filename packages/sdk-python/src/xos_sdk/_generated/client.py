@@ -355,6 +355,12 @@ from .resources import (
     AdvanceSubmissionLinesResource,
     AdvanceSubmissionFilesResource,
     GuestListEntriesResource,
+    FlightsResource,
+    TransfersResource,
+    TransferVehiclesResource,
+    SpaceBookingsResource,
+    LocalContactsResource,
+    AccommodationNightsResource,
     AssetUnitHireResource,
     AssetReservationsResource,
     Form1099NecResource,
@@ -799,6 +805,12 @@ class XosClient(XosClientCore):
     advance_submission_lines: AdvanceSubmissionLinesResource
     advance_submission_files: AdvanceSubmissionFilesResource
     guest_list_entries: GuestListEntriesResource
+    flights: FlightsResource
+    transfers: TransfersResource
+    transfer_vehicles: TransferVehiclesResource
+    space_bookings: SpaceBookingsResource
+    local_contacts: LocalContactsResource
+    accommodation_nights: AccommodationNightsResource
     asset_unit_hire: AssetUnitHireResource
     asset_reservations: AssetReservationsResource
     form1099_nec: Form1099NecResource
@@ -1231,6 +1243,12 @@ class XosClient(XosClientCore):
         self.advance_submission_lines = AdvanceSubmissionLinesResource(self)
         self.advance_submission_files = AdvanceSubmissionFilesResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.flights = FlightsResource(self)
+        self.transfers = TransfersResource(self)
+        self.transfer_vehicles = TransferVehiclesResource(self)
+        self.space_bookings = SpaceBookingsResource(self)
+        self.local_contacts = LocalContactsResource(self)
+        self.accommodation_nights = AccommodationNightsResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
         self.asset_reservations = AssetReservationsResource(self)
         self.form1099_nec = Form1099NecResource(self)
