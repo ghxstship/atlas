@@ -82,7 +82,16 @@
       "allocation_split_parts": "Da a cada persona una cantidad entera de al menos uno.",
       "allocation_window": "El fin de la necesidad debe ser posterior a su inicio.",
       "allocation_quantity_positive": "Escribe una cantidad mayor que cero.",
-      "allocation_quantity_whole": "Este artículo se da en números enteros."
+      "allocation_quantity_whole": "Este artículo se da en números enteros.",
+      "roster_shift_not_agency_slot": "Solo un puesto de agencia, o un turno que ya tiene tu equipo, admite personal de la agencia. Elige otro turno.",
+      "roster_entry_other_engagement": "Este turno pertenece al equipo de otra contratación. Asigna a alguien de ese equipo.",
+      "roster_training_incomplete": "Esta persona tiene formación por confirmar, o la producción aún debe verificarla. Asígnala cuando termine su formación.",
+      "roster_shift_overlap": "Esta persona ya tiene un turno que se superpone con este. Elige a otra persona o quítala del otro turno.",
+      "roster_shift_closed": "Este turno está cancelado o ya terminó.",
+      "roster_shift_not_assigned": "Nadie de tu equipo tiene este turno.",
+      "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
+      "roster_training_not_due": "Esta formación no está pendiente en tu entrada del equipo.",
+      "sod_roster_training": "Una persona no puede verificar su propia formación. La verifica otra persona de la producción."
     }
   },
   "common": {
@@ -390,7 +399,8 @@
         "inviteEmail": "Escribe una sola dirección de correo y elige un rol.",
         "allocationItem": "Elige para quién es y qué necesitas.",
         "allocationQuantity": "Escribe una cantidad mayor que cero.",
-        "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria."
+        "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria.",
+        "rosterAssignee": "Elige a quién asignar al turno."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -552,6 +562,13 @@
         "roleMember": "Miembro de la cuenta",
         "submit": "Enviar invitación",
         "done": "Invitación enviada. Queda abierta 14 días."
+      },
+      "staffing": {
+        "assign": "Asignar",
+        "assigned": "Asignado.",
+        "assignTitle": "Asigna a alguien de tu equipo",
+        "person": "Persona",
+        "personHint": "Elige a alguien de tu equipo"
       }
     },
     "settlement": {
@@ -686,6 +703,16 @@
       "projectDetails": "Actualiza tus datos del proyecto",
       "party": "Contratado como",
       "documentsEmpty": "Tus documentos y certificaciones aparecen aquí cuando los agregas a tu perfil."
+    },
+    "staffing": {
+      "openSlot": "Puesto de agencia libre",
+      "unassign": "Quitar del turno",
+      "unassignReason": "La agencia la quitó del turno.",
+      "trainingDue": "{n} formaciones pendientes",
+      "overlaps": "se superpone con otro turno",
+      "trainingEmpty": "No tienes formación pendiente antes de tu primer turno.",
+      "awaitingVerification": "Pendiente de verificación",
+      "acknowledge": "Lo he leído y lo confirmo"
     }
   },
   "enums": {

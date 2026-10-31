@@ -103,10 +103,15 @@ export type ExternalRoleType = (typeof EXTERNAL_ROLE_TYPES)[number];
 
 /**
  * Gateway engagement tab sets: one per external role type, then roster-member (R8, ADR 0100) for a
- * person who reaches an engagement only through an Accepted roster entry. Not a role type: it never
- * appears in audience.roleTypes or the Compass audiences.
+ * person who reaches an engagement only through an Accepted roster entry, and roster-staff (R12, ADR 0100
+ * amendment) for one on a staffing agency's Staff engagement, who also trains, works shifts and keeps
+ * timesheets. Neither is a role type: they never appear in audience.roleTypes or the Compass audiences.
  */
-export const ENGAGEMENT_TAB_SET_KEYS = [...EXTERNAL_ROLE_TYPES, "roster-member"] as const;
+export const ENGAGEMENT_TAB_SET_KEYS = [
+  ...EXTERNAL_ROLE_TYPES,
+  "roster-member",
+  "roster-staff",
+] as const;
 export type EngagementTabSetKey = (typeof ENGAGEMENT_TAB_SET_KEYS)[number];
 
 /** Gateway visibility keys: a person without a company account, then the four account roles. */

@@ -150,6 +150,20 @@ engagementTabs:
         - engagement.per-diem
         - engagement.documents
         - engagement.messages
+    # A person on a staffing agency's roster (R12, ADR 0100 amendment): the Roster Member tabs, with the training they
+    # acknowledge before their first shift, the shifts the agency placed them on and their own timesheets.
+    roster-staff:
+      tabs:
+        - engagement.overview
+        - engagement.project-details
+        - engagement.training
+        - engagement.shifts
+        - engagement.timesheets
+        - engagement.credentials
+        - engagement.travel-and-lodging
+        - engagement.per-diem
+        - engagement.documents
+        - engagement.messages
 nodes:
   - id: group.primary
     kind: group

@@ -24,6 +24,7 @@ import { PaymentSteps } from "./payment-steps";
 import { signDocumentAction, submitOnboardingItemAction } from "@/lib/actions/engagement";
 import { agreeSelfBillingAction, revokeSelfBillingAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
+import { onRoster } from "@/lib/roster-member";
 import { engagementTitle, overviewRows, type OverviewRow } from "@/lib/engagement-state";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
@@ -60,7 +61,7 @@ const STAGE_FOR_STATE: Record<string, number> = {
 
 export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) {
   // A person on the party's roster sees their own call, parking, gear and items (R8).
-  if (view.roleType === "roster-member") {
+  if (onRoster(view)) {
     return <RosterMemberOverview view={view} t={t} locale={locale} engagementKey={engagementKey} />;
   }
   const e = view.engagement;
@@ -267,7 +268,7 @@ export async function DocumentsTab({
   kinds,
 }: TabProps & { kinds?: readonly EngagementDocumentKind[] }) {
   // A person on the party's roster keeps their own documents and certifications here (R8).
-  if (view.roleType === "roster-member") {
+  if (onRoster(view)) {
     return (
       <RosterMemberDocuments view={view} t={t} locale={locale} engagementKey={engagementKey} />
     );

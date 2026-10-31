@@ -82,7 +82,16 @@
       "allocation_split_parts": "Give each person a whole quantity of at least one.",
       "allocation_window": "The end of the need must come after its start.",
       "allocation_quantity_positive": "Enter a quantity above zero.",
-      "allocation_quantity_whole": "This item is given in whole numbers."
+      "allocation_quantity_whole": "This item is given in whole numbers.",
+      "roster_shift_not_agency_slot": "Only an agency slot, or a shift your roster already holds, takes agency staff. Choose another shift.",
+      "roster_entry_other_engagement": "This shift belongs to another engagement's roster. Place someone from that roster.",
+      "roster_training_incomplete": "This person has training to acknowledge, or the production still has to verify it. Place them once their training is done.",
+      "roster_shift_overlap": "This person already holds a shift that overlaps this one. Choose someone else or take them off the other shift.",
+      "roster_shift_closed": "This shift is canceled or already over.",
+      "roster_shift_not_assigned": "No one from your roster holds this shift.",
+      "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
+      "roster_training_not_due": "This training is not due on your roster entry.",
+      "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it."
     }
   },
   "common": {
@@ -390,7 +399,8 @@
         "inviteEmail": "Enter one email address and choose a role.",
         "allocationItem": "Choose who it is for and what you need.",
         "allocationQuantity": "Enter a quantity above zero.",
-        "allocationWindow": "Give the need a start, a later end and a time zone."
+        "allocationWindow": "Give the need a start, a later end and a time zone.",
+        "rosterAssignee": "Choose who to place on the shift."
       },
       "advance": {
         "answer": "Your answer",
@@ -552,6 +562,13 @@
         "roleMember": "Account Member",
         "submit": "Send invitation",
         "done": "Invitation sent. It stays open for 14 days."
+      },
+      "staffing": {
+        "assign": "Assign",
+        "assigned": "Assigned.",
+        "assignTitle": "Assign someone from your roster",
+        "person": "Person",
+        "personHint": "Choose someone from your roster"
       }
     },
     "settlement": {
@@ -686,6 +703,16 @@
       "projectDetails": "Update your project details",
       "party": "Engaged as",
       "documentsEmpty": "Your documents and certifications appear here once you add them to your profile."
+    },
+    "staffing": {
+      "openSlot": "Open agency slot",
+      "unassign": "Unassign",
+      "unassignReason": "Taken off the shift by the agency.",
+      "trainingDue": "{n} training due",
+      "overlaps": "overlaps another shift",
+      "trainingEmpty": "No training is due before your first shift.",
+      "awaitingVerification": "Waiting for verification",
+      "acknowledge": "I have read and acknowledge this"
     }
   },
   "enums": {

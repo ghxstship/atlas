@@ -85,6 +85,16 @@ export const KNOWN_REFUSALS = [
   "allocation_window",
   "allocation_quantity_positive",
   "allocation_quantity_whole",
+  // R12: a staffing agency places its roster staff on shifts after their training (migrations 2750 to 2752).
+  "roster_shift_not_agency_slot",
+  "roster_entry_other_engagement",
+  "roster_training_incomplete",
+  "roster_shift_overlap",
+  "roster_shift_closed",
+  "roster_shift_not_assigned",
+  "roster_entry_not_working",
+  "roster_training_not_due",
+  "sod_roster_training",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",

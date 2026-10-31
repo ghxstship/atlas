@@ -178,6 +178,20 @@ export const sitemap: Sitemap = {
           "engagement.messages",
         ],
       },
+      "roster-staff": {
+        tabs: [
+          "engagement.overview",
+          "engagement.project-details",
+          "engagement.training",
+          "engagement.shifts",
+          "engagement.timesheets",
+          "engagement.credentials",
+          "engagement.travel-and-lodging",
+          "engagement.per-diem",
+          "engagement.documents",
+          "engagement.messages",
+        ],
+      },
     },
   },
   nodes: [
