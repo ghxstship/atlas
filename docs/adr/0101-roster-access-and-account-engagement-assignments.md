@@ -98,6 +98,9 @@ scope. Former members and people the company rostered before are not in it.
   person, so nothing restates `app.engagements.person_id`.
 - People not yet on the platform join by invitation link (line 1084). The entry stays Draft until they claim the
   account by verified email (line 589) and accept.
+- Amendment (R5, G-142, 2656): the producing org may set a names lock per engagement (`roster_locks_at`). After it
+  the company side adds, invites, edits Draft entries and submits new names no more; Returned entries stay editable
+  and resubmittable, and self entries, claims, responses, reviews and withdrawals go on.
 
 ### 8. Which engagements are rosterable
 

@@ -32,6 +32,10 @@ const DENIAL_KEYS: Readonly<Record<Denial, { title: string; reason: string }>> =
     reason: "compass.denial.notActive",
   },
   "engagement-closed": { title: "compass.denial.closedTitle", reason: "compass.denial.closed" },
+  "roster-member": {
+    title: "compass.denial.rosterMemberTitle",
+    reason: "compass.denial.rosterMember",
+  },
 };
 
 export function DenialNotice({ reason }: { readonly reason: Denial }): ReactElement {

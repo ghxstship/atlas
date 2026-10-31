@@ -938,6 +938,12 @@ describe("navigation", () => {
       screen.getByRole("link", { name: "Northwind Summer Series" }).getAttribute("aria-current"),
     ).toBe("page");
     expect(screen.getByRole("link", { name: "Projects" }).getAttribute("aria-current")).toBeNull();
+    // A name longer than the sidebar is cut with an ellipsis; its title keeps all of it.
+    expect(
+      within(recent)
+        .getAllByRole("link")
+        .map((l) => l.querySelector(".truncate")?.getAttribute("title")),
+    ).toEqual(["Northwind Summer Series", "All Projects"]);
     await expectAccessible(container);
   });
 

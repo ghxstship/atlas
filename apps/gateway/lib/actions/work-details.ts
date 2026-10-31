@@ -23,8 +23,7 @@ import {
   parseNamePartsForm,
   parsePassportForm,
   parseShareForm,
-  parseTravelForm,
-  parseUniformForm,
+  shareFormError,
   workDetailErrorKey,
   type Parsed,
 } from "@xos/data/work-details-forms";
@@ -75,20 +74,12 @@ async function savePatch(parsed: Parsed<WorkDetailsPatch>): Promise<State> {
   return done(await saveMyWorkDetails(db, parsed.value));
 }
 
-export async function saveUniformAction(_: State, form: FormData): Promise<State> {
-  return savePatch(parseUniformForm(form));
-}
-
 export async function saveDietaryAction(_: State, form: FormData): Promise<State> {
   return savePatch(parseDietaryForm(form));
 }
 
 export async function saveAccessibilityAction(_: State, form: FormData): Promise<State> {
   return savePatch(parseAccessibilityForm(form));
-}
-
-export async function saveTravelAction(_: State, form: FormData): Promise<State> {
-  return savePatch(parseTravelForm(form));
 }
 
 export async function savePassportAction(_: State, form: FormData): Promise<State> {
@@ -144,9 +135,7 @@ export async function removeLoyaltyAction(_: State, form: FormData): Promise<Sta
 export async function shareAction(_: State, form: FormData): Promise<State> {
   const parsed = parseShareForm(form);
   if (!parsed.ok) {
-    return {
-      error: parsed.fields.includes("categories") ? "work_detail_share_categories" : "invalid",
-    };
+    return { error: shareFormError(parsed.fields) };
   }
   const { db } = await person();
   return done(await shareWorkDetails(db, parsed.value.engagementId, parsed.value.categories));
