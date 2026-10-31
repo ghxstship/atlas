@@ -82,7 +82,26 @@
       "allocation_split_parts": "Da a cada persona una cantidad entera de al menos uno.",
       "allocation_window": "El fin de la necesidad debe ser posterior a su inicio.",
       "allocation_quantity_positive": "Escribe una cantidad mayor que cero.",
-      "allocation_quantity_whole": "Este artículo se da en números enteros."
+      "allocation_quantity_whole": "Este artículo se da en números enteros.",
+      "advance_section_derived": "La sección de lista de personal se lee de tu pestaña Personal, así que no lleva respuesta. Actualiza la lista allí.",
+      "advance_section_role": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
+      "advance_section_open": "Esta sección ya no está abierta. Vuelve a cargar la página para ver el paquete como está ahora.",
+      "advance_recipient_engagement": "Esta sección se responde bajo tu contratación y el paquete todavía no está vinculado a ella. Pide a la organización que lo vincule.",
+      "advance_line_limit": "Esta sección admite menos líneas. Quita algunas y vuelve a enviar.",
+      "advance_line_kind": "Una de las líneas no corresponde a esta sección. Elige uno de los artículos de la lista y una cantidad.",
+      "advance_line_person": "Revisa para quién es cada línea: esta sección pide una persona en cada línea, o en ninguna.",
+      "advance_line_window": "Una franja termina después de empezar. Revisa las horas y vuelve a enviar.",
+      "advance_line_roster_entry": "Una de las personas ya no está en la lista de personal de esta contratación. Elige a alguien de la lista.",
+      "advance_file_document": "Adjunta los archivos de nuevo: cada archivo va en una sola respuesta, hasta el número que permite la sección.",
+      "advance_answer_length": "Escribe una respuesta de hasta 20.000 caracteres.",
+      "advance_typed_answer_rpc": "Envía la respuesta de esta sección con su propio formulario.",
+      "party_upload_missing": "El archivo no terminó de subirse. Elígelo de nuevo y envía.",
+      "party_upload_checksum": "No se pudo verificar el archivo. Elígelo de nuevo y envía.",
+      "guest_list_cap": "Tu lista de invitados está llena, acompañantes incluidos. Quita un invitado o pide más lugares a la organización.",
+      "sponsor_asset_files_required": "Adjunta entre 1 y 10 archivos.",
+      "sponsor_asset_files_invalid": "Adjunta los archivos de nuevo: cada archivo va en un solo recurso.",
+      "sponsor_asset_source": "La organización aprueba los recursos que envías. Para cambiar uno que te devolvió, reenvíalo con archivos nuevos.",
+      "credential_names_closed": "Ya pasó la fecha límite para asignar nombres a los pases. Contacta a la organización para cambiar quién los tiene."
     }
   },
   "common": {
@@ -276,7 +295,37 @@
     },
     "advance": {
       "empty": "Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.",
-      "awaitingReview": "En espera de revisión"
+      "awaitingReview": "En espera de revisión",
+      "kinds": {
+        "text": "Respuesta de texto",
+        "file": "Archivos",
+        "scheduleWindow": "Franja horaria",
+        "itemRequest": "Solicitud de artículos",
+        "crewRoster": "Lista de personal",
+        "guestList": "Lista de invitados",
+        "credentialRequest": "Solicitud de credenciales"
+      },
+      "namesDue": {
+        "open": "Asigna nombres a tus pases antes del {date}.",
+        "closed": "Los nombres se cerraron el {date}. Contacta a {org} para cambiarlos."
+      },
+      "guestsConfirmed": "Confirmaste la lista de invitados.",
+      "filesLabel": "Archivos que enviaste",
+      "linesLabel": "Lo que solicitaste",
+      "window": "{from} a {to}",
+      "lineTitle": "{n} × {item}",
+      "scan": {
+        "scanning": "Buscando virus",
+        "clean": "Listo",
+        "infected": "Bloqueado: se encontró un virus",
+        "scanFailed": "No se pudo revisar"
+      },
+      "rosterEmpty": "Todavía no hay nadie en la lista de personal.",
+      "rosterCount": "{n} {state}",
+      "rosterLink": "Abrir la pestaña Personal",
+      "noGuestList": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
+      "guestsUsed": "{n} lugares en la lista de invitados, acompañantes incluidos.",
+      "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos."
     },
     "compliance": {
       "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
@@ -390,7 +439,10 @@
         "inviteEmail": "Escribe una sola dirección de correo y elige un rol.",
         "allocationItem": "Elige para quién es y qué necesitas.",
         "allocationQuantity": "Escribe una cantidad mayor que cero.",
-        "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria."
+        "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria.",
+        "advanceLine": "Revisa cada línea: elige un artículo y una cantidad entera de 1 o más.",
+        "sponsorAsset": "Elige el beneficio y el tipo, y adjunta los archivos.",
+        "title": "Di qué es el recurso, en hasta 200 caracteres."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -552,6 +604,48 @@
         "roleMember": "Miembro de la cuenta",
         "submit": "Enviar invitación",
         "done": "Invitación enviada. Queda abierta 14 días."
+      },
+      "advanceTyped": {
+        "uploadSubmit": "Enviar archivos",
+        "done": "Enviado. La organización revisa tu respuesta.",
+        "files": "Archivos",
+        "filesHelp": "PDF, imagen, CSV, Excel o Word, hasta 25 MB cada uno, máximo {n}.",
+        "note": "Nota",
+        "windowN": "Franja {n}",
+        "lineN": "Línea {n}",
+        "from": "Inicio",
+        "to": "Fin",
+        "item": "Artículo",
+        "credential": "Pase",
+        "quantity": "Cantidad",
+        "person": "Persona",
+        "personHint": "Elige una persona",
+        "forPool": "Para todo el equipo",
+        "neededFrom": "Se necesita desde",
+        "neededTo": "Se necesita hasta",
+        "lineNote": "Nota de esta línea",
+        "addWindow": "Agregar franja",
+        "addLine": "Agregar línea",
+        "timeZone": "Zona horaria",
+        "timeZoneHelp": "Las horas están en esta zona; se completa la del proyecto.",
+        "submit": "Enviar respuesta",
+        "confirmGuests": "Confirmar lista de invitados",
+        "confirmGuestsHelp": "Confirma cuando todas las personas que traes estén en la lista."
+      },
+      "sponsorSupply": {
+        "title": "Enviar un recurso",
+        "submit": "Enviar para aprobación",
+        "done": "Enviado. La organización lo revisa.",
+        "entitlement": "Beneficio",
+        "kind": "Tipo",
+        "assetTitle": "Qué es",
+        "files": "Archivos",
+        "filesHelp": "PDF o imagen, hasta 25 MB cada uno, máximo 10.",
+        "usageNote": "Dónde y cómo se usa",
+        "dueOn": "Se necesita antes del",
+        "resubmit": "Reenviar con archivos nuevos",
+        "resubmitted": "Reenviado. La organización revisa la nueva revisión.",
+        "reason": "Qué cambió"
       }
     },
     "settlement": {
@@ -567,7 +661,11 @@
       "empty": "Aún no hay recursos de marca para revisar. La organización envía aquí pancartas, arte y textos para su aprobación.",
       "due": "Se necesita el {date}",
       "revision": "Revisión {n}",
-      "awaiting": "Espera su aprobación"
+      "awaiting": "Espera su aprobación",
+      "suppliedTitle": "Recursos que envías",
+      "suppliedEmpty": "Todavía no has enviado recursos. Envía un logotipo o una pieza gráfica abajo para que la organización lo apruebe.",
+      "toApproveTitle": "Recursos por aprobar",
+      "files": "Archivos: {files}"
     },
     "crew": {
       "sentence": "Quién trabaja en esta contratación por ti. Agrega personas de tu equipo o invítalas por correo y luego envía la lista. Cada persona acepta su propia entrada antes de que se comparta algo sobre ella.",
@@ -1053,6 +1151,27 @@
     "accountEngagementDuty": {
       "advancingLead": "Responsable de avance",
       "member": "Miembro"
+    },
+    "advanceSectionKind": {
+      "text": "Texto",
+      "file": "Archivo",
+      "scheduleWindow": "Franja horaria",
+      "itemRequest": "Solicitud de artículos",
+      "crewRoster": "Lista de personal",
+      "guestList": "Lista de invitados",
+      "credentialRequest": "Solicitud de credenciales"
+    },
+    "advanceWindowKind": {
+      "loadIn": "Carga",
+      "loadOut": "Descarga",
+      "arrival": "Llegada",
+      "soundcheck": "Prueba de sonido",
+      "activationSetup": "Montaje de activación",
+      "activationStrike": "Desmontaje de activación"
+    },
+    "sponsorAssetSource": {
+      "orgSupplied": "Enviado por la organización",
+      "sponsorSupplied": "Enviado por ti"
     }
   },
   "explore": {

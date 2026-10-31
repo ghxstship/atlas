@@ -85,6 +85,7 @@ const allocation = (over: Partial<EngagedAllocation>): EngagedAllocation => ({
   neededTimeZone: "America/New_York",
   requestedByMe: false,
   declineReason: null,
+  namesDueAt: null,
   ...over,
 });
 

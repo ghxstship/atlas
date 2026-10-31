@@ -42,8 +42,8 @@ import {
 import { ProjectDetailsTab } from "./tabs-project-details";
 import { ReportsTab } from "./tabs-reports";
 import { CrewTab } from "./tabs-roster";
+import { AdvanceTab } from "./tabs-advance";
 import {
-  AdvanceTab,
   BidTab,
   ComplianceTab,
   DeliveriesTab,

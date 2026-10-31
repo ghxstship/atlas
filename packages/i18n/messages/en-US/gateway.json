@@ -82,7 +82,26 @@
       "allocation_split_parts": "Give each person a whole quantity of at least one.",
       "allocation_window": "The end of the need must come after its start.",
       "allocation_quantity_positive": "Enter a quantity above zero.",
-      "allocation_quantity_whole": "This item is given in whole numbers."
+      "allocation_quantity_whole": "This item is given in whole numbers.",
+      "advance_section_derived": "The crew roster section is read from your Crew tab, so it takes no answer. Update the roster there.",
+      "advance_section_role": "Guest lists are not part of a contractor's or sponsor's advance.",
+      "advance_section_open": "This section is no longer open. Reload the page to see the packet as it is now.",
+      "advance_recipient_engagement": "This section is answered under your engagement, and the packet is not linked to it yet. Ask the organization to link it.",
+      "advance_line_limit": "This section takes fewer lines. Remove some and send again.",
+      "advance_line_kind": "One of the lines does not fit this section. Choose one of the listed items and a quantity.",
+      "advance_line_person": "Check who each line is for: this section asks for a person on every line, or for none.",
+      "advance_line_window": "A window ends after it starts. Check the times and send again.",
+      "advance_line_roster_entry": "One of the people is not on this engagement's crew roster any more. Choose someone on the roster.",
+      "advance_file_document": "Attach the files again: each file goes to one answer, up to the number the section allows.",
+      "advance_answer_length": "Write an answer of up to 20,000 characters.",
+      "advance_typed_answer_rpc": "Send this section's answer with its own form.",
+      "party_upload_missing": "The file did not finish uploading. Choose it again and send.",
+      "party_upload_checksum": "The file could not be verified. Choose it again and send.",
+      "guest_list_cap": "Your guest list is full, plus-ones included. Remove a guest or ask the organization for more places.",
+      "sponsor_asset_files_required": "Attach between 1 and 10 files.",
+      "sponsor_asset_files_invalid": "Attach the files again: each file goes to one asset.",
+      "sponsor_asset_source": "The organization approves the assets you supply. To change one it returned, resubmit it with new files.",
+      "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them."
     }
   },
   "common": {
@@ -276,7 +295,37 @@
     },
     "advance": {
       "empty": "No advance packet yet. When the organization sends one, answer each section here.",
-      "awaitingReview": "Awaiting review"
+      "awaitingReview": "Awaiting review",
+      "kinds": {
+        "text": "Text answer",
+        "file": "Files",
+        "scheduleWindow": "Schedule window",
+        "itemRequest": "Item request",
+        "crewRoster": "Crew roster",
+        "guestList": "Guest list",
+        "credentialRequest": "Credential request"
+      },
+      "namesDue": {
+        "open": "Name your passes by {date}.",
+        "closed": "Names closed on {date}. Contact {org} to change them."
+      },
+      "guestsConfirmed": "You confirmed the guest list.",
+      "filesLabel": "Files you sent",
+      "linesLabel": "What you asked for",
+      "window": "{from} to {to}",
+      "lineTitle": "{n} × {item}",
+      "scan": {
+        "scanning": "Checking for viruses",
+        "clean": "Ready",
+        "infected": "Blocked: virus found",
+        "scanFailed": "Could not be checked"
+      },
+      "rosterEmpty": "Nobody is on the crew roster yet.",
+      "rosterCount": "{n} {state}",
+      "rosterLink": "Open the Crew tab",
+      "noGuestList": "Guest lists are not part of a contractor's or sponsor's advance.",
+      "guestsUsed": "{n} places on the guest list, plus-ones included.",
+      "guestsCap": "{n} of {cap} places used, plus-ones included."
     },
     "compliance": {
       "empty": "No compliance items yet. Insurance and prequalification appear here.",
@@ -390,7 +439,10 @@
         "inviteEmail": "Enter one email address and choose a role.",
         "allocationItem": "Choose who it is for and what you need.",
         "allocationQuantity": "Enter a quantity above zero.",
-        "allocationWindow": "Give the need a start, a later end and a time zone."
+        "allocationWindow": "Give the need a start, a later end and a time zone.",
+        "advanceLine": "Check each line: choose an item and a whole quantity of 1 or more.",
+        "sponsorAsset": "Choose the entitlement and the kind, and attach the files.",
+        "title": "Say what the asset is, in up to 200 characters."
       },
       "advance": {
         "answer": "Your answer",
@@ -552,6 +604,48 @@
         "roleMember": "Account Member",
         "submit": "Send invitation",
         "done": "Invitation sent. It stays open for 14 days."
+      },
+      "advanceTyped": {
+        "uploadSubmit": "Send files",
+        "done": "Sent. The organization reviews your answer.",
+        "files": "Files",
+        "filesHelp": "PDF, image, CSV, Excel or Word, up to 25 MB each, at most {n}.",
+        "note": "Note",
+        "windowN": "Window {n}",
+        "lineN": "Line {n}",
+        "from": "Starts",
+        "to": "Ends",
+        "item": "Item",
+        "credential": "Pass",
+        "quantity": "Quantity",
+        "person": "Person",
+        "personHint": "Choose a person",
+        "forPool": "For the whole team",
+        "neededFrom": "Needed from",
+        "neededTo": "Needed until",
+        "lineNote": "Note on this line",
+        "addWindow": "Add window",
+        "addLine": "Add line",
+        "timeZone": "Time zone",
+        "timeZoneHelp": "Times are in this zone; the project's is filled in.",
+        "submit": "Send answer",
+        "confirmGuests": "Confirm guest list",
+        "confirmGuestsHelp": "Confirm when everyone you are bringing is on the list."
+      },
+      "sponsorSupply": {
+        "title": "Supply an asset",
+        "submit": "Send for approval",
+        "done": "Sent. The organization reviews it.",
+        "entitlement": "Entitlement",
+        "kind": "Kind",
+        "assetTitle": "What it is",
+        "files": "Files",
+        "filesHelp": "PDF or image, up to 25 MB each, at most 10.",
+        "usageNote": "Where and how it is used",
+        "dueOn": "Needed by",
+        "resubmit": "Resubmit with new files",
+        "resubmitted": "Resubmitted. The organization reviews the new revision.",
+        "reason": "What changed"
       }
     },
     "settlement": {
@@ -567,7 +661,11 @@
       "empty": "No brand assets to review yet. The organization submits banners, artwork and copy here for your approval.",
       "due": "Needed by {date}",
       "revision": "Revision {n}",
-      "awaiting": "Awaiting your approval"
+      "awaiting": "Awaiting your approval",
+      "suppliedTitle": "Assets you supply",
+      "suppliedEmpty": "You have not supplied any assets yet. Send a logo or artwork below for the organization to approve.",
+      "toApproveTitle": "Assets to approve",
+      "files": "Files: {files}"
     },
     "crew": {
       "sentence": "Who works this engagement for you. Add people from your team or invite them by email, then submit the roster. Each person accepts their own entry before anything about them is shared.",
@@ -1053,6 +1151,27 @@
     "accountEngagementDuty": {
       "advancingLead": "Advancing Lead",
       "member": "Member"
+    },
+    "advanceSectionKind": {
+      "text": "Text",
+      "file": "File",
+      "scheduleWindow": "Schedule Window",
+      "itemRequest": "Item Request",
+      "crewRoster": "Crew Roster",
+      "guestList": "Guest List",
+      "credentialRequest": "Credential Request"
+    },
+    "advanceWindowKind": {
+      "loadIn": "Load In",
+      "loadOut": "Load Out",
+      "arrival": "Arrival",
+      "soundcheck": "Soundcheck",
+      "activationSetup": "Activation Setup",
+      "activationStrike": "Activation Strike"
+    },
+    "sponsorAssetSource": {
+      "orgSupplied": "Supplied by the organization",
+      "sponsorSupplied": "Supplied by you"
     }
   },
   "explore": {

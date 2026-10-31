@@ -121,7 +121,8 @@ export interface AssignableEntry {
  * gives the difference back to the pool.
  */
 export function AssignFromPool(props: {
-  pools: readonly (Option & { readonly left: number })[];
+  /** closed: the sentence of a credential pool past its naming deadline (G-141), which takes no names. */
+  pools: readonly (Option & { readonly left: number; readonly closed?: string | null })[];
   entries: readonly AssignableEntry[];
 }) {
   const t = useCrewCopy();
@@ -131,7 +132,8 @@ export function AssignFromPool(props: {
     () => props.entries.map((e) => ({ id: e.id, label: e.name, eligible: e.eligible })),
     [props.entries],
   );
-  const valid = pool !== "" && /^\d{1,6}$/.test(quantity);
+  const closed = props.pools.find((p) => p.value === pool)?.closed ?? null;
+  const valid = pool !== "" && closed === null && /^\d{1,6}$/.test(quantity);
   const bulk = useBulk(
     valid ? "assign" : null,
     rows,
@@ -160,6 +162,11 @@ export function AssignFromPool(props: {
           width={140}
         />
       </div>
+      {closed ? (
+        <p role="status" className="m-0 text-text-13 text-text-secondary">
+          {closed}
+        </p>
+      ) : null}
       <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
         <legend className="mb-4 text-text-13 font-medium text-text-secondary">
           {t("pool.selectPeople")}

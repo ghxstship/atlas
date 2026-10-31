@@ -1,4 +1,5 @@
 import {
+  namesClosed,
   poolAllocations,
   requestableValue,
   shareOf,
@@ -21,7 +22,22 @@ import { RowList } from "./rows";
  * with what is left of each item, the items of each person on its roster with their computed status,
  * a Request item form and Assign from pool for several people at once. Status is computed by the
  * database (owner decision 8): Gateway shows it and never confirms possession, which only Issue does.
+ * A credential pool requested through an advance answer stops taking names at its recipient's
+ * naming deadline (G-141, R9): Assign from pool leaves it out and its shares lose Give back.
  */
+
+/** The sentence a closed credential pool shows: who to ask now that the party cannot rename it. */
+export function namesClosedSentence(
+  a: { readonly namesDueAt: string | null },
+  orgName: string,
+  t: Translate,
+  locale: string,
+): string {
+  return t("gateway.engagement.advance.namesDue.closed", {
+    date: formatDateTime(locale, a.namesDueAt ?? ""),
+    org: orgName,
+  });
+}
 
 /** An allocation's name in a list: its item, else its kind (Travel, Per Diem). */
 export function allocationTitle(a: EngagedAllocation, t: Translate): string {
@@ -79,7 +95,10 @@ export function EntryItems({
                 />
               ),
             }
-          : a.parentAllocationId && a.state === "Approved" && a.issuedQuantity === 0
+          : a.parentAllocationId &&
+              a.state === "Approved" &&
+              a.issuedQuantity === 0 &&
+              !namesClosed(a)
             ? {
                 action: (
                   <ActionButton
@@ -99,6 +118,7 @@ export function EntryItems({
 export function CrewAllocations({
   engagementId,
   timeZone,
+  orgName,
   entries,
   allocations,
   requestable,
@@ -107,12 +127,14 @@ export function CrewAllocations({
 }: {
   engagementId: string;
   timeZone: string;
+  orgName: string;
   entries: readonly RosterEntry[];
   allocations: readonly EngagedAllocation[];
   requestable: readonly RequestableItem[];
   t: Translate;
   locale: string;
 }) {
+  const now = new Date();
   const pools = poolAllocations(allocations);
   const requestedPool = allocations.filter(
     (a) => a.rosterEntryId === null && a.state === "Requested",
@@ -146,6 +168,13 @@ export function CrewAllocations({
                   ? t("gateway.engagement.crew.pool.left", { n: a.quantity })
                   : t("gateway.engagement.crew.pool.asked", { n: a.quantity }),
                 formatDateTime(locale, a.neededFrom, a.neededTimeZone),
+                a.namesDueAt === null
+                  ? null
+                  : namesClosed(a, now)
+                    ? namesClosedSentence(a, orgName, t, locale)
+                    : t("gateway.engagement.advance.namesDue.open", {
+                        date: formatDateTime(locale, a.namesDueAt),
+                      }),
               ],
               tag: allocationTag(a, t),
               ...(a.state === "Requested"
@@ -169,6 +198,8 @@ export function CrewAllocations({
               value: p.id,
               label: allocationTitle(p, t),
               left: p.quantity,
+              // Past its naming deadline a credential pool keeps its names; only production changes them.
+              closed: namesClosed(p, now) ? namesClosedSentence(p, orgName, t, locale) : null,
             }))}
             entries={people.map((e) => ({
               id: e.id,

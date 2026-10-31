@@ -272,6 +272,7 @@ export async function CrewTab({ view, t, locale }: TabProps) {
       <CrewAllocations
         engagementId={engagement.id}
         timeZone={timeZone}
+        orgName={engagement.orgName}
         entries={entries}
         allocations={allocations.data}
         requestable={requestable.data}
