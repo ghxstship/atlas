@@ -106,6 +106,23 @@ export const KNOWN_REFUSALS = [
   "sponsor_asset_files_invalid",
   "sponsor_asset_source",
   "credential_names_closed",
+  // R10: the advance link's typed sections, uploads, guests and crew roster (migrations 2730 and 2731).
+  "advance_token_invalid",
+  "advance_token_locked",
+  "advance_token_expired",
+  "advance_access_code",
+  "token_invalid",
+  "advance_upload_type",
+  "advance_upload_size",
+  "advance_upload_limit",
+  "advance_upload_rate",
+  "advance_upload_ticket",
+  "advance_guest_rate",
+  "advance_roster_rate",
+  "guest_list_closed",
+  "guest_name_length",
+  "guest_plus_ones",
+  "guest_note_length",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",
@@ -117,12 +134,15 @@ export const KNOWN_REFUSALS = [
   "notification_channel_outside",
 ] as const;
 
+/** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */
+export function refusalOutcome(rule: string): string {
+  return (KNOWN_REFUSALS as readonly string[]).includes(rule) ? `refusals.${rule}` : "refused";
+}
+
 export function outcomeFor(error: DataError): string {
   switch (error.kind) {
     case "refusal":
-      return (KNOWN_REFUSALS as readonly string[]).includes(error.rule)
-        ? `refusals.${error.rule}`
-        : "refused";
+      return refusalOutcome(error.rule);
     case "not-found":
       return "notFound";
     case "conflict":

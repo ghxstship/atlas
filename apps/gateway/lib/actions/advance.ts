@@ -4,7 +4,6 @@ import {
   partyUploadObjectName,
   submitTypedAdvanceAnswer,
   uploadPartyFile,
-  type AdvanceAnswerLine,
   type PartyUploadTarget,
 } from "@xos/data/gateway";
 import { resubmitSponsorAsset, supplySponsorAsset } from "@xos/data/sponsor-assets";
@@ -13,7 +12,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { outcomeFor } from "@/lib/action-result";
 import type { FormResult } from "@/lib/actions/operations";
-import { localToInstant } from "@/lib/local-time";
+import { answerHead, answerHeadOf, answerLines, formFiles } from "@/lib/advance-answer-form";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
@@ -26,27 +25,6 @@ import { createServerSupabase } from "@/lib/supabase/server";
  */
 
 const id = z.uuid();
-/** What party-uploads accepts (2712), all known to packages/platform/src/scanning/content.ts. */
-const PARTY_UPLOAD_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/heic",
-  "image/webp",
-  "text/csv",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
-const PARTY_UPLOAD_LIMIT = 26_214_400;
-
-/** The files of a form, checked for type and size; a field error key when one does not fit. */
-function formFiles(form: FormData): File[] | { fieldError: string } {
-  const files = form.getAll("file").filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length === 0) return { fieldError: "file" };
-  if (files.some((f) => !PARTY_UPLOAD_TYPES.includes(f.type))) return { fieldError: "fileType" };
-  if (files.some((f) => f.size > PARTY_UPLOAD_LIMIT)) return { fieldError: "fileSize" };
-  return files;
-}
 
 /** Uploads and registers each file under the target folder; the document ids, or the failure. */
 async function uploadAll(
@@ -100,72 +78,21 @@ export async function uploadAdvanceFileAction(_: FormResult, form: FormData): Pr
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
-const lineSchema = z.object({
-  item: z.string().trim().max(80),
-  quantity: z.string().trim().max(6),
-  person: z.string().trim().max(40),
-  from: z.string().trim().max(40),
-  to: z.string().trim().max(40),
-  note: z.string().trim().max(500),
-});
-
 /**
  * A Schedule Window, Item Request, Credential Request or Guest List answer. Lines arrive as
  * line.<n>.<field>; an item is asset_class:<id> or credential_category:<id>, times are local in the
  * form's zone and become instants here.
  */
 export async function submitTypedAdvanceAction(_: FormResult, form: FormData): Promise<FormResult> {
-  const head = z
-    .object({
-      recipientId: id,
-      sectionId: id,
-      timeZone: z.string().trim().min(1).max(64),
-      note: z.string().trim().max(2000),
-      lines: z.coerce.number().int().min(0).max(50),
-    })
-    .safeParse({
-      recipientId: form.get("recipientId"),
-      sectionId: form.get("sectionId"),
-      timeZone: form.get("timeZone") ?? "UTC",
-      note: form.get("note") ?? "",
-      lines: form.get("lines") ?? 0,
-    });
+  const head = answerHead.extend({ recipientId: id, sectionId: id }).safeParse({
+    recipientId: form.get("recipientId"),
+    sectionId: form.get("sectionId"),
+    ...answerHeadOf(form),
+  });
   if (!head.success) return { fieldError: "answer" };
   const h = head.data;
-  const lines: AdvanceAnswerLine[] = [];
-  for (let n = 0; n < h.lines; n += 1) {
-    const field = (name: string) => String(form.get(`line.${n}.${name}`) ?? "");
-    const parsed = lineSchema.safeParse({
-      item: field("item"),
-      quantity: field("quantity"),
-      person: field("person"),
-      from: field("from"),
-      to: field("to"),
-      note: field("note"),
-    });
-    if (!parsed.success) return { fieldError: "advanceLine" };
-    const l = parsed.data;
-    const [kind, itemId] = l.item.split(":");
-    if (l.item !== "" && (!itemId || !id.safeParse(itemId).success))
-      return { fieldError: "advanceLine" };
-    if (l.person !== "" && !id.safeParse(l.person).success) return { fieldError: "advanceLine" };
-    if ((l.from === "") !== (l.to === "")) return { fieldError: "allocationWindow" };
-    const quantity = l.quantity === "" ? null : Number(l.quantity);
-    if (quantity !== null && (!Number.isInteger(quantity) || quantity < 1))
-      return { fieldError: "allocationQuantity" };
-    // A row left empty is not a line.
-    if (l.item === "" && l.from === "" && quantity === null) continue;
-    lines.push({
-      assetClassId: kind === "asset_class" ? (itemId ?? null) : null,
-      credentialCategoryId: kind === "credential_category" ? (itemId ?? null) : null,
-      quantity,
-      rosterEntryId: l.person === "" ? null : l.person,
-      neededFrom: l.from === "" ? null : localToInstant(l.from, h.timeZone),
-      neededTo: l.to === "" ? null : localToInstant(l.to, h.timeZone),
-      windowZone: l.from === "" ? null : h.timeZone,
-      note: l.note === "" ? null : l.note,
-    });
-  }
+  const lines = answerLines(form, h.lines, h.timeZone);
+  if (!Array.isArray(lines)) return lines;
   const result = await submitTypedAdvanceAnswer(await createServerSupabase(), {
     recipientId: h.recipientId,
     sectionId: h.sectionId,
