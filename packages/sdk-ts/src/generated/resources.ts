@@ -24,6 +24,7 @@ import type {
   AccessReviewItemUpdate,
   AccessScan,
   AccessScanCreate,
+  AccessScanOverrideRequest,
   AccountMembership,
   AccountMembershipCreate,
   AccountMembershipRole,
@@ -304,6 +305,8 @@ import type {
   Credential,
   CredentialCategory,
   CredentialCategoryCreate,
+  CredentialCategoryRequirement,
+  CredentialCategoryRequirementCreate,
   CredentialCategoryUpdate,
   CredentialCreate,
   CrisisAlert,
@@ -443,6 +446,9 @@ import type {
   GuestCheckIn,
   GuestCheckInCreate,
   GuestDecisionRequest,
+  GuestEmailSend,
+  GuestEmailSendQueued,
+  GuestEmailSendRequest,
   GuestListEntry,
   GuestListEntryCreate,
   GuestListEntryUpdate,
@@ -1076,11 +1082,17 @@ import type {
   WeatherAlert,
   WeatherAlertRole,
   WeatherAlertRoleCreate,
+  WeatherAllClearRequest,
+  WeatherFeed,
+  WeatherFeedCreate,
+  WeatherHold,
+  WeatherHoldCreate,
   WeatherReading,
   WeatherReadingCreate,
   WeatherThreshold,
   WeatherThresholdCreate,
   WeatherThresholdUpdate,
+  WeatherWarning,
   WebhookDelivery,
   WebhookEndpoint,
   WebhookEndpointCreate,
@@ -11100,6 +11112,26 @@ export class AccessScansResource extends $Resource {
     return this.client.request<AccessScan>(
       $OPERATIONS["accessScans.get"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Override a denied scan
+   *
+   * Lets the holder of a Denied In scan less than 15 minutes old in: records a new Granted In row tied to it, with the reason. Needs credentials.credential.issue on the project. Refuses scan_not_denied, scan_override_revoked (a revoked badge is never let in), scan_override_stale, scan_override_taken, scan_override_self (the holder) and scan_override_reason (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /access-scans/{id}/override` (operation `accessScans.override`).
+   * Requires the capability `credentials.credential.issue`.
+   */
+  override(
+    id: string,
+    body: AccessScanOverrideRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AccessScan>> {
+    return this.client.request<AccessScan>(
+      $OPERATIONS["accessScans.override"],
+      { path: { id }, body },
       options,
     );
   }
@@ -35369,6 +35401,92 @@ export class GuestListEntriesResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Email guests
+   *
+   * Queues an email to the selected guests of a project, sent by the org with an unsubscribe link and its postal address (B8, ADR 0147 decision 7). Every guest gets a row: Queued, Suppressed (the address is on the org's suppression list) or Skipped (no email, not live, or no pass for a Pass email). Refuses guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org) and guest_email_message (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /guest-list-entries/send-email` (operation `guestListEntries.sendEmail`).
+   * Requires the capability `advancing.rider.write`.
+   */
+  sendEmail(
+    body: GuestEmailSendRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<GuestEmailSendQueued>> {
+    return this.client.request<GuestEmailSendQueued>(
+      $OPERATIONS["guestListEntries.sendEmail"],
+      { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `guestEmailSends`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class GuestEmailSendsResource extends $Resource {
+  /**
+   * List guest email send rows
+   *
+   * A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns a cursor page of guest email send rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /guest-email-sends` (operation `guestEmailSends.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<GuestEmailSend>,
+    options?: $RequestOptions,
+  ): Promise<$Page<GuestEmailSend>> {
+    return this.client.requestPage<GuestEmailSend>(
+      $OPERATIONS["guestEmailSends.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List guest email send rows
+   *
+   * A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns a cursor page of guest email send rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /guest-email-sends` (operation `guestEmailSends.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<GuestEmailSend>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<GuestEmailSend, void, undefined> {
+    return this.client.paginate<GuestEmailSend>(
+      $OPERATIONS["guestEmailSends.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a guest email send
+   *
+   * A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns one guest email send with its `ETag`. A guest email send the caller may not see returns 404.
+   *
+   * `GET /guest-email-sends/{id}` (operation `guestEmailSends.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<GuestEmailSend>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<GuestEmailSend>> {
+    return this.client.request<GuestEmailSend>(
+      $OPERATIONS["guestEmailSends.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
 }
 
 /**
@@ -35500,6 +35618,108 @@ export class AssetReservationsResource extends $Resource {
     return this.client.request<AssetReservation>(
       $OPERATIONS["assetReservations.release"],
       { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `credentialCategoryRequirements`, in the Credentials module.
+ *
+ * Credential categories, issuance, the Access Grid and scans (Section 4.2).
+ */
+export class CredentialCategoryRequirementsResource extends $Resource {
+  /**
+   * List credential category requirement rows
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /credential-category-requirements` (operation `credentialCategoryRequirements.list`).
+   * Requires the capability `credentials.credential.read`.
+   */
+  list(
+    params?: $ListParams<CredentialCategoryRequirement>,
+    options?: $RequestOptions,
+  ): Promise<$Page<CredentialCategoryRequirement>> {
+    return this.client.requestPage<CredentialCategoryRequirement>(
+      $OPERATIONS["credentialCategoryRequirements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List credential category requirement rows
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /credential-category-requirements` (operation `credentialCategoryRequirements.list`).
+   * Requires the capability `credentials.credential.read`.
+   */
+  listAll(
+    params?: $ListAllParams<CredentialCategoryRequirement>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<CredentialCategoryRequirement, void, undefined> {
+    return this.client.paginate<CredentialCategoryRequirement>(
+      $OPERATIONS["credentialCategoryRequirements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a credential category requirement
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Creates a credential category requirement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /credential-category-requirements` (operation `credentialCategoryRequirements.create`).
+   * Requires the capability `credentials.category.write`.
+   */
+  create(
+    body: CredentialCategoryRequirementCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<CredentialCategoryRequirement>> {
+    return this.client.request<CredentialCategoryRequirement>(
+      $OPERATIONS["credentialCategoryRequirements.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a credential category requirement
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns one credential category requirement with its `ETag`. A credential category requirement the caller may not see returns 404.
+   *
+   * `GET /credential-category-requirements/{id}` (operation `credentialCategoryRequirements.get`).
+   * Requires the capability `credentials.credential.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<CredentialCategoryRequirement>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<CredentialCategoryRequirement>> {
+    return this.client.request<CredentialCategoryRequirement>(
+      $OPERATIONS["credentialCategoryRequirements.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a credential category requirement
+   *
+   * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Soft-deletes the credential category requirement: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /credential-category-requirements/{id}` (operation `credentialCategoryRequirements.delete`).
+   * Requires the capability `credentials.category.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["credentialCategoryRequirements.delete"],
+      { path: { id } },
       options,
     );
   }
@@ -43229,6 +43449,261 @@ export class WeatherAlertsResource extends $Resource {
     return this.client.request<WeatherAlert>(
       $OPERATIONS["weatherAlerts.get"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherFeeds`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherFeedsResource extends $Resource {
+  /**
+   * List weather feed rows
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns a cursor page of weather feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-feeds` (operation `weatherFeeds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(params?: $ListParams<WeatherFeed>, options?: $RequestOptions): Promise<$Page<WeatherFeed>> {
+    return this.client.requestPage<WeatherFeed>(
+      $OPERATIONS["weatherFeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather feed rows
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns a cursor page of weather feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-feeds` (operation `weatherFeeds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherFeed>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherFeed, void, undefined> {
+    return this.client.paginate<WeatherFeed>(
+      $OPERATIONS["weatherFeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a weather feed
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Creates a weather feed. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /weather-feeds` (operation `weatherFeeds.create`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  create(body: WeatherFeedCreate, options?: $MutationOptions): Promise<$ApiResponse<WeatherFeed>> {
+    return this.client.request<WeatherFeed>($OPERATIONS["weatherFeeds.create"], { body }, options);
+  }
+
+  /**
+   * Get a weather feed
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns one weather feed with its `ETag`. A weather feed the caller may not see returns 404.
+   *
+   * `GET /weather-feeds/{id}` (operation `weatherFeeds.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherFeed>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherFeed>> {
+    return this.client.request<WeatherFeed>(
+      $OPERATIONS["weatherFeeds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a weather feed
+   *
+   * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Soft-deletes the weather feed: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /weather-feeds/{id}` (operation `weatherFeeds.delete`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["weatherFeeds.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherWarnings`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherWarningsResource extends $Resource {
+  /**
+   * List weather warning rows
+   *
+   * An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns a cursor page of weather warning rows the caller may see. The default order is `sent_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-warnings` (operation `weatherWarnings.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<WeatherWarning>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WeatherWarning>> {
+    return this.client.requestPage<WeatherWarning>(
+      $OPERATIONS["weatherWarnings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather warning rows
+   *
+   * An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns a cursor page of weather warning rows the caller may see. The default order is `sent_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-warnings` (operation `weatherWarnings.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherWarning>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherWarning, void, undefined> {
+    return this.client.paginate<WeatherWarning>(
+      $OPERATIONS["weatherWarnings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a weather warning
+   *
+   * An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns one weather warning with its `ETag`. A weather warning the caller may not see returns 404.
+   *
+   * `GET /weather-warnings/{id}` (operation `weatherWarnings.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherWarning>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherWarning>> {
+    return this.client.request<WeatherWarning>(
+      $OPERATIONS["weatherWarnings.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherHolds`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherHoldsResource extends $Resource {
+  /**
+   * List weather hold rows
+   *
+   * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns a cursor page of weather hold rows the caller may see. The default order is `called_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-holds` (operation `weatherHolds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(params?: $ListParams<WeatherHold>, options?: $RequestOptions): Promise<$Page<WeatherHold>> {
+    return this.client.requestPage<WeatherHold>(
+      $OPERATIONS["weatherHolds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather hold rows
+   *
+   * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns a cursor page of weather hold rows the caller may see. The default order is `called_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-holds` (operation `weatherHolds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherHold>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherHold, void, undefined> {
+    return this.client.paginate<WeatherHold>(
+      $OPERATIONS["weatherHolds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a weather hold
+   *
+   * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Creates a weather hold. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /weather-holds` (operation `weatherHolds.create`).
+   * Requires the capability `safety.incident.dispatch`.
+   */
+  create(body: WeatherHoldCreate, options?: $MutationOptions): Promise<$ApiResponse<WeatherHold>> {
+    return this.client.request<WeatherHold>($OPERATIONS["weatherHolds.create"], { body }, options);
+  }
+
+  /**
+   * Get a weather hold
+   *
+   * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns one weather hold with its `ETag`. A weather hold the caller may not see returns 404.
+   *
+   * `GET /weather-holds/{id}` (operation `weatherHolds.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherHold>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherHold>> {
+    return this.client.request<WeatherHold>(
+      $OPERATIONS["weatherHolds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Give the all-clear
+   *
+   * Ends an open weather hold and notifies the same people as they are now (weather.all_clear). Needs safety.incident.dispatch; refuses weather_hold_closed and weather_hold_message (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /weather-holds/{id}/all-clear` (operation `weatherHolds.allClear`).
+   * Requires the capability `safety.incident.dispatch`.
+   */
+  allClear(
+    id: string,
+    body: WeatherAllClearRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WeatherHold>> {
+    return this.client.request<WeatherHold>(
+      $OPERATIONS["weatherHolds.allClear"],
+      { path: { id }, body },
       options,
     );
   }

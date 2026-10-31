@@ -12511,6 +12511,25 @@ export interface AccessScan {
    * What the device decided offline.
    */
   readonly offline_result: "Granted" | "Denied" | null;
+  /**
+   * In at the zone, or Out. An Out scan is never refused.
+   */
+  readonly direction: "In" | "Out";
+  /**
+   * Why the database denied an In scan, the first check that failed; null for a granted scan and for denials recorded before B8.
+   */
+  readonly refusal_reason:
+    "Revoked" | "Not Yet Valid" | "Expired" | "No Zone Access" | "Outside Window" | null;
+  /**
+   * Identifier of the denied In scan this row overrides.
+   * Format: `uuid`.
+   */
+  readonly override_of_scan_id: string | null;
+  /**
+   * Why the supervisor let the holder in.
+   * Length: 1 to 300.
+   */
+  readonly override_reason: string | null;
 }
 
 /**
@@ -12536,6 +12555,26 @@ export interface AccessScanCreate {
    * What the device decided offline.
    */
   readonly offline_result?: "Granted" | "Denied" | null;
+  /**
+   * In at the zone, or Out. An Out scan is never refused.
+   */
+  readonly direction?: "In" | "Out";
+}
+
+/**
+ * A supervisor override of a denied scan.
+ */
+export interface AccessScanOverrideRequest {
+  /**
+   * Why the supervisor lets the holder in, 1 to 300 characters.
+   * Length: 1 to 300.
+   */
+  readonly reason: string;
+  /**
+   * Client id of the override scan, for an offline replay.
+   * Format: `uuid`.
+   */
+  readonly id?: string;
 }
 
 /**
@@ -39211,6 +39250,31 @@ export interface GuestListEntry {
    * Format: `uuid`.
    */
   readonly checked_in_by: string | null;
+  /**
+   * Identifier of the pass type: an Access credential category of the same project.
+   * Format: `uuid`.
+   */
+  readonly pass_category_id: string | null;
+  /**
+   * Table or seat.
+   * Length: 1 to 40.
+   */
+  readonly table_label: string | null;
+  /**
+   * Identifier of the project person hosting the guest, alerted when the guest arrives.
+   * Format: `uuid`.
+   */
+  readonly host_person_id: string | null;
+  /**
+   * Where the guest's pass and messages go, lowercased. Confidential.
+   * Length: 1 to 320.
+   */
+  readonly guest_email: string | null;
+  /**
+   * Pass code the door scans (XOSGP1:<code>), stamped by the database on approval.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly pass_code: string | null;
 }
 
 /**
@@ -39242,6 +39306,26 @@ export interface GuestListEntryCreate {
    * Length: 1 to 500.
    */
   readonly note?: string | null;
+  /**
+   * Identifier of the pass type: an Access credential category of the same project.
+   * Format: `uuid`.
+   */
+  readonly pass_category_id?: string | null;
+  /**
+   * Table or seat.
+   * Length: 1 to 40.
+   */
+  readonly table_label?: string | null;
+  /**
+   * Identifier of the project person hosting the guest, alerted when the guest arrives.
+   * Format: `uuid`.
+   */
+  readonly host_person_id?: string | null;
+  /**
+   * Where the guest's pass and messages go, lowercased. Confidential.
+   * Length: 1 to 320.
+   */
+  readonly guest_email?: string | null;
 }
 
 /**
@@ -39268,6 +39352,26 @@ export interface GuestListEntryUpdate {
    * Length: 1 to 500.
    */
   readonly note?: string | null;
+  /**
+   * Identifier of the pass type: an Access credential category of the same project.
+   * Format: `uuid`.
+   */
+  readonly pass_category_id?: string | null;
+  /**
+   * Table or seat.
+   * Length: 1 to 40.
+   */
+  readonly table_label?: string | null;
+  /**
+   * Identifier of the project person hosting the guest, alerted when the guest arrives.
+   * Format: `uuid`.
+   */
+  readonly host_person_id?: string | null;
+  /**
+   * Where the guest's pass and messages go, lowercased. Confidential.
+   * Length: 1 to 320.
+   */
+  readonly guest_email?: string | null;
 }
 
 /**
@@ -39278,6 +39382,123 @@ export interface GuestDecisionRequest {
    * Approved or Declined.
    */
   readonly outcome: "Approved" | "Declined";
+}
+
+/**
+ * A queued guest email send.
+ */
+export interface GuestEmailSendQueued {
+  /**
+   * The send; read its rows' states at /guest-email-sends/{id}.
+   * Format: `uuid`.
+   */
+  readonly send_id: string;
+}
+
+/**
+ * An email to selected guests of a project.
+ */
+export interface GuestEmailSendRequest {
+  /**
+   * Project of the guests.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * The guests to email, 1 to 500.
+   */
+  readonly guest_list_entry_ids: ReadonlyArray<string>;
+  /**
+   * Invitation, Pass (their pass attached as a PDF) or Message.
+   */
+  readonly email_kind: "Invitation" | "Pass" | "Message";
+  /**
+   * Subject; required for a Message, not allowed otherwise.
+   * Length: 1 to 150.
+   */
+  readonly subject?: string;
+  /**
+   * Text; required for a Message.
+   * Length: 1 to 5000.
+   */
+  readonly body?: string;
+  /**
+   * Language of the email; en-US when left out.
+   */
+  readonly locale?: "en-US" | "es-US";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface GuestEmailSendPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<GuestEmailSend>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action.
+ */
+export interface GuestEmailSend {
+  /**
+   * Identifier of the guest email send.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Person who sent it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Always null: a send is never changed.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Invitation, Pass or Message.
+   */
+  readonly email_kind: "Invitation" | "Pass" | "Message";
+  /**
+   * Subject of a Message.
+   * Length: 1 to 150.
+   */
+  readonly subject: string | null;
+  /**
+   * Text of a Message, or a note on an invitation or pass.
+   * Length: 1 to 5000.
+   */
+  readonly body: string | null;
+  /**
+   * Language of the email.
+   */
+  readonly locale: "en-US" | "es-US";
 }
 
 /**
@@ -39416,6 +39637,92 @@ export interface AssetReservationRelease {
    * Length: 1 to 1000.
    */
   readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface CredentialCategoryRequirementPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<CredentialCategoryRequirement>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422).
+ */
+export interface CredentialCategoryRequirement {
+  /**
+   * Identifier of the credential category requirement.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Person who added the requirement.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Person who last changed the requirement.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the credential category.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id: string;
+  /**
+   * Identifier of the training course the holder must have passed.
+   * Format: `uuid`.
+   */
+  readonly training_course_id: string | null;
+  /**
+   * Identifier of the certification the holder must hold.
+   * Format: `uuid`.
+   */
+  readonly certification_id: string | null;
+}
+
+/**
+ * Fields accepted when creating a CredentialCategoryRequirement.
+ */
+export interface CredentialCategoryRequirementCreate {
+  /**
+   * Identifier of the credential category.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id: string;
+  /**
+   * Identifier of the training course the holder must have passed.
+   * Format: `uuid`.
+   */
+  readonly training_course_id?: string | null;
+  /**
+   * Identifier of the certification the holder must hold.
+   * Format: `uuid`.
+   */
+  readonly certification_id?: string | null;
 }
 
 /**
@@ -49551,6 +49858,10 @@ export interface WeatherReading {
    * Format: `uuid`.
    */
   readonly recorded_by_membership_id: string | null;
+  /**
+   * Manual for a reading on site, NWS for one the official feed recorded (B8, 2976).
+   */
+  readonly source: "Manual" | "NWS";
 }
 
 /**
@@ -49654,6 +49965,349 @@ export interface WeatherAlert {
    * Format: `date-time`.
    */
   readonly cleared_at: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WeatherFeedPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WeatherFeed>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window.
+ */
+export interface WeatherFeed {
+  /**
+   * Identifier of the weather feed.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Person who created the row; null for seed, platform or system writes.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Person who last updated the row; null for seed, platform or system writes.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * The US National Weather Service.
+   */
+  readonly provider: "NWS";
+  /**
+   * Hourly forecast URL the worker cached.
+   * Length: 1 to 300.
+   */
+  readonly nws_forecast_hourly_url: string | null;
+  /**
+   * Observation station the worker cached.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly nws_station_id: string | null;
+  /**
+   * When the worker last looked the venue up.
+   * Format: `date-time`.
+   */
+  readonly points_checked_at: string | null;
+}
+
+/**
+ * Fields accepted when creating a WeatherFeed.
+ */
+export interface WeatherFeedCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WeatherWarningPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WeatherWarning>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning).
+ */
+export interface WeatherWarning {
+  /**
+   * Identifier of the weather warning.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Person who created the row; null for seed, platform or system writes.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Person who last updated the row; null for seed, platform or system writes.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * The US National Weather Service.
+   */
+  readonly provider: "NWS";
+  /**
+   * The provider's alert id.
+   * Length: 1 to 300.
+   */
+  readonly provider_alert_id: string;
+  /**
+   * Event name.
+   * Length: 1 to 200.
+   */
+  readonly event: string;
+  /**
+   * Severity.
+   */
+  readonly severity: "Extreme" | "Severe" | "Moderate" | "Minor" | "Unknown";
+  /**
+   * Certainty.
+   * Length: 1 to 40.
+   */
+  readonly certainty: string | null;
+  /**
+   * Urgency.
+   * Length: 1 to 40.
+   */
+  readonly urgency: string | null;
+  /**
+   * Headline.
+   * Length: 1 to 300.
+   */
+  readonly headline: string | null;
+  /**
+   * Description.
+   * Length: 1 to 4000.
+   */
+  readonly description: string | null;
+  /**
+   * What to do.
+   * Length: 1 to 2000.
+   */
+  readonly instruction: string | null;
+  /**
+   * When the hazard begins.
+   * Format: `date-time`.
+   */
+  readonly onset: string | null;
+  /**
+   * When this message expires.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string | null;
+  /**
+   * When the hazard ends.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string | null;
+  /**
+   * When the provider sent it.
+   * Format: `date-time`.
+   */
+  readonly sent_at: string | null;
+  /**
+   * When it was cancelled or left the active list.
+   * Format: `date-time`.
+   */
+  readonly ended_at: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WeatherHoldPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WeatherHold>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear).
+ */
+export interface WeatherHold {
+  /**
+   * Identifier of the weather hold.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Person who created the row; null for seed, platform or system writes.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Person who last updated the row; null for seed, platform or system writes.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Hazard the hold is for.
+   */
+  readonly hazard: "Wind" | "Lightning" | "Heat" | null;
+  /**
+   * Identifier of the weather alert that prompted it.
+   * Format: `uuid`.
+   */
+  readonly weather_alert_id: string | null;
+  /**
+   * Identifier of the official warning that prompted it.
+   * Format: `uuid`.
+   */
+  readonly weather_warning_id: string | null;
+  /**
+   * The hold message sent.
+   * Length: 1 to 1000.
+   */
+  readonly message: string;
+  /**
+   * When the hold was called.
+   * Format: `date-time`.
+   */
+  readonly called_at: string;
+  /**
+   * When the all-clear was given.
+   * Format: `date-time`.
+   */
+  readonly cleared_at: string | null;
+  /**
+   * Identifier of the person who gave the all-clear.
+   * Format: `uuid`.
+   */
+  readonly cleared_by: string | null;
+  /**
+   * The all-clear message sent.
+   * Length: 1 to 1000.
+   */
+  readonly all_clear_message: string | null;
+}
+
+/**
+ * Fields accepted when creating a WeatherHold.
+ */
+export interface WeatherHoldCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Hazard the hold is for.
+   */
+  readonly hazard?: "Wind" | "Lightning" | "Heat" | null;
+  /**
+   * Identifier of the weather alert that prompted it.
+   * Format: `uuid`.
+   */
+  readonly weather_alert_id?: string | null;
+  /**
+   * Identifier of the official warning that prompted it.
+   * Format: `uuid`.
+   */
+  readonly weather_warning_id?: string | null;
+  /**
+   * The hold message sent.
+   * Length: 1 to 1000.
+   */
+  readonly message: string;
+}
+
+/**
+ * The all-clear that ends a weather hold.
+ */
+export interface WeatherAllClearRequest {
+  /**
+   * The all-clear message, 1 to 1,000 characters.
+   * Length: 1 to 1000.
+   */
+  readonly message: string;
 }
 
 /**
@@ -49808,6 +50462,31 @@ export interface DoorGuest {
    * Length: 1 to 300.
    */
   readonly door: string | null;
+  /**
+   * Pass code the door scans.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly pass_code: string | null;
+  /**
+   * Pass type code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly pass_category_code: string | null;
+  /**
+   * Pass type.
+   * Length: 1 to 300.
+   */
+  readonly pass_category_name: string | null;
+  /**
+   * Table or seat.
+   * Length: 1 to 300.
+   */
+  readonly table_label: string | null;
+  /**
+   * Project person hosting the guest.
+   * Format: `uuid`.
+   */
+  readonly host_person_id: string | null;
 }
 
 /**

@@ -25,6 +25,7 @@ if TYPE_CHECKING:
         AccessReviewItemUpdate,
         AccessScan,
         AccessScanCreate,
+        AccessScanOverrideRequest,
         AccessScanPage,
         AccountMembership,
         AccountMembershipCreate,
@@ -425,6 +426,9 @@ if TYPE_CHECKING:
         CredentialCategory,
         CredentialCategoryCreate,
         CredentialCategoryPage,
+        CredentialCategoryRequirement,
+        CredentialCategoryRequirementCreate,
+        CredentialCategoryRequirementPage,
         CredentialCategoryUpdate,
         CredentialCreate,
         CredentialPage,
@@ -611,6 +615,10 @@ if TYPE_CHECKING:
         GuestCheckInCreate,
         GuestCheckInPage,
         GuestDecisionRequest,
+        GuestEmailSend,
+        GuestEmailSendPage,
+        GuestEmailSendQueued,
+        GuestEmailSendRequest,
         GuestListEntry,
         GuestListEntryCreate,
         GuestListEntryPage,
@@ -1475,6 +1483,13 @@ if TYPE_CHECKING:
         WeatherAlertRole,
         WeatherAlertRoleCreate,
         WeatherAlertRolePage,
+        WeatherAllClearRequest,
+        WeatherFeed,
+        WeatherFeedCreate,
+        WeatherFeedPage,
+        WeatherHold,
+        WeatherHoldCreate,
+        WeatherHoldPage,
         WeatherReading,
         WeatherReadingCreate,
         WeatherReadingPage,
@@ -1482,6 +1497,8 @@ if TYPE_CHECKING:
         WeatherThresholdCreate,
         WeatherThresholdPage,
         WeatherThresholdUpdate,
+        WeatherWarning,
+        WeatherWarningPage,
         WebhookDelivery,
         WebhookDeliveryPage,
         WebhookEndpoint,
@@ -10888,6 +10905,23 @@ class AccessScansResource(Resource):
         Requires the capability ``credentials.scan_log.read``.
         """
         return self._client.request(OPERATIONS["accessScans.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def override(
+        self,
+        id: str,
+        body: AccessScanOverrideRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AccessScan]:
+        """Override a denied scan
+
+        Lets the holder of a Denied In scan less than 15 minutes old in: records a new Granted In row tied to it, with the reason. Needs credentials.credential.issue on the project. Refuses scan_not_denied, scan_override_revoked (a revoked badge is never let in), scan_override_stale, scan_override_taken, scan_override_self (the holder) and scan_override_reason (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /access-scans/{id}/override`` (operation ``accessScans.override``).
+        Requires the capability ``credentials.credential.issue``.
+        """
+        return self._client.request(OPERATIONS["accessScans.override"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class CertificationsResource(Resource):
@@ -32932,6 +32966,81 @@ class GuestListEntriesResource(Resource):
         """
         return self._client.request(OPERATIONS["guestListEntries.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
+    def send_email(
+        self,
+        body: GuestEmailSendRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GuestEmailSendQueued]:
+        """Email guests
+
+        Queues an email to the selected guests of a project, sent by the org with an unsubscribe link and its postal address (B8, ADR 0147 decision 7). Every guest gets a row: Queued, Suppressed (the address is on the org's suppression list) or Skipped (no email, not live, or no pass for a Pass email). Refuses guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org) and guest_email_message (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /guest-list-entries/send-email`` (operation ``guestListEntries.sendEmail``).
+        Requires the capability ``advancing.rider.write``.
+        """
+        return self._client.request(OPERATIONS["guestListEntries.sendEmail"], body=body, idempotency_key=idempotency_key, options=options)
+
+
+class GuestEmailSendsResource(Resource):
+    """Operations on ``guestEmailSends``, in the Advancing module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[GuestEmailSend]:
+        """List guest email send rows
+
+        A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns a cursor page of guest email send rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /guest-email-sends`` (operation ``guestEmailSends.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["guestEmailSends.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[GuestEmailSend]:
+        """List guest email send rows
+
+        A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns a cursor page of guest email send rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /guest-email-sends`` (operation ``guestEmailSends.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["guestEmailSends.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GuestEmailSend]:
+        """Get a guest email send
+
+        A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns one guest email send with its `ETag`. A guest email send the caller may not see returns 404.
+
+        ``GET /guest-email-sends/{id}`` (operation ``guestEmailSends.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["guestEmailSends.get"], path={"id": id}, query={"fields": fields}, options=options)
+
 
 class AssetUnitHireResource(Resource):
     """Operations on ``assetUnitHire``, in the Assets module."""
@@ -33050,6 +33159,96 @@ class AssetReservationsResource(Resource):
         Requires the capability ``advancing.submission.review``.
         """
         return self._client.request(OPERATIONS["assetReservations.release"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class CredentialCategoryRequirementsResource(Resource):
+    """Operations on ``credentialCategoryRequirements``, in the Credentials module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[CredentialCategoryRequirement]:
+        """List credential category requirement rows
+
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /credential-category-requirements`` (operation ``credentialCategoryRequirements.list``).
+        Requires the capability ``credentials.credential.read``.
+        """
+        return self._client.request_page(OPERATIONS["credentialCategoryRequirements.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[CredentialCategoryRequirement]:
+        """List credential category requirement rows
+
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /credential-category-requirements`` (operation ``credentialCategoryRequirements.list``).
+        Requires the capability ``credentials.credential.read``.
+        """
+        return self._client.paginate(OPERATIONS["credentialCategoryRequirements.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: CredentialCategoryRequirementCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CredentialCategoryRequirement]:
+        """Create a credential category requirement
+
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Creates a credential category requirement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /credential-category-requirements`` (operation ``credentialCategoryRequirements.create``).
+        Requires the capability ``credentials.category.write``.
+        """
+        return self._client.request(OPERATIONS["credentialCategoryRequirements.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CredentialCategoryRequirement]:
+        """Get a credential category requirement
+
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns one credential category requirement with its `ETag`. A credential category requirement the caller may not see returns 404.
+
+        ``GET /credential-category-requirements/{id}`` (operation ``credentialCategoryRequirements.get``).
+        Requires the capability ``credentials.credential.read``.
+        """
+        return self._client.request(OPERATIONS["credentialCategoryRequirements.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a credential category requirement
+
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Soft-deletes the credential category requirement: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /credential-category-requirements/{id}`` (operation ``credentialCategoryRequirements.delete``).
+        Requires the capability ``credentials.category.write``.
+        """
+        return self._client.request(OPERATIONS["credentialCategoryRequirements.delete"], path={"id": id}, options=options)
 
 
 class Form1099NecResource(Resource):
@@ -39968,6 +40167,247 @@ class WeatherAlertsResource(Resource):
         Requires the capability ``safety.incident.read``.
         """
         return self._client.request(OPERATIONS["weatherAlerts.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class WeatherFeedsResource(Resource):
+    """Operations on ``weatherFeeds``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WeatherFeed]:
+        """List weather feed rows
+
+        A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns a cursor page of weather feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /weather-feeds`` (operation ``weatherFeeds.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["weatherFeeds.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WeatherFeed]:
+        """List weather feed rows
+
+        A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns a cursor page of weather feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /weather-feeds`` (operation ``weatherFeeds.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["weatherFeeds.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WeatherFeedCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherFeed]:
+        """Create a weather feed
+
+        A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Creates a weather feed. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /weather-feeds`` (operation ``weatherFeeds.create``).
+        Requires the capability ``safety.emergency_code.write``.
+        """
+        return self._client.request(OPERATIONS["weatherFeeds.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherFeed]:
+        """Get a weather feed
+
+        A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns one weather feed with its `ETag`. A weather feed the caller may not see returns 404.
+
+        ``GET /weather-feeds/{id}`` (operation ``weatherFeeds.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["weatherFeeds.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a weather feed
+
+        A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Soft-deletes the weather feed: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /weather-feeds/{id}`` (operation ``weatherFeeds.delete``).
+        Requires the capability ``safety.emergency_code.write``.
+        """
+        return self._client.request(OPERATIONS["weatherFeeds.delete"], path={"id": id}, options=options)
+
+
+class WeatherWarningsResource(Resource):
+    """Operations on ``weatherWarnings``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WeatherWarning]:
+        """List weather warning rows
+
+        An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns a cursor page of weather warning rows the caller may see. The default order is `sent_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /weather-warnings`` (operation ``weatherWarnings.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["weatherWarnings.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WeatherWarning]:
+        """List weather warning rows
+
+        An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns a cursor page of weather warning rows the caller may see. The default order is `sent_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /weather-warnings`` (operation ``weatherWarnings.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["weatherWarnings.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherWarning]:
+        """Get a weather warning
+
+        An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns one weather warning with its `ETag`. A weather warning the caller may not see returns 404.
+
+        ``GET /weather-warnings/{id}`` (operation ``weatherWarnings.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["weatherWarnings.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class WeatherHoldsResource(Resource):
+    """Operations on ``weatherHolds``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WeatherHold]:
+        """List weather hold rows
+
+        A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns a cursor page of weather hold rows the caller may see. The default order is `called_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /weather-holds`` (operation ``weatherHolds.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["weatherHolds.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WeatherHold]:
+        """List weather hold rows
+
+        A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns a cursor page of weather hold rows the caller may see. The default order is `called_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /weather-holds`` (operation ``weatherHolds.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["weatherHolds.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WeatherHoldCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherHold]:
+        """Create a weather hold
+
+        A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Creates a weather hold. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /weather-holds`` (operation ``weatherHolds.create``).
+        Requires the capability ``safety.incident.dispatch``.
+        """
+        return self._client.request(OPERATIONS["weatherHolds.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherHold]:
+        """Get a weather hold
+
+        A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns one weather hold with its `ETag`. A weather hold the caller may not see returns 404.
+
+        ``GET /weather-holds/{id}`` (operation ``weatherHolds.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["weatherHolds.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def all_clear(
+        self,
+        id: str,
+        body: WeatherAllClearRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherHold]:
+        """Give the all-clear
+
+        Ends an open weather hold and notifies the same people as they are now (weather.all_clear). Needs safety.incident.dispatch; refuses weather_hold_closed and weather_hold_message (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /weather-holds/{id}/all-clear`` (operation ``weatherHolds.allClear``).
+        Requires the capability ``safety.incident.dispatch``.
+        """
+        return self._client.request(OPERATIONS["weatherHolds.allClear"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class GuestCheckInsResource(Resource):

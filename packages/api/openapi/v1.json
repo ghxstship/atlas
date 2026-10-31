@@ -16931,6 +16931,38 @@
             "enum": ["Granted", "Denied", null],
             "description": "What the device decided offline.",
             "example": "Granted"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["In", "Out"],
+            "description": "In at the zone, or Out. An Out scan is never refused.",
+            "example": "In"
+          },
+          "refusal_reason": {
+            "type": ["string", "null"],
+            "enum": [
+              "Revoked",
+              "Not Yet Valid",
+              "Expired",
+              "No Zone Access",
+              "Outside Window",
+              null
+            ],
+            "description": "Why the database denied an In scan, the first check that failed; null for a granted scan and for denials recorded before B8.",
+            "example": "Outside Window"
+          },
+          "override_of_scan_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the denied In scan this row overrides.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "override_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Why the supervisor let the holder in.",
+            "example": "Reprint pending"
           }
         },
         "required": [
@@ -16946,7 +16978,11 @@
           "result",
           "project_id",
           "device_scanned_at",
-          "offline_result"
+          "offline_result",
+          "direction",
+          "refusal_reason",
+          "override_of_scan_id",
+          "override_reason"
         ],
         "description": "A credential scan at an access point, validated against the Access Grid."
       },
@@ -16976,10 +17012,36 @@
             "enum": ["Granted", "Denied", null],
             "description": "What the device decided offline.",
             "example": "Granted"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["In", "Out"],
+            "description": "In at the zone, or Out. An Out scan is never refused.",
+            "example": "In"
           }
         },
         "required": ["zone_id", "credential_id"],
         "description": "Fields accepted when creating a AccessScan."
+      },
+      "AccessScanOverrideRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Why the supervisor lets the holder in, 1 to 300 characters.",
+            "example": "Badge reprint pending; confirmed with the production office."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Client id of the override scan, for an offline replay.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["reason"],
+        "description": "A supervisor override of a denied scan."
       },
       "CertificationPage": {
         "type": "object",
@@ -52612,6 +52674,38 @@
             "format": "uuid",
             "description": "Identifier of the person who checked the guest in, set by the database.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "pass_category_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the pass type: an Access credential category of the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "table_label": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Table or seat.",
+            "example": "Table 4"
+          },
+          "host_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project person hosting the guest, alerted when the guest arrives.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_email": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "Where the guest's pass and messages go, lowercased. Confidential.",
+            "example": "sasha@example.com"
+          },
+          "pass_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Pass code the door scans (XOSGP1:<code>), stamped by the database on approval.",
+            "example": "GP-ABCDEFGHIJ"
           }
         },
         "required": [
@@ -52633,7 +52727,12 @@
           "decided_at",
           "decided_by",
           "checked_in_at",
-          "checked_in_by"
+          "checked_in_by",
+          "pass_category_id",
+          "table_label",
+          "host_person_id",
+          "guest_email",
+          "pass_code"
         ],
         "description": "A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door."
       },
@@ -52671,6 +52770,32 @@
             "maxLength": 500,
             "description": "Notes for the door.",
             "example": "Side stage."
+          },
+          "pass_category_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the pass type: an Access credential category of the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "table_label": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Table or seat.",
+            "example": "Table 4"
+          },
+          "host_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project person hosting the guest, alerted when the guest arrives.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_email": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "Where the guest's pass and messages go, lowercased. Confidential.",
+            "example": "sasha@example.com"
           }
         },
         "required": ["project_id", "guest_name", "plus_ones"],
@@ -52704,6 +52829,32 @@
             "maxLength": 500,
             "description": "Notes for the door.",
             "example": "Side stage."
+          },
+          "pass_category_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the pass type: an Access credential category of the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "table_label": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Table or seat.",
+            "example": "Table 4"
+          },
+          "host_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project person hosting the guest, alerted when the guest arrives.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_email": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "Where the guest's pass and messages go, lowercased. Confidential.",
+            "example": "sasha@example.com"
           }
         },
         "description": "Fields accepted when updating a GuestListEntry. Omitted fields are unchanged."
@@ -52720,6 +52871,175 @@
         },
         "required": ["outcome"],
         "description": "Decision on a requested guest."
+      },
+      "GuestEmailSendQueued": {
+        "type": "object",
+        "properties": {
+          "send_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The send; read its rows' states at /guest-email-sends/{id}.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["send_id"],
+        "description": "A queued guest email send."
+      },
+      "GuestEmailSendRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Project of the guests.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_list_entry_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Guest list entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "The guests to email, 1 to 500.",
+            "example": ["0192a000-0000-7000-8000-000000000001"]
+          },
+          "email_kind": {
+            "type": "string",
+            "enum": ["Invitation", "Pass", "Message"],
+            "description": "Invitation, Pass (their pass attached as a PDF) or Message.",
+            "example": "Pass"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150,
+            "description": "Subject; required for a Message, not allowed otherwise.",
+            "example": "Doors open at 7"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "description": "Text; required for a Message.",
+            "example": "See you tonight."
+          },
+          "locale": {
+            "type": "string",
+            "enum": ["en-US", "es-US"],
+            "description": "Language of the email; en-US when left out.",
+            "example": "es-US"
+          }
+        },
+        "required": ["project_id", "guest_list_entry_ids", "email_kind"],
+        "description": "An email to selected guests of a project."
+      },
+      "GuestEmailSendPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/GuestEmailSend" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "GuestEmailSend": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the guest email send.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who sent it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Always null: a send is never changed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "email_kind": {
+            "type": "string",
+            "enum": ["Invitation", "Pass", "Message"],
+            "description": "Invitation, Pass or Message.",
+            "example": "Pass"
+          },
+          "subject": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 150,
+            "description": "Subject of a Message.",
+            "example": "Doors open at 7"
+          },
+          "body": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 5000,
+            "description": "Text of a Message, or a note on an invitation or pass.",
+            "example": "See you tonight."
+          },
+          "locale": {
+            "type": "string",
+            "enum": ["en-US", "es-US"],
+            "description": "Language of the email.",
+            "example": "en-US"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "email_kind",
+          "subject",
+          "body",
+          "locale"
+        ],
+        "description": "A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action."
       },
       "AssetUnitHirePage": {
         "type": "object",
@@ -52905,6 +53225,119 @@
           }
         },
         "description": "Releasing a hold."
+      },
+      "CredentialCategoryRequirementPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CredentialCategoryRequirement" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "CredentialCategoryRequirement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the credential category requirement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who added the requirement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who last changed the requirement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "credential_category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the credential category.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "training_course_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the training course the holder must have passed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "certification_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the certification the holder must hold.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "credential_category_id",
+          "training_course_id",
+          "certification_id"
+        ],
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422)."
+      },
+      "CredentialCategoryRequirementCreate": {
+        "type": "object",
+        "properties": {
+          "credential_category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the credential category.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "training_course_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the training course the holder must have passed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "certification_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the certification the holder must hold.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["credential_category_id"],
+        "description": "Fields accepted when creating a CredentialCategoryRequirement."
       },
       "Form1099NecRowPage": {
         "type": "object",
@@ -66844,6 +67277,12 @@
             "format": "uuid",
             "description": "Identifier of the member who recorded it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Manual", "NWS"],
+            "description": "Manual for a reading on site, NWS for one the official feed recorded (B8, 2976).",
+            "example": "Manual"
           }
         },
         "required": [
@@ -66857,7 +67296,8 @@
           "hazard",
           "reading_value",
           "observed_at",
-          "recorded_by_membership_id"
+          "recorded_by_membership_id",
+          "source"
         ],
         "description": "A weather reading on site, in the hazard's unit."
       },
@@ -67001,6 +67441,485 @@
           "cleared_at"
         ],
         "description": "A weather alert raised by a reading at the highest level met, cleared when readings fall below every level."
+      },
+      "WeatherFeedPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WeatherFeed" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "WeatherFeed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the weather feed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who created the row; null for seed, platform or system writes.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who last updated the row; null for seed, platform or system writes.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "provider": {
+            "type": "string",
+            "enum": ["NWS"],
+            "description": "The US National Weather Service.",
+            "example": "NWS"
+          },
+          "nws_forecast_hourly_url": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Hourly forecast URL the worker cached.",
+            "example": "https://api.weather.gov/gridpoints/MFL/110,50/forecast/hourly"
+          },
+          "nws_station_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Observation station the worker cached.",
+            "example": "KMIA"
+          },
+          "points_checked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the worker last looked the venue up.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "provider",
+          "nws_forecast_hourly_url",
+          "nws_station_id",
+          "points_checked_at"
+        ],
+        "description": "A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window."
+      },
+      "WeatherFeedCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["project_id"],
+        "description": "Fields accepted when creating a WeatherFeed."
+      },
+      "WeatherWarningPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WeatherWarning" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "WeatherWarning": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the weather warning.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who created the row; null for seed, platform or system writes.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who last updated the row; null for seed, platform or system writes.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "provider": {
+            "type": "string",
+            "enum": ["NWS"],
+            "description": "The US National Weather Service.",
+            "example": "NWS"
+          },
+          "provider_alert_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "The provider's alert id.",
+            "example": "urn:oid:2.49.0.1.840.0.abc"
+          },
+          "event": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Event name.",
+            "example": "Severe Thunderstorm Warning"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["Extreme", "Severe", "Moderate", "Minor", "Unknown"],
+            "description": "Severity.",
+            "example": "Extreme"
+          },
+          "certainty": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Certainty.",
+            "example": "Observed"
+          },
+          "urgency": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Urgency.",
+            "example": "Immediate"
+          },
+          "headline": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Headline.",
+            "example": "Severe Thunderstorm Warning until 9:45 PM"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "Description.",
+            "example": "At 9:02 PM, a severe thunderstorm was located..."
+          },
+          "instruction": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What to do.",
+            "example": "Move to an interior room."
+          },
+          "onset": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the hazard begins.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When this message expires.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the hazard ends.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "sent_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the provider sent it.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ended_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was cancelled or left the active list.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "provider",
+          "provider_alert_id",
+          "event",
+          "severity",
+          "certainty",
+          "urgency",
+          "headline",
+          "description",
+          "instruction",
+          "onset",
+          "expires_at",
+          "ends_at",
+          "sent_at",
+          "ended_at"
+        ],
+        "description": "An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning)."
+      },
+      "WeatherHoldPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WeatherHold" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "WeatherHold": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the weather hold.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who created the row; null for seed, platform or system writes.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who last updated the row; null for seed, platform or system writes.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "hazard": {
+            "type": ["string", "null"],
+            "enum": ["Wind", "Lightning", "Heat", null],
+            "description": "Hazard the hold is for.",
+            "example": "Wind"
+          },
+          "weather_alert_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the weather alert that prompted it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "weather_warning_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the official warning that prompted it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "The hold message sent.",
+            "example": "Lightning within 8 miles: stop work and shelter."
+          },
+          "called_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the hold was called.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "cleared_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the all-clear was given.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "cleared_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who gave the all-clear.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "all_clear_message": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "The all-clear message sent.",
+            "example": "All clear: resume work."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "hazard",
+          "weather_alert_id",
+          "weather_warning_id",
+          "message",
+          "called_at",
+          "cleared_at",
+          "cleared_by",
+          "all_clear_message"
+        ],
+        "description": "A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear)."
+      },
+      "WeatherHoldCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "hazard": {
+            "type": ["string", "null"],
+            "enum": ["Wind", "Lightning", "Heat", null],
+            "description": "Hazard the hold is for.",
+            "example": "Wind"
+          },
+          "weather_alert_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the weather alert that prompted it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "weather_warning_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the official warning that prompted it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "The hold message sent.",
+            "example": "Lightning within 8 miles: stop work and shelter."
+          }
+        },
+        "required": ["project_id", "message"],
+        "description": "Fields accepted when creating a WeatherHold."
+      },
+      "WeatherAllClearRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "The all-clear message, 1 to 1,000 characters.",
+            "example": "All clear: resume work."
+          }
+        },
+        "required": ["message"],
+        "description": "The all-clear that ends a weather hold."
       },
       "GuestCheckInPage": {
         "type": "object",
@@ -67200,6 +68119,38 @@
             "maxLength": 300,
             "description": "Door.",
             "example": "Gate A"
+          },
+          "pass_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Pass code the door scans.",
+            "example": "GP-ABCDEFGHIJ"
+          },
+          "pass_category_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Pass type code.",
+            "example": "VIP"
+          },
+          "pass_category_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Pass type.",
+            "example": "VIP Guest"
+          },
+          "table_label": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Table or seat.",
+            "example": "Table 4"
+          },
+          "host_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Project person hosting the guest.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -67210,7 +68161,12 @@
           "note",
           "checked_in_at",
           "plus_ones_admitted",
-          "door"
+          "door",
+          "pass_code",
+          "pass_category_code",
+          "pass_category_name",
+          "table_label",
+          "host_person_id"
         ],
         "description": "A guest on the door list."
       },
@@ -93249,7 +94205,11 @@
                       "result": "Granted",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "device_scanned_at": "2026-10-08T14:30:00Z",
-                      "offline_result": "Granted"
+                      "offline_result": "Granted",
+                      "direction": "In",
+                      "refusal_reason": "Outside Window",
+                      "override_of_scan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "override_reason": "Reprint pending"
                     }
                   ],
                   "next_cursor": null
@@ -93280,7 +94240,8 @@
                 "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "credential_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "device_scanned_at": "2026-10-08T14:30:00Z",
-                "offline_result": "Granted"
+                "offline_result": "Granted",
+                "direction": "In"
               },
               "schema": { "$ref": "#/components/schemas/AccessScanCreate" }
             }
@@ -93310,7 +94271,11 @@
                   "result": "Granted",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "device_scanned_at": "2026-10-08T14:30:00Z",
-                  "offline_result": "Granted"
+                  "offline_result": "Granted",
+                  "direction": "In",
+                  "refusal_reason": "Outside Window",
+                  "override_of_scan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "override_reason": "Reprint pending"
                 },
                 "schema": { "$ref": "#/components/schemas/AccessScan" }
               }
@@ -93372,7 +94337,11 @@
                   "result": "Granted",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "device_scanned_at": "2026-10-08T14:30:00Z",
-                  "offline_result": "Granted"
+                  "offline_result": "Granted",
+                  "direction": "In",
+                  "refusal_reason": "Outside Window",
+                  "override_of_scan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "override_reason": "Reprint pending"
                 },
                 "schema": { "$ref": "#/components/schemas/AccessScan" }
               }
@@ -93381,6 +94350,86 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/access-scans/{id}/override": {
+      "post": {
+        "operationId": "accessScans.override",
+        "tags": ["Credentials"],
+        "x-xos-table": "app.access_scans",
+        "x-xos-capability": "credentials.credential.issue",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
+        "x-xos-rpc": "app.override_access_scan",
+        "summary": "Override a denied scan",
+        "description": "Lets the holder of a Denied In scan less than 15 minutes old in: records a new Granted In row tied to it, with the reason. Needs credentials.credential.issue on the project. Refuses scan_not_denied, scan_override_revoked (a revoked badge is never let in), scan_override_stale, scan_override_taken, scan_override_self (the holder) and scan_override_reason (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the access scan.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the access scan.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "reason": "Badge reprint pending; confirmed with the production office.",
+                "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/AccessScanOverrideRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scanned_at": "2026-10-08T14:30:00Z",
+                  "result": "Granted",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "device_scanned_at": "2026-10-08T14:30:00Z",
+                  "offline_result": "Granted",
+                  "direction": "In",
+                  "refusal_reason": "Outside Window",
+                  "override_of_scan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "override_reason": "Reprint pending"
+                },
+                "schema": { "$ref": "#/components/schemas/AccessScan" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -147136,7 +148185,12 @@
                       "decided_at": "2026-10-08T14:30:00Z",
                       "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "checked_in_at": "2026-10-08T14:30:00Z",
-                      "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "pass_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "table_label": "Table 4",
+                      "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "guest_email": "sasha@example.com",
+                      "pass_code": "GP-ABCDEFGHIJ"
                     }
                   ],
                   "next_cursor": null
@@ -147168,7 +148222,11 @@
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "guest_name": "Jordan Pike",
                 "plus_ones": 1,
-                "note": "Side stage."
+                "note": "Side stage.",
+                "pass_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "table_label": "Table 4",
+                "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "guest_email": "sasha@example.com"
               },
               "schema": { "$ref": "#/components/schemas/GuestListEntryCreate" }
             }
@@ -147204,7 +148262,12 @@
                   "decided_at": "2026-10-08T14:30:00Z",
                   "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_at": "2026-10-08T14:30:00Z",
-                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "pass_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "table_label": "Table 4",
+                  "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_email": "sasha@example.com",
+                  "pass_code": "GP-ABCDEFGHIJ"
                 },
                 "schema": { "$ref": "#/components/schemas/GuestListEntry" }
               }
@@ -147272,7 +148335,12 @@
                   "decided_at": "2026-10-08T14:30:00Z",
                   "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_at": "2026-10-08T14:30:00Z",
-                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "pass_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "table_label": "Table 4",
+                  "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_email": "sasha@example.com",
+                  "pass_code": "GP-ABCDEFGHIJ"
                 },
                 "schema": { "$ref": "#/components/schemas/GuestListEntry" }
               }
@@ -147315,7 +148383,11 @@
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "guest_name": "Jordan Pike",
                 "plus_ones": 1,
-                "note": "Side stage."
+                "note": "Side stage.",
+                "pass_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "table_label": "Table 4",
+                "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "guest_email": "sasha@example.com"
               },
               "schema": { "$ref": "#/components/schemas/GuestListEntryUpdate" }
             }
@@ -147351,7 +148423,12 @@
                   "decided_at": "2026-10-08T14:30:00Z",
                   "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_at": "2026-10-08T14:30:00Z",
-                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "pass_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "table_label": "Table 4",
+                  "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_email": "sasha@example.com",
+                  "pass_code": "GP-ABCDEFGHIJ"
                 },
                 "schema": { "$ref": "#/components/schemas/GuestListEntry" }
               }
@@ -147460,7 +148537,12 @@
                   "decided_at": "2026-10-08T14:30:00Z",
                   "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_at": "2026-10-08T14:30:00Z",
-                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "pass_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "table_label": "Table 4",
+                  "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_email": "sasha@example.com",
+                  "pass_code": "GP-ABCDEFGHIJ"
                 },
                 "schema": { "$ref": "#/components/schemas/GuestListEntry" }
               }
@@ -147529,7 +148611,12 @@
                   "decided_at": "2026-10-08T14:30:00Z",
                   "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_at": "2026-10-08T14:30:00Z",
-                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "pass_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "table_label": "Table 4",
+                  "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_email": "sasha@example.com",
+                  "pass_code": "GP-ABCDEFGHIJ"
                 },
                 "schema": { "$ref": "#/components/schemas/GuestListEntry" }
               }
@@ -147540,6 +148627,170 @@
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-list-entries/send-email": {
+      "post": {
+        "operationId": "guestListEntries.sendEmail",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.rider.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.queue_guest_emails",
+        "summary": "Email guests",
+        "description": "Queues an email to the selected guests of a project, sent by the org with an unsubscribe link and its postal address (B8, ADR 0147 decision 7). Every guest gets a row: Queued, Suppressed (the address is on the org's suppression list) or Skipped (no email, not live, or no pass for a Pass email). Refuses guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org) and guest_email_message (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "guest_list_entry_ids": ["0192a000-0000-7000-8000-000000000001"],
+                "email_kind": "Pass",
+                "subject": "Doors open at 7",
+                "body": "See you tonight.",
+                "locale": "es-US"
+              },
+              "schema": { "$ref": "#/components/schemas/GuestEmailSendRequest" }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted for processing.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "send_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/GuestEmailSendQueued" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-email-sends": {
+      "get": {
+        "operationId": "guestEmailSends.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_email_sends",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false, "descending": true },
+        "summary": "List guest email send rows",
+        "description": "A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns a cursor page of guest email send rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of guest email send rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "email_kind": "Pass",
+                      "subject": "Doors open at 7",
+                      "body": "See you tonight.",
+                      "locale": "en-US"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/GuestEmailSendPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-email-sends/{id}": {
+      "get": {
+        "operationId": "guestEmailSends.get",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_email_sends",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get a guest email send",
+        "description": "A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action. Returns one guest email send with its `ETag`. A guest email send the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the guest email send.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the guest email send.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The guest email send.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "email_kind": "Pass",
+                  "subject": "Doors open at 7",
+                  "body": "See you tonight.",
+                  "locale": "en-US"
+                },
+                "schema": { "$ref": "#/components/schemas/GuestEmailSend" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -147781,6 +149032,201 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/credential-category-requirements": {
+      "get": {
+        "operationId": "credentialCategoryRequirements.list",
+        "tags": ["Credentials"],
+        "x-xos-table": "app.credential_category_requirements",
+        "x-xos-capability": "credentials.credential.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List credential category requirement rows",
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of credential category requirement rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "training_course_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/CredentialCategoryRequirementPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "credentialCategoryRequirements.create",
+        "tags": ["Credentials"],
+        "x-xos-table": "app.credential_category_requirements",
+        "x-xos-capability": "credentials.category.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
+        "summary": "Create a credential category requirement",
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Creates a credential category requirement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "training_course_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/CredentialCategoryRequirementCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created credential category requirement.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "training_course_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/CredentialCategoryRequirement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/credential-category-requirements/{id}": {
+      "get": {
+        "operationId": "credentialCategoryRequirements.get",
+        "tags": ["Credentials"],
+        "x-xos-table": "app.credential_category_requirements",
+        "x-xos-capability": "credentials.credential.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
+        "summary": "Get a credential category requirement",
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns one credential category requirement with its `ETag`. A credential category requirement the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the credential category requirement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the credential category requirement.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The credential category requirement.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "training_course_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/CredentialCategoryRequirement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "credentialCategoryRequirements.delete",
+        "tags": ["Credentials"],
+        "x-xos-table": "app.credential_category_requirements",
+        "x-xos-capability": "credentials.category.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
+        "summary": "Delete a credential category requirement",
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Soft-deletes the credential category requirement: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the credential category requirement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the credential category requirement.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The credential category requirement moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -166392,7 +167838,8 @@
                       "hazard": "Wind",
                       "reading_value": 33,
                       "observed_at": "2026-10-08T14:30:00Z",
-                      "recorded_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "recorded_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "source": "Manual"
                     }
                   ],
                   "next_cursor": null
@@ -166451,7 +167898,8 @@
                   "hazard": "Wind",
                   "reading_value": 33,
                   "observed_at": "2026-10-08T14:30:00Z",
-                  "recorded_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "recorded_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "source": "Manual"
                 },
                 "schema": { "$ref": "#/components/schemas/WeatherReading" }
               }
@@ -166511,7 +167959,8 @@
                   "hazard": "Wind",
                   "reading_value": 33,
                   "observed_at": "2026-10-08T14:30:00Z",
-                  "recorded_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "recorded_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "source": "Manual"
                 },
                 "schema": { "$ref": "#/components/schemas/WeatherReading" }
               }
@@ -166636,6 +168085,597 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/weather-feeds": {
+      "get": {
+        "operationId": "weatherFeeds.list",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_feeds",
+        "x-xos-capability": "safety.incident.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List weather feed rows",
+        "description": "A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns a cursor page of weather feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of weather feed rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "provider": "NWS",
+                      "nws_forecast_hourly_url": "https://api.weather.gov/gridpoints/MFL/110,50/forecast/hourly",
+                      "nws_station_id": "KMIA",
+                      "points_checked_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherFeedPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "weatherFeeds.create",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_feeds",
+        "x-xos-capability": "safety.emergency_code.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "summary": "Create a weather feed",
+        "description": "A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Creates a weather feed. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "schema": { "$ref": "#/components/schemas/WeatherFeedCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created weather feed.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provider": "NWS",
+                  "nws_forecast_hourly_url": "https://api.weather.gov/gridpoints/MFL/110,50/forecast/hourly",
+                  "nws_station_id": "KMIA",
+                  "points_checked_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherFeed" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/weather-feeds/{id}": {
+      "get": {
+        "operationId": "weatherFeeds.get",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_feeds",
+        "x-xos-capability": "safety.incident.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "summary": "Get a weather feed",
+        "description": "A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Returns one weather feed with its `ETag`. A weather feed the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the weather feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the weather feed.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The weather feed.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provider": "NWS",
+                  "nws_forecast_hourly_url": "https://api.weather.gov/gridpoints/MFL/110,50/forecast/hourly",
+                  "nws_station_id": "KMIA",
+                  "points_checked_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherFeed" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "weatherFeeds.delete",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_feeds",
+        "x-xos-capability": "safety.emergency_code.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "summary": "Delete a weather feed",
+        "description": "A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window. Soft-deletes the weather feed: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the weather feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the weather feed.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The weather feed moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/weather-warnings": {
+      "get": {
+        "operationId": "weatherWarnings.list",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_warnings",
+        "x-xos-capability": "safety.incident.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "x-xos-order": { "by": ["sent_at"], "numeric": false, "descending": true },
+        "summary": "List weather warning rows",
+        "description": "An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns a cursor page of weather warning rows the caller may see. The default order is `sent_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of weather warning rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "provider": "NWS",
+                      "provider_alert_id": "urn:oid:2.49.0.1.840.0.abc",
+                      "event": "Severe Thunderstorm Warning",
+                      "severity": "Extreme",
+                      "certainty": "Observed",
+                      "urgency": "Immediate",
+                      "headline": "Severe Thunderstorm Warning until 9:45 PM",
+                      "description": "At 9:02 PM, a severe thunderstorm was located...",
+                      "instruction": "Move to an interior room.",
+                      "onset": "2026-10-08T14:30:00Z",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "ends_at": "2026-10-08T14:30:00Z",
+                      "sent_at": "2026-10-08T14:30:00Z",
+                      "ended_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherWarningPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/weather-warnings/{id}": {
+      "get": {
+        "operationId": "weatherWarnings.get",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_warnings",
+        "x-xos-capability": "safety.incident.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "summary": "Get a weather warning",
+        "description": "An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning). Returns one weather warning with its `ETag`. A weather warning the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the weather warning.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the weather warning.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The weather warning.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provider": "NWS",
+                  "provider_alert_id": "urn:oid:2.49.0.1.840.0.abc",
+                  "event": "Severe Thunderstorm Warning",
+                  "severity": "Extreme",
+                  "certainty": "Observed",
+                  "urgency": "Immediate",
+                  "headline": "Severe Thunderstorm Warning until 9:45 PM",
+                  "description": "At 9:02 PM, a severe thunderstorm was located...",
+                  "instruction": "Move to an interior room.",
+                  "onset": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "sent_at": "2026-10-08T14:30:00Z",
+                  "ended_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherWarning" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/weather-holds": {
+      "get": {
+        "operationId": "weatherHolds.list",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_holds",
+        "x-xos-capability": "safety.incident.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "x-xos-order": { "by": ["called_at"], "numeric": false, "descending": true },
+        "summary": "List weather hold rows",
+        "description": "A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns a cursor page of weather hold rows the caller may see. The default order is `called_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of weather hold rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "hazard": "Wind",
+                      "weather_alert_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "weather_warning_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "message": "Lightning within 8 miles: stop work and shelter.",
+                      "called_at": "2026-10-08T14:30:00Z",
+                      "cleared_at": "2026-10-08T14:30:00Z",
+                      "cleared_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "all_clear_message": "All clear: resume work."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherHoldPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "weatherHolds.create",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_holds",
+        "x-xos-capability": "safety.incident.dispatch",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "summary": "Create a weather hold",
+        "description": "A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Creates a weather hold. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "hazard": "Wind",
+                "weather_alert_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "weather_warning_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "message": "Lightning within 8 miles: stop work and shelter."
+              },
+              "schema": { "$ref": "#/components/schemas/WeatherHoldCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created weather hold.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "hazard": "Wind",
+                  "weather_alert_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "weather_warning_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "message": "Lightning within 8 miles: stop work and shelter.",
+                  "called_at": "2026-10-08T14:30:00Z",
+                  "cleared_at": "2026-10-08T14:30:00Z",
+                  "cleared_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "all_clear_message": "All clear: resume work."
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherHold" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/weather-holds/{id}": {
+      "get": {
+        "operationId": "weatherHolds.get",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_holds",
+        "x-xos-capability": "safety.incident.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "summary": "Get a weather hold",
+        "description": "A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear). Returns one weather hold with its `ETag`. A weather hold the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the weather hold.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the weather hold.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The weather hold.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "hazard": "Wind",
+                  "weather_alert_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "weather_warning_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "message": "Lightning within 8 miles: stop work and shelter.",
+                  "called_at": "2026-10-08T14:30:00Z",
+                  "cleared_at": "2026-10-08T14:30:00Z",
+                  "cleared_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "all_clear_message": "All clear: resume work."
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherHold" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/weather-holds/{id}/all-clear": {
+      "post": {
+        "operationId": "weatherHolds.allClear",
+        "tags": ["Workforce"],
+        "x-xos-table": "app.weather_holds",
+        "x-xos-capability": "safety.incident.dispatch",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "x-xos-rpc": "app.give_weather_all_clear",
+        "summary": "Give the all-clear",
+        "description": "Ends an open weather hold and notifies the same people as they are now (weather.all_clear). Needs safety.incident.dispatch; refuses weather_hold_closed and weather_hold_message (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the weather hold.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the weather hold.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "message": "All clear: resume work." },
+              "schema": { "$ref": "#/components/schemas/WeatherAllClearRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "hazard": "Wind",
+                  "weather_alert_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "weather_warning_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "message": "Lightning within 8 miles: stop work and shelter.",
+                  "called_at": "2026-10-08T14:30:00Z",
+                  "cleared_at": "2026-10-08T14:30:00Z",
+                  "cleared_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "all_clear_message": "All clear: resume work."
+                },
+                "schema": { "$ref": "#/components/schemas/WeatherHold" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -166867,7 +168907,12 @@
                       "note": "Side stage.",
                       "checked_in_at": "2026-10-08T14:30:00Z",
                       "plus_ones_admitted": 2,
-                      "door": "Gate A"
+                      "door": "Gate A",
+                      "pass_code": "GP-ABCDEFGHIJ",
+                      "pass_category_code": "VIP",
+                      "pass_category_name": "VIP Guest",
+                      "table_label": "Table 4",
+                      "host_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null

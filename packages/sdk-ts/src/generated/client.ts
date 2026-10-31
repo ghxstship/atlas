@@ -349,8 +349,10 @@ import {
   AdvanceSubmissionLinesResource,
   AdvanceSubmissionFilesResource,
   GuestListEntriesResource,
+  GuestEmailSendsResource,
   AssetUnitHireResource,
   AssetReservationsResource,
+  CredentialCategoryRequirementsResource,
   Form1099NecResource,
   GoodsReturnsResource,
   ReturnLinesResource,
@@ -427,6 +429,9 @@ import {
   WeatherAlertRolesResource,
   WeatherReadingsResource,
   WeatherAlertsResource,
+  WeatherFeedsResource,
+  WeatherWarningsResource,
+  WeatherHoldsResource,
   GuestCheckInsResource,
   LostFoundItemsResource,
   LostFoundClaimsResource,
@@ -1229,10 +1234,15 @@ export class XosClient extends XosClientCore {
     new AdvanceSubmissionFilesResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Advancing: operations on `guestEmailSends`. */
+  readonly guestEmailSends: GuestEmailSendsResource = new GuestEmailSendsResource(this);
   /** Assets: operations on `assetUnitHire`. */
   readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
   /** Assets: operations on `assetReservations`. */
   readonly assetReservations: AssetReservationsResource = new AssetReservationsResource(this);
+  /** Credentials: operations on `credentialCategoryRequirements`. */
+  readonly credentialCategoryRequirements: CredentialCategoryRequirementsResource =
+    new CredentialCategoryRequirementsResource(this);
   /** Finance: operations on `form1099Nec`. */
   readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
   /** Procurement: operations on `goodsReturns`. */
@@ -1400,6 +1410,12 @@ export class XosClient extends XosClientCore {
   readonly weatherReadings: WeatherReadingsResource = new WeatherReadingsResource(this);
   /** Workforce: operations on `weatherAlerts`. */
   readonly weatherAlerts: WeatherAlertsResource = new WeatherAlertsResource(this);
+  /** Workforce: operations on `weatherFeeds`. */
+  readonly weatherFeeds: WeatherFeedsResource = new WeatherFeedsResource(this);
+  /** Workforce: operations on `weatherWarnings`. */
+  readonly weatherWarnings: WeatherWarningsResource = new WeatherWarningsResource(this);
+  /** Workforce: operations on `weatherHolds`. */
+  readonly weatherHolds: WeatherHoldsResource = new WeatherHoldsResource(this);
   /** Workforce: operations on `guestCheckIns`. */
   readonly guestCheckIns: GuestCheckInsResource = new GuestCheckInsResource(this);
   /** Workforce: operations on `lostFoundItems`. */

@@ -84,13 +84,20 @@ export interface Components {
     project_id: string;
     device_scanned_at: string | null;
     offline_result: "Granted" | "Denied" | null;
+    direction: "In" | "Out";
+    refusal_reason:
+      "Revoked" | "Not Yet Valid" | "Expired" | "No Zone Access" | "Outside Window" | null;
+    override_of_scan_id: string | null;
+    override_reason: string | null;
   };
   AccessScanCreate: {
     zone_id: string;
     credential_id: string;
     device_scanned_at?: string | null;
     offline_result?: "Granted" | "Denied" | null;
+    direction?: "In" | "Out";
   };
+  AccessScanOverrideRequest: { reason: string; id?: string };
   AccessScanPage: { data: Array<Components["AccessScan"]>; next_cursor: string | null };
   AccessibilityNeed:
     | "Step-Free Access"
@@ -2579,6 +2586,26 @@ export interface Components {
     data: Array<Components["CredentialCategory"]>;
     next_cursor: string | null;
   };
+  CredentialCategoryRequirement: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    credential_category_id: string;
+    training_course_id: string | null;
+    certification_id: string | null;
+  };
+  CredentialCategoryRequirementCreate: {
+    credential_category_id: string;
+    training_course_id?: string | null;
+    certification_id?: string | null;
+  };
+  CredentialCategoryRequirementPage: {
+    data: Array<Components["CredentialCategoryRequirement"]>;
+    next_cursor: string | null;
+  };
   CredentialCategoryUpdate: { name?: string; category_kind?: "Access" | "Parking"; code?: string };
   CredentialCreate: {
     credential_category_id: string;
@@ -3101,6 +3128,11 @@ export interface Components {
     checked_in_at: string | null;
     plus_ones_admitted: number | null;
     door: string | null;
+    pass_code: string | null;
+    pass_category_code: string | null;
+    pass_category_name: string | null;
+    table_label: string | null;
+    host_person_id: string | null;
   };
   DoorGuestPage: { data: Array<Components["DoorGuest"]>; next_cursor: string | null };
   DsarRequest: {
@@ -3923,6 +3955,29 @@ export interface Components {
   };
   GuestCheckInPage: { data: Array<Components["GuestCheckIn"]>; next_cursor: string | null };
   GuestDecisionRequest: { outcome: "Approved" | "Declined" };
+  GuestEmailSend: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    email_kind: "Invitation" | "Pass" | "Message";
+    subject: string | null;
+    body: string | null;
+    locale: "en-US" | "es-US";
+  };
+  GuestEmailSendPage: { data: Array<Components["GuestEmailSend"]>; next_cursor: string | null };
+  GuestEmailSendQueued: { send_id: string };
+  GuestEmailSendRequest: {
+    project_id: string;
+    guest_list_entry_ids: Array<string>;
+    email_kind: "Invitation" | "Pass" | "Message";
+    subject?: string;
+    body?: string;
+    locale?: "en-US" | "es-US";
+  };
   GuestListEntry: {
     id: string;
     org_id: string;
@@ -3943,6 +3998,11 @@ export interface Components {
     decided_by: string | null;
     checked_in_at: string | null;
     checked_in_by: string | null;
+    pass_category_id: string | null;
+    table_label: string | null;
+    host_person_id: string | null;
+    guest_email: string | null;
+    pass_code: string | null;
   };
   GuestListEntryCreate: {
     project_id: string;
@@ -3950,6 +4010,10 @@ export interface Components {
     guest_name: string;
     plus_ones: number;
     note?: string | null;
+    pass_category_id?: string | null;
+    table_label?: string | null;
+    host_person_id?: string | null;
+    guest_email?: string | null;
   };
   GuestListEntryPage: { data: Array<Components["GuestListEntry"]>; next_cursor: string | null };
   GuestListEntryUpdate: {
@@ -3957,6 +4021,10 @@ export interface Components {
     guest_name?: string;
     plus_ones?: number;
     note?: string | null;
+    pass_category_id?: string | null;
+    table_label?: string | null;
+    host_person_id?: string | null;
+    guest_email?: string | null;
   };
   HandbookArticle: {
     id: string;
@@ -9986,6 +10054,47 @@ export interface Components {
     role_code: string;
   };
   WeatherAlertRolePage: { data: Array<Components["WeatherAlertRole"]>; next_cursor: string | null };
+  WeatherAllClearRequest: { message: string };
+  WeatherFeed: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    provider: "NWS";
+    nws_forecast_hourly_url: string | null;
+    nws_station_id: string | null;
+    points_checked_at: string | null;
+  };
+  WeatherFeedCreate: { project_id: string };
+  WeatherFeedPage: { data: Array<Components["WeatherFeed"]>; next_cursor: string | null };
+  WeatherHold: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    hazard: "Wind" | "Lightning" | "Heat" | null;
+    weather_alert_id: string | null;
+    weather_warning_id: string | null;
+    message: string;
+    called_at: string;
+    cleared_at: string | null;
+    cleared_by: string | null;
+    all_clear_message: string | null;
+  };
+  WeatherHoldCreate: {
+    project_id: string;
+    hazard?: "Wind" | "Lightning" | "Heat" | null;
+    weather_alert_id?: string | null;
+    weather_warning_id?: string | null;
+    message: string;
+  };
+  WeatherHoldPage: { data: Array<Components["WeatherHold"]>; next_cursor: string | null };
   WeatherReading: {
     id: string;
     org_id: string;
@@ -9998,6 +10107,7 @@ export interface Components {
     reading_value: number;
     observed_at: string;
     recorded_by_membership_id: string | null;
+    source: "Manual" | "NWS";
   };
   WeatherReadingCreate: {
     project_id: string;
@@ -10032,6 +10142,30 @@ export interface Components {
   };
   WeatherThresholdPage: { data: Array<Components["WeatherThreshold"]>; next_cursor: string | null };
   WeatherThresholdUpdate: { threshold_value?: number; source_note?: string };
+  WeatherWarning: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    provider: "NWS";
+    provider_alert_id: string;
+    event: string;
+    severity: "Extreme" | "Severe" | "Moderate" | "Minor" | "Unknown";
+    certainty: string | null;
+    urgency: string | null;
+    headline: string | null;
+    description: string | null;
+    instruction: string | null;
+    onset: string | null;
+    expires_at: string | null;
+    ends_at: string | null;
+    sent_at: string | null;
+    ended_at: string | null;
+  };
+  WeatherWarningPage: { data: Array<Components["WeatherWarning"]>; next_cursor: string | null };
   WebhookDelivery: {
     id: string;
     org_id: string;
@@ -14850,6 +14984,15 @@ export interface Operations {
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["AccessScan"] };
+  };
+  "accessScans.override": {
+    module: "Credentials";
+    method: "post";
+    path: "/access-scans/{id}/override";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AccessScanOverrideRequest"];
+    responses: { 201: Components["AccessScan"] };
   };
   "certifications.list": {
     module: "Credentials";
@@ -24895,6 +25038,39 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "guestListEntries.sendEmail": {
+    module: "Advancing";
+    method: "post";
+    path: "/guest-list-entries/send-email";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["GuestEmailSendRequest"];
+    responses: { 202: Components["GuestEmailSendQueued"] };
+  };
+  "guestEmailSends.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/guest-email-sends";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["GuestEmailSendPage"] };
+  };
+  "guestEmailSends.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/guest-email-sends/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["GuestEmailSend"] };
+  };
   "assetUnitHire.list": {
     module: "Assets";
     method: "get";
@@ -24942,6 +25118,48 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AssetReservationRelease"];
     responses: { 200: Components["AssetReservation"] };
+  };
+  "credentialCategoryRequirements.list": {
+    module: "Credentials";
+    method: "get";
+    path: "/credential-category-requirements";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["CredentialCategoryRequirementPage"] };
+  };
+  "credentialCategoryRequirements.create": {
+    module: "Credentials";
+    method: "post";
+    path: "/credential-category-requirements";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["CredentialCategoryRequirementCreate"];
+    responses: { 201: Components["CredentialCategoryRequirement"] };
+  };
+  "credentialCategoryRequirements.get": {
+    module: "Credentials";
+    method: "get";
+    path: "/credential-category-requirements/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["CredentialCategoryRequirement"] };
+  };
+  "credentialCategoryRequirements.delete": {
+    module: "Credentials";
+    method: "delete";
+    path: "/credential-category-requirements/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
   };
   "form1099Nec.rows": {
     module: "Finance";
@@ -28147,6 +28365,114 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["WeatherAlert"] };
   };
+  "weatherFeeds.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-feeds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherFeedPage"] };
+  };
+  "weatherFeeds.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-feeds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WeatherFeedCreate"];
+    responses: { 201: Components["WeatherFeed"] };
+  };
+  "weatherFeeds.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-feeds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherFeed"] };
+  };
+  "weatherFeeds.delete": {
+    module: "Workforce";
+    method: "delete";
+    path: "/weather-feeds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "weatherWarnings.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-warnings";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherWarningPage"] };
+  };
+  "weatherWarnings.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-warnings/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherWarning"] };
+  };
+  "weatherHolds.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-holds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherHoldPage"] };
+  };
+  "weatherHolds.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-holds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WeatherHoldCreate"];
+    responses: { 201: Components["WeatherHold"] };
+  };
+  "weatherHolds.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-holds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherHold"] };
+  };
+  "weatherHolds.allClear": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-holds/{id}/all-clear";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WeatherAllClearRequest"];
+    responses: { 200: Components["WeatherHold"] };
+  };
   "guestCheckIns.list": {
     module: "Workforce";
     method: "get";
@@ -28587,7 +28913,10 @@ export interface ModuleOperations {
     | "guestListEntries.update"
     | "guestListEntries.delete"
     | "guestListEntries.decide"
-    | "guestListEntries.checkIn";
+    | "guestListEntries.checkIn"
+    | "guestListEntries.sendEmail"
+    | "guestEmailSends.list"
+    | "guestEmailSends.get";
   Hospitality:
     | "fulfillments.list"
     | "fulfillments.create"
@@ -28889,6 +29218,7 @@ export interface ModuleOperations {
     | "accessScans.list"
     | "accessScans.create"
     | "accessScans.get"
+    | "accessScans.override"
     | "certifications.list"
     | "certifications.create"
     | "certifications.get"
@@ -28898,7 +29228,11 @@ export interface ModuleOperations {
     | "certificationHolders.create"
     | "certificationHolders.get"
     | "certificationHolders.update"
-    | "certificationHolders.delete";
+    | "certificationHolders.delete"
+    | "credentialCategoryRequirements.list"
+    | "credentialCategoryRequirements.create"
+    | "credentialCategoryRequirements.get"
+    | "credentialCategoryRequirements.delete";
   Finance:
     | "budgets.list"
     | "budgets.create"
@@ -30002,6 +30336,16 @@ export interface ModuleOperations {
     | "weatherReadings.get"
     | "weatherAlerts.list"
     | "weatherAlerts.get"
+    | "weatherFeeds.list"
+    | "weatherFeeds.create"
+    | "weatherFeeds.get"
+    | "weatherFeeds.delete"
+    | "weatherWarnings.list"
+    | "weatherWarnings.get"
+    | "weatherHolds.list"
+    | "weatherHolds.create"
+    | "weatherHolds.get"
+    | "weatherHolds.allClear"
     | "guestCheckIns.list"
     | "guestCheckIns.create"
     | "guestCheckIns.get"

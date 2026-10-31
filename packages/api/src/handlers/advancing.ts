@@ -10,6 +10,7 @@ import {
   checkInGuest,
   configureSection,
   decideGuest,
+  queueGuestEmails,
   reviewSubmission,
   sectionConfig,
   sendPacket,
@@ -17,7 +18,7 @@ import {
 } from "@xos/data/advancing";
 import { badRequest } from "../problem.ts";
 import { requirePerson } from "../runtime/context.ts";
-import { defineHandlers, ok } from "../runtime/handler.ts";
+import { accepted, defineHandlers, ok } from "../runtime/handler.ts";
 import { allocationHandlers } from "./parts/allocations.ts";
 import { rosterEntryHandlers } from "./parts/roster-project-facts.ts";
 import { handlersFor, tableResource, unwrap } from "./support/table.ts";
@@ -34,6 +35,8 @@ const promotions = tableResource("advancePromotions", { softDelete: false });
 const riders = tableResource("riders");
 const riderLines = tableResource("riderLines");
 const guests = tableResource("guestListEntries");
+// B8 (2975): bulk guest emails, read-only; app.queue_guest_emails writes them.
+const guestEmailSends = tableResource("guestEmailSends", { verbs: ["list", "get"] });
 // R9: section choices, and the lines and files of typed answers.
 const choices = tableResource("advanceSectionChoices");
 const answerLines = tableResource("advanceSubmissionLines");
@@ -48,6 +51,7 @@ export const handlers = defineHandlers("Advancing", {
   ...handlersFor("Advancing", riders),
   ...handlersFor("Advancing", riderLines),
   ...handlersFor("Advancing", guests),
+  ...handlersFor("Advancing", guestEmailSends),
   ...handlersFor("Advancing", choices),
   ...handlersFor("Advancing", answerLines),
   ...handlersFor("Advancing", answerFiles),
@@ -110,5 +114,19 @@ export const handlers = defineHandlers("Advancing", {
     await guests.read(context, params.id, ["id"]);
     unwrap(await checkInGuest(context.db, params.id));
     return ok((await guests.read(context, params.id)) as never);
+  },
+
+  "guestListEntries.sendEmail": async ({ body }, context) => {
+    const queued = unwrap(
+      await queueGuestEmails(context.db, {
+        projectId: body.project_id,
+        guestIds: body.guest_list_entry_ids,
+        kind: body.email_kind,
+        subject: body.subject ?? null,
+        body: body.body ?? null,
+        locale: body.locale ?? "en-US",
+      }),
+    );
+    return accepted({ send_id: queued.sendId });
   },
 });

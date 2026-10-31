@@ -53,6 +53,9 @@ const ENTRY = id(75);
 const GUEST_CHECK_IN = id(76);
 const ITEM = id(77);
 const CLAIM = id(78);
+const FEED = id(90);
+const WARNING = id(91);
+const HOLD = id(92);
 const MISSING = id(9999);
 const T = "2026-10-01T12:00:00.000Z";
 
@@ -372,6 +375,48 @@ function world() {
           reading_value: 33,
           observed_at: T,
           recorded_by_membership_id: MEMBER,
+          source: "Manual",
+        }),
+      ],
+      weather_feeds: [
+        tenantRow(FEED, ORG, {
+          project_id: PROJECT,
+          provider: "NWS",
+          nws_forecast_hourly_url: null,
+          nws_station_id: "KMIA",
+          points_checked_at: T,
+        }),
+      ],
+      weather_warnings: [
+        tenantRow(WARNING, ORG, {
+          project_id: PROJECT,
+          provider: "NWS",
+          provider_alert_id: "urn:oid:2.49.0.1.840.0.abc",
+          event: "Severe Thunderstorm Warning",
+          severity: "Severe",
+          certainty: "Observed",
+          urgency: "Immediate",
+          headline: "Severe Thunderstorm Warning until 9:45 PM EDT",
+          description: "At 9:02 PM, a severe thunderstorm was located over the venue.",
+          instruction: "Move to an interior room.",
+          onset: T,
+          expires_at: T,
+          ends_at: T,
+          sent_at: T,
+          ended_at: null,
+        }),
+      ],
+      weather_holds: [
+        tenantRow(HOLD, ORG, {
+          project_id: PROJECT,
+          hazard: "Lightning",
+          weather_alert_id: null,
+          weather_warning_id: WARNING,
+          message: "Lightning within 8 miles: stop work and shelter.",
+          called_at: T,
+          cleared_at: null,
+          cleared_by: null,
+          all_clear_message: null,
         }),
       ],
       weather_alerts: [
@@ -548,8 +593,15 @@ function world() {
           checked_in_at: null,
           plus_ones_admitted: null,
           door: null,
+          pass_code: "GP-ABCDEFGHIJ",
+          pass_category_code: "VIP",
+          pass_category_name: "VIP Guest",
+          table_label: "Table 4",
+          host_person_id: null,
         },
       ],
+      call_weather_hold: () => HOLD,
+      give_weather_all_clear: () => HOLD,
       log_lost_item: () => ITEM,
       claim_lost_item: () => CLAIM,
       dispose_lost_item: () => id(112),
@@ -589,6 +641,12 @@ function world() {
       help_desk_teams: { archived_at: null, description: null },
       weather_thresholds: {},
       weather_alert_roles: {},
+      weather_feeds: {
+        provider: "NWS",
+        nws_forecast_hourly_url: null,
+        nws_station_id: null,
+        points_checked_at: null,
+      },
     },
   );
   const app = contractApp({ handlers: [workforce], db });
@@ -1104,6 +1162,33 @@ describe("help desk and site operations", () => {
     await expectContract(r, "weatherAlerts.list");
     r = await success(http.get(`/weather-alerts/${ALERT}`));
     await expectContract(r, "weatherAlerts.get");
+    // B8 (2976, 2977): the official feed, its warnings and holds.
+    r = await success(http.get("/weather-feeds"));
+    await expectContract(r, "weatherFeeds.list");
+    r = await success(http.get(`/weather-feeds/${FEED}`));
+    await expectContract(r, "weatherFeeds.get");
+    r = await success(http.post("/weather-feeds", { project_id: PROJECT }));
+    await expectContract(r, "weatherFeeds.create");
+    r = await success(http.delete(`/weather-feeds/${FEED}`));
+    await expectContract(r, "weatherFeeds.delete");
+    r = await success(http.get("/weather-warnings"));
+    await expectContract(r, "weatherWarnings.list");
+    r = await success(http.get(`/weather-warnings/${WARNING}`));
+    await expectContract(r, "weatherWarnings.get");
+    r = await success(http.get("/weather-holds"));
+    await expectContract(r, "weatherHolds.list");
+    r = await success(http.get(`/weather-holds/${HOLD}`));
+    await expectContract(r, "weatherHolds.get");
+    r = await success(
+      http.post("/weather-holds", {
+        project_id: PROJECT,
+        message: "Lightning within 8 miles: stop work and shelter.",
+        hazard: "Lightning",
+      }),
+    );
+    await expectContract(r, "weatherHolds.create");
+    r = await success(http.post(`/weather-holds/${HOLD}/all-clear`, { message: "All clear." }));
+    await expectContract(r, "weatherHolds.allClear");
     r = await success(http.get("/guest-check-ins"));
     await expectContract(r, "guestCheckIns.list");
     r = await success(http.get(`/guest-check-ins/${GUEST_CHECK_IN}`));

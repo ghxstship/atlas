@@ -26,6 +26,7 @@ const LINE = id(11);
 const GUEST = id(12);
 const SHOW = id(13);
 const TOKEN = id(14);
+const EMAIL_SEND = id(15);
 const SENT = "2026-10-01T12:00:00.000Z";
 const STALE = 'W/"MjAyMC0wMS0wMQ"';
 
@@ -114,10 +115,29 @@ function world() {
           decided_by: null,
           checked_in_at: null,
           checked_in_by: null,
+          pass_category_id: null,
+          table_label: null,
+          host_person_id: null,
+          guest_email: null,
+          pass_code: null,
+        }),
+      ],
+      guest_email_sends: [
+        tenantRow(EMAIL_SEND, ORG, {
+          project_id: PROJECT,
+          email_kind: "Pass",
+          subject: null,
+          body: null,
+          locale: "en-US",
         }),
       ],
     },
     {
+      queue_guest_emails: (args) => {
+        if ((args["p_entry_ids"] as unknown[]).length > 500)
+          throw refusal("guest_email_batch", "Email 1 to 500 guests at a time.");
+        return EMAIL_SEND;
+      },
       send_advance_packet: (args, self) => {
         const p = self.tables["advance_packets"]?.find(
           (x) => x["id"] === args["p_packet_id"],
@@ -165,6 +185,11 @@ function world() {
         decided_by: null,
         checked_in_at: null,
         checked_in_by: null,
+        pass_category_id: null,
+        table_label: null,
+        host_person_id: null,
+        guest_email: null,
+        pass_code: null,
       },
     },
   );
@@ -372,5 +397,30 @@ describe("Advancing contract: guest list", () => {
     expect(((await expectContract(inside, "guestListEntries.checkIn")) as Row)["entry_state"]).toBe(
       "Checked In",
     );
+  });
+
+  it("queues guest emails and reads the sends (B8)", async () => {
+    const { http } = world();
+    const queued = await http.post("/guest-list-entries/send-email", {
+      project_id: PROJECT,
+      guest_list_entry_ids: [GUEST],
+      email_kind: "Pass",
+      locale: "es-US",
+    });
+    expect(queued.status).toBe(202);
+    expect(await expectContract(queued, "guestListEntries.sendEmail")).toEqual({
+      send_id: EMAIL_SEND,
+    });
+    const list = await success(http.get("/guest-email-sends"));
+    await expectContract(list, "guestEmailSends.list");
+    const one = await success(http.get(`/guest-email-sends/${EMAIL_SEND}`));
+    await expectContract(one, "guestEmailSends.get");
+    const tooMany = await http.post("/guest-list-entries/send-email", {
+      project_id: PROJECT,
+      guest_list_entry_ids: Array.from({ length: 501 }, () => GUEST),
+      email_kind: "Invitation",
+    });
+    expect(tooMany.status).toBe(422);
+    await expectContract(tooMany, "guestListEntries.sendEmail");
   });
 });

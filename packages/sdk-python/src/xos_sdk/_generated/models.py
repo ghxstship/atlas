@@ -397,6 +397,7 @@ __all__ = [
     "AccessScanPage",
     "AccessScan",
     "AccessScanCreate",
+    "AccessScanOverrideRequest",
     "CertificationPage",
     "Certification",
     "CertificationCreate",
@@ -1312,11 +1313,18 @@ __all__ = [
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "GuestEmailSendQueued",
+    "GuestEmailSendRequest",
+    "GuestEmailSendPage",
+    "GuestEmailSend",
     "AssetUnitHirePage",
     "AssetUnitHire",
     "AssetReservationPage",
     "AssetReservation",
     "AssetReservationRelease",
+    "CredentialCategoryRequirementPage",
+    "CredentialCategoryRequirement",
+    "CredentialCategoryRequirementCreate",
     "Form1099NecRowPage",
     "Form1099NecRow",
     "GoodsReturnPage",
@@ -1633,6 +1641,15 @@ __all__ = [
     "WeatherReadingCreate",
     "WeatherAlertPage",
     "WeatherAlert",
+    "WeatherFeedPage",
+    "WeatherFeed",
+    "WeatherFeedCreate",
+    "WeatherWarningPage",
+    "WeatherWarning",
+    "WeatherHoldPage",
+    "WeatherHold",
+    "WeatherHoldCreate",
+    "WeatherAllClearRequest",
     "GuestCheckInPage",
     "GuestCheckIn",
     "GuestCheckInCreate",
@@ -7937,6 +7954,14 @@ class AccessScan(TypedDict):
     device_scanned_at: Optional[str]
     #: What the device decided offline.
     offline_result: Optional[Literal["Granted", "Denied"]]
+    #: In at the zone, or Out. An Out scan is never refused.
+    direction: Literal["In", "Out"]
+    #: Why the database denied an In scan, the first check that failed; null for a granted scan and for denials recorded before B8.
+    refusal_reason: Optional[Literal["Revoked", "Not Yet Valid", "Expired", "No Zone Access", "Outside Window"]]
+    #: Identifier of the denied In scan this row overrides.
+    override_of_scan_id: Optional[str]
+    #: Why the supervisor let the holder in.
+    override_reason: Optional[str]
 
 
 class _AccessScanCreateRequired(TypedDict):
@@ -7953,6 +7978,20 @@ class AccessScanCreate(_AccessScanCreateRequired, total=False):
     device_scanned_at: Optional[str]
     #: What the device decided offline.
     offline_result: Optional[Literal["Granted", "Denied"]]
+    #: In at the zone, or Out. An Out scan is never refused.
+    direction: Literal["In", "Out"]
+
+
+class _AccessScanOverrideRequestRequired(TypedDict):
+    #: Why the supervisor lets the holder in, 1 to 300 characters.
+    reason: str
+
+
+class AccessScanOverrideRequest(_AccessScanOverrideRequestRequired, total=False):
+    """A supervisor override of a denied scan."""
+
+    #: Client id of the override scan, for an offline replay.
+    id: str
 
 
 class CertificationPage(TypedDict):
@@ -21704,6 +21743,16 @@ class GuestListEntry(TypedDict):
     checked_in_at: Optional[str]
     #: Identifier of the person who checked the guest in, set by the database.
     checked_in_by: Optional[str]
+    #: Identifier of the pass type: an Access credential category of the same project.
+    pass_category_id: Optional[str]
+    #: Table or seat.
+    table_label: Optional[str]
+    #: Identifier of the project person hosting the guest, alerted when the guest arrives.
+    host_person_id: Optional[str]
+    #: Where the guest's pass and messages go, lowercased. Confidential.
+    guest_email: Optional[str]
+    #: Pass code the door scans (XOSGP1:<code>), stamped by the database on approval.
+    pass_code: Optional[str]
 
 
 class _GuestListEntryCreateRequired(TypedDict):
@@ -21722,6 +21771,14 @@ class GuestListEntryCreate(_GuestListEntryCreateRequired, total=False):
     scope_node_id: Optional[str]
     #: Notes for the door.
     note: Optional[str]
+    #: Identifier of the pass type: an Access credential category of the same project.
+    pass_category_id: Optional[str]
+    #: Table or seat.
+    table_label: Optional[str]
+    #: Identifier of the project person hosting the guest, alerted when the guest arrives.
+    host_person_id: Optional[str]
+    #: Where the guest's pass and messages go, lowercased. Confidential.
+    guest_email: Optional[str]
 
 
 class GuestListEntryUpdate(TypedDict, total=False):
@@ -21735,6 +21792,14 @@ class GuestListEntryUpdate(TypedDict, total=False):
     plus_ones: int
     #: Notes for the door.
     note: Optional[str]
+    #: Identifier of the pass type: an Access credential category of the same project.
+    pass_category_id: Optional[str]
+    #: Table or seat.
+    table_label: Optional[str]
+    #: Identifier of the project person hosting the guest, alerted when the guest arrives.
+    host_person_id: Optional[str]
+    #: Where the guest's pass and messages go, lowercased. Confidential.
+    guest_email: Optional[str]
 
 
 class GuestDecisionRequest(TypedDict):
@@ -21742,6 +21807,69 @@ class GuestDecisionRequest(TypedDict):
 
     #: Approved or Declined.
     outcome: Literal["Approved", "Declined"]
+
+
+class GuestEmailSendQueued(TypedDict):
+    """A queued guest email send."""
+
+    #: The send; read its rows' states at /guest-email-sends/{id}.
+    send_id: str
+
+
+class _GuestEmailSendRequestRequired(TypedDict):
+    #: Project of the guests.
+    project_id: str
+    #: The guests to email, 1 to 500.
+    guest_list_entry_ids: List[str]
+    #: Invitation, Pass (their pass attached as a PDF) or Message.
+    email_kind: Literal["Invitation", "Pass", "Message"]
+
+
+class GuestEmailSendRequest(_GuestEmailSendRequestRequired, total=False):
+    """An email to selected guests of a project."""
+
+    #: Subject; required for a Message, not allowed otherwise.
+    subject: str
+    #: Text; required for a Message.
+    body: str
+    #: Language of the email; en-US when left out.
+    locale: Literal["en-US", "es-US"]
+
+
+class GuestEmailSendPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[GuestEmailSend]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class GuestEmailSend(TypedDict):
+    """A bulk email staff sent to a project's guests (gap G-71): an invitation, their pass or a message, in one language. Written only by the send-email action."""
+
+    #: Identifier of the guest email send.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who sent it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Always null: a send is never changed.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Invitation, Pass or Message.
+    email_kind: Literal["Invitation", "Pass", "Message"]
+    #: Subject of a Message.
+    subject: Optional[str]
+    #: Text of a Message, or a note on an invitation or pass.
+    body: Optional[str]
+    #: Language of the email.
+    locale: Literal["en-US", "es-US"]
 
 
 class AssetUnitHirePage(TypedDict):
@@ -21813,6 +21941,52 @@ class AssetReservationRelease(TypedDict, total=False):
 
     #: Why the hold is released.
     reason: str
+
+
+class CredentialCategoryRequirementPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[CredentialCategoryRequirement]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class CredentialCategoryRequirement(TypedDict):
+    """A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422)."""
+
+    #: Identifier of the credential category requirement.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who added the requirement.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last changed the requirement.
+    updated_by: Optional[str]
+    #: Identifier of the credential category.
+    credential_category_id: str
+    #: Identifier of the training course the holder must have passed.
+    training_course_id: Optional[str]
+    #: Identifier of the certification the holder must hold.
+    certification_id: Optional[str]
+
+
+class _CredentialCategoryRequirementCreateRequired(TypedDict):
+    #: Identifier of the credential category.
+    credential_category_id: str
+
+
+class CredentialCategoryRequirementCreate(_CredentialCategoryRequirementCreateRequired, total=False):
+    """Fields accepted when creating a CredentialCategoryRequirement."""
+
+    #: Identifier of the training course the holder must have passed.
+    training_course_id: Optional[str]
+    #: Identifier of the certification the holder must hold.
+    certification_id: Optional[str]
 
 
 class Form1099NecRowPage(TypedDict):
@@ -26757,6 +26931,8 @@ class WeatherReading(TypedDict):
     observed_at: str
     #: Identifier of the member who recorded it.
     recorded_by_membership_id: Optional[str]
+    #: Manual for a reading on site, NWS for one the official feed recorded (B8, 2976).
+    source: Literal["Manual", "NWS"]
 
 
 class WeatherReadingCreate(TypedDict):
@@ -26808,6 +26984,174 @@ class WeatherAlert(TypedDict):
     issued_at: str
     #: When it cleared.
     cleared_at: Optional[str]
+
+
+class WeatherFeedPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WeatherFeed]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WeatherFeed(TypedDict):
+    """A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window."""
+
+    #: Identifier of the weather feed.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: The US National Weather Service.
+    provider: Literal["NWS"]
+    #: Hourly forecast URL the worker cached.
+    nws_forecast_hourly_url: Optional[str]
+    #: Observation station the worker cached.
+    nws_station_id: Optional[str]
+    #: When the worker last looked the venue up.
+    points_checked_at: Optional[str]
+
+
+class WeatherFeedCreate(TypedDict):
+    """Fields accepted when creating a WeatherFeed."""
+
+    #: Identifier of the project.
+    project_id: str
+
+
+class WeatherWarningPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WeatherWarning]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WeatherWarning(TypedDict):
+    """An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning)."""
+
+    #: Identifier of the weather warning.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: The US National Weather Service.
+    provider: Literal["NWS"]
+    #: The provider's alert id.
+    provider_alert_id: str
+    #: Event name.
+    event: str
+    #: Severity.
+    severity: Literal["Extreme", "Severe", "Moderate", "Minor", "Unknown"]
+    #: Certainty.
+    certainty: Optional[str]
+    #: Urgency.
+    urgency: Optional[str]
+    #: Headline.
+    headline: Optional[str]
+    #: Description.
+    description: Optional[str]
+    #: What to do.
+    instruction: Optional[str]
+    #: When the hazard begins.
+    onset: Optional[str]
+    #: When this message expires.
+    expires_at: Optional[str]
+    #: When the hazard ends.
+    ends_at: Optional[str]
+    #: When the provider sent it.
+    sent_at: Optional[str]
+    #: When it was cancelled or left the active list.
+    ended_at: Optional[str]
+
+
+class WeatherHoldPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WeatherHold]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WeatherHold(TypedDict):
+    """A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear)."""
+
+    #: Identifier of the weather hold.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Hazard the hold is for.
+    hazard: Optional[Literal["Wind", "Lightning", "Heat"]]
+    #: Identifier of the weather alert that prompted it.
+    weather_alert_id: Optional[str]
+    #: Identifier of the official warning that prompted it.
+    weather_warning_id: Optional[str]
+    #: The hold message sent.
+    message: str
+    #: When the hold was called.
+    called_at: str
+    #: When the all-clear was given.
+    cleared_at: Optional[str]
+    #: Identifier of the person who gave the all-clear.
+    cleared_by: Optional[str]
+    #: The all-clear message sent.
+    all_clear_message: Optional[str]
+
+
+class _WeatherHoldCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: The hold message sent.
+    message: str
+
+
+class WeatherHoldCreate(_WeatherHoldCreateRequired, total=False):
+    """Fields accepted when creating a WeatherHold."""
+
+    #: Hazard the hold is for.
+    hazard: Optional[Literal["Wind", "Lightning", "Heat"]]
+    #: Identifier of the weather alert that prompted it.
+    weather_alert_id: Optional[str]
+    #: Identifier of the official warning that prompted it.
+    weather_warning_id: Optional[str]
+
+
+class WeatherAllClearRequest(TypedDict):
+    """The all-clear that ends a weather hold."""
+
+    #: The all-clear message, 1 to 1,000 characters.
+    message: str
 
 
 class GuestCheckInPage(TypedDict):
@@ -26888,6 +27232,16 @@ class DoorGuest(TypedDict):
     plus_ones_admitted: Optional[int]
     #: Door.
     door: Optional[str]
+    #: Pass code the door scans.
+    pass_code: Optional[str]
+    #: Pass type code.
+    pass_category_code: Optional[str]
+    #: Pass type.
+    pass_category_name: Optional[str]
+    #: Table or seat.
+    table_label: Optional[str]
+    #: Project person hosting the guest.
+    host_person_id: Optional[str]
 
 
 class LostFoundItemPage(TypedDict):
