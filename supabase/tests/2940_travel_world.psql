@@ -1,0 +1,80 @@
+-- Shared pgTAP fixture for the B5 suites (2940 to 2947), included with \ir inside each test transaction after the
+-- engagement world (0700_engagement_world.psql), the project facts world (2654_project_facts_world.psql) and the
+-- allocation world (2691_allocation_world.psql). Every name is fictional; nothing persists.
+--
+-- On prj_a (Northwind Summer Series, America/New_York): eng_vendor_a (Bayside Audio) is Active, kai and mo are on its
+-- roster and accepted, sam is its engaged person; dave (a member, Coordinator on prj_a) drives; alice (owner) books.
+-- Vehicles: van (Van, 2 seats) and sedan (Sedan, 1 seat). hops holds hospitality.fulfillment.read alone; quinn works for
+-- org_b only. The fixed window is 2027-06-02 14:00 to 15:00 UTC.
+
+-- The rule key a statement is refused with, or 'ok' when it runs.
+create function pg_temp.rule_of(p_sql text) returns text
+language plpgsql as $$
+declare
+  v_hint text;
+  v_state text;
+begin
+  execute p_sql;
+  return 'ok';
+exception when others then
+  get stacked diagnostics v_hint = pg_exception_hint, v_state = returned_sqlstate;
+  return coalesce(nullif(v_hint, ''), v_state);
+end $$;
+
+-- Books a transfer as alice: world key, window, driver and vehicle keys (NULL for none).
+create function pg_temp.transfer(p_key text, p_from timestamptz, p_to timestamptz, p_driver text default null,
+  p_vehicle text default null) returns uuid
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform pg_temp.as_user('alice');
+  insert into app.transfers (project_id, pickup_place, pickup_at, pickup_time_zone, dropoff_place, dropoff_at, dropoff_time_zone,
+    driver_person_id, vehicle_id)
+  values (pg_temp.id('prj_a'), 'Miami International Airport (MIA)', p_from, 'America/New_York', 'Crew Hotel', p_to,
+    'America/New_York', pg_temp.id(p_driver), pg_temp.id(p_vehicle))
+  returning id into v_id;
+  perform pg_temp.as_platform();
+  insert into world values (p_key, v_id);
+  return v_id;
+end $$;
+
+-- Adds a passenger as alice.
+create function pg_temp.ride(p_transfer text, p_person text, p_primary boolean default false) returns uuid
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform pg_temp.as_user('alice');
+  insert into app.transfer_passengers (transfer_id, person_id, is_primary)
+  values (pg_temp.id(p_transfer), pg_temp.id(p_person), p_primary) returning id into v_id;
+  perform pg_temp.as_platform();
+  return v_id;
+end $$;
+
+-- A Flight segment of a person on prj_a, as alice.
+create function pg_temp.flight(p_key text, p_person text, p_number text, p_from text, p_departs timestamptz, p_to text,
+  p_arrives timestamptz) returns uuid
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform pg_temp.as_user('alice');
+  insert into app.travel_segments (project_id, person_id, travel_mode, operator_name, service_identifier, confirmation_identifier,
+    departs_from, departs_at, departs_time_zone, arrives_at_place, arrives_at, arrives_time_zone, price_minor, currency_code)
+  values (pg_temp.id('prj_a'), pg_temp.id(p_person), 'Flight', 'Northwind Air', p_number, 'CONF' || p_number, p_from, p_departs,
+    'America/New_York', p_to, p_arrives, 'America/New_York', 45000, 'USD')
+  returning id into v_id;
+  perform pg_temp.as_platform();
+  insert into world values (p_key, v_id);
+  return v_id;
+end $$;
+
+select pg_temp.as_user('alice');
+with x as (insert into app.transfer_vehicles (project_id, label, vehicle_type, seats)
+  values (pg_temp.id('prj_a'), 'Van 1', 'Van', 2) returning id)
+insert into world select 'van', id from x;
+with x as (insert into app.transfer_vehicles (project_id, label, vehicle_type, seats)
+  values (pg_temp.id('prj_a'), 'Sedan 1', 'Sedan', 1) returning id)
+insert into world select 'sedan', id from x;
+select pg_temp.as_platform();

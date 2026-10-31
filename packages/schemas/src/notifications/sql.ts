@@ -17,10 +17,11 @@ import type { NotificationKindRegistry } from "./model.ts";
  * kinds (R4, ADR 0100 section 6) and the party_invitation platform email; it is the first advancing seed (ADR 0022).
  * 2650 adds R5's roster_entry.project_facts_entered and the names lock's engagement.roster_lock_changed. 2660 adds R6a's
  * account.work_details_moved. 2698 adds R7's allocation.decided, allocation.assigned, allocation.issued and
- * allocation.withdrawn.
+ * allocation.withdrawn. 2949 adds B5's accommodation_block.release_due and transfer.assigned; it sorts above R11's 2749
+ * (ADR 0022 amendment).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/2698_notification_kind_seed.sql";
+  "supabase/migrations/2949_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(

@@ -950,4 +950,28 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
       body: "kinds.allocation.withdrawn.body",
     },
   },
+  {
+    kind: "accommodation_block.release_due",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.accommodation_block.release_due.subject",
+      body: "kinds.accommodation_block.release_due.body",
+    },
+  },
+  {
+    kind: "transfer.assigned",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.transfer.assigned.subject",
+      body: "kinds.transfer.assigned.body",
+    },
+  },
 ];

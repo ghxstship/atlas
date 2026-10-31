@@ -521,3 +521,14 @@ kinds:
         test: supabase/tests/2694_allocation_cascades.test.sql
       - emitter: supabase/migrations/2694_allocation_cascades.sql#private.withdraw_entry_allocations
         test: supabase/tests/2694_allocation_cascades.test.sql
+  # Travel, lodging and ground transport (B5: 2947)
+  - kind: accommodation_block.release_due
+    category: expiry_reminders
+    emitted_by:
+      - emitter: supabase/migrations/2947_hospitality_notices.sql#private.send_block_release_reminders
+        test: supabase/tests/2947_hospitality_notices.test.sql
+  - kind: transfer.assigned
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2947_hospitality_notices.sql#private.notify_transfer_driver
+        test: supabase/tests/2947_hospitality_notices.test.sql

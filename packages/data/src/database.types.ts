@@ -1480,6 +1480,22 @@ export type Database = {
           },
         ];
       };
+      local_contacts: {
+        Row: {
+          contact_role: Database["app"]["Enums"]["local_contact_role"] | null;
+          contact_title: string | null;
+          day: string | null;
+          display_name: string | null;
+          email: string | null;
+          id: string | null;
+          organization_name: string | null;
+          phone: string | null;
+          project_id: string | null;
+          source: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       lodging: {
         Row: {
           block_title: string | null;
@@ -2168,6 +2184,41 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [];
+      };
+      my_transfers: {
+        Row: {
+          driver_name: string | null;
+          dropoff_at: string | null;
+          dropoff_place: string | null;
+          dropoff_time_zone: string | null;
+          id: string | null;
+          meets_arrives_at: string | null;
+          meets_service_identifier: string | null;
+          my_role: string | null;
+          passenger_count: number | null;
+          passenger_names: string[] | null;
+          pickup_at: string | null;
+          pickup_place: string | null;
+          pickup_time_zone: string | null;
+          primary_passenger_name: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          seats: number | null;
+          status: string | null;
+          transfer_key: string | null;
+          vehicle_label: string | null;
+          vehicle_type: Database["app"]["Enums"]["vehicle_type"] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       offer_versions: {
         Row: {
@@ -3270,6 +3321,56 @@ export type Database = {
           },
         ];
       };
+      space_bookings: {
+        Row: {
+          ends_at: string | null;
+          engagement_id: string | null;
+          id: string | null;
+          project_id: string | null;
+          purpose: Database["app"]["Enums"]["space_booking_purpose"] | null;
+          set_label: string | null;
+          space_name: string | null;
+          starts_at: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_offerings";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_up_next";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sponsor_asset_files: {
         Row: {
           document_id: string | null;
@@ -4206,6 +4307,13 @@ export type Database = {
             foreignKeyName: "accommodation_assignments_accommodation_block_id_fkey";
             columns: ["accommodation_block_id"];
             isOneToOne: false;
+            referencedRelation: "accommodation_block_nights";
+            referencedColumns: ["block_id"];
+          },
+          {
+            foreignKeyName: "accommodation_assignments_accommodation_block_id_fkey";
+            columns: ["accommodation_block_id"];
+            isOneToOne: false;
             referencedRelation: "accommodation_blocks";
             referencedColumns: ["id"];
           },
@@ -4249,6 +4357,7 @@ export type Database = {
       accommodation_blocks: {
         Row: {
           block_number: number;
+          budget_line_id: string | null;
           check_in_on: string;
           check_out_on: string;
           counterparty_id: string | null;
@@ -4270,6 +4379,7 @@ export type Database = {
         ComputedFields: "accommodation_block_display_key";
         Insert: {
           block_number?: number;
+          budget_line_id?: string | null;
           check_in_on: string;
           check_out_on: string;
           counterparty_id?: string | null;
@@ -4289,6 +4399,7 @@ export type Database = {
         };
         Update: {
           block_number?: number;
+          budget_line_id?: string | null;
           check_in_on?: string;
           check_out_on?: string;
           counterparty_id?: string | null;
@@ -4307,6 +4418,41 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "accommodation_blocks_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "accommodation_blocks_counterparty_id_fkey";
             columns: ["counterparty_id"];
@@ -5265,6 +5411,13 @@ export type Database = {
           withdraw_cause?: Database["app"]["Enums"]["allocation_withdraw_cause"] | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "advance_allocations_accommodation_block_id_fkey";
+            columns: ["accommodation_block_id"];
+            isOneToOne: false;
+            referencedRelation: "accommodation_block_nights";
+            referencedColumns: ["block_id"];
+          },
           {
             foreignKeyName: "advance_allocations_accommodation_block_id_fkey";
             columns: ["accommodation_block_id"];
@@ -11378,6 +11531,13 @@ export type Database = {
             foreignKeyName: "budget_lines_budget_id_fkey";
             columns: ["budget_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
             referencedRelation: "budget_revised_totals";
             referencedColumns: ["budget_id"];
           },
@@ -12908,6 +13068,13 @@ export type Database = {
             foreignKeyName: "change_order_lines_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -13116,6 +13283,13 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
             referencedColumns: ["budget_id"];
           },
           {
@@ -14526,6 +14700,13 @@ export type Database = {
             foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
             columns: ["from_budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
+            columns: ["from_budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -14555,6 +14736,13 @@ export type Database = {
             columns: ["to_budget_line_id"];
             isOneToOne: false;
             referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
+            columns: ["to_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
             referencedColumns: ["budget_line_id"];
           },
           {
@@ -19913,6 +20101,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
             referencedColumns: ["budget_line_id"];
           },
           {
@@ -26947,6 +27142,13 @@ export type Database = {
             foreignKeyName: "invoice_lines_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -28331,6 +28533,144 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      local_contacts: {
+        Row: {
+          audience: Database["app"]["Enums"]["local_contact_audience"];
+          contact_name: string | null;
+          contact_role: Database["app"]["Enums"]["local_contact_role"];
+          contact_title: string | null;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          day: string | null;
+          deleted_at: string | null;
+          email: string | null;
+          id: string;
+          membership_id: string | null;
+          notes: string | null;
+          org_id: string;
+          phone: string | null;
+          project_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          audience?: Database["app"]["Enums"]["local_contact_audience"];
+          contact_name?: string | null;
+          contact_role: Database["app"]["Enums"]["local_contact_role"];
+          contact_title?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          day?: string | null;
+          deleted_at?: string | null;
+          email?: string | null;
+          id?: string;
+          membership_id?: string | null;
+          notes?: string | null;
+          org_id: string;
+          phone?: string | null;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Update: {
+          audience?: Database["app"]["Enums"]["local_contact_audience"];
+          contact_name?: string | null;
+          contact_role?: Database["app"]["Enums"]["local_contact_role"];
+          contact_title?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          day?: string | null;
+          deleted_at?: string | null;
+          email?: string | null;
+          id?: string;
+          membership_id?: string | null;
+          notes?: string | null;
+          org_id?: string;
+          phone?: string | null;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "local_contacts_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "local_contacts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "local_contacts_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "local_contacts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "local_contacts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "local_contacts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "local_contacts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "local_contacts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "local_contacts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "local_contacts_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
             referencedColumns: ["id"];
           },
         ];
@@ -37292,6 +37632,13 @@ export type Database = {
             foreignKeyName: "po_lines_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "po_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -45555,6 +45902,13 @@ export type Database = {
             foreignKeyName: "requisitions_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "requisitions_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -51434,6 +51788,159 @@ export type Database = {
           },
         ];
       };
+      space_bookings: {
+        Row: {
+          booking_mode: Database["app"]["Enums"]["space_booking_mode"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_at: string;
+          engagement_cue_id: string | null;
+          engagement_id: string | null;
+          id: string;
+          notes: string | null;
+          org_id: string;
+          party_size: number | null;
+          project_id: string;
+          purpose: Database["app"]["Enums"]["space_booking_purpose"];
+          space_id: string;
+          starts_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_mode?: Database["app"]["Enums"]["space_booking_mode"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at: string;
+          engagement_cue_id?: string | null;
+          engagement_id?: string | null;
+          id?: string;
+          notes?: string | null;
+          org_id: string;
+          party_size?: number | null;
+          project_id: string;
+          purpose: Database["app"]["Enums"]["space_booking_purpose"];
+          space_id: string;
+          starts_at: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          booking_mode?: Database["app"]["Enums"]["space_booking_mode"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string;
+          engagement_cue_id?: string | null;
+          engagement_id?: string | null;
+          id?: string;
+          notes?: string | null;
+          org_id?: string;
+          party_size?: number | null;
+          project_id?: string;
+          purpose?: Database["app"]["Enums"]["space_booking_purpose"];
+          space_id?: string;
+          starts_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "space_bookings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_cue_id_fkey";
+            columns: ["engagement_cue_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_cues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       spaces: {
         Row: {
           area_sq_ft: number | null;
@@ -56886,6 +57393,341 @@ export type Database = {
           },
         ];
       };
+      transfer_passengers: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          is_primary: boolean;
+          org_id: string;
+          person_id: string;
+          transfer_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          is_primary?: boolean;
+          org_id: string;
+          person_id: string;
+          transfer_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          is_primary?: boolean;
+          org_id?: string;
+          person_id?: string;
+          transfer_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "transfer_passengers_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_passengers_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_passengers_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_passengers_transfer_id_fkey";
+            columns: ["transfer_id"];
+            isOneToOne: false;
+            referencedRelation: "transfer_board";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_passengers_transfer_id_fkey";
+            columns: ["transfer_id"];
+            isOneToOne: false;
+            referencedRelation: "transfers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_passengers_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      transfer_vehicles: {
+        Row: {
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          label: string;
+          org_id: string;
+          project_id: string;
+          seats: number;
+          updated_at: string;
+          updated_by: string | null;
+          vehicle_type: Database["app"]["Enums"]["vehicle_type"];
+        };
+        ComputedFields: never;
+        Insert: {
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          label: string;
+          org_id: string;
+          project_id: string;
+          seats: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          vehicle_type: Database["app"]["Enums"]["vehicle_type"];
+        };
+        Update: {
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          label?: string;
+          org_id?: string;
+          project_id?: string;
+          seats?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          vehicle_type?: Database["app"]["Enums"]["vehicle_type"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "transfer_vehicles_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_vehicles_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_vehicles_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_vehicles_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfer_vehicles_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfer_vehicles_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfer_vehicles_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_vehicles_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      transfers: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          driver_person_id: string | null;
+          dropoff_at: string;
+          dropoff_place: string;
+          dropoff_time_zone: string;
+          fulfillment_id: string | null;
+          id: string;
+          meets_travel_segment_id: string | null;
+          notes: string | null;
+          org_id: string;
+          pickup_at: string;
+          pickup_place: string;
+          pickup_time_zone: string;
+          project_id: string;
+          transfer_number: number;
+          updated_at: string;
+          updated_by: string | null;
+          vehicle_id: string | null;
+          transfer_display_key: string | null;
+        };
+        ComputedFields: "transfer_display_key";
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          driver_person_id?: string | null;
+          dropoff_at: string;
+          dropoff_place: string;
+          dropoff_time_zone: string;
+          fulfillment_id?: string | null;
+          id?: string;
+          meets_travel_segment_id?: string | null;
+          notes?: string | null;
+          org_id: string;
+          pickup_at: string;
+          pickup_place: string;
+          pickup_time_zone: string;
+          project_id: string;
+          transfer_number?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          vehicle_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          driver_person_id?: string | null;
+          dropoff_at?: string;
+          dropoff_place?: string;
+          dropoff_time_zone?: string;
+          fulfillment_id?: string | null;
+          id?: string;
+          meets_travel_segment_id?: string | null;
+          notes?: string | null;
+          org_id?: string;
+          pickup_at?: string;
+          pickup_place?: string;
+          pickup_time_zone?: string;
+          project_id?: string;
+          transfer_number?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          vehicle_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "transfers_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_driver_person_id_fkey";
+            columns: ["driver_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_fulfillment_id_fkey";
+            columns: ["fulfillment_id"];
+            isOneToOne: false;
+            referencedRelation: "fulfillments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_meets_travel_segment_id_fkey";
+            columns: ["meets_travel_segment_id"];
+            isOneToOne: false;
+            referencedRelation: "travel_segments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_vehicle_id_fkey";
+            columns: ["vehicle_id"];
+            isOneToOne: false;
+            referencedRelation: "transfer_vehicles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       travel_segments: {
         Row: {
           allocation_id: string | null;
@@ -60589,6 +61431,67 @@ export type Database = {
       };
     };
     Views: {
+      accommodation_block_nights: {
+        Row: {
+          assigned: number | null;
+          block_id: string | null;
+          block_number: number | null;
+          currency_code: string | null;
+          free: number | null;
+          night: string | null;
+          nightly_rate_minor: number | null;
+          org_id: string | null;
+          project_id: string | null;
+          release_on: string | null;
+          rooms_held: number | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_blocks_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       activity_export: {
         Row: {
           actor_person_id: string | null;
@@ -61077,6 +61980,13 @@ export type Database = {
             foreignKeyName: "budget_lines_budget_id_fkey";
             columns: ["budget_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
             referencedRelation: "budget_revised_totals";
             referencedColumns: ["budget_id"];
           },
@@ -61135,6 +62045,59 @@ export type Database = {
             referencedRelation: "cost_centers";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "budgets_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budget_line_lodging: {
+        Row: {
+          assigned_minor: number | null;
+          assigned_room_nights: number | null;
+          block_count: number | null;
+          budget_id: string | null;
+          budget_line_id: string | null;
+          currency_code: string | null;
+          held_minor: number | null;
+          held_room_nights: number | null;
+          is_lodging_withheld: boolean | null;
+          other_currency_block_count: number | null;
+          project_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
           {
             foreignKeyName: "budgets_currency_code_fkey";
             columns: ["currency_code"];
@@ -61317,6 +62280,13 @@ export type Database = {
             foreignKeyName: "change_order_lines_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -61332,6 +62302,13 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_lodging";
             referencedColumns: ["budget_id"];
           },
           {
@@ -63721,6 +64698,28 @@ export type Database = {
           },
         ];
       };
+      project_local_contacts: {
+        Row: {
+          audience: Database["app"]["Enums"]["local_contact_audience"] | null;
+          contact_role: Database["app"]["Enums"]["local_contact_role"] | null;
+          contact_title: string | null;
+          day: string | null;
+          display_name: string | null;
+          email: string | null;
+          id: string | null;
+          member_active: boolean | null;
+          membership_id: string | null;
+          notes: string | null;
+          org_id: string | null;
+          organization_name: string | null;
+          phone: string | null;
+          project_id: string | null;
+          source: string | null;
+          venue_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       project_measurement_summary: {
         Row: {
           aggregation: string | null;
@@ -64572,6 +65571,116 @@ export type Database = {
           },
         ];
       };
+      space_booking_board: {
+        Row: {
+          act_name: string | null;
+          booking_mode: Database["app"]["Enums"]["space_booking_mode"] | null;
+          conflict_group: string | null;
+          ends_at: string | null;
+          engagement_cue_id: string | null;
+          engagement_id: string | null;
+          group_party_total: number | null;
+          group_peak_party: number | null;
+          group_size: number | null;
+          id: string | null;
+          notes: string | null;
+          org_id: string | null;
+          over_capacity: boolean | null;
+          party_size: number | null;
+          project_id: string | null;
+          purpose: Database["app"]["Enums"]["space_booking_purpose"] | null;
+          set_ends_at: string | null;
+          set_label: string | null;
+          set_moved: boolean | null;
+          set_planned_at: string | null;
+          space_capacity: number | null;
+          space_id: string | null;
+          space_name: string | null;
+          starts_at: string | null;
+          venue_id: string | null;
+          venue_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "space_bookings_engagement_cue_id_fkey";
+            columns: ["engagement_cue_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_cues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "space_bookings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_bookings_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sponsor_proof_of_performance: {
         Row: {
           counterparty_id: string | null;
@@ -64733,6 +65842,104 @@ export type Database = {
           },
         ];
       };
+      transfer_board: {
+        Row: {
+          driver_name: string | null;
+          driver_person_id: string | null;
+          dropoff_at: string | null;
+          dropoff_place: string | null;
+          dropoff_time_zone: string | null;
+          fulfillment_id: string | null;
+          id: string | null;
+          meets_flight_after_pickup: boolean | null;
+          meets_flight_arrives_at: string | null;
+          meets_service_identifier: string | null;
+          meets_travel_segment_id: string | null;
+          notes: string | null;
+          org_id: string | null;
+          passenger_count: number | null;
+          pickup_at: string | null;
+          pickup_place: string | null;
+          pickup_time_zone: string | null;
+          primary_passenger_id: string | null;
+          primary_passenger_name: string | null;
+          project_id: string | null;
+          seats: number | null;
+          status: string | null;
+          tight_turnaround: boolean | null;
+          transfer_key: string | null;
+          transfer_number: number | null;
+          vehicle_id: string | null;
+          vehicle_label: string | null;
+          vehicle_type: Database["app"]["Enums"]["vehicle_type"] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "transfers_driver_person_id_fkey";
+            columns: ["driver_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_fulfillment_id_fkey";
+            columns: ["fulfillment_id"];
+            isOneToOne: false;
+            referencedRelation: "fulfillments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_meets_travel_segment_id_fkey";
+            columns: ["meets_travel_segment_id"];
+            isOneToOne: false;
+            referencedRelation: "travel_segments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "transfers_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_vehicle_id_fkey";
+            columns: ["vehicle_id"];
+            isOneToOne: false;
+            referencedRelation: "transfer_vehicles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       trash_items: {
         Row: {
           deleted_at: string | null;
@@ -64744,6 +65951,36 @@ export type Database = {
           subject_table: string | null;
           subject_urn: string | null;
           title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      travel_grid: {
+        Row: {
+          arrives_at: string | null;
+          arrives_at_place: string | null;
+          arrives_time_zone: string | null;
+          confirmation_identifier: string | null;
+          departs_at: string | null;
+          departs_from: string | null;
+          departs_time_zone: string | null;
+          engagement_id: string | null;
+          final_arrival_at: string | null;
+          final_arrival_place: string | null;
+          final_arrival_time_zone: string | null;
+          fulfillment_id: string | null;
+          id: string | null;
+          journey_id: string | null;
+          leg_count: number | null;
+          leg_number: number | null;
+          operator_name: string | null;
+          org_id: string | null;
+          person_id: string | null;
+          phase: string | null;
+          project_id: string | null;
+          service_identifier: string | null;
+          travel_mode: Database["app"]["Enums"]["travel_mode"] | null;
+          traveler_name: string | null;
         };
         ComputedFields: never;
         Relationships: [];
@@ -64889,6 +66126,15 @@ export type Database = {
           record_title: string;
           subject_id: string;
           subject_table: string;
+        }[];
+      };
+      acts_without_rooms: {
+        Args: { p_project_id: string };
+        Returns: {
+          act_name: string;
+          engagement_id: string;
+          engagement_state: Database["app"]["Enums"]["engagement_state"];
+          people_count: number;
         }[];
       };
       add_account_member: {
@@ -68634,6 +69880,7 @@ export type Database = {
       revoke_supplier_diversity_share: { Args: { p_share_id: string }; Returns: undefined };
       revoke_web_push: { Args: { p_endpoint: string }; Returns: number };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
+      rooming_list: { Args: { p_project_id: string }; Returns: Json[] };
       roster_project_fact_status: {
         Args: { p_engagement_id: string };
         Returns: {
@@ -69413,6 +70660,26 @@ export type Database = {
         Args: { p_requirement_id: string; p_title?: string };
         Returns: string;
       };
+      transfer_display_key: {
+        Args: {
+          p_row: Omit<
+            Database["app"]["Tables"]["transfers"]["Row"],
+            Database["app"]["Tables"]["transfers"]["ComputedFields"]
+          >;
+        };
+        Returns: string;
+      };
+      transfer_person_options: {
+        Args: { p_project_id: string };
+        Returns: {
+          engagement_id: string;
+          full_name: string;
+          membership_id: string;
+          party_name: string;
+          person_id: string;
+          roster_entry_id: string;
+        }[];
+      };
       transition_accounting_period: {
         Args: {
           p_accounting_period_id: string;
@@ -70186,6 +71453,16 @@ export type Database = {
         | "Misleading Information"
         | "Missing Pay Range"
         | "Safety";
+      local_contact_audience: "Internal" | "Shared";
+      local_contact_role:
+        | "Promoter"
+        | "Venue"
+        | "Production"
+        | "Security"
+        | "Transport"
+        | "Hospitality"
+        | "Medical"
+        | "Other";
       lost_item_category:
         "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
       lost_item_state: "Logged" | "Claimed" | "Returned" | "Disposed";
@@ -70363,6 +71640,9 @@ export type Database = {
       shortcut_shell: "Atlas" | "Gateway";
       sms_consent_action: "Opt In" | "Opt Out" | "Help";
       sort_direction: "Ascending" | "Descending";
+      space_booking_mode: "Exclusive" | "Shared";
+      space_booking_purpose:
+        "Green Room" | "Dressing Room" | "Production Office" | "Hospitality Suite" | "Other";
       spend_document_type:
         | "Purchase Order"
         | "Change Order"
@@ -70422,6 +71702,7 @@ export type Database = {
       training_lesson_kind: "Reading" | "Video" | "Quiz";
       travel_mode: "Flight" | "Ground";
       undo_outcome: "Reverted" | "Kept";
+      vehicle_type: "Sedan" | "SUV" | "Van" | "Sprinter" | "Minibus" | "Coach" | "Other";
       vendor_state: "Prospect" | "Onboarded" | "Active" | "Blocked" | "Canceled";
       verification_method: "Automatic" | "Reviewer";
       verification_outcome: "Passed" | "Failed";
@@ -76835,6 +78116,17 @@ export const Constants = {
         "Missing Pay Range",
         "Safety",
       ],
+      local_contact_audience: ["Internal", "Shared"],
+      local_contact_role: [
+        "Promoter",
+        "Venue",
+        "Production",
+        "Security",
+        "Transport",
+        "Hospitality",
+        "Medical",
+        "Other",
+      ],
       lost_item_category: [
         "Bag",
         "Clothing",
@@ -77042,6 +78334,14 @@ export const Constants = {
       shortcut_shell: ["Atlas", "Gateway"],
       sms_consent_action: ["Opt In", "Opt Out", "Help"],
       sort_direction: ["Ascending", "Descending"],
+      space_booking_mode: ["Exclusive", "Shared"],
+      space_booking_purpose: [
+        "Green Room",
+        "Dressing Room",
+        "Production Office",
+        "Hospitality Suite",
+        "Other",
+      ],
       spend_document_type: [
         "Purchase Order",
         "Change Order",
@@ -77109,6 +78409,7 @@ export const Constants = {
       training_lesson_kind: ["Reading", "Video", "Quiz"],
       travel_mode: ["Flight", "Ground"],
       undo_outcome: ["Reverted", "Kept"],
+      vehicle_type: ["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"],
       vendor_state: ["Prospect", "Onboarded", "Active", "Blocked", "Canceled"],
       verification_method: ["Automatic", "Reviewer"],
       verification_outcome: ["Passed", "Failed"],
