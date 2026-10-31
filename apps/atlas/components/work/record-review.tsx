@@ -74,7 +74,15 @@ export function RecordReview({
       {latest ? (
         <div className="flex flex-col gap-4 text-text-13" role="status">
           <span className="flex flex-wrap items-center gap-6">
-            <Tag tone={latest.decision === "Approved" ? "success" : latest.decision === "Rejected" ? "warning" : "accent"}>
+            <Tag
+              tone={
+                latest.decision === "Approved"
+                  ? "success"
+                  : latest.decision === "Rejected"
+                    ? "warning"
+                    : "accent"
+              }
+            >
               {decisionLabel(latest)}
             </Tag>
             <span>
@@ -86,7 +94,9 @@ export function RecordReview({
             </span>
           </span>
           {latest.decision && latest.approverName ? (
-            <span className="text-text-secondary">{t("review.decidedBy", { name: latest.approverName })}</span>
+            <span className="text-text-secondary">
+              {t("review.decidedBy", { name: latest.approverName })}
+            </span>
           ) : null}
         </div>
       ) : (
@@ -111,7 +121,11 @@ export function RecordReview({
               loading={decide.pending}
               onClick={() =>
                 decide.run(() =>
-                  decideReviewAction(org, { approvalRecordId: latest.approvalRecordId, decision: "Approved", note: answer || null }),
+                  decideReviewAction(org, {
+                    approvalRecordId: latest.approvalRecordId,
+                    decision: "Approved",
+                    note: answer || null,
+                  }),
                 )
               }
             >
@@ -123,7 +137,11 @@ export function RecordReview({
               loading={decide.pending}
               onClick={() =>
                 decide.run(() =>
-                  decideReviewAction(org, { approvalRecordId: latest.approvalRecordId, decision: "Rejected", note: answer || null }),
+                  decideReviewAction(org, {
+                    approvalRecordId: latest.approvalRecordId,
+                    decision: "Rejected",
+                    note: answer || null,
+                  }),
                 )
               }
             >
@@ -142,7 +160,9 @@ export function RecordReview({
             value={reviewer}
             options={[
               { value: "", label: t("review.anyApprover") },
-              ...people.filter((p) => p.personId !== me).map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
+              ...people
+                .filter((p) => p.personId !== me)
+                .map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
             ]}
             onChange={(e) => setReviewer(e.target.value)}
           />
@@ -161,7 +181,12 @@ export function RecordReview({
               loading={request.pending}
               onClick={() =>
                 request.run(
-                  () => requestReviewAction(org, { recordId, reviewerId: reviewer || null, note: note || null }),
+                  () =>
+                    requestReviewAction(org, {
+                      recordId,
+                      reviewerId: reviewer || null,
+                      note: note || null,
+                    }),
                   () => setNote(""),
                 )
               }

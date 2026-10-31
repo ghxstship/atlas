@@ -7,7 +7,10 @@ export type IntakeStep = "start" | "bands" | "basics" | "details" | "copy" | "re
 export type StartFrom = "type" | "template" | "project" | "blank";
 
 /** Start, Scale and audience (with an event type), Basics, Details, Copy (from a past project) and Review. */
-export function intakeSteps(choice: { readonly hasType: boolean; readonly startFrom: StartFrom }): IntakeStep[] {
+export function intakeSteps(choice: {
+  readonly hasType: boolean;
+  readonly startFrom: StartFrom;
+}): IntakeStep[] {
   return [
     "start",
     ...(choice.hasType ? (["bands"] as const) : []),

@@ -33,7 +33,17 @@ const P = "projects.eventTypes";
 const D = "projects.documentTypes";
 const ROW = "flex flex-col gap-8 rounded-card border border-border-subtle p-12";
 
-function Section({ id, title, description, children }: { id: string; title: string; description: string; children: ReactNode }) {
+function Section({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-12">
       <header className="flex flex-col gap-4">
@@ -59,7 +69,14 @@ function Edit({ summary, children }: { summary: string; children: ReactNode }) {
 function TypeFields({ t, idPrefix, type }: { t: Translate; idPrefix: string; type?: EventType }) {
   return (
     <div className="flex flex-col gap-12">
-      <Input id={`${idPrefix}-name`} name="name" label={t(`${P}.name`)} defaultValue={type?.name ?? ""} maxLength={100} required />
+      <Input
+        id={`${idPrefix}-name`}
+        name="name"
+        label={t(`${P}.name`)}
+        defaultValue={type?.name ?? ""}
+        maxLength={100}
+        required
+      />
       <Input
         id={`${idPrefix}-description`}
         name="description"
@@ -107,11 +124,15 @@ async function EventTypesPanel({ ctx }: SettingsPanelProps) {
   ];
   const audienceOptions = [
     { value: "", label: t("projects.intake.anyAudience") },
-    ...EVENT_AUDIENCES.map((a) => ({ value: a, label: t(`projects.intake.audiences.${a.replaceAll(" ", "")}`) })),
+    ...EVENT_AUDIENCES.map((a) => ({
+      value: a,
+      label: t(`projects.intake.audiences.${a.replaceAll(" ", "")}`),
+    })),
   ];
   const band = (value: string | null, options: readonly { value: string; label: string }[]) =>
     options.find((o) => o.value === (value ?? ""))?.label ?? "";
-  const gateLabel = (gate: number) => gateOptions.find((o) => o.value === String(gate))?.label ?? String(gate);
+  const gateLabel = (gate: number) =>
+    gateOptions.find((o) => o.value === String(gate))?.label ?? String(gate);
   const fieldList = fields.ok ? fields.data : [];
   const docTypes: readonly DocumentType[] = documentTypes.ok ? documentTypes.data : [];
 
@@ -128,7 +149,9 @@ async function EventTypesPanel({ ctx }: SettingsPanelProps) {
               <div className="flex flex-wrap items-baseline justify-between gap-8">
                 <span className="text-text-14 font-semibold">{type.name}</span>
                 {type.archivedAt ? (
-                  <span className="text-text-12 font-medium text-text-secondary">{t(`${P}.archived`)}</span>
+                  <span className="text-text-12 font-medium text-text-secondary">
+                    {t(`${P}.archived`)}
+                  </span>
                 ) : null}
               </div>
               {type.description ? <p className="m-0 text-text-13">{type.description}</p> : null}
@@ -176,13 +199,21 @@ async function EventTypesPanel({ ctx }: SettingsPanelProps) {
                     <li key={f.id} className="flex flex-wrap items-center gap-8">
                       <span>
                         {f.requiredForType
-                          ? t(`${P}.fieldRequired`, { label: f.label ?? "", neededBy: gateLabel(f.requiredByGate) })
+                          ? t(`${P}.fieldRequired`, {
+                              label: f.label ?? "",
+                              neededBy: gateLabel(f.requiredByGate),
+                            })
                           : t(`${P}.fieldShown`, { label: f.label ?? "" })}
                       </span>
                       {canEdit ? (
                         <ActionForm
                           action={eventTypeFieldAction}
-                          hidden={{ org, intent: "remove", eventTypeId: type.id, customFieldDefinitionId: f.customFieldDefinitionId }}
+                          hidden={{
+                            org,
+                            intent: "remove",
+                            eventTypeId: type.id,
+                            customFieldDefinitionId: f.customFieldDefinitionId,
+                          }}
                           label={t(`${P}.removeField`, { label: f.label ?? "" })}
                           submitLabel={t(`${P}.remove`)}
                           submitVariant="ghost"
@@ -202,15 +233,25 @@ async function EventTypesPanel({ ctx }: SettingsPanelProps) {
                   {type.requirements.map((r) => (
                     <li key={r.id} className="flex flex-wrap items-center gap-8">
                       <span>
-                        {t(r.requirement === "Required" ? `${P}.requirementRequired` : `${P}.requirementRecommended`, {
-                          name: r.documentTypeName ?? "",
-                          neededBy: gateLabel(r.requiredByGate),
-                        })}
+                        {t(
+                          r.requirement === "Required"
+                            ? `${P}.requirementRequired`
+                            : `${P}.requirementRecommended`,
+                          {
+                            name: r.documentTypeName ?? "",
+                            neededBy: gateLabel(r.requiredByGate),
+                          },
+                        )}
                       </span>
                       {canEdit ? (
                         <ActionForm
                           action={eventTypeRequirementAction}
-                          hidden={{ org, intent: "remove", eventTypeId: type.id, documentTypeId: r.documentTypeId }}
+                          hidden={{
+                            org,
+                            intent: "remove",
+                            eventTypeId: type.id,
+                            documentTypeId: r.documentTypeId,
+                          }}
                           label={t(`${P}.removeRequirement`, { name: r.documentTypeName ?? "" })}
                           submitLabel={t(`${P}.remove`)}
                           submitVariant="ghost"
@@ -244,8 +285,20 @@ async function EventTypesPanel({ ctx }: SettingsPanelProps) {
                       success={t(`${P}.saved`)}
                     >
                       <div className="flex flex-wrap items-end gap-12">
-                        <Select id={`rule-${type.id}-scale`} name="scale" label={t("projects.intake.scale")} value="" options={scaleOptions} />
-                        <Select id={`rule-${type.id}-audience`} name="audience" label={t("projects.intake.audience")} value="" options={audienceOptions} />
+                        <Select
+                          id={`rule-${type.id}-scale`}
+                          name="scale"
+                          label={t("projects.intake.scale")}
+                          value=""
+                          options={scaleOptions}
+                        />
+                        <Select
+                          id={`rule-${type.id}-audience`}
+                          name="audience"
+                          label={t("projects.intake.audience")}
+                          value=""
+                          options={audienceOptions}
+                        />
                         <Select
                           id={`rule-${type.id}-template`}
                           name="templateId"
@@ -273,11 +326,19 @@ async function EventTypesPanel({ ctx }: SettingsPanelProps) {
                             options={fieldList.map((f) => ({ value: f.id, label: f.label }))}
                           />
                           <Checkbox name="requiredForType" label={t(`${P}.requiredForType`)} />
-                          <Select id={`field-${type.id}-gate`} name="requiredByGate" label={t(`${P}.requiredByGate`)} value="1" options={gateOptions} />
+                          <Select
+                            id={`field-${type.id}-gate`}
+                            name="requiredByGate"
+                            label={t(`${P}.requiredByGate`)}
+                            value="1"
+                            options={gateOptions}
+                          />
                         </div>
                       </ActionForm>
                     ) : (
-                      <p className="m-0 text-text-12 text-text-secondary">{t(`${P}.noProjectFields`)}</p>
+                      <p className="m-0 text-text-12 text-text-secondary">
+                        {t(`${P}.noProjectFields`)}
+                      </p>
                     )}
                     {docTypes.length > 0 ? (
                       <ActionForm
@@ -306,18 +367,30 @@ async function EventTypesPanel({ ctx }: SettingsPanelProps) {
                               { value: "Recommended", label: t("projects.setup.recommended") },
                             ]}
                           />
-                          <Select id={`requirement-${type.id}-gate`} name="requiredByGate" label={t(`${P}.requiredByGate`)} value="1" options={gateOptions} />
+                          <Select
+                            id={`requirement-${type.id}-gate`}
+                            name="requiredByGate"
+                            label={t(`${P}.requiredByGate`)}
+                            value="1"
+                            options={gateOptions}
+                          />
                         </div>
                       </ActionForm>
                     ) : (
-                      <p className="m-0 text-text-12 text-text-secondary">{t(`${P}.noDocumentTypes`)}</p>
+                      <p className="m-0 text-text-12 text-text-secondary">
+                        {t(`${P}.noDocumentTypes`)}
+                      </p>
                     )}
                   </Edit>
                   <ActionForm
                     action={eventTypeAction}
                     hidden={{ org, intent: type.archivedAt ? "restore" : "archive", id: type.id }}
-                    label={t(type.archivedAt ? `${P}.restore` : `${P}.archive`, { name: type.name })}
-                    submitLabel={t(type.archivedAt ? `${P}.restore` : `${P}.archive`, { name: type.name })}
+                    label={t(type.archivedAt ? `${P}.restore` : `${P}.archive`, {
+                      name: type.name,
+                    })}
+                    submitLabel={t(type.archivedAt ? `${P}.restore` : `${P}.archive`, {
+                      name: type.name,
+                    })}
                     submitVariant="ghost"
                     inline
                   />
@@ -389,7 +462,14 @@ async function DocumentTypesPanel({ ctx }: SettingsPanelProps) {
                       submitVariant="secondary"
                       success={t(`${P}.saved`)}
                     >
-                      <Input id={`doctype-${d.id}-name`} name="name" label={t(`${D}.name`)} defaultValue={d.name} maxLength={100} required />
+                      <Input
+                        id={`doctype-${d.id}-name`}
+                        name="name"
+                        label={t(`${D}.name`)}
+                        defaultValue={d.name}
+                        maxLength={100}
+                        required
+                      />
                       <Input
                         id={`doctype-${d.id}-description`}
                         name="description"
@@ -434,8 +514,20 @@ async function DocumentTypesPanel({ ctx }: SettingsPanelProps) {
             success={t(`${P}.added`)}
             submitVariant="secondary"
           >
-            <Input id="doctype-new-name" name="name" label={t(`${D}.name`)} maxLength={100} required />
-            <Input id="doctype-new-description" name="description" label={t(`${D}.description`)} maxLength={2000} width="100%" />
+            <Input
+              id="doctype-new-name"
+              name="name"
+              label={t(`${D}.name`)}
+              maxLength={100}
+              required
+            />
+            <Input
+              id="doctype-new-description"
+              name="description"
+              label={t(`${D}.description`)}
+              maxLength={2000}
+              width="100%"
+            />
           </ActionForm>
         </div>
       ) : (

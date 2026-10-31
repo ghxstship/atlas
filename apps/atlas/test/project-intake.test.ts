@@ -22,8 +22,19 @@ describe("intake steps", () => {
   });
 
   it("asks for bands only with an event type, and Copy only from a past project", () => {
-    expect(intakeSteps({ hasType: false, startFrom: "template" })).toEqual(["start", "basics", "details", "review"]);
-    expect(intakeSteps({ hasType: true, startFrom: "type" })).toEqual(["start", "bands", "basics", "details", "review"]);
+    expect(intakeSteps({ hasType: false, startFrom: "template" })).toEqual([
+      "start",
+      "basics",
+      "details",
+      "review",
+    ]);
+    expect(intakeSteps({ hasType: true, startFrom: "type" })).toEqual([
+      "start",
+      "bands",
+      "basics",
+      "details",
+      "review",
+    ]);
   });
 
   it("opens the step that holds a refused field", () => {

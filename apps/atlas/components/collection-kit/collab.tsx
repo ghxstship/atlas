@@ -52,7 +52,10 @@ export async function CollabPanels({
   // B14 (3035): a submittal's files are reviewed version by version, by someone other than the uploader.
   const reviewable = table === "app.submittals" && attachments.data.length > 0;
   const reviews = reviewable
-    ? await listVersionReviews(db, attachments.data.flatMap((a) => a.versions.map((v) => v.id)))
+    ? await listVersionReviews(
+        db,
+        attachments.data.flatMap((a) => a.versions.map((v) => v.id)),
+      )
     : null;
   return (
     <>

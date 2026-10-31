@@ -93,13 +93,11 @@ test("an event type picks the intake's details and holds a gate until its docume
   await expect(drawer.getByLabel("Type")).toHaveValue(/.+/);
   await drawer.getByLabel("Title").fill("Main site plan");
   await drawer.getByLabel("File location").fill("https://docs.example.com/site-plan.pdf");
-  await drawer
-    .getByLabel("File to fingerprint")
-    .setInputFiles({
-      name: "site-plan.pdf",
-      mimeType: "application/pdf",
-      buffer: Buffer.from("%PDF-1.4 site plan"),
-    });
+  await drawer.getByLabel("File to fingerprint").setInputFiles({
+    name: "site-plan.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.4 site plan"),
+  });
   await drawer.getByRole("button", { name: "Add document" }).click();
   await page.goto(`/${slug}/p/MFE/gates`);
   await page.getByRole("button", { name: "Pass gate 1" }).click();

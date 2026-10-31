@@ -53,7 +53,11 @@ export async function loadIntakeOptionsAction(org: string): Promise<IntakeOption
   return {
     eventTypes: types.ok ? types.data : [],
     templates: templates.ok
-      ? templates.data.map((t) => ({ id: t.id, name: t.name, published: t.currentVersionId !== null }))
+      ? templates.data.map((t) => ({
+          id: t.id,
+          name: t.name,
+          published: t.currentVersionId !== null,
+        }))
       : [],
     pastProjects: projects.ok ? projects.data : [],
   };
@@ -61,7 +65,11 @@ export async function loadIntakeOptionsAction(org: string): Promise<IntakeOption
 
 export type CopyPreviewState =
   | { readonly ok: true; readonly items: readonly ProjectCopyItem[] }
-  | { readonly ok: false; readonly error: string; readonly values?: Readonly<Record<string, string>> };
+  | {
+      readonly ok: false;
+      readonly error: string;
+      readonly values?: Readonly<Record<string, string>>;
+    };
 
 function copyError(error: DataError): CopyPreviewState {
   if (error.kind === "refusal") return { ok: false, error: error.rule };
@@ -89,12 +97,17 @@ export async function previewIntakeCopyAction(
   const ctx = await getOrgContext(org);
   if (!ctx) return { ok: false, error: "not-found" };
   const parsed = request.safeParse(input);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.path[0] === "parts" ? "copy_nothing" : "invalid" };
+  if (!parsed.success)
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.path[0] === "parts" ? "copy_nothing" : "invalid",
+    };
   if (parsed.data.offsetDays === null) return { ok: false, error: "copy_offset_unknown" };
   const result = await previewProjectCopy(ctx.viewer.db, {
     ...parsed.data,
     targetProjectId: null,
-    targetVenueId: input.venueId && z.uuid().safeParse(input.venueId).success ? input.venueId : null,
+    targetVenueId:
+      input.venueId && z.uuid().safeParse(input.venueId).success ? input.venueId : null,
     targetTimeZone: input.timeZone,
   });
   return result.ok ? { ok: true, items: result.data } : copyError(result.error);
@@ -104,13 +117,21 @@ export async function previewIntakeCopyAction(
 export async function copyIntoProjectAction(
   org: string,
   projectKey: string,
-  input: { readonly sourceProjectId: string; readonly parts: readonly string[]; readonly offsetDays: number | null },
+  input: {
+    readonly sourceProjectId: string;
+    readonly parts: readonly string[];
+    readonly offsetDays: number | null;
+  },
   commit: boolean,
 ): Promise<CopyPreviewState> {
   const ctx = await getProjectContextFor({ org, projectKey });
   if (!ctx) return { ok: false, error: "not-found" };
   const parsed = request.safeParse(input);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.path[0] === "parts" ? "copy_nothing" : "invalid" };
+  if (!parsed.success)
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.path[0] === "parts" ? "copy_nothing" : "invalid",
+    };
   const db = ctx.org.viewer.db;
   const body = { ...parsed.data, targetProjectId: ctx.project.id };
   const result = commit ? await commitProjectCopy(db, body) : await previewProjectCopy(db, body);
@@ -120,7 +141,10 @@ export async function copyIntoProjectAction(
 }
 
 /** The projects setup can be copied from into this one (archived ones included), for the Settings dialog. */
-export async function listCopySourcesAction(org: string, projectKey: string): Promise<readonly CopySourceProject[]> {
+export async function listCopySourcesAction(
+  org: string,
+  projectKey: string,
+): Promise<readonly CopySourceProject[]> {
   const ctx = await getProjectContextFor({ org, projectKey });
   if (!ctx) return [];
   const result = await listCopySourceProjects(ctx.org.viewer.db, ctx.org.org.id, ctx.project.id);

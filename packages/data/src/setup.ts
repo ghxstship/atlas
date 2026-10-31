@@ -8,7 +8,13 @@
 /** Scale bands in order: Intimate up to 500 people, then 2,500, 10,000, 50,000 and over (each includes its top). */
 export const EVENT_SCALES = ["Intimate", "Small", "Medium", "Large", "Major"] as const;
 /** Audience bands in order. */
-export const EVENT_AUDIENCES = ["Public Ticketed", "Public Free", "Invite Only", "Trade", "Internal"] as const;
+export const EVENT_AUDIENCES = [
+  "Public Ticketed",
+  "Public Free",
+  "Invite Only",
+  "Trade",
+  "Internal",
+] as const;
 
 export type EventScale = (typeof EVENT_SCALES)[number];
 export type EventAudience = (typeof EVENT_AUDIENCES)[number];

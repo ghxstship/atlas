@@ -512,7 +512,10 @@ describe("Inbox item copy", () => {
       expect(requested.summary).toContain("Rig the follow spots");
       expect(requested.detail).toContain("Carol Reyes");
       const decided = describeInboxItem(
-        { ...item("approval.decided", { ...review, decision: "rejected" }), subjectTable: "app.records" },
+        {
+          ...item("approval.decided", { ...review, decision: "rejected" }),
+          subjectTable: "app.records",
+        },
         copyFor(locale),
         { org: "demo", orgName: "Demo Productions", actorName: null },
       );

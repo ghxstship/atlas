@@ -47,18 +47,27 @@ export default async function OverviewPage({
   const t = await getTranslations("projects");
   const a = await getTranslations("activity.feed");
   const format = await getFormatter();
-  const [gates, moves, collab, activity, stateHistory, productionHistory, setup, windows, windowWarnings] =
-    await Promise.all([
-      loadGates(ctx),
-      loadTransitions(ctx),
-      loadCollaboration(ctx),
-      listActivity(db, { orgId: ctx.org.org.id, projectId: project.id, limit: 8 }),
-      listProjectStateHistory(db, project.id),
-      listProductionStateHistory(db, project.id),
-      listSetupProgress(db, project.id),
-      getSiteWindows(db, project.id),
-      listSiteWindowWarnings(db, project.id),
-    ]);
+  const [
+    gates,
+    moves,
+    collab,
+    activity,
+    stateHistory,
+    productionHistory,
+    setup,
+    windows,
+    windowWarnings,
+  ] = await Promise.all([
+    loadGates(ctx),
+    loadTransitions(ctx),
+    loadCollaboration(ctx),
+    listActivity(db, { orgId: ctx.org.org.id, projectId: project.id, limit: 8 }),
+    listProjectStateHistory(db, project.id),
+    listProductionStateHistory(db, project.id),
+    listSetupProgress(db, project.id),
+    getSiteWindows(db, project.id),
+    listSiteWindowWarnings(db, project.id),
+  ]);
   const canSettings = ctx.capabilities.has("projects.settings.write");
   const canWrite = ctx.capabilities.has("projects.project.write");
   const gate = gates.currentGate;
@@ -76,7 +85,9 @@ export default async function OverviewPage({
   const feed = optional(activity, "project activity");
   const activityHref = nodeHref("project.activity", routeParams);
   // B14 (3033): bump-in and bump-out come from the Load In and Load Out days; a window ends at 00:00 after its last day.
-  const dayRange = (range: { readonly startsAt: string | null; readonly endsAt: string | null } | null) => {
+  const dayRange = (
+    range: { readonly startsAt: string | null; readonly endsAt: string | null } | null,
+  ) => {
     if (!range?.startsAt || !range.endsAt) return null;
     const last = new Date(Date.parse(range.endsAt) - 1);
     return format.dateTimeRange(new Date(range.startsAt), last, {
@@ -89,11 +100,15 @@ export default async function OverviewPage({
   const bumpOut = windows.ok ? dayRange(windows.data.bumpOut) : null;
   const showDays =
     project.startsOn && project.endsOn
-      ? format.dateTimeRange(new Date(`${project.startsOn}T12:00:00Z`), new Date(`${project.endsOn}T12:00:00Z`), {
-          day: "numeric",
-          month: "short",
-          timeZone: "UTC",
-        })
+      ? format.dateTimeRange(
+          new Date(`${project.startsOn}T12:00:00Z`),
+          new Date(`${project.endsOn}T12:00:00Z`),
+          {
+            day: "numeric",
+            month: "short",
+            timeZone: "UTC",
+          },
+        )
       : null;
   const siteLine =
     bumpIn || bumpOut
@@ -192,7 +207,9 @@ export default async function OverviewPage({
             {windowWarnings.ok && windowWarnings.data.length > 0 ? (
               <ul className="m-0 flex list-disc flex-col gap-4 ps-20 text-text-12 text-warning-text">
                 {windowWarnings.data.map((w) => (
-                  <li key={`${w.warning}:${w.dayOn ?? ""}`}>{t(`windows.warnings.${w.warning}`)}</li>
+                  <li key={`${w.warning}:${w.dayOn ?? ""}`}>
+                    {t(`windows.warnings.${w.warning}`)}
+                  </li>
                 ))}
               </ul>
             ) : null}

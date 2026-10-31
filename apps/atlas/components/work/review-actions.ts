@@ -24,7 +24,11 @@ const note = z.string().trim().max(1000).nullable();
 
 export async function requestReviewAction(
   org: string,
-  input: { readonly recordId: string; readonly reviewerId: string | null; readonly note: string | null },
+  input: {
+    readonly recordId: string;
+    readonly reviewerId: string | null;
+    readonly note: string | null;
+  },
 ): Promise<ActionResult> {
   const ctx = await context(org);
   const parsed = z
@@ -39,7 +43,11 @@ export async function requestReviewAction(
 
 export async function decideReviewAction(
   org: string,
-  input: { readonly approvalRecordId: string; readonly decision: ReviewDecision; readonly note: string | null },
+  input: {
+    readonly approvalRecordId: string;
+    readonly decision: ReviewDecision;
+    readonly note: string | null;
+  },
 ): Promise<ActionResult> {
   const ctx = await context(org);
   const parsed = z
@@ -54,7 +62,11 @@ export async function decideReviewAction(
 
 export async function reviewFileVersionAction(
   org: string,
-  input: { readonly versionId: string; readonly decision: FileReviewDecision; readonly note: string | null },
+  input: {
+    readonly versionId: string;
+    readonly decision: FileReviewDecision;
+    readonly note: string | null;
+  },
 ): Promise<ActionResult> {
   const ctx = await context(org);
   const parsed = z

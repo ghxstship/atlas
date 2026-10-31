@@ -119,7 +119,11 @@ export async function DockSection({
     const out = new Set<string>();
     const first = isoDateIn(range.startsAt, timeZone);
     const last = isoDateIn(new Date(Date.parse(range.endsAt) - 1).toISOString(), timeZone);
-    for (let d = Date.parse(`${first}T00:00:00Z`); d <= Date.parse(`${last}T00:00:00Z`); d += DAY_MS) {
+    for (
+      let d = Date.parse(`${first}T00:00:00Z`);
+      d <= Date.parse(`${last}T00:00:00Z`);
+      d += DAY_MS
+    ) {
       out.add(new Date(d).toISOString().slice(0, 10));
     }
     return out;

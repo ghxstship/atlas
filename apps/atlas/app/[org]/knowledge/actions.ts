@@ -138,7 +138,11 @@ export async function setDocumentTypeAction(_: ActionState, form: FormData): Pro
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
-  return finish(await setDocumentType(ctx.viewer.db, id, uuid(form, "documentTypeId")), ctx, MODULE);
+  return finish(
+    await setDocumentType(ctx.viewer.db, id, uuid(form, "documentTypeId")),
+    ctx,
+    MODULE,
+  );
 }
 
 export async function deleteDocumentAction(_: ActionState, form: FormData): Promise<ActionState> {

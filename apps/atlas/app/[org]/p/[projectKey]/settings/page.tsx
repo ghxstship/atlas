@@ -41,7 +41,10 @@ export default async function SettingsPage({
   // An archived type stays listed only for the project that names it (B14, 3030).
   const eventTypes = (types.ok ? types.data : [])
     .filter((e) => e.archivedAt === null || e.id === ctx.project.eventTypeId)
-    .map((e) => ({ value: e.id, label: e.archivedAt ? t("eventTypes.archivedName", { name: e.name }) : e.name }));
+    .map((e) => ({
+      value: e.id,
+      label: e.archivedAt ? t("eventTypes.archivedName", { name: e.name }) : e.name,
+    }));
   const current = must(members, "project members");
   const onProject = new Set(current.map((m) => m.membershipId));
   const me = ctx.org.viewer.person?.id;

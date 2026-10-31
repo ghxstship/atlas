@@ -256,11 +256,18 @@ const intakeFields = z
     ),
   })
   .refine((v) => v.templateChoice !== "template" || v.templateId !== null, { path: ["templateId"] })
-  .refine((v) => (v.loadInFrom === null) === (v.loadInTo === null) && (v.loadInTo ?? "") >= (v.loadInFrom ?? ""), {
-    path: ["loadInTo"],
-  })
   .refine(
-    (v) => (v.loadOutFrom === null) === (v.loadOutTo === null) && (v.loadOutTo ?? "") >= (v.loadOutFrom ?? ""),
+    (v) =>
+      (v.loadInFrom === null) === (v.loadInTo === null) &&
+      (v.loadInTo ?? "") >= (v.loadInFrom ?? ""),
+    {
+      path: ["loadInTo"],
+    },
+  )
+  .refine(
+    (v) =>
+      (v.loadOutFrom === null) === (v.loadOutTo === null) &&
+      (v.loadOutTo ?? "") >= (v.loadOutFrom ?? ""),
     { path: ["loadOutTo"] },
   )
   .refine((v) => v.copyFromProjectId === null || v.copyParts.length > 0, { path: ["copyParts"] });
@@ -273,7 +280,10 @@ const INTAKE_FIELD_ERRORS: Record<string, string> = {
   copyOffsetDays: "intakeCopyOffset",
 };
 
-async function createProjectFromIntakeActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
+async function createProjectFromIntakeActionImpl(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await getOrgContext(field(form, "org"));
   if (!ctx) notFound();
   const parsed = parseProject(form);
@@ -307,7 +317,9 @@ async function createProjectFromIntakeActionImpl(_: ActionState, form: FormData)
   if (intake.data.eventTypeId) {
     const type = await getEventType(ctx.viewer.db, intake.data.eventTypeId);
     if (!type.ok) return errorState(type.error);
-    requiredKeys = type.data.fields.filter((f) => f.requiredForType && f.fieldKey).map((f) => f.fieldKey as string);
+    requiredKeys = type.data.fields
+      .filter((f) => f.requiredForType && f.fieldKey)
+      .map((f) => f.fieldKey as string);
   }
   const custom = await customFieldsOf(ctx, "app.projects", form, { requiredKeys });
   if (custom.fieldErrors) return { error: "invalid", fieldErrors: custom.fieldErrors };
