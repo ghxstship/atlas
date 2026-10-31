@@ -46,6 +46,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "import.finished": ["written", "refused", "skipped"],
   // Marketplace matches and expiry reminders (A89, migrations 1462 and 1463).
   "opportunity.matched": ["count", "searchName"],
+  // An offer that waits on the applicant (A127, 2200).
+  "offer.sent": ["orgName"],
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],

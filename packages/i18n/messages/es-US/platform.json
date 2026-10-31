@@ -678,6 +678,9 @@
       "opportunity": {
         "matched": "Nueva oportunidad coincidente"
       },
+      "offer": {
+        "sent": "Oferta nueva"
+      },
       "onboarding": {
         "item_expiring": "Elemento de incorporación por vencer"
       },

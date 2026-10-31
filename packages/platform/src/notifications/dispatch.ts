@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   EmailSendError,
+  type EmailAction,
   RecipientRefusedError,
   isTemplateCode,
   sendEmail,
@@ -23,6 +24,8 @@ export interface ClaimedEmail {
   readonly messageArgs: Readonly<Record<string, unknown>>;
   readonly subjectTable: string | null;
   readonly subjectId: string | null;
+  /** The notification the delivery carries (A127: its one-tap links act on it). */
+  readonly notificationId?: string;
 }
 
 export interface Recipient {
@@ -44,6 +47,8 @@ export interface NotificationStore {
   linkFor(claim: ClaimedEmail): Promise<string>;
   /** Signed reply address for reply by email, or null when the email takes no replies. */
   replyAddressFor(claim: ClaimedEmail): Promise<string | null>;
+  /** One-tap action links minted for the delivery (A127, ADR 0106); without it an email has no action buttons. */
+  actionLinksFor?(claim: ClaimedEmail): Promise<readonly EmailAction[]>;
   record(
     deliveryId: string,
     outcome: DeliveryOutcome,
@@ -84,15 +89,18 @@ async function propsFor(
   if (!isTemplateCode(claim.emailTemplateCode))
     throw new Error(`Unknown email template ${claim.emailTemplateCode}`);
   switch (claim.emailTemplateCode) {
-    case "notification":
+    case "notification": {
+      const actions = (await store.actionLinksFor?.(claim)) ?? [];
       return {
         code: "notification",
         props: {
           kind: claim.kind,
           args: messageArgs(claim.messageArgs),
           url: await store.linkFor(claim),
+          ...(actions.length === 0 ? {} : { actions }),
         },
       };
+    }
     case "export_ready":
       return { code: "export_ready", props: exportReady.parse(claim.messageArgs) };
     case "import_finished":
