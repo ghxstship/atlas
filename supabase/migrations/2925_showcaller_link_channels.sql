@@ -11,9 +11,9 @@
 --     Without the registry the policy is created directly when Realtime's table exists, as 2782 does. There is no send
 --     rule: only the database sends.
 --   * Pings go through P1's private.live_link_ping, so they never fail a write: without Realtime the portal catches up
---     on its pull. Running orders, cues, department calls, segment colours and cue custom values each get three
+--     on its pull. Running orders, cues, department calls, segment colors and cue custom values each get three
 --     statement triggers (insert, update and delete, each with its own transition table). Each returns at once when no
---     showcaller link is live.
+--     showcaller link is live (unrevoked and unexpired), a probe of a partial index on the expiry.
 --   * A revoked or regenerated link pings its own channel, so its open portal rereads and shows that it is gone.
 
 create or replace function api_public.showcaller_channel_open(p_topic text)
@@ -58,6 +58,9 @@ $do$;
 
 -- Pings ---------------------------------------------------------------------------------------------------------------------
 
+-- Expired links are never revoked, so the probe asks for an unexpired one; this index answers it.
+create index showcaller_links_live_expiry_idx on app.showcaller_links (expires_at) where revoked_at is null and deleted_at is null;
+
 create or replace function private.showcaller_link_ping_rows()
 returns trigger
 language plpgsql
@@ -68,8 +71,9 @@ declare
   v_runs uuid[];
   v_topics text[];
 begin
-  -- The common case, a write while no link is live, costs one probe of the partial index.
-  if not exists (select 1 from app.showcaller_links l where l.revoked_at is null and l.deleted_at is null) then
+  -- The common case, a write while no link is live, costs one probe of the partial expiry index: a link that expired is
+  -- live no more, though it was never revoked.
+  if not exists (select 1 from app.showcaller_links l where l.revoked_at is null and l.deleted_at is null and l.expires_at > now()) then
     return null;
   end if;
   -- Each statement trigger names its transition table changed_rows: the new rows of an insert or update, the old rows
@@ -99,7 +103,7 @@ begin
 end;
 $$;
 
-comment on function private.showcaller_link_ping_rows() is 'Statement trigger on running orders, cues, department calls, segment colours and custom field values: pings the channels of the live showcaller links of the running orders the statement changed (a custom field value counts when its target is a cue). Returns at once when no link is live; never fails the write.';
+comment on function private.showcaller_link_ping_rows() is 'Statement trigger on running orders, cues, department calls, segment colors and custom field values: pings the channels of the live showcaller links of the running orders the statement changed (a custom field value counts when its target is a cue). Returns at once when no link is unrevoked and unexpired; never fails the write.';
 revoke all on function private.showcaller_link_ping_rows() from public, anon, authenticated;
 
 do $$

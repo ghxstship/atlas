@@ -5,7 +5,7 @@
 --
 --   * app.segment_library: the org's reusable segments. Org-wide: read by every member, written by holders of
 --     show.run_of_show.write org-wide (private.orgs_with_capability, 0204). version counts changes and is never accepted
---     from a caller: a change of name, description or colour bumps it, and every statement that changes the segment's
+--     from a caller: a change of name, description or color bumps it, and every statement that changes the segment's
 --     cues or their department calls bumps it once.
 --   * app.segment_library_cues and app.segment_library_cue_calls: the segment's cues (at most 100) and their department
 --     calls, with the checks of app.cues and app.cue_calls. They stay out of Trash: they come back with their segment.
@@ -16,8 +16,8 @@
 --   * app.insert_library_segment copies the segment's cues and calls into a running order at a place after the last
 --     called cue, renumbering the run 1..n with move_cue's parking technique (2793), at most 300 cues in all (the
 --     display cap of 2780). With a start time each copy is planned from it and the durations before it (a missing
---     duration counts as none); without one the copies have no planned time. The segment's colour becomes the run's
---     colour for the segment name unless the run already has one (2920).
+--     duration counts as none); without one the copies have no planned time. The segment's color becomes the run's
+--     color for the segment name unless the run already has one (2920).
 --   * app.publish_library_segment replaces, in each chosen run, the uncalled copy of an instance older than the library
 --     with the current version, in place (Global Elements Manager semantics: local edits to those cues are replaced, and
 --     the UI says so). An instance with a called cue (Called) or a cue linked to an artist's set time (Linked) is left
@@ -49,8 +49,8 @@ create unique index segment_library_name_key on app.segment_library (org_id, low
 call private.describe('app.segment_library', 'Reusable show segments of an org (ADR 0142): a named block of cues with their department calls, copied into running orders by app.insert_library_segment and republished to them by app.publish_library_segment.', array[
   'name', 'Segment name, unique in the org; copied cues take it as their segment.',
   'description', 'What the segment is.',
-  'color_key', 'Colour of the segment (cat-1 to cat-7), given to a running order that has none for the name.',
-  'version', 'Change counter, set by the database: one more for each change of name, description or colour and for each statement that changes the segment''s cues or calls. Never accepted from a caller.'
+  'color_key', 'Color of the segment (cat-1 to cat-7), given to a running order that has none for the name.',
+  'version', 'Change counter, set by the database: one more for each change of name, description or color and for each statement that changes the segment''s cues or calls. Never accepted from a caller.'
 ]);
 call private.install_policies('app.segment_library',
   $$org_id in (select private.my_org_ids())$$,
@@ -139,7 +139,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_segment_library() is 'Library segments: version starts at 1 and is set only by the database, one more for a change of name, description or colour, or for a statement that changed the segment''s cues or calls (trusted operation segment_library_version).';
+comment on function private.guard_segment_library() is 'Library segments: version starts at 1 and is set only by the database, one more for a change of name, description or color, or for a statement that changed the segment''s cues or calls (trusted operation segment_library_version).';
 revoke all on function private.guard_segment_library() from public, anon, authenticated;
 
 create trigger t40_guard_segment_library before insert or update on app.segment_library
@@ -361,7 +361,7 @@ begin
 end;
 $$;
 
-comment on function private.place_library_cues(uuid, app.segment_library, integer, uuid, timestamptz) is 'Copies a library segment''s live cues and their department calls into a running order at a 1-based place, renumbering the run 1..n and planning the copies from p_starts_at and the durations before them (a missing duration counts as none), or leaving them unplanned. Gives the run the segment''s colour for its name when it has none. The caller holds the run''s lock and the segment_library trusted operation. Returns how many cues it copied.';
+comment on function private.place_library_cues(uuid, app.segment_library, integer, uuid, timestamptz) is 'Copies a library segment''s live cues and their department calls into a running order at a 1-based place, renumbering the run 1..n and planning the copies from p_starts_at and the durations before them (a missing duration counts as none), or leaving them unplanned. Gives the run the segment''s color for its name when it has none. The caller holds the run''s lock and the segment_library trusted operation. Returns how many cues it copied.';
 revoke all on function private.place_library_cues(uuid, app.segment_library, integer, uuid, timestamptz) from public, anon, authenticated;
 
 create or replace function app.insert_library_segment(

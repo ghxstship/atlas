@@ -11,9 +11,11 @@
 --     at 14 days. A token is xscl_ and 256 random bits, a device grant xcgr_, a channel key xcch_.
 --   * A link names its creator's caller (caller_name, shown to members), never a person of the org; its note is never
 --     shown on the portal. At most 5 live links per running order. Making one needs membership of the org and both
---     show.run_of_show.write and show.cue.call on the project, in an org that is not read-only. Regenerating and
---     revoking follow P1: the creator, or a holder of show.run_of_show.write on the project who is a member of the org.
---     Revoking stays possible in a read-only org (Section 14.7). Signing devices out drops every grant.
+--     show.run_of_show.write and show.cue.call on the project, in an org that is not read-only. Regenerating hands out a
+--     working token and code, so it needs what making one needs: membership and both capabilities, for the creator too.
+--     Revoking and signing devices out follow P1: the creator, or a holder of show.run_of_show.write on the project who
+--     is a member of the org. Revoking stays possible in a read-only org (Section 14.7). Signing devices out drops every
+--     grant.
 --   * Device grants (private.showcaller_link_grants) last until the link expires or 48 hours, at most 5 at once.
 --   * A cue called through a link records the link (app.cues.called_via_link_id), not a person: cues_called_pair now
 --     says a called cue has exactly one of called_by and called_via_link_id. private.guard_cue is restated from its
@@ -22,7 +24,10 @@
 --     never changes the link a call was stamped with. The cue.called triggers (0412) carry called_via_link_id.
 --   * The links keep the default 7-year retention, not P1's 2 years: called_via_link_id references them, so a link must
 --     never be purged before the cues that name it.
---   * Links stay out of Trash (ADR 0110): a revoked link is never restored.
+--   * Links stay out of Trash (ADR 0110): a revoked link is never restored. Trashing a running order revokes its live
+--     links, retires their tokens and drops their grants (showcaller_link.revoked, reason run_removed), so restoring
+--     the running order from Trash brings back its cues and segment colors but never outside access. An API key or the
+--     system can trash a running order with no person, so revoked_by may be null once a link is revoked.
 
 -- Secrets ------------------------------------------------------------------------------------------------------------------
 
@@ -76,7 +81,7 @@ create table app.showcaller_links (
   constraint showcaller_links_token_hint check (token_hint ~ '^[0-9a-f]{4}$'),
   constraint showcaller_links_failed_attempts check (failed_attempts between 0 and 5),
   constraint showcaller_links_open_count check (open_count >= 0),
-  constraint showcaller_links_revoked check ((revoked_at is null) = (revoked_by is null))
+  constraint showcaller_links_revoked check (revoked_by is null or revoked_at is not null)
 );
 
 create unique index showcaller_links_token_key on app.showcaller_links (token_hash);
@@ -124,7 +129,7 @@ call private.describe('app.showcaller_links', 'Showcaller links (ADR 0142): a no
   'last_opened_at', 'When the link was last opened successfully.',
   'rotated_at', 'When the link was last regenerated; the previous token, code and device grants stopped working then.',
   'revoked_at', 'When the link was revoked; a revoked link never opens again.',
-  'revoked_by', 'Person who revoked the link.'
+  'revoked_by', 'Person who revoked the link, or who trashed its running order; null when an API key or the system trashed it.'
 ]);
 call private.install_audit_trail('app.showcaller_links');
 call private.install_default_retention('app.showcaller_links');
@@ -250,7 +255,7 @@ $$);
 insert into private.domain_event_types (code, subject, description) values
   ('showcaller_link.created', 'showcaller_links', 'A showcaller link to a running order was made.'),
   ('showcaller_link.regenerated', 'showcaller_links', 'A showcaller link was regenerated: a new token and access code, and every device grant dropped.'),
-  ('showcaller_link.revoked', 'showcaller_links', 'A showcaller link was revoked.')
+  ('showcaller_link.revoked', 'showcaller_links', 'A showcaller link was revoked, by a person or because its running order was trashed (reason run_removed).')
 on conflict (code) do nothing;
 
 create or replace function private.showcaller_link_default_expiry(p_run_of_show_id uuid)
@@ -366,6 +371,10 @@ declare
   v_token text := private.new_showcaller_link_token();
   v_code text := private.new_live_link_code();
 begin
+  -- The new token and code work at once, so regenerating needs what making a link needs, for the creator too.
+  if not (private.can_on_project(v_link.project_id, 'show.run_of_show.write') and private.can_on_project(v_link.project_id, 'show.cue.call')) then
+    perform private.refuse('showcaller_link_capability', 'Regenerating a showcaller link needs show.run_of_show.write and show.cue.call on the project.');
+  end if;
   if v_link.revoked_at is not null then
     perform private.refuse('showcaller_link_revoked', 'A revoked showcaller link stays revoked. Make a new link instead.');
   end if;
@@ -388,7 +397,7 @@ begin
 end;
 $$;
 
-comment on function app.regenerate_showcaller_link(uuid) is 'Regenerates a showcaller link (ADR 0142): its creator, or a holder of show.run_of_show.write on the project, gets a new token and access code once. The old token is retired (it answers showcaller_link_invalid without counting a failure), the channel key is redrawn, wrong-code attempts reset and every device grant is dropped. Refused for a revoked link and in a read-only org.';
+comment on function app.regenerate_showcaller_link(uuid) is 'Regenerates a showcaller link (ADR 0142): a member of its org who holds both show.run_of_show.write and show.cue.call on the project (showcaller_link_capability otherwise, the creator included) gets a new token and access code once. The old token is retired (it answers showcaller_link_invalid without counting a failure), the channel key is redrawn, wrong-code attempts reset and every device grant is dropped. Refused for a revoked link and in a read-only org.';
 revoke all on function app.regenerate_showcaller_link(uuid) from public, anon;
 grant execute on function app.regenerate_showcaller_link(uuid) to authenticated, service_role;
 
@@ -412,7 +421,7 @@ begin
   perform private.end_trusted_operation('showcaller_link_service');
   delete from private.showcaller_link_grants g where g.showcaller_link_id = v_link.id;
   perform private.emit_event(v_link.org_id, 'showcaller_link.revoked', 'showcaller_links', v_link.id, v_link.project_id,
-    jsonb_build_object('run_of_show_id', v_link.run_of_show_id));
+    jsonb_build_object('run_of_show_id', v_link.run_of_show_id, 'reason', 'revoked'));
   return now();
 end;
 $$;
@@ -420,6 +429,50 @@ $$;
 comment on function app.revoke_showcaller_link(uuid) is 'Revokes a showcaller link so it never opens or writes again (ADR 0142): its creator, or a holder of show.run_of_show.write on the project, may. Retires the token and drops every device grant. Idempotent: a revoked link answers its first revocation time. Allowed in a read-only org, since it withdraws access.';
 revoke all on function app.revoke_showcaller_link(uuid) from public, anon;
 grant execute on function app.revoke_showcaller_link(uuid) to authenticated, service_role;
+
+-- Trashing a running order ends outside access -------------------------------------------------------------------------------
+
+-- Restoring a running order from Trash (1031 and its later definitions) brings back its cues and segment colors. A
+-- showcaller link is never brought back: the trash revokes it here, and a revoked link stays revoked (the guard above).
+create or replace function private.revoke_showcaller_links_of_trashed_run()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid := private.current_person_id();
+  v_started boolean := not private.in_trusted_operation('showcaller_link_service');
+  v_link record;
+begin
+  for v_link in
+    select l.id, l.org_id, l.project_id, l.token_hash from app.showcaller_links l
+    where l.run_of_show_id = new.id and l.revoked_at is null and l.deleted_at is null
+    order by l.id
+    for update
+  loop
+    insert into private.retired_showcaller_link_tokens (token_hash) values (v_link.token_hash) on conflict do nothing;
+    if v_started then
+      perform private.begin_trusted_operation('showcaller_link_service');
+    end if;
+    update app.showcaller_links set revoked_at = now(), revoked_by = v_person where id = v_link.id;
+    if v_started then
+      perform private.end_trusted_operation('showcaller_link_service');
+    end if;
+    delete from private.showcaller_link_grants g where g.showcaller_link_id = v_link.id;
+    perform private.emit_event(v_link.org_id, 'showcaller_link.revoked', 'showcaller_links', v_link.id, v_link.project_id,
+      jsonb_build_object('run_of_show_id', new.id, 'reason', 'run_removed', 'actor_person_id', v_person));
+  end loop;
+  return null;
+end;
+$$;
+
+comment on function private.revoke_showcaller_links_of_trashed_run() is 'After a running order is trashed: revokes each of its live showcaller links (ADR 0142), retires their tokens and drops their device grants, so restoring the running order never brings outside access back. revoked_by is the person who trashed it, or null for an API key or the system; the audit trail names the actor. Each revocation is a showcaller_link.revoked event with reason run_removed, and pings the portal (2925).';
+revoke all on function private.revoke_showcaller_links_of_trashed_run() from public, anon, authenticated;
+
+create trigger t92_revoke_showcaller_links after update of deleted_at on app.run_of_show
+  for each row when (old.deleted_at is null and new.deleted_at is not null)
+  execute function private.revoke_showcaller_links_of_trashed_run();
 
 -- The cues called through a link -------------------------------------------------------------------------------------------------
 

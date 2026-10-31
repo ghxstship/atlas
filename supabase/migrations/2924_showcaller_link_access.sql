@@ -13,13 +13,17 @@
 --     (^xscl_, so P1's xshv_ and xscr_ tokens never match); an unknown token counts a failure unless it is retired; a
 --     revoked or deleted link answers invalid without counting; expiry; the grant, which must belong to this link;
 --     the rate (reads 7200 an hour per grant and 40000 per link, writes 1800 an hour per grant); the portal's columns
---     still Public or Internal (showcaller_link_reclassified); the running order still live; and the creator still a
---     member holding show.run_of_show.write and show.cue.call on the project, checked as the creator with the claims
---     switched and restored (showcaller_link_owner_access). A link locked by wrong codes keeps serving its grants.
+--     still Public or Internal (showcaller_link_reclassified); the running order and its project still live; and the
+--     creator still a member holding show.run_of_show.write and show.cue.call on the project, checked as the creator
+--     with the claims switched and restored (showcaller_link_owner_access). A link locked by wrong codes keeps serving
+--     its grants.
 --   * api_public.open_showcaller_link mirrors open_live_link (2781) and caps a link at 5 unexpired device grants
 --     (showcaller_link_devices).
 --   * api_public.showcaller_run answers only what the portal renders: the heading, the channel, the running order's
---     live cues (at most 300) with their department calls, segment colours and Showcaller-audience custom values.
+--     live cues (at most 300) with their department calls, segment colors and Showcaller-audience custom values, and
+--     for each cue whether it was called through a link and whether it is an artist's set time (so the portal can
+--     disable Remove before the database refuses it). The portal's columns include the custom values, their fields and
+--     choices, so reclassifying any of them stops the portal.
 --     Never a person's id or name, the link's note, or another running order's rows: every query filters by the link's
 --     running order.
 --   * The write RPCs run as anon under the trusted operation showcaller_link with xos.showcaller_link_id set, so a call
@@ -351,10 +355,16 @@ as $$
     ('app.scope_nodes', 'name'), ('app.run_segment_colors', 'segment'), ('app.run_segment_colors', 'color_key'),
     ('app.projects', 'name'), ('app.projects', 'time_zone'), ('app.org_brands', 'display_name'),
     ('app.org_brands', 'logo_light_path'), ('app.org_brands', 'logo_dark_path'), ('app.org_brands', 'accent_hex'),
-    ('app.org_brands', 'suppress_powered_by');
+    ('app.org_brands', 'suppress_powered_by'), ('app.cues', 'updated_at'),
+    ('app.custom_field_values', 'value_text'), ('app.custom_field_values', 'value_number'),
+    ('app.custom_field_values', 'value_date'), ('app.custom_field_values', 'value_timestamp'),
+    ('app.custom_field_values', 'value_boolean'), ('app.custom_field_definitions', 'field_key'),
+    ('app.custom_field_definitions', 'label'), ('app.custom_field_definitions', 'data_type'),
+    ('app.custom_field_definitions', 'sort_order'), ('app.custom_field_choices', 'label'),
+    ('app.custom_field_choices', 'color_key');
 $$;
 
-comment on function private.showcaller_portal_columns() is 'The columns a showcaller portal renders (ADR 0142), besides the Showcaller-audience custom values; private.showcaller_link_reader refuses a link once any of them is classified above Internal (showcaller_link_reclassified).';
+comment on function private.showcaller_portal_columns() is 'Every column a showcaller portal renders (ADR 0142), the Showcaller-audience custom values, their fields and choices included; private.showcaller_link_reader refuses a link once any of them is classified above Internal (showcaller_link_reclassified).';
 revoke all on function private.showcaller_portal_columns() from public, anon, authenticated;
 
 create or replace function private.showcaller_link_reader(
@@ -442,7 +452,8 @@ begin
     o_reason := 'showcaller_link_reclassified';
     return;
   end if;
-  if not exists (select 1 from app.run_of_show r where r.id = o_link.run_of_show_id and r.deleted_at is null) then
+  if not exists (select 1 from app.run_of_show r join app.projects p on p.id = r.project_id
+                 where r.id = o_link.run_of_show_id and r.deleted_at is null and p.deleted_at is null) then
     o_reason := 'showcaller_link_run_removed';
     return;
   end if;
@@ -470,7 +481,7 @@ begin
 end;
 $$;
 
-comment on function private.showcaller_link_reader(text, text, text, boolean) is 'Checks a showcaller link read or write (ADR 0142): a read-only transaction first (1295), the address failure limits (only without a valid device grant), the token (an unknown xscl_ token counts a failure unless retired; revoked or deleted answers showcaller_link_invalid uncounted; showcaller_link_expired), the device grant of this link (showcaller_link_grant), 7200 reads an hour per grant and 40000 per link or 1800 writes an hour per grant (showcaller_link_rate_limited), the portal''s columns still Public or Internal (showcaller_link_reclassified), the running order still live (showcaller_link_run_removed), and the creator still a member holding show.run_of_show.write and show.cue.call on the project, checked as the creator with the claims restored (showcaller_link_owner_access). A locked link keeps serving its grants. Returns the link, the grant''s hash and expiry, or the reason.';
+comment on function private.showcaller_link_reader(text, text, text, boolean) is 'Checks a showcaller link read or write (ADR 0142): a read-only transaction first (1295), the address failure limits (only without a valid device grant), the token (an unknown xscl_ token counts a failure unless retired; revoked or deleted answers showcaller_link_invalid uncounted; showcaller_link_expired), the device grant of this link (showcaller_link_grant), 7200 reads an hour per grant and 40000 per link or 1800 writes an hour per grant (showcaller_link_rate_limited), the portal''s columns still Public or Internal (showcaller_link_reclassified), the running order and its project still live (showcaller_link_run_removed), and the creator still a member holding show.run_of_show.write and show.cue.call on the project, checked as the creator with the claims restored (showcaller_link_owner_access). A locked link keeps serving its grants. Returns the link, the grant''s hash and expiry, or the reason.';
 revoke all on function private.showcaller_link_reader(text, text, text, boolean) from public, anon, authenticated;
 
 -- Opening a link ----------------------------------------------------------------------------------------------------------------------
@@ -585,6 +596,8 @@ begin
         'duration_seconds', floor(extract(epoch from c.duration))::bigint,
         'called_at', c.called_at,
         'called', c.called_at is not null,
+        'called_via_link', c.called_via_link_id is not null,
+        'set_time', exists (select 1 from app.engagement_cues ec where ec.cue_id = c.id and ec.deleted_at is null),
         'standby_at', c.standby_at,
         'description', c.description,
         'script', c.script,
@@ -625,7 +638,7 @@ begin
 end;
 $$;
 
-comment on function api_public.showcaller_run(text, text, text) is 'Reads a showcaller link''s running order with its device grant (ADR 0142; Section 7.5 invariant 8). Refuses as private.showcaller_link_reader does. Answers JSON: meta (brand, project name and zone, running order name, show day, stage, curfew, caller name, link and grant expiry), the Realtime channel, server_now, and the running order''s live cues in order, at most 300, each with id, position, label, segment and its colour, planned_at, start_tbc, duration_seconds, called_at and called, standby_at, description, script, updated_at, its department calls and its Showcaller-audience custom values (never Person, Money or Email). Never a person''s id or name, the link''s note, or another running order''s rows. Writes only rate events.';
+comment on function api_public.showcaller_run(text, text, text) is 'Reads a showcaller link''s running order with its device grant (ADR 0142; Section 7.5 invariant 8). Refuses as private.showcaller_link_reader does. Answers JSON: meta (brand, project name and zone, running order name, show day, stage, curfew, caller name, link and grant expiry), the Realtime channel, server_now, and the running order''s live cues in order, at most 300, each with id, position, label, segment and its color, planned_at, start_tbc, duration_seconds, called_at and called, whether it was called through a showcaller link (called_via_link, never which one or by whom), whether it is an artist''s set time (set_time, which the portal never removes), standby_at, description, script, updated_at, its department calls and its Showcaller-audience custom values (never Person, Money or Email). Never a person''s id or name, the link''s note, or another running order''s rows. Writes only rate events.';
 revoke all on function api_public.showcaller_run(text, text, text) from public;
 grant execute on function api_public.showcaller_run(text, text, text) to anon, authenticated, service_role;
 

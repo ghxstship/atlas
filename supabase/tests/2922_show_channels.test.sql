@@ -1,7 +1,8 @@
 -- pgTAP: migration 2922, B3 (RRR-227, ADR 0142). Show channels: opening one per project (seeded with the project's
--- members less Client-engaged people, the opener as Owner), joining, the panel's status, show_channel set only by the
--- database, and Clients kept out at the three doors: a Client is never added, a member who becomes a Client reads no
--- conversation, message or Inbox preview, and is never notified.
+-- members who read the running order, less Client-engaged people, the opener as Owner, named in the opener's
+-- language), joining, the panel's status, show_channel set only by the database, and Clients kept out at the four
+-- doors: a Client is never added, a member who becomes a Client reads no conversation, message or Inbox preview, is
+-- never notified, and no feed post, survey or event takes the channel as its audience.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -77,6 +78,18 @@ with x as (insert into app.engagements (project_id, person_id, counterparty_id, 
 select pg_temp.as_platform();
 select pg_temp.move_engagement('eng_frank_client', 'Onboarding', 'Active');
 
+-- A project member who cannot read the running order: rune holds no role in the org --------------------------------------
+select pg_temp.new_user('rune', 'rune@northwind.test', 'Rune Halvorsen');
+insert into app.memberships (org_id, person_id) values (pg_temp.id('org_a'), pg_temp.id('rune'));
+insert into world select 'rune@org_a', m.id from app.memberships m where m.person_id = pg_temp.id('rune') and m.org_id = pg_temp.id('org_a');
+select pg_temp.as_user('alice');
+insert into app.project_members (project_id, membership_id, project_role) values (pg_temp.id('prj_a'), pg_temp.id('rune@org_a'), 'Field');
+select pg_temp.as_platform();
+select ok(not private.person_can_on_project(pg_temp.id('rune'), pg_temp.id('prj_a'), 'show.run_of_show.read'),
+  'rune is on the project but cannot read its running orders');
+select ok(private.person_can_on_project(pg_temp.id('erin'), pg_temp.id('prj_a'), 'show.run_of_show.read'), 'erin can');
+select is(current_setting('request.jwt.claims', true), '', 'and the claims come back afterwards');
+
 select is(pg_temp.status('dave'), 'exists=false member=false join=false open=true conversation=false',
   'before a channel exists, an editor may open one');
 select is(pg_temp.status('gina'), 'exists=false member=false join=false open=false conversation=false',
@@ -94,7 +107,10 @@ insert into k select 'group', c.group_id, null from app.conversations c where c.
 select ok((select show_channel and group_kind = 'Project' and project_id = pg_temp.id('prj_a') from app.groups where id = pg_temp.k('group')),
   'the show channel is a Project group of the project');
 select is((select name from app.groups where id = pg_temp.k('group')), 'Show channel · Northwind Summer Series', 'named for the project');
-select is(pg_temp.members(), 'dave@org_a:Owner,erin@org_a:Member', 'the opener owns it and the project''s members are in it, less the Client');
+select is(pg_temp.members(), 'dave@org_a:Owner,erin@org_a:Member',
+  'the opener owns it and the project''s members who read the running order are in it, less the Client and rune');
+select is((select description from app.groups where id = pg_temp.k('group')),
+  'Show channel: the crew''s chat beside the running cue. Clients are never in it.', 'with the en-US description by default');
 select is((select count(*)::int from app.domain_events where event_type = 'show_channel.opened' and subject_id = pg_temp.k('group')), 1,
   'opening is a domain event');
 select pg_temp.as_user('dave');
@@ -125,6 +141,8 @@ select is(pg_temp.status('mia'), 'exists=true member=true join=false open=false 
 select is(pg_temp.try('frank', format('select app.join_show_channel(%L)', pg_temp.id('prj_a'))), 'show_channel_client',
   'a Client cannot join');
 select is(pg_temp.status('frank'), 'exists=true member=false join=false open=false conversation=false', 'and is never offered to');
+select is(pg_temp.try('rune', format('select app.join_show_channel(%L)', pg_temp.id('prj_a'))), '42501',
+  'nor can a project member who cannot read the running order, the rule the seed follows');
 select is(pg_temp.try('alice', format('insert into app.group_members (group_id, membership_id) values (%L, %L)', pg_temp.k('group'),
   pg_temp.id('frank@org_a'))), 'show_channel_client', 'nor be added by an admin');
 
@@ -165,11 +183,31 @@ select is(pg_temp.n('dave', format('select 1 from app.chat_messages where conver
 select is(pg_temp.n('dave', format('select 1 from app.my_conversations(%L) where conversation_id = %L', pg_temp.id('org_a'), pg_temp.k('conv'))), 1,
   'and the Inbox still lists the channel');
 
+-- A show channel is never an audience ------------------------------------------------------------------------------------------
+insert into k select 'crew', g.id, null from app.groups g where g.org_id = pg_temp.id('org_a') and g.name = 'Lighting crew';
+select is(pg_temp.try('platform', format($$select private.assert_audience(%L, 'Group', null, null, null, %L, null::text)$$,
+  pg_temp.id('org_a'), pg_temp.k('group'))), 'show_channel_audience', 'a feed post never takes the show channel as its audience');
+select is(pg_temp.try('platform', format($$select private.assert_audience(%L, 'Group', null, null, null, %L)$$,
+  pg_temp.id('org_a'), pg_temp.k('group'))), 'show_channel_audience', 'nor does a survey or an event');
+select is(pg_temp.try('platform', format($$select private.assert_audience(%L, 'Group', null, null, null, %L, null::text)$$,
+  pg_temp.id('org_a'), pg_temp.k('crew'))), 'ok', 'another group still does');
+
+-- Named in the opener's language ------------------------------------------------------------------------------------------------
+select pg_temp.as_user('alice');
+insert into k select 'conv_es', app.open_show_channel(pg_temp.id('prj_a2'), 'Canal del show', 'El chat del equipo junto al cue en curso.'), null;
+select pg_temp.as_platform();
+select results_eq(format('select g.name, g.description from app.groups g join app.conversations c on c.group_id = g.id where c.id = %L',
+    pg_temp.k('conv_es')),
+  $$values ('Canal del show · Northwind Winter Gala'::text, 'El chat del equipo junto al cue en curso.'::text)$$,
+  'Atlas names and describes the channel in the opener''s language');
+
 -- Catalog -------------------------------------------------------------------------------------------------------------------------
 select col_not_null('app', 'groups', 'show_channel', 'groups.show_channel is not null');
 select col_default_is('app', 'groups', 'show_channel', 'false', 'and false by default');
 select ok(not has_function_privilege('authenticated', 'private.person_engaged_as(uuid, uuid, app.external_role_type)', 'execute'),
   'person_engaged_as is for the database only');
+select ok(not has_function_privilege('authenticated', 'private.person_can_on_project(uuid, uuid, text)', 'execute'),
+  'as is person_can_on_project');
 
 select * from finish();
 rollback;

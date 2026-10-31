@@ -1,7 +1,7 @@
 -- 2922_show_channels.sql
--- B3 Show channels (RRR-227, ADR 0142 decision 9; parity gap G-79). The crew talks beside the running cue in a show
+-- B3 Show channels (RRR-227, ADR 0142 decision 10; parity gap G-79). The crew talks beside the running cue in a show
 -- channel: the chat of a Project group (0800) marked show_channel, at most one live per project. Clients never take
--- part, at any of the three doors.
+-- part, at any of the four doors.
 --
 --   * Add: private.guard_group_member, restated from its only definition (0800), refuses a member whose person is
 --     engaged as Client on the channel's project (show_channel_client). private.person_engaged_as answers for another
@@ -13,11 +13,16 @@
 --     table directly, so it is restated to stay within private.my_conversation_ids: no row, no preview, no count.
 --   * Notify: app.send_chat_message, restated from its latest definition (1393), notifies no Client-engaged member of
 --     a show channel.
+--   * Audience: private.assert_audience, restated from its latest definition (1365), refuses a show channel as a Group
+--     audience (show_channel_audience). A member who became a Client after joining stays in group_members, so a feed
+--     post, announcement, survey or event aimed at the channel would reach them; the channel is for its chat only.
 --   * app.groups.show_channel is set only by app.open_show_channel and never changes (show_channel_fixed): the v1
 --     groups create and holders of org.communication.write cannot make or unmake one. The column stays out of v1.json
 --     (contract-audit lists it as an extra column, as ADR 0131 decision 6 did for start_tbc).
 --   * app.open_show_channel opens the project's channel (or answers the live one): a Project group named for the
---     project, its members seeded from the project's members minus Client-engaged people, the caller as Owner.
+--     project, its members seeded from the project's members who can read the running order (show.run_of_show.read,
+--     the rule app.join_show_channel applies), minus Client-engaged people, the caller as Owner. Atlas passes the name's
+--     prefix and the description in the opener's language; a v1 caller gets the en-US text.
 --     app.join_show_channel adds a reader of the running order. app.show_channel_status answers the panel, since group
 --     row level security hides a group from people outside it (holders of org.communication.write read every group
 --     already).
@@ -75,6 +80,43 @@ $$;
 
 comment on function private.person_engaged_as(uuid, uuid, app.external_role_type) is 'True when a person is engaged on a project in the role: an engagement of theirs with the role, or else private.engaged_as evaluated as their user (claims switched and restored, as 2781), which covers representatives and organization members. Used by show channels to keep Clients out (ADR 0142).';
 revoke all on function private.person_engaged_as(uuid, uuid, app.external_role_type) from public, anon, authenticated;
+
+-- Whether another person may use a capability on a project ----------------------------------------------------------------
+
+create or replace function private.person_can_on_project(p_person_id uuid, p_project_id uuid, p_capability text)
+returns boolean
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_user uuid;
+  v_claims text := current_setting('request.jwt.claims', true);
+  v_can boolean;
+begin
+  if p_person_id is null or p_project_id is null then
+    return false;
+  end if;
+  select p.user_id into v_user from app.people p where p.id = p_person_id and p.deleted_at is null;
+  if v_user is null then
+    return false;
+  end if;
+  -- As that person, so roles, reach, project membership and direct grants all count as they would for them.
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+    v_can := private.can_on_project(p_project_id, p_capability);
+    perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+  exception when others then
+    perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+    raise;
+  end;
+  return coalesce(v_can, false);
+end;
+$$;
+
+comment on function private.person_can_on_project(uuid, uuid, text) is 'True when a person may use a capability on a project: private.can_on_project evaluated as their user, with the claims switched and restored as private.person_engaged_as does. Used to seed a show channel with only the people who could join it (ADR 0142).';
+revoke all on function private.person_can_on_project(uuid, uuid, text) from public, anon, authenticated;
 
 -- Groups: show_channel is the database's -------------------------------------------------------------------------------------
 
@@ -299,6 +341,51 @@ comment on function app.send_chat_message(uuid, text, app.chat_message_kind, tex
 revoke all on function app.send_chat_message(uuid, text, app.chat_message_kind, text) from public, anon;
 grant execute on function app.send_chat_message(uuid, text, app.chat_message_kind, text) to authenticated, service_role;
 
+-- Audiences: a show channel is for its chat ------------------------------------------------------------------------------------
+
+-- From its latest definition (1365), with the show channel rule added. The six-argument form (1365) calls this one.
+create or replace function private.assert_audience(
+  p_org_id uuid,
+  p_kind app.audience_kind,
+  p_project_id uuid,
+  p_team_id uuid,
+  p_role_id uuid,
+  p_group_id uuid,
+  p_department_code text
+)
+returns void
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if (p_kind = 'Team') <> (p_team_id is not null) or (p_kind = 'Role') <> (p_role_id is not null)
+     or (p_kind = 'Group') <> (p_group_id is not null) or (p_kind = 'Department') <> (p_department_code is not null)
+     or (p_kind = 'Project' and p_project_id is null) then
+    perform private.refuse('audience_target', 'Choose the audience''s project, team, department, role or group, and only that one.');
+  end if;
+  if p_department_code is not null and not exists (select 1 from xpms.dim_department d where d.dept_code = p_department_code) then
+    perform private.refuse('audience_target', 'The department is not a canon department.');
+  end if;
+  if p_team_id is not null and not exists (select 1 from app.teams t where t.id = p_team_id and t.org_id = p_org_id and t.deleted_at is null) then
+    perform private.refuse('audience_target', 'The team is not in this org.');
+  end if;
+  if p_role_id is not null and not exists (select 1 from app.roles r where r.id = p_role_id and (r.org_id is null or r.org_id = p_org_id) and r.deleted_at is null) then
+    perform private.refuse('audience_target', 'The role is not available in this org.');
+  end if;
+  if p_group_id is not null and not exists (select 1 from app.groups g where g.id = p_group_id and g.org_id = p_org_id and g.deleted_at is null and g.archived_at is null) then
+    perform private.refuse('audience_target', 'The group is not an active group of this org.');
+  end if;
+  -- A member who became a Client after joining is still in group_members, so the channel never takes a post (2922).
+  if p_group_id is not null and exists (select 1 from app.groups g where g.id = p_group_id and g.show_channel) then
+    perform private.refuse('show_channel_audience', 'A show channel is for its chat; choose another audience.');
+  end if;
+end;
+$$;
+comment on function private.assert_audience(uuid, app.audience_kind, uuid, uuid, uuid, uuid, text) is 'Refuses an audience whose kind and target disagree, a department outside canon, a team, role or group outside the org, or a show channel as a Group audience (show_channel_audience, 2922).';
+revoke all on function private.assert_audience(uuid, app.audience_kind, uuid, uuid, uuid, uuid, text) from public, anon, authenticated;
+
 -- Opening, joining and the panel's status -------------------------------------------------------------------------------------------
 
 create or replace function private.live_show_channel(p_project_id uuid)
@@ -315,7 +402,7 @@ $$;
 comment on function private.live_show_channel(uuid) is 'The project''s live show channel group, or a null row.';
 revoke all on function private.live_show_channel(uuid) from public, anon, authenticated;
 
-create or replace function app.open_show_channel(p_project_id uuid)
+create or replace function app.open_show_channel(p_project_id uuid, p_name_prefix text default null, p_description text default null)
 returns uuid
 language plpgsql
 volatile
@@ -330,7 +417,7 @@ declare
   v_base text;
   v_name text;
   v_n integer := 1;
-  v_member uuid;
+  v_member record;
 begin
   select * into v_project from app.projects p where p.id = p_project_id and p.deleted_at is null;
   if v_project.id is null or not private.is_member(v_project.org_id)
@@ -343,7 +430,8 @@ begin
   v_group := private.live_show_channel(v_project.id);
   perform private.begin_trusted_operation('show_channel');
   if v_group.id is null then
-    v_base := left('Show channel · ' || btrim(v_project.name), 120);
+    -- Atlas names the channel in the opener's language; a v1 caller gets the en-US name.
+    v_base := left(coalesce(nullif(btrim(left(p_name_prefix, 60)), ''), 'Show channel') || ' · ' || btrim(v_project.name), 120);
     v_name := v_base;
     while exists (select 1 from app.groups g where g.org_id = v_project.org_id and lower(btrim(g.name)) = lower(btrim(v_name))
                   and g.deleted_at is null) loop
@@ -351,15 +439,20 @@ begin
       v_name := left(v_base, 120 - char_length(' (' || v_n || ')')) || ' (' || v_n || ')';
     end loop;
     insert into app.groups (org_id, name, group_kind, project_id, show_channel, description)
-    values (v_project.org_id, v_name, 'Project', v_project.id, true, 'Show channel: the crew''s chat beside the running cue. Clients are never in it.')
+    values (v_project.org_id, v_name, 'Project', v_project.id, true,
+      left(coalesce(nullif(btrim(p_description), ''), 'Show channel: the crew''s chat beside the running cue. Clients are never in it.'), 2000))
     returning * into v_group;
     insert into app.group_members (group_id, membership_id, group_role) values (v_group.id, v_mine, 'Owner');
+    -- The seed follows the joining rule: a reader of the running order who is not a Client.
     for v_member in
-      select a.id from private.audience_membership_ids(v_project.org_id, 'Project', v_project.id, null, null, null, null) a(id)
+      select a.id, m.person_id
+      from private.audience_membership_ids(v_project.org_id, 'Project', v_project.id, null, null, null, null) a(id)
+      join app.memberships m on m.id = a.id
       where a.id <> v_mine
     loop
-      if not private.person_engaged_as((select m.person_id from app.memberships m where m.id = v_member), v_project.id, 'Client') then
-        insert into app.group_members (group_id, membership_id, group_role) values (v_group.id, v_member, 'Member');
+      if private.person_can_on_project(v_member.person_id, v_project.id, 'show.run_of_show.read')
+         and not private.person_engaged_as(v_member.person_id, v_project.id, 'Client') then
+        insert into app.group_members (group_id, membership_id, group_role) values (v_group.id, v_member.id, 'Member');
       end if;
     end loop;
     perform private.emit_event(v_project.org_id, 'show_channel.opened', 'groups', v_group.id, v_project.id,
@@ -373,9 +466,9 @@ begin
 end;
 $$;
 
-comment on function app.open_show_channel(uuid) is 'Opens the project''s show channel (ADR 0142) and returns its conversation: a Project group marked show_channel, named Show channel · and the project''s name (deduplicated, at most 120 characters), with the caller as Owner and the project''s members as Members, less anyone engaged as Client. When the project already has a live channel, answers it and adds the caller if they are not in it. Needs membership of the project''s org and show.run_of_show.write on the project.';
-revoke all on function app.open_show_channel(uuid) from public, anon;
-grant execute on function app.open_show_channel(uuid) to authenticated, service_role;
+comment on function app.open_show_channel(uuid, text, text) is 'Opens the project''s show channel (ADR 0142) and returns its conversation: a Project group marked show_channel, named with p_name_prefix (at most 60 characters; Show channel by default), a middle dot and the project''s name (deduplicated, at most 120 characters), described by p_description (the en-US description by default), with the caller as Owner and as Members the project''s members who hold show.run_of_show.read on it, less anyone engaged as Client. When the project already has a live channel, answers it and adds the caller if they are not in it. Needs membership of the project''s org and show.run_of_show.write on the project.';
+revoke all on function app.open_show_channel(uuid, text, text) from public, anon;
+grant execute on function app.open_show_channel(uuid, text, text) to authenticated, service_role;
 
 create or replace function app.join_show_channel(p_project_id uuid)
 returns uuid

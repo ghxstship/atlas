@@ -1,6 +1,6 @@
 -- pgTAP: migration 2921, B3 (RRR-227, ADR 0142). The segment library: org-wide policies, a version the database keeps
 -- (once per changing statement), at most 100 cues per segment, insertion into a running order (place, renumbering,
--- planned times, department calls, colour, the refusals and the 300-cue cap), the instance and cue guards, publishing
+-- planned times, department calls, color, the refusals and the 300-cue cap), the instance and cue guards, publishing
 -- (Published, Current, Called, Linked and No Instance, no other run touched) and Trash membership.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -139,7 +139,7 @@ select is((select array_agg(k.call_kind::text || ':' || k.instruction order by c
   from app.cue_calls k join app.cues c on c.id = k.cue_id where c.segment_instance_id = pg_temp.k('inst') and k.deleted_at is null),
   array['Audio:Presenter mic live', 'Lighting:LX 40 GO', 'Video:Roll outro'], 'and the department calls');
 select is((select color_key from app.run_segment_colors where run_of_show_id = pg_temp.id('ros') and lower(segment) = 'awards' and deleted_at is null),
-  'cat-4', 'the run takes the segment''s colour');
+  'cat-4', 'the run takes the segment''s color');
 select is((select library_version from app.run_segment_instances where id = pg_temp.k('inst')), 4, 'the instance records the version copied');
 select is((select description from app.cues where segment_instance_id = pg_temp.k('inst') and position = 3), 'Presenter walks on.',
   'descriptions are copied');

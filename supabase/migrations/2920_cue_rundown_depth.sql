@@ -1,6 +1,6 @@
 -- 2920_cue_rundown_depth.sql
 -- B3 Run-of-show depth (RRR-227, ADR 0142; parity gap G-73). A running order gets the depth of a rundown tool: columns
--- the org defines, colour-coded choices, a script for each cue and a colour for each segment.
+-- the org defines, color-coded choices, a script for each cue and a color for each segment.
 --
 --   * Cues become a custom field target (private.custom_field_targets, 0540): the Settings page lists them through
 --     app.custom_field_targets (1433) and A117's guards apply unchanged (types, choices, people, required, the
@@ -9,7 +9,7 @@
 --     (custom_value_capability). The values policy (custom_writer_orgs, the Collaborator band) would otherwise let a
 --     person who only reads the running order write its cue values.
 --   * app.custom_field_choices.color_key: one of the themed categorical tokens cat-1 to cat-7 (packages/tokens
---     color.viz.cat-*), for any target. The choice label always shows beside the colour, so colour is never the only
+--     color.viz.cat-*), for any target. The choice label always shows beside the color, so color is never the only
 --     signal.
 --   * app.cue_field_audiences: who a cue field is for. Crew (members in Atlas), Showcaller (a showcaller link's portal,
 --     2924) and Client (a Client engaged on the project, in Gateway). Every new cue field starts with Crew. Crew is
@@ -19,11 +19,11 @@
 --   * api_external.cue_field_values: a Client's view of the Client-audience values of the cues of their projects. It
 --     leaves api_external.cues (2790) as it is.
 --   * app.cues.script: the words spoken on the cue, up to 20,000 characters. Internal, like the description.
---   * app.run_segment_colors: one colour per segment name of a running order (ADR 0142 decision 7). The colour is a
+--   * app.run_segment_colors: one color per segment name of a running order (ADR 0142 decision 7). The color is a
 --     fact about the segment, so it is stored once, not on every cue: a cue added to the segment shows it, and a
---     renamed segment simply has no colour until one is set. app.set_segment_color sets or clears it.
+--     renamed segment simply has no color until one is set. app.set_segment_color sets or clears it.
 -- No column here is classified above Internal. The new tables have default retention (pgTAP 2390: the nightly sweep
--- adds none), and neither enters Trash (ADR 0110): an audience row is part of its field and a colour returns with its
+-- adds none), and neither enters Trash (ADR 0110): an audience row is part of its field and a color returns with its
 -- running order.
 
 -- Cues take custom fields ------------------------------------------------------------------------------------------------
@@ -80,13 +80,13 @@ comment on function private.guard_custom_field_value() is 'Custom field values: 
 
 revoke all on function private.guard_custom_field_value() from public, anon, authenticated;
 
--- Choice colours -----------------------------------------------------------------------------------------------------------
+-- Choice colors -----------------------------------------------------------------------------------------------------------
 
 alter table app.custom_field_choices
   add column color_key text,
   add constraint custom_field_choices_color_key check (color_key is null or color_key ~ '^cat-[1-7]$');
 
-comment on column app.custom_field_choices.color_key is 'Colour of the option: one of the themed categorical tokens cat-1 to cat-7 (color.viz.cat-* in light, dark and sunlight), or null for none. Shown beside the label, never instead of it.';
+comment on column app.custom_field_choices.color_key is 'Color of the option: one of the themed categorical tokens cat-1 to cat-7 (color.viz.cat-* in light, dark and sunlight), or null for none. Shown beside the label, never instead of it.';
 
 -- Cue field audiences --------------------------------------------------------------------------------------------------------
 
@@ -208,7 +208,7 @@ comment on column api_external.cue_field_values.value_date is 'Date values.';
 comment on column api_external.cue_field_values.value_timestamp is 'Timestamp values.';
 comment on column api_external.cue_field_values.value_boolean is 'Boolean values.';
 comment on column api_external.cue_field_values.choice_label is 'Label of the chosen option, for Choice fields.';
-comment on column api_external.cue_field_values.choice_color_key is 'Colour of the chosen option (cat-1 to cat-7), or null.';
+comment on column api_external.cue_field_values.choice_color_key is 'Color of the chosen option (cat-1 to cat-7), or null.';
 
 revoke all on api_external.cue_field_values from public, anon;
 grant select on api_external.cue_field_values to authenticated, service_role;
@@ -221,7 +221,7 @@ alter table app.cues
 
 comment on column app.cues.script is 'What is said on the cue (the script), up to 20,000 characters. Internal, like the description.';
 
--- Segment colours -------------------------------------------------------------------------------------------------------------------
+-- Segment colors -------------------------------------------------------------------------------------------------------------------
 
 create table app.run_segment_colors (
   id uuid primary key default private.uuid_v7(),
@@ -237,7 +237,7 @@ create index run_segment_colors_run_idx on app.run_segment_colors (run_of_show_i
 
 call private.install_child_table('app.run_segment_colors', 'app.run_of_show', 'run_of_show_id', 'show.run_of_show.read', 'show.run_of_show.write');
 create unique index run_segment_colors_key on app.run_segment_colors (run_of_show_id, lower(btrim(segment))) where deleted_at is null;
-call private.describe('app.run_segment_colors', 'Colour of a segment of a running order (ADR 0142): one row per segment name, matched to the cues'' segment text ignoring case and outer spaces, so every cue of the segment shows it, a new one included. Set and cleared by app.set_segment_color.', array[
+call private.describe('app.run_segment_colors', 'Color of a segment of a running order (ADR 0142): one row per segment name, matched to the cues'' segment text ignoring case and outer spaces, so every cue of the segment shows it, a new one included. Set and cleared by app.set_segment_color.', array[
   'run_of_show_id', 'Running order.',
   'segment', 'Segment name, as the cues write it.',
   'color_key', 'One of the themed categorical tokens cat-1 to cat-7.'
@@ -246,7 +246,7 @@ call private.install_default_retention('app.run_segment_colors');
 
 insert into private.trash_excluded_tables (table_name, rationale) values
   ('cue_field_audiences', 'An audience is part of its cue field and changes with it in Settings.'),
-  ('run_segment_colors', 'A segment colour returns with its running order; set it again to change it.')
+  ('run_segment_colors', 'A segment color returns with its running order; set it again to change it.')
 on conflict (table_name) do nothing;
 
 create or replace function app.set_segment_color(p_run_of_show_id uuid, p_segment text, p_color_key text default null)
@@ -266,10 +266,10 @@ begin
     raise exception using errcode = '42501', message = 'show.run_of_show.write is required on the running order';
   end if;
   if v_segment is null then
-    perform private.refuse('segment_color_segment', 'Name the segment to colour.');
+    perform private.refuse('segment_color_segment', 'Name the segment before you color it.');
   end if;
   if p_color_key is not null and p_color_key !~ '^cat-[1-7]$' then
-    perform private.refuse('segment_color_key', 'Pick one of the seven segment colours, or none.');
+    perform private.refuse('segment_color_key', 'Pick one of the seven segment colors, or none.');
   end if;
   if p_color_key is null then
     update app.run_segment_colors set deleted_at = now()
@@ -283,7 +283,7 @@ begin
 end;
 $$;
 
-comment on function app.set_segment_color(uuid, text, text) is 'Sets the colour of a segment of a running order (cat-1 to cat-7), or clears it with NULL, in one statement (ADR 0142). Every live cue whose segment text matches, ignoring case and outer spaces, shows it. Needs show.run_of_show.write on the project; refuses a blank segment (segment_color_segment) and an unknown colour (segment_color_key).';
+comment on function app.set_segment_color(uuid, text, text) is 'Sets the color of a segment of a running order (cat-1 to cat-7), or clears it with NULL, in one statement (ADR 0142). Every live cue whose segment text matches, ignoring case and outer spaces, shows it. Needs show.run_of_show.write on the project; refuses a blank segment (segment_color_segment) and an unknown color (segment_color_key).';
 revoke all on function app.set_segment_color(uuid, text, text) from public, anon;
 grant execute on function app.set_segment_color(uuid, text, text) to authenticated, service_role;
 

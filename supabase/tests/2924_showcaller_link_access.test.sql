@@ -4,8 +4,9 @@
 -- changes no cue, department call or audit event; 20 such answers delete the grant; the read answers R1's rows only,
 -- never a person or the note. Also: a read-only transaction is refused first, tokens never cross kinds or links, the
 -- writes the portal may make (attributed to the link), the field allowlist and stale edits, the device cap, a locked
--- link still serving its devices, and writes stopping when the creator loses access, the org turns read-only or the
--- running order is deleted. P2's own suite (2790) runs unchanged over the cores.
+-- link still serving its devices, the per-cue flags the portal needs (called through a link, an artist's set time), and
+-- the portal stopping when a column it shows is reclassified, the creator loses access, the org turns read-only, or the
+-- running order or its project is trashed. P2's own suite (2790) runs unchanged over the cores.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -127,6 +128,7 @@ select pg_temp.link('dave', 'l1', 'r1');
 select pg_temp.link('dave', 'l2', 'r2');
 select pg_temp.link('dave', 'l3', 'r1');
 select pg_temp.link('carol', 'l4', 'r1');
+select pg_temp.link('alice', 'l5', 'r3');
 
 -- A read-only (GET) transaction is refused before anything ------------------------------------------------------------------------
 create function pg_temp.read_only_open() returns text
@@ -184,7 +186,7 @@ select is((select array_agg((e ->> 'id')::uuid order by (e ->> 'position')::int)
 select is((pg_temp.val('read')::jsonb) -> 'meta' ->> 'stage', 'Opening Night', 'the heading names the stage');
 select is((pg_temp.val('read')::jsonb) -> 'meta' ->> 'caller_name', 'Sam Okafor', 'and the caller');
 select is((select e ->> 'segment_color' from jsonb_array_elements((pg_temp.val('read')::jsonb) -> 'cues') e where e ->> 'label' = 'Award One'),
-  'cat-6', 'cues carry their segment''s colour');
+  'cat-6', 'cues carry their segment''s color');
 select is((select e -> 'calls' from jsonb_array_elements((pg_temp.val('read')::jsonb) -> 'cues') e where e ->> 'label' = 'House to Half'),
   '[{"kind": "Lighting", "instruction": "LX 1 GO"}]'::jsonb, 'and their department calls');
 select is((select jsonb_array_length(e -> 'fields') from jsonb_array_elements((pg_temp.val('read')::jsonb) -> 'cues') e where e ->> 'label' = 'House to Half'),
@@ -222,7 +224,7 @@ select is(pg_temp.w('l1', 'g1', 'showcaller_save_cue', format($$%L, '{"label": "
 select is(pg_temp.w('l1', 'g1', 'showcaller_save_cue', format($$%L, '{"called_at": "2027-01-01T00:00:00Z"}', %L$$, pg_temp.id('q3'),
   (select updated_at from app.cues where id = pg_temp.id('q3')))) ->> 'reason', 'showcaller_cue_field', 'a field outside the allowlist is refused');
 select is(pg_temp.w('l1', 'g1', 'showcaller_save_cue', format($$%L, '{"segment_color": "cat-1"}', %L$$, pg_temp.id('q3'),
-  (select updated_at from app.cues where id = pg_temp.id('q3')))) ->> 'reason', 'showcaller_cue_field', 'the segment colour is a member''s');
+  (select updated_at from app.cues where id = pg_temp.id('q3')))) ->> 'reason', 'showcaller_cue_field', 'the segment color is a member''s');
 select is(pg_temp.w('l1', 'g1', 'showcaller_save_cue', format($$%L, '{"duration_seconds": 90000}', %L$$, pg_temp.id('q3'),
   (select updated_at from app.cues where id = pg_temp.id('q3')))) ->> 'reason', 'showcaller_cue_field', 'and so is a bad value');
 select is(pg_temp.w('l1', 'g1', 'showcaller_save_cue', format($$%L, '{"planned_at": "not a time"}', %L$$, pg_temp.id('q3'),
@@ -250,6 +252,31 @@ select app.call_cue(pg_temp.id('q2'));
 select pg_temp.as_platform();
 select results_eq(format('select called_by = %L, called_via_link_id is null from app.cues where id = %L', pg_temp.id('dave'), pg_temp.id('q2')),
   $$values (true, true)$$, 'a signed-in call still names the person');
+
+-- The per-cue flags the portal needs: called through a link, and an artist's set time ---------------------------------------------
+insert into k values ('read2', null, pg_temp.run('l1', 'g1')::text);
+create function pg_temp.cue_of(p_label text) returns jsonb
+language sql as $$
+  select e from jsonb_array_elements((pg_temp.val('read2')::jsonb) -> 'cues') e where e ->> 'label' = p_label
+$$;
+select results_eq($$select (pg_temp.cue_of('House to Half') ->> 'called_via_link')::boolean, (pg_temp.cue_of('Host Welcome') ->> 'called_via_link')::boolean,
+    (pg_temp.cue_of('Host Welcome') ->> 'called')::boolean$$,
+  $$values (true, false, true)$$, 'a cue says whether it was called through a link, not by a member');
+select results_eq($$select (pg_temp.cue_of('Headliner On') ->> 'set_time')::boolean, (pg_temp.cue_of('Award One (Gold)') ->> 'set_time')::boolean$$,
+  $$values (true, false)$$, 'and whether it is an artist''s set time, so the portal disables Remove');
+select ok(strpos(pg_temp.val('read2'), pg_temp.k('l1')::text) = 0, 'never which link called it');
+select ok(strpos(pg_temp.val('read2'), pg_temp.id('dave')::text) = 0 and strpos(pg_temp.val('read2'), 'Lindqvist') = 0,
+  'nor any person''s id or name, a member''s call included');
+
+-- Reclassifying any column the portal shows stops it --------------------------------------------------------------------------------
+insert into private.column_classifications (table_name, column_name, classification) values ('app.custom_field_values', 'value_text', 'Confidential');
+select is(pg_temp.run('l1', 'g1') ->> 'reason', 'showcaller_link_reclassified', 'a custom value classified above Internal stops the portal');
+select is(pg_temp.w('l1', 'g1', 'showcaller_standby_cue', 'null') ->> 'reason', 'showcaller_link_reclassified', 'its writes too');
+delete from private.column_classifications where table_name = 'app.custom_field_values' and column_name = 'value_text';
+insert into private.column_classifications (table_name, column_name, classification) values ('app.cues', 'script', 'Confidential');
+select is(pg_temp.run('l1', 'g1') ->> 'reason', 'showcaller_link_reclassified', 'as does a cue column');
+delete from private.column_classifications where table_name = 'app.cues' and column_name = 'script';
+select is(pg_temp.run('l1', 'g1') ->> 'status', 'ok', 'and the portal reads again once the classification is back');
 
 -- Scope: nothing outside R1 -------------------------------------------------------------------------------------------------------
 select is(pg_temp.open('l1', pg_temp.val('l1:code'), 'g2'), 'ok', 'a second device');
@@ -356,9 +383,12 @@ select is(pg_temp.w('l4', 'g4', 'showcaller_call_cue', quote_literal(pg_temp.id(
 select is(pg_temp.w('l4', 'g4', 'showcaller_save_cue', $$null, '{"label": "Late add"}'$$) ->> 'reason', 'org_read_only', 'adding too');
 select is(pg_temp.snapshot(), pg_temp.val('before3'), 'and nothing was written');
 
--- The running order is deleted ---------------------------------------------------------------------------------------------------
+-- The running order or its project is trashed -----------------------------------------------------------------------------------
 update app.run_of_show set deleted_at = now() where id = pg_temp.id('r2');
-select is(pg_temp.run('l2', 'g_l2') ->> 'reason', 'showcaller_link_run_removed', 'a deleted running order reads nothing');
+select is(pg_temp.run('l2', 'g_l2') ->> 'reason', 'showcaller_link_invalid', 'trashing a running order revokes its link, so the portal reads nothing');
+select is(pg_temp.open('l5', pg_temp.val('l5:code'), 'g5'), 'ok', 'a link to the gala opens');
+update app.projects set deleted_at = now() where id = pg_temp.id('prj_a2');
+select is(pg_temp.run('l5', 'g5') ->> 'reason', 'showcaller_link_run_removed', 'and while its project is in Trash, the portal reads nothing');
 
 select * from finish();
 rollback;

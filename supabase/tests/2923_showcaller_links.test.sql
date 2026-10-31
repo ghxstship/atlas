@@ -1,9 +1,10 @@
 -- pgTAP: migration 2923, B3 (RRR-227, ADR 0142). Showcaller links: only a member holding show.run_of_show.write and
 -- show.cue.call makes one, with a caller name, an expiry within 14 days and at most 5 per running order; tokens and codes
 -- are stored only as hashes the signed-in roles cannot select; rows change only through the RPCs; regenerating and
--- revoking retire the token and drop the grants; a read-only org makes and regenerates none but still revokes; a cue
--- called through a link names the link and no person, and the link is never sent or changed by a caller; links stay out
--- of Trash and keep the default retention.
+-- revoking retire the token and drop the grants, and regenerating needs both capabilities; trashing the running order
+-- revokes its links and restoring it never brings them back; a read-only org makes and regenerates none but still
+-- revokes; a cue called through a link names the link and no person, and the link is never sent or changed by a caller;
+-- links stay out of Trash and keep the default retention.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -163,6 +164,10 @@ select pg_temp.as_platform();
 select is((select link_state from app.showcaller_link_states where id = pg_temp.k('l2')), 'Revoked', 'the link reads Revoked');
 select is(pg_temp.try('dave', format('select * from app.regenerate_showcaller_link(%L)', pg_temp.k('l2'))), 'showcaller_link_revoked',
   'a revoked link stays revoked');
+select is(pg_temp.try('mia', format('select * from app.regenerate_showcaller_link(%L)', pg_temp.k('l4'))), 'showcaller_link_capability',
+  'an editor who may not call cues cannot regenerate a colleague''s link into a working token');
+select is(pg_temp.try('mia', format('select app.revoke_showcaller_link(%L)', pg_temp.k('l5'))), 'ok',
+  'though she may still revoke it');
 
 -- Cues called through a link -------------------------------------------------------------------------------------------------
 select has_column('app', 'cues', 'called_via_link_id', 'a cue records the showcaller link it was called through');
@@ -191,12 +196,75 @@ select throws_ok(format('update app.cues set called_via_link_id = null where id 
   'and a called cue names one of them');
 alter table app.cues enable trigger t40_guard_cue;
 
+-- Trashing a running order ends outside access ---------------------------------------------------------------------------------
+select pg_temp.as_user('dave');
+insert into app.cues (run_of_show_id, position, label, segment) values (pg_temp.id('ros2'), 1, 'Doors', 'Doors');
+insert into world select 'q_doors', c.id from app.cues c where c.run_of_show_id = pg_temp.id('ros2') and c.label = 'Doors';
+select app.set_segment_color(pg_temp.id('ros2'), 'Doors', 'cat-3');
+select pg_temp.as_platform();
+insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, expires_at)
+values (private.share_token_hash('xcgr_' || repeat('c', 64)), pg_temp.k('l6'), now() + interval '1 hour');
+select pg_temp.as_user('dave');
+update app.run_of_show set deleted_at = now() where id = pg_temp.id('ros2');
+select pg_temp.as_platform();
+select results_eq(format('select revoked_at is not null, revoked_by = %L from app.showcaller_links where id = %L', pg_temp.id('dave'), pg_temp.k('l6')),
+  $$values (true, true)$$, 'trashing a running order revokes its live links, naming who trashed it');
+select is((select link_state from app.showcaller_link_states where id = pg_temp.k('l6')), 'Revoked', 'the link reads Revoked');
+select is((select count(*)::int from private.showcaller_link_grants where showcaller_link_id = pg_temp.k('l6')), 0, 'with no device grant left');
+select ok(exists (select 1 from private.retired_showcaller_link_tokens where token_hash = private.share_token_hash(pg_temp.val('l6'))),
+  'and its token retired');
+select ok(exists (select 1 from app.domain_events where event_type = 'showcaller_link.revoked' and subject_id = pg_temp.k('l6')
+  and data ->> 'reason' = 'run_removed' and data ->> 'actor_person_id' = pg_temp.id('dave')::text), 'the revocation is an event with the reason');
+select ok(exists (select 1 from app.audit_events where subject_id = pg_temp.k('l6') and actor_person_id = pg_temp.id('dave')
+  and diff -> 'new' ? 'revoked_at'), 'and the audit trail names the actor');
+select pg_temp.as_anon();
+select is(api_public.showcaller_run(pg_temp.val('l6'), 'xcgr_' || repeat('c', 64), null) ->> 'reason', 'showcaller_link_invalid',
+  'the portal answers that the link is gone');
+select pg_temp.as_platform();
+
+-- An API key or the system trashes with no person: the link is still revoked, with no one named.
+select pg_temp.as_user('dave');
+with x as (insert into app.run_of_show (project_id, name, show_date) values (pg_temp.id('prj_a'), 'Third Night', current_date + 7) returning id)
+  insert into world select 'ros3', id from x;
+select pg_temp.as_platform();
+select is(pg_temp.link('dave', 'l7', 'ros3'), 'ok', 'a link to a third night');
+update app.run_of_show set deleted_at = now() where id = pg_temp.id('ros3');
+select results_eq(format('select revoked_at is not null, revoked_by is null from app.showcaller_links where id = %L', pg_temp.k('l7')),
+  $$values (true, true)$$, 'trashed by the system, the link is revoked with no person');
+select ok(exists (select 1 from app.audit_events where subject_id = pg_temp.k('l7') and actor_kind = 'System' and diff -> 'new' ? 'revoked_at'),
+  'and the audit trail says the system did it');
+
+-- Restoring the running order brings back its cues and segment colors, never a link. The walk of app.restore_trash_item
+-- skips tables the caller cannot update only from train 1's 2131 on; before it, restoring any running order fails.
+select ok(not has_table_privilege('authenticated', 'app.showcaller_links', 'update')
+  and not has_column_privilege('authenticated', 'app.showcaller_links', 'deleted_at', 'update'),
+  'signed-in callers cannot update a link, so the restore walk never touches one');
+create function pg_temp.restore_case() returns setof text
+language plpgsql as $$
+begin
+  if pg_get_functiondef('app.restore_trash_item(text, uuid)'::regprocedure) !~ 'has_(column|table)_privilege' then
+    return next skip('restoring a running order needs 2131 (train 1), whose walk skips tables the caller cannot update', 5);
+    return;
+  end if;
+  perform pg_temp.as_user('dave');
+  perform app.restore_trash_item('run_of_show', pg_temp.id('ros2'));
+  perform pg_temp.as_platform();
+  return next ok((select deleted_at is null from app.run_of_show where id = pg_temp.id('ros2')), 'the running order is restored');
+  return next ok((select deleted_at is null from app.cues where id = pg_temp.id('q_doors')), 'with its cues live');
+  return next is((select color_key from app.run_segment_colors where run_of_show_id = pg_temp.id('ros2') and deleted_at is null), 'cat-3',
+    'and its segment colors');
+  return next is((select link_state from app.showcaller_link_states where id = pg_temp.k('l6')), 'Revoked', 'but its link stays revoked');
+  return next is((select count(*)::int from private.showcaller_link_grants where showcaller_link_id = pg_temp.k('l6')), 0,
+    'with no device grant');
+end $$;
+select * from pg_temp.restore_case();
+
 -- A read-only org: nothing new, but revocation still works -------------------------------------------------------------------
 select ok(exists (select 1 from private.read_only_exempt_tables where table_name = 'app.showcaller_links'), 'revocation is exempt from the read-only guard');
 select pg_temp.as_user('alice');
 select app.cancel_organization(pg_temp.id('org_a'), 'Northwind Live', 'Season over; moving to another tool.');
 select pg_temp.as_platform();
-select is(pg_temp.link('dave', 'x', 'ros2'), 'org_read_only', 'a read-only org makes no new link');
+select is(pg_temp.link('dave', 'x', 'ros'), 'org_read_only', 'a read-only org makes no new link');
 select is(pg_temp.try('dave', format('select * from app.regenerate_showcaller_link(%L)', pg_temp.k('l3'))), 'org_read_only', 'nor regenerates one');
 select is(pg_temp.try('dave', format('select app.revoke_showcaller_link(%L)', pg_temp.k('l3'))), 'ok', 'but revoking still withdraws access');
 

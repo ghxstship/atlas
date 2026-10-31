@@ -1,8 +1,8 @@
 -- pgTAP: migration 2925, B3 (RRR-227, ADR 0142). Showcaller link channels: api_public.showcaller_channel_open is true only
 -- for the xcall: channel of a link that is not revoked, deleted or expired, and follows regeneration; the anon channel
 -- rule is registered for anon and has no send rule; the ping triggers are in place on running orders, cues, department
--- calls, segment colours and custom field values; and a write pings the link's channel with an empty message, or goes on
--- without one where Realtime cannot store it.
+-- calls, segment colors and custom field values; a write pings the link's channel with an empty message, or goes on
+-- without one where Realtime cannot store it; and a link that expired, though never revoked, is pinged no more.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -28,8 +28,13 @@ with x as (insert into app.run_of_show (project_id, name, show_date) values (pg_
   insert into world select 'ros2', id from x;
 insert into app.cues (run_of_show_id, position, label) values (pg_temp.id('ros'), 1, 'House to Half'), (pg_temp.id('ros2'), 1, 'Doors');
 insert into k select 's', l.showcaller_link_id, l.token from app.create_showcaller_link(pg_temp.id('ros'), 'Sam Okafor') l;
+insert into k select 'e', l.showcaller_link_id, l.token from app.create_showcaller_link(pg_temp.id('ros2'), 'Lee Park') l;
 select pg_temp.as_platform();
-insert into k values ('s:topic', null, pg_temp.topic('s'));
+insert into k values ('s:topic', null, pg_temp.topic('s')), ('e:topic', null, pg_temp.topic('e'));
+-- The second night's only link has expired; expiry never revokes a link.
+select private.begin_trusted_operation('showcaller_link_service');
+update app.showcaller_links set expires_at = now() - interval '1 minute' where id = (select id from k where key = 'e');
+select private.end_trusted_operation('showcaller_link_service');
 
 -- The channel lifecycle -------------------------------------------------------------------------------------------------------
 select pg_temp.as_anon();
@@ -65,8 +70,9 @@ select is((select count(*)::int from pg_policy p where p.polrelid = 'realtime.me
 select is((select count(*)::int from pg_trigger t join pg_class c on c.oid = t.tgrelid join pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'app' and t.tgname like 't96_showcaller_link_ping_%'
     and c.relname in ('run_of_show', 'cues', 'cue_calls', 'run_segment_colors', 'custom_field_values')), 15,
-  'running orders, cues, department calls, segment colours and custom field values each have insert, update and delete ping triggers');
+  'running orders, cues, department calls, segment colors and custom field values each have insert, update and delete ping triggers');
 select has_trigger('app', 'showcaller_links', 't96_showcaller_link_ping_update', 'a revoked or regenerated link pings its portal');
+select has_index('app', 'showcaller_links', 'showcaller_links_live_expiry_idx', 'the probe for an unexpired live link has its index');
 
 -- Pings ------------------------------------------------------------------------------------------------------------------------------
 create function pg_temp.pings(p_topic text) returns integer
@@ -81,7 +87,7 @@ begin
       and localtimestamp >= substring(pg_get_expr(c.relpartbound, c.oid) from $re$FROM \('([^']+)'\)$re$)::timestamp
       and localtimestamp < substring(pg_get_expr(c.relpartbound, c.oid) from $re$TO \('([^']+)'\)$re$)::timestamp
   ) then
-    return next skip('Realtime has made no partition of realtime.messages for today on this database', 4);
+    return next skip('Realtime has made no partition of realtime.messages for today on this database', 5);
     return;
   end if;
   delete from realtime.messages where topic like 'xcall:%';
@@ -100,6 +106,11 @@ begin
   perform app.revoke_showcaller_link((select id from k where key = 's'));
   perform pg_temp.as_platform();
   return next is(pg_temp.pings(pg_temp.val('s:topic2')), 1, 'revoking pings the portal, which rereads and shows it is gone');
+  -- Now no link is live anywhere: the second night's is expired, though not revoked.
+  perform pg_temp.as_user('dave');
+  update app.cues set label = 'Doors (later)' where run_of_show_id = pg_temp.id('ros2');
+  perform pg_temp.as_platform();
+  return next is(pg_temp.pings(pg_temp.val('e:topic')), 0, 'a running order whose only link has expired sends no ping');
 end $$;
 
 select * from pg_temp.pings_applied();

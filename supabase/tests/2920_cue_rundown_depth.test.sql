@@ -1,7 +1,7 @@
 -- pgTAP: migration 2920, B3 (RRR-227, ADR 0142). Rundown depth: cues are a custom field target with A117's guards, a
--- cue value takes show.run_of_show.write, choices carry an optional colour, every cue field starts with the Crew
+-- cue value takes show.run_of_show.write, choices carry an optional color, every cue field starts with the Crew
 -- audience, Showcaller and Client never take a Person, Money or Email field nor a field of another table, a Client reads
--- the Client-audience values of their project's cues and nobody else does, the script column, and segment colours set
+-- the Client-audience values of their project's cues and nobody else does, the script column, and segment colors set
 -- and cleared in one statement. Neither new table enters Trash, and both have retention.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -92,7 +92,7 @@ select pg_temp.move_engagement('eng_client_a', 'Onboarding', 'Active');
 select pg_temp.move_engagement('eng_art_a', 'Onboarding', 'Active');
 select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
 
--- Fields, audiences and colours --------------------------------------------------------------------------------------------------
+-- Fields, audiences and colors --------------------------------------------------------------------------------------------------
 select pg_temp.field('camera', 'Choice');
 select pg_temp.field('mic_note', 'Text');
 select pg_temp.field('host', 'Person');
@@ -106,13 +106,13 @@ select is((select count(*)::int from app.cue_field_audiences where custom_field_
   'a field of another table gets no audience');
 
 select is(pg_temp.try('alice', format($$insert into app.custom_field_choices (custom_field_definition_id, choice_key, label, sort_order, color_key)
-  values (%L, 'wide', 'Wide', 1, 'cat-3')$$, pg_temp.k('camera'))), 'ok', 'a choice takes a colour from the palette');
+  values (%L, 'wide', 'Wide', 1, 'cat-3')$$, pg_temp.k('camera'))), 'ok', 'a choice takes a color from the palette');
 select is(pg_temp.try('alice', format($$insert into app.custom_field_choices (custom_field_definition_id, choice_key, label, sort_order, color_key)
   values (%L, 'tight', 'Tight', 2, 'cat-8')$$, pg_temp.k('camera'))), '23514', 'and nothing outside cat-1 to cat-7');
 select is(pg_temp.try('alice', format($$insert into app.custom_field_choices (custom_field_definition_id, choice_key, label, sort_order, color_key)
-  values (%L, 'tight', 'Tight', 2, '#ff0000')$$, pg_temp.k('camera'))), '23514', 'nor a raw colour');
+  values (%L, 'tight', 'Tight', 2, '#ff0000')$$, pg_temp.k('camera'))), '23514', 'nor a raw color');
 select is(pg_temp.try('alice', format($$insert into app.custom_field_choices (custom_field_definition_id, choice_key, label, sort_order)
-  values (%L, 'tight', 'Tight', 2)$$, pg_temp.k('camera'))), 'ok', 'and no colour is fine');
+  values (%L, 'tight', 'Tight', 2)$$, pg_temp.k('camera'))), 'ok', 'and no color is fine');
 insert into k select 'choice:' || choice_key, id, null from app.custom_field_choices where custom_field_definition_id = pg_temp.k('camera');
 
 select is(pg_temp.try('alice', format($$insert into app.cue_field_audiences (custom_field_definition_id, audience) values (%L, 'Showcaller')$$,
@@ -154,7 +154,7 @@ select is(pg_temp.n('xavier', format($$select 1 from app.custom_field_values whe
 -- The Client's view -----------------------------------------------------------------------------------------------------------
 select has_view('api_external', 'cue_field_values', 'Gateway reads Client cue fields through api_external.cue_field_values');
 select is(pg_temp.n('cleo', format($$select 1 from api_external.cue_field_values where cue_id = %L and field_key = 'camera'
-  and choice_label = 'Wide' and choice_color_key = 'cat-3'$$, pg_temp.id('q1'))), 1, 'a Client reads a Client-audience value with its colour');
+  and choice_label = 'Wide' and choice_color_key = 'cat-3'$$, pg_temp.id('q1'))), 1, 'a Client reads a Client-audience value with its color');
 select is(pg_temp.n('cleo', format($$select 1 from api_external.cue_field_values where cue_id = %L and field_key = 'mic_note'$$, pg_temp.id('q1'))), 0,
   'never a Crew-only field');
 select is(pg_temp.n('art', $$select 1 from api_external.cue_field_values$$), 0, 'an artist reads none');
@@ -178,26 +178,26 @@ select is(pg_temp.try('dave', format($$update app.cues set script = %L where id 
   'a script holds 20,000 characters');
 select is(pg_temp.try('dave', format($$update app.cues set script = %L where id = %L$$, repeat('a', 20001), pg_temp.id('q2'))), '23514',
   'and no more');
-select hasnt_column('app', 'cues', 'segment_color', 'a segment''s colour is not copied onto its cues');
+select hasnt_column('app', 'cues', 'segment_color', 'a segment''s color is not copied onto its cues');
 
--- Segment colours -------------------------------------------------------------------------------------------------------------------
-select is(pg_temp.try('dave', format($$select app.set_segment_color(%L, '  Act I ', 'cat-2')$$, pg_temp.id('ros'))), 'ok', 'an editor colours a segment');
+-- Segment colors -------------------------------------------------------------------------------------------------------------------
+select is(pg_temp.try('dave', format($$select app.set_segment_color(%L, '  Act I ', 'cat-2')$$, pg_temp.id('ros'))), 'ok', 'an editor colors a segment');
 select is((select count(*)::int from app.run_segment_colors where run_of_show_id = pg_temp.id('ros') and deleted_at is null), 1,
   'in one row for the segment');
 select is((select count(*)::int from app.cues c join app.run_segment_colors s on s.run_of_show_id = c.run_of_show_id
   and lower(btrim(s.segment)) = lower(btrim(c.segment)) and s.deleted_at is null and s.color_key = 'cat-2'
   where c.run_of_show_id = pg_temp.id('ros') and c.deleted_at is null), 2, 'which every cue of the segment shows, ignoring case and spaces');
-select is(pg_temp.try('dave', format($$select app.set_segment_color(%L, 'Act I', 'cat-5')$$, pg_temp.id('ros'))), 'ok', 'colouring it again');
+select is(pg_temp.try('dave', format($$select app.set_segment_color(%L, 'Act I', 'cat-5')$$, pg_temp.id('ros'))), 'ok', 'coloring it again');
 select is((select array_agg(color_key) from app.run_segment_colors where run_of_show_id = pg_temp.id('ros') and deleted_at is null),
   array['cat-5'], 'changes the one row');
-select is(pg_temp.try('dave', format($$select app.set_segment_color(%L, 'Act I', null)$$, pg_temp.id('ros'))), 'ok', 'a NULL colour');
+select is(pg_temp.try('dave', format($$select app.set_segment_color(%L, 'Act I', null)$$, pg_temp.id('ros'))), 'ok', 'a NULL color');
 select is((select count(*)::int from app.run_segment_colors where run_of_show_id = pg_temp.id('ros') and deleted_at is null), 0, 'clears it');
 select is(pg_temp.try('dave', format($$select app.set_segment_color(%L, 'Act I', 'red')$$, pg_temp.id('ros'))), 'segment_color_key',
-  'only the seven colours are accepted');
+  'only the seven colors are accepted');
 select is(pg_temp.try('dave', format($$select app.set_segment_color(%L, '  ', 'cat-1')$$, pg_temp.id('ros'))), 'segment_color_segment',
   'a blank segment is refused');
 select is(pg_temp.try('mia', format($$select app.set_segment_color(%L, 'Act II', 'cat-1')$$, pg_temp.id('ros'))), '42501',
-  'a reader cannot colour a segment');
+  'a reader cannot color a segment');
 select is(pg_temp.try('xavier', format($$select app.set_segment_color(%L, 'Act II', 'cat-1')$$, pg_temp.id('ros'))), '42501',
   'nor another org');
 

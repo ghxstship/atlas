@@ -6,7 +6,7 @@
   (RRR-227), fast-forwarded on 2026-10-30
 - Migrations: `2920_cue_rundown_depth.sql`, `2921_segment_library.sql`, `2922_show_channels.sql`,
   `2923_showcaller_links.sql`, `2924_showcaller_link_access.sql`, `2925_showcaller_link_channels.sql`
-- Gaps closed: G-73 (user-defined cue columns with per-audience visibility, a script field, segment colours and a
+- Gaps closed: G-73 (user-defined cue columns with per-audience visibility, a script field, segment colors and a
   library of reusable segments), G-79 (show chat beside the running cue, with clients excluded) and G-80 (a
   showcaller portal with an access code per stage that edits the rundown live, cues departments and runs the clock)
 
@@ -15,7 +15,7 @@
 P2 (ADR 0131) gave the running order TBC times, standby, one-step moves, nudges, department calls and a showcaller
 console; P1 (ADR 0130) gave no-account read links and display screens; P3 imports rundowns. The parity audit found
 three things production tools still do that XOS did not: Rundown Studio and Shoflo let a producer add their own
-columns, colour-coded, and decide who sees each; LASSO's Global Elements Manager keeps reusable segments and pushes
+columns, color-coded, and decide who sees each; LASSO's Global Elements Manager keeps reusable segments and pushes
 changes to the shows that use them; ProductionOS puts a crew chat beside the running cue and lets an outside
 showcaller run a stage with a password and no account.
 
@@ -48,6 +48,17 @@ one `showcaller_link.write` audit event with the link, the operation and the cue
 
 The creator still answers for the link: every read and write checks, as the creator with the claims switched and
 restored, that they are a member of the org holding `show.run_of_show.write` and `show.cue.call` on the project.
+Regenerating a link hands out a token and code that work at once, so it needs what making one needs: membership and
+both capabilities, for the creator too (`showcaller_link_capability`). Otherwise a member who edits the running order
+but may not call cues could regenerate a colleague's link and call through it. Revoking and signing devices out stay
+open to the creator and to any member holding `show.run_of_show.write`, since they only withdraw access.
+
+Trashing a running order ends outside access: a trigger on `app.run_of_show` revokes its live links, retires their
+tokens, drops their device grants, pings their portals and records `showcaller_link.revoked` with the reason
+`run_removed`. Restoring the running order from Trash brings back its cues and segment colors, never a link: a
+revoked link stays revoked, and `authenticated` has no UPDATE on `app.showcaller_links`, so the restore walk never
+touches it. An API key or the system can trash a running order with no person, so a revoked link's `revoked_by` may be
+null; the audit trail names the actor. The portal also stops while the link's project is in Trash.
 
 ### 4. The P2 writes become private cores
 
@@ -93,11 +104,11 @@ Client (Gateway). Crew is presentation only: members read every value their acce
 enforced by `api_public.showcaller_run` and Client by `api_external.cue_field_values`. Neither outside audience takes
 a Person, Money or Email field. Every new cue field starts with Crew.
 
-### 8. Colours are the themed categorical tokens
+### 8. Colors are the themed categorical tokens
 
 A custom field choice and a segment take one of `cat-1` to `cat-7`, the `color.viz.cat-*` tokens in light, dark and
-sunlight. The label always shows beside the colour, so colour is never the only signal; a `Tag` swatch keeps its
-border in forced colors. A segment's colour is one fact stored once, in `app.run_segment_colors`, keyed by the
+sunlight. The label always shows beside the color, so color is never the only signal; a `Tag` swatch keeps its
+border in forced colors. A segment's color is one fact stored once, in `app.run_segment_colors`, keyed by the
 segment's name in the running order: a cue added to the segment shows it, and a renamed segment has none until one
 is set.
 
@@ -111,18 +122,19 @@ so. Copies with a called cue (Called) or a set time (Linked) are left untouched;
 without one, answers No Instance, so publishing never brings back what a member removed. The version is the
 database's counter.
 
-### 10. Clients are kept out of the show channel at three doors
+### 10. Clients are kept out of the show channel at four doors
 
 A show channel is a Project group marked `show_channel`, at most one live per project, made only by
-`app.open_show_channel`. Add: nobody engaged as Client on the project is added. Read:
-`private.my_conversation_ids` drops the channel for a person who reaches the project as Client, so a member who
-becomes one reads nothing more, and `app.my_conversations` stays within it. Notify: `app.send_chat_message` notifies
-no Client-engaged member.
+`app.open_show_channel`. Add: nobody engaged as Client on the project is added, and the channel is seeded only with
+the project's members who could join it (readers of the running order). Read: `private.my_conversation_ids` drops the
+channel for a person who reaches the project as Client, so a member who becomes one reads nothing more, and
+`app.my_conversations` stays within it. Notify: `app.send_chat_message` notifies no Client-engaged member. Audience:
+`private.assert_audience` refuses a show channel as a Group audience (`show_channel_audience`), so no feed post,
+announcement, survey or event is ever addressed to it.
 
 What the exclusion leaves: `private.my_group_ids` (0800) is unchanged, so a member who joined the channel and became a
-Client afterwards still sees the group's row, its member list and any post or survey addressed to the group (the
-Group audience of `private.in_audience`, 1365). The messages, their previews, the unread count and the notifications
-are what the channel holds, and those stay closed. A member who is a Client when the channel opens, or when they try
+Client afterwards still sees the group's row and its member list. The messages, their previews, the unread count and
+the notifications are what the channel holds, and those stay closed. A member who is a Client when the channel opens, or when they try
 to join, is never in the group at all. Narrowing `private.my_group_ids` as well would touch every group policy and
 audience check of the org for a case an Owner resolves by removing the member from the group.
 
@@ -138,7 +150,8 @@ console while a list's J and K move the list.
 - Messaging from the portal: `app.chat_messages.author_membership_id` is NOT NULL, and an outside showcaller has no
   membership. This gives up the "message crew" part of ProductionOS's portal (owner step).
 - Compass: it launches on REST sync (decision 51) and needs nothing here.
-- The run-of-show PDF: template v2 stays as P2 shipped it.
+- The run-of-show PDF changes in one cell only: a cue called through a link prints "{caller} (showcaller link)"
+  where it printed nobody. The external PDF keeps the caller out, as before.
 - Custom fields on P1's display screens and view links; their allowlists are unchanged.
 - Importing the new cue columns: P3's worker and edge bundle are unchanged.
 
@@ -147,13 +160,14 @@ console while a list's J and K move the list.
 Additive v1 operations: `showcallerLinks` (list, get, create, regenerate, revoke, signOutDevices),
 `segmentLibrary` (CRUD, insertIntoRun, publish), `segmentLibraryCues`, `segmentLibraryCueCalls`,
 `runSegmentInstances` (list, get), `cueFieldAudiences` (list, create, delete) and the Workforce groups actions
-`openShowChannel`, `joinShowChannel` and `showChannelStatus`. The portal's open, read and writes stay token RPCs, not
+`openShowChannel`, `joinShowChannel` and `showChannelStatus`. `openShowChannel` takes an optional `name_prefix` and
+`description`, so Atlas names the channel in the opener's language; a caller who sends neither gets the en-US text. The portal's open, read and writes stay token RPCs, not
 API operations, as ADR 0130 decision 9 keeps P1's. No new capability codes.
 
 ## Consequences
 
 - An outside showcaller can run a show from any browser with a link and a code, and every write is attributed to
   the link and audited.
-- Producers define rundown columns and colours once, per audience, and keep reusable segments in step across shows.
+- Producers define rundown columns and colors once, per audience, and keep reusable segments in step across shows.
 - The crew talks beside the running cue without a Client reading along.
 - The release that carries B3 waits for the owner to accept this ADR and the threat-model rows.
