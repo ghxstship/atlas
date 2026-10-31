@@ -1,6 +1,7 @@
 "use server";
 
-import { listMyAccounts } from "@xos/data/gateway";
+import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
+import { GATEWAY_LENS_SCOPE, ROLE_LENS_COOKIE, roleLensCookie } from "@xos/data/role-lens";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
@@ -8,6 +9,7 @@ import { env } from "@/lib/env";
 import { preferenceOptions } from "@/lib/privacy/consent";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { THEME_COOKIE, THEME_PREFERENCES } from "@/lib/theme";
+import { lensSlug, resolveGatewayLens } from "./role-lens";
 import { ACTING_COOKIE } from "./standing";
 
 /**
@@ -61,4 +63,27 @@ export async function setActing(accountId: string): Promise<void> {
   if (!accounts.ok) throw new Error(`Accounts could not be read: ${accounts.error.kind}`);
   if (!accounts.data.some((a) => a.id === id)) throw new Error("Not an account of this person.");
   await setPreference(ACTING_COOKIE, id);
+}
+
+/**
+ * The role lens (A128, ADR 0107): All roles (`all`), or one role type of the person's engagements, for the browser
+ * session (a cookie with no expiry). It only narrows what Gateway shows; a role type the person does not hold is
+ * refused.
+ */
+export async function setRoleLens(roleType: string): Promise<void> {
+  const store = await cookies();
+  if (roleType === "all") {
+    store.delete(ROLE_LENS_COOKIE);
+    return;
+  }
+  const types = await listMyEngagementRoleTypes(await createServerSupabase());
+  if (!types.ok) throw new Error(`Role types could not be read: ${types.error.kind}`);
+  const lens = resolveGatewayLens(types.data, roleLensCookie(GATEWAY_LENS_SCOPE, roleType));
+  if (lens.roleType === null) throw new Error("Not a role of this person.");
+  store.set(ROLE_LENS_COOKIE, roleLensCookie(GATEWAY_LENS_SCOPE, lensSlug(lens.roleType)), {
+    path: "/",
+    sameSite: "lax",
+    httpOnly: true,
+    secure: env().GATEWAY_SITE_URL.startsWith("https:"),
+  });
 }

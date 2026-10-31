@@ -1091,6 +1091,12 @@
     "betaLocale": "{language} (beta)",
     "mainNav": "Principal"
   },
+  "roleLens": {
+    "label": "Rol",
+    "all": "Todos los roles",
+    "summary": "Rol: {role}. Cambiar de rol",
+    "hint": "Limita la navegación, Inicio, Mi trabajo y la Bandeja de entrada a uno de tus roles. Tu acceso no cambia."
+  },
   "settings": {
     "sections": "Secciones de ajustes",
     "save": "Guardar",

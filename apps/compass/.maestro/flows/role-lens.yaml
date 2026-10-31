@@ -1,0 +1,71 @@
+appId: pro.ghxstship.compass
+# The role lens in the org switcher (Section 4.8.1, A128, ADR 0107). Seed 1080_a38 makes Demo Multi-Role
+# (multi@example.com) a Producer (Manager) and a Member of Demo Productions; seed 2210_a128 gives them a timesheet
+# approval request, which only the Manager role brings, and a mention, which is addressed to them. Choosing the
+# Member role hides the approval request from the Inbox and keeps the mention; All roles brings it back.
+# Named after its file: config.yaml orders flows by name.
+name: role-lens
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: multi@example.com
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar"
+    timeout: 60000
+- tapOn:
+    id: "tab-today"
+- scrollUntilVisible:
+    element:
+      id: "org-switcher"
+    direction: UP
+    timeout: 20000
+# Demo Productions first: the person is a member of four orgs, two of them through engagements.
+- tapOn:
+    id: "org-switcher"
+- tapOn: ".*Demo Productions.*Member.*"
+- extendedWaitUntil:
+    visible: "Organization: Demo Productions. Change organization"
+    timeout: 15000
+# Under All roles the Inbox lists both items.
+- tapOn:
+    id: "tab-inbox"
+- extendedWaitUntil:
+    visible: "Timesheet for Demo Road Crew"
+    timeout: 30000
+- assertVisible: "Load-in plan"
+# The switcher offers All roles and the person's two roles; choose Member.
+- tapOn:
+    id: "tab-today"
+- tapOn:
+    id: "org-switcher"
+- assertVisible:
+    id: "role-lens-all"
+- tapOn: "Member"
+- extendedWaitUntil:
+    visible:
+      id: "role-lens-current"
+    timeout: 15000
+- tapOn:
+    id: "tab-inbox"
+- extendedWaitUntil:
+    visible: "Load-in plan"
+    timeout: 30000
+- assertNotVisible: "Timesheet for Demo Road Crew"
+# All roles restores it.
+- tapOn:
+    id: "tab-today"
+- tapOn:
+    id: "org-switcher"
+- tapOn:
+    id: "role-lens-all"
+- assertNotVisible:
+    id: "role-lens-current"
+- tapOn:
+    id: "tab-inbox"
+- extendedWaitUntil:
+    visible: "Timesheet for Demo Road Crew"
+    timeout: 30000
+- runFlow:
+    file: ../subflows/sign-out.yaml

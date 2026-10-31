@@ -1633,6 +1633,12 @@
       "body": "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
       "all": "All organizations",
       "empty": "You do not work with any organization yet. Explore opportunities to start."
+    },
+    "roleLens": {
+      "title": "Role",
+      "hint": "Narrow Home, Work and navigation to one of your roles. Your access does not change.",
+      "all": "All roles",
+      "failed": "That role could not be chosen. Reload the page and try again."
     }
   },
   "system": {

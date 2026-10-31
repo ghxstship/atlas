@@ -16,6 +16,7 @@ import {
 import type { ThemePreference } from "@xos/ui-native/theme";
 import { touchMySession } from "@xos/data/account-security";
 import type { XosClient } from "@xos/data/client";
+import type { InboxLens } from "@xos/data/role-lens";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -36,6 +37,7 @@ import {
   activateOrg,
   cachedContexts,
   IdentityError,
+  internalAudience,
   isServerUnreachable,
   projectOrgs,
   replayOrgOf,
@@ -53,6 +55,13 @@ import {
   type OrgBrand,
 } from "../domain/brand";
 import { inOrg, personTimeZone } from "../domain/orgs";
+import {
+  activeLens,
+  lensIdentity,
+  lensInbox,
+  lensOptions,
+  type LensOption,
+} from "../domain/roleLens";
 import { readDefaultOrg } from "../settings/organizations";
 import { compassUserAgent } from "../settings/security";
 import {
@@ -136,6 +145,18 @@ export interface CompassContextValue {
    * and settings drive every screen; the combined Today still lists every org.
    */
   readonly setOrgId: (orgId: string) => void;
+  /**
+   * The role lens of the active org (A128, Section 4.8.1): the roles the switcher offers (none for a person with
+   * fewer than two), the one chosen (null for All roles) and, for a member, what the Inbox keeps under it.
+   * `resolved.identity` already follows it.
+   */
+  readonly lens: {
+    readonly options: readonly LensOption[];
+    readonly current: string | null;
+    readonly inbox: InboxLens | null;
+  };
+  /** Chooses the active org's lens for this app session; null returns to All roles. */
+  readonly setLens: (lens: string | null) => void;
   /** Brands of the person's orgs by org id (app.my_org_brands), kept for offline use. */
   readonly brands: ReadonlyMap<string, OrgBrand>;
   /** The person's own time zone, the calendar of items with no project (A71). */
@@ -252,6 +273,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [session, setSession] = useState<Session | null>(null);
   const [contexts, setContexts] = useState<readonly OrgContext[] | null>(null);
   const [activeOrgId, setActiveOrgId] = useState<string | null>(null);
+  /** The role lens per org, held for the app session only (A128): never written to the device. */
+  const [lenses, setLenses] = useState<Readonly<Record<string, string>>>({});
   const [brands, setBrands] = useState<ReadonlyMap<string, OrgBrand>>(new Map());
   const [projectId, setProjectIdState] = useState<string | null>(null);
   const [store, setStore] = useState<LocalStore | null>(null);
@@ -277,10 +300,38 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const chosenOrgRef = useRef(false);
   const buildTenant = useMemo(() => buildTenantOf(Constants.expoConfig?.extra), []);
 
-  // The active org's view of the person; every screen reads this one org.
-  const resolved = useMemo(
-    () => (contexts ? activateOrg(contexts, activeOrgId) : null),
+  // The active org's view of the person, under its role lens; every screen reads this one org.
+  const activeContext = useMemo(
+    () => (contexts ? (contexts.find((c) => c.orgId === activeOrgId) ?? contexts[0]) : undefined),
     [contexts, activeOrgId],
+  );
+  const chosenLens = activeContext ? lenses[activeContext.orgId] : undefined;
+  const resolved = useMemo(() => {
+    if (!contexts) return null;
+    const active = activateOrg(contexts, activeOrgId);
+    if (!activeContext) return active;
+    const identity = lensIdentity(activeContext, chosenLens, internalAudience);
+    return identity === active.identity ? active : { ...active, identity };
+  }, [contexts, activeOrgId, activeContext, chosenLens]);
+  const lens = useMemo(
+    () => ({
+      options: activeContext ? lensOptions(activeContext) : [],
+      current: activeContext ? activeLens(activeContext, chosenLens) : null,
+      inbox:
+        activeContext && resolved ? lensInbox(activeContext, chosenLens, resolved.identity) : null,
+    }),
+    [activeContext, chosenLens, resolved],
+  );
+  const setLens = useCallback(
+    (next: string | null) => {
+      const org = activeContext?.orgId;
+      if (!org) return;
+      setLenses((current) => {
+        const rest = Object.fromEntries(Object.entries(current).filter(([id]) => id !== org));
+        return next === null ? rest : { ...rest, [org]: next };
+      });
+    },
+    [activeContext],
   );
   // The org a write queued now replays in (app.apply_sync_mutation); null for an external context.
   orgRef.current = replayOrgOf(resolved);
@@ -674,6 +725,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     else if (store) await store.wipe();
     await client.auth.signOut();
     setContexts(null);
+    setLenses({});
     setBrands(new Map());
     setSyncSession(null);
     clearGlance();
@@ -691,6 +743,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     phase,
     resolved,
     setOrgId,
+    lens,
+    setLens,
     brands,
     personZone,
     buildTenant,

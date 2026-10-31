@@ -2,11 +2,13 @@ import {
   getCurrentPerson,
   listMyAccounts,
   listMyEngagementRoleTypes,
+  type Engagement,
   type ExternalAccount,
   type XosClient,
 } from "@xos/data/gateway";
 import { tokenAal } from "@xos/data/auth-assurance";
 import { listOrgsAllowingPersonalTokens } from "@xos/data/developer";
+import { ROLE_LENS_COOKIE } from "@xos/data/role-lens";
 import type { NavContext } from "@xos/ia";
 import type { Route } from "next";
 import { cookies, headers } from "next/headers";
@@ -17,6 +19,7 @@ import { resolveBrand, type GatewayBrand } from "@/lib/brand/brand";
 import { env, platformHosts } from "@/lib/env";
 import { doesPaidWork } from "@/lib/engagement-state";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { lensRoleTypes, resolveGatewayLens, type GatewayLens } from "./role-lens";
 import {
   ACTING_COOKIE,
   isDesktopAgent,
@@ -28,8 +31,8 @@ import {
 
 /**
  * The Gateway request context, read once per request: the signed-in person, their external
- * accounts, the account this device acts for, their standing, the sitemap navigation context and
- * the brand of the host. Pages and the shell read it; the proxy guards routes with the same rules.
+ * accounts, the account this device acts for, their standing, the role lens (A128), the sitemap navigation
+ * context and the brand of the host. Pages and the shell read it; the proxy guards routes with the same rules.
  */
 export interface GatewayContext {
   readonly db: XosClient;
@@ -40,7 +43,11 @@ export interface GatewayContext {
   readonly accounts: readonly ExternalAccount[];
   readonly acting: ExternalAccount | null;
   readonly standing: Standing;
+  /** The role lens: All roles, or one role type of the person's engagements (Section 4.8.1). */
+  readonly lens: GatewayLens;
   readonly nav: NavContext;
+  /** Navigation for every role type, which the page guard follows as the proxy does, whatever the lens. */
+  readonly ownNav: NavContext;
   readonly platformDomain: boolean;
   readonly brand: GatewayBrand;
 }
@@ -105,6 +112,21 @@ export const getGatewayContext = cache(async (): Promise<GatewayContext | null> 
     throw new Error(`Gateway could not read external accounts: ${accounts.error.kind}`);
   }
   const acting = resolveActing(accounts.data, cookieStore.get(ACTING_COOKIE)?.value);
+  const lens = resolveGatewayLens(
+    roleTypes.ok ? roleTypes.data : [],
+    cookieStore.get(ROLE_LENS_COOKIE)?.value,
+  );
+  const navFor = (roleTypesForNav: readonly Engagement["roleType"][] | null) =>
+    navContext({
+      standing: acting.standing,
+      companyAccount: acting.account !== null,
+      platformDomain: facts.platformDomain,
+      desktop: facts.desktop,
+      // A failed read keeps the paid-work pages: hiding a person's payout settings by mistake is worse.
+      paidWork: roleTypesForNav === null ? true : doesPaidWork(roleTypesForNav),
+      // Settings, Developer appears when an org the person belongs to allows personal tokens (A86).
+      personalTokens: tokenOrgs.ok && tokenOrgs.data.length > 0,
+    });
   return {
     db,
     userId: user.id,
@@ -114,16 +136,10 @@ export const getGatewayContext = cache(async (): Promise<GatewayContext | null> 
     accounts: accounts.data,
     acting: acting.account,
     standing: acting.standing,
-    nav: navContext({
-      standing: acting.standing,
-      companyAccount: acting.account !== null,
-      platformDomain: facts.platformDomain,
-      desktop: facts.desktop,
-      // A failed read keeps the paid-work pages: hiding a person's payout settings by mistake is worse.
-      paidWork: roleTypes.ok ? doesPaidWork(roleTypes.data) : true,
-      // Settings, Developer appears when an org the person belongs to allows personal tokens (A86).
-      personalTokens: tokenOrgs.ok && tokenOrgs.data.length > 0,
-    }),
+    lens,
+    // Under a role lens only the lens's role type counts, which can hide the paid-work pages but never shows them.
+    nav: navFor(roleTypes.ok ? lensRoleTypes(lens, roleTypes.data) : null),
+    ownNav: navFor(roleTypes.ok ? roleTypes.data : null),
     platformDomain: facts.platformDomain,
     brand: facts.brand,
   };

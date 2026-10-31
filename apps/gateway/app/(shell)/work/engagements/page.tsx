@@ -16,6 +16,7 @@ import { BrandMark, EmptyStateLink, InlineAlert, Tag } from "@/components/ui";
 import { inBrandScope } from "@/lib/brand/brand";
 import { formatDateRange } from "@/lib/format";
 import { personalChannel } from "@/lib/live/topics";
+import { lensEngagements } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { engagementTitle } from "@/lib/engagement-state";
@@ -77,7 +78,10 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
     listMyEngagements(ctx.db),
   ]);
   const orgFilter = typeof query["org"] === "string" ? query["org"] : null;
-  const all = result.ok ? result.data.filter((e) => inBrandScope(ctx.brand, e.orgId)) : [];
+  // Under a role lens (A128) only that role type's engagements are listed.
+  const all = result.ok
+    ? lensEngagements(ctx.lens, result.data).filter((e) => inBrandScope(ctx.brand, e.orgId))
+    : [];
   const shown = orgFilter ? all.filter((e) => e.orgId === orgFilter) : all;
   const current = shown.filter(isCurrentEngagement);
   const closed = shown.filter((e) => !isCurrentEngagement(e));

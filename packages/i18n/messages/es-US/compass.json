@@ -300,6 +300,21 @@
     "combinedTitle": "Hoy en todas tus organizaciones",
     "nothingToday": "Nada para hoy."
   },
+  "roleLens": {
+    "title": "Rol",
+    "hint": "Limita Hoy, Agenda, la Bandeja y tus herramientas a uno de tus roles. Tu acceso no cambia.",
+    "all": "Todos los roles",
+    "switch": "Organización: {org}, rol: {role}. Cambiar de organización o de rol",
+    "roles": {
+      "owner": "Propietario",
+      "admin": "Administrador",
+      "manager": "Gerente",
+      "member": "Miembro",
+      "collaborator": "Colaborador",
+      "field": "Campo",
+      "viewer": "Observador"
+    }
+  },
   "glance": {
     "today": "Hoy",
     "noCue": "No hay cue hoy.",

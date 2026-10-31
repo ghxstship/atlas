@@ -21,6 +21,7 @@ import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { PREFERENCES_COOKIE } from "@xos/ui/preferences";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
 import { ReporterUser } from "./reporter-user";
+import { RoleLensSwitch } from "./role-lens-switch";
 import { ShellFrame } from "./shell-frame";
 import type { FavoriteLink } from "./sidebar-favorites";
 
@@ -158,6 +159,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       keys={keys}
       create={createItems(sitemap, { nav: ctx.nav, capabilities: ctx.capabilities, params, t })}
       quickAdd={quickAdd}
+      lens={<RoleLensSwitch ctx={ctx} t={t} />}
     >
       <ReporterUser personId={ctx.viewer.person?.id ?? null} />
       {children}

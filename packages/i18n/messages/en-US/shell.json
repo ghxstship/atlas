@@ -1091,6 +1091,12 @@
     "betaLocale": "{language} (Beta)",
     "mainNav": "Main"
   },
+  "roleLens": {
+    "label": "Role",
+    "all": "All roles",
+    "summary": "Role: {role}. Change role",
+    "hint": "Narrow navigation, Home, My Work and Inbox to one of your roles. Your access does not change."
+  },
   "settings": {
     "sections": "Settings sections",
     "save": "Save",

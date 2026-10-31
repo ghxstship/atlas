@@ -300,6 +300,21 @@
     "combinedTitle": "Today in all your organizations",
     "nothingToday": "Nothing today."
   },
+  "roleLens": {
+    "title": "Role",
+    "hint": "Narrow Today, Schedule, Inbox and your tools to one of your roles. Your access does not change.",
+    "all": "All roles",
+    "switch": "Organization: {org}, role: {role}. Change organization or role",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "manager": "Manager",
+      "member": "Member",
+      "collaborator": "Collaborator",
+      "field": "Field",
+      "viewer": "Viewer"
+    }
+  },
   "glance": {
     "today": "Today",
     "noCue": "No cue today.",

@@ -40,6 +40,7 @@ import {
   type UpNextDetails,
 } from "@/lib/home";
 import type { GatewayContext } from "@/lib/shell/context";
+import { lensApplications, lensEngagements, lensRepresentations } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
@@ -79,7 +80,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       </>
     );
   }
-  const engagements = engagementsResult.data;
+  // Under a role lens (A128) Home shows that role type's engagements and what they ask of the person.
+  const engagements = lensEngagements(ctx.lens, engagementsResult.data);
   const current = engagements.filter(isCurrentEngagement);
   const [records, documents, onboarding, applications, representations, recommended] =
     await Promise.all([
@@ -102,8 +104,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     engagements,
     documents: documents.ok ? documents.data : [],
     onboarding: onboarding.ok ? onboarding.data : [],
-    applications: applications.ok ? applications.data : [],
-    representations: representations.ok ? representations.data : [],
+    applications: applications.ok ? lensApplications(ctx.lens, applications.data) : [],
+    representations: representations.ok ? lensRepresentations(ctx.lens, representations.data) : [],
     personId: ctx.personId,
     now,
   });

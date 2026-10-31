@@ -57,6 +57,11 @@ export interface FrameAvatarEntry {
   readonly action?: "switch-org" | "help" | "sign-out";
 }
 
+export interface GatewayLensOptions {
+  readonly current: string | null;
+  readonly roles: readonly { readonly id: string; readonly label: string }[];
+}
+
 export interface GatewayFrameProps {
   readonly brandName: string;
   readonly showPoweredBy: boolean;
@@ -73,6 +78,8 @@ export interface GatewayFrameProps {
   }[];
   readonly actingId: string | null;
   readonly orgs: readonly { readonly id: string; readonly name: string }[];
+  /** The role lens the switcher offers (A128): the person's role types and the one chosen, null for All roles. */
+  readonly lens: GatewayLensOptions;
   readonly theme: ThemePreference;
   readonly locale: string;
   readonly locales: readonly string[];
@@ -299,6 +306,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
           accounts={props.accounts}
           actingId={props.actingId}
           orgs={props.orgs}
+          lens={props.lens}
           theme={props.theme}
           locale={props.locale}
           locales={props.locales}

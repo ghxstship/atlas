@@ -58450,6 +58450,8 @@ export type Database = {
           amount_minor: number | null;
           approval_policy_id: string | null;
           approval_state: Database["app"]["Enums"]["approval_state"] | null;
+          approver_membership_id: string | null;
+          approver_role_id: string | null;
           created_at: string | null;
           currency_code: string | null;
           current_step: number | null;
@@ -58480,6 +58482,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "currencies";
             referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "approval_steps_approver_membership_id_fkey";
+            columns: ["approver_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_steps_approver_role_id_fkey";
+            columns: ["approver_role_id"];
+            isOneToOne: false;
+            referencedRelation: "roles";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "notifications_actor_person_id_fkey";
@@ -64298,6 +64314,22 @@ export type Database = {
       revoke_supplier_diversity_share: { Args: { p_share_id: string }; Returns: undefined };
       revoke_web_push: { Args: { p_endpoint: string }; Returns: number };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
+      role_lens_capabilities: {
+        Args: { p_org_id: string; p_role_id: string };
+        Returns: {
+          capability_code: string;
+          lens_reach: Database["app"]["Enums"]["capability_reach"];
+          role_reach: Database["app"]["Enums"]["capability_reach"];
+          viewer_reach: Database["app"]["Enums"]["capability_reach"];
+        }[];
+      };
+      role_lens_personal_capabilities: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          capability_code: string;
+          org_id: string;
+        }[];
+      };
       rotate_calendar_feed: {
         Args: { p_calendar_feed_id: string };
         Returns: {
