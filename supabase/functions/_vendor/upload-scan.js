@@ -282,9 +282,9 @@ var ScannerUnavailableError = class extends Error {
  *
  * - Attachments: the A18 job `attachment.scan` (migration 0590), claimed from the job queue; the
  *   verdict goes to `app.record_attachment_scan`, so a Clean version becomes downloadable.
- * - The field-media, onboarding-uploads, imports, support-screenshots and upload-staging buckets (and
- *   any service-role write to profile-media or org-brand): `app.claim_object_scans` and
- *   `app.record_object_scan` (migrations 1041, 1240, 1265).
+ * - The field-media, onboarding-uploads, party-uploads, imports, support-screenshots and upload-staging
+ *   buckets (and any service-role write to profile-media or org-brand): `app.claim_object_scans` and
+ *   `app.record_object_scan` (migrations 1041, 1240, 1265, 2712).
  * - Files for the public buckets profile-media and org-brand are uploaded to the private upload-staging
  *   bucket as `<bucket>/<name>` (1265). A staged file that scans Clean is published: written to its
  *   public bucket, recorded Clean, and removed from staging. Nothing reaches a public bucket unscanned.
