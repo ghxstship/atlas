@@ -14,6 +14,10 @@ import {
 } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeVerbs, setTable } from "../correct.ts";
+import {
+  engagedAllocationCapabilities,
+  engagedAllocationResources,
+} from "./parts/engaged-allocations.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -21,6 +25,9 @@ const label = (values: readonly [string, ...string[]], description: string) =>
 const optional = (schema: z.ZodType) => ({ schema, create: "optional" as const });
 
 export const additions = defineAdditions("Gateway", {
+  // R8: allocations from the engaged party's side, what may be asked for, and the caller's parking passes.
+  resources: [...engagedAllocationResources],
+  capabilities: { ...engagedAllocationCapabilities },
   corrections: [
     {
       id: "marketplace-listing-view",

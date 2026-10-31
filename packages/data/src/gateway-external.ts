@@ -49,6 +49,7 @@ export const ENGAGEMENT_AREAS = [
   "onboarding",
   "operational",
   "money",
+  "roster",
 ] as const;
 export type EngagementArea = (typeof ENGAGEMENT_AREAS)[number];
 

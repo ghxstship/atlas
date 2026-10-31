@@ -46,6 +46,9 @@ const DYNAMIC = [
   "setting-",
   "notify-",
   "work-",
+  // R7a's Receive against an order sheet: an order by number, a line's stepper by line number.
+  "receive-order-",
+  "receive-more-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

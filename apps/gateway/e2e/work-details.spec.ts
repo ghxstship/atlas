@@ -5,19 +5,23 @@ import { DEMO, expectAccessible, signIn, sql, uniqueId } from "./support";
 /**
  * Work Details across the surfaces (A78, finding A65-003, migration 1340):
  *   entering  the crew person adds an emergency contact (typed in national format, stored in E.164
- *             and shown back in national format), saves uniform sizes, and reveals their passport
- *             number, which every other view shows only by its last four; the access log says so.
+ *             and shown back in national format) and reveals their passport number, which every
+ *             other view shows only by its last four; the access log says so. Since R6a there is no
+ *             Uniform section, a notice says sizes and travel preferences are asked per project, the
+ *             travel profile is loyalty programs only, and Uniform Sizes cannot be shared.
  *   consent   on the crew engagement's Overview the person revokes the seeded share, and the demo
  *             Owner's engagement record in Atlas says nothing is shared; the person shares emergency
- *             contacts and dietary needs only, and Atlas shows exactly those; the person revokes
- *             again and Atlas shows nothing.
+ *             contacts and dietary needs only, and Atlas shows exactly those, the Restricted
+ *             allergies included for the Owner, which the person's access log records; the person
+ *             revokes again and Atlas shows nothing.
  * The seeded share (1340_a78.sql) is restored after each test.
  */
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
 const expect = baseExpect.configure({ timeout: 20_000 });
 
-const SEEDED = "{Emergency Contacts,Uniform Sizes,Dietary Needs,Passport}";
+// Uniform Sizes is retired (R6a, 2664), so the seed no longer shares it.
+const SEEDED = "{Emergency Contacts,Dietary Needs,Passport}";
 
 test.afterEach(async () => {
   await sql(
@@ -38,6 +42,15 @@ test("Work Details: the crew person enters their details and reveals the passpor
 }) => {
   await signIn(page, "crew@example.com", "/settings/work-details");
   await expect(page.getByRole("heading", { name: "Emergency contacts" })).toBeVisible();
+  // R6a: uniform sizes and travel preferences are asked per project.
+  await expect(
+    page.getByText("Uniform sizes and travel preferences moved to each project"),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open your engagements" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Uniform sizes" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Loyalty programs" })).toBeVisible();
+  await expect(page.getByLabel("Home airport")).toHaveCount(0);
+  await expect(page.getByLabel("Seat", { exact: true })).toHaveCount(0);
 
   const name = `Journey Contact ${uniqueId()}`;
   const add = page.getByRole("form", { name: "Add contact" });
@@ -54,11 +67,6 @@ test("Work Details: the crew person enters their details and reveals the passpor
   );
   expect(stored[0]?.phone).toBe("+13055550177");
 
-  const uniform = page.getByRole("form", { name: "Uniform sizes" });
-  await uniform.getByLabel("Shirt").selectOption("XL");
-  await uniform.getByRole("button", { name: "Save sizes" }).click();
-  await expect(uniform.getByRole("status")).toHaveText("Saved.");
-
   await expect(page.getByText("Number on file ending 0000")).toBeVisible();
   const reveal = page.getByRole("form", { name: "Reveal number" });
   await reveal.getByRole("button", { name: "Reveal number" }).click();
@@ -69,16 +77,14 @@ test("Work Details: the crew person enters their details and reveals the passpor
   const log = page.getByRole("region", { name: "Access log" });
   await expect(log.getByText(/Passport number revealed/).first()).toBeVisible();
   await expect(log).not.toContainText("TEST000000");
-  await sql(`update app.person_work_details set shirt_size = 'L' where person_id = $1`, [
-    DEMO.crew,
-  ]);
 });
 
 test("Work Details: per-engagement consent decides what the engaging org sees", async ({
   page,
   browser,
 }) => {
-  await signIn(page, "crew@example.com", `/work/engagements/${DEMO.crewEngagementKey}/overview`);
+  const overview = `/work/engagements/${DEMO.crewEngagementKey}/overview`;
+  await signIn(page, "crew@example.com", overview);
   const sharing = page.getByRole("region", { name: "Sharing with engagements" });
   await sharing.getByRole("button", { name: "Revoke" }).click();
   await expect(sharing.getByText("Not shared")).toBeVisible();
@@ -90,6 +96,8 @@ test("Work Details: per-engagement consent decides what the engaging org sees", 
   await expect(shared).toContainText("has not shared any work details");
 
   const choose = sharing.getByRole("form", { name: /Categories to share with Demo Productions/ });
+  // Uniform Sizes is retired (R6a): it is not offered.
+  await expect(choose.getByLabel("Uniform sizes")).toHaveCount(0);
   await choose.getByLabel("Emergency contacts").check();
   await choose.getByLabel("Dietary needs").check();
   await choose.getByRole("button", { name: "Share selected" }).click();
@@ -111,7 +119,16 @@ test("Work Details: per-engagement consent decides what the engaging org sees", 
   );
   expect(viewed[0]?.n ?? 0).toBeGreaterThan(0);
 
-  await page.reload();
+  // The Owner holds data.restricted.read.medical, so each read of the allergies is logged (R6a).
+  await page.goto("/settings/work-details");
+  await expect(
+    page
+      .getByRole("region", { name: "Access log" })
+      .getByText(/Allergies viewed by Demo Productions/)
+      .first(),
+  ).toBeVisible();
+
+  await page.goto(overview);
   await sharing.getByRole("button", { name: "Revoke" }).click();
   await expect(sharing.getByText("Not shared")).toBeVisible();
   await atlas.page.reload();

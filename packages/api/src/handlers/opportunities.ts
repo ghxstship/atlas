@@ -132,7 +132,7 @@ interface Chain extends PromiseLike<{ data: unknown; error: unknown }> {
 
 // Engagements -----------------------------------------------------------------------------------------------------
 
-const ENGAGEMENT_COLUMNS = `${AUDIT}, project_id, person_id, role_type, engagement_state, application_id, worker_classification, pay_basis, arrangement, start_date, end_date, counterparty_id, counterparty:counterparties(organization_id), transitions:engagement_state_transitions(to_state, created_at), application:applications(offers(id, offer_state, deleted_at))`;
+const ENGAGEMENT_COLUMNS = `${AUDIT}, project_id, person_id, role_type, engagement_state, application_id, worker_classification, pay_basis, arrangement, start_date, end_date, counterparty_id, roster_locks_at, counterparty:counterparties(organization_id), transitions:engagement_state_transitions(to_state, created_at), application:applications(offers(id, offer_state, deleted_at))`;
 
 interface EngagementRow extends AuditRow {
   project_id: string;
@@ -147,6 +147,8 @@ interface EngagementRow extends AuditRow {
   start_date: string;
   end_date: string | null;
   counterparty_id: string | null;
+  /** Names lock (R5, 2656); null means no lock. */
+  roster_locks_at: string | null;
   counterparty: { organization_id: string } | null;
   transitions: { to_state: string; created_at: string }[] | null;
   application: {
@@ -181,6 +183,7 @@ function toEngagement(row: EngagementRow): Engagement {
     start_date: row.start_date,
     end_date: row.end_date,
     counterparty_id: row.counterparty_id ?? null,
+    roster_locks_at: row.roster_locks_at ?? null,
   };
 }
 
@@ -648,6 +651,26 @@ export const handlers = defineHandlers("Opportunities", {
       p_expected: body.expected_state,
       p_next: body.to_state,
       p_reason: body.reason ?? `Moved to ${body.to_state}.`,
+    });
+    if (error !== null) throw error;
+    return ok(
+      toEngagement(
+        await readOne<EngagementRow>(
+          db,
+          "engagements",
+          ENGAGEMENT_COLUMNS,
+          params.id,
+          "engagement",
+        ),
+      ),
+    );
+  },
+
+  // The names lock (R5, G-142): app.set_roster_lock decides authority and refusals.
+  "engagements.setRosterLock": async ({ params, body }, { db }) => {
+    const { error } = await db.rpc("set_roster_lock", {
+      p_engagement_id: params.id,
+      p_locks_at: (body.locks_at ?? null) as string,
     });
     if (error !== null) throw error;
     return ok(

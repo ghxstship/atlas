@@ -30,11 +30,27 @@ export async function ScheduleGrid(props: {
   const rows = new Map<string, Row>();
   const open: Shift[] = [];
   for (const s of props.shifts) {
+    // An agency slot is a row of its agency until the agency places someone from its roster (R12).
+    if (!s.member && s.agencySlot) {
+      const key = `agency:${s.agencySlot.engagementId}`;
+      const row = rows.get(key) ?? {
+        key,
+        name: s.agencySlot.accountName
+          ? t("crew.agency.slotLabel", { account: s.agencySlot.accountName })
+          : t("crew.agency.slotUnnamed"),
+        role: "",
+        shifts: [],
+      };
+      row.shifts.push(s);
+      rows.set(key, row);
+      continue;
+    }
     if (!s.member) {
       open.push(s);
       continue;
     }
-    const key = s.member.personId ?? s.member.membershipId;
+    // A roster shift keys by the entry's person, so their shifts share one row whatever they work under.
+    const key = s.member.personId ?? s.member.rosterEntryId ?? s.member.membershipId;
     const row = rows.get(key) ?? {
       key,
       name: s.member.name ?? t("crew.common.unnamed"),

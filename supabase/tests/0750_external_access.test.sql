@@ -58,7 +58,7 @@ select is(pg_temp.n('mia', 'select 1 from api_external.engagements'), 1, 'gate 3
 select is(pg_temp.n('dave', 'select 1 from api_external.engagements'), 0, 'internal members have no external engagements to read');
 select pg_temp.as_user('ivy');
 select is((select rate_minor from api_external.engagements where id = pg_temp.id('eng_ivy_a')), null::bigint, 'the party''s rate stays hidden until the money area opens');
-select is((select areas from api_external.engagements where id = pg_temp.id('eng_ivy_a')), array['documents', 'engagement', 'onboarding'], 'Onboarding opens engagement, documents and onboarding');
+select is((select areas from api_external.engagements where id = pg_temp.id('eng_ivy_a')), array['documents', 'engagement', 'onboarding', 'roster'], 'Onboarding opens engagement, documents, onboarding and the roster (R4)');
 select pg_temp.as_platform();
 select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
 select pg_temp.as_user('ivy');

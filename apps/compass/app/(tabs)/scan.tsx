@@ -13,6 +13,7 @@ import {
   type ScanModeGrant,
 } from "../../src/domain/access";
 import {
+  addScannedTag,
   buildAccessScan,
   assetScanAction,
   buildAssetScan,
@@ -28,6 +29,7 @@ import {
   type AssetUnitRow,
   type CredentialRow,
   type CustodyRow,
+  type ReceiveSheet,
   type Symbology,
 } from "../../src/domain/scan";
 import { scanAnnouncement } from "../../src/domain/announce";
@@ -37,6 +39,7 @@ import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { nfc } from "../../src/runtime/nfc";
 import { DenialNotice, formatDay, ProjectPicker, SyncBanner } from "../../src/screens/common";
 import { FakeNfcSheet, useNfcAvailability } from "../../src/screens/NfcControls";
+import { ReceiveOrderSheet } from "../../src/screens/ReceiveOrderSheet";
 import { Scanner } from "../../src/screens/Scanner";
 import { WalletButton } from "../../src/screens/WalletButton";
 import {
@@ -256,6 +259,13 @@ function LiveScan({
   const { rows: identifiers } = useRows<AssetIdentifierRow & Row>("asset_identifiers");
   const { rows: custody } = useRows<CustodyRow & Row>("asset_custody");
   const zonesInGrid = zones.filter((z) => grid.some((g) => g.zone_id === z.id));
+  // Receive against an order (R7a): while an order is open in the sheet, scans fill its serialized line's tags.
+  const [receiveOpen, setReceiveOpen] = useState(false);
+  const [receiveSheet, setReceiveSheet] = useState<ReceiveSheet | null>(null);
+  const canReceiveOrder =
+    grant.mode === "receiving" &&
+    identity !== undefined &&
+    access(identity, "scan.receiving.order", projectId).allowed;
   const haptic = (ok: boolean) => {
     if (hapticsOn(settings.haptics, orgSettings))
       void Haptics.notificationAsync(
@@ -288,6 +298,21 @@ function LiveScan({
       return;
     }
     const sym = symbology ?? "code128";
+    if (grant.mode === "receiving" && receiveSheet) {
+      const next = addScannedTag(receiveSheet, raw);
+      haptic(next !== receiveSheet);
+      setReceiveSheet(next);
+      setLast({
+        ok: next !== receiveSheet,
+        title: t(
+          next !== receiveSheet
+            ? "compass.scan.receiveOrder.tagAdded"
+            : "compass.scan.receiveOrder.tagSkipped",
+        ),
+        code: raw,
+      });
+      return;
+    }
     if (grant.mode === "receiving") {
       if (batch.current.add(raw, sym, Date.now())) {
         haptic(true);
@@ -479,6 +504,20 @@ function LiveScan({
           />
         </View>
       ) : null}
+      {canReceiveOrder ? (
+        <View style={{ paddingHorizontal: theme.space["16"] }}>
+          <Button
+            testID="scan-receive-order"
+            variant="secondary"
+            icon="clipboard-list"
+            block
+            label={t(
+              receiveSheet ? "compass.scan.receiveOrder.resume" : "compass.scan.receiveOrder.open",
+            )}
+            onPress={() => setReceiveOpen(true)}
+          />
+        </View>
+      ) : null}
       <View style={{ flex: 1 }}>
         <ScanSheet
           testID="scan-sheet"
@@ -495,6 +534,22 @@ function LiveScan({
         />
       </View>
       <FakeNfcSheet />
+      {canReceiveOrder ? (
+        <ReceiveOrderSheet
+          open={receiveOpen}
+          sheet={receiveSheet}
+          onSheet={setReceiveSheet}
+          onClose={() => setReceiveOpen(false)}
+          onQueued={(n) => {
+            setReceiveOpen(false);
+            setLast({
+              ok: true,
+              title: t("compass.scan.receiveOrder.queued", { count: n }),
+              code: "",
+            });
+          }}
+        />
+      ) : null}
       <Sheet
         open={reviewing}
         title={t("compass.scan.review.title", { count })}

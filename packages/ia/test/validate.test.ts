@@ -241,6 +241,17 @@ describe("gateway engagement tab rules", () => {
     expect(messagesOut.some((m) => m.startsWith("gateway role types must be"))).toBe(true);
   });
 
+  it("holds the roster member set to the same rules (R8)", () => {
+    const s = gw();
+    const sets = must(s.engagementTabs).sets;
+    sets["roster-member"] = { tabs: ["engagement.credentials", "engagement.documents"] };
+    const out = check(s);
+    expect(out).toContain("roster-member engagements must open to Overview");
+    expect(out).toContain('roster-member engagements must carry "engagement.messages"');
+    delete sets["roster-member"];
+    expect(check(s)).toContain("role type roster-member has no engagement tab set");
+  });
+
   it("checks tab ids, unused tabs and delegation coverage", () => {
     const s = gw();
     const sets = must(s.engagementTabs).sets;
