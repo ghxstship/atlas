@@ -10,6 +10,7 @@ import {
   createAssetLot,
   createAssetUnit,
   getAssetUnit,
+  getAssetUnitProvenance,
   isAssetState,
   isAssetTag,
   listAssetClasses,
@@ -21,8 +22,10 @@ import {
   listAssetMaintenance,
   listAssetProjects,
   listAssetTransitions,
+  listAssetUnitHire,
   listAssetUnits,
   listAssetVenues,
+  listReceiptStock,
   lotScanCode,
   normalizeAssetTag,
   recordAssetCustody,
@@ -83,8 +86,9 @@ const unitRow = (over: Record<string, unknown> = {}) => ({
 });
 
 describe("asset states", () => {
-  it("lists the nine states from the generated enum", () => {
-    expect(ASSET_STATES).toHaveLength(9);
+  it("lists the ten states from the generated enum, Returned last", () => {
+    expect(ASSET_STATES).toHaveLength(10);
+    expect(ASSET_STATES.at(-1)).toBe("Returned");
     expect(isAssetState("In Maintenance")).toBe(true);
     expect(isAssetState("Broken")).toBe(false);
   });
@@ -722,17 +726,16 @@ describe("custody ledger", () => {
     expect((await listAssetCustody(db, "o1")).ok).toBe(false);
   });
 
-  it("appends custody to one custodian or a place", async () => {
+  it("records custody through app.record_asset_custody, to one custodian or a place", async () => {
     const { db, calls } = client({
-      "from:asset_custody": [
-        okResponse({ id: "c9" }),
-        okResponse({ id: "c10" }),
+      "rpc:record_asset_custody": [
+        okResponse("c9"),
+        okResponse("c10"),
         errorResponse("42501", "no"),
       ],
     });
     expect(
       await recordAssetCustody(db, {
-        id: "ev-1",
         orgId: "o1",
         unitId: "u1",
         membershipId: "m1",
@@ -741,17 +744,11 @@ describe("custody ledger", () => {
         note: "  ",
       }),
     ).toEqual({ ok: true, data: { id: "c9" } });
-    expect(calls[0]?.steps[0]?.[1]).toEqual([
-      {
-        id: "ev-1",
-        org_id: "o1",
-        asset_unit_id: "u1",
-        custodian_membership_id: "m1",
-        venue_id: null,
-        project_id: "p1",
-        note: null,
-      },
-    ]);
+    expect(calls[0]?.steps[0]?.[1]?.[0]).toEqual({
+      p_asset_unit_id: "u1",
+      p_custodian_membership_id: "m1",
+      p_project_id: "p1",
+    });
     expect(
       await recordAssetCustody(db, {
         orgId: "o1",
@@ -761,11 +758,17 @@ describe("custody ledger", () => {
         venueId: null,
         projectId: null,
         note: "Crew kit.",
+        rosterEntryId: "r1",
+        reservationId: "h1",
       }),
     ).toEqual({ ok: true, data: { id: "c10" } });
-    expect(calls[1]?.steps[0]?.[1]).toMatchObject([
-      { custodian_engagement_id: "e1", note: "Crew kit." },
-    ]);
+    expect(calls[1]?.steps[0]?.[1]?.[0]).toEqual({
+      p_asset_unit_id: "u1",
+      p_custodian_engagement_id: "e1",
+      p_note: "Crew kit.",
+      p_roster_entry_id: "r1",
+      p_reservation_id: "h1",
+    });
     expect(
       (
         await recordAssetCustody(db, {
@@ -1115,5 +1118,98 @@ describe("scan resolution", () => {
         action: "check-in",
       }),
     ).toEqual({ ok: false, error: { kind: "invalid", message: "eventId" } });
+  });
+});
+
+describe("provenance and hire", () => {
+  it("reads a unit's provenance, or nothing for a reader without procurement", async () => {
+    const { db, calls } = fakeClient({
+      "from:asset_unit_provenance": [
+        okResponse({
+          receipt_line_id: "rl1",
+          goods_receipt_id: "g1",
+          received_at: "2027-06-01T10:00:00Z",
+          purchase_order_id: "po1",
+          po_number: 7,
+          project_id: "p1",
+          vendor_id: "v1",
+          acquisition_kind: "Rental",
+          hire_period: '["2027-06-01 10:00:00+00","2027-06-10 12:00:00+00")',
+          unit_price_minor: 5000,
+          currency_code: "USD",
+        }),
+        okResponse(null),
+        errorResponse("08006", "down"),
+      ],
+    });
+    const found = await getAssetUnitProvenance(db, "u1");
+    expect(found.ok && found.data).toEqual({
+      receiptLineId: "rl1",
+      goodsReceiptId: "g1",
+      receivedAt: "2027-06-01T10:00:00Z",
+      purchaseOrderId: "po1",
+      poNumber: 7,
+      projectId: "p1",
+      vendorId: "v1",
+      acquisitionKind: "Rental",
+      hireEndsAt: "2027-06-10T12:00:00.000Z",
+      unitPriceMinor: 5000,
+      currencyCode: "USD",
+    });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["asset_unit_id", "u1"]]);
+    expect(await getAssetUnitProvenance(db, "u2")).toEqual({ ok: true, data: null });
+    expect((await getAssetUnitProvenance(db, "u3")).ok).toBe(false);
+  });
+
+  it("lists hired-in units of an org", async () => {
+    const { db, calls } = fakeClient({
+      "from:asset_unit_hire": [
+        okResponse([
+          {
+            asset_unit_id: "u1",
+            acquisition_kind: "Rental",
+            hire_ends_at: "2027-06-10T12:00:00Z",
+            off_hire_due: true,
+          },
+          { asset_unit_id: null, acquisition_kind: null, hire_ends_at: null, off_hire_due: null },
+          {
+            asset_unit_id: "u2",
+            acquisition_kind: "Purchase",
+            hire_ends_at: null,
+            off_hire_due: false,
+          },
+        ]),
+      ],
+    });
+    const hire = await listAssetUnitHire(db, "o1");
+    expect(hire.ok && hire.data).toEqual([
+      {
+        assetUnitId: "u1",
+        acquisitionKind: "Rental",
+        hireEndsAt: "2027-06-10T12:00:00Z",
+        offHireDue: true,
+      },
+      { assetUnitId: "u2", acquisitionKind: "Purchase", hireEndsAt: null, offHireDue: false },
+    ]);
+    expect(calls[0]?.steps).toContainEqual(["eq", ["org_id", "o1"]]);
+  });
+
+  it("lists where receipt lines came into stock, from their Receipt movements", async () => {
+    const { db, calls } = fakeClient({
+      "from:asset_lot_movements": [
+        okResponse([
+          { receipt_line_id: "rl1", lot: { venue_id: "v1" } },
+          { receipt_line_id: "rl2", lot: null },
+        ]),
+        errorResponse("42501", "denied"),
+      ],
+    });
+    expect(await listReceiptStock(db, [])).toEqual({ ok: true, data: [] });
+    expect(calls).toHaveLength(0);
+    const stock = await listReceiptStock(db, ["rl1", "rl2"]);
+    expect(stock.ok && stock.data).toEqual([{ receiptLineId: "rl1", venueId: "v1" }]);
+    expect(calls[0]?.steps).toContainEqual(["in", ["receipt_line_id", ["rl1", "rl2"]]]);
+    expect(calls[0]?.steps).toContainEqual(["eq", ["movement_kind", "Receipt"]]);
+    expect((await listReceiptStock(db, ["rl3"])).ok).toBe(false);
   });
 });

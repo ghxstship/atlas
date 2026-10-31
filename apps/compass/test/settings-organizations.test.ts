@@ -37,6 +37,8 @@ function context(orgId: string, orgName: string, kind: "member" | "engaged"): Or
                 projectName: "Summer Series",
                 roleType: "crew",
                 state: "Active",
+                via: "engagement",
+                rosterEntryId: null,
               },
               {
                 id: "e2",
@@ -46,6 +48,8 @@ function context(orgId: string, orgName: string, kind: "member" | "engaged"): Or
                 projectName: "Winter Gala",
                 roleType: "crew",
                 state: "Active",
+                via: "engagement",
+                rosterEntryId: null,
               },
             ]
           : [],

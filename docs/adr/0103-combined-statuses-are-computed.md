@@ -79,3 +79,30 @@ answer everywhere.
   custody ledger.
 - Packages that add a foreign key, an array column or a counted column run A108's lints and register each hit (ADR
   0022).
+
+## Amendment: R7 as built (RRR-187, 2026-10-30)
+
+Migrations 2690 to 2698 build sections 3 and 4. Where the build differs from the text above or adds to it:
+
+- **Display status.** `app.advance_allocation_status.display_status` is computed in this order: Declined,
+  Withdrawn and Requested come from the stored state. Then Returned (everything issued came back or was lost; not
+  for credentials or parking passes), Revoked (every issued credential or pass was revoked), Issued, Partly Issued,
+  Awaiting Order, On Order, Confirmed, Received, Reserved, and finally Approved. Atlas only reads it and maps it to a
+  chip.
+- **Definer views.** The status view, `app.allocation_holders`, `app.asset_reservation_conflicts` and the R7 owner
+  reads filter rows themselves. Each one revokes select from `xos_backup`. The private helpers they call are granted
+  execute to authenticated.
+- **Possession writers.**
+  - The custody insert policy is dropped, and insert on `app.asset_custody` is revoked from authenticated.
+  - `app.record_asset_custody` writes through `app.apply_asset_scan`, which gains `p_roster_entry_id` and
+    `p_reservation_id`.
+  - `private.guard_custody_holder` and `private.guard_lot_movement_holder` check that the holder is the
+    reservation's holder and that the roster entry is working. A lot check-out is refused
+    (`lot_held_for_reservations`) only when reservations are still owed and the movement would not leave the lot
+    negative, so the existing `asset_lot_insufficient` refusal still answers first.
+  - The API custody create keeps its v1 request shape and now calls the RPC.
+- **Allocation-linked rows.** `allocation_id` on credentials, fulfillment lines, accommodation assignments, travel
+  segments and per diems may be set only inside the trusted operation `allocation_issue` (`allocation_issue_only`).
+  Per diems gain `roster_entry_id`, so a roster worker can hold one without a membership.
+- **Catering counts.** `app.catering_counts` logs `dietary_needs.counted`, and `allergies.counted` when allergies
+  are shown, once per person counted. Below five people the counts are suppressed.

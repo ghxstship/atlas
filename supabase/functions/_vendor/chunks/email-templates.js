@@ -485,6 +485,40 @@ var templates = {
       };
     },
   },
+  party_invitation: {
+    transactional: true,
+    compose: (p, ctx) => {
+      const subject =
+        p.kind === "account"
+          ? ctx.t("party_invitation.accountSubject", {
+              inviterName: p.inviterName,
+              accountName: p.accountName,
+            })
+          : ctx.t("party_invitation.rosterSubject", {
+              inviterName: p.inviterName,
+              partyName: p.partyName,
+              projectName: p.projectName,
+            });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsx(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: subject,
+          transactional: true,
+          action: {
+            label: ctx.t("party_invitation.action"),
+            url: p.signInUrl,
+          },
+          children: /* @__PURE__ */ jsx(Paragraph, {
+            children: ctx.t("party_invitation.how", { expiresAt: p.expiresAt }),
+          }),
+        }),
+      };
+    },
+  },
   subprocessor_notice: {
     transactional: false,
     compose: ({ listVersion, summary, effectiveOn, listUrl }, ctx) => {

@@ -4,6 +4,11 @@ import type { DataError, Result } from "@xos/data";
 import {
   acceptShift,
   acceptSwap,
+  assignRosterShift,
+  getShift,
+  saveRosterShift,
+  unassignRosterShift,
+  verifyRosterTraining,
   addPerDiems,
   awardOpenShift,
   decideShiftClaim,
@@ -62,6 +67,7 @@ import { zonedToIso } from "@/lib/crew/time";
 import { getOrgContext } from "@/lib/shell/context";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { planHasFeature } from "@/lib/crew/plan";
+import { decodeWorker } from "@/lib/crew/workers";
 
 /**
  * Crew server actions. Each resolves the viewer's org context again (404 when it is gone), validates
@@ -122,24 +128,43 @@ function shiftTimes(form: FormData, t: Translate) {
     : { ok: true as const, startsAt: startsAt as string, endsAt: endsAt as string, zone };
 }
 
+/**
+ * The worker a shift form names (R12): a member, an agency slot or a person on the agency's roster. The roster
+ * person is placed in the same transaction that writes their engagement's slot, through app.save_roster_shift.
+ */
+function workerOf(form: FormData) {
+  return decodeWorker(text(form, "membershipId"));
+}
+
 export async function createShiftAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
   const project = uuid.safeParse(form.get("projectId"));
   if (!project.success) return invalid(t, { projectId: "crew.errors.project" });
   const times = shiftTimes(form, t);
   if (!times.ok) return times.state;
-  const member = text(form, "membershipId");
+  const worker = workerOf(form);
+  if (!worker) return invalid(t, { membershipId: "crew.errors.worker" });
   const role = text(form, "roleCode");
-  const result = await createShift(db, {
+  const shift = {
     orgId: ctx.org.id,
     projectId: project.data,
     roleCode: role === "" ? null : role,
     startsAt: times.startsAt,
     endsAt: times.endsAt,
     timeZone: times.zone,
-    membershipId: member === "" ? null : member,
-  });
-  return done(ctx.org.slug, result, t);
+  };
+  // Agency staff are placed in the same transaction that writes their slot, so a refusal leaves no slot behind.
+  if (worker.kind === "staff")
+    return done(ctx.org.slug, await saveRosterShift(db, { ...shift, worker }), t);
+  return done(
+    ctx.org.slug,
+    await createShift(db, {
+      ...shift,
+      membershipId: worker.kind === "member" ? worker.membershipId : null,
+      engagementId: worker.kind === "agency" ? worker.engagementId : null,
+    }),
+    t,
+  );
 }
 
 export async function updateShiftAction(_: State, form: FormData): Promise<State> {
@@ -148,16 +173,82 @@ export async function updateShiftAction(_: State, form: FormData): Promise<State
   if (!id.success) return failed(t, { kind: "not-found" });
   const times = shiftTimes(form, t);
   if (!times.ok) return times.state;
-  const member = text(form, "membershipId");
   const role = text(form, "roleCode");
-  const result = await updateShift(db, id.data, {
+  const value = text(form, "membershipId");
+  const current = await getShift(db, id.data);
+  if (!current.ok) return failed(t, current.error);
+  const held = current.data.rosterEntryId ?? null;
+  // A roster shift whose person stays (`staff:<entry>`, with or without its engagement): only the times and role move.
+  const unchanged =
+    held !== null && (value === `staff:${held}` || value.startsWith(`staff:${held}:`));
+  const worker = unchanged ? null : workerOf(form);
+  if (!unchanged && !worker) return invalid(t, { membershipId: "crew.errors.worker" });
+  const times_ = {
     roleCode: role === "" ? null : role,
     startsAt: times.startsAt,
     endsAt: times.endsAt,
     timeZone: times.zone,
-    membershipId: member === "" ? null : member,
+  };
+  if (worker === null) return done(ctx.org.slug, await updateShift(db, id.data, times_), t);
+  if (worker.kind === "staff" || held !== null) {
+    // Onto, between or off the agency's roster: the times, the slot and the placement save together
+    // (app.save_roster_shift), so a refused placement leaves the shift and its person as they were.
+    return done(
+      ctx.org.slug,
+      await saveRosterShift(db, {
+        ...times_,
+        shiftId: id.data,
+        orgId: ctx.org.id,
+        projectId: current.data.projectId,
+        worker,
+        reason: t("crew.agency.unassignReason"),
+      }),
+      t,
+    );
+  }
+  return done(
+    ctx.org.slug,
+    await updateShift(db, id.data, {
+      ...times_,
+      membershipId: worker.kind === "member" ? worker.membershipId : null,
+      engagementId: worker.kind === "agency" ? worker.engagementId : null,
+    }),
+    t,
+  );
+}
+
+/** Places a person from an agency's roster on a shift (R12, the schedule's drag board and the peek). */
+export async function assignRosterShiftAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const parsed = z
+    .object({ shiftId: uuid, rosterEntryId: uuid })
+    .safeParse({ shiftId: form.get("shiftId"), rosterEntryId: form.get("rosterEntryId") });
+  if (!parsed.success) return invalid(t, { rosterEntryId: "crew.errors.worker" });
+  const result = await assignRosterShift(db, parsed.data.shiftId, parsed.data.rosterEntryId);
+  return result.ok ? done(ctx.org.slug, result, t) : failed(t, result.error);
+}
+
+/** Takes an agency staff member off a shift, which becomes the agency's slot again (R12). */
+export async function unassignRosterShiftAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const parsed = z.object({ shiftId: uuid, reason }).safeParse({
+    shiftId: form.get("shiftId"),
+    reason: form.get("reason"),
   });
-  return done(ctx.org.slug, result, t);
+  if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
+  const result = await unassignRosterShift(db, parsed.data.shiftId, parsed.data.reason);
+  return result.ok ? done(ctx.org.slug, result, t) : failed(t, result.error);
+}
+
+/** The production records whether an agency staff member's training acknowledgment passed (R12). */
+export async function verifyRosterTrainingAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const parsed = z
+    .object({ recordId: uuid, outcome: z.enum(["Passed", "Failed"]) })
+    .safeParse({ recordId: form.get("recordId"), outcome: form.get("outcome") });
+  if (!parsed.success) return invalid(t, { outcome: "crew.errors.reason" });
+  const result = await verifyRosterTraining(db, parsed.data.recordId, parsed.data.outcome);
+  return result.ok ? done(ctx.org.slug, result, t) : failed(t, result.error);
 }
 
 const SHIFT_STATE = z.enum(["Draft", "Published", "Accepted", "Canceled"]);

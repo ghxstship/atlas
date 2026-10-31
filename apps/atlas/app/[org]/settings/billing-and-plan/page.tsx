@@ -4,6 +4,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { BillingLifecycleNotice } from "@/components/lifecycle/billing-notice";
+import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
 import { BillingPortalButton, CheckoutButton } from "@/components/settings/billing-forms";
 import { requireNode } from "@/lib/shell/require-node";
@@ -23,12 +24,14 @@ import { getTranslate } from "@/lib/shell/translate";
  * customer portal. While a paid checkout waits for its subscription to sync, the page says Stripe is confirming
  * and offers no second Checkout. Until the key is set the page says billing is not open yet, and the buttons
  * answer the same. Buying extra seats and packs stays disabled; Enterprise is sold by quote and never checks out.
+ * Panels other modules contribute follow, such as A107's choice of what stays writable over the plan's limits.
  */
 export default async function BillingSettingsPage({
   params,
   searchParams,
 }: PageProps<"/[org]/settings/billing-and-plan">) {
-  const ctx = await requireNode("settings.billing-and-plan", await params);
+  const routeParams = await params;
+  const ctx = await requireNode("settings.billing-and-plan", routeParams);
   const search = await searchParams;
   const billing = billingStatus();
   const [subscription, seats, account, t, tp, translate, format] = await Promise.all([
@@ -294,6 +297,7 @@ export default async function BillingSettingsPage({
           })}
         </p>
       ) : null}
+      <ContributedPanels node="settings.billing-and-plan" ctx={ctx} params={routeParams} />
     </>
   );
 }

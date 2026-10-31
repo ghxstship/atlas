@@ -23,6 +23,16 @@ export type RfqState = Database["app"]["Enums"]["rfq_state"];
 export type PoState = Database["app"]["Enums"]["po_state"];
 export type PoChangeOrderState = Database["app"]["Enums"]["po_change_order_state"];
 export type ApprovalDecision = Database["app"]["Enums"]["approval_decision"];
+export type AcquisitionKind = Database["app"]["Enums"]["acquisition_kind"];
+export type GoodsReturnReason = Database["app"]["Enums"]["goods_return_reason"];
+
+export const ACQUISITION_KINDS: readonly AcquisitionKind[] = ["Purchase", "Rental"];
+export const GOODS_RETURN_REASONS: readonly GoodsReturnReason[] = [
+  "Off Hire",
+  "Defective",
+  "Wrong Item",
+  "Over Delivery",
+];
 
 export const RFQ_STATES: readonly RfqState[] = [
   "Proposed",
@@ -448,6 +458,35 @@ export interface PoLine {
   readonly unitPriceMinor: number | null;
   readonly extendedMinor: number | null;
   readonly receivedQuantity: number;
+  readonly acquisitionKind: AcquisitionKind;
+  /** Rental lines only: when the hire starts and ends (ISO instants). */
+  readonly hireStartsAt: string | null;
+  readonly hireEndsAt: string | null;
+}
+
+/** A tstzrange as PostgREST returns it (`["2027-06-01 12:00:00+00","2027-06-05 12:00:00+00")`), split into its bounds. */
+export function parseHirePeriod(value: string | null | undefined): {
+  readonly startsAt: string | null;
+  readonly endsAt: string | null;
+} {
+  const match = value?.match(/^[[(]"?([^",]*)"?,"?([^",]*)"?[\])]$/);
+  if (!match) return { startsAt: null, endsAt: null };
+  const bound = (raw: string | undefined) => {
+    if (!raw) return null;
+    const at = new Date(raw.replace(" ", "T").replace(/([+-]\d\d)$/, "$1:00"));
+    return Number.isNaN(at.getTime()) ? null : at.toISOString();
+  };
+  return { startsAt: bound(match[1]), endsAt: bound(match[2]) };
+}
+
+/** A hire period as a tstzrange literal, start included and end excluded; null unless both bounds are given. */
+export function hirePeriodLiteral(
+  startsAt: string | null | undefined,
+  endsAt: string | null | undefined,
+): string | null {
+  const from = blankToNull(startsAt);
+  const to = blankToNull(endsAt);
+  return from && to ? `[${from},${to})` : null;
 }
 
 /** Lines of a purchase order in line order, with what has been received against each. */
@@ -459,7 +498,7 @@ export async function listPoLines(
     db
       .from("po_lines")
       .select(
-        "id, line_number, description, element_id, budget_line_id, quantity, unit_basis, unit_price_minor, receipt_lines(quantity_received, deleted_at)",
+        "id, line_number, description, element_id, budget_line_id, quantity, unit_basis, unit_price_minor, acquisition_kind, hire_period, receipt_lines(quantity_received, deleted_at)",
       )
       .eq("purchase_order_id", purchaseOrderId)
       .is("deleted_at", null)
@@ -477,6 +516,9 @@ export async function listPoLines(
       receivedQuantity: (row.receipt_lines ?? [])
         .filter((r) => r.deleted_at === null)
         .reduce((sum, r) => sum + r.quantity_received, 0),
+      acquisitionKind: row.acquisition_kind,
+      hireStartsAt: parseHirePeriod(row.hire_period as string | null).startsAt,
+      hireEndsAt: parseHirePeriod(row.hire_period as string | null).endsAt,
     }),
   );
 }
@@ -526,9 +568,14 @@ export interface PoLineInput {
   readonly unitBasis?: string | null;
   readonly elementId?: string | null;
   readonly budgetLineId?: string | null;
+  /** Purchase unless given; a Rental line needs both hire bounds (po_lines_hire_period_kind). */
+  readonly acquisitionKind?: AcquisitionKind;
+  readonly hireStartsAt?: string | null;
+  readonly hireEndsAt?: string | null;
 }
 
 function poLineRow(input: PoLineInput) {
+  const acquisitionKind = input.acquisitionKind ?? "Purchase";
   return {
     description: input.description.trim(),
     quantity: input.quantity,
@@ -536,6 +583,9 @@ function poLineRow(input: PoLineInput) {
     unit_basis: blankToNull(input.unitBasis),
     element_id: blankToNull(input.elementId),
     budget_line_id: blankToNull(input.budgetLineId),
+    acquisition_kind: acquisitionKind,
+    hire_period:
+      acquisitionKind === "Rental" ? hirePeriodLiteral(input.hireStartsAt, input.hireEndsAt) : null,
   };
 }
 
@@ -735,12 +785,12 @@ export interface GoodsReceipt {
   readonly receivedBy: string | null;
   readonly receiverName: string | null;
   readonly note: string | null;
-  readonly lines: readonly { poLineId: string; quantityReceived: number }[];
+  readonly lines: readonly { id: string; poLineId: string; quantityReceived: number }[];
   readonly matched: boolean;
 }
 
 const RECEIPT_COLUMNS =
-  "id, purchase_order_id, received_at, received_by, note, receiver:people!goods_receipts_received_by_fkey(full_name), purchase_order:purchase_orders!inner(po_number, project:projects(project_key, name), vendor:vendors(counterparty:counterparties(counterparty_name))), receipt_lines(po_line_id, quantity_received, deleted_at), invoice_matches(id, deleted_at)" as const;
+  "id, purchase_order_id, received_at, received_by, note, receiver:people!goods_receipts_received_by_fkey(full_name), purchase_order:purchase_orders!inner(po_number, project:projects(project_key, name), vendor:vendors(counterparty:counterparties(counterparty_name))), receipt_lines(id, po_line_id, quantity_received, deleted_at), invoice_matches(id, deleted_at)" as const;
 
 interface ReceiptRow {
   id: string;
@@ -751,7 +801,8 @@ interface ReceiptRow {
   receiver: { full_name: string | null } | null;
   purchase_order: (ProjectEmbed & VendorEmbed & { po_number: number }) | null;
   receipt_lines:
-    { po_line_id: string; quantity_received: number; deleted_at: string | null }[] | null;
+    | { id: string; po_line_id: string; quantity_received: number; deleted_at: string | null }[]
+    | null;
   invoice_matches: { id: string; deleted_at: string | null }[] | null;
 }
 
@@ -770,7 +821,7 @@ function toReceipt(row: ReceiptRow): GoodsReceipt {
     note: row.note,
     lines: (row.receipt_lines ?? [])
       .filter((l) => l.deleted_at === null)
-      .map((l) => ({ poLineId: l.po_line_id, quantityReceived: l.quantity_received })),
+      .map((l) => ({ id: l.id, poLineId: l.po_line_id, quantityReceived: l.quantity_received })),
     matched: (row.invoice_matches ?? []).some((m) => m.deleted_at === null),
   };
 }
@@ -801,46 +852,278 @@ export async function getGoodsReceipt(db: XosClient, id: string): Promise<Result
   );
 }
 
+export interface ReceiptLineInput {
+  readonly poLineId: string;
+  readonly quantity: number;
+  /** One tag per unit received, for an element with an asset class: the units come in Received. */
+  readonly assetTags?: readonly string[];
+  /** A venue to take the quantity into stock at, for an element whose class is kept as lots. */
+  readonly venueId?: string | null;
+  readonly conditionEnumId?: string | null;
+}
+
+export interface ReceiptOutcome {
+  readonly outcome: "applied" | "duplicate";
+  readonly goodsReceiptId: string;
+  readonly receiptLineIds: readonly string[];
+  readonly assetUnitIds: readonly string[];
+  readonly lotMovementIds: readonly string[];
+}
+
+interface ReceiptOutcomeRow {
+  outcome: "applied" | "duplicate";
+  goods_receipt_id: string;
+  receipt_line_ids: string[] | null;
+  asset_unit_ids: string[] | null;
+  lot_movement_ids: string[] | null;
+}
+
 /**
- * Records goods received against an approved or sent order. Lines with no quantity are skipped;
- * the database refuses receipts beyond the quantity ordered.
+ * Records one receipt event against an approved or sent order through app.receive_goods (R7a): the receipt,
+ * its lines and, per line, units by asset tag or a quantity into a lot, all in one transaction. The event id is
+ * minted when the form opens, so a resubmitted form or a replayed queue entry returns outcome duplicate and
+ * records nothing twice. Lines with no quantity are skipped; the database refuses receipts beyond the order.
  */
 export async function recordGoodsReceipt(
   db: XosClient,
   input: {
+    readonly eventId: string;
     readonly purchaseOrderId: string;
     readonly note: string | null;
-    readonly lines: readonly { readonly poLineId: string; readonly quantity: number }[];
+    readonly lines: readonly ReceiptLineInput[];
   },
-): Promise<Result<{ id: string }>> {
+): Promise<Result<ReceiptOutcome>> {
   const lines = input.lines.filter((l) => l.quantity > 0);
   if (lines.length === 0) return fail({ kind: "invalid", message: "lines" });
-  const receipt = await insertedId(
+  const result = await rpcValue(
+    db.rpc("receive_goods", {
+      p_event_id: input.eventId,
+      p_purchase_order_id: input.purchaseOrderId,
+      p_lines: lines.map((l) => {
+        const tags = (l.assetTags ?? []).map((t) => t.trim()).filter((t) => t.length > 0);
+        return {
+          po_line_id: l.poLineId,
+          quantity: l.quantity,
+          ...(tags.length > 0 ? { asset_tags: tags } : {}),
+          ...(blankToNull(l.venueId) ? { venue_id: blankToNull(l.venueId) } : {}),
+          ...(blankToNull(l.conditionEnumId)
+            ? { condition_enum_id: blankToNull(l.conditionEnumId) }
+            : {}),
+        };
+      }),
+      ...(blankToNull(input.note) ? { p_note: blankToNull(input.note) as string } : {}),
+    }),
+  );
+  if (!result.ok) return result;
+  const row = result.data as unknown as ReceiptOutcomeRow;
+  return ok({
+    outcome: row.outcome,
+    goodsReceiptId: row.goods_receipt_id,
+    receiptLineIds: row.receipt_line_ids ?? [],
+    assetUnitIds: row.asset_unit_ids ?? [],
+    lotMovementIds: row.lot_movement_ids ?? [],
+  });
+}
+
+// Goods returns (R7a) ---------------------------------------------------------------------------------------
+
+export interface ReturnLineInput {
+  readonly receiptLineId: string;
+  readonly quantity: number;
+  /** The units going back, one per unit, each received on that receipt line. */
+  readonly assetUnitIds?: readonly string[];
+  /** The venue whose lot the quantity leaves, for goods taken into stock. */
+  readonly venueId?: string | null;
+}
+
+export interface ReturnOutcome {
+  readonly outcome: "applied" | "duplicate";
+  readonly goodsReturnId: string;
+  readonly returnLineIds: readonly string[];
+}
+
+/**
+ * Records one return event through app.return_goods: goods back to the vendor against the receipt lines that
+ * brought them in, units moving to Returned and lot quantities leaving as a Vendor Return. Off Hire applies only
+ * to rental lines. Replaying the event id returns outcome duplicate.
+ */
+export async function recordGoodsReturn(
+  db: XosClient,
+  input: {
+    readonly eventId: string;
+    readonly purchaseOrderId: string;
+    readonly reason: GoodsReturnReason;
+    readonly note: string | null;
+    readonly lines: readonly ReturnLineInput[];
+  },
+): Promise<Result<ReturnOutcome>> {
+  const lines = input.lines.filter((l) => l.quantity > 0);
+  if (lines.length === 0) return fail({ kind: "invalid", message: "lines" });
+  const result = await rpcValue(
+    db.rpc("return_goods", {
+      p_event_id: input.eventId,
+      p_purchase_order_id: input.purchaseOrderId,
+      p_reason: input.reason,
+      p_lines: lines.map((l) => ({
+        receipt_line_id: l.receiptLineId,
+        quantity: l.quantity,
+        ...((l.assetUnitIds ?? []).length > 0
+          ? { asset_unit_ids: [...(l.assetUnitIds ?? [])] }
+          : {}),
+        ...(blankToNull(l.venueId) ? { venue_id: blankToNull(l.venueId) } : {}),
+      })),
+      ...(blankToNull(input.note) ? { p_note: blankToNull(input.note) as string } : {}),
+    }),
+  );
+  if (!result.ok) return result;
+  const row = result.data as unknown as {
+    outcome: "applied" | "duplicate";
+    goods_return_id: string;
+    return_line_ids: string[] | null;
+  };
+  return ok({
+    outcome: row.outcome,
+    goodsReturnId: row.goods_return_id,
+    returnLineIds: row.return_line_ids ?? [],
+  });
+}
+
+export interface GoodsReturn {
+  readonly id: string;
+  readonly purchaseOrderId: string;
+  readonly returnedAt: string;
+  readonly returnerName: string | null;
+  readonly reason: GoodsReturnReason;
+  readonly note: string | null;
+  readonly lines: readonly {
+    readonly receiptLineId: string;
+    readonly assetUnitId: string | null;
+    readonly quantityReturned: number;
+  }[];
+}
+
+/** Returns of an org, or of one order, newest first. */
+export async function listGoodsReturns(
+  db: XosClient,
+  orgId: string,
+  purchaseOrderId?: string,
+): Promise<Result<GoodsReturn[]>> {
+  let query = db
+    .from("goods_returns")
+    .select(
+      "id, purchase_order_id, returned_at, return_reason, note, returner:people!goods_returns_returned_by_fkey(full_name), return_lines(receipt_line_id, asset_unit_id, quantity_returned, deleted_at)",
+    )
+    .eq("org_id", orgId)
+    .is("deleted_at", null);
+  if (purchaseOrderId) query = query.eq("purchase_order_id", purchaseOrderId);
+  return readRows(query.order("returned_at", { ascending: false }), (row) => ({
+    id: row.id,
+    purchaseOrderId: row.purchase_order_id,
+    returnedAt: row.returned_at,
+    returnerName: row.returner?.full_name ?? null,
+    reason: row.return_reason,
+    note: row.note,
+    lines: (row.return_lines ?? [])
+      .filter((l) => l.deleted_at === null)
+      .map((l) => ({
+        receiptLineId: l.receipt_line_id,
+        assetUnitId: l.asset_unit_id,
+        quantityReturned: l.quantity_returned,
+      })),
+  }));
+}
+
+export interface PoLineSupply {
+  readonly poLineId: string;
+  readonly acquisitionKind: AcquisitionKind;
+  readonly hireStartsAt: string | null;
+  readonly hireEndsAt: string | null;
+  readonly quantityOrdered: number;
+  readonly acknowledged: boolean;
+  readonly quantityReceived: number;
+  readonly quantityReturned: number;
+  readonly unitsReceived: number;
+  readonly offHireDue: boolean;
+}
+
+/** Supply progress of each line of an order (app.po_line_supply): ordered, acknowledged, received, returned. */
+export async function getPoLineSupply(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<PoLineSupply[]>> {
+  return readRows(
     db
-      .from("goods_receipts")
-      .insert({
-        purchase_order_id: input.purchaseOrderId,
-        note: blankToNull(input.note),
-      } as Tables["goods_receipts"]["Insert"])
-      .select("id")
-      .single(),
+      .from("po_line_supply")
+      .select(
+        "po_line_id, acquisition_kind, hire_period, quantity_ordered, acknowledged, quantity_received, quantity_returned, units_received, off_hire_due",
+      )
+      .eq("purchase_order_id", purchaseOrderId),
+    (row) => {
+      const hire = parseHirePeriod(row.hire_period as string | null);
+      return {
+        poLineId: row.po_line_id ?? "",
+        acquisitionKind: row.acquisition_kind ?? "Purchase",
+        hireStartsAt: hire.startsAt,
+        hireEndsAt: hire.endsAt,
+        quantityOrdered: row.quantity_ordered ?? 0,
+        acknowledged: row.acknowledged ?? false,
+        quantityReceived: row.quantity_received ?? 0,
+        quantityReturned: row.quantity_returned ?? 0,
+        unitsReceived: row.units_received ?? 0,
+        offHireDue: row.off_hire_due ?? false,
+      };
+    },
   );
-  if (!receipt.ok) return receipt;
-  const rows = lines.map(
-    (l) =>
-      ({
-        goods_receipt_id: receipt.data.id,
-        po_line_id: l.poLineId,
-        quantity_received: l.quantity,
-      }) as Tables["receipt_lines"]["Insert"],
+}
+
+/** The delivery and return window warnings a hire raises (G-99); warnings never refuse a line. */
+export const HIRE_WARNINGS = [
+  "Delivery After Load In",
+  "Return Before Load Out",
+  "Hire Beyond Site Window",
+  "Delivery Docks Full",
+  "Return Docks Full",
+] as const;
+export type HireWarning = (typeof HIRE_WARNINGS)[number];
+
+export interface PoLineHireWarning {
+  readonly poLineId: string;
+  readonly purchaseOrderId: string;
+  readonly warning: HireWarning;
+}
+
+/** Window warnings of saved rental lines (app.po_line_hire_warnings), of one order or of the org. */
+export async function listPoLineHireWarnings(
+  db: XosClient,
+  orgId: string,
+  purchaseOrderId?: string,
+): Promise<Result<PoLineHireWarning[]>> {
+  let query = db
+    .from("po_line_hire_warnings")
+    .select("po_line_id, purchase_order_id, warning")
+    .eq("org_id", orgId);
+  if (purchaseOrderId) query = query.eq("purchase_order_id", purchaseOrderId);
+  return readRows(query, (row) => ({
+    poLineId: row.po_line_id ?? "",
+    purchaseOrderId: row.purchase_order_id ?? "",
+    warning: row.warning as HireWarning,
+  }));
+}
+
+/** Window warnings of a hire not yet saved (app.hire_window_warnings); the database refuses a hire that ends first. */
+export async function getHireWindowWarnings(
+  db: XosClient,
+  input: { readonly projectId: string; readonly hireFrom: string; readonly hireTo: string },
+): Promise<Result<HireWarning[]>> {
+  const result = await rpcValue(
+    db.rpc("hire_window_warnings", {
+      p_project_id: input.projectId,
+      p_hire_from: input.hireFrom,
+      p_hire_to: input.hireTo,
+    }),
   );
-  const inserted = await readRows(db.from("receipt_lines").insert(rows).select("id"), (r) => r);
-  if (!inserted.ok) {
-    // The receipt header is withdrawn so a refused receipt leaves nothing half recorded.
-    await db.from("goods_receipts").update(deletedNow()).eq("id", receipt.data.id);
-    return inserted;
-  }
-  return receipt;
+  if (!result.ok) return result;
+  return ok(((result.data as unknown as string[] | null) ?? []) as HireWarning[]);
 }
 
 // Three-way match (invariant 17) --------------------------------------------------------------------------
@@ -1306,4 +1589,13 @@ export async function transitionSubmittal(
     }),
   );
   return result.ok ? ok(null) : result;
+}
+
+/**
+ * The IANA time zone a project's local times are typed in (app.projects.time_zone), so a hire typed as
+ * `datetime-local` becomes an instant in the project's zone; UTC when the project is not readable.
+ */
+export async function getProjectTimeZone(db: XosClient, projectId: string): Promise<string> {
+  const { data } = await db.from("projects").select("time_zone").eq("id", projectId).maybeSingle();
+  return data?.time_zone ?? "UTC";
 }
