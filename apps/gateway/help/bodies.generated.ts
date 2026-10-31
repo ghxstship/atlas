@@ -938,6 +938,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "The guest's email" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add the guest's email if you have it. The production sends their pass there, with their table and how many they bring, once it approves them. Each email carries a link to stop the organization's emails to that address.",
+          },
+        ],
+      },
+      { t: "h2", v: "Stop guest emails" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest who opens the stop link in an email is asked first, then stops every email from that organization to their address. Nothing changes until they confirm.",
+          },
+        ],
+      },
     ],
     "engagement-hospitality": [
       {
@@ -4644,6 +4664,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela.",
+          },
+        ],
+      },
+      { t: "h2", v: "El correo del invitado" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agregue el correo del invitado si lo tiene. La producción le envía ahí su pase, con su mesa y cuántas personas lo acompañan, cuando lo aprueba. Cada correo incluye un enlace para dejar de recibir los correos de la organización en esa dirección.",
+          },
+        ],
+      },
+      { t: "h2", v: "Dejar de recibir correos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un invitado que abre el enlace para darse de baja en un correo primero recibe una pregunta y luego deja de recibir todos los correos de esa organización en su dirección. Nada cambia hasta que confirma.",
           },
         ],
       },
