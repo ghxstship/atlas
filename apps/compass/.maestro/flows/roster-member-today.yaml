@@ -4,8 +4,12 @@ appId: pro.ghxstship.compass
 # their van and a badge waiting at the desk. Signed in, Today shows their call (the start of their arrival window),
 # the pass with its vehicle and Show pass, the badge to pick up and whom to ask; clocking in is the company's, so the
 # clock never shows, and More leaves Timesheets out. Update project details opens More > Project Details, online
-# only. Named after its file: config.yaml orders flows by name.
+# only. When the flow completes, scripts/roster-member-cleanup.js puts the demo project back as the setup found it.
+# Named after its file: config.yaml orders flows by name.
 name: roster-member-today
+onFlowComplete:
+  - runScript:
+      file: ../scripts/roster-member-cleanup.js
 ---
 - runScript:
     file: ../scripts/roster-member.js

@@ -3,7 +3,9 @@
 // the demo project, Active, with their entry accepted by the org and by themselves, a pending badge and a parking pass
 // for their vehicle. Every step is an RPC or a REST write as the person whose step it is, as Gateway and Atlas make
 // them: the demo vendor contact (the account's Owner) rosters, the demo Owner reviews, assigns and issues. Leaves
-// { email, status } in output.roster; status names the first step that failed. Maestro runs scripts in Rhino (ES5).
+// { email, status, undo } in output.roster; status names the first step that failed, and undo is what
+// roster-member-cleanup.js puts back when the flow completes (the demo project's parking offering, a parking category
+// made for the run, the engagement). Maestro runs scripts in Rhino (ES5).
 var ORG = "01920000-0000-7000-8000-000000000001";
 var PROJECT = "01920000-0000-7000-8000-000000001001";
 var ACCOUNT = "01920000-0000-7000-8000-000000000301";
@@ -52,6 +54,7 @@ function read(token, profile, path) {
 var stamp = new Date().getTime();
 var email = "maestroroster" + stamp + "@example.com";
 var status = "ok";
+var undo = { engagement: null, parkingSet: false, parkingBefore: null, category: null };
 try {
   status = "sign-up";
   var signUp = http.post(SUPABASE_URL + "/auth/v1/signup", {
@@ -97,6 +100,7 @@ try {
     }),
   });
   var engagement = json(made.body)[0].id;
+  undo.engagement = engagement;
 
   status = "roster";
   var entry = rpc(vendor, "add_roster_entry", {
@@ -120,13 +124,24 @@ try {
   });
 
   status = "parking";
-  rpc(owner, "set_setting", {
-    p_org_id: ORG,
-    p_setting_key: "offerings.parking",
-    p_scope_kind: "Project",
-    p_scope_id: PROJECT,
-    p_value_text: "provided",
-  });
+  var stored = read(
+    owner,
+    "app",
+    "setting_values?select=value_text&setting_key=eq.offerings.parking&scope_kind=eq.Project&scope_id=eq." +
+      PROJECT +
+      "&deleted_at=is.null",
+  );
+  undo.parkingBefore = stored.length > 0 ? stored[0].value_text : null;
+  if (undo.parkingBefore !== "provided") {
+    rpc(owner, "set_setting", {
+      p_org_id: ORG,
+      p_setting_key: "offerings.parking",
+      p_scope_kind: "Project",
+      p_scope_id: PROJECT,
+      p_value_text: "provided",
+    });
+    undo.parkingSet = true;
+  }
   rpc(crew, "save_roster_vehicle", {
     p_roster_entry_id: entry,
     p_make: "Ford",
@@ -158,6 +173,7 @@ try {
         }),
       }).body,
     )[0].id;
+    undo.category = park;
   }
   var vehicle = read(owner, "app", "roster_vehicles?select=id&roster_entry_id=eq." + entry);
   var need = {
@@ -187,4 +203,4 @@ try {
 } catch (e) {
   status = status + ": " + e.message;
 }
-output.roster = { email: email, status: status };
+output.roster = { email: email, status: status, undo: undo };
