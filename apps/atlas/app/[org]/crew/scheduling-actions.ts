@@ -1,6 +1,7 @@
 "use server";
 
 import type { DataError } from "@xos/data";
+import { Constants } from "@xos/data/database.types";
 import {
   addAvailabilityPeriod,
   assignOpenShift,
@@ -200,7 +201,7 @@ export async function trashShiftTemplateAction(_: State, form: FormData): Promis
 
 // One's own availability (Me, Work details) ------------------------------------------------------------------
 
-const KIND = z.enum(["Available", "Unavailable", "Tentative"]);
+const KIND = z.enum(Constants.app.Enums.availability_kind);
 
 export async function addAvailabilityAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form.get("org"));

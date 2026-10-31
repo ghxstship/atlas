@@ -1,4 +1,5 @@
-import type { XosClient } from "./client.ts";
+import type { Database, XosClient } from "./client.ts";
+import { Constants } from "./database.types.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { cueProgress } from "./show.ts";
@@ -23,9 +24,9 @@ export const DISPLAY_TOKEN = /^xscr_[0-9a-f]{64}$/;
 /** A device grant, kept in the page's HttpOnly cookie. */
 export const LIVE_GRANT = /^xlgr_[0-9a-f]{64}$/;
 
-export type LiveLinkKind = "View" | "Display";
+export type LiveLinkKind = Database["app"]["Enums"]["live_link_kind"];
 
-export const DISPLAY_MODES = ["Room Clock", "Presenter Timer", "Backstage"] as const;
+export const DISPLAY_MODES = Constants.app.Enums.display_mode;
 export type DisplayMode = (typeof DISPLAY_MODES)[number];
 
 export function isDisplayMode(value: unknown): value is DisplayMode {

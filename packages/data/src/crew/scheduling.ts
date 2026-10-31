@@ -1,4 +1,4 @@
-import type { XosClient } from "../client.ts";
+import type { Database, XosClient } from "../client.ts";
 import { fail, ok, toDataError, type Result } from "../result.ts";
 import { landed } from "./shared.ts";
 
@@ -175,7 +175,7 @@ export function fillRate(
 
 // Availability -----------------------------------------------------------------------------------------------
 
-export type AvailabilityKind = "Available" | "Unavailable" | "Tentative";
+export type AvailabilityKind = Database["app"]["Enums"]["availability_kind"];
 /** A member's availability over a shift: a kind they stated, or nothing stated. */
 export type StatedAvailability = AvailabilityKind | "Unstated";
 

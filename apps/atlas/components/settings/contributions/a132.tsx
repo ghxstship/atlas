@@ -1,3 +1,4 @@
+import { Constants } from "@xos/data/database.types";
 import { Input, Select } from "@xos/ui";
 import {
   getMyAvailabilityStatus,
@@ -293,7 +294,7 @@ async function MyAvailabilityPanel({ ctx }: SettingsPanelProps) {
           name="kind"
           label={t("crew.scheduling.availability.kind")}
           value="Available"
-          options={(["Available", "Tentative", "Unavailable"] as const).map((k) => ({
+          options={Constants.app.Enums.availability_kind.map((k) => ({
             value: k,
             label: t(`crew.scheduling.availability.${k}`),
           }))}

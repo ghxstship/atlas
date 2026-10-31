@@ -8,18 +8,19 @@
  * live_view and live_display token RPCs, which the Atlas public pages call.
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
 import { collectionAction, itemAction, resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
 
-const LinkKind = z.enum(["View", "Display"]).meta({
+const LinkKind = z.enum(Constants.app.Enums.live_link_kind).meta({
   description: "View, a saved view; Display, a running order on a screen.",
   example: "View",
 });
 
-const DisplayMode = z.enum(["Room Clock", "Presenter Timer", "Backstage"]).meta({
+const DisplayMode = z.enum(Constants.app.Enums.display_mode).meta({
   description: "Mode a display screen opens in.",
   example: "Backstage",
 });
