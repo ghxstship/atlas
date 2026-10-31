@@ -980,6 +980,18 @@
     "denied": "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
     "turnOn": "Turn On Notifications"
   },
+  "offerActions": {
+    "accept": "Accept",
+    "decline": "Decline",
+    "reply": "Reply",
+    "send": "Send",
+    "replyPrompt": "Write a reply",
+    "shiftAccepted": "Shift accepted. You're on the schedule.",
+    "shiftDeclined": "Shift declined. The scheduler sees it back in Draft.",
+    "offerAccepted": "Offer accepted. The organization sets up your engagement next.",
+    "offerDeclined": "Offer declined.",
+    "replied": "Reply sent."
+  },
   "help": {
     "title": "Help",
     "entry": "Help",

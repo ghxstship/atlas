@@ -2280,14 +2280,35 @@ export const HELP_BODIES: HelpBodies = {
           [{ t: "text", v: "engagements to rate, for 14 days after they complete" }],
         ],
       },
-      { t: "h2", v: "Updates" },
+      { t: "h2", v: "For your information" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "When an organization receives, approves, schedules or pays one of your invoices, the latest steps show here. Unread ones are marked New.",
+            v: "Updates that need nothing from you: an organization received, approved, scheduled or paid one of your invoices, a new match for a saved search, a reminder that something expires, a new shift or offer. Unread ones are marked New, and each opens where you follow it.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Clear each one with " },
+          { t: "strong", v: "Done" },
+          { t: "text", v: ", or " },
+          { t: "strong", v: "Snooze" },
+          {
+            t: "text",
+            v: " it to bring it back in a day. From the keyboard, select an item and press ",
+          },
+          { t: "strong", v: "E" },
+          { t: "text", v: " for Done or " },
+          { t: "strong", v: "H" },
+          { t: "text", v: " to snooze it; " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move between items." },
         ],
       },
       { t: "h2", v: "Recommended for you" },
@@ -2307,7 +2328,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The view switcher shows Home as a feed, or as an inbox with only Needs you and Updates.",
+            v: "The view switcher shows Home as a feed, or as an inbox with only Needs you and For your information.",
           },
         ],
       },
@@ -2466,7 +2487,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Each step also shows under Updates on Home, and reaches you by email or push as you choose in ",
+            v: "Each step also shows under For your information on Home, and reaches you by email or push as you choose in ",
           },
           { t: "link", v: "Settings, Notifications", href: "help:settings-notifications" },
           { t: "text", v: "." },
@@ -5963,14 +5984,35 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
-      { t: "h2", v: "Novedades" },
+      { t: "h2", v: "Para tu información" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Cuando una organización recibe, aprueba, programa o paga una de tus facturas, los últimos pasos aparecen aquí. Los que no has leído se marcan como Nuevo.",
+            v: "Novedades que no te piden nada: una organización recibió, aprobó, programó o pagó una de tus facturas, una coincidencia nueva para una búsqueda guardada, un aviso de que algo vence, un turno o una oferta nuevos. Los que no has leído se marcan como Nuevo, y cada uno abre donde le das seguimiento.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Quita cada uno con " },
+          { t: "strong", v: "Listo" },
+          { t: "text", v: ", o " },
+          { t: "strong", v: "Posponer" },
+          {
+            t: "text",
+            v: " para que vuelva en un día. Con el teclado, selecciona un elemento y presiona ",
+          },
+          { t: "strong", v: "E" },
+          { t: "text", v: " para Listo o " },
+          { t: "strong", v: "H" },
+          { t: "text", v: " para posponerlo; " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " pasan de un elemento a otro." },
         ],
       },
       { t: "h2", v: "Recomendadas para ti" },
@@ -5990,7 +6032,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "El selector de vista muestra Inicio como un feed, o como una bandeja con solo Te necesita y Novedades.",
+            v: "El selector de vista muestra Inicio como un feed, o como una bandeja con solo Te necesita y Para tu información.",
           },
         ],
       },
@@ -6158,7 +6200,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Cada paso también aparece en Novedades, en Inicio, y te llega por correo o aviso push según lo que elijas en ",
+            v: "Cada paso también aparece en Para tu información, en Inicio, y te llega por correo o aviso push según lo que elijas en ",
           },
           { t: "link", v: "Configuración, Notificaciones", href: "help:settings-notifications" },
           { t: "text", v: "." },

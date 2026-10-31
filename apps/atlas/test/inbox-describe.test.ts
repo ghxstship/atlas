@@ -198,6 +198,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "organization.white_label_reverted": { plan: "pro", until: "1795000000000" },
   "partner.client_left": { org: "Tidewater Events" },
   // A89: marketplace matches and expiry reminders (1462, 1463).
+  "offer.sent": { title: "Festival Truss Riggers", orgName: "Demo Productions" },
   "opportunity.matched": {
     title: "Festival Truss Riggers",
     orgName: "Demo Productions",

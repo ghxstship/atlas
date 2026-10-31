@@ -980,6 +980,18 @@
     "denied": "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
     "turnOn": "Activar notificaciones"
   },
+  "offerActions": {
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "reply": "Responder",
+    "send": "Enviar",
+    "replyPrompt": "Escribe una respuesta",
+    "shiftAccepted": "Turno aceptado. Ya estás en el horario.",
+    "shiftDeclined": "Turno rechazado. Quien programa lo ve de nuevo en Borrador.",
+    "offerAccepted": "Oferta aceptada. La organización prepara tu contratación a continuación.",
+    "offerDeclined": "Oferta rechazada.",
+    "replied": "Respuesta enviada."
+  },
   "help": {
     "title": "Ayuda",
     "entry": "Ayuda",

@@ -280,6 +280,8 @@ var templates = {
     dueOffsetHelp: "Leave blank for no due date; use a negative number for before the start.",
     remove: "Remove",
     removeNamed: "Remove {name}",
+    requiresReview: "Requires review",
+    reviewed: "requires review",
   },
   draft: {
     title: "Draft version {version}",

@@ -84,6 +84,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0103](0103-combined-statuses-are-computed.md)                      | Combined Statuses Are Computed                                                   | Accepted |
 | [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
 | [0105][adr-0105]                                                    | Allergies Are Restricted; Catering Lead and On-Site Medical Roles Read Them      | Accepted |
+| [0106](0106-one-tap-actions-from-email-and-push.md)                 | One-Tap Actions from Email and Push, and Gateway's For Your Information          | Proposed |
 | [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
 | [0111](0111-timeline-reschedule-pushes-successors.md)               | A Timeline Reschedule Pushes Successors by What It Adds                          | Accepted |
 | [0112](0112-holiday-calendars-for-time-off-and-payroll.md)          | Holiday Calendars for Time Off and Payroll                                       | Accepted |

@@ -120,6 +120,13 @@ export const KNOWN_REFUSALS = [
   "availability_poll_answer",
   // B14: reusing a roster from a past event (migration 3037).
   "roster_copy_source",
+  // A127 one-tap email links and push actions.
+  "notification_action_used",
+  "notification_action_expired",
+  "notification_action_not_yours",
+  "notification_action_invalid",
+  "notification_action_reason",
+  "notification_action_elsewhere",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

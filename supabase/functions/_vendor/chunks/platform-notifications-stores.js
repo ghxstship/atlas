@@ -679,6 +679,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "offer.sent",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.offer.sent.subject",
+      body: "kinds.offer.sent.body",
+    },
+  },
+  {
     kind: "onboarding.item_expiring",
     category: "expiry_reminders",
     emailTemplate: "notification",
@@ -876,7 +888,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/2859_notification_kind_seed.sql"
+"supabase/migrations/3039_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

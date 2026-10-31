@@ -288,6 +288,8 @@ var templates = {
       "Déjelo en blanco para no tener vencimiento; use un número negativo para antes del inicio.",
     remove: "Quitar",
     removeNamed: "Quitar {name}",
+    requiresReview: "Requiere revisión",
+    reviewed: "requiere revisión",
   },
   draft: {
     title: "Borrador de la versión {version}",

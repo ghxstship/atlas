@@ -199,6 +199,12 @@
         "body": "{count, plural, one {{orgName} published {title}, which matches your saved search {searchName}.} other {{orgName} published # opportunities that match your saved search {searchName}, including {title}.}}"
       }
     },
+    "offer": {
+      "sent": {
+        "subject": "Offer from {orgName}: {title}",
+        "body": "{orgName} sent you an offer for {title}. Review the terms, then accept them or answer in Gateway."
+      }
+    },
     "onboarding": {
       "item_expiring": {
         "subject": "{title} expires {days, plural, =0 {today} one {in # day} other {in # days}}",
@@ -349,7 +355,13 @@
     }
   },
   "notification": {
-    "heading": "{subject}"
+    "heading": "{subject}",
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "accept": "Accept",
+      "note": "Each button opens a page to confirm. It works once, for 7 days."
+    }
   },
   "digest": {
     "subject": "{count, plural, one {# update} other {# updates}} from {orgName}",

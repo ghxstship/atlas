@@ -199,6 +199,12 @@
         "body": "{count, plural, one {{orgName} publicó {title}, que coincide con su búsqueda guardada {searchName}.} other {{orgName} publicó # oportunidades que coinciden con su búsqueda guardada {searchName}, entre ellas {title}.}}"
       }
     },
+    "offer": {
+      "sent": {
+        "subject": "Oferta de {orgName}: {title}",
+        "body": "{orgName} te envió una oferta para {title}. Revisa las condiciones y acéptalas o respóndelas en Gateway."
+      }
+    },
     "onboarding": {
       "item_expiring": {
         "subject": "{title} vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
@@ -349,7 +355,13 @@
     }
   },
   "notification": {
-    "heading": "{subject}"
+    "heading": "{subject}",
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "accept": "Aceptar",
+      "note": "Cada botón abre una página para confirmar. Funciona una vez, durante 7 días."
+    }
   },
   "digest": {
     "subject": "{count, plural, one {# novedad} other {# novedades}} de {orgName}",

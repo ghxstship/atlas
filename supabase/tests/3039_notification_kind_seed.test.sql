@@ -1,4 +1,4 @@
--- 2859_notification_kind_seed.test.sql
+-- 3039_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -267,6 +267,9 @@ select set_eq(
   ('opportunity.matched', 'In App', 'opportunities', null::text),
   ('opportunity.matched', 'Email', 'opportunities', 'notification'),
   ('opportunity.matched', 'Push', 'opportunities', null::text),
+  ('offer.sent', 'In App', 'opportunities', null::text),
+  ('offer.sent', 'Email', 'opportunities', 'notification'),
+  ('offer.sent', 'Push', 'opportunities', null::text),
   ('onboarding.item_expiring', 'In App', 'expiry_reminders', null::text),
   ('onboarding.item_expiring', 'Email', 'expiry_reminders', 'notification'),
   ('onboarding.item_expiring', 'SMS', 'expiry_reminders', null::text),
