@@ -29,12 +29,16 @@ are computed by `private.project_bump_windows` from the live Load In and Load Ou
 00:00 of the first such day to 00:00 of the day after the last, each day at midnight in its own zone (the venue's, the
 Show node's venue's, the stored zone, else the project's). R7a's `private.project_site_window` takes the bump-in start
 before the earliest Build record and starts_on, and the bump-out end before the latest Strike record and the day after
-ends_on. `app.project_site_window_warnings` lists a Load In day after the first show day, a Load Out day before the
-last, overlapping windows, a window longer than 60 days and bump days without show dates; it never refuses a day,
-because a touring project has load-ins between show days. If stored windows are ever wanted, the owner amends ADR
+ends_on. `app.project_site_window_warnings` lists a Load In day after the first Show day at its venue, a Load Out day
+before the last Show day there, load-in and load-out dates that overlap at a venue, more than 60 dates of load-in or
+load-out and bump days without show dates. Each day is judged at its venue (its own, else its Show node's) against the
+Show days at that venue, and against starts_on and ends_on only when the project has no Show day there, so a tour that
+loads in before each stop raises nothing; it never refuses a day. The windows themselves stay project-wide. If stored windows are ever wanted, the owner amends ADR
 0143 first. The UI labels of the date fields are unchanged so existing journeys keep their flow; the help explains the
 meaning. The intake saves its Load-in and Load-out ranges through B4's `app.save_project_days`, which needs
-schedule.timeline.write.
+schedule.timeline.write, and refuses at intake a load-in that ends after the first show day
+(`project_bump_in_after_show`) or a load-out that starts before the last (`project_bump_out_before_show`); B4's day
+editor only warns.
 
 **D2. Event types are org data.** `app.event_types` (read by the org, written with projects.template.write) picks a
 template by scale (Intimate up to 500 people; Small 500 to 2,500; Medium 2,500 to 10,000; Large 10,000 to 50,000;
@@ -50,8 +54,11 @@ foreign key.
 `gate_documents_missing` while a Required document type of the project's event type due by the gate has no live
 project document of that type with a version, and `gate_fields_missing` while a field required for the type due by the
 gate has no value. Recommended items never block; a project without an event type passes and refuses exactly as
-before; deleted document types and fields are ignored. `app.project_setup_progress` shows the same rows to readers of
-the project's documents only, so nobody sees a false Missing. The Overview's Setup card is server-rendered markup with
+before; deleted document types and fields are ignored. The gate and `app.project_setup_progress` read one rule,
+`private.project_setup_item_met`, which counts a typed document whatever its classification; the view lists rows only
+to readers of the project's documents, so a reader never sees a Missing the gate would not refuse, even for a
+Restricted document they cannot open. The gate's refusal names the missing items after "missing: "; the Gates page
+lists them from the progress view rather than splitting the message, since a label may hold a comma. The Overview's Setup card is server-rendered markup with
 a native meter, so the key page carries no new JavaScript. This departs from the spec's on-demand loading on purpose: a
 client-loaded card would add a module and a second request to a key page, while the server read runs in parallel with
 the page's other reads and is skipped for a project without an event type.
@@ -59,11 +66,16 @@ the page's other reads and is skipped for a project without an event type.
 **D4. Copying a past project is a direct copy of org-owned setup.** `app.copy_project_setup` copies the plan (Show and
 Standing Venue nodes, open records with their parents and dependencies, B4's project days), pass categories and their
 access grid at the target's venues, hotel blocks, budgets (as non-baseline copies; an Event cost center is cleared) and
-advance forms (unsent), every instant moved by whole days on the wall clock of its zone. The preview and the commit
+advance forms (unsent), every instant moved by whole days on the wall clock of its zone. Each part needs the capabilities the target
+table's write policy asks for; the plan also needs schedule.timeline.read on the source and schedule.timeline.write on
+the target, so project days and dependencies are never left out in silence. A project in another org, as source or
+target, reads as "project not found", so a copy never tells whether it exists. The preview and the commit
 return the same rows; the preview runs in a block that the sentinel XB001 rolls back, as 1451's `private.run_bulk`
 does, and before the project exists it runs against a stand-in project at the would-be venue and zone. Templates are
-not widened; they gain only `requires_review` on Record items. Shifts, engagements, people, credentials, allocations,
-submissions, advance recipients, roster facts and project offering rules and settings (2620, 2621) are never copied.
+not widened; they gain only `requires_review` on Record items. Shifts, engagements, roster entries and travel parties,
+people, credentials, allocations, submissions, advance recipients, roster facts, Approval records, record extension
+rows, record and file reviews, hotel assignments and project offering rules and settings (2620, 2621) are never
+copied.
 The roster belongs to the party (ADR 0101): only someone who manages both rosters reuses one, in Gateway, as Draft
 entries each person still accepts (`app.copy_roster_from_engagement`); a locked target is refused before anything is
 copied.
@@ -71,12 +83,19 @@ copied.
 **D5. Reviews are a done-gate.** A record with `requires_review` reaches Complete only when the latest live, not
 Canceled Approval record about it is decided Approved, on every path that changes its state (a trigger, so
 `app.transition_record`, the bulk RPCs and direct writes alike). Invariant 18 is unchanged: any eligible approver
-other than the requester may decide (`private.guard_record_approval`), so the UI offers Approve and Request changes to
-the named reviewer and to other eligible approvers. A reviewer must be able to decide, so `app.request_record_review`
-refuses one who could not (`approval_not_eligible`). Asking for changes needs a note and moves the record back to
+other than the requester may decide (`private.guard_record_approval`, not restated), so the UI offers Approve and
+Request changes to the named reviewer and to other eligible approvers. A review names its reviewer, who must be able to
+decide (`approval_not_eligible`). Only an independent decision about the work as it stands counts: the record's owner
+never reviews it or decides its review (a new built-in rule, `sod_record_review_owner`), and the gate counts an
+Approved review only when its approver is neither the owner nor the person completing the record, it is in the
+record's project, and it was decided after the record last entered Active. So an Approval record inserted by hand with
+a borrowed requester does not complete its approver's own work, and a reopened record, or one whose later Rejected
+review was deleted, needs a new review. Asking for changes needs a note and moves the record back to
 Active only while it is still In Review; an approval leaves it In Review for the owner to complete. Requests and
-decisions reuse approval.requested and approval.decided with the record's title and key; Inbox and Compass's push
-actions decide them through `app.act_on_notification`. Turning the flag off needs projects.settings.write.
+decisions reuse approval.requested and approval.decided about the review's Approval record, with the reviewed record's
+title and key; Inbox and Compass's push actions decide them through `app.act_on_notification`, restated from A127's
+2200 so its accept, decline and reply actions stay. Email one-tap links are not offered for record reviews
+(`private.notification_link_actions` is not restated). Turning the flag off needs projects.settings.write.
 
 **D6. File review is per attachment version.** `app.attachment_version_reviews` is append-only; the latest review of
 a version is its decision and a new version starts unreviewed. The uploader never reviews their own version (a new
@@ -84,7 +103,8 @@ rule, `sod_file_review_uploader`). A submittal is not Approved while a live file
 Requested. The vendor reads each Clean version of its own submittals' files with the decision and the comment through
 `api_external.submittal_files`, an owner-rights view filtered by `private.vendor_side_open` like 2610's submittals,
 because vendors cannot read `app.attachments` through row level security; it never shows who reviewed, the stored
-object or any download path, and it leaves out Confidential and Restricted files. The comment column is
+object or any download path, and it lists only files classified Public or Internal (1380). It gives each version's id,
+number, file name, media type, size, upload time, whether it is current, and the latest decision, comment and time. The comment column is
 `review_comment`, a note meant for the vendor, which the external-access lint keeps apart from internal notes.
 
 **D7. Capabilities reuse existing seeds.** projects.template.write configures event types, document types and
