@@ -4,7 +4,8 @@
 - Date: 2026-10-31
 - Decider: Owner (parity audit approved 2026-10-28; B8 fast-forwarded 2026-10-30), pending review of this ADR
 - Package: B8 (RRR-232), gaps G-68, G-71, G-145, G-147, G-148, G-149 and G-150
-- Migrations: `2970_gate_scans.sql` to `2977_weather_holds.sql`, `2979_notification_kind_seed.sql`
+- Migrations: `2970_gate_scans.sql` to `2977_weather_holds.sql`, `2978_scan_bucket_union.sql` (the union of R9's and
+  P5's scanned buckets, which the stacked merge needs) and `2979_notification_kind_seed.sql`
 
 ## Context
 
