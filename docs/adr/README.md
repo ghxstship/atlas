@@ -73,6 +73,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0075](0075-selection-menus-and-hover-cards-in-every-view.md)       | Selection, Record Menus and Hover Cards in Every View                            | Accepted |
 | [0076](0076-custom-fields-on-pages-and-the-filter-builder.md)       | Custom Fields on Pages, and the Add Filter Control                               | Accepted |
 | [0080](0080-operations-bulk-edit-and-undo.md)                       | Operations Bulk Edit, Undo for Their Deletes and Day Sheet Drafts                | Accepted |
+| [0081](0081-objects-over-plan-limits-become-read-only.md)           | Objects Over the Plan's Limits Become Read-Only                                  | Proposed |
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 | [0087](0087-dashboard-template-and-template-roots.md)               | The Dashboard Template, Saved Spans and Template Roots                           | Accepted |

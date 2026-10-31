@@ -37,6 +37,7 @@
     "slug_reserved": "That web address is reserved by the platform. Choose another.",
     "plan_unknown": "That plan does not exist.",
     "plan_limit_exceeded": "Your plan's limit is reached. Upgrade the plan or remove something first.",
+    "plan_limit_read_only": "This is read-only because the organization is over its plan's limits. The banner at the top of the page says which limit and how to lift it.",
     "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
     "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     "plan_feature_required": "Your plan does not include this. Upgrade the plan to use it.",
