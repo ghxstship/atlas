@@ -102,6 +102,23 @@ export function fixtureDraft(request: ModelRequest): ModelResponse {
     ...named.map((n, i) => `${i + 2}. Confirm the details of ${n}.`),
   ];
   if (/\b(price|cost|fee)\b/i.test(instructions)) lines.push("Cost: [needs: the agreed price]");
+  // A governance draft (B15) follows its outline: one heading each, the records under the first, and
+  // a gap where a figure would go.
+  const outline =
+    /Use exactly these headings, in this order, each as a Markdown ## heading: (.+)\.$/m.exec(
+      request.system,
+    );
+  if (outline) {
+    const headings = (outline[1] ?? "").split("; ");
+    const body = headings
+      .map((h, i) =>
+        i === 0
+          ? `## ${h}\n${lines.join("\n")}`
+          : `## ${h}\n[needs: the ${h.toLowerCase()} details]`,
+      )
+      .join("\n\n");
+    return toolCall("draft", { title, body, gaps: [] });
+  }
   return toolCall("draft", { title, body: lines.join("\n"), gaps: [] });
 }
 

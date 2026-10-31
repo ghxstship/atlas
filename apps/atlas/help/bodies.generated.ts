@@ -94,6 +94,33 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
+      { t: "h2", v: "Draft advance answers with Aurora" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a party answers by email or sends a tour book or rider, a reviewer can choose ",
+          },
+          { t: "strong", v: "Draft advance answers" },
+          {
+            t: "text",
+            v: " on a recipient of a sent packet, or on a verified message in the project inbox. Aurora drafts at most one answer per open section from that source, with the words it read, and lists the sections the source does not answer. A time, quantity, item or person the source does not show is left out. Each answer you accept is recorded on the party's behalf: you become its submitter, so someone else reviews it, and the party sees that your org recorded it. To change it, return it.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contracts and riders with Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "On a project's Engagements tab, " },
+          { t: "strong", v: "Import contracts and riders" },
+          {
+            t: "text",
+            v: " reads booking contracts and riders, sorts them by act and books each act you keep as an Artist engagement at Onboarding, with its riders. You choose each act's party and the terms for the batch; the fee is read only for someone who may see pay rates.",
+          },
+        ],
+      },
     ],
     assets: [
       { t: "h2", v: "Classes, units and lots" },
@@ -415,6 +442,23 @@ export const HELP_BODIES: HelpBodies = {
               v: " lists contractors paid the 1099-NEC threshold and downloads the filing file. Full tax identifiers need a Restricted export with step-up.",
             },
           ],
+        ],
+      },
+      { t: "h2", v: "Read invoice lines with Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "On a Proposed payable invoice, " },
+          { t: "strong", v: "Read lines from a document" },
+          {
+            t: "text",
+            v: " reads the vendor's lines and printed totals. Choose each line's budget line yourself; earlier lines of the same vendor are shown as hints, with a badge when the price differs by 10% or more. The tie-out compares the lines with the printed total on every edit, rounding as the invoice does. When they differ, check ",
+          },
+          { t: "strong", v: "I checked the difference" },
+          {
+            t: "text",
+            v: " before you add the lines. A receipt read with Aurora shows its items and the same tie-out, read-only.",
+          },
         ],
       },
     ],
@@ -756,6 +800,23 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "An accommodation block holds rooms at a hotel for a date range. Assign people to rooms from the block and see how many remain.",
+          },
+        ],
+      },
+      { t: "h2", v: "Import itineraries with Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "On a Travel fulfillment, " },
+          { t: "strong", v: "Import itineraries with Aurora" },
+          {
+            t: "text",
+            v: " reads up to 25 booking confirmations, as files or as verified messages in the project inbox, into one preview. Each file is one Aurora request from this month's allowance, and the panel says how many you use. Every row is one passenger on one segment, with the excerpt it was read from. You always choose the traveler: a suggested name is only a hint. Zones are read from each place, so check them; a date or time the confirmation does not print is left empty. ",
+          },
+          { t: "strong", v: "Add segments" },
+          {
+            t: "text",
+            v: " adds the rows you keep in one step, and a segment the traveler already has is refused.",
           },
         ],
       },
@@ -2412,6 +2473,33 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Redactar respuestas del avance con Aurora" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una parte responde por correo o envía un tour book o un rider, quien revisa puede elegir ",
+          },
+          { t: "strong", v: "Redactar respuestas del avance" },
+          {
+            t: "text",
+            v: " en un destinatario de un paquete enviado, o en un mensaje verificado del buzón del proyecto. Aurora redacta como máximo una respuesta por sección abierta a partir de esa fuente, con las palabras que leyó, y enumera las secciones que la fuente no responde. Se omite una hora, cantidad, artículo o persona que la fuente no muestra. Cada respuesta que acepta se registra en nombre de la parte: usted queda como quien la envió, así que la revisa otra persona, y la parte ve que su organización la registró. Para cambiarla, devuélvala.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contratos y riders con Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En la pestaña Contrataciones de un proyecto, " },
+          { t: "strong", v: "Importar contratos y riders" },
+          {
+            t: "text",
+            v: " lee contratos de actuación y riders, los agrupa por acto y contrata cada acto que conserva como una contratación de artista en Incorporación, con sus riders. Usted elige la parte de cada acto y las condiciones del lote; el honorario solo se lee para alguien que puede ver tarifas de pago.",
+          },
+        ],
+      },
     ],
     assets: [
       { t: "h2", v: "Clases, unidades y lotes" },
@@ -2739,6 +2827,23 @@ export const HELP_BODIES: HelpBodies = {
               v: " lista a los contratistas que alcanzaron el umbral del 1099-NEC y descarga el archivo para presentarlo. Los identificadores fiscales completos requieren una exportación Restringida con verificación adicional.",
             },
           ],
+        ],
+      },
+      { t: "h2", v: "Leer líneas de factura con Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En una factura por pagar en estado Propuesta, " },
+          { t: "strong", v: "Leer líneas de un documento" },
+          {
+            t: "text",
+            v: " lee las líneas y los totales impresos del proveedor. Elija usted la partida presupuestaria de cada línea; las líneas anteriores del mismo proveedor se muestran como pistas, con una insignia cuando el precio difiere un 10 % o más. La conciliación compara las líneas con el total impreso en cada edición, redondeando como la factura. Si difieren, marque ",
+          },
+          { t: "strong", v: "Revisé la diferencia" },
+          {
+            t: "text",
+            v: " antes de agregar las líneas. Un recibo leído con Aurora muestra sus artículos y la misma conciliación, solo para lectura.",
+          },
         ],
       },
     ],
@@ -3095,6 +3200,23 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Un bloque reserva habitaciones en un hotel para un rango de fechas. Asigne personas a habitaciones del bloque y vea cuántas quedan.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar itinerarios con Aurora" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En un servicio de viaje, " },
+          { t: "strong", v: "Importar itinerarios con Aurora" },
+          {
+            t: "text",
+            v: " lee hasta 25 confirmaciones de reserva, como archivos o como mensajes verificados del buzón del proyecto, en una sola vista previa. Cada archivo es una solicitud de Aurora de la asignación de este mes, y el panel indica cuántas usa. Cada fila es un pasajero en un tramo, con el fragmento del que se leyó. Usted siempre elige al viajero: un nombre sugerido es solo una pista. Las zonas se leen de cada lugar, así que revíselas; una fecha u hora que la confirmación no imprime queda vacía. ",
+          },
+          { t: "strong", v: "Agregar tramos" },
+          {
+            t: "text",
+            v: " agrega en un solo paso las filas que conserva, y se rechaza un tramo que el viajero ya tiene.",
           },
         ],
       },

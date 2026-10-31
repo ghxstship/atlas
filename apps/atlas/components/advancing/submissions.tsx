@@ -1,3 +1,4 @@
+import { listAnswerDrafts } from "@xos/data/ai";
 import {
   listAnswerDetails,
   listProjectZones,
@@ -12,7 +13,7 @@ import { EmptyStateLink } from "@/components/ui";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
-import { AnswerDetails } from "./answer-details";
+import { AnswerDetails, DraftedNote } from "./answer-details";
 import { ReviewForm } from "./forms";
 import { isRowId, partyLabel, withQuery, type Search } from "./shared";
 import { PageHeader, Tag, TemplateSplitView } from "./ui";
@@ -56,13 +57,15 @@ export async function SubmissionsSplit({
   const selected = items.find((s) => s.id === peekId) ?? items[0];
   // R9: the lines and files of the selected typed answer, and the docks a Load In or Load Out window books.
   const dock = selected?.windowKind === "Load In" || selected?.windowKind === "Load Out";
-  const [details, zones] = await Promise.all([
+  const [details, zones, drafts] = await Promise.all([
     selected && selected.sectionKind !== "Text"
       ? listAnswerDetails(ctx.viewer.db, [selected.id])
       : Promise.resolve(null),
     selected && dock && can.review
       ? listProjectZones(ctx.viewer.db, selected.projectId)
       : Promise.resolve(null),
+    // B15: an answer recorded from an Aurora draft shows its provenance.
+    selected ? listAnswerDrafts(ctx.viewer.db, [selected.id]) : Promise.resolve(null),
   ]);
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
@@ -155,6 +158,7 @@ export async function SubmissionsSplit({
               {selected.sectionPrompt ? (
                 <p className="m-0 text-text-13 text-text-secondary">{selected.sectionPrompt}</p>
               ) : null}
+              <DraftedNote draft={drafts?.ok ? drafts.data[0] : undefined} t={t} />
               {details?.ok ? (
                 <AnswerDetails
                   org={ctx.org.slug}

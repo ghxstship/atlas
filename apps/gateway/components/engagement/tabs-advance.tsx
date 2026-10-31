@@ -210,6 +210,21 @@ function sectionRow(s: SectionRow, submissions: readonly SubmissionRow[], ctx: C
           </p>
         ) : null}
         {latest && kind !== "Text" ? <AnswerDetail answer={latest} kind={kind} ctx={ctx} /> : null}
+        {latest?.recorded_by_producer ? (
+          // B15 (ADR 0154): an answer the org recorded from an Aurora draft says so; project inbox mail can
+          // come from anyone, so the label never claims the party sent it.
+          <p className="m-0 text-text-12 text-text-secondary" data-testid="recorded-by-producer">
+            {t(
+              latest.recorded_from_message
+                ? "gateway.engagement.advance.recordedFromMessage"
+                : "gateway.engagement.advance.recordedBy",
+              { org: ctx.orgName },
+            )}
+            {latest.review_outcome
+              ? ""
+              : ` ${t("gateway.engagement.advance.recordedChange", { org: ctx.orgName })}`}
+          </p>
+        ) : null}
         {returned && latest?.return_reason ? (
           <p className="m-0 text-text-13 text-danger-text">{latest.return_reason}</p>
         ) : null}

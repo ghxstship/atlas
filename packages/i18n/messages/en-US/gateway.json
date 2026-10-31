@@ -325,7 +325,10 @@
       "rosterLink": "Open the Crew tab",
       "noGuestList": "Guest lists are not part of a contractor's or sponsor's advance.",
       "guestsUsed": "{n} places on the guest list, plus-ones included.",
-      "guestsCap": "{n} of {cap} places used, plus-ones included."
+      "guestsCap": "{n} of {cap} places used, plus-ones included.",
+      "recordedBy": "Recorded by {org}.",
+      "recordedFromMessage": "Recorded by {org} from an email to the project.",
+      "recordedChange": "To change it, ask {org} to return it."
     },
     "compliance": {
       "empty": "No compliance items yet. Insurance and prequalification appear here.",

@@ -1,4 +1,5 @@
 import type { AnswerFile, AnswerLine } from "@xos/data/advancing";
+import type { AnswerDraft } from "@xos/data/ai";
 import type { Route } from "next";
 import Link from "next/link";
 import type { Translate } from "@/lib/shell/translate";
@@ -135,5 +136,29 @@ export function AnswerDetails({
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * The provenance of an answer recorded on the party's behalf from an Aurora draft (B15, ADR 0154):
+ * the AI label, who recorded it, and the mail's subject when the reader may read that message, "a
+ * project inbox message" otherwise, or the file it was read from.
+ */
+export function DraftedNote({ draft, t }: { draft: AnswerDraft | undefined; t: Translate }) {
+  if (!draft) return null;
+  const source = draft.fromMessage
+    ? (draft.messageSubject ?? t("advancing.answers.drafted.inboxMessage"))
+    : (draft.fileName ?? "");
+  return (
+    <p
+      className="m-0 flex flex-wrap items-center gap-8 text-text-12 text-text-secondary"
+      data-testid="drafted-answer-note"
+    >
+      <Tag tone="accent">{t("advancing.answers.drafted.label")}</Tag>
+      {t("advancing.answers.drafted.recorded", {
+        person: draft.recorderName ?? t("advancing.answers.drafted.someone"),
+        source,
+      })}
+    </p>
   );
 }

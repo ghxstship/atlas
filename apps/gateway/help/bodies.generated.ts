@@ -483,6 +483,23 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Answers your organization recorded" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When you answer by email or send a tour book, the organization may record your answer for you from what you sent. Such an answer says ",
+          },
+          { t: "strong", v: "Recorded by" },
+          { t: "text", v: " the organization, and " },
+          { t: "strong", v: "from an email to the project" },
+          {
+            t: "text",
+            v: " when it was read from mail. To change it, ask the organization to return it, then answer again.",
+          },
+        ],
+      },
     ],
     "engagement-approvals": [
       {
@@ -4091,6 +4108,23 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Los artistas envían su rider y sus necesidades de hospitalidad por la coordinación previa. Un representante de artista con el alcance Avance responde por el artista.",
+          },
+        ],
+      },
+      { t: "h2", v: "Respuestas que registró la organización" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando responde por correo o envía un tour book, la organización puede registrar su respuesta a partir de lo que envió. Esa respuesta dice ",
+          },
+          { t: "strong", v: "Registrada por" },
+          { t: "text", v: " la organización, y " },
+          { t: "strong", v: "a partir de un correo al proyecto" },
+          {
+            t: "text",
+            v: " cuando se leyó de un correo. Para cambiarla, pida a la organización que la devuelva y vuelva a responder.",
           },
         ],
       },

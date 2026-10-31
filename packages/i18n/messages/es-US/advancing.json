@@ -338,7 +338,13 @@
     "named": "{n} de {q} con nombre",
     "pool": "Todo el equipo",
     "windowRange": "{from} a {to}",
-    "needDecision": "{n, plural, one {# artículo necesita una decisión} other {# artículos necesitan una decisión}} en Asignaciones: fuentes, capacidad, la asignación permitida o la aceptación de la persona."
+    "needDecision": "{n, plural, one {# artículo necesita una decisión} other {# artículos necesitan una decisión}} en Asignaciones: fuentes, capacidad, la asignación permitida o la aceptación de la persona.",
+    "drafted": {
+      "label": "Redactada con Aurora",
+      "recorded": "Registrada por {person} a partir de {source}. La revisa alguien distinto de quien la registró.",
+      "inboxMessage": "un mensaje del buzón del proyecto",
+      "someone": "alguien"
+    }
   },
   "review": {
     "accept": "Aceptar",

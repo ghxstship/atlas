@@ -338,7 +338,13 @@
     "named": "Named {n} of {q}",
     "pool": "Whole team",
     "windowRange": "{from} to {to}",
-    "needDecision": "{n, plural, one {# item needs a decision} other {# items need a decision}} in Allocations: sources, capacity, the allowance or the person's acceptance."
+    "needDecision": "{n, plural, one {# item needs a decision} other {# items need a decision}} in Allocations: sources, capacity, the allowance or the person's acceptance.",
+    "drafted": {
+      "label": "Drafted with Aurora",
+      "recorded": "Recorded by {person} from {source}. Someone other than the recorder reviews it.",
+      "inboxMessage": "a project inbox message",
+      "someone": "someone"
+    }
   },
   "review": {
     "accept": "Accept",

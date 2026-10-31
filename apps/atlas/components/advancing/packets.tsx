@@ -1,3 +1,5 @@
+import { listAnswerDrafts, listDraftSources } from "@xos/data/ai";
+import { AdvanceAnswersEntry } from "@/components/aurora/entry/answers-entry";
 import {
   getPacket,
   linkStatus,
@@ -23,7 +25,7 @@ import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
-import { AnswerDetails } from "./answer-details";
+import { AnswerDetails, DraftedNote } from "./answer-details";
 import { SetNamesDueForm } from "./answer-forms";
 import { instantToLocal } from "@/lib/operations/time";
 import {
@@ -363,6 +365,14 @@ async function PacketPage({
     ctx.viewer.db.from("projects").select("time_zone").eq("id", packet.projectId).maybeSingle(),
   ]);
   const timeZone = projectRow.data?.time_zone ?? "UTC";
+  // B15: verified project inbox mail Aurora may draft answers from (empty without inbox access).
+  const [sources, drafts] = await Promise.all([
+    sent && can.review ? listDraftSources(ctx.viewer.db, packet.projectId) : Promise.resolve(null),
+    sent ? listAnswerDrafts(ctx.viewer.db, latestIds) : Promise.resolve(null),
+  ]);
+  const draftInbox = sources?.ok ? sources.data : [];
+  const draftOf = (id: string) =>
+    drafts?.ok ? drafts.data.find((d) => d.submissionId === id) : undefined;
   const engagementList = engagements.ok ? engagements.data : [];
   const engagementOf = (id: string | null) => engagementList.find((e) => e.id === id);
   const guestWarning =
@@ -530,9 +540,18 @@ async function PacketPage({
                 <li key={r.id} className="flex flex-col gap-8 p-12">
                   <div className="flex items-center justify-between gap-8">
                     <span className="text-label-13 font-medium">{name}</span>
-                    {can.write ? (
-                      <RemoveRecipientButton org={org} recipientId={r.id} name={name} />
-                    ) : null}
+                    <span className="flex items-center gap-8">
+                      {sent && can.review ? (
+                        <AdvanceAnswersEntry
+                          recipients={[{ id: r.id, label: name }]}
+                          inbox={draftInbox}
+                          variant="ghost"
+                        />
+                      ) : null}
+                      {can.write ? (
+                        <RemoveRecipientButton org={org} recipientId={r.id} name={name} />
+                      ) : null}
+                    </span>
                   </div>
                   {r.engagementId ? (
                     <p className="m-0 text-text-12 text-text-secondary">
@@ -644,6 +663,7 @@ async function PacketPage({
                       </Tag>
                     ) : null}
                   </div>
+                  <DraftedNote draft={draftOf(s.id)} t={t} />
                   {section?.kind && section.kind !== "Text" && details?.ok ? null : (
                     <p className="m-0 whitespace-pre-wrap text-text-14">{s.body}</p>
                   )}

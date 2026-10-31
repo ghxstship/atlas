@@ -37,3 +37,11 @@ Each party puts its people on its engagements: a vendor's technicians, a band an
 Allocations say what each party and person is given for a production: badges, parking passes, radios and carts, catering, rooms, trips and per diems. A coordinator requests one for a party's pool or for one person; a reviewer who did not request it approves or declines it. Approving equipment holds it from class stock, a lot or the order it arrives on, and the dialog shows how many are available for those dates and how much of the allowance remains. Split a party's pool to its people, then issue each item: issuing confirms the person has it. The status reads held, ordered, received, issued and returned from the rows that record them. Holds that no longer fit what can supply them show in a banner. Radio allocations take channels, and Print radio hand-out gives the sheet people sign.
 
 Related: [Venues, spaces and site plans](help:places).
+
+## Draft advance answers with Aurora
+
+When a party answers by email or sends a tour book or rider, a reviewer can choose **Draft advance answers** on a recipient of a sent packet, or on a verified message in the project inbox. Aurora drafts at most one answer per open section from that source, with the words it read, and lists the sections the source does not answer. A time, quantity, item or person the source does not show is left out. Each answer you accept is recorded on the party's behalf: you become its submitter, so someone else reviews it, and the party sees that your org recorded it. To change it, return it.
+
+## Contracts and riders with Aurora
+
+On a project's Engagements tab, **Import contracts and riders** reads booking contracts and riders, sorts them by act and books each act you keep as an Artist engagement at Onboarding, with its riders. You choose each act's party and the terms for the batch; the fee is read only for someone who may see pay rates.

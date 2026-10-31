@@ -325,7 +325,10 @@
       "rosterLink": "Abrir la pestaña Personal",
       "noGuestList": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
       "guestsUsed": "{n} lugares en la lista de invitados, acompañantes incluidos.",
-      "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos."
+      "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos.",
+      "recordedBy": "Registrada por {org}.",
+      "recordedFromMessage": "Registrada por {org} a partir de un correo al proyecto.",
+      "recordedChange": "Para cambiarla, pide a {org} que la devuelva."
     },
     "compliance": {
       "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
