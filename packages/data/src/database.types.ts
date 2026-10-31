@@ -109,6 +109,7 @@ export type Database = {
           issued_quantity: number | null;
           item_name: string | null;
           kind: string | null;
+          names_due_at: string | null;
           needed_from: string | null;
           needed_time_zone: string | null;
           needed_to: string | null;
@@ -144,28 +145,62 @@ export type Database = {
           },
         ];
       };
+      advance_section_choices: {
+        Row: {
+          advance_section_id: string | null;
+          asset_class_id: string | null;
+          category_kind: Database["app"]["Enums"]["credential_category_kind"] | null;
+          category_name: string | null;
+          class_name: string | null;
+          credential_category_id: string | null;
+          id: string | null;
+          offering: Database["app"]["Enums"]["offering_kind"] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "advance_section_choices_advance_section_id_fkey";
+            columns: ["advance_section_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_sections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       advance_sections: {
         Row: {
           advance_packet_id: string | null;
           id: string | null;
+          max_lines: number | null;
+          per_person: boolean | null;
           position: number | null;
           prompt: string | null;
+          section_kind: Database["app"]["Enums"]["advance_section_kind"] | null;
           title: string | null;
+          window_kind: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         ComputedFields: never;
         Insert: {
           advance_packet_id?: string | null;
           id?: string | null;
+          max_lines?: number | null;
+          per_person?: boolean | null;
           position?: number | null;
           prompt?: string | null;
+          section_kind?: Database["app"]["Enums"]["advance_section_kind"] | null;
           title?: string | null;
+          window_kind?: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         Update: {
           advance_packet_id?: string | null;
           id?: string | null;
+          max_lines?: number | null;
+          per_person?: boolean | null;
           position?: number | null;
           prompt?: string | null;
+          section_kind?: Database["app"]["Enums"]["advance_section_kind"] | null;
           title?: string | null;
+          window_kind?: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         Relationships: [
           {
@@ -177,12 +212,83 @@ export type Database = {
           },
         ];
       };
+      advance_submission_files: {
+        Row: {
+          advance_submission_id: string | null;
+          document_id: string | null;
+          id: string | null;
+          position: number | null;
+          scan_status: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "advance_submission_files_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_submissions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_submission_lines: {
+        Row: {
+          advance_submission_id: string | null;
+          allocation_id: string | null;
+          asset_class_id: string | null;
+          category_name: string | null;
+          class_name: string | null;
+          credential_category_id: string | null;
+          id: string | null;
+          line_number: number | null;
+          needed_from: string | null;
+          needed_to: string | null;
+          note: string | null;
+          person_name: string | null;
+          quantity: number | null;
+          roster_entry_id: string | null;
+          window_zone: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "advance_submission_lines_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["roster_entry_id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_entries";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       advance_submissions: {
         Row: {
           advance_recipient_id: string | null;
           advance_section_id: string | null;
           body: string | null;
           id: string | null;
+          note: string | null;
           return_reason: string | null;
           review_outcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at: string | null;
@@ -194,6 +300,7 @@ export type Database = {
           advance_section_id?: string | null;
           body?: string | null;
           id?: string | null;
+          note?: string | null;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at?: string | null;
@@ -204,6 +311,7 @@ export type Database = {
           advance_section_id?: string | null;
           body?: string | null;
           id?: string | null;
+          note?: string | null;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at?: string | null;
@@ -1437,7 +1545,9 @@ export type Database = {
         Row: {
           account_id: string | null;
           advance_packet_id: string | null;
+          engagement_id: string | null;
           id: string | null;
+          names_due_at: string | null;
           person_id: string | null;
         };
         ComputedFields: never;
@@ -1447,6 +1557,34 @@ export type Database = {
             columns: ["advance_packet_id"];
             isOneToOne: false;
             referencedRelation: "advance_packets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_offerings";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_up_next";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
             referencedColumns: ["id"];
           },
           {
@@ -2565,6 +2703,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "proof_of_performance_photos_sponsor_entitlement_id_fkey";
             columns: ["sponsor_entitlement_id"];
             isOneToOne: false;
@@ -3125,10 +3270,32 @@ export type Database = {
           },
         ];
       };
+      sponsor_asset_files: {
+        Row: {
+          document_id: string | null;
+          id: string | null;
+          position: number | null;
+          revision: number | null;
+          scan_status: string | null;
+          sponsor_asset_id: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_asset_files_sponsor_asset_id_fkey";
+            columns: ["sponsor_asset_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_assets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sponsor_assets: {
         Row: {
           account_id: string | null;
           asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"] | null;
+          asset_source: Database["app"]["Enums"]["sponsor_asset_source"] | null;
           asset_state: Database["app"]["Enums"]["review_state"] | null;
           awaiting_sponsor: boolean | null;
           decided_at: string | null;
@@ -5020,6 +5187,7 @@ export type Database = {
       advance_allocations: {
         Row: {
           accommodation_block_id: string | null;
+          advance_submission_line_id: string | null;
           allocation_state: Database["app"]["Enums"]["allocation_state"];
           asset_class_id: string | null;
           created_at: string;
@@ -5046,6 +5214,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           accommodation_block_id?: string | null;
+          advance_submission_line_id?: string | null;
           allocation_state?: Database["app"]["Enums"]["allocation_state"];
           asset_class_id?: string | null;
           created_at?: string;
@@ -5071,6 +5240,7 @@ export type Database = {
         };
         Update: {
           accommodation_block_id?: string | null;
+          advance_submission_line_id?: string | null;
           allocation_state?: Database["app"]["Enums"]["allocation_state"];
           asset_class_id?: string | null;
           created_at?: string;
@@ -5100,6 +5270,13 @@ export type Database = {
             columns: ["accommodation_block_id"];
             isOneToOne: false;
             referencedRelation: "accommodation_blocks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_allocations_advance_submission_line_id_fkey";
+            columns: ["advance_submission_line_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_submission_lines";
             referencedColumns: ["id"];
           },
           {
@@ -5573,7 +5750,9 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          engagement_id: string | null;
           id: string;
+          names_due_at: string | null;
           org_id: string;
           person_id: string | null;
           updated_at: string;
@@ -5586,7 +5765,9 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          engagement_id?: string | null;
           id?: string;
+          names_due_at?: string | null;
           org_id: string;
           person_id?: string | null;
           updated_at?: string;
@@ -5598,7 +5779,9 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          engagement_id?: string | null;
           id?: string;
+          names_due_at?: string | null;
           org_id?: string;
           person_id?: string | null;
           updated_at?: string;
@@ -5627,6 +5810,34 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "advance_recipients_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -5649,6 +5860,89 @@ export type Database = {
           },
         ];
       };
+      advance_section_choices: {
+        Row: {
+          advance_section_id: string;
+          asset_class_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          credential_category_id: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          advance_section_id: string;
+          asset_class_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          advance_section_id?: string;
+          asset_class_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_section_choices_advance_section_id_fkey";
+            columns: ["advance_section_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_sections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_section_choices_asset_class_id_fkey";
+            columns: ["asset_class_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_section_choices_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_section_choices_credential_category_id_fkey";
+            columns: ["credential_category_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_section_choices_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_section_choices_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       advance_sections: {
         Row: {
           advance_packet_id: string;
@@ -5656,12 +5950,16 @@ export type Database = {
           created_by: string | null;
           deleted_at: string | null;
           id: string;
+          max_lines: number | null;
           org_id: string;
+          per_person: boolean;
           position: number;
           prompt: string | null;
+          section_kind: Database["app"]["Enums"]["advance_section_kind"];
           title: string;
           updated_at: string;
           updated_by: string | null;
+          window_kind: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         ComputedFields: never;
         Insert: {
@@ -5670,12 +5968,16 @@ export type Database = {
           created_by?: string | null;
           deleted_at?: string | null;
           id?: string;
+          max_lines?: number | null;
           org_id: string;
+          per_person?: boolean;
           position: number;
           prompt?: string | null;
+          section_kind?: Database["app"]["Enums"]["advance_section_kind"];
           title: string;
           updated_at?: string;
           updated_by?: string | null;
+          window_kind?: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         Update: {
           advance_packet_id?: string;
@@ -5683,12 +5985,16 @@ export type Database = {
           created_by?: string | null;
           deleted_at?: string | null;
           id?: string;
+          max_lines?: number | null;
           org_id?: string;
+          per_person?: boolean;
           position?: number;
           prompt?: string | null;
+          section_kind?: Database["app"]["Enums"]["advance_section_kind"];
           title?: string;
           updated_at?: string;
           updated_by?: string | null;
+          window_kind?: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         Relationships: [
           {
@@ -5721,6 +6027,197 @@ export type Database = {
           },
         ];
       };
+      advance_submission_files: {
+        Row: {
+          advance_submission_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          document_id: string;
+          id: string;
+          org_id: string;
+          position: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          advance_submission_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_id: string;
+          id?: string;
+          org_id: string;
+          position: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          advance_submission_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_id?: string;
+          id?: string;
+          org_id?: string;
+          position?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_submission_files_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_files_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_files_document_id_fkey";
+            columns: ["document_id"];
+            isOneToOne: false;
+            referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_files_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_files_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_submission_lines: {
+        Row: {
+          advance_submission_id: string;
+          asset_class_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          credential_category_id: string | null;
+          deleted_at: string | null;
+          id: string;
+          line_number: number;
+          needed_window: unknown;
+          note: string | null;
+          org_id: string;
+          quantity: number | null;
+          roster_entry_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          window_zone: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          advance_submission_id: string;
+          asset_class_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          line_number: number;
+          needed_window?: unknown;
+          note?: string | null;
+          org_id: string;
+          quantity?: number | null;
+          roster_entry_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          window_zone?: string | null;
+        };
+        Update: {
+          advance_submission_id?: string;
+          asset_class_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          line_number?: number;
+          needed_window?: unknown;
+          note?: string | null;
+          org_id?: string;
+          quantity?: number | null;
+          roster_entry_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          window_zone?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_submission_lines_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_asset_class_id_fkey";
+            columns: ["asset_class_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_credential_category_id_fkey";
+            columns: ["credential_category_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submission_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       advance_submissions: {
         Row: {
           advance_recipient_id: string;
@@ -5731,6 +6228,7 @@ export type Database = {
           created_by: string | null;
           deleted_at: string | null;
           id: string;
+          note: string | null;
           org_id: string;
           return_reason: string | null;
           review_outcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
@@ -5750,6 +6248,7 @@ export type Database = {
           created_by?: string | null;
           deleted_at?: string | null;
           id?: string;
+          note?: string | null;
           org_id: string;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
@@ -5768,6 +6267,7 @@ export type Database = {
           created_by?: string | null;
           deleted_at?: string | null;
           id?: string;
+          note?: string | null;
           org_id?: string;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
@@ -16846,6 +17346,7 @@ export type Database = {
       };
       dock_slots: {
         Row: {
+          advance_submission_line_id: string | null;
           checked_in_at: string | null;
           checked_in_by: string | null;
           created_at: string;
@@ -16864,6 +17365,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          advance_submission_line_id?: string | null;
           checked_in_at?: string | null;
           checked_in_by?: string | null;
           created_at?: string;
@@ -16881,6 +17383,7 @@ export type Database = {
           zone_id: string;
         };
         Update: {
+          advance_submission_line_id?: string | null;
           checked_in_at?: string | null;
           checked_in_by?: string | null;
           created_at?: string;
@@ -16898,6 +17401,13 @@ export type Database = {
           zone_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "dock_slots_advance_submission_line_id_fkey";
+            columns: ["advance_submission_line_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_submission_lines";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "dock_slots_checked_in_by_fkey";
             columns: ["checked_in_by"];
@@ -51205,6 +51715,85 @@ export type Database = {
           },
         ];
       };
+      sponsor_asset_files: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          document_id: string;
+          id: string;
+          org_id: string;
+          position: number;
+          revision: number;
+          sponsor_asset_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_id: string;
+          id?: string;
+          org_id: string;
+          position: number;
+          revision: number;
+          sponsor_asset_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_id?: string;
+          id?: string;
+          org_id?: string;
+          position?: number;
+          revision?: number;
+          sponsor_asset_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_asset_files_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_asset_files_document_id_fkey";
+            columns: ["document_id"];
+            isOneToOne: false;
+            referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_asset_files_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_asset_files_sponsor_asset_id_fkey";
+            columns: ["sponsor_asset_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_assets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_asset_files_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sponsor_asset_state_transitions: {
         Row: {
           created_at: string;
@@ -51280,6 +51869,7 @@ export type Database = {
       sponsor_assets: {
         Row: {
           asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"];
+          asset_source: Database["app"]["Enums"]["sponsor_asset_source"];
           asset_state: Database["app"]["Enums"]["review_state"];
           created_at: string;
           created_by: string | null;
@@ -51299,6 +51889,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"];
+          asset_source?: Database["app"]["Enums"]["sponsor_asset_source"];
           asset_state?: Database["app"]["Enums"]["review_state"];
           created_at?: string;
           created_by?: string | null;
@@ -51317,6 +51908,7 @@ export type Database = {
         };
         Update: {
           asset_kind?: Database["app"]["Enums"]["sponsor_asset_kind"];
+          asset_source?: Database["app"]["Enums"]["sponsor_asset_source"];
           asset_state?: Database["app"]["Enums"]["review_state"];
           created_at?: string;
           created_by?: string | null;
@@ -64669,6 +65261,10 @@ export type Database = {
       billing_portal_customer: { Args: { p_livemode: boolean; p_org_id: string }; Returns: string };
       block_member: { Args: { p_membership_id: string }; Returns: string };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
+      book_dock_slot_from_answer: {
+        Args: { p_line_id: string; p_zone_id: string };
+        Returns: string;
+      };
       bulk_update_accommodation_blocks: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
@@ -66905,6 +67501,15 @@ export type Database = {
           quantity: number;
         }[];
       };
+      party_file_object: {
+        Args: { p_document_version_id: string };
+        Returns: {
+          bucket_id: string;
+          content_type: string;
+          object_name: string;
+          title: string;
+        }[];
+      };
       pass_gate: {
         Args: { p_expected_phase: string; p_project_id: string; p_reason: string };
         Returns: string;
@@ -67675,6 +68280,10 @@ export type Database = {
         Args: { p_checksum_sha256: string; p_object_name: string; p_title: string };
         Returns: string;
       };
+      register_party_upload: {
+        Args: { p_checksum_sha256: string; p_object_name: string; p_title: string };
+        Returns: string;
+      };
       register_push_device: {
         Args: { p_expo_push_token: string; p_platform: string };
         Returns: string;
@@ -67944,6 +68553,10 @@ export type Database = {
       restore_trash_item: {
         Args: { p_subject_id: string; p_subject_table: string };
         Returns: number;
+      };
+      resubmit_sponsor_asset: {
+        Args: { p_document_ids: string[]; p_reason?: string; p_sponsor_asset_id: string };
+        Returns: string;
       };
       retire_form_template: { Args: { p_reason: string; p_template_id: string }; Returns: string };
       retire_search_embeddings: { Args: Record<PropertyKey, never>; Returns: number };
@@ -68635,6 +69248,17 @@ export type Database = {
         Args: { p_destination_id: string; p_secret: string };
         Returns: undefined;
       };
+      submit_advance_answer: {
+        Args: {
+          p_document_ids?: string[];
+          p_lines?: Json;
+          p_note?: string;
+          p_recipient_id: string;
+          p_section_id: string;
+          p_text?: string;
+        };
+        Returns: string;
+      };
       submit_deliverable: {
         Args: { p_deliverable_id: string; p_document_id: string; p_message: string };
         Returns: string;
@@ -68726,6 +69350,17 @@ export type Database = {
           org_id: string;
           org_name: string;
         }[];
+      };
+      supply_sponsor_asset: {
+        Args: {
+          p_asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"];
+          p_document_ids: string[];
+          p_due_on: string;
+          p_sponsor_entitlement_id: string;
+          p_title: string;
+          p_usage_note: string;
+        };
+        Returns: string;
       };
       support_session_access_log: {
         Args: { p_org_id: string };
@@ -69297,6 +69932,21 @@ export type Database = {
       acquisition_kind: "Purchase" | "Rental";
       actor_kind: "Person" | "Service" | "System";
       advance_review_outcome: "Accepted" | "Returned";
+      advance_section_kind:
+        | "Text"
+        | "File"
+        | "Schedule Window"
+        | "Item Request"
+        | "Crew Roster"
+        | "Guest List"
+        | "Credential Request";
+      advance_window_kind:
+        | "Load In"
+        | "Load Out"
+        | "Arrival"
+        | "Soundcheck"
+        | "Activation Setup"
+        | "Activation Strike";
       agreement_kind:
         | "Offer Letter"
         | "Contractor Agreement"
@@ -69722,6 +70372,7 @@ export type Database = {
         | "Payroll Run"
         | "Requisition";
       sponsor_asset_kind: "Logo" | "Artwork" | "Copy" | "Video" | "Other";
+      sponsor_asset_source: "Org Supplied" | "Sponsor Supplied";
       staffing_basis: "Ratio" | "Fixed" | "Declared";
       submittal_kind:
         "Shop Drawing" | "Product Data" | "Sample" | "Method Statement" | "Certificate" | "Other";
@@ -75891,6 +76542,23 @@ export const Constants = {
       acquisition_kind: ["Purchase", "Rental"],
       actor_kind: ["Person", "Service", "System"],
       advance_review_outcome: ["Accepted", "Returned"],
+      advance_section_kind: [
+        "Text",
+        "File",
+        "Schedule Window",
+        "Item Request",
+        "Crew Roster",
+        "Guest List",
+        "Credential Request",
+      ],
+      advance_window_kind: [
+        "Load In",
+        "Load Out",
+        "Arrival",
+        "Soundcheck",
+        "Activation Setup",
+        "Activation Strike",
+      ],
       agreement_kind: [
         "Offer Letter",
         "Contractor Agreement",
@@ -76384,6 +77052,7 @@ export const Constants = {
         "Requisition",
       ],
       sponsor_asset_kind: ["Logo", "Artwork", "Copy", "Video", "Other"],
+      sponsor_asset_source: ["Org Supplied", "Sponsor Supplied"],
       staffing_basis: ["Ratio", "Fixed", "Declared"],
       submittal_kind: [
         "Shop Drawing",

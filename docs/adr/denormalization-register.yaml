@@ -134,6 +134,12 @@ derived:
     reason: The frozen WorkDetailShare resource of API v1 returns both, and the share's readers filter by them without the resolver; the contract change waits for R6b
     adr: "0103"
   - objects:
+      - app.advance_submissions.body
+    source: "The lines and files of a typed answer, summarized by `private.advance_answer_summary` (kind code, catalog code or category name, quantity, person, ISO 8601 window with its zone; file titles; GUEST_LIST_CONFIRMED)"
+    refresh: Written once by `private.record_advance_answer` with the lines and files it summarizes; the answer, its lines and its files never change (advance_submission_immutable, append-only lines and files; migration 2711, R9)
+    reason: API v1 documents an answer's body as required (packages/schemas/src/common/fields.ts), and v1 readers see only the body, so a typed answer carries its locale-neutral summary there
+    adr: "0104"
+  - objects:
       - app.advance_allocations.project_id
     source: "The holder's project: the pool engagement's, or the roster entry's engagement's"
     refresh: Stamped by `private.stamp_allocation_project` on every write; a change is refused (allocation_project_fixed, migration 2691, R7)
@@ -350,6 +356,14 @@ restated:
     parent: app.accommodation_blocks.check_out_on
     kind: own
     note: The guest's departure, inside the block's dates.
+  - column: app.advance_allocations.asset_class_id
+    parent: app.advance_submission_lines.asset_class_id
+    kind: own
+    note: An allocation requested from an answer line is for the line's class, written once by `private.record_advance_answer`; allocations requested or assigned directly have no line (migration 2711, R9).
+  - column: app.advance_allocations.credential_category_id
+    parent: app.advance_submission_lines.credential_category_id
+    kind: own
+    note: An allocation requested from an answer line is for the line's category, written once by `private.record_advance_answer`; allocations requested or assigned directly have no line (migration 2711, R9).
   - column: app.advance_allocations.engagement_id
     parent: app.engagement_roster_entries.engagement_id
     kind: own
@@ -370,6 +384,18 @@ restated:
     parent: app.fulfillments.project_id
     kind: registered
     note: Stamped from the holder (derived entry); the guard requires a fulfillment of the same project (migration 2691).
+  - column: app.advance_allocations.roster_entry_id
+    parent: app.advance_submission_lines.roster_entry_id
+    kind: own
+    note: "The holder of the allocation: the line's person, or the engagement's pool when the line names nobody (NULL), and a Split share names its own person (migration 2711, R9)."
+  - column: app.advance_recipients.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: "The 0351 party binding: token recipients and venues have no engagement, so the recipient keeps its party; `private.guard_advance_recipient_engagement` refuses an engagement of another party (migration 2710, R9)."
+  - column: app.advance_recipients.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: "The 0351 party binding: token recipients and venues have no engagement, so the recipient keeps its party; `private.guard_advance_recipient_engagement` refuses an engagement of another party (migration 2710, R9)."
   - column: app.advance_submissions.advance_recipient_id
     parent: app.advance_recipient_tokens.advance_recipient_id
     kind: own
@@ -1348,6 +1374,10 @@ restated:
     parent: app.memberships.valid_to
     kind: own
     note: When the spend limit ends.
+  - column: app.sponsor_asset_files.revision
+    parent: app.sponsor_assets.revision
+    kind: fact
+    note: The revision a file was supplied with; the asset's revision moves on with each resubmission (migration 2713, R9).
   - column: app.sponsor_assets.due_on
     parent: app.sponsor_entitlements.due_on
     kind: own
