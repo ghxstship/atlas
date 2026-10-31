@@ -26,7 +26,10 @@ export function renderAirportsSeed(airports: readonly Airport[]): string {
   for (let start = 0; start < airports.length; start += BATCH) {
     const rows = airports
       .slice(start, start + BATCH)
-      .map((a) => `  (${literal(a.iataCode)}, ${literal(a.name)}, ${literal(a.municipality)}, ${literal(a.countryCode)})`);
+      .map(
+        (a) =>
+          `  (${literal(a.iataCode)}, ${literal(a.name)}, ${literal(a.municipality)}, ${literal(a.countryCode)})`,
+      );
     batches.push(
       [
         "insert into app.airports (iata_code, name, municipality, country_code) values",

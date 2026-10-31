@@ -5,7 +5,12 @@
  * back as 422 with their rule. Shapes follow the corrected catalog (catalog/modules/assets.ts,
  * ADR 0023).
  */
-import { applyAssetScanEvent, recordAssetCustody, resolveAssetScan, type ScanAction } from "@xos/data/assets";
+import {
+  applyAssetScanEvent,
+  recordAssetCustody,
+  resolveAssetScan,
+  type ScanAction,
+} from "@xos/data/assets";
 import { refused } from "../problem.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";

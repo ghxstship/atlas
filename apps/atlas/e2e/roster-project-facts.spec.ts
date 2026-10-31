@@ -254,9 +254,9 @@ test("project facts in Atlas: the logged peek, the names lock and the travel par
     const drawer = coordinator.getByRole("dialog", { name: "Assign room" });
     await expect(drawer.getByLabel("Check-in")).toHaveValue("2027-06-03");
     await drawer.getByRole("button", { name: "Assign room" }).click();
-    await expect(
-      coordinator.getByRole("row").filter({ hasText: "Demo Staff One" }),
-    ).toContainText("Assigned");
+    await expect(coordinator.getByRole("row").filter({ hasText: "Demo Staff One" })).toContainText(
+      "Assigned",
+    );
     await coordinatorContext.close();
   } finally {
     for (const statement of [
