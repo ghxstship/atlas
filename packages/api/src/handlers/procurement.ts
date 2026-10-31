@@ -8,13 +8,20 @@ import type { XosClient } from "@xos/data";
 import {
   approvePurchaseOrder,
   decidePoChangeOrder,
+  getHireWindowWarnings,
+  hirePeriodLiteral,
+  parseHirePeriod,
+  recordGoodsReceipt,
+  recordGoodsReturn,
   resolveInvoiceMatch,
   transitionPurchaseOrder,
   transitionRfq,
+  type GoodsReturnReason,
   type PoState,
   type RfqState,
 } from "@xos/data/procurement";
-import type { HandlerSet } from "../runtime/handler.ts";
+import type { ErasedHandler, HandlerSet } from "../runtime/handler.ts";
+import { requireOrg } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
 import { rfqSealedResponseHandlers } from "./parts/rfq-sealed-responses.ts";
 import { fieldHistory } from "./parts/bulk-edit-and-history.ts";
@@ -89,10 +96,46 @@ const purchaseOrders = tableResource("purchaseOrders", {
 });
 const poChangeOrders = tableResource("poChangeOrders");
 
+const HIRE_FIELDS = ["hire_starts_at", "hire_ends_at"] as const;
+
+/**
+ * The hire period of a line being written (R7a, 2681): the contract's two instants become one tstzrange, kept from
+ * the current line where the body leaves one out, and cleared on a Purchase line. The database refuses a Rental line
+ * without both bounds (po_lines_hire_period_kind).
+ */
+function hirePeriodOf(body: Row, current: Row = {}): Row {
+  const touched = body["acquisition_kind"] !== undefined || HIRE_FIELDS.some((f) => f in body);
+  if (!touched) return {};
+  const kind = (body["acquisition_kind"] ?? current["acquisition_kind"] ?? "Purchase") as string;
+  const pick = (f: (typeof HIRE_FIELDS)[number]) =>
+    (f in body ? body[f] : current[f]) as string | null | undefined;
+  return {
+    hire_period:
+      kind === "Rental" ? hirePeriodLiteral(pick("hire_starts_at"), pick("hire_ends_at")) : null,
+  };
+}
+
+/** The contract body without the two hire instants, which are no columns. */
+function withoutHireFields<R extends { body: unknown }>(request: R): R {
+  const sent = (request.body ?? {}) as Row;
+  const body = Object.fromEntries(
+    Object.entries(sent).filter(([f]) => !(HIRE_FIELDS as readonly string[]).includes(f)),
+  );
+  // hire_period is no create or update field, so only beforeCreate and beforeUpdate below write it.
+  return { ...request, body: { ...body, ...hirePeriodOf(sent), hire_fields_sent: sent } };
+}
+
 const poLines = tableResource("poLines", {
+  derived: [...HIRE_FIELDS],
+  extraColumns: ["hire_period"],
+  toContract: (row) => {
+    const hire = parseHirePeriod(row["hire_period"] as string | null);
+    return { ...row, hire_starts_at: hire.startsAt, hire_ends_at: hire.endsAt };
+  },
   // A line without a number goes after the order's last line.
   beforeCreate: async (body, { db }) => {
-    if (body["line_number"] !== undefined) return {};
+    const period = "hire_period" in body ? { hire_period: body["hire_period"] } : {};
+    if (body["line_number"] !== undefined) return period;
     const last = await run<{ line_number: number }[]>(
       from(db, "po_lines")
         .select("line_number")
@@ -101,8 +144,36 @@ const poLines = tableResource("poLines", {
         .order("line_number", { ascending: false })
         .limit(1),
     );
-    return { line_number: (last[0]?.line_number ?? 0) + 1 };
+    return { ...period, line_number: (last[0]?.line_number ?? 0) + 1 };
   },
+  beforeUpdate: (body, current) => hirePeriodOf((body["hire_fields_sent"] ?? {}) as Row, current),
+});
+
+function poLineHandler(op: string): ErasedHandler {
+  const handler = poLines.handlers[op];
+  if (handler === undefined) throw new Error(`${op} has no table handler.`);
+  return handler;
+}
+
+/** Splits a range column of a view row into two instants. */
+function rangeFields(row: Row, column: string, from: string, to: string): Row {
+  const range = parseHirePeriod(row[column] as string | null);
+  return { ...row, [from]: range.startsAt, [to]: range.endsAt };
+}
+
+const poLineHireWarnings = tableResource("poLineHireWarnings", {
+  softDelete: false,
+  key: "warning",
+  derived: [...HIRE_FIELDS, "site_opens_at", "site_closes_at"],
+  extraColumns: ["hire_period", "site_window"],
+  toContract: (row) =>
+    rangeFields(
+      rangeFields(row, "hire_period", "hire_starts_at", "hire_ends_at"),
+      "site_window",
+      "site_opens_at",
+      "site_closes_at",
+    ),
+  scope: (q, context) => (context.org === null ? q : q.eq("org_id", context.org.id)),
 });
 
 const invoiceMatches = tableResource("invoiceMatches", {
@@ -135,9 +206,17 @@ export const handlers = defineHandlers("Procurement", {
   ...handlersFor("Procurement", tableResource("rfqResponseLines")),
   ...handlersFor("Procurement", purchaseOrders),
   ...handlersFor("Procurement", poLines),
+  // The two hire instants of the contract are one tstzrange column (R7a).
+  "poLines.create": async (request, context) =>
+    (await poLineHandler("poLines.create")(withoutHireFields(request), context)) as never,
+  "poLines.update": async (request, context) =>
+    (await poLineHandler("poLines.update")(withoutHireFields(request), context)) as never,
   ...handlersFor("Procurement", poChangeOrders),
   ...handlersFor("Procurement", tableResource("goodsReceipts")),
   ...handlersFor("Procurement", tableResource("receiptLines")),
+  ...handlersFor("Procurement", tableResource("goodsReturns")),
+  ...handlersFor("Procurement", tableResource("returnLines")),
+  ...handlersFor("Procurement", poLineHireWarnings),
   ...handlersFor("Procurement", invoiceMatches),
   ...handlersFor("Procurement", tableResource("catalogBindings")),
   ...handlersFor("Procurement", tableResource("vendorProducts")),
@@ -220,6 +299,68 @@ export const handlers = defineHandlers("Procurement", {
       await resolveInvoiceMatch(context.db, params.id, (body as Row)["resolution_note"] as string),
     );
     return ok((await invoiceMatches.read(context, params.id)) as never);
+  },
+
+  // The supply bridge (R7a): one receipt or return event per request. The runtime replays a repeated
+  // Idempotency-Key from its ledger, so the event id is minted once, on the first request.
+  "purchaseOrders.receive": async ({ params, body }, context) => {
+    await purchaseOrders.read(context, params.id, ["id"]);
+    const result = unwrap(
+      await recordGoodsReceipt(context.db, {
+        eventId: crypto.randomUUID(),
+        purchaseOrderId: params.id,
+        note: body.note ?? null,
+        lines: body.lines.map((l) => ({
+          poLineId: l.po_line_id,
+          quantity: l.quantity,
+          assetTags: l.asset_tags ?? [],
+          venueId: l.venue_id ?? null,
+          conditionEnumId: l.condition_enum_id ?? null,
+        })),
+      }),
+    );
+    return ok({
+      outcome: result.outcome,
+      goods_receipt_id: result.goodsReceiptId,
+      receipt_line_ids: [...result.receiptLineIds],
+      asset_unit_ids: [...result.assetUnitIds],
+      lot_movement_ids: [...result.lotMovementIds],
+    });
+  },
+
+  "purchaseOrders.returnGoods": async ({ params, body }, context) => {
+    await purchaseOrders.read(context, params.id, ["id"]);
+    const result = unwrap(
+      await recordGoodsReturn(context.db, {
+        eventId: crypto.randomUUID(),
+        purchaseOrderId: params.id,
+        reason: body.reason as GoodsReturnReason,
+        note: body.note ?? null,
+        lines: body.lines.map((l) => ({
+          receiptLineId: l.receipt_line_id,
+          quantity: l.quantity,
+          assetUnitIds: l.asset_unit_ids ?? [],
+          venueId: l.venue_id ?? null,
+        })),
+      }),
+    );
+    return ok({
+      outcome: result.outcome,
+      goods_return_id: result.goodsReturnId,
+      return_line_ids: [...result.returnLineIds],
+    });
+  },
+
+  "poLines.hireWindowWarnings": async ({ query }, context) => {
+    requireOrg(context);
+    const warnings = unwrap(
+      await getHireWindowWarnings(context.db, {
+        projectId: query.project_id,
+        hireFrom: query.from,
+        hireTo: query.to,
+      }),
+    );
+    return ok({ data: warnings });
   },
 
   // Field history (A106, migration 1452).

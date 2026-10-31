@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import {
   audienceForRoleType,
+  engagementSummaries,
   externalAudience,
   IdentityError,
   internalAudience,
@@ -18,6 +19,8 @@ const eng = (over: Partial<EngagementSummary>): EngagementSummary => ({
   projectName: "Fest",
   roleType: "crew",
   state: "Active",
+  via: "engagement",
+  rosterEntryId: null,
   ...over,
 });
 
@@ -61,6 +64,7 @@ describe("audience", () => {
       engagedProjectIds: ["p1"],
       // The onboarding checklist reads before operational access opens, never after Complete (A92).
       onboardingEngagementIds: ["e1"],
+      rosterEntryIds: [],
     });
     const onboarding = { ...identity, engagements: [eng({ id: "e3", state: "Onboarding" })] };
     expect(scopeFor(onboarding, [], [])).toMatchObject({
@@ -199,6 +203,65 @@ describe("resolveIdentity", () => {
     expect(r.identity).toMatchObject({ audience: "crew", membershipId: null });
     expect(r.projects).toEqual([{ id: "p1", name: "Fest" }]);
     expect(r.scope.engagementIds).toEqual(["e1"]);
+  });
+
+  it("resolves a person who works only on a party's roster as crew, with their entry in scope (R8)", async () => {
+    const r = await resolveIdentity(
+      fake({
+        "app.people": { data: { id: "person-k", full_name: "Kai Morgan" }, error: null },
+        "app.memberships": { data: [], error: null },
+        "api_external.engagements": { data: [], error: null },
+        "api_external.my_roster_engagements": {
+          data: [
+            {
+              id: "e-vendor",
+              org_id: "o1",
+              org_name: "Northwind Live",
+              project_id: "p1",
+              project_name: "Summer Series",
+              role_type: "Vendor",
+              engagement_state: "Active",
+              roster_entry_id: "r1",
+              lead_name: "Pia Larsen",
+            },
+          ],
+          error: null,
+        },
+      }),
+      "user-k",
+    );
+    expect(r.identity.audience).toBe("crew");
+    expect(r.identity.engagements[0]).toMatchObject({
+      via: "roster",
+      rosterEntryId: "r1",
+      leadName: "Pia Larsen",
+      roleType: "crew",
+    });
+    // The party's engagement is not the person's own: they sync their entry and its project.
+    expect(r.scope.engagementIds).toEqual([]);
+    expect(r.scope.onboardingEngagementIds).toEqual([]);
+    expect(r.scope.rosterEntryIds).toEqual(["r1"]);
+    expect(r.scope.engagedProjectIds).toEqual(["p1"]);
+  });
+
+  it("keeps the person's own engagement once when it also reads through the roster", () => {
+    const row = {
+      id: "e1",
+      org_id: "o1",
+      org_name: "Demo Org",
+      project_id: "p1",
+      project_name: "Fest",
+      role_type: "Crew",
+      engagement_state: "Active",
+    };
+    const summaries = engagementSummaries(
+      [row],
+      [
+        { ...row, roster_entry_id: "r1" },
+        { ...row, id: "e2" },
+      ],
+    );
+    expect(summaries.map((e) => `${e.id}:${e.via}`)).toEqual(["e1:engagement"]);
   });
 
   it("names the failing step", async () => {

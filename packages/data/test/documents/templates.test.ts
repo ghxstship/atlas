@@ -112,7 +112,7 @@ describe("template versions", () => {
   });
 
   it("ships at least version 1 of every Section 11.9 document", () => {
-    expect(DOCUMENT_KINDS).toHaveLength(12);
+    expect(DOCUMENT_KINDS).toHaveLength(13);
     for (const kind of DOCUMENT_KINDS) {
       expect(TEMPLATES[kind].map((v) => v.version)).toContain(1);
       const numbers = TEMPLATES[kind].map((v) => v.version);
@@ -140,7 +140,7 @@ describe("every template", () => {
     expect(model.facts.labels.qrAlt).toContain(model.facts.recordKey);
     for (const s of strings(model)) {
       expect(s, `${kind} ${locale}`).not.toMatch(
-        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate)\./,
+        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate|radioHandout)\./,
       );
     }
   });
@@ -167,6 +167,7 @@ describe("data mapping", () => {
     expect(d("incident-report").recordKey).toBe("NWF26-4");
     expect(d("final-cost-report")).toEqual({ recordKey: "NWF26-FCR", issuedAt: NOW.toISOString() });
     expect(d("agreement-certificate").issuedAt).toBe("2026-09-20T18:12:00Z");
+    expect(d("radio-handout")).toEqual({ recordKey: "NWF26-RADIOS", issuedAt: NOW.toISOString() });
   });
 
   it("falls back for unnumbered invoices and drafts", () => {
@@ -236,6 +237,46 @@ describe("data mapping", () => {
       kind: "paragraph",
       text: FIXTURES["agreement-certificate"].agreement.body,
     });
+  });
+
+  it("lists radios by party then person, with blank signature and returned columns", () => {
+    const table = build("radio-handout").blocks.find((b) => b.kind === "table");
+    if (table?.kind !== "table") throw new Error("no hand-out");
+    expect(table.columns.map((c) => c.label)).toEqual([
+      "Person",
+      "Party",
+      "Radio",
+      "Tags issued",
+      "Channels",
+      "Status",
+      "Signature",
+      "Returned",
+    ]);
+    expect(table.rows).toEqual([
+      [
+        "Kai Morgan",
+        "Bayside Audio",
+        "Two-way radios",
+        "R-001",
+        "1 Production, 2 Audio",
+        "Issued",
+        "",
+        "",
+      ],
+      ["Zoë Ångström", "Bayside Audio", "Two-way radios", "None", "2 Audio", "Approved", "", ""],
+      [
+        "Ivy Marchetti Lighting",
+        "Ivy Marchetti Lighting",
+        "Two-way radios × 4",
+        "R-010, R-011",
+        "None",
+        "Partly issued",
+        "",
+        "",
+      ],
+    ]);
+    const es = build("radio-handout", "es-US").blocks.find((b) => b.kind === "table");
+    expect(es?.kind === "table" && es.rows[2]?.[5]).toBe("Entregada en parte");
   });
 
   it("reports call sheet gaps and cue progress", () => {

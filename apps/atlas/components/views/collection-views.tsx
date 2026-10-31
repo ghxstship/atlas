@@ -56,6 +56,11 @@ export interface CollectionViewsProps {
   readonly fields?: readonly FilterField[];
   /** The page's filterable custom fields, when it hands them over instead of a CustomFieldList. */
   readonly customFields?: CustomFieldListView | null;
+  /**
+   * Views the page lists before the person's saved views, as menu items it builds (the units list's built-in
+   * views, R7a). `current` names the one on screen: the menu shows its name and offers to save a copy of it.
+   */
+  readonly leading?: { readonly items: readonly MenuItem[]; readonly current?: string | undefined };
 }
 
 type Dialogs = ViewDialogState | null;
@@ -78,6 +83,7 @@ export function CollectionViews({
   onChange,
   fields = NO_FIELDS,
   customFields,
+  leading,
 }: CollectionViewsProps) {
   const t = useTranslations("views") as unknown as Translate;
   const router = useRouter();
@@ -184,6 +190,7 @@ export function CollectionViews({
 
   const here = currentQuery(new URLSearchParams(search.toString()), value, offered);
   const active = views?.find((v) => canonicalQuery(viewToQuery(v, offered)) === here) ?? null;
+  const copyOf = active ? undefined : leading?.current;
   const draft = (name: string): ViewDraft =>
     ({
       name,
@@ -212,6 +219,22 @@ export function CollectionViews({
   };
 
   const items: MenuItem[] = [];
+  // Opening one of the page's views leaves the saved view the person had open.
+  for (const item of leading?.items ?? []) {
+    const { onSelect, label: name } = item;
+    items.push(
+      onSelect && name
+        ? {
+            ...item,
+            onSelect: () => {
+              setApplied(null);
+              onSelect();
+              announce("applied", name);
+            },
+          }
+        : item,
+    );
+  }
   if (loadFailed) items.push({ heading: t("errors.loadFailed") });
   if (views === null) {
     if (!loadFailed) items.push({ heading: t("menu.loading") });
@@ -234,9 +257,9 @@ export function CollectionViews({
   }
   items.push({ separator: true });
   items.push({
-    label: t("menu.save"),
-    icon: "BookmarkPlus",
-    onSelect: () => setDialog({ kind: "save" }),
+    label: copyOf ? t("menu.saveCopy", { name: copyOf }) : t("menu.save"),
+    icon: copyOf ? "Copy" : "BookmarkPlus",
+    onSelect: () => setDialog(copyOf ? { kind: "save", name: copyOf } : { kind: "save" }),
   });
   // After opening one of their views and changing the filters, the owner can update it to match.
   const differing = active ? undefined : views?.find((v) => v.id === applied && v.mine);
@@ -320,7 +343,7 @@ export function CollectionViews({
       ) : null}
       {collection ? (
         <DeferredDropdownMenu
-          label={active ? active.name : t("menu.label")}
+          label={active?.name ?? copyOf ?? t("menu.label")}
           icon="Bookmark"
           items={items}
           onOpen={retryLoad}

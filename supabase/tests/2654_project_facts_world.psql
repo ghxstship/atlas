@@ -1,0 +1,107 @@
+-- Shared pgTAP fixture for the R5 suites (2654 to 2657), included with \ir inside each test transaction. Builds on the
+-- engagement world (0700_engagement_world.psql). Every name is fictional. Nothing persists: each suite rolls back.
+--
+-- Bayside Audio (acct_v) supplies eng_vendor_a on prj_a: victor Account Owner, fiona Account Finance, sam the engaged
+-- technician (self entry), pia an Advancing Lead, mo a duty Member, kai and mo rostered and Submitted (e_kai, e_mo,
+-- both accepted by the person), una rostered as a Draft (e_una, not yet answered).
+-- Northwind (org_a) offers travel, lodging, uniforms and parking. Producers with one capability each, by custom role:
+-- hops hospitality.fulfillment.read, creds credentials.credential.read, shifts crew.shift.write.
+
+create function pg_temp.membership(p_account text, p_person text) returns uuid
+language plpgsql as $$
+declare
+  v_role text := current_setting('role');
+  v_claims text := current_setting('request.jwt.claims', true);
+  v uuid;
+begin
+  perform set_config('role', 'postgres', true);
+  select m.id into v from app.account_memberships m
+  where m.org_id = pg_temp.id(p_account) and m.person_id = pg_temp.id(p_person) and m.deleted_at is null
+    and (m.valid_to is null or m.valid_to > now());
+  perform set_config('role', v_role, true);
+  perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+  return v;
+end $$;
+
+create function pg_temp.self_entry(p_engagement text) returns uuid
+language sql as $$
+  select r.id from app.engagement_roster_entries r where r.engagement_id = pg_temp.id(p_engagement) and r.is_self and r.deleted_at is null
+$$;
+
+create function pg_temp.notified(p_who text, p_kind text, p_subject text) returns integer
+language sql as $$
+  select count(*)::int from app.notifications n
+  where n.recipient_person_id = pg_temp.id(p_who) and n.kind = p_kind and n.subject_id = pg_temp.id(p_subject)
+$$;
+
+create function pg_temp.events(p_who text, p_action text) returns integer
+language sql as $$
+  select count(*)::int from app.work_detail_events e where e.person_id = pg_temp.id(p_who) and e.action = p_action
+$$;
+
+-- A member of org_a on prj_a whose only role is a custom role holding one capability.
+create function pg_temp.producer(p_key text, p_capability text) returns void
+language plpgsql as $$
+declare
+  v_role uuid;
+  v_token text;
+begin
+  perform pg_temp.new_user(p_key, p_key || '@northwind.test', initcap(p_key) || ' Producer');
+  perform pg_temp.as_user('alice');
+  insert into app.roles (org_id, code, name, band, description)
+  values (pg_temp.id('org_a'), p_key || '_only', initcap(p_key) || ' Only', 4, 'Holds ' || p_capability || ' alone.')
+  returning id into v_role;
+  insert into app.role_capabilities (role_id, capability_code, reach) values (v_role, p_capability, 'organization');
+  select i.invite_token into v_token from app.invite_member(pg_temp.id('org_a'), p_key || '@northwind.test', v_role) i;
+  perform pg_temp.as_user(p_key);
+  perform app.accept_invite(v_token);
+  perform pg_temp.as_platform();
+  -- The custom role is the member's only role.
+  insert into app.membership_roles (membership_id, role_id)
+  select m.id, v_role from app.memberships m
+  where m.org_id = pg_temp.id('org_a') and m.person_id = pg_temp.id(p_key) and m.deleted_at is null
+    and not exists (select 1 from app.membership_roles x where x.membership_id = m.id and x.role_id = v_role);
+  -- Assigned to prj_a in the Field project role, which adds no capability of its own.
+  insert into app.project_members (project_id, membership_id, project_role)
+  select pg_temp.id('prj_a'), m.id, 'Field' from app.memberships m
+  where m.org_id = pg_temp.id('org_a') and m.person_id = pg_temp.id(p_key) and m.deleted_at is null;
+end $$;
+
+select pg_temp.new_user('kai', 'kai@bayside-audio.test', 'Kai Morgan');
+select pg_temp.new_user('mo', 'mo@bayside-audio.test', 'Mo Lindqvist');
+select pg_temp.new_user('una', 'una@bayside-audio.test', 'Una Fischer');
+select pg_temp.new_user('pia', 'pia@bayside-audio.test', 'Pia Larsen');
+select pg_temp.as_user('victor');
+select app.add_account_member(pg_temp.id('acct_v'), pg_temp.id(p), 'Account Member') from unnest(array['kai', 'mo', 'una', 'pia']) p;
+select pg_temp.as_user('kai');
+select app.accept_account_membership(pg_temp.membership('acct_v', 'kai'));
+select pg_temp.as_user('mo');
+select app.accept_account_membership(pg_temp.membership('acct_v', 'mo'));
+select pg_temp.as_user('una');
+select app.accept_account_membership(pg_temp.membership('acct_v', 'una'));
+select pg_temp.as_user('pia');
+select app.accept_account_membership(pg_temp.membership('acct_v', 'pia'));
+select pg_temp.as_user('victor');
+select app.assign_engagement_member(pg_temp.id('eng_vendor_a'), pg_temp.membership('acct_v', 'pia'), 'Advancing Lead');
+select app.assign_engagement_member(pg_temp.id('eng_vendor_a'), pg_temp.membership('acct_v', 'mo'), 'Member');
+insert into world select 'e_kai', app.add_roster_entry(pg_temp.id('eng_vendor_a'), pg_temp.id('kai'), '9000.50.02');
+insert into world select 'e_mo', app.add_roster_entry(pg_temp.id('eng_vendor_a'), pg_temp.id('mo'), '9000.50.02');
+select app.submit_roster(pg_temp.id('eng_vendor_a'));
+insert into world select 'e_una', app.add_roster_entry(pg_temp.id('eng_vendor_a'), pg_temp.id('una'), '9000.50.02');
+select pg_temp.as_user('kai');
+select app.respond_roster_entry(pg_temp.id('e_kai'), 'Accepted');
+select pg_temp.as_user('mo');
+select app.respond_roster_entry(pg_temp.id('e_mo'), 'Accepted');
+
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'offerings.' || o, 'Organization', null, 'provided')
+from unnest(array['travel', 'lodging', 'uniforms', 'parking']) o;
+select pg_temp.as_platform();
+insert into world values ('self_sam', pg_temp.self_entry('eng_vendor_a'));
+insert into world values ('self_art', pg_temp.self_entry('eng_art_a'));
+insert into world values ('self_ivy', pg_temp.self_entry('eng_ivy_a'));
+
+select pg_temp.producer('hops', 'hospitality.fulfillment.read');
+select pg_temp.producer('creds', 'credentials.credential.read');
+select pg_temp.producer('shifts', 'crew.shift.write');
+select pg_temp.as_platform();

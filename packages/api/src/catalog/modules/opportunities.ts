@@ -22,7 +22,43 @@ const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
 
 export const additions = defineAdditions("Opportunities", {
+  actions: {
+    engagements: [
+      itemAction("setRosterLock", {
+        segment: "roster-lock",
+        summary: "Set an engagement's names lock",
+        description:
+          "Sets or clears the names lock through `app.set_roster_lock` (R5, G-142): after `locks_at` the company side can no longer add, invite, edit Draft entries or submit new names; Returned entries stay editable. Null clears the lock and a past instant locks at once. Needs advancing.packet.write on the project; 422 roster_lock_engagement_closed unless the engagement is Onboarding, Blocked, Active or Closing. Each roster manager is notified.",
+        rpc: "app.set_roster_lock",
+        body: z
+          .object({
+            locks_at: orNull(fields.instant("When names lock; null clears the lock.")),
+          })
+          .meta({ id: "RosterLockRequest", description: "The names lock of an engagement." }),
+      }),
+    ],
+  },
+  capabilities: { engagements: { actions: { setRosterLock: "advancing.packet.write" } } },
   corrections: [
+    {
+      id: "engagement-roster-lock",
+      since: "1.0.0-draft.2",
+      resources: ["engagements"],
+      change: "The read shape gains the read-only `roster_locks_at`.",
+      reason:
+        "app.engagements.roster_locks_at (2656, R5 G-142) is the names lock the producing org sets through app.set_roster_lock: after it the company side can no longer add, invite, edit Draft entries or submit new names.",
+      apply: editShape({
+        add: {
+          roster_locks_at: {
+            schema: orNull(
+              fields.instant(
+                "Names lock: after this instant the company side can no longer name new crew; null means no lock.",
+              ),
+            ),
+          },
+        },
+      }),
+    },
     {
       id: "opportunity-schema-shape",
       since: "1.0.0-draft.2",

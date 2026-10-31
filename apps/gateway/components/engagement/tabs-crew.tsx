@@ -3,11 +3,15 @@ import {
   listOnboardingItems,
   listSharedRecords,
   readView,
+  rosterTrainingSummary,
+  type ExternalRow,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
 import { acceptShiftAction, submitTimesheetAction } from "@/lib/actions/operations";
+import { acknowledgeRosterTrainingAction, unassignRosterShiftAction } from "@/lib/actions/staffing";
 import { hasArea, tabHref } from "@/lib/engagement";
+import { onRoster } from "@/lib/roster-member";
 import {
   formatDate,
   formatDateRange,
@@ -21,19 +25,69 @@ import { toneFor } from "@/lib/states";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { AssignRosterShiftForm } from "./staffing-forms";
 
 /**
  * Crew and staff tabs (Section 4.4.4: shifts, timesheets, travel and lodging, credentials,
  * training and positions). Operational rows appear once the engagement is Active (Section 8.7).
  */
 
+/**
+ * A staffing agency's lead on its Staff engagement (R12): the roster area is open to them, so they place its roster
+ * staff on the slots the production allocated and read every one of its shifts with the holder's name.
+ */
+function agencyLead(view: TabProps["view"]): boolean {
+  return (
+    !onRoster(view) &&
+    view.engagement.roleType === "Staff" &&
+    view.engagement.personId === null &&
+    hasArea(view, "roster")
+  );
+}
+
+type ShiftRow = ExternalRow<"shifts">;
+
+/**
+ * The shifts a tab lists: a person on the roster their own (R12), the agency's lead the slots and roster shifts of
+ * its engagement, anyone else the engagement's own.
+ */
+async function engagementShifts(view: TabProps["view"]) {
+  if (view.rosterEntryId) {
+    return readView(view.ctx.db, "shifts", {
+      eq: { roster_entry_id: view.rosterEntryId },
+      order: ["starts_at", "asc"],
+    });
+  }
+  if (!agencyLead(view)) {
+    return readView(view.ctx.db, "shifts", {
+      eq: { engagement_id: view.engagement.id },
+      order: ["starts_at", "asc"],
+    });
+  }
+  const [shifts, roster] = await Promise.all([
+    readView(view.ctx.db, "shifts", {
+      eq: { project_id: view.engagement.projectId },
+      order: ["starts_at", "asc"],
+    }),
+    readView(view.ctx.db, "engagement_roster", { eq: { engagement_id: view.engagement.id } }),
+  ]);
+  if (!shifts.ok) return shifts;
+  if (!roster.ok) return roster;
+  const entries = new Set(roster.data.flatMap((r) => (r.id ? [r.id] : [])));
+  return {
+    ok: true as const,
+    data: shifts.data.filter(
+      (s) =>
+        s.engagement_id === view.engagement.id ||
+        (s.roster_entry_id !== null && entries.has(s.roster_entry_id)),
+    ),
+  };
+}
+
 export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational"))
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
-  const shifts = await readView(view.ctx.db, "shifts", {
-    eq: { engagement_id: view.engagement.id },
-    order: ["starts_at", "asc"],
-  });
+  const shifts = await engagementShifts(view);
   if (!shifts.ok) return <RegionError />;
   if (shifts.data.length === 0) {
     return (
@@ -57,6 +111,10 @@ export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
             : null,
           s.ends_at ? formatScheduleTime(locale, s.ends_at, s.time_zone, view.scheduleView) : null,
           s.scope_node_name,
+          agencyLead(view)
+            ? (s.holder_name ??
+              (s.is_agency_slot ? t("gateway.engagement.staffing.openSlot") : null))
+            : null,
         ],
         ...(s.shift_state
           ? {
@@ -66,7 +124,7 @@ export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
               },
             }
           : {}),
-        ...(s.shift_state === "Published" && s.id
+        ...(s.shift_state === "Published" && s.id && !agencyLead(view)
           ? {
               action: (
                 <ActionButton
@@ -86,12 +144,12 @@ export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
 export async function PositionsTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational"))
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
-  const shifts = await readView(view.ctx.db, "shifts", {
-    eq: { engagement_id: view.engagement.id },
-    order: ["starts_at", "asc"],
-  });
+  const shifts = await engagementShifts(view);
   if (!shifts.ok) return <RegionError />;
-  const groups = new Map<string, typeof shifts.data>();
+  const lead = agencyLead(view);
+  const assignable = lead ? await assignableStaff(view, shifts.data, t) : null;
+  if (assignable && !assignable.ok) return <RegionError />;
+  const groups = new Map<string, ShiftRow[]>();
   for (const s of shifts.data) {
     const key = s.scope_node_name ?? s.job_title ?? "";
     groups.set(key, [...(groups.get(key) ?? []), s]);
@@ -122,6 +180,7 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
                 s.ends_at
                   ? formatScheduleTime(locale, s.ends_at, s.time_zone, view.scheduleView)
                   : null,
+                lead ? (s.holder_name ?? t("gateway.engagement.staffing.openSlot")) : null,
               ],
               ...(s.shift_state
                 ? {
@@ -131,6 +190,28 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
                     },
                   }
                 : {}),
+              // The agency places someone on an open slot, or takes them off one (R12).
+              ...(lead && s.id && s.shift_state !== "Canceled"
+                ? s.is_agency_slot && assignable?.ok
+                  ? {
+                      detail: <AssignRosterShiftForm shiftId={s.id} options={assignable.data(s)} />,
+                    }
+                  : s.roster_entry_id
+                    ? {
+                        action: (
+                          <ActionButton
+                            action={unassignRosterShiftAction.bind(
+                              null,
+                              s.id,
+                              t("gateway.engagement.staffing.unassignReason"),
+                            )}
+                            label={t("gateway.engagement.staffing.unassign")}
+                            variant="secondary"
+                          />
+                        ),
+                      }
+                    : {}
+                : {}),
             }))}
           />
         </Section>
@@ -139,18 +220,70 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
   );
 }
 
+/**
+ * The people an agency's lead may place on a slot (R12): its roster's entries accepted by the production and by the
+ * person, each labeled with what stands in the way, training still due or a shift that overlaps. The database
+ * refuses those again on assignment; the hints only warn.
+ */
+async function assignableStaff(
+  view: TabProps["view"],
+  shifts: readonly ShiftRow[],
+  t: TabProps["t"],
+) {
+  const roster = await readView(view.ctx.db, "engagement_roster", {
+    eq: {
+      engagement_id: view.engagement.id,
+      entry_state: "Accepted",
+      person_response: "Accepted",
+      is_self: false,
+    },
+  });
+  if (!roster.ok) return roster;
+  const entries = roster.data.flatMap((r) => (r.id ? [{ id: r.id, name: r.full_name ?? "" }] : []));
+  const training = await rosterTrainingSummary(
+    view.ctx.db,
+    entries.map((e) => e.id),
+  );
+  if (!training.ok) return training;
+  return {
+    ok: true as const,
+    data: (slot: ShiftRow) =>
+      entries.map((e) => {
+        const due = training.data.get(e.id)?.due ?? 0;
+        const overlaps = shifts.some(
+          (other) =>
+            other.id !== slot.id &&
+            other.roster_entry_id === e.id &&
+            other.shift_state !== "Canceled" &&
+            other.starts_at !== null &&
+            other.ends_at !== null &&
+            slot.starts_at !== null &&
+            slot.ends_at !== null &&
+            other.starts_at < slot.ends_at &&
+            other.ends_at > slot.starts_at,
+        );
+        const hints = [
+          due > 0 ? t("gateway.engagement.staffing.trainingDue", { n: due }) : null,
+          overlaps ? t("gateway.engagement.staffing.overlaps") : null,
+        ].filter((h): h is string => h !== null);
+        return {
+          value: e.id,
+          label: hints.length > 0 ? `${e.name} (${hints.join(", ")})` : e.name,
+        };
+      }),
+  };
+}
+
 export async function TimesheetsTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational") && !hasArea(view, "money"))
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
+  // A person on a staffing agency's roster keeps their own timesheets under their roster entry (R12).
+  const worker = view.rosterEntryId
+    ? { roster_entry_id: view.rosterEntryId }
+    : { engagement_id: view.engagement.id };
   const [sheets, entries] = await Promise.all([
-    readView(view.ctx.db, "timesheets", {
-      eq: { engagement_id: view.engagement.id },
-      order: ["period_start", "desc"],
-    }),
-    readView(view.ctx.db, "time_entries", {
-      eq: { engagement_id: view.engagement.id },
-      order: ["clock_in", "desc"],
-    }),
+    readView(view.ctx.db, "timesheets", { eq: worker, order: ["period_start", "desc"] }),
+    readView(view.ctx.db, "time_entries", { eq: worker, order: ["clock_in", "desc"] }),
   ]);
   if (!sheets.ok || !entries.ok) return <RegionError />;
   return (
@@ -291,9 +424,11 @@ export async function TimeTab({ view, t, locale, engagementKey }: TabProps) {
 export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational"))
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
+  // A person on the party's roster reads only their own rows (R8); the views hold to it as well.
+  const own = onRoster(view) ? { person_id: view.ctx.personId } : {};
   const [lodging, segments, travel] = await Promise.all([
     readView(view.ctx.db, "lodging", {
-      eq: { project_id: view.engagement.projectId },
+      eq: { project_id: view.engagement.projectId, ...own },
       order: ["check_in_on", "asc"],
     }),
     readView(view.ctx.db, "travel", {
@@ -301,7 +436,7 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
       order: ["departs_at", "asc"],
     }),
     readView(view.ctx.db, "hospitality", {
-      eq: { project_id: view.engagement.projectId, fulfillment_kind: "Travel" },
+      eq: { project_id: view.engagement.projectId, fulfillment_kind: "Travel", ...own },
       order: ["starts_at", "asc"],
     }),
   ]);
@@ -390,13 +525,19 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
 export async function PerDiemTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational"))
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
+  // A person on the party's roster is paid per diem on their roster entry (R7), never the engagement.
+  const roster = onRoster(view) ? view.rosterEntryId : null;
   const [allowances, amenities] = await Promise.all([
     readView(view.ctx.db, "per_diems", {
-      eq: { engagement_id: view.engagement.id },
+      eq: roster ? { roster_entry_id: roster } : { engagement_id: view.engagement.id },
       order: ["day", "asc"],
     }),
     readView(view.ctx.db, "hospitality", {
-      eq: { project_id: view.engagement.projectId, fulfillment_kind: "Amenity" },
+      eq: {
+        project_id: view.engagement.projectId,
+        fulfillment_kind: "Amenity",
+        ...(roster ? { person_id: view.ctx.personId } : {}),
+      },
       order: ["starts_at", "asc"],
     }),
   ]);
@@ -512,6 +653,12 @@ export async function CredentialsTab({ view, t, locale, engagementKey }: TabProp
 
 async function vendorAwareCredentials(view: TabProps["view"]) {
   const { engagement } = view;
+  // A person on the party's roster holds their own badges and passes under its engagement (R8).
+  if (onRoster(view)) {
+    return readView(view.ctx.db, "credentials", {
+      eq: { engagement_id: engagement.id, holder_person_id: view.ctx.personId },
+    });
+  }
   if (engagement.roleType !== "Vendor" || engagement.accountId === null) {
     return readView(view.ctx.db, "credentials", { eq: { engagement_id: engagement.id } });
   }
@@ -524,8 +671,84 @@ async function vendorAwareCredentials(view: TabProps["view"]) {
   });
 }
 
+/**
+ * Training on a staffing agency's roster entry (R12, journey 42): what is due before the person's first shift, which
+ * they acknowledge here and the production then verifies.
+ */
+async function RosterTraining({
+  view,
+  t,
+  engagementKey,
+}: TabProps & { view: { rosterEntryId: string } }) {
+  const rows = await readView(view.ctx.db, "my_roster_training", {
+    eq: { roster_entry_id: view.rosterEntryId },
+    order: ["name", "asc"],
+  });
+  if (!rows.ok) return <RegionError />;
+  if (rows.data.length === 0) {
+    return (
+      <TabEmpty
+        icon="GraduationCap"
+        sentence={t("gateway.engagement.staffing.trainingEmpty")}
+        actionLabel={t("gateway.engagement.messagesAction")}
+        href={tabHref(engagementKey, "engagement.messages")}
+      />
+    );
+  }
+  return (
+    <RowList
+      label={t("nav.gateway.engagementTabs.training")}
+      items={rows.data.map((r) => {
+        const waiting =
+          !r.is_satisfied && r.acknowledged_at !== null && r.verification_outcome === null;
+        return {
+          id: `${r.roster_entry_id}-${r.onboarding_requirement_id}`,
+          title: r.name ?? "",
+          meta: [r.item_kind ? t(enumLabelKey("onboardingItemKind", r.item_kind)) : null],
+          tag: r.is_satisfied
+            ? {
+                label: t("gateway.engagement.onboarding.standing.verified"),
+                tone: "success" as const,
+              }
+            : waiting
+              ? {
+                  label: t("gateway.engagement.staffing.awaitingVerification"),
+                  tone: "neutral" as const,
+                }
+              : {
+                  label: t("gateway.engagement.onboarding.standing.todo"),
+                  tone: "warning" as const,
+                },
+          ...(!r.is_satisfied && !waiting && r.roster_entry_id && r.onboarding_requirement_id
+            ? {
+                action: (
+                  <ActionButton
+                    action={acknowledgeRosterTrainingAction.bind(
+                      null,
+                      r.roster_entry_id,
+                      r.onboarding_requirement_id,
+                    )}
+                    label={t("gateway.engagement.staffing.acknowledge")}
+                    variant="secondary"
+                  />
+                ),
+              }
+            : {}),
+        };
+      })}
+    />
+  );
+}
+
 /** Training and briefing acknowledgments (Section 4.4.4 Staff) plus shared training sessions. */
-export async function TrainingTab({ view, t, locale, engagementKey }: TabProps) {
+export async function TrainingTab(props: TabProps) {
+  const { view } = props;
+  if (view.rosterEntryId)
+    return <RosterTraining {...props} view={{ ...view, rosterEntryId: view.rosterEntryId }} />;
+  return <EngagementTraining {...props} />;
+}
+
+async function EngagementTraining({ view, t, locale, engagementKey }: TabProps) {
   const [items, sessions] = await Promise.all([
     listOnboardingItems(view.ctx.db, view.engagement.id),
     hasArea(view, "operational")

@@ -23,6 +23,7 @@ export const KNOWN_RULES = [
   "credential_engagement_project",
   "credential_engagement_holder",
   "credential_engagement_closed",
+  "credential_category_kind_in_use",
   "person_not_on_project",
   "scan_id_taken",
   "scan_intake_resolved",

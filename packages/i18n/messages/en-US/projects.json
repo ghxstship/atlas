@@ -156,6 +156,7 @@
     "unexpected": "Something went wrong saving this change. Try again, and contact support if it keeps happening.",
     "refused": "The change was refused ({rule}). Review the project and try again.",
     "plan_limit_exceeded": "Your plan's active project limit is reached. Complete or cancel a project, or change plans, to add another.",
+    "plan_limit_read_only": "This project is read-only because the organization is over its plan's active project limit. The banner at the top of the page says how to lift it.",
     "time_zone_unknown": "That time zone is not recognized. Choose one from the list.",
     "gate_criteria_unmet": "Gate {gate} cannot pass until every blocking criterion has evidence. Missing: {criteria}.",
     "gate_phase_conflict": "The project moved to another phase while you were working. Reload to see its current gate.",

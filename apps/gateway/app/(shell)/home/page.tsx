@@ -11,6 +11,17 @@ import {
   type Engagement,
 } from "@xos/data/gateway";
 import { startOfDayIn } from "@xos/data/calendar";
+import {
+  listMyParkingPasses,
+  listMyRosterEngagements,
+  type RosterEngagement,
+} from "@xos/data/gateway-allocations";
+import {
+  listMyRosterEntries,
+  listMyUnconfirmedMemberships,
+  myPendingInvitations,
+} from "@xos/data/roster";
+import dynamic from "next/dynamic";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -22,6 +33,12 @@ import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/componen
 import { UpNextActions } from "@/components/page/up-next-actions";
 import { Updates } from "@/components/page/updates";
 import { acceptRepresentationAction, signDocumentAction } from "@/lib/actions/engagement";
+import {
+  acceptAccountMembershipAction,
+  leaveAccountMembershipAction,
+  respondPartyInvitationAction,
+  respondRosterEntryAction,
+} from "@/lib/actions/roster";
 import {
   formatCountdown,
   formatDate,
@@ -44,6 +61,12 @@ import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { engagementTitle } from "@/lib/engagement-state";
+import { RosterFactsButton } from "@/components/roster/roster-facts-button";
+
+// Leaving an account is irreversible, so it is confirmed in a dialog whose code loads on demand (R4).
+const ConfirmButton = dynamic(() =>
+  import("@/components/actions/confirm-button").then((m) => m.ConfirmButton),
+);
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -81,34 +104,66 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   }
   const engagements = engagementsResult.data;
   const current = engagements.filter(isCurrentEngagement);
-  const [records, documents, onboarding, applications, representations, recommended] =
-    await Promise.all([
-      listSharedRecords(ctx.db, {
-        projectIds: [...new Set(current.map((e) => e.projectId))],
-        kinds: [...UP_NEXT_KINDS],
-      }),
-      listEngagementDocuments(ctx.db),
-      listOnboardingItems(ctx.db),
-      listMyApplications(ctx.db),
-      listRepresentations(ctx.db),
-      searchMarketplace(ctx.db, {
-        limit: 6,
-        ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
-      }),
-    ]);
-  const upNext = records.ok ? pickUpNext(records.data, current, now) : null;
-  const details = upNext?.engagement ? await loadUpNextDetails(ctx, upNext.engagement) : null;
+  const [
+    records,
+    documents,
+    onboarding,
+    applications,
+    representations,
+    recommended,
+    invitations,
+    memberships,
+    rosterEntries,
+    rosterEngagements,
+  ] = await Promise.all([
+    listSharedRecords(ctx.db, {
+      projectIds: [...new Set(current.map((e) => e.projectId))],
+      kinds: [...UP_NEXT_KINDS],
+    }),
+    listEngagementDocuments(ctx.db),
+    listOnboardingItems(ctx.db),
+    listMyApplications(ctx.db),
+    listRepresentations(ctx.db),
+    searchMarketplace(ctx.db, {
+      limit: 6,
+      ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
+    }),
+    myPendingInvitations(ctx.db),
+    listMyUnconfirmedMemberships(ctx.db, ctx.personId),
+    listMyRosterEntries(ctx.db),
+    listMyRosterEngagements(ctx.db),
+  ]);
+  const rostered = rosterEngagements.ok ? rosterEngagements.data : [];
+  const upNext = records.ok ? pickUpNext(records.data, current, now, rostered) : null;
+  const details = upNext?.engagement
+    ? await loadUpNextDetails(
+        ctx,
+        upNext.engagement,
+        rostered.find((r) => r.id === upNext.engagement?.id) ?? null,
+      )
+    : null;
   const feed = needsYou({
     engagements,
     documents: documents.ok ? documents.data : [],
     onboarding: onboarding.ok ? onboarding.data : [],
     applications: applications.ok ? applications.data : [],
     representations: representations.ok ? representations.data : [],
+    invitations: invitations.ok ? invitations.data : [],
+    memberships: memberships.ok ? memberships.data : [],
+    rosterEntries: rosterEntries.ok ? rosterEntries.data : [],
     personId: ctx.personId,
     now,
   });
   const failed =
-    !records.ok || !documents.ok || !onboarding.ok || !applications.ok || !representations.ok;
+    !records.ok ||
+    !documents.ok ||
+    !onboarding.ok ||
+    !applications.ok ||
+    !representations.ok ||
+    !invitations.ok ||
+    !memberships.ok ||
+    !rosterEntries.ok ||
+    !rosterEngagements.ok;
   const firstName = (ctx.personName ?? "").split(" ")[0] ?? "";
 
   return (
@@ -217,19 +272,27 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
  * The next call, the venue, the contact and what to bring for the Up Next engagement (R2), read in
  * parallel. A read that fails leaves its rows out rather than failing the card.
  */
-async function loadUpNextDetails(ctx: GatewayContext, e: Engagement): Promise<UpNextDetails> {
-  const [row, badges, gear] = await Promise.all([
+async function loadUpNextDetails(
+  ctx: GatewayContext,
+  e: Engagement,
+  roster: RosterEngagement | null,
+): Promise<UpNextDetails> {
+  const [row, badges, gear, parking] = await Promise.all([
     readView(ctx.db, "engagement_up_next", { eq: { engagement_id: e.id } }),
     readView(ctx.db, "credentials", {
       eq: { project_id: e.projectId, holder_person_id: ctx.personId },
     }),
     readView(ctx.db, "asset_custody", { eq: { engagement_id: e.id } }),
+    listMyParkingPasses(ctx.db, e.projectId),
   ]);
   return upNextDetails({
     row: row.ok ? (row.data[0] ?? null) : null,
     orgName: e.orgName,
-    badges: badges.ok ? badges.data : [],
+    // Parking passes have their own row.
+    badges: badges.ok ? badges.data.filter((b) => b.category_kind !== "Parking") : [],
     gear: gear.ok ? gear.data : [],
+    parking: parking.ok ? parking.data : [],
+    lead: roster?.leadName ?? null,
   });
 }
 
@@ -252,6 +315,9 @@ function detailItems(
         ]
       : []),
     ...(details.where ? [{ label: t("gateway.home.upNext.where"), value: details.where }] : []),
+    ...(details.parking.length > 0
+      ? [{ label: t("gateway.home.upNext.parking"), value: details.parking.join("; ") }]
+      : []),
     {
       label: t("gateway.home.upNext.contact"),
       value: (
@@ -299,6 +365,12 @@ function feedKey(item: FeedItem): string {
       return `interview-${item.application.id}`;
     case "rate":
       return `rate-${item.engagement.id}`;
+    case "invitation":
+      return `invitation-${item.invitation.id}`;
+    case "membership":
+      return `membership-${item.membership.accountMembershipId}`;
+    case "roster":
+      return `roster-${item.entry.id}`;
   }
 }
 
@@ -489,5 +561,95 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
           {t("gateway.home.needsYou.rateAction")}
         </ButtonLink>,
       );
+    case "invitation": {
+      const i = item.invitation;
+      return row(
+        "Mail",
+        i.kind === "account"
+          ? t("gateway.home.feed.invitation.account", { account: i.accountName ?? "" })
+          : t("gateway.home.feed.invitation.roster", {
+              party: i.partyName ?? "",
+              project: i.projectName ?? "",
+            }),
+        [
+          i.kind === "account" && i.accountRole
+            ? t(enumLabelKey("accountRole", i.accountRole))
+            : i.jobTitle,
+          i.kind === "roster" ? t("gateway.home.feed.invitation.consent") : null,
+          i.inviterName ? t("gateway.home.feed.invitation.from", { name: i.inviterName }) : null,
+          t("gateway.home.feed.invitation.expires", { date: formatDate(locale, i.expiresAt) }),
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        <span className="flex flex-wrap gap-8">
+          <ActionButton
+            action={respondPartyInvitationAction.bind(null, i.kind, i.id, true)}
+            label={t("gateway.home.feed.invitation.accept")}
+            variant="secondary"
+          />
+          <ActionButton
+            action={respondPartyInvitationAction.bind(null, i.kind, i.id, false)}
+            label={t("gateway.home.feed.invitation.decline")}
+            variant="ghost"
+          />
+        </span>,
+      );
+    }
+    case "membership":
+      return row(
+        "Building2",
+        t("gateway.home.feed.membership.title", { account: item.membership.accountName }),
+        t("gateway.home.feed.membership.meta"),
+        <span className="flex flex-wrap gap-8">
+          <ActionButton
+            action={acceptAccountMembershipAction.bind(null, item.membership.accountMembershipId)}
+            label={t("gateway.home.feed.membership.confirm")}
+            variant="secondary"
+          />
+          <ConfirmButton
+            action={leaveAccountMembershipAction.bind(null, item.membership.accountMembershipId)}
+            label={t("gateway.home.feed.membership.leave")}
+            title={t("gateway.home.feed.membership.leaveTitle", {
+              account: item.membership.accountName,
+            })}
+            sentence={t("gateway.home.feed.membership.leaveSentence")}
+            confirm={t("gateway.home.feed.membership.leaveConfirm")}
+            cancel={t("gateway.common.cancel")}
+          />
+        </span>,
+      );
+    case "roster": {
+      const e = item.entry;
+      return row(
+        "Users",
+        t("gateway.home.feed.roster.title", {
+          party: e.partyName ?? e.orgName ?? "",
+          project: e.projectName ?? "",
+        }),
+        [e.jobTitle, t("gateway.home.feed.roster.consent")].filter(Boolean).join(" · "),
+        <span className="flex flex-wrap items-center gap-8">
+          <ActionButton
+            action={respondRosterEntryAction.bind(null, e.id, "Accepted")}
+            label={t("gateway.home.feed.roster.accept")}
+            variant="secondary"
+          />
+          <ActionButton
+            action={respondRosterEntryAction.bind(null, e.id, "Declined")}
+            label={t("gateway.home.feed.roster.decline")}
+            variant="ghost"
+          />
+          <RosterFactsButton
+            rosterEntryId={e.id}
+            name={e.partyName ?? e.orgName ?? ""}
+            companyName={e.partyName ?? ""}
+            projectName={e.projectName ?? ""}
+            self
+          />
+          <Link href={"/settings/work-details" as Route} className="text-text-13 text-text-link">
+            {t("gateway.home.feed.roster.share")}
+          </Link>
+        </span>,
+      );
+    }
   }
 }

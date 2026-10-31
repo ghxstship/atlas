@@ -1,0 +1,41 @@
+appId: pro.ghxstship.compass
+# R7a: receive against an order. The Producer opens the project's sent purchase order in the Receive against an
+# order sheet, counts one of each open line with the steppers and submits; the receipt queues as one
+# app.receive_goods mutation and drains. Named after its file: config.yaml orders flows by name.
+name: field-receive-order
+---
+# The seeded order (0116) is Sent and its lines name no catalog element, so both lines take steppers; a line whose
+# element has an asset class takes scanned tags instead (apps/compass/test/scan-receiving.test.ts covers that and
+# the offline outbox). Receiving needs procurement.receipt.write, which the Producer holds.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: producer@example.com
+- tapOn:
+    id: "tab-scan"
+- tapOn:
+    id: "scan-mode-receiving"
+- tapOn:
+    id: "scan-receive-order"
+- extendedWaitUntil:
+    visible:
+      id: "receive-order-list"
+    timeout: 10000
+- tapOn:
+    id: "receive-order-.*"
+- extendedWaitUntil:
+    visible:
+      id: "receive-order-lines"
+    timeout: 5000
+- tapOn:
+    id: "receive-more-1"
+- tapOn:
+    id: "receive-more-2"
+- assertVisible: ".*1 of 2 counted.*"
+- tapOn:
+    id: "receive-order-submit"
+- assertVisible: ".*received; it syncs when you are online.*"
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 30000

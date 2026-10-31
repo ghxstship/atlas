@@ -1,0 +1,188 @@
+# Airports for travel requests (R5, ADR 0102). Read by packages/schemas/src/airports/load.ts, which keeps rows of type
+# large_airport or medium_airport with scheduled_service yes and an IATA code of three capital letters, and writes
+# supabase/migrations/2652_airports_seed.sql (pnpm --filter @xos/schemas generate:airports).
+# Columns follow the OurAirports airports.csv header (https://ourairports.com/data/, public domain); the loader finds
+# them by name, so the full OurAirports file drops in unchanged.
+# STARTER SET: this file is a hand-entered set of 177 major airports, not the OurAirports snapshot the R5 spec asks for
+# (more than 1,000 airports), so a travel request cannot yet name most regional airports. Owner step: run
+# pnpm --filter @xos/schemas fetch:airports, which downloads OurAirports airports.csv, rewrites this file with the
+# source and download date and regenerates 2652_airports_seed.sql; then drop the todo_start and todo_end lines in
+# supabase/tests/2651_airports.test.sql and commit the three files.
+type,name,municipality,iso_country,scheduled_service,iata_code
+large_airport,Hartsfield-Jackson Atlanta International Airport,Atlanta,US,yes,ATL
+large_airport,Austin-Bergstrom International Airport,Austin,US,yes,AUS
+large_airport,Nashville International Airport,Nashville,US,yes,BNA
+large_airport,General Edward Lawrence Logan International Airport,Boston,US,yes,BOS
+large_airport,Baltimore/Washington International Thurgood Marshall Airport,Baltimore,US,yes,BWI
+large_airport,Charlotte Douglas International Airport,Charlotte,US,yes,CLT
+large_airport,Dallas Love Field,Dallas,US,yes,DAL
+large_airport,Ronald Reagan Washington National Airport,Washington,US,yes,DCA
+large_airport,Denver International Airport,Denver,US,yes,DEN
+large_airport,Dallas Fort Worth International Airport,Dallas-Fort Worth,US,yes,DFW
+large_airport,Detroit Metropolitan Wayne County Airport,Detroit,US,yes,DTW
+large_airport,Newark Liberty International Airport,Newark,US,yes,EWR
+large_airport,Fort Lauderdale Hollywood International Airport,Fort Lauderdale,US,yes,FLL
+large_airport,Daniel K Inouye International Airport,Honolulu,US,yes,HNL
+large_airport,William P Hobby Airport,Houston,US,yes,HOU
+large_airport,Washington Dulles International Airport,Washington,US,yes,IAD
+large_airport,George Bush Intercontinental Houston Airport,Houston,US,yes,IAH
+large_airport,John F Kennedy International Airport,New York,US,yes,JFK
+large_airport,Harry Reid International Airport,Las Vegas,US,yes,LAS
+large_airport,Los Angeles International Airport,Los Angeles,US,yes,LAX
+large_airport,LaGuardia Airport,New York,US,yes,LGA
+large_airport,Orlando International Airport,Orlando,US,yes,MCO
+large_airport,Chicago Midway International Airport,Chicago,US,yes,MDW
+large_airport,Miami International Airport,Miami,US,yes,MIA
+large_airport,Minneapolis-St Paul International/Wold-Chamberlain Airport,Minneapolis,US,yes,MSP
+large_airport,Louis Armstrong New Orleans International Airport,New Orleans,US,yes,MSY
+large_airport,Metropolitan Oakland International Airport,Oakland,US,yes,OAK
+large_airport,Chicago O'Hare International Airport,Chicago,US,yes,ORD
+large_airport,Portland International Airport,Portland,US,yes,PDX
+large_airport,Philadelphia International Airport,Philadelphia,US,yes,PHL
+large_airport,Phoenix Sky Harbor International Airport,Phoenix,US,yes,PHX
+large_airport,Raleigh-Durham International Airport,Raleigh/Durham,US,yes,RDU
+large_airport,San Diego International Airport,San Diego,US,yes,SAN
+large_airport,San Antonio International Airport,San Antonio,US,yes,SAT
+large_airport,Seattle-Tacoma International Airport,Seattle,US,yes,SEA
+large_airport,San Francisco International Airport,San Francisco,US,yes,SFO
+large_airport,Norman Y. Mineta San Jose International Airport,San Jose,US,yes,SJC
+large_airport,Salt Lake City International Airport,Salt Lake City,US,yes,SLC
+large_airport,Sacramento International Airport,Sacramento,US,yes,SMF
+large_airport,John Wayne Orange County International Airport,Santa Ana,US,yes,SNA
+large_airport,St Louis Lambert International Airport,St Louis,US,yes,STL
+large_airport,Tampa International Airport,Tampa,US,yes,TPA
+large_airport,Ted Stevens Anchorage International Airport,Anchorage,US,yes,ANC
+large_airport,Cincinnati Northern Kentucky International Airport,Cincinnati,US,yes,CVG
+large_airport,Cleveland Hopkins International Airport,Cleveland,US,yes,CLE
+large_airport,Pittsburgh International Airport,Pittsburgh,US,yes,PIT
+large_airport,Kansas City International Airport,Kansas City,US,yes,MCI
+large_airport,John Glenn Columbus International Airport,Columbus,US,yes,CMH
+large_airport,Indianapolis International Airport,Indianapolis,US,yes,IND
+medium_airport,Palm Beach International Airport,West Palm Beach,US,yes,PBI
+medium_airport,Southwest Florida International Airport,Fort Myers,US,yes,RSW
+medium_airport,Jacksonville International Airport,Jacksonville,US,yes,JAX
+medium_airport,Key West International Airport,Key West,US,yes,EYW
+medium_airport,Albuquerque International Sunport,Albuquerque,US,yes,ABQ
+medium_airport,Hollywood Burbank Airport,Burbank,US,yes,BUR
+medium_airport,Long Beach Airport,Long Beach,US,yes,LGB
+medium_airport,Ontario International Airport,Ontario,US,yes,ONT
+medium_airport,Palm Springs International Airport,Palm Springs,US,yes,PSP
+medium_airport,Tucson International Airport,Tucson,US,yes,TUS
+medium_airport,Boise Air Terminal/Gowen Field,Boise,US,yes,BOI
+medium_airport,Reno Tahoe International Airport,Reno,US,yes,RNO
+medium_airport,Memphis International Airport,Memphis,US,yes,MEM
+medium_airport,Milwaukee Mitchell International Airport,Milwaukee,US,yes,MKE
+medium_airport,Buffalo Niagara International Airport,Buffalo,US,yes,BUF
+medium_airport,Bradley International Airport,Windsor Locks,US,yes,BDL
+medium_airport,Richmond International Airport,Richmond,US,yes,RIC
+medium_airport,Charleston International Airport,Charleston,US,yes,CHS
+medium_airport,Savannah Hilton Head International Airport,Savannah,US,yes,SAV
+medium_airport,Birmingham-Shuttlesworth International Airport,Birmingham,US,yes,BHM
+medium_airport,Will Rogers World Airport,Oklahoma City,US,yes,OKC
+medium_airport,Tulsa International Airport,Tulsa,US,yes,TUL
+medium_airport,Eppley Airfield,Omaha,US,yes,OMA
+medium_airport,El Paso International Airport,El Paso,US,yes,ELP
+medium_airport,Kahului Airport,Kahului,US,yes,OGG
+large_airport,Toronto Lester B. Pearson International Airport,Toronto,CA,yes,YYZ
+large_airport,Vancouver International Airport,Vancouver,CA,yes,YVR
+large_airport,Montreal / Pierre Elliott Trudeau International Airport,Montreal,CA,yes,YUL
+large_airport,Calgary International Airport,Calgary,CA,yes,YYC
+large_airport,Edmonton International Airport,Edmonton,CA,yes,YEG
+large_airport,Ottawa Macdonald-Cartier International Airport,Ottawa,CA,yes,YOW
+large_airport,Halifax / Stanfield International Airport,Halifax,CA,yes,YHZ
+large_airport,Winnipeg / James Armstrong Richardson International Airport,Winnipeg,CA,yes,YWG
+large_airport,Licenciado Benito Juarez International Airport,Mexico City,MX,yes,MEX
+large_airport,Cancun International Airport,Cancun,MX,yes,CUN
+large_airport,Guadalajara International Airport,Guadalajara,MX,yes,GDL
+large_airport,Monterrey International Airport,Monterrey,MX,yes,MTY
+large_airport,Tocumen International Airport,Panama City,PA,yes,PTY
+large_airport,Juan Santamaria International Airport,San Jose,CR,yes,SJO
+large_airport,Luis Munoz Marin International Airport,San Juan,PR,yes,SJU
+large_airport,Punta Cana International Airport,Punta Cana,DO,yes,PUJ
+large_airport,Lynden Pindling International Airport,Nassau,BS,yes,NAS
+large_airport,Norman Manley International Airport,Kingston,JM,yes,KIN
+large_airport,Sangster International Airport,Montego Bay,JM,yes,MBJ
+large_airport,El Dorado International Airport,Bogota,CO,yes,BOG
+large_airport,Jorge Chavez International Airport,Lima,PE,yes,LIM
+large_airport,Comodoro Arturo Merino Benitez International Airport,Santiago,CL,yes,SCL
+large_airport,Ministro Pistarini International Airport,Buenos Aires,AR,yes,EZE
+large_airport,Guarulhos - Governador Andre Franco Montoro International Airport,Sao Paulo,BR,yes,GRU
+large_airport,Rio Galeao - Tom Jobim International Airport,Rio de Janeiro,BR,yes,GIG
+large_airport,London Heathrow Airport,London,GB,yes,LHR
+large_airport,London Gatwick Airport,London,GB,yes,LGW
+large_airport,London Stansted Airport,London,GB,yes,STN
+large_airport,London Luton Airport,London,GB,yes,LTN
+large_airport,Manchester Airport,Manchester,GB,yes,MAN
+large_airport,Edinburgh Airport,Edinburgh,GB,yes,EDI
+large_airport,Glasgow International Airport,Glasgow,GB,yes,GLA
+large_airport,Birmingham Airport,Birmingham,GB,yes,BHX
+large_airport,Dublin Airport,Dublin,IE,yes,DUB
+large_airport,Paris Charles de Gaulle Airport,Paris,FR,yes,CDG
+large_airport,Paris-Orly Airport,Paris,FR,yes,ORY
+large_airport,Nice-Cote d'Azur Airport,Nice,FR,yes,NCE
+large_airport,Lyon Saint-Exupery Airport,Lyon,FR,yes,LYS
+large_airport,Amsterdam Airport Schiphol,Amsterdam,NL,yes,AMS
+large_airport,Brussels Airport,Brussels,BE,yes,BRU
+large_airport,Frankfurt am Main Airport,Frankfurt am Main,DE,yes,FRA
+large_airport,Munich Airport,Munich,DE,yes,MUC
+large_airport,Berlin Brandenburg Airport,Berlin,DE,yes,BER
+large_airport,Dusseldorf Airport,Dusseldorf,DE,yes,DUS
+large_airport,Hamburg Helmut Schmidt Airport,Hamburg,DE,yes,HAM
+large_airport,Cologne Bonn Airport,Cologne,DE,yes,CGN
+large_airport,Zurich Airport,Zurich,CH,yes,ZRH
+large_airport,Geneva Cointrin International Airport,Geneva,CH,yes,GVA
+large_airport,Vienna International Airport,Vienna,AT,yes,VIE
+large_airport,Adolfo Suarez Madrid-Barajas Airport,Madrid,ES,yes,MAD
+large_airport,Josep Tarradellas Barcelona-El Prat Airport,Barcelona,ES,yes,BCN
+large_airport,Palma de Mallorca Airport,Palma de Mallorca,ES,yes,PMI
+large_airport,Malaga-Costa del Sol Airport,Malaga,ES,yes,AGP
+large_airport,Ibiza Airport,Ibiza,ES,yes,IBZ
+large_airport,Humberto Delgado Airport (Lisbon Portela Airport),Lisbon,PT,yes,LIS
+large_airport,Francisco de Sa Carneiro Airport,Porto,PT,yes,OPO
+large_airport,Rome-Fiumicino Leonardo da Vinci International Airport,Rome,IT,yes,FCO
+large_airport,Milan Malpensa International Airport,Milan,IT,yes,MXP
+large_airport,Venice Marco Polo Airport,Venice,IT,yes,VCE
+large_airport,Copenhagen Kastrup Airport,Copenhagen,DK,yes,CPH
+large_airport,Stockholm-Arlanda Airport,Stockholm,SE,yes,ARN
+large_airport,Oslo Airport Gardermoen,Oslo,NO,yes,OSL
+large_airport,Helsinki Vantaa Airport,Helsinki,FI,yes,HEL
+large_airport,Keflavik International Airport,Reykjavik,IS,yes,KEF
+large_airport,Warsaw Chopin Airport,Warsaw,PL,yes,WAW
+large_airport,Vaclav Havel Airport Prague,Prague,CZ,yes,PRG
+large_airport,Budapest Liszt Ferenc International Airport,Budapest,HU,yes,BUD
+large_airport,Athens Eleftherios Venizelos International Airport,Athens,GR,yes,ATH
+large_airport,Istanbul Airport,Istanbul,TR,yes,IST
+large_airport,Dubai International Airport,Dubai,AE,yes,DXB
+large_airport,Abu Dhabi International Airport,Abu Dhabi,AE,yes,AUH
+large_airport,Hamad International Airport,Doha,QA,yes,DOH
+large_airport,King Khalid International Airport,Riyadh,SA,yes,RUH
+large_airport,Ben Gurion International Airport,Tel Aviv,IL,yes,TLV
+large_airport,Cairo International Airport,Cairo,EG,yes,CAI
+large_airport,O.R. Tambo International Airport,Johannesburg,ZA,yes,JNB
+large_airport,Cape Town International Airport,Cape Town,ZA,yes,CPT
+large_airport,Jomo Kenyatta International Airport,Nairobi,KE,yes,NBO
+large_airport,Murtala Muhammed International Airport,Lagos,NG,yes,LOS
+large_airport,Mohammed V International Airport,Casablanca,MA,yes,CMN
+large_airport,Chhatrapati Shivaji Maharaj International Airport,Mumbai,IN,yes,BOM
+large_airport,Indira Gandhi International Airport,New Delhi,IN,yes,DEL
+large_airport,Kempegowda International Airport,Bangalore,IN,yes,BLR
+large_airport,Singapore Changi Airport,Singapore,SG,yes,SIN
+large_airport,Kuala Lumpur International Airport,Kuala Lumpur,MY,yes,KUL
+large_airport,Suvarnabhumi Airport,Bangkok,TH,yes,BKK
+large_airport,Soekarno-Hatta International Airport,Jakarta,ID,yes,CGK
+large_airport,I Gusti Ngurah Rai International Airport,Denpasar,ID,yes,DPS
+large_airport,Ninoy Aquino International Airport,Manila,PH,yes,MNL
+large_airport,Hong Kong International Airport,Hong Kong,HK,yes,HKG
+large_airport,Taiwan Taoyuan International Airport,Taipei,TW,yes,TPE
+large_airport,Beijing Capital International Airport,Beijing,CN,yes,PEK
+large_airport,Shanghai Pudong International Airport,Shanghai,CN,yes,PVG
+large_airport,Guangzhou Baiyun International Airport,Guangzhou,CN,yes,CAN
+large_airport,Incheon International Airport,Seoul,KR,yes,ICN
+large_airport,Tokyo Haneda International Airport,Tokyo,JP,yes,HND
+large_airport,Narita International Airport,Tokyo,JP,yes,NRT
+large_airport,Kansai International Airport,Osaka,JP,yes,KIX
+large_airport,Sydney Kingsford Smith International Airport,Sydney,AU,yes,SYD
+large_airport,Melbourne International Airport,Melbourne,AU,yes,MEL
+large_airport,Brisbane International Airport,Brisbane,AU,yes,BNE
+large_airport,Perth International Airport,Perth,AU,yes,PER
+large_airport,Auckland International Airport,Auckland,NZ,yes,AKL

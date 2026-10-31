@@ -1,4 +1,5 @@
 import { credentialStatus, type IssuedCredential } from "../credentials.ts";
+import type { RadioHandoutLine } from "../allocations.ts";
 import type { ChangeOrder, ChangeOrderLine, Invoice, InvoiceLine } from "../finance.ts";
 import type { BeoDetail } from "../hospitality.ts";
 import type { Incident, IncidentTransition } from "../incidents.ts";
@@ -11,7 +12,7 @@ import type { Formatter, Translate } from "./format.ts";
 import type { DocumentBlock, DocumentKind } from "./model.ts";
 
 /**
- * Versioned templates for the twelve Section 11.9 documents (ADR 0031). Each kind keeps every
+ * Versioned templates for the twelve Section 11.9 documents and the radio hand-out (ADR 0031). Each kind keeps every
  * version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
@@ -78,6 +79,11 @@ export interface DocumentDataMap {
   "agreement-certificate": {
     readonly project: DocumentProject | null;
     readonly agreement: AgreementDetail;
+  };
+  /** A project's radio allocations, sorted by party then person (R7, G-91). */
+  "radio-handout": {
+    readonly project: DocumentProject;
+    readonly lines: readonly RadioHandoutLine[];
   };
 }
 
@@ -170,6 +176,10 @@ export const DESCRIBE: {
   "agreement-certificate": (d) => ({
     recordKey: keyed(d.project?.key ?? "", `AGR-${d.agreement.id.slice(0, 8)}`),
     issuedAt: d.agreement.signedAt ?? d.agreement.createdAt,
+  }),
+  "radio-handout": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, "RADIOS"),
+    issuedAt: generatedAt.toISOString(),
   }),
 };
 
@@ -811,6 +821,60 @@ export const TEMPLATES: TemplateRegistry = {
           },
           { kind: "heading", text: t("agreementCertificate.text") },
           { kind: "paragraph", text: agreement.body },
+        ],
+      }),
+    },
+  ],
+  "radio-handout": [
+    {
+      version: 1,
+      effectiveFrom: V1,
+      build: ({ project, lines }, { t, f, generatedAt }) => ({
+        title: t("radioHandout.title"),
+        blocks: [
+          {
+            kind: "paragraph",
+            text: t("radioHandout.subtitle", {
+              project: projectLabel(project),
+              date: f.dateTime(generatedAt.toISOString()),
+            }),
+          },
+          {
+            kind: "table",
+            caption: t("radioHandout.title"),
+            columns: [
+              { label: t("radioHandout.person"), weight: 2 },
+              { label: t("radioHandout.party"), weight: 2 },
+              { label: t("radioHandout.radio"), weight: 1.6 },
+              { label: t("radioHandout.tags"), weight: 1.6 },
+              { label: t("radioHandout.channels"), weight: 2 },
+              { label: t("radioHandout.status"), weight: 1.2 },
+              { label: t("radioHandout.signature"), weight: 1.6 },
+              { label: t("radioHandout.returned"), weight: 1 },
+            ],
+            rows: [...lines]
+              .sort(
+                (a, b) =>
+                  a.partyName.localeCompare(b.partyName) ||
+                  a.personName.localeCompare(b.personName),
+              )
+              .map((l) => [
+                l.personName || l.partyName,
+                l.partyName,
+                l.quantity === 1 ? l.className : `${l.className} × ${f.number(l.quantity)}`,
+                l.tagsIssued.length > 0 ? l.tagsIssued.join(", ") : t("common.none"),
+                l.channelNumbers.length > 0
+                  ? l.channelNumbers
+                      .map((n, i) => (l.channelNames[i] ? `${n} ${l.channelNames[i]}` : String(n)))
+                      .join(", ")
+                  : t("common.none"),
+                t(`radioHandout.statuses.${keyOf(l.status)}`),
+                "",
+                "",
+              ]),
+            empty: t("radioHandout.empty"),
+          },
+          { kind: "paragraph", text: t("radioHandout.footer") },
         ],
       }),
     },

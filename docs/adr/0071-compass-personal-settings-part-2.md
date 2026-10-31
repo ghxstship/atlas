@@ -54,3 +54,10 @@ Atlas and Gateway keep these settings in different places:
 - Each section opens offline after being opened once online. A change made offline shows at once and waits in the offline queue, which describes it by its kind.
 - Compass now depends on `@xos/schemas` for the notification and settings registries.
 - When A104 merges, `reachedChannels` should give way to its `notificationCategoryChannels`.
+
+## Amendment (2026-10-30, R6a, ADR 0105)
+
+Decision 6 changes: Compass no longer edits uniform sizes or the travel profile. ADR 0102 moved them off the profile,
+so each production asks for them on the roster entry, in Project details (R5). Work Details in Compass edits the work
+phone, dietary and accessibility needs and emergency contacts, and says where the sizes went. The Profile shows the
+contacts only.

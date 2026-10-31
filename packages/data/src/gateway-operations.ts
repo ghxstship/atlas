@@ -248,6 +248,25 @@ export function acceptEngagedShift(
   );
 }
 
+// Staffing agencies (R12) ------------------------------------------------------------------------------
+// The agency's lead places its roster staff on the slots the production allocated (Positions), and the person on a
+// roster entry acknowledges the training due on it before their first shift (api_external.my_roster_training).
+
+export { assignRosterShift, rosterTrainingSummary, unassignRosterShift } from "./crew/agency.ts";
+
+/** The person on a roster entry acknowledges training due on it (app.acknowledge_roster_training). */
+export function acknowledgeRosterTraining(
+  db: XosClient,
+  input: { readonly rosterEntryId: string; readonly requirementId: string },
+): Promise<Result<{ id: string }>> {
+  return callId(
+    db.rpc("acknowledge_roster_training", {
+      p_roster_entry_id: input.rosterEntryId,
+      p_requirement_id: input.requirementId,
+    }),
+  );
+}
+
 // Vendor -------------------------------------------------------------------------------------------
 
 /** The vendor acknowledges a sent purchase order (app.acknowledge_purchase_order). */
