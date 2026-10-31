@@ -2,8 +2,26 @@
   "type": "Feature",
   "properties": {
     "periods": [
-      { "number": 1, "startTime": "2027-06-02T19:00:00-04:00", "endTime": "2027-06-02T20:00:00-04:00", "temperature": 88, "temperatureUnit": "F", "probabilityOfPrecipitation": { "unitCode": "wmoUnit:percent", "value": 60 }, "windSpeed": "10 to 15 mph", "shortForecast": "Showers And Thunderstorms" },
-      { "number": 2, "startTime": "2027-06-02T20:00:00-04:00", "endTime": "2027-06-02T21:00:00-04:00", "temperature": 31, "temperatureUnit": "C", "probabilityOfPrecipitation": { "unitCode": "wmoUnit:percent", "value": null }, "windSpeed": "8 mph", "shortForecast": "Chance Showers And Thunderstorms" }
+      {
+        "number": 1,
+        "startTime": "2027-06-02T19:00:00-04:00",
+        "endTime": "2027-06-02T20:00:00-04:00",
+        "temperature": 88,
+        "temperatureUnit": "F",
+        "probabilityOfPrecipitation": { "unitCode": "wmoUnit:percent", "value": 60 },
+        "windSpeed": "10 to 15 mph",
+        "shortForecast": "Showers And Thunderstorms"
+      },
+      {
+        "number": 2,
+        "startTime": "2027-06-02T20:00:00-04:00",
+        "endTime": "2027-06-02T21:00:00-04:00",
+        "temperature": 31,
+        "temperatureUnit": "C",
+        "probabilityOfPrecipitation": { "unitCode": "wmoUnit:percent", "value": null },
+        "windSpeed": "8 mph",
+        "shortForecast": "Chance Showers And Thunderstorms"
+      }
     ]
   }
 }
