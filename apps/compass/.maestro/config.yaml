@@ -26,6 +26,8 @@ executionOrder:
     - field-resumable-upload
     - field-inspection-walk
     - field-gate-scan
+    - field-gate-in-out-override
+    - field-door-guest-pass
     - field-receive-batch
     - field-receive-order
     - field-asset-scan

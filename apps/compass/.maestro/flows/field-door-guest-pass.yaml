@@ -1,0 +1,30 @@
+appId: pro.ghxstship.compass
+# B8 (RRR-232, G-68): a guest's pass at the door.
+# Named after its file: config.yaml orders flows by name.
+name: field-door-guest-pass
+---
+# Run as the Demo Producer on NWS. PASS is the pass code of an Approved guest of NWS (GP- and 10 characters, as
+# Atlas shows it in the guest's peek); the door list is read online, so the device must be connected.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: producer@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: workforce/door
+- assertVisible: "Guest pass"
+# A pass that is not on the list says so.
+- tapOn: "Guest pass"
+- inputText: "XOSGP1:GP-ZZZZZZZZZZ"
+- tapOn:
+    id: "door-check-pass"
+- assertVisible: "This pass is not on tonight's list."
+- tapOn: "Guest pass"
+- eraseText
+- inputText: "XOSGP1:${PASS}"
+- tapOn:
+    id: "door-check-pass"
+- assertVisible: ".*Pass: .*"
+- tapOn: "Confirm Check-In"
+- assertVisible: ".*Checked in.*"
