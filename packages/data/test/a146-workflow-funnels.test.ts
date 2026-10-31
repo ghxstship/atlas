@@ -96,24 +96,26 @@ describe("signals", () => {
 describe("the registry follows the migrations", () => {
   const funnels = new Map(
     [
-      ...read("supabase/migrations/2340_workflow_funnels.sql").matchAll(
-        /\('((?:atlas|gateway|compass)\.[a-z_]+)', '([A-Za-z]+)', (\d+), ([\d.]+)\)/g,
-      ),
+      ...(
+        read("supabase/migrations/2340_workflow_funnels.sql") +
+        read("supabase/migrations/2745_advancing_funnels.sql")
+      ).matchAll(/\('((?:atlas|gateway|compass)\.[a-z_]+)', '([A-Za-z]+)', (\d+), ([\d.]+)\)/g),
     ].map((m) => [m[1] ?? "", { team: m[2], steps: Number(m[3]), target: Number(m[4]) }]),
   );
   const workflows = [
-    ...read("supabase/migrations/1532_product_analytics.sql").matchAll(
-      /\('((?:atlas|gateway|compass)\.[a-z_]+)', '(Atlas|Gateway|Compass)'/g,
-    ),
+    ...(
+      read("supabase/migrations/1532_product_analytics.sql") +
+      read("supabase/migrations/2745_advancing_funnels.sql")
+    ).matchAll(/\('((?:atlas|gateway|compass)\.[a-z_]+)', '(Atlas|Gateway|Compass)'/g),
   ].map((m) => [m[1] ?? "", m[2] ?? ""]);
 
-  it("names every workflow of 1532 with its app, and no other", () => {
-    expect(workflows).toHaveLength(26);
+  it("names every workflow of 1532 and R11's 2745 with its app, and no other", () => {
+    expect(workflows).toHaveLength(29);
     expect(WORKFLOW_FUNNELS.map((f) => [f.code, f.app])).toEqual(workflows);
   });
 
   it("holds each funnel's team, steps and target as private.product_funnels does", () => {
-    expect(funnels.size).toBe(26);
+    expect(funnels.size).toBe(29);
     for (const f of WORKFLOW_FUNNELS) {
       expect(funnels.get(f.code), f.code).toEqual({
         team: f.owningTeam,
@@ -150,7 +152,7 @@ describe("every Atlas and Gateway funnel is measured end to end", () => {
 
   it("sends a start, each step and a completion for every web workflow", () => {
     const web = (WORKFLOW_FUNNELS as readonly WorkflowFunnel[]).filter((f) => f.app !== "Compass");
-    expect(web).toHaveLength(18);
+    expect(web).toHaveLength(21);
     const missing = web
       .flatMap((f) => funnelSignals(f))
       .filter((s) => !literals.has(s) && !routed.has(s));

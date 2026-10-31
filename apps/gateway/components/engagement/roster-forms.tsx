@@ -1,6 +1,8 @@
 "use client";
 
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Combobox, Input, Select } from "@xos/ui";
+import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import { useActionState, useState } from "react";
 import {
   addRosterEntryAction,
@@ -21,6 +23,11 @@ export interface Option {
   readonly value: string;
   readonly label: string;
 }
+
+// Workflow funnel signal (A146, R11 2745): a person added to the roster starts gateway.crew_roster; the Crew tab marks
+// its step (submitted for review) and its completion (every entry accepted).
+const added = (s: FormResult) => s.done === true;
+const started = () => emitWorkflow("gateway.crew_roster:start");
 
 /** Role, arrival start and end, and the arrival's time zone: the fields every entry form shares. */
 function EntryFields({
@@ -82,6 +89,7 @@ export function AddFromTeamForm(props: {
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState<FormResult, FormData>(addRosterEntryAction, {});
+  useActionOutcome(state, pending, added, started);
   return (
     <FormShell
       row
@@ -112,6 +120,7 @@ export function InviteToRosterForm(props: {
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState<FormResult, FormData>(inviteToRosterAction, {});
+  useActionOutcome(state, pending, added, started);
   return (
     <FormShell
       row

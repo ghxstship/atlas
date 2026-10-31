@@ -2,6 +2,7 @@
 
 import { Button, Checkbox, Dialog, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { AllocationAllowance, AssetClassAvailability } from "@xos/data/allocations";
+import { emitWorkflow, workflowMarker } from "@xos/data/workflow-signal";
 import {
   startTransition,
   useActionState,
@@ -609,7 +610,11 @@ function ReviewDialog({ org, row }: { org: string; row: AllocationRowProps }) {
   const t = useCopy("advancing.allocations");
   const [open, setOpen] = useState(false);
   const formId = useId();
-  const { state, pending, submit } = useDialogAction(decideAllocationAction, () => setOpen(false));
+  // A146 funnel (R11, 2745): opening a requested allocation starts it; a decision is its step.
+  const { state, pending, submit } = useDialogAction(decideAllocationAction, () => {
+    setOpen(false);
+    emitWorkflow("atlas.advance_allocation:step1");
+  });
   const [allowances, setAllowances] = useState<readonly AllocationAllowance[]>([]);
   const [options, setOptions] = useState<AssignOptions | null>(null);
   const radios = row.offering === "Radios";
@@ -637,7 +642,12 @@ function ReviewDialog({ org, row }: { org: string; row: AllocationRowProps }) {
       open={open}
       setOpen={setOpen}
       trigger={
-        <Button type="button" size="sm" variant="secondary">
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          {...workflowMarker("atlas.advance_allocation:start")}
+        >
           {t("actions.review")}
         </Button>
       }
@@ -800,6 +810,8 @@ function IssueDialog({ org, row }: { org: string; row: AllocationRowProps }) {
   const { state, pending, submit } = useDialogAction(issueAllocationAction, () => {
     setOpen(false);
     setEventId(crypto.randomUUID());
+    // A146 funnel (R11, 2745): issuing completes it.
+    emitWorkflow("atlas.advance_allocation:done");
   });
   const [vehicle, setVehicle] = useState<IssueVehicle | null | "none">(null);
   useEffect(() => {

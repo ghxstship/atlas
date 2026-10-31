@@ -232,6 +232,28 @@ export const WORKFLOW_FUNNELS = [
     steps: 1,
     targetCompletion: 0.9,
   },
+  // R11 (2745): typed advance answers and crew rosters in Gateway, allocations reviewed in Atlas.
+  {
+    code: "gateway.advance_typed_answer",
+    app: "Gateway",
+    owningTeam: "Advancing",
+    steps: 1,
+    targetCompletion: 0.6,
+  },
+  {
+    code: "gateway.crew_roster",
+    app: "Gateway",
+    owningTeam: "Advancing",
+    steps: 1,
+    targetCompletion: 0.4,
+  },
+  {
+    code: "atlas.advance_allocation",
+    app: "Atlas",
+    owningTeam: "Advancing",
+    steps: 1,
+    targetCompletion: 0.5,
+  },
 ] as const satisfies readonly WorkflowFunnel[];
 
 export type WorkflowCode = (typeof WORKFLOW_FUNNELS)[number]["code"];

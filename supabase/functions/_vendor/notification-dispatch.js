@@ -157,7 +157,10 @@ async function dispatchEmail(store, transport, limit = 50) {
 var SHIFT_OFFER_CATEGORY = "shift_offer";
 var ENGAGEMENT_OFFER_CATEGORY = "engagement_offer";
 var MESSAGE_REPLY_CATEGORY = "message_reply";
-/** A notification's push category: the registry's, else a still Published shift's, an offer's or a message's. */
+/**
+ * A notification's push category: the registry's, else a still Published shift's, an offer's, a roster invitation's
+ * (R11: Accept and Decline answer the entry through notifications.act, as an offer's do) or a message's.
+ */
 function pushCategoryFor(kind, messageArgs) {
   const registered = notificationKind(kind)?.pushCategory ?? null;
   if (registered !== null) return registered;
@@ -166,7 +169,7 @@ function pushCategoryFor(kind, messageArgs) {
     messageArgs["shiftState"] === "Published"
   )
     return SHIFT_OFFER_CATEGORY;
-  if (kind === "offer.sent") return ENGAGEMENT_OFFER_CATEGORY;
+  if (kind === "offer.sent" || kind === "roster_entry.invited") return ENGAGEMENT_OFFER_CATEGORY;
   if (kind === "message.received") return MESSAGE_REPLY_CATEGORY;
   return null;
 }

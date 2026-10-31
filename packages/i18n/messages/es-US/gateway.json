@@ -2171,7 +2171,8 @@
       "heading": {
         "approve": "¿Aprobar {title}?",
         "reject": "¿Rechazar {title}?",
-        "accept": "¿Aceptar {title}?"
+        "accept": "¿Aceptar {title}?",
+        "rosterAccept": "¿Aceptas tu lugar en este equipo?"
       },
       "untitled": "este elemento",
       "org": "De {org}. No pasa nada hasta que confirmes.",

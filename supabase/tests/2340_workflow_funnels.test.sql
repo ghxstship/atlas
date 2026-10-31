@@ -55,7 +55,7 @@ create function pg_temp.at(p_key text) returns timestamptz language sql stable a
 select is_empty($$select w.code from private.product_workflows w
   left join private.product_funnels f on f.workflow_code = w.code where f.workflow_code is null$$,
   'every workflow of Sections 11.11 to 11.13 has a funnel');
-select is((select count(*)::int from private.product_funnels where target_completion > 0 and steps >= 1), 26,
+select is((select count(*)::int from private.product_funnels where target_completion > 0 and steps >= 1), 29,
   'each with a target completion rate and at least one step');
 select is((select count(distinct owning_team)::int from private.product_funnels where owning_team is not null) > 1, true,
   'each owned by a team');
@@ -129,7 +129,7 @@ select throws_ok($$select app.console_product_funnels()$$, '42501', null, 'anon 
 
 select pg_temp.as_op('olga');
 select is((select count(*)::int from app.product_funnel_alerts where resolved_at is null), 2, 'an operator reads the alerts');
-select is(jsonb_array_length(app.console_product_funnels() -> 'funnels'), 26, 'the console lists every funnel');
+select is(jsonb_array_length(app.console_product_funnels() -> 'funnels'), 29, 'the console lists every funnel');
 select is((select f ->> 'status' from jsonb_array_elements(app.console_product_funnels() -> 'funnels') f
     where f ->> 'workflow' = 'atlas.crew'), 'Regressed', 'with its status');
 select is((select (f -> 'stages')::text from jsonb_array_elements(app.console_product_funnels() -> 'funnels') f

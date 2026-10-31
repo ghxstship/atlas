@@ -11,6 +11,8 @@ import {
 } from "@xos/data/gateway-allocations";
 import { listEngagementOfferings } from "@xos/data/offerings";
 import { listEngagementRoster, type RosterEntry } from "@xos/data/roster";
+import { workflowMarker } from "@xos/data/workflow-signal";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -181,37 +183,44 @@ export async function AdvanceTab({ view, t, locale, engagementKey }: TabProps) {
       offered: guestOffer !== undefined && guestOffer.mode !== "Not Offered",
     },
   };
+  // A typed answer's form leaves with its result, so the scope hears of it (A146): the token is the answers shown.
+  const answers = submissions.data.map((a) => `${a.id}:${a.reviewed_at ?? ""}`).join(",");
   return (
-    <div className="flex flex-col gap-24">
-      {packets.data.map((packet) => {
-        // The recipient this engagement answers as: the one linked to it, else the packet's only one.
-        const mine = recipients.data.filter((r) => r.advance_packet_id === packet.id);
-        const recipient =
-          mine.find((r) => r.engagement_id === engagement.id) ??
-          mine.find((r) => r.engagement_id === null);
-        const ctx: Context = { ...base, recipient };
-        return (
-          <Section key={packet.id ?? ""} id={`packet-${packet.id}`} title={packet.title ?? ""}>
-            {packet.due_at ? (
-              <p className="m-0 text-text-13 text-text-secondary">
-                {t("gateway.engagement.due", { date: formatDateTime(locale, packet.due_at) })}
-              </p>
-            ) : null}
-            <TrackGroups
-              label={packet.title ?? ""}
-              sections={sections.data.filter((s) => s.advance_packet_id === packet.id)}
-              tracks={tracks.data}
-              progress={trackProgress.data.filter(
-                (p) => p.packetId === packet.id && p.recipientId === recipient?.id,
-              )}
-              render={(s) => sectionRow(s, submissions.data, ctx)}
-              t={t}
-              locale={locale}
-            />
-          </Section>
-        );
-      })}
-    </div>
+    <ActionOutcomeScope token={answers}>
+      <div
+        className="flex flex-col gap-24"
+        {...workflowMarker("gateway.advance_typed_answer:start")}
+      >
+        {packets.data.map((packet) => {
+          // The recipient this engagement answers as: the one linked to it, else the packet's only one.
+          const mine = recipients.data.filter((r) => r.advance_packet_id === packet.id);
+          const recipient =
+            mine.find((r) => r.engagement_id === engagement.id) ??
+            mine.find((r) => r.engagement_id === null);
+          const ctx: Context = { ...base, recipient };
+          return (
+            <Section key={packet.id ?? ""} id={`packet-${packet.id}`} title={packet.title ?? ""}>
+              {packet.due_at ? (
+                <p className="m-0 text-text-13 text-text-secondary">
+                  {t("gateway.engagement.due", { date: formatDateTime(locale, packet.due_at) })}
+                </p>
+              ) : null}
+              <TrackGroups
+                label={packet.title ?? ""}
+                sections={sections.data.filter((s) => s.advance_packet_id === packet.id)}
+                tracks={tracks.data}
+                progress={trackProgress.data.filter(
+                  (p) => p.packetId === packet.id && p.recipientId === recipient?.id,
+                )}
+                render={(s) => sectionRow(s, submissions.data, ctx)}
+                t={t}
+                locale={locale}
+              />
+            </Section>
+          );
+        })}
+      </div>
+    </ActionOutcomeScope>
   );
 }
 
@@ -316,6 +325,10 @@ function sectionRow(s: SectionRow, submissions: readonly SubmissionRow[], ctx: C
         {latest && kind !== "Text" ? <AnswerDetail answer={latest} kind={kind} ctx={ctx} /> : null}
         {returned && latest?.return_reason ? (
           <p className="m-0 text-text-13 text-danger-text">{latest.return_reason}</p>
+        ) : null}
+        {/* A typed section's form is the step of gateway.advance_typed_answer (A146, R11 2745). */}
+        {open && kind !== "Text" ? (
+          <span hidden {...workflowMarker("gateway.advance_typed_answer:step1")} />
         ) : null}
         <KindBody section={s} kind={kind} open={open} ctx={ctx} />
       </div>

@@ -2171,7 +2171,8 @@
       "heading": {
         "approve": "Approve {title}?",
         "reject": "Reject {title}?",
-        "accept": "Accept {title}?"
+        "accept": "Accept {title}?",
+        "rosterAccept": "Accept your place on this crew?"
       },
       "untitled": "this item",
       "org": "From {org}. Nothing happens until you confirm.",

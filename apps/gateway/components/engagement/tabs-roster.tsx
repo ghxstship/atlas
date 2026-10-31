@@ -9,6 +9,7 @@ import {
   type RosterEntry,
 } from "@xos/data/roster";
 import { listRosterFactStatus, rosterFactChip } from "@xos/data/roster-facts";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -124,8 +125,14 @@ export async function CrewTab({ view, t, locale }: TabProps) {
           end: formatDateTime(locale, e.arrivalEndsAt, e.arrivalTimeZone),
         })
       : t("gateway.engagement.crew.noArrival");
+  // Workflow funnel markers (A146, R11 2745): the roster went for review, and every entry was accepted.
+  const others = entries.filter((e) => !e.isSelf);
+  const submitted = others.some((e) => e.entryState === "Submitted");
+  const allAccepted = others.length > 0 && others.every((e) => e.entryState === "Accepted");
   return (
     <div className="flex flex-col gap-16">
+      {submitted ? <span hidden {...workflowMarker("gateway.crew_roster:step1")} /> : null}
+      {allAccepted ? <span hidden {...workflowMarker("gateway.crew_roster:done")} /> : null}
       {engagement.rosterLocksAt ? (
         <InlineAlert tone={locked ? "warning" : "info"}>
           {locked ? lockedSentence : t("gateway.engagement.crew.locksOn", { date: lockDate })}

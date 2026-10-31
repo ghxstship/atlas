@@ -1,6 +1,8 @@
 "use client";
 
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, Input, MoreFields, Select, Textarea } from "@xos/ui";
+import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import { useActionState, useState } from "react";
 import {
   resubmitSponsorAssetAction,
@@ -22,6 +24,11 @@ export interface Option {
   readonly value: string;
   readonly label: string;
 }
+
+// Workflow funnel signal (A146, R11 2745): a typed answer sent completes gateway.advance_typed_answer. The section's
+// form leaves with the result, so the Advance tab wraps its sections in an ActionOutcomeScope.
+const answered = (s: FormResult) => s.done === true;
+const sent = () => emitWorkflow("gateway.advance_typed_answer:done");
 
 type Action = (state: FormResult, form: FormData) => Promise<FormResult>;
 
@@ -70,6 +77,7 @@ export function AdvanceFileForm(props: {
     props.actions?.upload ?? uploadAdvanceFileAction,
     {},
   );
+  useActionOutcome(state, pending, answered, sent);
   return (
     <FormShell
       row
@@ -124,6 +132,7 @@ export function AdvanceLinesForm(props: {
     props.actions?.submit ?? submitTypedAdvanceAction,
     {},
   );
+  useActionOutcome(state, pending, answered, sent);
   const [count, setCount] = useState(1);
   const windows = props.kind === "Schedule Window";
   const personField = !windows && (props.perPerson || props.kind === "Credential Request");
@@ -274,6 +283,7 @@ export function GuestListConfirmForm(props: {
     props.actions?.submit ?? submitTypedAdvanceAction,
     {},
   );
+  useActionOutcome(state, pending, answered, sent);
   return (
     <FormShell
       row

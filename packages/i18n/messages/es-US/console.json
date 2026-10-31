@@ -497,7 +497,10 @@
       "compass_inspections": "Compass: Inspecciones",
       "compass_show": "Compass: Show",
       "compass_supervisor": "Compass: Supervisión",
-      "compass_credentials": "Compass: Credenciales"
+      "compass_credentials": "Compass: Credenciales",
+      "gateway_advance_typed_answer": "Gateway: Respuesta de avance con formato",
+      "gateway_crew_roster": "Gateway: Lista de equipo",
+      "atlas_advance_allocation": "Atlas: Asignación de avance"
     },
     "teams": {
       "Projects": "Proyectos",

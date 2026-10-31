@@ -497,7 +497,10 @@
       "compass_inspections": "Compass: Inspections",
       "compass_show": "Compass: Show",
       "compass_supervisor": "Compass: Supervisor",
-      "compass_credentials": "Compass: Credentials"
+      "compass_credentials": "Compass: Credentials",
+      "gateway_advance_typed_answer": "Gateway: Typed advance answer",
+      "gateway_crew_roster": "Gateway: Crew roster",
+      "atlas_advance_allocation": "Atlas: Advance allocation"
     },
     "teams": {
       "Projects": "Projects",
