@@ -8,7 +8,15 @@ import { isCharacterKey, type Platform } from "@xos/schemas/shortcuts/keys";
  */
 
 export type ShowAction =
-  "go" | "standby" | "previous" | "next" | "jump" | "nudge-later" | "nudge-earlier" | "department";
+  | "go"
+  | "standby"
+  | "previous"
+  | "next"
+  | "jump"
+  | "nudge-later"
+  | "nudge-earlier"
+  | "department"
+  | "chat";
 
 const ACTIONS: readonly ShowAction[] = [
   "go",
@@ -19,6 +27,8 @@ const ACTIONS: readonly ShowAction[] = [
   "nudge-later",
   "nudge-earlier",
   "department",
+  // show.chat: the console hands focus to the show channel's message box beside it (B3, ADR 0142).
+  "chat",
 ];
 
 /** The console action a registry id names: show.next and show.deck.next are both Next. */

@@ -111,6 +111,7 @@ export function ShowcallerConsole({
   onDepartment,
   transport,
   shortcuts,
+  onChat,
 }: {
   org: string;
   run: RunOfShow;
@@ -126,6 +127,11 @@ export function ShowcallerConsole({
    * person's own bindings come from useShellKeys.
    */
   shortcuts?: { readonly platform: Platform; readonly scoped: Readonly<Record<string, string>> };
+  /**
+   * show.chat (M): moves focus to the show channel's message box beside the console. Without it (the portal has no
+   * channel) the key is left alone.
+   */
+  onChat?: () => void;
 }) {
   const t = useCopy("show");
   const locale = useLocale();
@@ -204,6 +210,8 @@ export function ShowcallerConsole({
         return nudge(-60);
       case "department":
         return cycleDepartment();
+      case "chat":
+        return onChat?.();
     }
   };
 
@@ -220,7 +228,7 @@ export function ShowcallerConsole({
       scoped: keys.scoped,
       singleKeys: singleKeyShortcutsEnabled(),
     });
-    if (what === null) return;
+    if (what === null || (what === "chat" && !onChat)) return;
     event.preventDefault();
     perform(what);
   };

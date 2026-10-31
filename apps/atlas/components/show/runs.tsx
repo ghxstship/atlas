@@ -56,6 +56,7 @@ import {
   unlinkCueAction,
   updateRunAction,
 } from "./actions";
+import { showChannelComposerId } from "./show-channel-ids";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import { useRowMenu } from "@/components/menus/use-row-menu";
@@ -766,6 +767,12 @@ export function RunBody({
             calls={calls}
             department={department}
             onDepartment={setDepartment}
+            {...(channelProjectId
+              ? {
+                  onChat: () =>
+                    document.getElementById(showChannelComposerId(channelProjectId))?.focus(),
+                }
+              : {})}
           />
         ) : (
           <>
@@ -796,13 +803,11 @@ export function RunBody({
       </div>
     );
     if (!channelProjectId) return running;
-    // Two columns from 1024 px: the running cue and the show channel; stacked below that. The region is the show
-    // scope, so show.chat (M) reaches the channel's message box from the console.
+    // Two columns from 1024 px: the running cue and the show channel; stacked below that. The grid is not a show
+    // scope region: the show keys answer only in the console, which hands show.chat (M) to the channel's message box,
+    // so a key pressed on the channel (Space on its buttons, J in its messages) never calls or stands by a cue.
     return (
-      <div
-        data-shortcut-scope="show"
-        className="grid gap-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]"
-      >
+      <div className="grid gap-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         {running}
         <ShowChannelPanel org={org} projectId={channelProjectId} />
       </div>

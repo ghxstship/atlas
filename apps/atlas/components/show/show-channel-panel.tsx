@@ -13,6 +13,7 @@ import {
   sendShowChannelMessageAction,
   type ShowChannelView,
 } from "./depth-actions";
+import { showChannelComposerId } from "./show-channel-ids";
 
 /** New messages arrive within a second or two; a burst rereads once. */
 const CHAT_PACING = { batchMs: 150, minIntervalMs: 500, maxIntervalMs: 2_000 } as const;
@@ -24,8 +25,10 @@ const CHAT_PACING = { batchMs: 150, minIntervalMs: 500, maxIntervalMs: 2_000 } a
  * them through a server action whenever Realtime reports a change to the conversation's messages, so the running
  * order's page itself never refreshes for a message and P2's live hold is untouched.
  *
- * The composer keeps its keys to itself: nothing typed in it reaches the showcaller console or the shell's show
- * keys, so S, J or Space type letters, never a standby or a call. The show.chat shortcut (M) focuses it.
+ * The panel sits beside the showcaller console, not in it, and the show keys answer only in the console, so no key
+ * pressed here calls or stands by a cue: S, J or Space typed in the composer are letters, and the shell leaves typing
+ * alone as in every field (its Mod+K still opens the command menu). The console's show.chat shortcut (M) focuses the
+ * composer.
  */
 export function ShowChannelPanel({ org, projectId }: { org: string; projectId: string }) {
   const t = useCopy("show");
@@ -140,16 +143,12 @@ export function ShowChannelPanel({ org, projectId }: { org: string; projectId: s
             }}
           >
             <Textarea
-              id={`show-channel-composer-${projectId}`}
+              id={showChannelComposerId(projectId)}
               label={t("showChannel.composer")}
               rows={2}
               maxLength={4000}
               value={draft}
-              data-shortcut="show.chat"
-              data-shortcut-focus=""
               onChange={(e) => setDraft(e.target.value)}
-              // Keys typed here are text: never the console's or the shell's show keys.
-              onKeyDown={(e) => e.stopPropagation()}
             />
             <div>
               <Button

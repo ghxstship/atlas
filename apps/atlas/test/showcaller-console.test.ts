@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * B3 (RRR-227, ADR 0142): the showcaller console works signed in and on a showcaller link's portal. Its writes go
  * through a transport (the show actions signed in, the portal's token actions outside), its keys come from the
- * person's bindings in the shell or from the shortcut registry's show-scope defaults on the portal, and the show
- * channel's message box beside it keeps its keys: typing S, J or Space there neither stands by nor calls a cue.
+ * person's bindings in the shell or from the shortcut registry's show-scope defaults on the portal. What the keys do
+ * on a page, beside the show channel and a list, is show-keys-dom.test.ts.
  */
 const actions = vi.hoisted(() => ({
   call: vi.fn(async () => ({ ok: true as const, data: null })),
@@ -52,13 +52,13 @@ describe("the portal's keys", () => {
     expect(press("S")).toBe("standby");
     expect(press("J")).toBe("next");
     expect(press("F13")).toBe("go");
-    // Space stays with the cue list, so one press makes one call; M is the show channel's, not the console's.
+    // Space stays with the cue list, so one press makes one call; M hands focus to the show channel.
     expect(press("Space")).toBeNull();
-    expect(press("M")).toBeNull();
+    expect(press("M")).toBe("chat");
   });
 
-  it("never answer typing in the show channel's message box", () => {
-    for (const chord of ["S", "J", "Space"]) {
+  it("answer nothing typed in a field or pressed outside the console", () => {
+    for (const chord of ["S", "J", "M"]) {
       expect(press(chord, { typing: true }), chord).toBeNull();
       expect(press(chord, { inside: false }), chord).toBeNull();
     }
