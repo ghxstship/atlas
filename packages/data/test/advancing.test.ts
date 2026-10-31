@@ -242,6 +242,8 @@ describe("packets", () => {
           { id: "sec2", position: 2, title: "Backline", prompt: null },
           { id: "sec1", position: 1, title: "Arrival", prompt: "When?" },
         ]),
+        // R11: the tracks, read after the sections (2743).
+        okResponse([{ id: "sec2", track: "Technical" }]),
       ],
       "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [
@@ -263,6 +265,7 @@ describe("packets", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.sections.map((s) => s.title)).toEqual(["Arrival", "Backline"]);
+    expect(result.data.sections.map((s) => s.track)).toEqual(["General", "Technical"]);
     expect(result.data.recipients.map((r) => r.party.name)).toEqual(["Mia", "Harbor Audio"]);
     expect(result.data.submissions.map((s) => [s.id, s.latest, s.viaLink])).toEqual([
       ["s2", true, true],
@@ -314,6 +317,7 @@ describe("packets", () => {
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [
         okResponse([{ id: "sec1", position: 1, title: "A", prompt: null }]),
+        okResponse([]),
       ],
       "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [okResponse([])],
