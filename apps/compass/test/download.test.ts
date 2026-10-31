@@ -273,6 +273,93 @@ describe("REST download", () => {
     expect(await store.list("shifts")).toEqual([]);
   });
 
+  it("downloads department calls with their cue's project and drops a cleared call (ADR 0131)", async () => {
+    const store = new MemoryStore();
+    const session = new SyncSession(store, {
+      audience: "field",
+      personIds: ["person-1"],
+      orgIds: ["org-1"],
+      membershipIds: ["mem-1"],
+      readableProjectIds: ["proj-1"],
+      engagementIds: [],
+      engagedProjectIds: [],
+    });
+    const cues = [
+      {
+        id: "c1",
+        org_id: "org-1",
+        project_id: "proj-1",
+        run_of_show_id: "ros-1",
+        deleted_at: null,
+      },
+      {
+        id: "c2",
+        org_id: "org-1",
+        project_id: "proj-1",
+        run_of_show_id: "ros-1",
+        deleted_at: "2027-03-13T20:00:00Z",
+      },
+    ];
+    const call = (
+      id: string,
+      kind: string,
+      instruction: string,
+      deleted: string | null = null,
+    ) => ({
+      id,
+      org_id: "org-1",
+      cue_id: "c1",
+      call_kind: kind,
+      instruction,
+      deleted_at: deleted,
+    });
+    const first = client({
+      "app.cues": cues,
+      "app.cue_calls": [
+        call("k1", "Lighting", "LX 14 GO"),
+        call("k0", "Audio", "Old", "2027-03-13T19:00:00Z"),
+      ],
+    });
+    await downloadAll({
+      client: first.client,
+      session,
+      projectId: null,
+      only: ["cues", "cue_calls"],
+    });
+    // A removed cue and a cleared call are soft-deleted rows row level security still returns; neither is stored.
+    expect((await store.list("cues")).map((r) => r.id)).toEqual(["c1"]);
+    expect(await store.list("cue_calls")).toEqual([
+      expect.objectContaining({ id: "k1", instruction: "LX 14 GO", project_id: "proj-1" }),
+    ]);
+    // The Lighting call is cleared and added again as a new row: only the new one stays on the device.
+    const second = client({
+      "app.cues": cues,
+      "app.cue_calls": [
+        call("k1", "Lighting", "LX 14 GO", "2027-03-13T21:00:00Z"),
+        call("k2", "Lighting", "LX 15 GO"),
+      ],
+    });
+    await downloadAll({
+      client: second.client,
+      session,
+      projectId: null,
+      only: ["cues", "cue_calls"],
+    });
+    expect((await store.list("cue_calls")).map((r) => [r.id, r["instruction"]])).toEqual([
+      ["k2", "LX 15 GO"],
+    ]);
+  });
+
+  it("never gives an external device department calls", () => {
+    for (const audience of EXTERNAL_AUDIENCES) {
+      expect(
+        sourcesFor(audience).some((s) => s.table === "cue_calls"),
+        audience,
+      ).toBe(false);
+    }
+    expect(sourcesFor("field").some((s) => s.table === "cue_calls")).toBe(true);
+  });
+
   it("keeps a member's own certifications and documents on the device for the Profile (A109)", async () => {
     const store = new MemoryStore();
     const session = new SyncSession(store, {

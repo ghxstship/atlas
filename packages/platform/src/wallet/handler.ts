@@ -4,7 +4,7 @@
  * catalog); the pass comes from app.my_wallet_pass with the caller's own token, so nobody gets a pass for
  * another person's badge; the answer is the signed .pkpass for Apple Wallet or the "Save to Google Wallet"
  * link. A wallet whose certificate or key is not set answers 503 wallet_not_configured, which Compass
- * explains in plain words.
+ * explains in plain words. The pass art comes from the org's logo when it has a PNG one (A140).
  *
  * It loads no npm package (A85): the request is checked here and the database is reached over PostgREST
  * with fetch, so the function's cold start stays small.
@@ -64,6 +64,8 @@ export function parseWalletRequest(body: unknown): WalletRequest | null {
 export interface WalletDeps {
   /** The pass for the caller's own credential or shift, or null (not theirs, or not found). */
   readonly loadPass: (kind: WalletRequest["kind"], id: string) => Promise<WalletPass | null>;
+  /** The org's logo for the pass art (A140): its bytes, or null when it cannot be read. */
+  readonly logo?: BrandLogo;
   readonly apple: AppleWalletEnv | null;
   readonly google: GoogleWalletEnv | null;
 }
@@ -96,8 +98,11 @@ export async function walletPassResponse(body: unknown, deps: WalletDeps): Promi
     return problem(503, "wallet_not_configured", "Wallet passes are not set up yet.");
   const pass = await deps.loadPass(kind, id);
   if (!pass) return problem(404, "wallet_pass_not_found", "No pass of yours matches.");
+  const logoPath = pass.logoPath ?? null;
   if (platform === "apple" && deps.apple) {
-    const bytes = await buildPkpass(pass, deps.apple.config, labels, deps.apple.signer);
+    // A logo that cannot be read never costs the person their pass: it falls back to the accent icon.
+    const logo = logoPath && deps.logo ? await deps.logo.load(logoPath).catch(() => null) : null;
+    const bytes = await buildPkpass(pass, deps.apple.config, labels, deps.apple.signer, logo);
     return {
       status: 200,
       headers: {
@@ -115,6 +120,8 @@ export async function walletPassResponse(body: unknown, deps: WalletDeps): Promi
     labels,
     locale.slice(0, 2),
     google.signer,
+    Date.now,
+    logoPath && deps.logo && isPng(logoPath) ? deps.logo.url(logoPath) : null,
   );
   return {
     status: 200,
@@ -146,6 +153,45 @@ export function passFromRow(
     endsAt: str("ends_at"),
     timeZone: str("time_zone") ?? "UTC",
     voided: row["voided"] === true,
+    logoPath: str("logo_path"),
+  };
+}
+
+/** The org's logo in the public org-brand bucket: where it is, and its bytes. */
+export interface BrandLogo {
+  readonly url: (path: string) => string;
+  readonly load: (path: string) => Promise<Uint8Array | null>;
+}
+
+const isPng = (path: string) => path.toLowerCase().endsWith(".png");
+
+/** The org-brand bucket's size limit (0850): a larger answer is not a logo. */
+const MAX_LOGO_BYTES = 2_097_152;
+
+/**
+ * Reads org logos from the public org-brand bucket (0850), where Gateway and the sign-in pages read them without a
+ * session. Only PNG answers are kept; anything else, or a failed read, is null and the pass keeps its accent icon.
+ */
+export function publicBrandLogo(options: {
+  readonly supabaseUrl: string;
+  readonly fetch?: typeof fetch;
+}): BrandLogo {
+  const send = options.fetch ?? fetch;
+  const url = (path: string) =>
+    `${options.supabaseUrl.replace(/\/+$/, "")}/storage/v1/object/public/org-brand/${path
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/")}`;
+  return {
+    url,
+    async load(path) {
+      if (!/^[0-9a-f-]{36}\/[A-Za-z0-9._-]{1,120}$/.test(path) || !isPng(path)) return null;
+      const response = await send(url(path), { headers: { accept: "image/png" } });
+      if (!response.ok || !(response.headers.get("content-type") ?? "").startsWith("image/png"))
+        return null;
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      return bytes.length > MAX_LOGO_BYTES ? null : bytes;
+    },
   };
 }
 

@@ -1,17 +1,29 @@
 import { listAttachments } from "@xos/data/attachments";
+import {
+  listCueFieldAudiences,
+  listCustomFieldDefinitions,
+  listCustomFieldValues,
+} from "@xos/data/custom-fields";
 import { listThreads } from "@xos/data/comments";
 import {
+  cueCallKindOf,
   cueProgress,
   getRunOfShow,
   listCallSheets,
   listCalls,
+  listCueCalls,
   listCueEngagements,
   listCues,
   listDaySheets,
   listRunsOfShow,
+  listSegmentColors,
+  type Cue,
+  type SegmentColor,
 } from "@xos/data/show";
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
 import { getNode } from "@xos/ia";
+import { getFormatter } from "next-intl/server";
+import { formatCustomFieldValue } from "@/components/custom-fields/format";
 import type { ReactNode } from "react";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
@@ -26,12 +38,15 @@ import {
 } from "@/components/work/load";
 import { engagementOptions } from "@/lib/people/project-people";
 import type { OrgContext } from "@/lib/shell/context";
+import { importLinkHref } from "@/lib/imports/import-link";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
-import { CreateRunDialog, RunBody, RunCollection, RunPeek } from "./runs";
+import { CreateRunDialog, RunBody, RunCollection, RunPeek, type CueFieldChip } from "./runs";
 import { CallSheetPeek, DaySheetPeek, SheetCollection } from "./sheets";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { DisplayScreensAction } from "./display-screens-action";
+import { ShowcallerLinksAction } from "./showcaller-links-action";
 
 type Subject = { table: "app.run_of_show" | "app.day_sheets" | "app.call_sheets"; id: string };
 
@@ -72,6 +87,59 @@ async function monthFor(ctx: OrgContext, search: SearchParams) {
 
 const UUID = /^[0-9a-f-]{36}$/;
 
+/**
+ * The Crew-audience custom values of a running order's cues, as chips (B3, ADR 0142). Crew is presentation only:
+ * the values are the ones the viewer's own access reads; a choice keeps its color.
+ */
+async function crewChips(
+  ctx: OrgContext,
+  cues: readonly Cue[],
+  timeZone: string,
+): Promise<Record<string, CueFieldChip[]>> {
+  const db = ctx.viewer.db;
+  const [definitions, audiences] = await Promise.all([
+    listCustomFieldDefinitions(db, ctx.org.id, "app.cues"),
+    listCueFieldAudiences(db, ctx.org.id),
+  ]);
+  if (!definitions.ok || !audiences.ok) return {};
+  const crew = definitions.data.filter((f) => audiences.data.get(f.id)?.includes("Crew"));
+  if (crew.length === 0 || cues.length === 0) return {};
+  const values = await listCustomFieldValues(
+    db,
+    crew,
+    cues.map((c) => c.id),
+  );
+  if (!values.ok) return {};
+  const t = await getTranslate();
+  const format = await getFormatter();
+  const context = {
+    format,
+    yes: t("platform.customFields.yes"),
+    no: t("platform.customFields.no"),
+    someone: t("platform.customFields.someone"),
+    people: {},
+    timeZone,
+  };
+  const out: Record<string, CueFieldChip[]> = {};
+  for (const [cueId, byKey] of values.data) {
+    out[cueId] = crew.flatMap((field) => {
+      const value = byKey[field.key];
+      if (!value) return [];
+      const choice =
+        value.type === "Choice" ? field.choices.find((c) => c.id === value.choiceId) : undefined;
+      return [
+        {
+          key: field.key,
+          label: field.label,
+          text: formatCustomFieldValue(field, value, context),
+          colorKey: (choice?.colorKey ?? null) as SegmentColor | null,
+        },
+      ];
+    });
+  }
+  return out;
+}
+
 /** Show > Run of show, and the project Show tab. */
 export async function RunsPage({
   ctx,
@@ -105,13 +173,17 @@ export async function RunsPage({
   let peek: ReactNode = null;
   const peekId = param(search, "peek");
   if (peekId && UUID.test(peekId)) {
-    const [run, cues, setTimes] = await Promise.all([
+    const [run, cues, setTimes, cueCalls, colors] = await Promise.all([
       getRunOfShow(db, peekId),
       listCues(db, peekId),
       listCueEngagements(db, peekId),
+      listCueCalls(db, peekId),
+      listSegmentColors(db, peekId),
     ]);
     if (run.ok) {
       const cueList = must(cues, "cues");
+      const chips = await crewChips(ctx, cueList, run.data.timeZone);
+      const live = param(search, "live") === "1";
       const canEdit = caps.has("show.run_of_show.write");
       // Set for: the run's project's Artist engagements (R1), only where the viewer edits cues.
       const artists = canEdit
@@ -131,10 +203,34 @@ export async function RunsPage({
             canCall={caps.has("show.cue.call")}
             setTimes={setTimes.ok ? setTimes.data : []}
             artists={artists}
+            calls={must(cueCalls, "cue calls")}
+            department={cueCallKindOf(param(search, "dept"))}
+            importHref={importLinkHref(ctx.org.slug, ctx.nav, canEdit, {
+              target: "cues",
+              runOfShowId: run.data.id,
+            })}
+            segmentColors={colors.ok ? Object.fromEntries(colors.data) : {}}
+            fieldChips={chips}
+            // The show channel sits beside the running cue for every member following live mode.
+            channelProjectId={live ? run.data.projectId : null}
           >
             {param(search, "live") === "1" ? null : (
               <>
-                <DocumentActions org={ctx.org.slug} kind="run-of-show" id={run.data.id} />
+                <span className="inline-flex flex-wrap items-center gap-8">
+                  <DocumentActions org={ctx.org.slug} kind="run-of-show" id={run.data.id} />
+                  {canEdit ? (
+                    <DisplayScreensAction
+                      org={ctx.org.slug}
+                      run={{ id: run.data.id, name: run.data.name }}
+                    />
+                  ) : null}
+                  {canEdit && caps.has("show.cue.call") ? (
+                    <ShowcallerLinksAction
+                      org={ctx.org.slug}
+                      run={{ id: run.data.id, name: run.data.name, showDate: run.data.showDate }}
+                    />
+                  ) : null}
+                </span>
                 {await collab(ctx, meta, { table: "app.run_of_show", id: run.data.id })}
               </>
             )}

@@ -142,6 +142,27 @@ export const handlers = defineHandlers("Workforce", {
     );
     return ok((await groups.read(context, params.id)) as never);
   },
+  // A project's show channel (2922, ADR 0142): the RPCs decide who may open, join or read it.
+  "workforceGroups.openShowChannel": async ({ body }, context) => {
+    const id = await call<string>(context, "open_show_channel", {
+      p_project_id: body.project_id,
+      p_name_prefix: body.name_prefix ?? null,
+      p_description: body.description ?? null,
+    });
+    return ok({ conversation_id: String(id) } as never);
+  },
+  "workforceGroups.joinShowChannel": async ({ body }, context) => {
+    const id = await call<string>(context, "join_show_channel", { p_project_id: body.project_id });
+    return ok({ conversation_id: String(id) } as never);
+  },
+  "workforceGroups.showChannelStatus": async ({ query }, context) => {
+    const rows = await call<Row[] | null>(context, "show_channel_status", {
+      p_project_id: query.project_id,
+    });
+    const row = rows?.[0];
+    if (row === undefined) throw notFound("No project with this identifier is visible to you.");
+    return ok(row as never);
+  },
   "conversations.startDirect": async ({ body }, context) => {
     const id = await call(context, "start_direct_conversation", {
       p_org_id: requireOrg(context).id,

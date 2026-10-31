@@ -27,6 +27,17 @@ import type { CustomFieldListView } from "@/lib/custom-fields/types";
 /** The save, share and delete dialogs, and the writes, load when one is used (A24-009). */
 const viewDialogs = onDemand(() => import("./view-dialogs"));
 
+/** The live link dialog (P1, ADR 0130) loads when someone shares a view live. */
+const liveLinkDialog = onDemand(() => import("./live-link-dialog"));
+
+/** Collections a saved view may share live; private.live_view_collections (2780) holds the same list. */
+const LIVE_COLLECTIONS: ReadonlySet<string> = new Set([
+  "project/schedule",
+  "project/show",
+  "show/run_of_show",
+  "show/day_sheets",
+]);
+
 /** The Add filter control loads on a page that has something to filter by, not with every collection (A24-009). */
 const CollectionFilters = dynamic(() => import("./filter-bar").then((m) => m.CollectionFilters));
 
@@ -56,6 +67,11 @@ export interface CollectionViewsProps {
   readonly fields?: readonly FilterField[];
   /** The page's filterable custom fields, when it hands them over instead of a CustomFieldList. */
   readonly customFields?: CustomFieldListView | null;
+  /**
+   * Views the page lists before the person's saved views, as menu items it builds (the units list's built-in
+   * views, R7a). `current` names the one on screen: the menu shows its name and offers to save a copy of it.
+   */
+  readonly leading?: { readonly items: readonly MenuItem[]; readonly current?: string | undefined };
 }
 
 type Dialogs = ViewDialogState | null;
@@ -78,6 +94,7 @@ export function CollectionViews({
   onChange,
   fields = NO_FIELDS,
   customFields,
+  leading,
 }: CollectionViewsProps) {
   const t = useTranslations("views") as unknown as Translate;
   const router = useRouter();
@@ -101,8 +118,10 @@ export function CollectionViews({
   const [loadFailed, setLoadFailed] = useState(false);
   const [status, setStatus] = useState("");
   const [dialog, setDialog] = useState<Dialogs>(null);
+  const [live, setLive] = useState<SavedView | null>(null);
   const [applied, setApplied] = useState<string | null>(null);
   const dialogsModule = useOnDemand(viewDialogs, dialog !== null);
+  const liveModule = useOnDemand(liveLinkDialog, live !== null);
   const appliedDefault = useRef(false);
 
   const go = useCallback(
@@ -184,6 +203,7 @@ export function CollectionViews({
 
   const here = currentQuery(new URLSearchParams(search.toString()), value, offered);
   const active = views?.find((v) => canonicalQuery(viewToQuery(v, offered)) === here) ?? null;
+  const copyOf = active ? undefined : leading?.current;
   const draft = (name: string): ViewDraft =>
     ({
       name,
@@ -192,6 +212,7 @@ export function CollectionViews({
 
   const announce = (key: string, name?: string) =>
     setStatus(t(`status.${key}`, name === undefined ? {} : { name }));
+  const save = () => setDialog({ kind: "save" });
 
   const run = async (
     action: () => Promise<{ ok: true } | { ok: false; error: ViewsError }>,
@@ -212,6 +233,22 @@ export function CollectionViews({
   };
 
   const items: MenuItem[] = [];
+  // Opening one of the page's views leaves the saved view the person had open.
+  for (const item of leading?.items ?? []) {
+    const { onSelect, label: name } = item;
+    items.push(
+      onSelect && name
+        ? {
+            ...item,
+            onSelect: () => {
+              setApplied(null);
+              onSelect();
+              announce("applied", name);
+            },
+          }
+        : item,
+    );
+  }
   if (loadFailed) items.push({ heading: t("errors.loadFailed") });
   if (views === null) {
     if (!loadFailed) items.push({ heading: t("menu.loading") });
@@ -234,9 +271,9 @@ export function CollectionViews({
   }
   items.push({ separator: true });
   items.push({
-    label: t("menu.save"),
-    icon: "BookmarkPlus",
-    onSelect: () => setDialog({ kind: "save" }),
+    label: copyOf ? t("menu.saveCopy", { name: copyOf }) : t("menu.save"),
+    icon: copyOf ? "Copy" : "BookmarkPlus",
+    onSelect: () => setDialog(copyOf ? { kind: "save", name: copyOf } : { kind: "save" }),
   });
   // After opening one of their views and changing the filters, the owner can update it to match.
   const differing = active ? undefined : views?.find((v) => v.id === applied && v.mine);
@@ -282,6 +319,13 @@ export function CollectionViews({
               ),
           },
     );
+    if (collection && LIVE_COLLECTIONS.has(collection)) {
+      items.push({
+        label: t("liveLink.menu", { name: active.name }),
+        icon: "Radio",
+        onSelect: () => setLive(active),
+      });
+    }
     if (active.mine) {
       items.push(
         {
@@ -305,7 +349,12 @@ export function CollectionViews({
   });
 
   return (
-    <div className="flex flex-wrap items-center gap-8">
+    // The view.switch shortcut focuses the view on screen (the selected option); the arrow keys then
+    // switch it.
+    <div
+      data-shortcut={options.length > 1 ? "view.switch" : undefined}
+      className="flex flex-wrap items-center gap-8"
+    >
       {options.length > 1 ? (
         <SegmentedControl
           label={label}
@@ -320,11 +369,15 @@ export function CollectionViews({
       ) : null}
       {collection ? (
         <DeferredDropdownMenu
-          label={active ? active.name : t("menu.label")}
+          label={active?.name ?? copyOf ?? t("menu.label")}
           icon="Bookmark"
           items={items}
           onOpen={retryLoad}
         />
+      ) : null}
+      {collection ? (
+        // Save view lives in the menu above; this hidden button is the view.save shortcut's target.
+        <button type="button" hidden data-shortcut="view.save" onClick={save} />
       ) : null}
       <CollectionExport />
       <p role="status" className="sr-only">
@@ -341,7 +394,19 @@ export function CollectionViews({
           fields={fields}
           {...(customFields !== undefined ? { customFields } : {})}
           onNavigate={go}
-          {...(collection && !active ? { onSave: () => setDialog({ kind: "save" }) } : {})}
+          {...(collection && !active ? { onSave: save } : {})}
+        />
+      ) : null}
+      {live && liveModule ? (
+        <liveModule.LiveLinkDialog
+          org={org}
+          view={live}
+          projectKey={
+            pathname.split("/").filter(Boolean)[1] === "p"
+              ? (pathname.split("/").filter(Boolean)[2] ?? null)
+              : null
+          }
+          onClose={() => setLive(null)}
         />
       ) : null}
       {dialog && dialogsModule ? (

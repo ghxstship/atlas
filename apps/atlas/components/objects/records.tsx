@@ -161,7 +161,8 @@ export function CreateRecordDrawer({
 /**
  * A record in the side peek: its values, moving it to another board column, its activity (the field
  * history 2100 records), its comments and files through the same panels as every record's (Section
- * 4.6.3), and Why can I see this.
+ * 4.6.3), and Why can I see this. The drawer is a record region for the shell's record shortcuts
+ * (@xos/ui/shortcut-targets): the board column is the Change state target.
  */
 export function RecordPeek({
   org,
@@ -201,6 +202,7 @@ export function RecordPeek({
     <Drawer
       title={`${recordKey} ${title}`}
       open
+      shortcutScope="record"
       onOpenChange={(open) => (open ? null : router.push(closeHref as Route, { scroll: false }))}
     >
       <PropertyList
@@ -216,12 +218,14 @@ export function RecordPeek({
           inline
           onDone={() => router.refresh()}
         >
-          <Select
-            label={t("objects.move", { field: board.label })}
-            value={choice}
-            options={[...board.choices]}
-            onChange={(e) => setChoice(e.target.value)}
-          />
+          <span data-shortcut="record.state" className="contents">
+            <Select
+              label={t("objects.move", { field: board.label })}
+              value={choice}
+              options={[...board.choices]}
+              onChange={(e) => setChoice(e.target.value)}
+            />
+          </span>
         </ActionForm>
       ) : null}
       {activity ? (

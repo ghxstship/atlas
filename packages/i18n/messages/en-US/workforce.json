@@ -781,6 +781,7 @@
     "feed_post_publish_past": "Pick a publish time in the future, or leave it blank to post now.",
     "feed_post_not_author": "Only the author or a communication admin can change this post.",
     "audience_target": "Choose the audience's project, team, role or group.",
+    "show_channel_audience": "A show channel is for its chat; choose another audience.",
     "poll_options": "A poll needs 2 to 10 options.",
     "poll_closed": "This poll has closed.",
     "poll_already_voted": "You already voted in this poll.",

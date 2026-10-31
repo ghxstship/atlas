@@ -11,6 +11,7 @@ import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { orNull } from "../correct.ts";
 import { collectionAction, collectionQuery, itemAction, itemQuery, resource } from "../define.ts";
+import { showChannelActions } from "./parts/segment-library.ts";
 
 // Shared pieces ------------------------------------------------------------------------------------
 
@@ -1184,6 +1185,7 @@ export const additions = defineAdditions("Workforce", {
           description:
             "Archives the group; it keeps its history and takes no new messages. Archiving is final.",
         }),
+        ...showChannelActions,
       ],
     }),
     resource("Workforce", "/group-members", GroupMember, {
@@ -1814,7 +1816,16 @@ export const additions = defineAdditions("Workforce", {
     }),
   ],
   capabilities: {
-    workforceGroups: { read, write: "org.communication.write" },
+    workforceGroups: {
+      read,
+      write: "org.communication.write",
+      // The database decides who may open, join or read a project's show channel (2922).
+      actions: {
+        openShowChannel: "show.run_of_show.read",
+        joinShowChannel: "show.run_of_show.read",
+        showChannelStatus: "show.run_of_show.read",
+      },
+    },
     workforceGroupMembers: { read, write: "org.communication.write" },
     conversations: { read, write: "inbox.notifications.write" },
     chatMessages: { read, write: "inbox.notifications.write" },

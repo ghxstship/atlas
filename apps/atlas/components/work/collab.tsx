@@ -149,6 +149,7 @@ function CommentsPanel({
         >
           <Textarea
             id={`comment-${subject.id}`}
+            data-shortcut="record.comment"
             label={t("collab.write")}
             value={body}
             onChange={(e) => setBody(e.target.value)}

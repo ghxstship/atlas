@@ -39,6 +39,19 @@ if TYPE_CHECKING:
         ActCode,
         ActivityEvent,
         ActivityEventPage,
+        AdvanceAllocation,
+        AdvanceAllocationAssign,
+        AdvanceAllocationDecision,
+        AdvanceAllocationIssue,
+        AdvanceAllocationIssueResult,
+        AdvanceAllocationPage,
+        AdvanceAllocationRequest,
+        AdvanceAllocationReserve,
+        AdvanceAllocationSplit,
+        AdvanceAllocationSplitResult,
+        AdvanceAllocationUnsplit,
+        AdvanceAllocationUnsplitResult,
+        AdvanceAllocationWithdraw,
         AdvancePacket,
         AdvancePacketCreate,
         AdvancePacketPage,
@@ -47,14 +60,24 @@ if TYPE_CHECKING:
         AdvancePromotionCreate,
         AdvancePromotionPage,
         AdvanceRecipient,
+        AdvanceRecipientBindEngagementRequest,
         AdvanceRecipientCreate,
         AdvanceRecipientPage,
+        AdvanceRecipientSetNamesDueRequest,
         AdvanceSection,
+        AdvanceSectionChoice,
+        AdvanceSectionChoiceCreate,
+        AdvanceSectionChoicePage,
+        AdvanceSectionConfigureRequest,
         AdvanceSectionCreate,
         AdvanceSectionPage,
         AdvanceSectionUpdate,
         AdvanceSubmission,
         AdvanceSubmissionCreate,
+        AdvanceSubmissionFile,
+        AdvanceSubmissionFilePage,
+        AdvanceSubmissionLine,
+        AdvanceSubmissionLinePage,
         AdvanceSubmissionPage,
         AdvanceSubmissionReviewRequest,
         AgencySlate,
@@ -79,6 +102,8 @@ if TYPE_CHECKING:
         AiSuggestionReopenRequest,
         AiUsage,
         AiUsagePage,
+        AllocationAllowancePage,
+        AllocationRadioChannels,
         AnswerHelpDeskRequest,
         ApiKey,
         ApiKeyCreate,
@@ -109,6 +134,7 @@ if TYPE_CHECKING:
         ApprovalStepPage,
         ApprovalStepUpdate,
         AssetClass,
+        AssetClassAvailability,
         AssetClassCreate,
         AssetClassPage,
         AssetClassUpdate,
@@ -130,6 +156,11 @@ if TYPE_CHECKING:
         AssetMaintenanceCreate,
         AssetMaintenancePage,
         AssetMaintenanceUpdate,
+        AssetReservation,
+        AssetReservationConflict,
+        AssetReservationConflictPage,
+        AssetReservationPage,
+        AssetReservationRelease,
         AssetScanEvent,
         AssetScanResult,
         AssetTransitionRequest,
@@ -137,6 +168,8 @@ if TYPE_CHECKING:
         AssetUnitBulkEditRequest,
         AssetUnitBulkEditResult,
         AssetUnitCreate,
+        AssetUnitHire,
+        AssetUnitHirePage,
         AssetUnitPage,
         AssetUnitUpdate,
         AssignHelpDeskRequest,
@@ -355,6 +388,8 @@ if TYPE_CHECKING:
         ChatMessageCreate,
         ChatMessagePage,
         ChatMessageUpdate,
+        ClearProjectFactRequest,
+        ClearedProjectFact,
         ColumnClassification,
         ColumnClassificationPage,
         Comment,
@@ -405,6 +440,9 @@ if TYPE_CHECKING:
         CueCallPage,
         CueCallUpdate,
         CueCreate,
+        CueFieldAudience,
+        CueFieldAudienceCreate,
+        CueFieldAudiencePage,
         CuePage,
         CueUpdate,
         CustomFieldDefinition,
@@ -490,6 +528,14 @@ if TYPE_CHECKING:
         EmergencyContactCreate,
         EmergencyContactPage,
         EmergencyContactUpdate,
+        EngagedAllocation,
+        EngagedAllocationPage,
+        EngagedAllocationRequest,
+        EngagedAllocationSplit,
+        EngagedAllocationSplitResult,
+        EngagedAllocationUnsplit,
+        EngagedAllocationUnsplitResult,
+        EngagedAllocationWithdraw,
         Engagement,
         EngagementCreate,
         EngagementDocument,
@@ -561,6 +607,8 @@ if TYPE_CHECKING:
         GoodsReceipt,
         GoodsReceiptCreate,
         GoodsReceiptPage,
+        GoodsReturn,
+        GoodsReturnPage,
         GrainCode,
         GuestCheckIn,
         GuestCheckInCreate,
@@ -591,6 +639,7 @@ if TYPE_CHECKING:
         HelpDeskTeamUpdate,
         HelpDeskTransitionRequest,
         HideFeedPostRequest,
+        HireWindowWarnings,
         HomeSummary,
         ImportBatch,
         ImportBatchPage,
@@ -704,6 +753,13 @@ if TYPE_CHECKING:
         ListingReport,
         ListingReportCreate,
         ListingReportPage,
+        LiveDisplayLinkRequest,
+        LiveDisplayLinkToken,
+        LiveLink,
+        LiveLinkPage,
+        LiveLinkRegenerated,
+        LiveViewLinkRequest,
+        LiveViewLinkToken,
         LostFoundClaim,
         LostFoundClaimPage,
         LostFoundItem,
@@ -838,6 +894,8 @@ if TYPE_CHECKING:
         OwnershipTransfer,
         OwnershipTransferOfferRequest,
         OwnershipTransferPage,
+        ParkingPass,
+        ParkingPassPage,
         PartnerStandingGrant,
         PartnerStandingGrantPage,
         PartnerStandingGrantRecordRequest,
@@ -900,6 +958,8 @@ if TYPE_CHECKING:
         PoChangeOrderUpdate,
         PoLine,
         PoLineCreate,
+        PoLineHireWarning,
+        PoLineHireWarningPage,
         PoLinePage,
         PoLineUpdate,
         Poll,
@@ -972,6 +1032,10 @@ if TYPE_CHECKING:
         PurchaseOrderApproveRequest,
         PurchaseOrderCreate,
         PurchaseOrderPage,
+        PurchaseOrderReceiveRequest,
+        PurchaseOrderReceiveResult,
+        PurchaseOrderReturnRequest,
+        PurchaseOrderReturnResult,
         PurchaseOrderTransitionRequest,
         PurchaseOrderUpdate,
         RFQTransitionRequest,
@@ -1058,6 +1122,8 @@ if TYPE_CHECKING:
         Representation,
         RepresentationCreate,
         RepresentationPage,
+        RequestableItem,
+        RequestableItemPage,
         RequiredAdditionalInsured,
         RequiredAdditionalInsuredCreate,
         RequiredAdditionalInsuredPage,
@@ -1076,6 +1142,8 @@ if TYPE_CHECKING:
         RetentionPolicyPage,
         RetireCourseRequest,
         RetireFormRequest,
+        ReturnLine,
+        ReturnLinePage,
         Rfq,
         RfqCreate,
         RfqInvitation,
@@ -1111,11 +1179,21 @@ if TYPE_CHECKING:
         RoleCreate,
         RolePage,
         RoleUpdate,
+        RosterEntry,
+        RosterEntryPage,
+        RosterLockRequest,
+        RosterProjectFacts,
+        RosterTravelRequestInput,
+        RosterUniformSizesInput,
+        RosterVehicleInput,
         RsvpRequest,
         RunOfShow,
         RunOfShowCreate,
         RunOfShowPage,
         RunOfShowUpdate,
+        RunSegmentInstance,
+        RunSegmentInstancePage,
+        SavedProjectFact,
         SavedSearch,
         SavedSearchCreate,
         SavedSearchPage,
@@ -1146,6 +1224,22 @@ if TYPE_CHECKING:
         ScopeNodeCreate,
         ScopeNodePage,
         ScopeNodeUpdate,
+        SegmentInsertRequest,
+        SegmentInsertResult,
+        SegmentLibraryCue,
+        SegmentLibraryCueCall,
+        SegmentLibraryCueCallCreate,
+        SegmentLibraryCueCallPage,
+        SegmentLibraryCueCallUpdate,
+        SegmentLibraryCueCreate,
+        SegmentLibraryCuePage,
+        SegmentLibraryCueUpdate,
+        SegmentLibrarySegment,
+        SegmentLibrarySegmentCreate,
+        SegmentLibrarySegmentPage,
+        SegmentLibrarySegmentUpdate,
+        SegmentPublishRequest,
+        SegmentPublishResults,
         SeparationOfDutiesRule,
         SeparationOfDutiesRulePage,
         ServiceAccount,
@@ -1190,6 +1284,16 @@ if TYPE_CHECKING:
         ShortlistCreate,
         ShortlistPage,
         ShortlistUpdate,
+        ShowChannelConversation,
+        ShowChannelJoinRequest,
+        ShowChannelOpenRequest,
+        ShowChannelStatus,
+        ShowcallerDevicesSignedOut,
+        ShowcallerLink,
+        ShowcallerLinkPage,
+        ShowcallerLinkRegenerated,
+        ShowcallerLinkRequest,
+        ShowcallerLinkToken,
         SitePlan,
         SitePlanCreate,
         SitePlanPage,
@@ -1354,6 +1458,8 @@ if TYPE_CHECKING:
         TrashItem,
         TrashItemPage,
         TrashRestoreResult,
+        TravelDayCountPage,
+        TravelPartyMemberPage,
         UnionLocalRate,
         UnionLocalRateCreate,
         UnionLocalRatePage,
@@ -5947,6 +6053,23 @@ class AdvanceSectionsResource(Resource):
         """
         return self._client.request(OPERATIONS["advanceSections.delete"], path={"id": id}, options=options)
 
+    def configure(
+        self,
+        id: str,
+        body: AdvanceSectionConfigureRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceSection]:
+        """Configure an advance section
+
+        Sets a draft section's kind and configuration. The kind decides which of window_kind, max_lines and per_person apply (23514 as 422 otherwise); a sent packet's sections are fixed (advance_packet_sections_fixed, 422), and a section with choices keeps its kind (advance_section_kind_choices, 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-sections/{id}/configure`` (operation ``advanceSections.configure``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["advanceSections.configure"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
 
 class AdvanceRecipientsResource(Resource):
     """Operations on ``advanceRecipients``, in the Advancing module."""
@@ -6036,6 +6159,40 @@ class AdvanceRecipientsResource(Resource):
         Requires the capability ``advancing.packet.write``.
         """
         return self._client.request(OPERATIONS["advanceRecipients.delete"], path={"id": id}, options=options)
+
+    def bind_engagement(
+        self,
+        id: str,
+        body: AdvanceRecipientBindEngagementRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceRecipient]:
+        """Link a recipient to its engagement
+
+        Sets or clears the engagement a draft packet's recipient answers under: a live engagement of the same party on the packet's project (advance_recipient_engagement, 422); fixed once the packet is sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-recipients/{id}/bind-engagement`` (operation ``advanceRecipients.bindEngagement``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["advanceRecipients.bindEngagement"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def set_names_due(
+        self,
+        id: str,
+        body: AdvanceRecipientSetNamesDueRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceRecipient]:
+        """Set a recipient's naming deadline
+
+        Sets or clears when the party stops naming, renaming and unnaming people on the passes it requested through this recipient (G-141). Production can still change them afterwards. Needs an engagement (advance_recipients_names_due_engagement, 422); editable after the packet is sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-recipients/{id}/set-names-due`` (operation ``advanceRecipients.setNamesDue``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["advanceRecipients.setNamesDue"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class AdvanceSubmissionsResource(Resource):
@@ -6969,6 +7126,23 @@ class AssetClassesResource(Resource):
         Requires the capability ``assets.asset.write``.
         """
         return self._client.request(OPERATIONS["assetClasses.delete"], path={"id": id}, options=options)
+
+    def availability(
+        self,
+        id: str,
+        *,
+        from_: str,
+        to: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AssetClassAvailability]:
+        """Read an asset class's availability
+
+        How many of the class are free over [from, to) through `app.asset_class_availability` (G-93): serviceable owned units, owned lot quantity, quantity on order that covers the window, the most held at once and what is left, in the unit of the class element. A window that runs backwards or beyond 400 days is refused (422 availability_window). Needs assets.asset.read in the org or advancing.packet.read on one of its projects. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /asset-classes/{id}/availability`` (operation ``assetClasses.availability``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.request(OPERATIONS["assetClasses.availability"], path={"id": id}, query={"from": from_, "to": to}, options=options)
 
 
 class AssetUnitsResource(Resource):
@@ -13529,6 +13703,40 @@ class PurchaseOrdersResource(Resource):
         """
         return self._client.request(OPERATIONS["purchaseOrders.fieldHistory"], path={"id": id}, query={"limit": limit_}, options=options)
 
+    def receive(
+        self,
+        id: str,
+        body: PurchaseOrderReceiveRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PurchaseOrderReceiveResult]:
+        """Receive goods against a purchase order
+
+        Records one receipt event in one transaction (app.receive_goods): the goods receipt, a receipt line per entry and, for an element with an asset class, Received units by asset tag or a Receipt movement into the lot at a venue. Needs procurement.receipt.write on the project, and assets.asset.write to bring stock in. The order must be Approved or Sent, and receipts never exceed the quantity ordered (422 receipt_order_state, receipt_exceeds_order). A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /purchase-orders/{id}/receive`` (operation ``purchaseOrders.receive``).
+        Requires the capability ``procurement.receipt.write``.
+        """
+        return self._client.request(OPERATIONS["purchaseOrders.receive"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def return_goods(
+        self,
+        id: str,
+        body: PurchaseOrderReturnRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PurchaseOrderReturnResult]:
+        """Return goods to the vendor
+
+        Records one return event in one transaction (app.return_goods): return lines against the receipt lines that brought the goods in, never more than they received (422 return_exceeds_receipt). Serialized units must be Available, Damaged or In Maintenance and checked in; they become Returned. A quantity out of a lot writes a Vendor Return movement. Off Hire applies only to rental lines (422 return_off_hire_not_rental). Needs procurement.receipt.write on the project. A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /purchase-orders/{id}/returns`` (operation ``purchaseOrders.returnGoods``).
+        Requires the capability ``procurement.receipt.write``.
+        """
+        return self._client.request(OPERATIONS["purchaseOrders.returnGoods"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
 
 class PoLinesResource(Resource):
     """Operations on ``poLines``, in the Procurement module."""
@@ -13635,6 +13843,23 @@ class PoLinesResource(Resource):
         Requires the capability ``procurement.po.write``.
         """
         return self._client.request(OPERATIONS["poLines.delete"], path={"id": id}, options=options)
+
+    def hire_window_warnings(
+        self,
+        *,
+        project_id: str,
+        from_: str,
+        to: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HireWindowWarnings]:
+        """Window warnings for a hire
+
+        The delivery and return window warnings a rental line with this hire would raise on the project before it is saved (app.hire_window_warnings, G-99): the same rules as `poLineHireWarnings`. Warnings never refuse a line. Needs procurement.po.read on the project; a hire that does not end after it starts is refused (422 hire_period_order). A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /po-lines/hire-window-warnings`` (operation ``poLines.hireWindowWarnings``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request(OPERATIONS["poLines.hireWindowWarnings"], query={"project_id": project_id, "from": from_, "to": to}, options=options)
 
 
 class PoChangeOrdersResource(Resource):
@@ -17568,6 +17793,23 @@ class EngagementsResource(Resource):
         Requires the capability ``opportunities.engagement.write``.
         """
         return self._client.request(OPERATIONS["engagements.transition"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def set_roster_lock(
+        self,
+        id: str,
+        body: RosterLockRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Engagement]:
+        """Set an engagement's names lock
+
+        Sets or clears the names lock through `app.set_roster_lock` (R5, G-142): after `locks_at` the company side can no longer add, invite, edit Draft entries or submit new names; Returned entries stay editable. Null clears the lock and a past instant locks at once. Needs advancing.packet.write on the project; 422 roster_lock_engagement_closed unless the engagement is Onboarding, Blocked, Active or Closing. Each roster manager is notified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engagements/{id}/roster-lock`` (operation ``engagements.setRosterLock``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagements.setRosterLock"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class EngagementDocumentsResource(Resource):
@@ -31941,6 +32183,1191 @@ class CueCallsResource(Resource):
         return self._client.request(OPERATIONS["cueCalls.delete"], path={"id": id}, options=options)
 
 
+class SegmentLibraryResource(Resource):
+    """Operations on ``segmentLibrary``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SegmentLibrarySegment]:
+        """List library segment rows
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /segment-library`` (operation ``segmentLibrary.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["segmentLibrary.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SegmentLibrarySegment]:
+        """List library segment rows
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns a cursor page of library segment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /segment-library`` (operation ``segmentLibrary.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["segmentLibrary.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: SegmentLibrarySegmentCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibrarySegment]:
+        """Create a library segment
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Creates a library segment. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /segment-library`` (operation ``segmentLibrary.create``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibrarySegment]:
+        """Get a library segment
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Returns one library segment with its `ETag`. A library segment the caller may not see returns 404.
+
+        ``GET /segment-library/{id}`` (operation ``segmentLibrary.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: SegmentLibrarySegmentUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibrarySegment]:
+        """Update a library segment
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /segment-library/{id}`` (operation ``segmentLibrary.update``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a library segment
+
+        A reusable show segment of the org (ADR 0142): a named block of cues with their department calls, copied into running orders with `segmentLibrary.insertIntoRun` and republished to them with `segmentLibrary.publish`. Every member reads the library; holders of show.run_of_show.write org-wide edit it. `version` is the database's change counter. Soft-deletes the library segment: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /segment-library/{id}`` (operation ``segmentLibrary.delete``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.delete"], path={"id": id}, options=options)
+
+    def insert_into_run(
+        self,
+        id: str,
+        body: SegmentInsertRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentInsertResult]:
+        """Copy a library segment into a running order
+
+        Copies the segment's cues and their department calls into a running order of the same org through app.insert_library_segment, before the cue at the 1-based place `before_position` (omitted, at the end), renumbering the running order 1..n in one transaction. With `starts_at` the copies are planned from it and the durations before them; without it they are unplanned. Needs show.run_of_show.write on the project. Refuses an empty segment (422 `segment_library_empty`), a place at or before the last called cue (422 `segment_insert_before_called`) and a running order that would pass 300 cues (422 `segment_insert_cue_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /segment-library/{id}/insert-into-run`` (operation ``segmentLibrary.insertIntoRun``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.insertIntoRun"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def publish(
+        self,
+        id: str,
+        body: SegmentPublishRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentPublishResults]:
+        """Publish a library segment to running orders
+
+        Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /segment-library/{id}/publish`` (operation ``segmentLibrary.publish``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibrary.publish"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class SegmentLibraryCuesResource(Resource):
+    """Operations on ``segmentLibraryCues``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SegmentLibraryCue]:
+        """List library cue rows
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /segment-library-cues`` (operation ``segmentLibraryCues.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["segmentLibraryCues.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SegmentLibraryCue]:
+        """List library cue rows
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns a cursor page of library cue rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /segment-library-cues`` (operation ``segmentLibraryCues.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["segmentLibraryCues.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: SegmentLibraryCueCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCue]:
+        """Create a library cue
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Creates a library cue. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /segment-library-cues`` (operation ``segmentLibraryCues.create``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCues.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCue]:
+        """Get a library cue
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Returns one library cue with its `ETag`. A library cue the caller may not see returns 404.
+
+        ``GET /segment-library-cues/{id}`` (operation ``segmentLibraryCues.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCues.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: SegmentLibraryCueUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCue]:
+        """Update a library cue
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /segment-library-cues/{id}`` (operation ``segmentLibraryCues.update``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCues.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a library cue
+
+        A cue of a library segment (at most 100 per segment), copied with the segment into running orders. Soft-deletes the library cue: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /segment-library-cues/{id}`` (operation ``segmentLibraryCues.delete``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCues.delete"], path={"id": id}, options=options)
+
+
+class SegmentLibraryCueCallsResource(Resource):
+    """Operations on ``segmentLibraryCueCalls``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SegmentLibraryCueCall]:
+        """List library cue call rows
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /segment-library-cue-calls`` (operation ``segmentLibraryCueCalls.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["segmentLibraryCueCalls.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SegmentLibraryCueCall]:
+        """List library cue call rows
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns a cursor page of library cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /segment-library-cue-calls`` (operation ``segmentLibraryCueCalls.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["segmentLibraryCueCalls.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: SegmentLibraryCueCallCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCueCall]:
+        """Create a library cue call
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Creates a library cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /segment-library-cue-calls`` (operation ``segmentLibraryCueCalls.create``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCueCalls.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCueCall]:
+        """Get a library cue call
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Returns one library cue call with its `ETag`. A library cue call the caller may not see returns 404.
+
+        ``GET /segment-library-cue-calls/{id}`` (operation ``segmentLibraryCueCalls.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCueCalls.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: SegmentLibraryCueCallUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SegmentLibraryCueCall]:
+        """Update a library cue call
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /segment-library-cue-calls/{id}`` (operation ``segmentLibraryCueCalls.update``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCueCalls.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a library cue call
+
+        A department's call on a library cue, one per department, copied into app.cue_calls with the cue. Soft-deletes the library cue call: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /segment-library-cue-calls/{id}`` (operation ``segmentLibraryCueCalls.delete``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["segmentLibraryCueCalls.delete"], path={"id": id}, options=options)
+
+
+class RunSegmentInstancesResource(Resource):
+    """Operations on ``runSegmentInstances``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[RunSegmentInstance]:
+        """List segment copy rows
+
+        A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /run-segment-instances`` (operation ``runSegmentInstances.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["runSegmentInstances.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[RunSegmentInstance]:
+        """List segment copy rows
+
+        A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns a cursor page of segment copy rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /run-segment-instances`` (operation ``runSegmentInstances.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["runSegmentInstances.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RunSegmentInstance]:
+        """Get a segment copy
+
+        A library segment copied into a running order, with the library version the copy holds. Written only by `segmentLibrary.insertIntoRun` and `segmentLibrary.publish`. Returns one segment copy with its `ETag`. A segment copy the caller may not see returns 404.
+
+        ``GET /run-segment-instances/{id}`` (operation ``runSegmentInstances.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["runSegmentInstances.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class ShowcallerLinksResource(Resource):
+    """Operations on ``showcallerLinks``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ShowcallerLink]:
+        """List showcaller link rows
+
+        A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /showcaller-links`` (operation ``showcallerLinks.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["showcallerLinks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ShowcallerLink]:
+        """List showcaller link rows
+
+        A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns a cursor page of showcaller link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /showcaller-links`` (operation ``showcallerLinks.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["showcallerLinks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerLink]:
+        """Get a showcaller link
+
+        A no-account link and access code that let an outside showcaller call one running order and edit it live, within that running order only (ADR 0142). Every link expires within 14 days and serves at most 5 devices; the token and the code are returned once by `showcallerLinks.create` or `showcallerLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of running orders they can read. Returns one showcaller link with its `ETag`. A showcaller link the caller may not see returns 404.
+
+        ``GET /showcaller-links/{id}`` (operation ``showcallerLinks.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def create(
+        self,
+        body: ShowcallerLinkRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerLinkToken]:
+        """Create a showcaller link to a running order
+
+        Makes a showcaller link through app.create_showcaller_link. The caller must be a member of the running order's org and hold both show.run_of_show.write and show.cue.call on the project (422 `showcaller_link_capability`); a read-only org makes none (422 `org_read_only`). `caller_name` is 1 to 120 characters (422 `showcaller_link_caller_name`). `expires_at` defaults to the end of the day after the show in the project's zone; when given it must be after now and within 14 days (422 `showcaller_link_expiry_range`). A running order holds at most 5 live links (422 `showcaller_link_limit`). Anyone with the link and the code can call cues and edit this running order until it expires. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /showcaller-links/create`` (operation ``showcallerLinks.create``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def regenerate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerLinkRegenerated]:
+        """Regenerate a showcaller link
+
+        Draws a new token and access code through app.regenerate_showcaller_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device must enter the new code. The caller must be a member of the org and hold both show.run_of_show.write and show.cue.call on the project, as when making a link, the creator included (422 `showcaller_link_capability`). A revoked link (422 `showcaller_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /showcaller-links/{id}/regenerate`` (operation ``showcallerLinks.regenerate``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.regenerate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerLink]:
+        """Revoke a showcaller link
+
+        Revokes the link through app.revoke_showcaller_link so it never opens or writes again and the open portal stops on its next update. Its creator, or a holder of show.run_of_show.write on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /showcaller-links/{id}/revoke`` (operation ``showcallerLinks.revoke``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def sign_out_devices(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowcallerDevicesSignedOut]:
+        """Sign every device out of a showcaller link
+
+        Drops every device grant of the link through app.sign_out_showcaller_devices, so each device must enter the access code again; the token and code stay. Its creator, or a holder of show.run_of_show.write on the project, may. Answers how many devices were signed out. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /showcaller-links/{id}/sign-out-devices`` (operation ``showcallerLinks.signOutDevices``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["showcallerLinks.signOutDevices"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class RosterEntriesResource(Resource):
+    """Operations on ``rosterEntries``, in the Advancing module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[RosterEntry]:
+        """List roster entry rows
+
+        A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns a cursor page of roster entry rows the caller may see. The default order is `engagement_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /roster-entries`` (operation ``rosterEntries.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["rosterEntries.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[RosterEntry]:
+        """List roster entry rows
+
+        A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns a cursor page of roster entry rows the caller may see. The default order is `engagement_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /roster-entries`` (operation ``rosterEntries.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["rosterEntries.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RosterEntry]:
+        """Get a roster entry
+
+        A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns one roster entry with its `ETag`. A roster entry the caller may not see returns 404.
+
+        ``GET /roster-entries/{id}`` (operation ``rosterEntries.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def project_facts(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RosterProjectFacts]:
+        """Read a roster entry's project facts
+
+        The travel request, uniform sizes and vehicle of a roster entry as the caller may read them, through `app.roster_project_facts`. The person and the company that rosters them read every kind; a producer reads the kinds its project capabilities cover (Travel hospitality.fulfillment.read, Uniform opportunities.engagement.read or crew.shift.write, Vehicle credentials.credential.read) on Submitted, Accepted and Returned entries. Every Company or Producer read of a value is logged in the person's access log. 404 without standing. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /roster-entries/{id}/project-facts`` (operation ``rosterEntries.projectFacts``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.projectFacts"], path={"id": id}, options=options)
+
+    def save_travel_request(
+        self,
+        id: str,
+        body: RosterTravelRequestInput,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SavedProjectFact]:
+        """Save a roster entry's travel request
+
+        Replaces the live travel request through `app.save_roster_travel_request`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, airport_unknown, travel_dates_order, project_fact_empty and project_fact_text_length. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /roster-entries/{id}/save-travel-request`` (operation ``rosterEntries.saveTravelRequest``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.saveTravelRequest"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def save_uniform_sizes(
+        self,
+        id: str,
+        body: RosterUniformSizesInput,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SavedProjectFact]:
+        """Save a roster entry's uniform sizes
+
+        Replaces the live uniform sizes through `app.save_roster_uniform_sizes`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, project_fact_empty, shoe_size_format, shoe_size_system_required and pants_measure_range. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /roster-entries/{id}/save-uniform-sizes`` (operation ``rosterEntries.saveUniformSizes``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.saveUniformSizes"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def save_vehicle(
+        self,
+        id: str,
+        body: RosterVehicleInput,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SavedProjectFact]:
+        """Save a roster entry's vehicle
+
+        Replaces the live vehicle through `app.save_roster_vehicle`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, vehicle_fields_required, plate_format, plate_region_format and project_fact_text_length. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /roster-entries/{id}/save-vehicle`` (operation ``rosterEntries.saveVehicle``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.saveVehicle"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def clear_project_fact(
+        self,
+        id: str,
+        body: ClearProjectFactRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ClearedProjectFact]:
+        """Clear a project fact of a roster entry
+
+        Soft-deletes the live row of one kind through `app.clear_roster_project_fact`. The person clears at any time; the company only rows the person did not enter (422 project_fact_person_entered) while it manages the roster (422 project_fact_not_yours). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /roster-entries/{id}/clear-project-fact`` (operation ``rosterEntries.clearProjectFact``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.clearProjectFact"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def travel_party(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TravelPartyMemberPage]:
+        """Read a project's travel party
+
+        Every rostered person of the project the producer reads (live entries Submitted, Accepted or Returned on engagements Onboarding to Closing with Travel offered), with their travel request and whether a room is assigned, a pickup booked and a pass issued, through `app.roster_travel_party`. Needs hospitality.fulfillment.read on the project (404 otherwise). Every travel value returned is logged. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /roster-entries/travel-party`` (operation ``rosterEntries.travelParty``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.travelParty"], query={"project_id": project_id}, options=options)
+
+    def travel_day_counts(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TravelDayCountPage]:
+        """Count a project's travel party by day
+
+        Arrivals, departures, people on site, rooms and pickups needed per day from the first arrival to the last departure, at most 120 days, through `app.roster_travel_day_counts`. Needs hospitality.fulfillment.read on the project. Each call is logged. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /roster-entries/travel-day-counts`` (operation ``rosterEntries.travelDayCounts``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.travelDayCounts"], query={"project_id": project_id}, options=options)
+
+
+class AdvanceAllocationsResource(Resource):
+    """Operations on ``advanceAllocations``, in the Advancing module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AdvanceAllocation]:
+        """List advance allocation rows
+
+        What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project. Returns a cursor page of advance allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /advance-allocations`` (operation ``advanceAllocations.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["advanceAllocations.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AdvanceAllocation]:
+        """List advance allocation rows
+
+        What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project. Returns a cursor page of advance allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /advance-allocations`` (operation ``advanceAllocations.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["advanceAllocations.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        allocation_id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocation]:
+        """Get an advance allocation
+
+        What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project. Returns one advance allocation with its `ETag`. A advance allocation the caller may not see returns 404.
+
+        ``GET /advance-allocations/{allocation_id}`` (operation ``advanceAllocations.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.get"], path={"allocation_id": allocation_id}, query={"fields": fields}, options=options)
+
+    def request(
+        self,
+        body: AdvanceAllocationRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocation]:
+        """Request an allocation
+
+        Production requests an allocation for a party's pool or one person on a roster through `app.request_allocation`; it starts Requested for a reviewer. Needs advancing.packet.write on the project. Refusals answer 422 with the rule, among them offering_not_offered, offering_not_provided, allocation_cap_engagement, allocation_cap_person, allocation_over_allowance_reason, allocation_engagement_closed and allocation_entry_not_accepted. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/request`` (operation ``advanceAllocations.request``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.request"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def assign(
+        self,
+        body: AdvanceAllocationAssign,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocation]:
+        """Assign an allocation
+
+        A reviewer assigns an allocation directly through `app.assign_allocation`: Approved at once and, for an asset, held from the sources. Needs advancing.submission.review on the project. Refusals answer 422 with the rule, among them offering_not_offered, offering_not_provided, allocation_cap_engagement, allocation_cap_person, allocation_over_allowance_reason, allocation_engagement_closed and allocation_entry_not_accepted, reservation_over_capacity and allocation_sources_required. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/assign`` (operation ``advanceAllocations.assign``).
+        Requires the capability ``advancing.submission.review``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.assign"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def decide(
+        self,
+        allocation_id: str,
+        body: AdvanceAllocationDecision,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocation]:
+        """Approve or decline an allocation
+
+        Decides a Requested allocation through `app.decide_allocation`, never by its requester (422 sod_allocation_requester). Declining needs a reason (allocation_reason_required); approving holds an asset's stock (allocation_sources_required, reservation_over_capacity) and, above the allowance with overflow at review, needs a reason that goes in the ledger (allocation_over_allowance_reason). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/{allocation_id}/decide`` (operation ``advanceAllocations.decide``).
+        Requires the capability ``advancing.submission.review``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.decide"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def reserve(
+        self,
+        allocation_id: str,
+        body: AdvanceAllocationReserve,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocation]:
+        """Replace an allocation's holds
+
+        Replaces the holds of an Approved asset allocation before anything of it is issued, through `app.reserve_allocation` (422 allocation_issued). Needs advancing.submission.review. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/{allocation_id}/reserve`` (operation ``advanceAllocations.reserve``).
+        Requires the capability ``advancing.submission.review``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.reserve"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def split(
+        self,
+        allocation_id: str,
+        body: AdvanceAllocationSplit,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocationSplitResult]:
+        """Split a party pool to its people
+
+        Gives shares of an approved party pool to accepted people on its roster through `app.split_allocation`, moving holds with them (422 allocation_not_pool, allocation_split_exceeds, allocation_cap_person). Needs advancing.packet.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/{allocation_id}/split`` (operation ``advanceAllocations.split``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.split"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def unsplit(
+        self,
+        allocation_id: str,
+        body: AdvanceAllocationUnsplit,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocationUnsplitResult]:
+        """Return a share to its pool
+
+        Returns part or all of a share to its pool through `app.unsplit_allocation`, never what was issued (422 allocation_issued). A share returned whole is Withdrawn. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/{allocation_id}/unsplit`` (operation ``advanceAllocations.unsplit``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.unsplit"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def withdraw(
+        self,
+        allocation_id: str,
+        body: AdvanceAllocationWithdraw,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocation]:
+        """Withdraw an allocation
+
+        Withdraws a Requested allocation, or an Approved one with nothing of it out (422 allocation_issued), through `app.withdraw_allocation`, by its requester or a holder of advancing.packet.write; holds are released. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/{allocation_id}/withdraw`` (operation ``advanceAllocations.withdraw``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.withdraw"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def issue(
+        self,
+        allocation_id: str,
+        body: AdvanceAllocationIssue,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocationIssueResult]:
+        """Issue an allocation
+
+        Hands over part or all of an Approved allocation in one transaction through `app.issue_allocation`: badges and passes, units by tag, lot quantities, catering lines, rooms, trips or per diem days. Needs the kind's capability on the project (credentials.credential.issue, assets.custody.write, hospitality.fulfillment.write, hospitality.accommodation.write or crew.time_entry.write). The issuer is never the person (422 allocation_self_issue), kinds other than equipment go to one person (allocation_needs_person) and nothing goes beyond the quantity (allocation_issue_exceeds). A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/{allocation_id}/issue`` (operation ``advanceAllocations.issue``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.issue"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def allowances(
+        self,
+        *,
+        engagement_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AllocationAllowancePage]:
+        """Read an engagement's remaining allowances
+
+        Per offering, the cap, what is requested and approved under it, what remains and what goes beyond, for the engagement's pool and each person on its roster, through `app.allocation_allowances` (G-174). A person on the roster reads only their own rows; 404 without standing. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /advance-allocations/allowances`` (operation ``advanceAllocations.allowances``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.allowances"], query={"engagement_id": engagement_id}, options=options)
+
+    def set_radio_channels(
+        self,
+        allocation_id: str,
+        body: AllocationRadioChannels,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceAllocation]:
+        """Set a radio allocation's channels
+
+        Sets the channels of a radio allocation as a whole through `app.set_allocation_radio_channels` (G-91): 0 to 16 channels of its project (422 allocation_channel_count, allocation_channel_project, allocation_channel_not_asset, allocation_channel_not_radio, allocation_channel_state). Needs advancing.packet.write or safety.radio_channel.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /advance-allocations/{allocation_id}/set-radio-channels`` (operation ``advanceAllocations.setRadioChannels``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["advanceAllocations.setRadioChannels"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class AssetReservationConflictsResource(Resource):
+    """Operations on ``assetReservationConflicts``, in the Advancing module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AssetReservationConflict]:
+        """List reservation conflict rows
+
+        A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored. Returns a cursor page of reservation conflict rows the caller may see. The default order is `reservation_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /asset-reservation-conflicts`` (operation ``assetReservationConflicts.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["assetReservationConflicts.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AssetReservationConflict]:
+        """List reservation conflict rows
+
+        A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored. Returns a cursor page of reservation conflict rows the caller may see. The default order is `reservation_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /asset-reservation-conflicts`` (operation ``assetReservationConflicts.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["assetReservationConflicts.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class AdvanceSectionChoicesResource(Resource):
+    """Operations on ``advanceSectionChoices``, in the Advancing module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AdvanceSectionChoice]:
+        """List advance section choice rows
+
+        What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Returns a cursor page of advance section choice rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /advance-section-choices`` (operation ``advanceSectionChoices.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["advanceSectionChoices.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AdvanceSectionChoice]:
+        """List advance section choice rows
+
+        What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Returns a cursor page of advance section choice rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /advance-section-choices`` (operation ``advanceSectionChoices.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["advanceSectionChoices.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: AdvanceSectionChoiceCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceSectionChoice]:
+        """Create an advance section choice
+
+        What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Creates an advance section choice. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /advance-section-choices`` (operation ``advanceSectionChoices.create``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["advanceSectionChoices.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceSectionChoice]:
+        """Get an advance section choice
+
+        What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Returns one advance section choice with its `ETag`. A advance section choice the caller may not see returns 404.
+
+        ``GET /advance-section-choices/{id}`` (operation ``advanceSectionChoices.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["advanceSectionChoices.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete an advance section choice
+
+        What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Soft-deletes the advance section choice: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /advance-section-choices/{id}`` (operation ``advanceSectionChoices.delete``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["advanceSectionChoices.delete"], path={"id": id}, options=options)
+
+
+class AdvanceSubmissionLinesResource(Resource):
+    """Operations on ``advanceSubmissionLines``, in the Advancing module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AdvanceSubmissionLine]:
+        """List advance submission line rows
+
+        A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /advance-submission-lines`` (operation ``advanceSubmissionLines.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["advanceSubmissionLines.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AdvanceSubmissionLine]:
+        """List advance submission line rows
+
+        A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /advance-submission-lines`` (operation ``advanceSubmissionLines.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["advanceSubmissionLines.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceSubmissionLine]:
+        """Get an advance submission line
+
+        A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes. Returns one advance submission line with its `ETag`. A advance submission line the caller may not see returns 404.
+
+        ``GET /advance-submission-lines/{id}`` (operation ``advanceSubmissionLines.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["advanceSubmissionLines.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class AdvanceSubmissionFilesResource(Resource):
+    """Operations on ``advanceSubmissionFiles``, in the Advancing module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AdvanceSubmissionFile]:
+        """List advance submission file rows
+
+        A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission file rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /advance-submission-files`` (operation ``advanceSubmissionFiles.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["advanceSubmissionFiles.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AdvanceSubmissionFile]:
+        """List advance submission file rows
+
+        A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission file rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /advance-submission-files`` (operation ``advanceSubmissionFiles.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["advanceSubmissionFiles.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AdvanceSubmissionFile]:
+        """Get an advance submission file
+
+        A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes. Returns one advance submission file with its `ETag`. A advance submission file the caller may not see returns 404.
+
+        ``GET /advance-submission-files/{id}`` (operation ``advanceSubmissionFiles.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["advanceSubmissionFiles.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
 class GuestListEntriesResource(Resource):
     """Operations on ``guestListEntries``, in the Advancing module."""
 
@@ -32081,6 +33508,125 @@ class GuestListEntriesResource(Resource):
         return self._client.request(OPERATIONS["guestListEntries.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
 
+class AssetUnitHireResource(Resource):
+    """Operations on ``assetUnitHire``, in the Assets module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AssetUnitHire]:
+        """List unit hire rows
+
+        Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order. Returns a cursor page of unit hire rows the caller may see. The default order is `asset_unit_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /asset-unit-hire`` (operation ``assetUnitHire.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.request_page(OPERATIONS["assetUnitHire.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AssetUnitHire]:
+        """List unit hire rows
+
+        Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order. Returns a cursor page of unit hire rows the caller may see. The default order is `asset_unit_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /asset-unit-hire`` (operation ``assetUnitHire.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.paginate(OPERATIONS["assetUnitHire.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class AssetReservationsResource(Resource):
+    """Operations on ``assetReservations``, in the Assets module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AssetReservation]:
+        """List asset reservation rows
+
+        A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions. Returns a cursor page of asset reservation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /asset-reservations`` (operation ``assetReservations.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.request_page(OPERATIONS["assetReservations.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AssetReservation]:
+        """List asset reservation rows
+
+        A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions. Returns a cursor page of asset reservation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /asset-reservations`` (operation ``assetReservations.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.paginate(OPERATIONS["assetReservations.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AssetReservation]:
+        """Get an asset reservation
+
+        A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions. Returns one asset reservation with its `ETag`. A asset reservation the caller may not see returns 404.
+
+        ``GET /asset-reservations/{id}`` (operation ``assetReservations.get``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.request(OPERATIONS["assetReservations.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def release(
+        self,
+        id: str,
+        body: AssetReservationRelease,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AssetReservation]:
+        """Release a hold
+
+        Releases one hold through `app.release_reservation`, Released By Reviewer, with the reason in the audit ledger. Refuses a hold already released (422 reservation_released) or with something issued against it still out (reservation_in_use). Needs advancing.submission.review. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /asset-reservations/{id}/release`` (operation ``assetReservations.release``).
+        Requires the capability ``advancing.submission.review``.
+        """
+        return self._client.request(OPERATIONS["assetReservations.release"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
 class Form1099NecResource(Resource):
     """Operations on ``form1099Nec``, in the Finance module."""
 
@@ -32098,6 +33644,167 @@ class Form1099NecResource(Resource):
         Requires the capability ``finance.payment.read``.
         """
         return self._client.request(OPERATIONS["form1099Nec.rows"], query={"year": year}, options=options)
+
+
+class GoodsReturnsResource(Resource):
+    """Operations on ``goodsReturns``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[GoodsReturn]:
+        """List goods return rows
+
+        Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns a cursor page of goods return rows the caller may see. The default order is `returned_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /goods-returns`` (operation ``goodsReturns.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request_page(OPERATIONS["goodsReturns.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[GoodsReturn]:
+        """List goods return rows
+
+        Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns a cursor page of goods return rows the caller may see. The default order is `returned_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /goods-returns`` (operation ``goodsReturns.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.paginate(OPERATIONS["goodsReturns.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GoodsReturn]:
+        """Get a goods return
+
+        Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns one goods return with its `ETag`. A goods return the caller may not see returns 404.
+
+        ``GET /goods-returns/{id}`` (operation ``goodsReturns.get``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request(OPERATIONS["goodsReturns.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class ReturnLinesResource(Resource):
+    """Operations on ``returnLines``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ReturnLine]:
+        """List return line rows
+
+        What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns a cursor page of return line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /return-lines`` (operation ``returnLines.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request_page(OPERATIONS["returnLines.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ReturnLine]:
+        """List return line rows
+
+        What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns a cursor page of return line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /return-lines`` (operation ``returnLines.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.paginate(OPERATIONS["returnLines.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ReturnLine]:
+        """Get a return line
+
+        What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns one return line with its `ETag`. A return line the caller may not see returns 404.
+
+        ``GET /return-lines/{id}`` (operation ``returnLines.get``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request(OPERATIONS["returnLines.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class PoLineHireWarningsResource(Resource):
+    """Operations on ``poLineHireWarnings``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[PoLineHireWarning]:
+        """List hire warning rows
+
+        A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line. Returns a cursor page of hire warning rows the caller may see. The default order is `po_line_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /po-line-hire-warnings`` (operation ``poLineHireWarnings.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request_page(OPERATIONS["poLineHireWarnings.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[PoLineHireWarning]:
+        """List hire warning rows
+
+        A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line. Returns a cursor page of hire warning rows the caller may see. The default order is `po_line_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /po-line-hire-warnings`` (operation ``poLineHireWarnings.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.paginate(OPERATIONS["poLineHireWarnings.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
 class InsuranceCertificateInsuredsResource(Resource):
@@ -32897,6 +34604,218 @@ class AiUsageResource(Resource):
         return self._client.paginate(OPERATIONS["aiUsage.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
+class EngagedAllocationsResource(Resource):
+    """Operations on ``engagedAllocations``, in the Gateway module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[EngagedAllocation]:
+        """List engaged allocation rows
+
+        What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /engaged-allocations`` (operation ``engagedAllocations.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["engagedAllocations.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[EngagedAllocation]:
+        """List engaged allocation rows
+
+        What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /engaged-allocations`` (operation ``engagedAllocations.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["engagedAllocations.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        allocation_id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocation]:
+        """Get an engaged allocation
+
+        What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns one engaged allocation with its `ETag`. A engaged allocation the caller may not see returns 404.
+
+        ``GET /engaged-allocations/{allocation_id}`` (operation ``engagedAllocations.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.get"], path={"allocation_id": allocation_id}, query={"fields": fields}, options=options)
+
+    def request(
+        self,
+        body: EngagedAllocationRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocation]:
+        """Request an item for the pool or one person
+
+        The party side asks for an item for its pool or one person on its roster through `app.request_engaged_allocation`; it starts Requested for the producing org to decide. A credential need is a request: Gateway never issues. Refusals answer 422 with the rule, among them allocation_not_your_engagement, allocation_entry_not_on_engagement, allocation_not_requestable, offering_not_offered, allocation_cap_engagement, allocation_cap_person and allocation_engagement_closed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engaged-allocations/request`` (operation ``engagedAllocations.request``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.request"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def split(
+        self,
+        allocation_id: str,
+        body: EngagedAllocationSplit,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocationSplitResult]:
+        """Share an approved pool to people on the roster
+
+        Gives shares of an approved pool to people accepted on the roster through `app.split_engaged_allocation`, moving holds with them (422 allocation_not_pool, allocation_split_exceeds, allocation_cap_person, allocation_entry_not_accepted). Each person is sent allocation.assigned. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engaged-allocations/{allocation_id}/split`` (operation ``engagedAllocations.split``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.split"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def unsplit(
+        self,
+        allocation_id: str,
+        body: EngagedAllocationUnsplit,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocationUnsplitResult]:
+        """Give a share back to its pool
+
+        Gives part or all of a person's share back to its pool through `app.unsplit_engaged_allocation`, never what was issued (422 allocation_issued). A share given back whole is Withdrawn. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engaged-allocations/{allocation_id}/unsplit`` (operation ``engagedAllocations.unsplit``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.unsplit"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def withdraw(
+        self,
+        allocation_id: str,
+        body: EngagedAllocationWithdraw,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EngagedAllocation]:
+        """Withdraw a request or a share
+
+        Withdraws a Requested allocation, or an Approved one nothing of which was issued (422 allocation_issued), through `app.withdraw_engaged_allocation`: by the party side, or by the person on the roster for a request they made. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engaged-allocations/{allocation_id}/withdraw`` (operation ``engagedAllocations.withdraw``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagedAllocations.withdraw"], path={"allocation_id": allocation_id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class RequestableItemsResource(Resource):
+    """Operations on ``requestableItems``, in the Gateway module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[RequestableItem]:
+        """List requestable item rows
+
+        What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /requestable-items`` (operation ``requestableItems.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["requestableItems.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[RequestableItem]:
+        """List requestable item rows
+
+        What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /requestable-items`` (operation ``requestableItems.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["requestableItems.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class MyParkingPassesResource(Resource):
+    """Operations on ``myParkingPasses``, in the Gateway module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ParkingPass]:
+        """List parking pass rows
+
+        The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /my-parking-passes`` (operation ``myParkingPasses.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request_page(OPERATIONS["myParkingPasses.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ParkingPass]:
+        """List parking pass rows
+
+        The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /my-parking-passes`` (operation ``myParkingPasses.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.paginate(OPERATIONS["myParkingPasses.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
 class WorkDetailsResource(Resource):
     """Operations on ``workDetails``, in the Identity module."""
 
@@ -32912,7 +34831,7 @@ class WorkDetailsResource(Resource):
     ) -> Page[WorkDetails]:
         """List work details rows
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /work-details`` (operation ``workDetails.list``).
         Requires the capability ``me.work_details.write``.
@@ -32930,7 +34849,7 @@ class WorkDetailsResource(Resource):
     ) -> Iterator[WorkDetails]:
         """List work details rows
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -32948,7 +34867,7 @@ class WorkDetailsResource(Resource):
     ) -> ApiResponse[WorkDetails]:
         """Create a work details
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
 
         ``POST /work-details`` (operation ``workDetails.create``).
         Requires the capability ``me.work_details.write``.
@@ -32964,7 +34883,7 @@ class WorkDetailsResource(Resource):
     ) -> ApiResponse[WorkDetails]:
         """Get a work details
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.
 
         ``GET /work-details/{id}`` (operation ``workDetails.get``).
         Requires the capability ``me.work_details.write``.
@@ -32981,7 +34900,7 @@ class WorkDetailsResource(Resource):
     ) -> ApiResponse[WorkDetails]:
         """Update a work details
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
 
         ``PATCH /work-details/{id}`` (operation ``workDetails.update``).
         Requires the capability ``me.work_details.write``.
@@ -32996,7 +34915,7 @@ class WorkDetailsResource(Resource):
     ) -> ApiResponse[None]:
         """Delete a work details
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.
 
         ``DELETE /work-details/{id}`` (operation ``workDetails.delete``).
         Requires the capability ``me.work_details.write``.
@@ -33249,7 +35168,7 @@ class WorkDetailSharesResource(Resource):
     ) -> Page[WorkDetailShare]:
         """List work detail share rows
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /work-detail-shares`` (operation ``workDetailShares.list``).
         Requires the capability ``opportunities.engagement.read``.
@@ -33267,7 +35186,7 @@ class WorkDetailSharesResource(Resource):
     ) -> Iterator[WorkDetailShare]:
         """List work detail share rows
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -33285,7 +35204,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[WorkDetailShare]:
         """Create a work detail share
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
 
         ``POST /work-detail-shares`` (operation ``workDetailShares.create``).
         Requires the capability ``me.work_details.write``.
@@ -33301,7 +35220,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[WorkDetailShare]:
         """Get a work detail share
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.
 
         ``GET /work-detail-shares/{id}`` (operation ``workDetailShares.get``).
         Requires the capability ``opportunities.engagement.read``.
@@ -33318,7 +35237,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[WorkDetailShare]:
         """Update a work detail share
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
 
         ``PATCH /work-detail-shares/{id}`` (operation ``workDetailShares.update``).
         Requires the capability ``me.work_details.write``.
@@ -33349,7 +35268,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[SharedWorkDetails]:
         """Read what the share's person shared
 
-        For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement readers and shift editors for uniform sizes, hospitality readers for the rest), through `app.shared_work_details`. Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Each read is logged in the person's access log and the org's audit ledger. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement and safety readers for the person's contact, hospitality readers for the rest), through `app.shared_work_details`. Allergies are Restricted: a holder of data.restricted.read.medical on the project reads them, in dietary and in medical (the medical read, also without hospitality.fulfillment.read); anyone else reads them masked (allergies_masked). Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Every read is logged in the person's access log and the org's audit ledger, and every unmasked allergy read also as allergies.viewed. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``GET /work-detail-shares/{id}/details`` (operation ``workDetailShares.details``).
         Requires the capability ``opportunities.engagement.read``.
@@ -33366,7 +35285,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[PassportReveal]:
         """Reveal a shared passport number
 
-        For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Allergies, the other Restricted value, come back through details for medical readers (data.restricted.read.medical), logged on every read. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /work-detail-shares/{id}/reveal-passport`` (operation ``workDetailShares.revealPassport``).
         Requires the capability ``data.restricted.read.government_id``.
@@ -34964,6 +36883,203 @@ class ShareLinksResource(Resource):
         return self._client.request(OPERATIONS["shareLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
 
+class LiveLinksResource(Resource):
+    """Operations on ``liveLinks``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[LiveLink]:
+        """List live link rows
+
+        A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns a cursor page of live link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /live-links`` (operation ``liveLinks.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["liveLinks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[LiveLink]:
+        """List live link rows
+
+        A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns a cursor page of live link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /live-links`` (operation ``liveLinks.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["liveLinks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LiveLink]:
+        """Get a live link
+
+        A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns one live link with its `ETag`. A live link the caller may not see returns 404.
+
+        ``GET /live-links/{id}`` (operation ``liveLinks.get``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["liveLinks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def create_view(
+        self,
+        body: LiveViewLinkRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LiveViewLinkToken]:
+        """Create a live link to a saved view
+
+        Makes a no-account link to a saved view the caller can read, on one project of its org, through app.create_view_link. The caller must be a member of the project's org and hold the collection's share capability on the project (schedule.timeline.export for the Schedule, show.run_of_show.write for running orders, show.day_sheet.write for day sheets; 422 `live_link_capability`). The view's page and every filter, sort and grouping must be ones a live link shows (422 `live_link_view_unsupported`). `expires_at` is required, after now and within 90 days (422 `live_link_expiry`, `live_link_expiry_range`); a view holds at most 20 live links (422 `live_link_limit`); a read-only org makes none (422 `org_read_only`). Every link has an access code. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /live-links/view`` (operation ``liveLinks.createView``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["liveLinks.createView"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def create_display(
+        self,
+        body: LiveDisplayLinkRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LiveDisplayLinkToken]:
+        """Create a display screen link to a running order
+
+        Makes a no-account display screen link (room clock, presenter timer, backstage) to a running order through app.create_display_link. The caller must be a member of its org and hold show.run_of_show.write on the project (422 `live_link_capability`). `expires_at` defaults to the end of the day after the show in the project's zone, at most 90 days ahead; when given it must be after now and within 90 days (422 `live_link_expiry_range`). A running order holds at most 20 live links (422 `live_link_limit`); a read-only org makes none (422 `org_read_only`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /live-links/display`` (operation ``liveLinks.createDisplay``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["liveLinks.createDisplay"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def regenerate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LiveLinkRegenerated]:
+        """Regenerate a live link
+
+        Draws a new token and access code through app.regenerate_live_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device that opened the link must enter the new code. Its creator, or a holder of the collection's share capability on the project, may. A revoked link (422 `live_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /live-links/{id}/regenerate`` (operation ``liveLinks.regenerate``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["liveLinks.regenerate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LiveLink]:
+        """Revoke a live link
+
+        Revokes the link through app.revoke_live_link so it never opens again and every open page stops on its next update. Its creator, or a holder of the collection's share capability on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /live-links/{id}/revoke`` (operation ``liveLinks.revoke``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["liveLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class CueFieldAudiencesResource(Resource):
+    """Operations on ``cueFieldAudiences``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[CueFieldAudience]:
+        """List cue field audience rows
+
+        Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /cue-field-audiences`` (operation ``cueFieldAudiences.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request_page(OPERATIONS["cueFieldAudiences.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[CueFieldAudience]:
+        """List cue field audience rows
+
+        Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Returns a cursor page of cue field audience rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /cue-field-audiences`` (operation ``cueFieldAudiences.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.paginate(OPERATIONS["cueFieldAudiences.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: CueFieldAudienceCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CueFieldAudience]:
+        """Create a cue field audience
+
+        Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Creates a cue field audience. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /cue-field-audiences`` (operation ``cueFieldAudiences.create``).
+        Requires the capability ``org.custom_fields.write``.
+        """
+        return self._client.request(OPERATIONS["cueFieldAudiences.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a cue field audience
+
+        Who a cue custom field is shown to (ADR 0142): Crew (Atlas running orders; members read every value their access allows either way), Showcaller (showcaller link portals) or Client (Clients engaged on the project, in Gateway). A new cue field starts with Crew. A Person, Money or Email field never takes Showcaller or Client (422 `cue_field_audience_type`), and an audience names a cue field (422 `cue_field_audience_target`). Soft-deletes the cue field audience: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /cue-field-audiences/{id}`` (operation ``cueFieldAudiences.delete``).
+        Requires the capability ``org.custom_fields.write``.
+        """
+        return self._client.request(OPERATIONS["cueFieldAudiences.delete"], path={"id": id}, options=options)
+
+
 class PersonCalendarFeedsResource(Resource):
     """Operations on ``personCalendarFeeds``, in the Platform module."""
 
@@ -35667,6 +37783,53 @@ class WorkforceGroupsResource(Resource):
         Requires the capability ``org.communication.write``.
         """
         return self._client.request(OPERATIONS["workforceGroups.archive"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def open_show_channel(
+        self,
+        body: ShowChannelOpenRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowChannelConversation]:
+        """Open a project's show channel
+
+        Opens the project's show channel through app.open_show_channel and answers its conversation: a Project group named for the project (after `name_prefix`, Show channel by default), with the caller as Owner and the project's members who can read its running orders, less anyone engaged as Client. A project has one live show channel; opening again answers it. Needs membership of the project's org and show.run_of_show.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /groups/open-show-channel`` (operation ``workforceGroups.openShowChannel``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.openShowChannel"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def join_show_channel(
+        self,
+        body: ShowChannelJoinRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowChannelConversation]:
+        """Join a project's show channel
+
+        Adds the caller to the project's live show channel through app.join_show_channel. Needs show.run_of_show.read on the project; anyone engaged as Client is refused (422 `show_channel_client`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /groups/join-show-channel`` (operation ``workforceGroups.joinShowChannel``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.joinShowChannel"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def show_channel_status(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShowChannelStatus]:
+        """Read what the show channel panel may offer
+
+        Answers through app.show_channel_status whether the project has a live show channel, its conversation (only for a member), and whether the caller is in it, may join it or may open it. Group visibility hides a group from people outside it, so the panel asks here. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /groups/show-channel-status`` (operation ``workforceGroups.showChannelStatus``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.showChannelStatus"], query={"project_id": project_id}, options=options)
 
 
 class WorkforceGroupMembersResource(Resource):

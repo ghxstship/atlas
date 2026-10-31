@@ -46,6 +46,13 @@ const DYNAMIC = [
   "setting-",
   "notify-",
   "work-",
+  // R7a's Receive against an order sheet: an order by number, a line's stepper by line number.
+  "receive-order-",
+  "receive-more-",
+  // A140: a sponsor's proof photo button, by entitlement.
+  "proof-photo-",
+  // P2's department picker: one option per app.cue_call_kind slug, and All (SegmentedControl testID-value).
+  "show-department-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

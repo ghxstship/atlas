@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createPublicClient } from "@xos/data/client";
 import type { Database, XosClient } from "@xos/data/gateway";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
@@ -32,4 +33,14 @@ export async function createServerSupabase(): Promise<XosClient> {
       },
     },
   });
+}
+
+/**
+ * A client with no session, acting as anon, for the advance link's writes (R10): the api_public token
+ * RPCs and the upload to the one party-uploads object a ticket opens. A link answer is the link's,
+ * whoever happens to be signed in, so its allocations are requested by the person who claims it.
+ */
+export function createAnonSupabase(): XosClient {
+  const config = env();
+  return createPublicClient({ url: config.SUPABASE_URL, anonKey: config.SUPABASE_ANON_KEY });
 }

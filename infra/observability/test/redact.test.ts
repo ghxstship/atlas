@@ -89,7 +89,21 @@ describe("redactString", () => {
   // ticket, and kiosk keys, subprocessor notice links and personal access tokens share the shape.
   it("replaces share link tokens, download tickets and the other prefixed secrets", () => {
     const hex = "d".repeat(64);
-    for (const prefix of ["xshr", "xdlt", "xkio", "xspn", "xspu", "xos_pat"]) {
+    for (const prefix of [
+      "xshr",
+      "xdlt",
+      "xkio",
+      "xspn",
+      "xspu",
+      "xos_pat",
+      "xshv",
+      "xscr",
+      "xlgr",
+      "xlch",
+      "xscl",
+      "xcgr",
+      "xcch",
+    ]) {
       expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
       expect(redactString(`${prefix.toUpperCase()}_${hex.toUpperCase()}`), prefix).toBe("[token]");
     }
@@ -110,6 +124,36 @@ describe("redactString", () => {
       "GET /share/[token] 404",
     );
     expect(redactUrl("/share/abc")).toBe("/share/[token]");
+    // P1 (ADR 0130): live links, their open handler, device grants and channel keys.
+    expect(redactUrl(`/share/view/xshv_${hex}`)).toBe("/share/view/[token]");
+    expect(redactUrl(`/share/screen/xscr_${hex}/open?reason=live_link_access_code`)).toBe(
+      "/share/screen/[token]/open",
+    );
+    expect(redactString(`POST https://atlas.example.test/share/view/xshv_${hex}/open 303`)).toBe(
+      "POST https://atlas.example.test/share/view/[token]/open 303",
+    );
+    expect(redactString("GET /share/screen/xscr_truncated 200")).toBe(
+      "GET /share/screen/[token] 200",
+    );
+    expect(redactString(`Set-Cookie: xos_link_grant=xlgr_${hex}; HttpOnly`)).toBe(
+      "Set-Cookie: xos_link_grant=[token]; HttpOnly",
+    );
+    expect(redactString(`realtime join xlink:xlch_${hex}`)).toBe("realtime join xlink:[token]");
+    // B3 (ADR 0142): showcaller links, their open handler and clock, device grants and channel keys.
+    expect(redactUrl(`/share/showcaller/xscl_${hex}`)).toBe("/share/showcaller/[token]");
+    expect(redactUrl(`/share/showcaller/xscl_${hex}/open?reason=showcaller_link_access_code`)).toBe(
+      "/share/showcaller/[token]/open",
+    );
+    expect(redactUrl(`/share/showcaller/xscl_${hex}/clock`)).toBe(
+      "/share/showcaller/[token]/clock",
+    );
+    expect(redactString("POST /share/showcaller/MISTYPED-token 303")).toBe(
+      "POST /share/showcaller/[token] 303",
+    );
+    expect(redactString(`Set-Cookie: xos_showcaller_grant=xcgr_${hex}; HttpOnly`)).toBe(
+      "Set-Cookie: xos_showcaller_grant=[token]; HttpOnly",
+    );
+    expect(redactString(`realtime join xcall:xcch_${hex}`)).toBe("realtime join xcall:[token]");
     expect(redactString("/share/")).toBe("/share/");
     expect(redactString("at /usr/share/zoneinfo/UTC")).toBe("at /usr/share/zoneinfo/UTC");
     expect(redactString("at file:///usr/share/nodejs/undici/index.js:12:3")).toBe(

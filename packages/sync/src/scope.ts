@@ -47,6 +47,11 @@ export interface DownloadScope {
    * the onboarding checklist a person works through before operational access opens (A92). Absent holds none.
    */
   readonly onboardingEngagementIds?: readonly string[];
+  /**
+   * External: the person's own roster entries accepted by both sides on an Active or Closing engagement (R8), for a
+   * person who works an engagement only through a party's roster. Absent holds none.
+   */
+  readonly rosterEntryIds?: readonly string[];
 }
 
 export type ScopeKey = Exclude<keyof DownloadScope, "audience">;
@@ -141,6 +146,9 @@ export const TABLE_RULES: readonly TableRule[] = [
   // artists receive their set times through the REST downloader, which reads the views.
   { table: "run_of_show", anyOf: [internalProject, clientRunningOrder, artistSetTimes] },
   { table: "cues", anyOf: [internalProject, clientRunningOrder, artistSetTimes] },
+  // Department calls (G-74) carry no project; the REST downloader stamps each with its cue's. They stay internal:
+  // no api_external view shows them (ADR 0131).
+  { table: "cue_calls", anyOf: [{ ...internalProject, restOnly: true }] },
   { table: "incidents", anyOf: [internalProject, { column: "reported_by", key: "personIds" }] },
   { table: "incident_media", anyOf: [internalProject, { column: "created_by", key: "personIds" }] },
   { table: "inspection_templates", anyOf: [internalOrg] },
@@ -168,6 +176,8 @@ export const TABLE_RULES: readonly TableRule[] = [
     anyOf: [
       { column: "custodian_membership_id", key: "membershipIds", audiences: INTERNAL },
       { column: "custodian_engagement_id", key: "engagementIds", audiences: ["crew", "staff"] },
+      // The units a person on a roster holds on their own entry (R8).
+      { column: "roster_entry_id", key: "rosterEntryIds" },
       internalOrg,
     ],
   },
@@ -242,11 +252,23 @@ export const TABLE_RULES: readonly TableRule[] = [
       ["shared_reports", "engagement_id", "engagementIds", CLIENT],
       ["sponsor_entitlements", "project_id", "engagedProjectIds", SPONSOR],
       ["engagement_documents", "engagement_id", "engagementIds", SPONSOR],
+      ["proof_of_performance_photos", "engagement_id", "engagementIds", SPONSOR],
     ] as const
   ).map(([table, column, key, audiences]): TableRule => ({
     table,
     anyOf: [{ column, key, audiences, restOnly: true }],
   })),
+  // A person on a roster (R8): their own entries, what is allocated on them and their parking passes, from
+  // api_external views (my_roster_entries, advance_allocations, my_parking_passes) the REST downloader serves.
+  { table: "roster_entries", anyOf: [{ column: "id", key: "rosterEntryIds", restOnly: true }] },
+  {
+    table: "advance_allocations",
+    anyOf: [{ column: "roster_entry_id", key: "rosterEntryIds", restOnly: true }],
+  },
+  {
+    table: "parking_passes",
+    anyOf: [{ column: "holder_person_id", key: "personIds", restOnly: true }],
+  },
   // The canon codes: the swatch of every org's codes, and the list an org that holds no codes shows.
   { table: "canon_emergency_codes", anyOf: [], global: true },
   { table: "incident_severities", anyOf: [], global: true },

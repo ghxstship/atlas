@@ -14,6 +14,9 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  * A115 (RRR-160, Section 11.2 and 11.7) adds J and K in tables, X and Shift+X selection in lists,
  * boards and the Inbox, and record menus by keyboard, on the demo tenant: it selects but changes
  * nothing it did not create, and withdraws what it created.
+ *
+ * A125 (RRR-170, Section 11.2) adds the view and record shortcuts: they act on the collection or the
+ * side peek focus is in, through the control that carries the shortcut's id, and change nothing.
  */
 test.use({ reducedMotion: "reduce" });
 // Sign-up, a new org and a first visit to each page take a while under next dev.
@@ -345,4 +348,36 @@ test("the Inbox selects with X and snoozes the selection at once", async ({ brow
     }
     await producer.context().close();
   }
+});
+
+test("view and record shortcuts act on the collection and the side peek in focus", async ({
+  page,
+}) => {
+  await signInAs(page, "owner@example.com", DEMO_ORG);
+  await openReady(page, `/${DEMO_ORG}/work/all-records?view=table`);
+  const keys = page.getByRole("grid").locator('td[data-column="key"]');
+
+  // View: V focuses the view on screen, F the filters, from anywhere in the collection.
+  await keys.first().focus();
+  await page.keyboard.press("v");
+  await expect(page.getByRole("radio", { name: "Table" })).toBeFocused();
+  await keys.first().focus();
+  await page.keyboard.press("f");
+  await expect(page.locator("#records-search")).toBeFocused();
+
+  // Record: Enter opens the side peek; inside it, E focuses the title and S the first move.
+  await keys.first().focus();
+  await page.keyboard.press("Enter");
+  const peek = page.locator('[role="dialog"][data-shortcut-scope="record"]');
+  await expect(peek).toBeVisible();
+  await peek.getByRole("separator", { name: "Resize panel" }).focus();
+  await page.keyboard.press("e");
+  await expect(peek.locator("#edit-title")).toBeFocused();
+  // While typing in the title, the keys type.
+  await page.keyboard.press("s");
+  await expect(peek.locator("#edit-title")).toBeFocused();
+  await peek.getByRole("separator", { name: "Resize panel" }).focus();
+  await page.keyboard.press("s");
+  await expect(peek.locator('[data-shortcut="record.state"] button').first()).toBeFocused();
+  await expectAccessible(page);
 });

@@ -70,8 +70,24 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Auth template: opens a share link with its access code; no session needed (Section 8.6, A82).",
   "/share/{token}/file":
     "Route handler: opens a share link and sends the file, watermarked when Confidential (Section 8.6).",
+  "/share/view/{token}":
+    "Public frame: a saved view live link with its access code and device grant; no session needed (P1, ADR 0130).",
+  "/share/view/{token}/open":
+    "Route handler: opens a saved view live link with its access code and sets the device grant (P1, ADR 0130).",
+  "/share/screen/{token}":
+    "Display screen: a running order as a room clock, presenter timer or backstage screen; no session needed (P1, ADR 0130).",
+  "/share/screen/{token}/open":
+    "Route handler: opens a display screen link with its access code and sets the device grant (P1, ADR 0130).",
+  "/share/showcaller/{token}":
+    "Public frame: a showcaller link's portal, calling and editing one running order with its access code and device grant; no session needed (B3, ADR 0142).",
+  "/share/showcaller/{token}/open":
+    "Route handler: opens a showcaller link with its access code and sets the device grant (B3, ADR 0142).",
+  "/share/showcaller/{token}/clock":
+    "Display screen: a showcaller portal's pop-out room clock and presenter timer, fed by the portal's own read (B3, ADR 0142).",
   "/files/{version}":
     "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
+  "/files/party/{version}":
+    "Route handler: a file a party uploaded to party-uploads (an advance answer's or a supplied sponsor asset's), for a reader app.party_file_object admits, served under the caller's session behind the scan gate (R9).",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",

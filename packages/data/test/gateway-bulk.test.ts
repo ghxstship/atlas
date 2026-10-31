@@ -102,6 +102,7 @@ describe("Gateway bulk actions", () => {
       "my_timesheets",
       "my_engagement_documents",
       "my_applications",
+      "engaged_allocation_assignments",
     ]);
     expect(isGatewayBulkResource("my_timesheets")).toBe(true);
     expect(isGatewayBulkResource("records")).toBe(false);

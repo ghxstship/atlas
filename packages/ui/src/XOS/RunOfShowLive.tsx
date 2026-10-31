@@ -79,7 +79,15 @@ export function RunOfShowLive({
               ) : (
                 <span />
               )}
-              {state === "live" ? <Tag tone="accent">{t("ros.live")}</Tag> : <span />}
+              {state === "live" ? (
+                <Tag tone="accent">{t("ros.live")}</Tag>
+              ) : cue.status === "standby" ? (
+                <Tag tone="warning">{t("ros.standby")}</Tag>
+              ) : cue.status === "skipped" ? (
+                <Tag>{t("ros.skipped")}</Tag>
+              ) : (
+                <span />
+              )}
             </li>
           );
         })}

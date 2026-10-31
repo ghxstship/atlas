@@ -246,7 +246,33 @@
       "asset_units": "Asset units",
       "purchase_orders": "Purchase orders",
       "invoices": "Invoices",
-      "incidents": "Incidents"
+      "incidents": "Incidents",
+      "cues": "Cues"
+    },
+    "colors": {
+      "none": "No color",
+      "cat-1": "Orange",
+      "cat-2": "Sky blue",
+      "cat-3": "Green",
+      "cat-4": "Yellow",
+      "cat-5": "Blue",
+      "cat-6": "Vermillion",
+      "cat-7": "Purple"
+    },
+    "choiceColor": "Color",
+    "choiceColorHelp": "Optional. The label always shows beside the color.",
+    "choiceWithColor": "{label} ({color})",
+    "audienceList": "For: {audiences}",
+    "audiencesFor": "Who {label} is for",
+    "audiencesLabel": "Shown to",
+    "audiencesHelp": "Crew sees it in Atlas. Showcaller shows it on showcaller links. Client shows it in Gateway.",
+    "audiencesCrewOnly": "Person, Money and Email fields stay with the crew: showcaller links and Clients never see them.",
+    "audiencesSave": "Save audiences",
+    "audiences": {
+      "Crew": "Crew",
+      "Showcaller": "Showcaller",
+      "Client": "Client",
+      "none": "nobody yet"
     }
   },
   "canon": {

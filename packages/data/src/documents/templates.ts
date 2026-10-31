@@ -1,4 +1,5 @@
 import { credentialStatus, type IssuedCredential } from "../credentials.ts";
+import type { RadioHandoutLine } from "../allocations.ts";
 import type { ChangeOrder, ChangeOrderLine, Invoice, InvoiceLine } from "../finance.ts";
 import type { BeoDetail } from "../hospitality.ts";
 import type { Incident, IncidentTransition } from "../incidents.ts";
@@ -6,12 +7,13 @@ import type { AgreementDetail } from "../people.ts";
 import type { PoLine, PurchaseOrder, PurchaseOrderTotals } from "../procurement.ts";
 import type { FinalCostReport, FinalCostRow } from "../reports.ts";
 import type { Inspection, InspectionItem } from "../safety-permits.ts";
-import type { Call, CallSheet, Cue, DaySheet, RunOfShow } from "../show.ts";
+import { callLines, CUE_CALL_SLUGS } from "../cue-calls.ts";
+import type { Call, CallSheet, Cue, CueCall, DaySheet, RunOfShow } from "../show.ts";
 import type { Formatter, Translate } from "./format.ts";
 import type { DocumentBlock, DocumentKind } from "./model.ts";
 
 /**
- * Versioned templates for the twelve Section 11.9 documents (ADR 0031). Each kind keeps every
+ * Versioned templates for the twelve Section 11.9 documents and the radio hand-out (ADR 0031). Each kind keeps every
  * version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
@@ -55,6 +57,8 @@ export interface DocumentDataMap {
     readonly project: DocumentProject;
     readonly run: RunOfShow;
     readonly cues: readonly Cue[];
+    /** The cues' department calls (internal only; an external reader gets none). Read from version 2. */
+    readonly calls?: readonly CueCall[];
   };
   beo: { readonly project: DocumentProject; readonly beo: BeoDetail };
   "credential-badge": { readonly project: DocumentProject; readonly credential: IssuedCredential };
@@ -78,6 +82,11 @@ export interface DocumentDataMap {
   "agreement-certificate": {
     readonly project: DocumentProject | null;
     readonly agreement: AgreementDetail;
+  };
+  /** A project's radio allocations, sorted by party then person (R7, G-91). */
+  "radio-handout": {
+    readonly project: DocumentProject;
+    readonly lines: readonly RadioHandoutLine[];
   };
 }
 
@@ -171,6 +180,10 @@ export const DESCRIBE: {
     recordKey: keyed(d.project?.key ?? "", `AGR-${d.agreement.id.slice(0, 8)}`),
     issuedAt: d.agreement.signedAt ?? d.agreement.createdAt,
   }),
+  "radio-handout": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, "RADIOS"),
+    issuedAt: generatedAt.toISOString(),
+  }),
 };
 
 const field = (label: string, value: string) => ({ label, value });
@@ -194,6 +207,11 @@ function lineColumns(t: Translate) {
 }
 
 const V1 = "2026-01-01T00:00:00Z";
+/**
+ * Run of show version 2 (ADR 0131): TBC planned times, department calls and the curfew. It takes effect on the day
+ * the release carrying it reaches production (00:00Z), which is set here when the release is cut.
+ */
+const RUN_OF_SHOW_V2 = "2026-10-31T00:00:00Z";
 
 export const TEMPLATES: TemplateRegistry = {
   "purchase-order": [
@@ -482,6 +500,65 @@ export const TEMPLATES: TemplateRegistry = {
               f.duration(c.durationSeconds),
               c.calledAt ? f.time(c.calledAt) : t("runOfShow.notCalled"),
               c.calledByName ?? t("common.none"),
+            ]),
+            empty: t("runOfShow.noCues"),
+          },
+        ],
+      }),
+    },
+    {
+      version: 2,
+      effectiveFrom: RUN_OF_SHOW_V2,
+      build: ({ project, run, cues, calls = [] }, { t, f }) => ({
+        title: t("runOfShow.title", { name: run.name }),
+        blocks: [
+          {
+            kind: "fields",
+            caption: t("common.details"),
+            fields: [
+              field(t("common.project"), projectLabel(project)),
+              field(t("runOfShow.showDate"), f.day(run.showDate)),
+              field(t("common.timeZone"), f.timeZone),
+              ...(run.curfewAt ? [field(t("runOfShow.curfew"), f.dateTime(run.curfewAt))] : []),
+              field(
+                t("runOfShow.progress"),
+                t("runOfShow.called", { called: run.calledCount, count: run.cueCount }),
+              ),
+            ],
+          },
+          {
+            kind: "table",
+            caption: t("runOfShow.cues"),
+            columns: [
+              { label: t("common.lineNumber"), numeric: true, weight: 0.5 },
+              { label: t("runOfShow.cue"), weight: 2.4 },
+              { label: t("runOfShow.plannedAt"), weight: 1.2 },
+              { label: t("runOfShow.duration"), numeric: true },
+              { label: t("runOfShow.departmentCalls"), weight: 3 },
+              { label: t("runOfShow.calledAt"), weight: 1.2 },
+              { label: t("runOfShow.calledBy"), weight: 1.6 },
+            ],
+            rows: cues.map((c, i) => [
+              String(i + 1),
+              c.label,
+              c.startTbc && c.plannedAt ? t("runOfShow.tbc") : f.time(c.plannedAt),
+              f.duration(c.durationSeconds),
+              callLines(
+                calls.filter((call) => call.cueId === c.id),
+                null,
+              )
+                .map((line) =>
+                  t("runOfShow.departmentCall", {
+                    department: t(`runOfShow.departments.${CUE_CALL_SLUGS[line.kind]}`),
+                    instruction: line.instruction,
+                  }),
+                )
+                .join("\n"),
+              c.calledAt ? f.time(c.calledAt) : t("runOfShow.notCalled"),
+              // A cue called through a showcaller link has no person (ADR 0142): name the link's caller.
+              c.calledViaLink
+                ? t("runOfShow.calledViaLink", { caller: c.calledViaLink })
+                : (c.calledByName ?? t("common.none")),
             ]),
             empty: t("runOfShow.noCues"),
           },
@@ -811,6 +888,60 @@ export const TEMPLATES: TemplateRegistry = {
           },
           { kind: "heading", text: t("agreementCertificate.text") },
           { kind: "paragraph", text: agreement.body },
+        ],
+      }),
+    },
+  ],
+  "radio-handout": [
+    {
+      version: 1,
+      effectiveFrom: V1,
+      build: ({ project, lines }, { t, f, generatedAt }) => ({
+        title: t("radioHandout.title"),
+        blocks: [
+          {
+            kind: "paragraph",
+            text: t("radioHandout.subtitle", {
+              project: projectLabel(project),
+              date: f.dateTime(generatedAt.toISOString()),
+            }),
+          },
+          {
+            kind: "table",
+            caption: t("radioHandout.title"),
+            columns: [
+              { label: t("radioHandout.person"), weight: 2 },
+              { label: t("radioHandout.party"), weight: 2 },
+              { label: t("radioHandout.radio"), weight: 1.6 },
+              { label: t("radioHandout.tags"), weight: 1.6 },
+              { label: t("radioHandout.channels"), weight: 2 },
+              { label: t("radioHandout.status"), weight: 1.2 },
+              { label: t("radioHandout.signature"), weight: 1.6 },
+              { label: t("radioHandout.returned"), weight: 1 },
+            ],
+            rows: [...lines]
+              .sort(
+                (a, b) =>
+                  a.partyName.localeCompare(b.partyName) ||
+                  a.personName.localeCompare(b.personName),
+              )
+              .map((l) => [
+                l.personName || l.partyName,
+                l.partyName,
+                l.quantity === 1 ? l.className : `${l.className} × ${f.number(l.quantity)}`,
+                l.tagsIssued.length > 0 ? l.tagsIssued.join(", ") : t("common.none"),
+                l.channelNumbers.length > 0
+                  ? l.channelNumbers
+                      .map((n, i) => (l.channelNames[i] ? `${n} ${l.channelNames[i]}` : String(n)))
+                      .join(", ")
+                  : t("common.none"),
+                t(`radioHandout.statuses.${keyOf(l.status)}`),
+                "",
+                "",
+              ]),
+            empty: t("radioHandout.empty"),
+          },
+          { kind: "paragraph", text: t("radioHandout.footer") },
         ],
       }),
     },

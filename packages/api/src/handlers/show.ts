@@ -9,6 +9,7 @@
 import { callCue, publishSheet } from "@xos/data/show";
 import { defineHandlers, ok } from "../runtime/handler.ts";
 import { notFound } from "../problem.ts";
+import { showDepthHandlers } from "./parts/show-depth.ts";
 import { from, handlersFor, run, tableResource, unwrap } from "./support/table.ts";
 
 const cues = tableResource("cues", {
@@ -35,6 +36,8 @@ export const handlers = defineHandlers("Show", {
   ...handlersFor("Show", callSheets),
   // A department's call on a cue (1180, A54-002); the cue fixes its organization, one per department.
   ...handlersFor("Show", tableResource("cueCalls")),
+  // B3 (ADR 0142): the segment library, segment copies and showcaller links.
+  ...showDepthHandlers,
 
   "cues.fire": async ({ params }, context) => {
     await cues.read(context, params.id, ["id"]);

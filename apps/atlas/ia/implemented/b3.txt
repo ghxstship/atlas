@@ -1,0 +1,2 @@
+# Hand-written Atlas pages owned by B3 (RRR-227, ADR 0142). One sitemap node id per line.
+show.segments

@@ -16,6 +16,11 @@ import {
 import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./parts/a36.ts";
 import { a79Capabilities, a79Resources } from "./parts/a79.ts";
 import { shareLinkCapabilities, shareLinkResources } from "./parts/share-links.ts";
+import { liveLinkCapabilities, liveLinkResources } from "./parts/live-links.ts";
+import {
+  cueFieldAudienceCapabilities,
+  cueFieldAudienceResources,
+} from "./parts/segment-library.ts";
 import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
 import {
   automationActions,
@@ -66,6 +71,8 @@ export const additions = defineAdditions("Platform", {
     ...a36Resources,
     ...a79Resources,
     ...shareLinkResources,
+    ...liveLinkResources,
+    ...cueFieldAudienceResources,
     ...a84Resources,
     ...automationResources,
   ],
@@ -76,6 +83,8 @@ export const additions = defineAdditions("Platform", {
     ...a36Capabilities,
     ...a79Capabilities,
     ...shareLinkCapabilities,
+    ...liveLinkCapabilities,
+    ...cueFieldAudienceCapabilities,
     ...a84Capabilities,
     ...automationCapabilities,
   },

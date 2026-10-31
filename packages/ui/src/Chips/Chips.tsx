@@ -6,6 +6,7 @@ export {
   type RecordKindChipProps,
   type PropertyChipProps,
   type TagProps,
+  type TagSwatch,
   type BadgeProps,
 } from "./Chips.types.ts";
 export { chipClass } from "./chipClass.tsx";

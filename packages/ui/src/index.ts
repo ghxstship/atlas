@@ -94,6 +94,7 @@ export {
   type RecordKindChipProps,
   type PropertyChipProps,
   type TagProps,
+  type TagSwatch,
   type BadgeProps,
 } from "./Chips/Chips.tsx";
 export {

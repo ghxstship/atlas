@@ -29,7 +29,11 @@
       "general": "General",
       "go": "Ir a",
       "lists": "Listas",
-      "inbox": "Bandeja de entrada"
+      "inbox": "Bandeja de entrada",
+      "show": "Llamado del show",
+      "showDeck": "Llamado del show: Stream Deck",
+      "record": "Registros",
+      "view": "Vistas"
     },
     "command": "Abrir el menú de comandos",
     "search": "Buscar páginas y ajustes",
@@ -82,7 +86,42 @@
     "selectRange": "Seleccionar las filas desde la última seleccionada hasta la enfocada",
     "selectAll": "Seleccionar todas las filas cargadas",
     "menu": "Abrir las acciones de la fila enfocada",
-    "askFilter": "Filtrar en lenguaje natural"
+    "askFilter": "Filtrar en lenguaje natural",
+    "show": {
+      "go": "Llamar el cue seleccionado",
+      "next": "Pasar la espera al cue siguiente",
+      "previous": "Pasar la espera al cue anterior",
+      "standby": "Poner en espera el cue seleccionado",
+      "jump": "Saltar a un cue",
+      "nudgeLater": "Retrasar un minuto el plan restante",
+      "nudgeEarlier": "Adelantar un minuto el plan restante",
+      "department": "Mostrar las llamadas del siguiente departamento",
+      "chat": "Ir al cuadro de mensaje del canal del show"
+    },
+    "record": {
+      "state": "Cambiar el estado",
+      "assign": "Asignar un responsable",
+      "comment": "Agregar un comentario",
+      "editTitle": "Editar el título",
+      "open": "Abrir la página completa",
+      "copyLink": "Copiar el enlace",
+      "trash": "Mover a la papelera"
+    },
+    "view": {
+      "switch": "Cambiar de vista",
+      "filters": "Abrir los filtros",
+      "save": "Guardar la vista",
+      "export": "Exportar la vista"
+    },
+    "keyNames": {
+      "Escape": "Esc",
+      "Enter": "Enter",
+      "Space": "Espacio",
+      "Backspace": "Retroceso",
+      "Delete": "Suprimir",
+      "Home": "Inicio",
+      "End": "Fin"
+    }
   },
   "whatsNew": {
     "title": "Novedades",
@@ -247,7 +286,19 @@
   "gateway": {
     "general": "En todo Gateway",
     "shortcuts": {
-      "search": "Buscar en Gateway"
+      "search": "Buscar en Gateway",
+      "account": "Abrir el menú de la cuenta",
+      "switchOrg": "Cambiar de organización",
+      "go": {
+        "home": "Ir a Inicio",
+        "explore": "Ir a Explorar",
+        "work": "Ir a Trabajo",
+        "money": "Ir a Dinero",
+        "messages": "Ir a Mensajes",
+        "profile": "Ir a Perfil",
+        "documents": "Ir a Documentos",
+        "settings": "Ir a Configuración"
+      }
     },
     "whatsNew": {
       "contextual-help": {

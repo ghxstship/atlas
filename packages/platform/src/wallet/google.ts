@@ -72,12 +72,16 @@ function text(language: string, value: string) {
   return { defaultValue: { language, value } };
 }
 
-/** The Generic object and class for a pass. */
+/**
+ * The Generic object and class for a pass. Google Wallet fetches the logo itself, so it takes the public URL of the
+ * org's logo (A140), when it is a PNG.
+ */
 export function genericObject(
   pass: WalletPass,
   config: GoogleWalletConfig,
   labels: WalletLabels,
   language: string,
+  logoUrl: string | null = null,
 ): { object: Record<string, unknown>; classId: string } {
   const classId = `${config.issuerId}.xos_compass_${pass.kind}`;
   const modules = [
@@ -97,6 +101,14 @@ export function genericObject(
       header: text(language, pass.kind === "credential" ? pass.holderName : pass.title),
       subheader: text(language, pass.kind === "credential" ? pass.title : pass.holderName),
       hexBackgroundColor: passBackground(pass.accentHex),
+      ...(logoUrl
+        ? {
+            logo: {
+              sourceUri: { uri: logoUrl },
+              contentDescription: text(language, pass.orgName),
+            },
+          }
+        : {}),
       ...(pass.barcode
         ? {
             barcode: {
@@ -123,9 +135,10 @@ export async function googleSaveUrl(
   language: string,
   signer: JwtSigner,
   now: () => number = Date.now,
+  logoUrl: string | null = null,
 ): Promise<string> {
   if (!signer.configured) throw new Error("The Google Wallet signer is not configured.");
-  const { object, classId } = genericObject(pass, config, labels, language);
+  const { object, classId } = genericObject(pass, config, labels, language, logoUrl);
   const jwt = await signer.sign({
     iss: config.serviceAccountEmail,
     aud: "google",

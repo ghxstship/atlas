@@ -66,6 +66,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
+      { t: "h2", v: "Allocations" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Allocations say what each party and person is given for a production: badges, parking passes, radios and carts, catering, rooms, trips and per diems. A coordinator requests one for a party's pool or for one person; a reviewer who did not request it approves or declines it. Approving equipment holds it from class stock, a lot or the order it arrives on, and the dialog shows how many are available for those dates and how much of the allowance remains. Split a party's pool to its people, then issue each item: issuing confirms the person has it. The status reads held, ordered, received, issued and returned from the rows that record them. Holds that no longer fit what can supply them show in a banner. Radio allocations take channels, and Print radio hand-out gives the sheet people sign.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -751,6 +771,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "You can undo the whole batch for 7 days." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Instead of a file you can paste rows copied from Excel, Google Sheets or Shoflo, header row first. A preview shows the first rows as they will be read. While you map the columns, each one shows its first values, and a preview lays the first rows out by your choices.",
+          },
+        ],
+      },
+      { t: "h2", v: "Import a rundown" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a running order and choose Import cues, or choose Run of show cues on the import page and pick the running order. The rows become cues of that running order only.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "A cue number such as 12, Q12 or CUE-07 sets the cue's position. Fractions such as 12.5 are refused.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Rows without a cue number are added after the highest cue, in the order of the sheet, once the numbered rows are in.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Times such as 19:30 or 7:30 PM are read on the show date, in the project's time zone. Durations are minutes, m:ss or h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importing the same rundown again updates the cues it matches, by cue number or, without one, by cue and time. It never adds them twice, and it never changes a cue that was already called.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Two rows with the same cue number in one sheet are refused as repeats.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Import a guest list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a project's guest list and choose Import guests, or choose Guest list on the import page and pick the project.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Every imported guest is added as Requested. An import never approves, declines or checks in a guest.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "A guest already on the list under the same name for the same show is updated instead of added. A similar name, or the same name for another show, waits for you to decide: merge into the guest on the list, or keep them separate. Nothing merges on its own.",
+            },
+          ],
+          [{ t: "text", v: "A merge keeps the guest's name and show." }],
+          [
+            {
+              t: "text",
+              v: "Neither the person who uploaded the list nor the person who committed it may approve or decline those guests. Another reviewer decides them.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Undo removes the cues and guests the batch added and restores the ones it changed, for 7 days. A cue called or a guest decided or checked in after the import is kept, and the batch says why.",
+          },
+        ],
+      },
       { t: "h2", v: "Trash" },
       {
         t: "p",
@@ -866,7 +983,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you.",
+            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you. The lists below show the default keys; Mod is Cmd on a Mac and Ctrl elsewhere.",
           },
         ],
       },
@@ -876,66 +993,140 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            { t: "text", v: " or " },
+            { t: "text", v: ": Open the command menu" },
+          ],
+          [
             { t: "strong", v: "/" },
-            {
-              t: "text",
-              v: " opens the command menu. It shows the keys for each section next to its name.",
-            },
+            { t: "text", v: ": Search pages and settings" },
           ],
           [
             { t: "strong", v: "C" },
-            {
-              t: "text",
-              v: " opens the Create menu. What you create on the page you are on comes first, so ",
-            },
-            { t: "strong", v: "C" },
-            { t: "text", v: " then " },
-            { t: "strong", v: "Enter" },
-            { t: "text", v: " starts it." },
-          ],
-          [
-            { t: "strong", v: "G" },
-            { t: "text", v: ", then a letter, goes to a section: " },
-            { t: "strong", v: "G H" },
-            { t: "text", v: " Home, " },
-            { t: "strong", v: "G I" },
-            { t: "text", v: " Inbox, " },
-            { t: "strong", v: "G M" },
-            { t: "text", v: " My Work, " },
-            { t: "strong", v: "G P" },
-            { t: "text", v: " Projects, " },
-            { t: "strong", v: "G F" },
-            { t: "text", v: " Finance and more. After " },
-            { t: "strong", v: "G" },
-            { t: "text", v: ", a hint lists the letters; " },
-            { t: "strong", v: "Esc" },
-            { t: "text", v: " cancels." },
+            { t: "text", v: ": Create something new" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: " opens help for the page you are on." },
-          ],
-          [
-            { t: "strong", v: "Mod+J" },
-            { t: "text", v: " asks Aurora, when your organization has turned it on." },
+            { t: "text", v: ": Open help for this page" },
           ],
           [
             { t: "strong", v: "Mod+." },
-            { t: "text", v: " turns focus mode on and off." },
+            { t: "text", v: ": Turn focus mode on or off" },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: ": Ask Aurora" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: " closes the open menu, dialog or side peek." },
+            { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
           ],
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Shortcuts never act while you type in a field, except the ones with " },
+          {
+            t: "text",
+            v: "The command menu shows the keys for each section next to its name, and the Create menu puts what you create on the page you are on first, so Enter starts it. Shortcuts never act while you type in a field, except the ones with ",
+          },
           { t: "strong", v: "Mod" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Go to a section" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each is two keys, one after the other. After the first, a hint lists the keys that can follow; ",
+          },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cancels." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Go to Inbox" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Go to My Work" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Go to Projects" },
+          ],
+          [
+            { t: "strong", v: "G S" },
+            { t: "text", v: ": Go to Schedule" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Go to Work" },
+          ],
+          [
+            { t: "strong", v: "G O" },
+            { t: "text", v: ": Go to Show" },
+          ],
+          [
+            { t: "strong", v: "G A" },
+            { t: "text", v: ": Go to Advancing" },
+          ],
+          [
+            { t: "strong", v: "G L" },
+            { t: "text", v: ": Go to Logistics" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Go to People" },
+          ],
+          [
+            { t: "strong", v: "G C" },
+            { t: "text", v: ": Go to Crew" },
+          ],
+          [
+            { t: "strong", v: "G F" },
+            { t: "text", v: ": Go to Finance" },
+          ],
+          [
+            { t: "strong", v: "G B" },
+            { t: "text", v: ": Go to Procurement" },
+          ],
+          [
+            { t: "strong", v: "G V" },
+            { t: "text", v: ": Go to Vendors" },
+          ],
+          [
+            { t: "strong", v: "G K" },
+            { t: "text", v: ": Go to Knowledge" },
+          ],
+          [
+            { t: "strong", v: "G R" },
+            { t: "text", v: ": Go to Reports" },
+          ],
+          [
+            { t: "strong", v: "G Y" },
+            { t: "text", v: ": Go to Activity" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Go to Settings" },
+          ],
         ],
       },
       { t: "h2", v: "In lists and tables" },
@@ -944,26 +1135,146 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "J" },
-            { t: "text", v: " and " },
+            { t: "text", v: ": Next row" },
+          ],
+          [
             { t: "strong", v: "K" },
-            { t: "text", v: ", or the arrow keys, move between rows." },
+            { t: "text", v: ": Previous row" },
           ],
           [
             { t: "strong", v: "Enter" },
-            { t: "text", v: " opens the focused record in the side peek." },
+            { t: "text", v: ": Open the focused record" },
           ],
           [
             { t: "strong", v: "X" },
-            {
-              t: "text",
-              v: " selects the focused row. The bulk action bar appears with the actions every selected row allows.",
-            },
+            { t: "text", v: ": Select the focused row" },
           ],
           [
-            { t: "strong", v: "Home" },
-            { t: "text", v: " and " },
-            { t: "strong", v: "End" },
-            { t: "text", v: " jump to the first and last row." },
+            { t: "strong", v: "Shift+X" },
+            { t: "text", v: ": Select the rows from the last selected one to the focused one" },
+          ],
+          [
+            { t: "strong", v: "Mod+A" },
+            { t: "text", v: ": Select every loaded row" },
+          ],
+          [
+            { t: "strong", v: "Shift+F10" },
+            { t: "text", v: ": Open the focused row's actions" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The arrow keys also move between rows, and " },
+          { t: "strong", v: "Home" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "End" },
+          {
+            t: "text",
+            v: " jump to the first and last row. Selecting rows shows the bulk action bar with the actions every selected row allows.",
+          },
+        ],
+      },
+      { t: "h2", v: "On a record" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work on a record's full page and in the side peek, while focus is in the record.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Change the state" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Assign an owner" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Add a comment" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Edit the title" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Open the full page" },
+          ],
+          [
+            { t: "strong", v: "L" },
+            { t: "text", v: ": Copy the link" },
+          ],
+          [
+            { t: "strong", v: "Mod+Backspace" },
+            { t: "text", v: ": Move to Trash" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A key does nothing on a record that does not offer its action to you." },
+        ],
+      },
+      { t: "h2", v: "In a view" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work on a collection while focus is in it: its view switcher, its filters, your saved views and export.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "V" },
+            { t: "text", v: ": Switch the view" },
+          ],
+          [
+            { t: "strong", v: "F" },
+            { t: "text", v: ": Open the filters" },
+          ],
+          [
+            { t: "strong", v: "Shift+S" },
+            { t: "text", v: ": Save the view" },
+          ],
+          [
+            { t: "strong", v: "Shift+E" },
+            { t: "text", v: ": Export the view" },
+          ],
+        ],
+      },
+      { t: "h2", v: "In the Inbox" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Approve the focused item" },
+          ],
+          [
+            { t: "strong", v: "R" },
+            { t: "text", v: ": Reject the focused item with a reason" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Mark the focused item done" },
+          ],
+          [
+            { t: "strong", v: "H" },
+            { t: "text", v: ": Snooze the focused item until tomorrow" },
           ],
         ],
       },
@@ -978,6 +1289,124 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " to drop it, and " },
           { t: "strong", v: "Esc" },
           { t: "text", v: " to put it back." },
+        ],
+      },
+      { t: "h2", v: "In the showcaller console" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "While you call a show live, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " puts the selected cue on standby, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps to a cue, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge the remaining plan by a minute and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department. " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list calls the cue. A Stream Deck sends " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, Standby, Previous, Next, Nudge later, Nudge earlier, Jump and Department); set each key to a ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The show channel beside the running cue answers " },
+          { t: "strong", v: "M" },
+          { t: "text", v: ", which moves to its message box." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Space" },
+            { t: "text", v: ": Call the selected cue" },
+          ],
+          [
+            { t: "strong", v: "J" },
+            { t: "text", v: ": Move the standby to the next cue" },
+          ],
+          [
+            { t: "strong", v: "K" },
+            { t: "text", v: ": Move the standby to the previous cue" },
+          ],
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Put the selected cue on standby" },
+          ],
+          [
+            { t: "strong", v: "T" },
+            { t: "text", v: ": Jump to a cue" },
+          ],
+          [
+            { t: "strong", v: "]" },
+            { t: "text", v: ": Nudge the remaining plan one minute later" },
+          ],
+          [
+            { t: "strong", v: "[" },
+            { t: "text", v: ": Nudge the remaining plan one minute earlier" },
+          ],
+          [
+            { t: "strong", v: "D" },
+            { t: "text", v: ": Show the next department's calls" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Focus the show channel message box" },
+          ],
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "F13" },
+            { t: "text", v: ": Call the selected cue" },
+          ],
+          [
+            { t: "strong", v: "F14" },
+            { t: "text", v: ": Put the selected cue on standby" },
+          ],
+          [
+            { t: "strong", v: "F15" },
+            { t: "text", v: ": Move the standby to the previous cue" },
+          ],
+          [
+            { t: "strong", v: "F16" },
+            { t: "text", v: ": Move the standby to the next cue" },
+          ],
+          [
+            { t: "strong", v: "F17" },
+            { t: "text", v: ": Nudge the remaining plan one minute later" },
+          ],
+          [
+            { t: "strong", v: "F18" },
+            { t: "text", v: ": Nudge the remaining plan one minute earlier" },
+          ],
+          [
+            { t: "strong", v: "F19" },
+            { t: "text", v: ": Jump to a cue" },
+          ],
+          [
+            { t: "strong", v: "F20" },
+            { t: "text", v: ": Show the next department's calls" },
+          ],
         ],
       },
       { t: "h2", v: "Make the keys your own" },
@@ -995,13 +1424,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Reset" },
           { t: "text", v: " brings back the default. Turn off " },
           { t: "strong", v: "Keyboard shortcuts" },
-          { t: "text", v: " there to stop every shortcut without " },
+          { t: "text", v: " there to stop every character-key shortcut without " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " or " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; function keys " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " to " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " keep working, since they type no character." },
         ],
       },
       {
@@ -1670,6 +2103,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Share a view live" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A saved Schedule, Show, Run of show or Day sheets view can be shared with people who have no account, such as a venue or a vendor.",
+          },
+        ],
+      },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Open the saved view, then choose " },
+            { t: "strong", v: "Share live" },
+            { t: "text", v: " in the Saved views menu." },
+          ],
+          [
+            {
+              t: "text",
+              v: "On an organization page, pick the project the link shows. Pick when the link expires, at most 90 days ahead, and add a note for your team if you like.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Copy the link and the 6-digit access code. They are shown only once; send the code separately from the link.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The person opens the link, enters the code once on their device, and sees the view update while they watch. The page shows only the columns a public page may show: never owners, accountable people, blockers, notes, costs or custom fields. A view that filters, sorts or groups by anything else cannot be shared live, and a link stops when its view is deleted or changed that way, or when you lose access to the project.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Regenerate" },
+          {
+            t: "text",
+            v: " gives the link a new address and code, and every device must enter the new code. ",
+          },
+          { t: "strong", v: "Revoke" },
+          {
+            t: "text",
+            v: " stops it for good. Five wrong codes lock a link; regenerate it to open it again.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1969,6 +2458,345 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "The run of show is the ordered list of segments and cues for a show. Build it ahead of time, then run it live: the current cue advances in real time for everyone watching, in Atlas and in Compass.",
           },
+        ],
+      },
+      { t: "h3", v: "Build the running order" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Add each cue with its planned time and length. When a time is still an estimate, check ",
+            },
+            { t: "strong", v: "Time to be confirmed" },
+            { t: "text", v: ": Atlas shows " },
+            { t: "strong", v: "TBC · est." },
+            { t: "text", v: " with the estimate, Compass, Gateway and the PDF show " },
+            { t: "strong", v: "TBC" },
+            {
+              t: "text",
+              v: ", and calendar subscriptions mark it tentative. Records offer the same box, ",
+            },
+            { t: "strong", v: "Start time to be confirmed" },
+            { t: "text", v: ", beside " },
+            { t: "strong", v: "Starts" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Choose the pencil on a cue to edit it in place: label, time, length and one call for each department (Audio, Lighting, Video, Special Effects and Stage). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancels." },
+          ],
+          [
+            { t: "text", v: "Use the arrows to move a cue one place, or " },
+            { t: "strong", v: "Move to position…" },
+            {
+              t: "text",
+              v: " to put it anywhere after the last called cue in one step. Called cues keep their places, and the cues are renumbered 1, 2, 3 after a move.",
+            },
+          ],
+          [
+            { t: "text", v: "Choose a " },
+            { t: "strong", v: "Department" },
+            {
+              t: "text",
+              v: " to see only that department's calls. Cues that have one are marked; the others say there is no call. The choice stays in the page address, so you can share it.",
+            },
+          ],
+          [
+            { t: "text", v: "Set a " },
+            { t: "strong", v: "Curfew" },
+            { t: "text", v: " in the details when the show has a hard stop." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Call the show" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Run live" },
+          {
+            t: "text",
+            v: ". If you may call cues, the showcaller console opens with the show clock, the time of day, how far the show runs behind or ahead of the plan and, when a curfew is set, the projected end against it.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Call next cue" },
+            { t: "text", v: " calls the cue on standby, or else the next cue. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " calls the cue you selected." },
+          ],
+          [
+            { t: "strong", v: "Standby" },
+            {
+              t: "text",
+              v: " puts the selected cue on standby; everyone following sees it within a second or two. ",
+            },
+            { t: "strong", v: "Previous cue" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Next cue" },
+            { t: "text", v: " move the standby, and " },
+            { t: "strong", v: "Jump to cue" },
+            { t: "text", v: " picks any uncalled cue. Cues you jump past are marked " },
+            { t: "strong", v: "Skipped" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Nudge −1 min" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Nudge +1 min" },
+            { t: "text", v: " move every remaining planned time." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "With focus in the console, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move the standby, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " stands by, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " jumps, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " nudge and " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " changes the department; " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " on the cue list goes." },
+        ],
+      },
+      { t: "h3", v: "Set Stream Deck Hotkey actions to F13 to F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Give each Stream Deck key a " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: " action: " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " Standby, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Previous cue, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Next cue, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Nudge +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Nudge −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Jump to cue and " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Department. They work while the console has focus, even with single-key shortcuts turned off, and you can change them in ",
+          },
+          { t: "strong", v: "Me, Keyboard shortcuts" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h3", v: "Display screens" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Put the running order on any TV or laptop with no sign-in. Open the running order, choose ",
+          },
+          { t: "strong", v: "Display screens" },
+          {
+            t: "text",
+            v: ", pick the mode the screen opens in and when the link expires (by default the end of the day after the show), and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Room clock" },
+            { t: "text", v: " shows the local time, the running cue and its time left." },
+          ],
+          [
+            { t: "strong", v: "Presenter timer" },
+            { t: "text", v: " counts the current cue down, or up when it has no duration." },
+          ],
+          [
+            { t: "strong", v: "Backstage" },
+            {
+              t: "text",
+              v: " shows the cue on now, the next cue with its planned time, the three after it, and whether the show is running late.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When a cue runs past its duration the timer turns red and reads " },
+          { t: "strong", v: "Over by" },
+          {
+            t: "text",
+            v: " the time, until the next cue is called. On the screen, keys 1, 2 and 3 switch modes, ",
+          },
+          { t: "strong", v: "Open in new window" },
+          { t: "text", v: " pops the screen out to a second display, and " },
+          { t: "strong", v: "Fullscreen" },
+          {
+            t: "text",
+            v: " fills the screen. The screen follows cues within a few seconds of them being called. Revoke the link to take it off every screen.",
+          },
+        ],
+      },
+      { t: "h3", v: "Cue fields and colors" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Add your own columns to cues in " },
+          { t: "strong", v: "Settings, Custom fields" },
+          { t: "text", v: ": choose " },
+          { t: "strong", v: "Cues" },
+          { t: "text", v: " as the table, then a type. A " },
+          { t: "strong", v: "Choice" },
+          {
+            t: "text",
+            v: " field can give each option one of seven colors; the option's name always shows beside its color. For each cue field, choose who it is for: ",
+          },
+          { t: "strong", v: "Crew" },
+          { t: "text", v: " sees it in Atlas, " },
+          { t: "strong", v: "Showcaller" },
+          { t: "text", v: " shows it on showcaller links, and " },
+          { t: "strong", v: "Client" },
+          {
+            t: "text",
+            v: " shows it in Gateway to a Client engaged on the project. Every new cue field starts with Crew. Person, Money and Email fields stay with the crew. Crew is a display choice: members still see every value their access allows.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Fill the fields in the cue editor. The editor also holds the cue's " },
+          { t: "strong", v: "Segment" },
+          { t: "text", v: " and its " },
+          { t: "strong", v: "Segment color" },
+          { t: "text", v: ", which colors the whole segment at once, the " },
+          { t: "strong", v: "Description" },
+          { t: "text", v: ", and the " },
+          { t: "strong", v: "Script" },
+          {
+            t: "text",
+            v: ", up to 20,000 characters. In live mode the running cue shows its segment color and a ",
+          },
+          { t: "strong", v: "Script" },
+          { t: "text", v: " you can open." },
+        ],
+      },
+      { t: "h3", v: "Segment library" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Keep blocks you run in many shows, such as a walk-in, an awards block or a sponsor moment, in ",
+          },
+          { t: "strong", v: "Show, Segment library" },
+          {
+            t: "text",
+            v: ": each segment has a name, a color, a description and cues with their department calls. To use one, open a running order and choose ",
+          },
+          { t: "strong", v: "Insert segment" },
+          {
+            t: "text",
+            v: ": pick the segment, where it goes (after the last called cue) and, if you like, the time it starts. The copies are yours to edit in that running order.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When you change a library segment, it shows " },
+          { t: "strong", v: "Library updated" },
+          { t: "text", v: ". Choose the shows to update under " },
+          { t: "strong", v: "Publish to shows" },
+          {
+            t: "text",
+            v: ": in each, the segment's uncalled cues are replaced with the current version, and local edits to those cues, their custom field values included, are lost. Shows where a cue of the segment was called (",
+          },
+          { t: "strong", v: "Has called cues" },
+          { t: "text", v: ") or is an artist's set time (" },
+          { t: "strong", v: "Has set times" },
+          { t: "text", v: ") are left as they are." },
+        ],
+      },
+      { t: "h3", v: "Show channel" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "In live mode, the show channel sits beside the running cue: the project's crew chat, which Clients are never in. Choose ",
+          },
+          { t: "strong", v: "Open the show channel" },
+          {
+            t: "text",
+            v: " the first time (it needs permission to edit the run of show) and the project's members join it; others choose ",
+          },
+          { t: "strong", v: "Join the show channel" },
+          { t: "text", v: ". New messages appear as they are sent, and " },
+          { t: "strong", v: "M" },
+          { t: "text", v: " moves to the message box from the console." },
+        ],
+      },
+      { t: "h3", v: "Showcaller links" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Let someone without an XOS account call the show. Open the running order, choose ",
+          },
+          { t: "strong", v: "Showcaller links" },
+          {
+            t: "text",
+            v: ", name the showcaller, pick when the link expires (by default the end of the day after the show, at most 14 days) and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show and to call cues.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Anyone with the link and code can call cues and edit this running order until it expires: call, standby, nudge, move, add, edit and remove uncalled cues, and change department calls. They never reach another running order. A cue they call reads ",
+          },
+          { t: "strong", v: "Called by" },
+          { t: "text", v: " their name " },
+          { t: "strong", v: "through a showcaller link" },
+          { t: "text", v: ". A link works on up to 5 devices; " },
+          { t: "strong", v: "Sign out devices" },
+          { t: "text", v: " makes every device enter the code again, " },
+          { t: "strong", v: "Regenerate" },
+          { t: "text", v: " gives a new link and code, and " },
+          { t: "strong", v: "Revoke" },
+          { t: "text", v: " stops it for good. On the link, " },
+          { t: "strong", v: "Open clock" },
+          { t: "text", v: " pops out a room clock and presenter timer." },
         ],
       },
       { t: "h2", v: "Day sheets" },
@@ -2272,6 +3100,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Asignaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
           },
         ],
       },
@@ -2973,6 +3821,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "Puede deshacer el lote completo durante 7 días." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En lugar de un archivo puede pegar filas copiadas de Excel, Google Sheets o Shoflo, con la fila de encabezados primero. Una vista previa muestra las primeras filas tal como se leerán. Mientras asocia las columnas, cada una muestra sus primeros valores y una vista previa ordena las primeras filas según sus opciones.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar una escaleta" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra una escaleta y elija Importar cues, o elija Cues de la escaleta en la página de importación y seleccione la escaleta. Las filas se convierten en cues de esa escaleta solamente.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Un número de cue como 12, Q12 o CUE-07 fija la posición del cue. Las fracciones como 12.5 se rechazan.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las filas sin número de cue se agregan después del cue más alto, en el orden de la hoja, una vez que entran las filas numeradas.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las horas como 19:30 o 7:30 PM se leen en la fecha del show, en la zona horaria del proyecto. Las duraciones van en minutos, m:ss o h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importar la misma escaleta otra vez actualiza los cues que coinciden, por número de cue o, sin él, por cue y hora. Nunca los agrega dos veces y nunca cambia un cue que ya se dio.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Dos filas con el mismo número de cue en una hoja se rechazan como repetidas.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Importar una lista de invitados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra la lista de invitados de un proyecto y elija Importar invitados, o elija Lista de invitados en la página de importación y seleccione el proyecto.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Cada invitado importado se agrega como Solicitado. Una importación nunca aprueba, rechaza ni registra la llegada de un invitado.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Un invitado que ya está en la lista con el mismo nombre para el mismo show se actualiza en lugar de agregarse. Un nombre parecido, o el mismo nombre para otro show, espera su decisión: combinarlo con el invitado de la lista o mantenerlos separados. Nada se combina solo.",
+            },
+          ],
+          [{ t: "text", v: "Una combinación conserva el nombre y el show del invitado." }],
+          [
+            {
+              t: "text",
+              v: "Ni la persona que subió la lista ni la persona que la confirmó pueden aprobar o rechazar esos invitados. Los decide otro revisor.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Deshacer quita los cues e invitados que agregó el lote y restaura los que cambió, durante 7 días. Un cue dado, o un invitado decidido o registrado después de la importación, se conserva, y el lote indica por qué.",
+          },
+        ],
+      },
       { t: "h2", v: "Papelera" },
       {
         t: "p",
@@ -3088,7 +4033,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted.",
+            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted. Las listas siguientes muestran las teclas predeterminadas; Mod es Cmd en una Mac y Ctrl en los demás equipos.",
           },
         ],
       },
@@ -3098,57 +4043,39 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            { t: "text", v: " o " },
+            { t: "text", v: ": Abrir el menú de comandos" },
+          ],
+          [
             { t: "strong", v: "/" },
-            {
-              t: "text",
-              v: " abre el menú de comandos. Junto al nombre de cada sección muestra sus teclas.",
-            },
+            { t: "text", v: ": Buscar páginas y ajustes" },
           ],
           [
             { t: "strong", v: "C" },
-            {
-              t: "text",
-              v: " abre el menú Crear. Lo que se crea en la página actual aparece primero, así que ",
-            },
-            { t: "strong", v: "C" },
-            { t: "text", v: " y luego " },
-            { t: "strong", v: "Enter" },
-            { t: "text", v: " lo inicia." },
-          ],
-          [
-            { t: "strong", v: "G" },
-            { t: "text", v: " y luego una letra lleva a una sección: " },
-            { t: "strong", v: "G H" },
-            { t: "text", v: " Inicio, " },
-            { t: "strong", v: "G I" },
-            { t: "text", v: " Bandeja de entrada, " },
-            { t: "strong", v: "G M" },
-            { t: "text", v: " Mi trabajo, " },
-            { t: "strong", v: "G P" },
-            { t: "text", v: " Proyectos, " },
-            { t: "strong", v: "G F" },
-            { t: "text", v: " Finanzas y más. Después de " },
-            { t: "strong", v: "G" },
-            { t: "text", v: ", una indicación muestra las letras; " },
-            { t: "strong", v: "Esc" },
-            { t: "text", v: " cancela." },
+            { t: "text", v: ": Crear algo nuevo" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: " abre la ayuda de la página actual." },
-          ],
-          [
-            { t: "strong", v: "Mod+J" },
-            { t: "text", v: " pregunta a Aurora, si su organización la activó." },
+            { t: "text", v: ": Abrir la ayuda de esta página" },
           ],
           [
             { t: "strong", v: "Mod+." },
-            { t: "text", v: " activa y desactiva el modo de enfoque." },
+            { t: "text", v: ": Activar o desactivar el modo de enfoque" },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: ": Preguntar a Aurora" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: " cierra el menú, el diálogo o el panel lateral abierto." },
+            { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
           ],
         ],
       },
@@ -3157,10 +4084,99 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
+            v: "El menú de comandos muestra las teclas de cada sección junto a su nombre, y el menú Crear pone primero lo que se crea en la página actual, así que Enter lo inicia. Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
           },
           { t: "strong", v: "Mod" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Ir a una sección" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada uno son dos teclas, una después de la otra. Después de la primera, una indicación muestra las teclas que pueden seguir; ",
+          },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cancela." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Ir a Inicio" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Ir a la Bandeja de entrada" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Ir a Mi trabajo" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Ir a Proyectos" },
+          ],
+          [
+            { t: "strong", v: "G S" },
+            { t: "text", v: ": Ir a Cronograma" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Ir a Trabajo" },
+          ],
+          [
+            { t: "strong", v: "G O" },
+            { t: "text", v: ": Ir a Show" },
+          ],
+          [
+            { t: "strong", v: "G A" },
+            { t: "text", v: ": Ir a Coordinación previa" },
+          ],
+          [
+            { t: "strong", v: "G L" },
+            { t: "text", v: ": Ir a Logística" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Ir a Personas" },
+          ],
+          [
+            { t: "strong", v: "G C" },
+            { t: "text", v: ": Ir a Equipo técnico" },
+          ],
+          [
+            { t: "strong", v: "G F" },
+            { t: "text", v: ": Ir a Finanzas" },
+          ],
+          [
+            { t: "strong", v: "G B" },
+            { t: "text", v: ": Ir a Compras" },
+          ],
+          [
+            { t: "strong", v: "G V" },
+            { t: "text", v: ": Ir a Proveedores" },
+          ],
+          [
+            { t: "strong", v: "G K" },
+            { t: "text", v: ": Ir a Conocimiento" },
+          ],
+          [
+            { t: "strong", v: "G R" },
+            { t: "text", v: ": Ir a Informes" },
+          ],
+          [
+            { t: "strong", v: "G Y" },
+            { t: "text", v: ": Ir a Actividad" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Ir a Configuración" },
+          ],
         ],
       },
       { t: "h2", v: "En listas y tablas" },
@@ -3169,26 +4185,147 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "J" },
-            { t: "text", v: " y " },
+            { t: "text", v: ": Fila siguiente" },
+          ],
+          [
             { t: "strong", v: "K" },
-            { t: "text", v: ", o las flechas, se mueven entre filas." },
+            { t: "text", v: ": Fila anterior" },
           ],
           [
             { t: "strong", v: "Enter" },
-            { t: "text", v: " abre el registro enfocado en el panel lateral." },
+            { t: "text", v: ": Abrir el registro enfocado" },
           ],
           [
             { t: "strong", v: "X" },
+            { t: "text", v: ": Seleccionar la fila enfocada" },
+          ],
+          [
+            { t: "strong", v: "Shift+X" },
             {
               t: "text",
-              v: " selecciona la fila enfocada y aparece la barra de acciones masivas.",
+              v: ": Seleccionar las filas desde la última seleccionada hasta la enfocada",
             },
           ],
           [
-            { t: "strong", v: "Inicio" },
-            { t: "text", v: " y " },
-            { t: "strong", v: "Fin" },
-            { t: "text", v: " saltan a la primera y la última fila." },
+            { t: "strong", v: "Mod+A" },
+            { t: "text", v: ": Seleccionar todas las filas cargadas" },
+          ],
+          [
+            { t: "strong", v: "Shift+F10" },
+            { t: "text", v: ": Abrir las acciones de la fila enfocada" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las flechas también se mueven entre filas, e " },
+          { t: "strong", v: "Inicio" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Fin" },
+          {
+            t: "text",
+            v: " saltan a la primera y la última fila. Al seleccionar filas aparece la barra de acciones masivas con las acciones que permiten todas las filas seleccionadas.",
+          },
+        ],
+      },
+      { t: "h2", v: "En un registro" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en la página completa de un registro y en el panel lateral, mientras el foco está en el registro.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Cambiar el estado" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Asignar un responsable" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Agregar un comentario" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Editar el título" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Abrir la página completa" },
+          ],
+          [
+            { t: "strong", v: "L" },
+            { t: "text", v: ": Copiar el enlace" },
+          ],
+          [
+            { t: "strong", v: "Mod+Retroceso" },
+            { t: "text", v: ": Mover a la papelera" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [{ t: "text", v: "Una tecla no hace nada en un registro que no le ofrece esa acción." }],
+      },
+      { t: "h2", v: "En una vista" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en una colección mientras el foco está en ella: su selector de vista, sus filtros, sus vistas guardadas y la exportación.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "V" },
+            { t: "text", v: ": Cambiar de vista" },
+          ],
+          [
+            { t: "strong", v: "F" },
+            { t: "text", v: ": Abrir los filtros" },
+          ],
+          [
+            { t: "strong", v: "Shift+S" },
+            { t: "text", v: ": Guardar la vista" },
+          ],
+          [
+            { t: "strong", v: "Shift+E" },
+            { t: "text", v: ": Exportar la vista" },
+          ],
+        ],
+      },
+      { t: "h2", v: "En la Bandeja de entrada" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Aprobar el elemento enfocado" },
+          ],
+          [
+            { t: "strong", v: "R" },
+            { t: "text", v: ": Rechazar el elemento enfocado con un motivo" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Marcar como hecho el elemento enfocado" },
+          ],
+          [
+            { t: "strong", v: "H" },
+            { t: "text", v: ": Posponer el elemento enfocado hasta mañana" },
           ],
         ],
       },
@@ -3203,6 +4340,124 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " para soltarla y " },
           { t: "strong", v: "Esc" },
           { t: "text", v: " para devolverla." },
+        ],
+      },
+      { t: "h2", v: "En la consola de llamado" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Mientras llama un espectáculo en vivo, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera la señal seleccionada, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta a una señal, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan un minuto el plan restante y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento. " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama la señal. Un Stream Deck envía " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " (Go, En espera, Anterior, Siguiente, Retrasar, Adelantar, Saltar y Departamento); asigne a cada tecla una acción ",
+          },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "El canal del show junto al cue en curso responde a " },
+          { t: "strong", v: "M" },
+          { t: "text", v: ", que lleva a su cuadro de mensaje." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Espacio" },
+            { t: "text", v: ": Llamar el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "J" },
+            { t: "text", v: ": Pasar la espera al cue siguiente" },
+          ],
+          [
+            { t: "strong", v: "K" },
+            { t: "text", v: ": Pasar la espera al cue anterior" },
+          ],
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Poner en espera el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "T" },
+            { t: "text", v: ": Saltar a un cue" },
+          ],
+          [
+            { t: "strong", v: "]" },
+            { t: "text", v: ": Retrasar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "[" },
+            { t: "text", v: ": Adelantar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "D" },
+            { t: "text", v: ": Mostrar las llamadas del siguiente departamento" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Ir al cuadro de mensaje del canal del show" },
+          ],
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "F13" },
+            { t: "text", v: ": Llamar el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "F14" },
+            { t: "text", v: ": Poner en espera el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "F15" },
+            { t: "text", v: ": Pasar la espera al cue anterior" },
+          ],
+          [
+            { t: "strong", v: "F16" },
+            { t: "text", v: ": Pasar la espera al cue siguiente" },
+          ],
+          [
+            { t: "strong", v: "F17" },
+            { t: "text", v: ": Retrasar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "F18" },
+            { t: "text", v: ": Adelantar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "F19" },
+            { t: "text", v: ": Saltar a un cue" },
+          ],
+          [
+            { t: "strong", v: "F20" },
+            { t: "text", v: ": Mostrar las llamadas del siguiente departamento" },
+          ],
         ],
       },
       { t: "h2", v: "Adapte las teclas" },
@@ -3220,13 +4475,17 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Restablecer" },
           { t: "text", v: " devuelve el valor predeterminado. Desactive allí " },
           { t: "strong", v: "Atajos de teclado" },
-          { t: "text", v: " para detener todos los atajos sin " },
+          { t: "text", v: " para detener todos los atajos de teclas de carácter sin " },
           { t: "strong", v: "Mod" },
           { t: "text", v: ", " },
           { t: "strong", v: "Ctrl" },
           { t: "text", v: " o " },
           { t: "strong", v: "Alt" },
-          { t: "text", v: "." },
+          { t: "text", v: "; las teclas de función " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " a " },
+          { t: "strong", v: "F20" },
+          { t: "text", v: " siguen funcionando, porque no escriben ningún carácter." },
         ],
       },
       {
@@ -3852,6 +5111,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Comparta una vista en vivo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una vista guardada de Calendario, Espectáculo, Guion del espectáculo u Hojas del día se puede compartir con personas sin cuenta, como un recinto o un proveedor.",
+          },
+        ],
+      },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Abra la vista guardada y elija " },
+            { t: "strong", v: "Compartir en vivo" },
+            { t: "text", v: " en el menú de vistas guardadas." },
+          ],
+          [
+            {
+              t: "text",
+              v: "En una página de la organización, elija el proyecto que muestra el enlace. Elija cuándo vence el enlace, como máximo en 90 días, y agregue una nota para su equipo si lo desea.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Copie el enlace y el código de acceso de 6 dígitos. Se muestran una sola vez; envíe el código por separado del enlace.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La persona abre el enlace, escribe el código una vez en su dispositivo y ve la vista actualizarse mientras la mira. La página muestra solo las columnas que una página pública puede mostrar: nunca responsables, personas a cargo, bloqueos, notas, costos ni campos personalizados. Una vista que filtra, ordena o agrupa por otra cosa no se puede compartir en vivo, y un enlace se detiene cuando su vista se elimina o cambia así, o cuando usted pierde acceso al proyecto.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Regenerar" },
+          {
+            t: "text",
+            v: " da al enlace una dirección y un código nuevos, y cada dispositivo debe escribir el código nuevo. ",
+          },
+          { t: "strong", v: "Revocar" },
+          {
+            t: "text",
+            v: " lo detiene para siempre. Cinco códigos incorrectos bloquean un enlace; regenérelo para abrirlo de nuevo.",
+          },
+        ],
+      },
     ],
     schedule: [
       { t: "h2", v: "Línea de tiempo" },
@@ -4146,6 +5461,354 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Es la lista ordenada de segmentos y señales de un espectáculo. Prepárela con anticipación y ejecútela en vivo: la señal actual avanza en tiempo real para todos, en Atlas y en Compass.",
           },
+        ],
+      },
+      { t: "h3", v: "Arme el orden" },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Agregue cada señal con su hora planificada y su duración. Cuando una hora todavía es una estimación, marque ",
+            },
+            { t: "strong", v: "Hora por confirmar" },
+            { t: "text", v: ": Atlas muestra " },
+            { t: "strong", v: "Por confirmar · aprox." },
+            { t: "text", v: " con la estimación, Compass, Gateway y el PDF muestran " },
+            { t: "strong", v: "Por confirmar" },
+            {
+              t: "text",
+              v: ", y las suscripciones de calendario la marcan como provisional. Los registros ofrecen la misma casilla, ",
+            },
+            { t: "strong", v: "Hora de inicio por confirmar" },
+            { t: "text", v: ", junto a " },
+            { t: "strong", v: "Inicio" },
+            { t: "text", v: "." },
+          ],
+          [
+            {
+              t: "text",
+              v: "Elija el lápiz de una señal para editarla en su lugar: nombre, hora, duración y una llamada por departamento (Audio, Iluminación, Video, Efectos especiales y Escenario). ",
+            },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancela." },
+          ],
+          [
+            { t: "text", v: "Use las flechas para mover una señal un lugar, o " },
+            { t: "strong", v: "Mover a la posición…" },
+            {
+              t: "text",
+              v: " para ponerla en cualquier lugar después de la última señal llamada en un solo paso. Las señales llamadas conservan su lugar, y las señales se numeran de nuevo 1, 2, 3 después de mover una.",
+            },
+          ],
+          [
+            { t: "text", v: "Elija un " },
+            { t: "strong", v: "Departamento" },
+            {
+              t: "text",
+              v: " para ver solo sus llamadas. Las señales que tienen una quedan marcadas; las demás indican que no hay llamada. La elección queda en la dirección de la página, así que puede compartirla.",
+            },
+          ],
+          [
+            { t: "text", v: "Fije una " },
+            { t: "strong", v: "Hora límite" },
+            { t: "text", v: " en los detalles cuando el espectáculo tenga un final obligatorio." },
+          ],
+        ],
+      },
+      { t: "h3", v: "Llame el espectáculo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elija " },
+          { t: "strong", v: "Ejecutar en vivo" },
+          {
+            t: "text",
+            v: ". Si puede llamar señales, se abre la consola de llamado con el reloj del show, la hora del día, cuánto va atrasado o adelantado frente al plan y, cuando hay hora límite, el final proyectado frente a ella.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Llamar siguiente cue" },
+            { t: "text", v: " llama la señal en espera o, si no hay, la siguiente. " },
+            { t: "strong", v: "Go" },
+            { t: "text", v: " llama la señal seleccionada." },
+          ],
+          [
+            { t: "strong", v: "En espera" },
+            {
+              t: "text",
+              v: " pone en espera la señal seleccionada; quienes siguen el show la ven en uno o dos segundos. ",
+            },
+            { t: "strong", v: "Cue anterior" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Cue siguiente" },
+            { t: "text", v: " mueven la espera, y " },
+            { t: "strong", v: "Saltar a un cue" },
+            {
+              t: "text",
+              v: " elige cualquier señal sin llamar. Las señales que salte quedan marcadas como ",
+            },
+            { t: "strong", v: "Omitido" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "strong", v: "Ajustar −1 min" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Ajustar +1 min" },
+            { t: "text", v: " mueven todas las horas planificadas que quedan." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Con el foco en la consola, " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " mueven la espera, " },
+          { t: "strong", v: "S" },
+          { t: "text", v: " pone en espera, " },
+          { t: "strong", v: "T" },
+          { t: "text", v: " salta, " },
+          { t: "strong", v: "[" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "]" },
+          { t: "text", v: " ajustan el plan y " },
+          { t: "strong", v: "D" },
+          { t: "text", v: " cambia el departamento; " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: " en la lista de señales llama." },
+        ],
+      },
+      { t: "h3", v: "Configure acciones Hotkey de Stream Deck con F13 a F20" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Asigne a cada tecla del Stream Deck una acción " },
+          { t: "strong", v: "Hotkey" },
+          { t: "text", v: ": " },
+          { t: "strong", v: "F13" },
+          { t: "text", v: " Go, " },
+          { t: "strong", v: "F14" },
+          { t: "text", v: " En espera, " },
+          { t: "strong", v: "F15" },
+          { t: "text", v: " Cue anterior, " },
+          { t: "strong", v: "F16" },
+          { t: "text", v: " Cue siguiente, " },
+          { t: "strong", v: "F17" },
+          { t: "text", v: " Ajustar +1 min, " },
+          { t: "strong", v: "F18" },
+          { t: "text", v: " Ajustar −1 min, " },
+          { t: "strong", v: "F19" },
+          { t: "text", v: " Saltar a un cue y " },
+          { t: "strong", v: "F20" },
+          {
+            t: "text",
+            v: " Departamento. Funcionan mientras la consola tiene el foco, aunque los atajos de una tecla estén desactivados, y puede cambiarlas en ",
+          },
+          { t: "strong", v: "Yo, Atajos de teclado" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h3", v: "Pantallas" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Muestre el guion en cualquier televisor o laptop sin iniciar sesión. Abra el guion, elija ",
+          },
+          { t: "strong", v: "Pantallas" },
+          {
+            t: "text",
+            v: ", elija el modo con el que abre la pantalla y cuándo vence el enlace (por defecto, al final del día siguiente al espectáculo), y copie el enlace y su código de acceso de 6 dígitos, que se muestran una sola vez. Necesita permiso para editar el guion.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Reloj de sala" },
+            { t: "text", v: " muestra la hora local, la señal en curso y el tiempo que le queda." },
+          ],
+          [
+            { t: "strong", v: "Temporizador de presentador" },
+            {
+              t: "text",
+              v: " cuenta hacia atrás la señal actual, o hacia adelante cuando no tiene duración.",
+            },
+          ],
+          [
+            { t: "strong", v: "Backstage" },
+            {
+              t: "text",
+              v: " muestra la señal en curso, la siguiente con su hora prevista, las tres que siguen y si el espectáculo va atrasado.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una señal excede su duración, el temporizador se pone rojo y dice ",
+          },
+          { t: "strong", v: "Excedido por" },
+          {
+            t: "text",
+            v: " el tiempo, hasta que se llama la siguiente señal. En la pantalla, las teclas 1, 2 y 3 cambian de modo, ",
+          },
+          { t: "strong", v: "Abrir en una ventana nueva" },
+          { t: "text", v: " lleva la pantalla a un segundo monitor y " },
+          { t: "strong", v: "Pantalla completa" },
+          {
+            t: "text",
+            v: " la llena. La pantalla sigue las señales a los pocos segundos de llamarse. Revoque el enlace para quitarlo de todas las pantallas.",
+          },
+        ],
+      },
+      { t: "h3", v: "Campos y colores de cues" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Agregue sus propias columnas a los cues en " },
+          { t: "strong", v: "Configuración, Campos personalizados" },
+          { t: "text", v: ": elija " },
+          { t: "strong", v: "Cues" },
+          { t: "text", v: " como tabla y luego un tipo. Un campo de " },
+          { t: "strong", v: "Opción" },
+          {
+            t: "text",
+            v: " puede dar a cada opción uno de siete colores; el nombre de la opción siempre se muestra junto a su color. Para cada campo de cue, elija para quién es: ",
+          },
+          { t: "strong", v: "Equipo" },
+          { t: "text", v: " lo ve en Atlas, " },
+          { t: "strong", v: "Llamado del show" },
+          { t: "text", v: " lo muestra en los enlaces de llamado y " },
+          { t: "strong", v: "Cliente" },
+          {
+            t: "text",
+            v: " lo muestra en Gateway a un cliente contratado en el proyecto. Cada campo nuevo empieza con Equipo. Los campos de Persona, Dinero y Correo quedan con el equipo. Equipo es una elección de presentación: los miembros siguen viendo cada valor que su acceso permite.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Complete los campos en el editor del cue. El editor también tiene el " },
+          { t: "strong", v: "Segmento" },
+          { t: "text", v: " del cue y su " },
+          { t: "strong", v: "Color del segmento" },
+          { t: "text", v: ", que colorea todo el segmento a la vez, la " },
+          { t: "strong", v: "Descripción" },
+          { t: "text", v: " y el " },
+          { t: "strong", v: "Guion hablado" },
+          {
+            t: "text",
+            v: ", de hasta 20.000 caracteres. En vivo, el cue en curso muestra el color de su segmento y un ",
+          },
+          { t: "strong", v: "Guion hablado" },
+          { t: "text", v: " que puede abrir." },
+        ],
+      },
+      { t: "h3", v: "Biblioteca de segmentos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Guarde los bloques que usa en muchos shows, como una entrada de público, un bloque de premios o un momento de patrocinio, en ",
+          },
+          { t: "strong", v: "Show, Biblioteca de segmentos" },
+          {
+            t: "text",
+            v: ": cada segmento tiene un nombre, un color, una descripción y cues con sus llamadas por departamento. Para usar uno, abra un guion y elija ",
+          },
+          { t: "strong", v: "Insertar segmento" },
+          {
+            t: "text",
+            v: ": elija el segmento, dónde va (después del último cue llamado) y, si quiere, la hora en que empieza. Las copias son suyas para editar en ese guion.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Cuando cambia un segmento de la biblioteca, muestra " },
+          { t: "strong", v: "Biblioteca actualizada" },
+          { t: "text", v: ". Elija los shows que actualizar en " },
+          { t: "strong", v: "Publicar en shows" },
+          {
+            t: "text",
+            v: ": en cada uno, los cues no llamados del segmento se reemplazan por la versión actual, y se pierden los cambios locales a esos cues, incluidos sus valores de campos personalizados. Los shows donde se llamó un cue del segmento (",
+          },
+          { t: "strong", v: "Tiene cues llamados" },
+          { t: "text", v: ") o uno es el horario de un artista (" },
+          { t: "strong", v: "Tiene horarios de artistas" },
+          { t: "text", v: ") quedan como están." },
+        ],
+      },
+      { t: "h3", v: "Canal del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En vivo, el canal del show está junto al cue en curso: el chat del equipo del proyecto, donde nunca están los clientes. Elija ",
+          },
+          { t: "strong", v: "Abrir el canal del show" },
+          {
+            t: "text",
+            v: " la primera vez (necesita permiso para editar el guion) y los miembros del proyecto se unen; los demás eligen ",
+          },
+          { t: "strong", v: "Unirse al canal del show" },
+          { t: "text", v: ". Los mensajes nuevos aparecen al enviarse, y " },
+          { t: "strong", v: "M" },
+          { t: "text", v: " lleva al cuadro de mensaje desde la consola." },
+        ],
+      },
+      { t: "h3", v: "Enlaces de llamado del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Permita que alguien sin cuenta de XOS llame el show. Abra el guion, elija ",
+          },
+          { t: "strong", v: "Enlaces de llamado del show" },
+          {
+            t: "text",
+            v: ", nombre a quien llama, elija cuándo vence el enlace (por defecto al final del día después del show, como máximo 14 días) y copie el enlace y su código de acceso de 6 dígitos, que se muestran una sola vez. Necesita permiso para editar el guion y para llamar cues.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cualquiera con el enlace y el código puede llamar cues y editar este guion hasta que venza: llamar, poner en espera, ajustar, mover, agregar, editar y quitar cues no llamados, y cambiar las llamadas por departamento. Nunca llega a otro guion. Un cue que llame dice ",
+          },
+          { t: "strong", v: "Llamado por" },
+          { t: "text", v: " su nombre " },
+          { t: "strong", v: "con un enlace de llamado del show" },
+          { t: "text", v: ". Un enlace funciona en hasta 5 dispositivos; " },
+          { t: "strong", v: "Cerrar sesión de dispositivos" },
+          { t: "text", v: " hace que cada dispositivo ingrese el código otra vez, " },
+          { t: "strong", v: "Regenerar" },
+          { t: "text", v: " da un enlace y código nuevos, y " },
+          { t: "strong", v: "Revocar" },
+          { t: "text", v: " lo detiene para siempre. En el enlace, " },
+          { t: "strong", v: "Abrir reloj" },
+          { t: "text", v: " abre un reloj de sala y un temporizador de presentador." },
         ],
       },
       { t: "h2", v: "Hojas del día" },

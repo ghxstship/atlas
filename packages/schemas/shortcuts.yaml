@@ -12,14 +12,16 @@
 #   Shift  Only with letters and named keys; a symbol such as ? already carries it.
 # A key is a letter A to Z, a digit, a symbol other than + (write Plus), or a named key: Enter, Escape,
 # Tab, Space, Backspace, Delete, Insert, Home, End, PageUp, PageDown, ArrowUp, ArrowDown, ArrowLeft,
-# ArrowRight, CapsLock or F1 to F12. A sequence starts with one letter and no modifiers.
+# ArrowRight, CapsLock, F1 to F12 or F13 to F20 (no browser or system default; a Stream Deck or similar
+# keypad sends them). A sequence starts with one letter and no modifiers.
 #
 # Each shortcut has:
 #   id      Stable id. Personal bindings (app.shortcut_bindings) store it, so never rename one.
 #   scope   Where the keys work. `global` answers anywhere in the shell; any other scope answers only
 #           while focus is in that kind of region. Two shortcuts conflict when they share keys, or one
-#           is the first step of the other's sequence, and their scopes meet (the same scope, or either
-#           one global).
+#           is the first step of the other's sequence, and their scopes meet (the same scope, either
+#           one global, or either one list, since a list can sit in any region except the showcaller
+#           console's show scope, which holds none: model.ts LISTLESS_SCOPES).
 #   group   The shortcut sheet section.
 #   keys    Default keys. Omit them for an action with no default that a person may bind.
 #   mac     Default keys on macOS, only when they differ from `keys`.
@@ -29,12 +31,20 @@
 #           itself owns them.
 #   go      For a navigation shortcut, the sitemap node it opens.
 #
+# Record and view shortcuts act on a control rather than run a command. The record page, the side
+# peek and the collection template mark their region with data-shortcut-scope (record or view), and
+# the control that does the action carries data-shortcut="<id>": the shell's key handler clicks it, or
+# focuses it when it is a field or carries data-shortcut-focus. A feature binds its control to a
+# shortcut by carrying the attribute, with no change to the handler.
+#
 # Reserved keys belong to the browser, the operating system, screen readers or keyboard operation. No
 # default and no personal binding may use them; fixed shortcuts may name the keys of keyboard operation
 # (Escape, Enter) that they document. `+*` stands for any key while holding at least those modifiers.
 #
-# Single-key shortcuts (no Mod, Ctrl or Alt) obey the personal setting me.shortcuts_enabled, and every
-# rebindable shortcut can take a modifier, which meets WCAG 2.1.4 Character Key Shortcuts.
+# Single character-key shortcuts (a letter, digit or symbol with no Mod, Ctrl or Alt) obey the personal
+# setting me.shortcuts_enabled; function keys F13 to F20 do not, because WCAG 2.1.4 Character Key
+# Shortcuts covers character keys only. Every rebindable shortcut can take a modifier, which meets
+# WCAG 2.1.4.
 #
 # Run `pnpm --filter @xos/schemas generate:shortcuts` after editing. `check:shortcuts` and the package
 # tests fail while src/shortcuts/registry.generated.ts is out of date or two defaults conflict.
@@ -122,12 +132,16 @@ reserved:
 
 shells:
   atlas:
-    scopes: [global, list, inbox]
+    scopes: [global, list, inbox, show, record, view]
     groups:
       - { id: general, label: help.shortcuts.groups.general }
       - { id: go, label: help.shortcuts.groups.go }
       - { id: lists, label: help.shortcuts.groups.lists }
+      - { id: record, label: help.shortcuts.groups.record }
+      - { id: view, label: help.shortcuts.groups.view }
       - { id: inbox, label: help.shortcuts.groups.inbox }
+      - { id: show, label: help.shortcuts.groups.show }
+      - { id: show-deck, label: help.shortcuts.groups.showDeck }
     shortcuts:
       # General: the shell answers these on every page.
       - id: command-menu
@@ -376,6 +390,64 @@ shells:
         keys: Shift+F10
         fixed: true
         label: help.shortcuts.menu
+      # Records: the record full page and the side peek (Section 11.2). Each clicks or focuses the
+      # control marked with its id in the record on screen; a record without that control ignores it.
+      - id: record.state
+        scope: record
+        group: record
+        keys: S
+        label: help.shortcuts.record.state
+      - id: record.assign
+        scope: record
+        group: record
+        keys: A
+        label: help.shortcuts.record.assign
+      - id: record.comment
+        scope: record
+        group: record
+        keys: M
+        label: help.shortcuts.record.comment
+      - id: record.edit-title
+        scope: record
+        group: record
+        keys: E
+        label: help.shortcuts.record.editTitle
+      - id: record.open
+        scope: record
+        group: record
+        keys: O
+        label: help.shortcuts.record.open
+      - id: record.copy-link
+        scope: record
+        group: record
+        keys: L
+        label: help.shortcuts.record.copyLink
+      - id: record.trash
+        scope: record
+        group: record
+        keys: Mod+Backspace
+        label: help.shortcuts.record.trash
+      # Views: a collection's switcher, filters, saved views and export (Section 11.15).
+      - id: view.switch
+        scope: view
+        group: view
+        keys: V
+        label: help.shortcuts.view.switch
+      - id: view.filters
+        scope: view
+        group: view
+        keys: F
+        label: help.shortcuts.view.filters
+      - id: view.save
+        scope: view
+        group: view
+        keys: Shift+S
+        label: help.shortcuts.view.save
+      - id: view.export
+        scope: view
+        group: view
+        keys: Shift+E
+        label: help.shortcuts.view.export
       # Inbox: the focused item. J and K move as in every list.
       - id: inbox.approve
         scope: inbox
@@ -397,11 +469,103 @@ shells:
         group: inbox
         keys: H
         label: help.shortcuts.inbox.snooze
+      # Show calling: the showcaller console in a running order's live mode (ADR 0131). RunOfShowLive
+      # owns Space; the letters and symbols obey me.shortcuts_enabled.
+      - id: show.go
+        scope: show
+        group: show
+        keys: Space
+        fixed: true
+        label: help.shortcuts.show.go
+      - id: show.next
+        scope: show
+        group: show
+        keys: J
+        label: help.shortcuts.show.next
+      - id: show.previous
+        scope: show
+        group: show
+        keys: K
+        label: help.shortcuts.show.previous
+      - id: show.standby
+        scope: show
+        group: show
+        keys: S
+        label: help.shortcuts.show.standby
+      - id: show.jump
+        scope: show
+        group: show
+        keys: T
+        label: help.shortcuts.show.jump
+      - id: show.nudge-later
+        scope: show
+        group: show
+        keys: "]"
+        label: help.shortcuts.show.nudgeLater
+      - id: show.nudge-earlier
+        scope: show
+        group: show
+        keys: "["
+        label: help.shortcuts.show.nudgeEarlier
+      - id: show.department
+        scope: show
+        group: show
+        keys: D
+        label: help.shortcuts.show.department
+      # The show channel beside the running cue (B3, ADR 0142): M focuses its message box. C is the global
+      # create menu's and G starts sequences, so the show scope takes M, free in both.
+      - id: show.chat
+        scope: show
+        group: show
+        keys: M
+        label: help.shortcuts.show.chat
+      # Stream Deck: Hotkey actions send F13 to F20, which answer even with single-key shortcuts off.
+      - id: show.deck.go
+        scope: show
+        group: show-deck
+        keys: F13
+        label: help.shortcuts.show.go
+      - id: show.deck.standby
+        scope: show
+        group: show-deck
+        keys: F14
+        label: help.shortcuts.show.standby
+      - id: show.deck.previous
+        scope: show
+        group: show-deck
+        keys: F15
+        label: help.shortcuts.show.previous
+      - id: show.deck.next
+        scope: show
+        group: show-deck
+        keys: F16
+        label: help.shortcuts.show.next
+      - id: show.deck.nudge-later
+        scope: show
+        group: show-deck
+        keys: F17
+        label: help.shortcuts.show.nudgeLater
+      - id: show.deck.nudge-earlier
+        scope: show
+        group: show-deck
+        keys: F18
+        label: help.shortcuts.show.nudgeEarlier
+      - id: show.deck.jump
+        scope: show
+        group: show-deck
+        keys: F19
+        label: help.shortcuts.show.jump
+      - id: show.deck.department
+        scope: show
+        group: show-deck
+        keys: F20
+        label: help.shortcuts.show.department
 
   gateway:
     scopes: [global]
     groups:
       - { id: general, label: help.shortcuts.groups.general }
+      - { id: go, label: help.shortcuts.groups.go }
     shortcuts:
       - id: command-menu
         scope: global
@@ -414,6 +578,67 @@ shells:
         group: general
         keys: "?"
         label: help.shortcuts.help
+      # The account panel and the organization switcher, as the avatar menu opens them (Section 4.5.8).
+      # Switch org answers only on the platform address, where the avatar menu offers it.
+      - id: account
+        scope: global
+        group: general
+        keys: A
+        label: help.gateway.shortcuts.account
+      - id: switch-org
+        scope: global
+        group: general
+        keys: O
+        label: help.gateway.shortcuts.switchOrg
+      # Go to: G, then a letter, opens a destination of the top bar or the avatar menu, as in Atlas.
+      - id: go.home
+        scope: global
+        group: go
+        keys: G H
+        go: home
+        label: help.gateway.shortcuts.go.home
+      - id: go.explore
+        scope: global
+        group: go
+        keys: G E
+        go: explore
+        label: help.gateway.shortcuts.go.explore
+      - id: go.work
+        scope: global
+        group: go
+        keys: G W
+        go: work
+        label: help.gateway.shortcuts.go.work
+      - id: go.money
+        scope: global
+        group: go
+        keys: G M
+        go: money
+        label: help.gateway.shortcuts.go.money
+      - id: go.messages
+        scope: global
+        group: go
+        keys: G I
+        go: messages
+        label: help.gateway.shortcuts.go.messages
+      - id: go.profile
+        scope: global
+        group: go
+        keys: G P
+        go: profile
+        label: help.gateway.shortcuts.go.profile
+      - id: go.documents
+        scope: global
+        group: go
+        keys: G D
+        go: documents
+        label: help.gateway.shortcuts.go.documents
+      - id: go.settings
+        scope: global
+        group: go
+        keys: G T
+        go: settings
+        label: help.gateway.shortcuts.go.settings
       - id: close
         scope: global
         group: general

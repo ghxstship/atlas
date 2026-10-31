@@ -112,7 +112,7 @@ describe("template versions", () => {
   });
 
   it("ships at least version 1 of every Section 11.9 document", () => {
-    expect(DOCUMENT_KINDS).toHaveLength(12);
+    expect(DOCUMENT_KINDS).toHaveLength(13);
     for (const kind of DOCUMENT_KINDS) {
       expect(TEMPLATES[kind].map((v) => v.version)).toContain(1);
       const numbers = TEMPLATES[kind].map((v) => v.version);
@@ -140,7 +140,7 @@ describe("every template", () => {
     expect(model.facts.labels.qrAlt).toContain(model.facts.recordKey);
     for (const s of strings(model)) {
       expect(s, `${kind} ${locale}`).not.toMatch(
-        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate)\./,
+        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate|radioHandout)\./,
       );
     }
   });
@@ -167,6 +167,7 @@ describe("data mapping", () => {
     expect(d("incident-report").recordKey).toBe("NWF26-4");
     expect(d("final-cost-report")).toEqual({ recordKey: "NWF26-FCR", issuedAt: NOW.toISOString() });
     expect(d("agreement-certificate").issuedAt).toBe("2026-09-20T18:12:00Z");
+    expect(d("radio-handout")).toEqual({ recordKey: "NWF26-RADIOS", issuedAt: NOW.toISOString() });
   });
 
   it("falls back for unnumbered invoices and drafts", () => {
@@ -238,6 +239,46 @@ describe("data mapping", () => {
     });
   });
 
+  it("lists radios by party then person, with blank signature and returned columns", () => {
+    const table = build("radio-handout").blocks.find((b) => b.kind === "table");
+    if (table?.kind !== "table") throw new Error("no hand-out");
+    expect(table.columns.map((c) => c.label)).toEqual([
+      "Person",
+      "Party",
+      "Radio",
+      "Tags issued",
+      "Channels",
+      "Status",
+      "Signature",
+      "Returned",
+    ]);
+    expect(table.rows).toEqual([
+      [
+        "Kai Morgan",
+        "Bayside Audio",
+        "Two-way radios",
+        "R-001",
+        "1 Production, 2 Audio",
+        "Issued",
+        "",
+        "",
+      ],
+      ["Zoë Ångström", "Bayside Audio", "Two-way radios", "None", "2 Audio", "Approved", "", ""],
+      [
+        "Ivy Marchetti Lighting",
+        "Ivy Marchetti Lighting",
+        "Two-way radios × 4",
+        "R-010, R-011",
+        "None",
+        "Partly issued",
+        "",
+        "",
+      ],
+    ]);
+    const es = build("radio-handout", "es-US").blocks.find((b) => b.kind === "table");
+    expect(es?.kind === "table" && es.rows[2]?.[5]).toBe("Entregada en parte");
+  });
+
   it("reports call sheet gaps and cue progress", () => {
     const calls = build("call-sheet").blocks.find((b) => b.kind === "table");
     if (calls?.kind !== "table") throw new Error("no calls");
@@ -246,6 +287,84 @@ describe("data mapping", () => {
     expect(strings(build("run-of-show"))).toContain("1 of 3 cues called");
     expect(strings(build("day-sheet"))).not.toContain("Draft, not published");
     expect(strings(build("call-sheet"))).toContain("Draft, not published");
+  });
+});
+
+describe("run of show version 2 (ADR 0131)", () => {
+  const v2Data = {
+    ...FIXTURES["run-of-show"],
+    run: {
+      ...FIXTURES["run-of-show"].run,
+      showDate: "2026-11-07",
+      curfewAt: "2026-11-08T02:00:00Z" as string | null,
+    },
+    cues: FIXTURES["run-of-show"].cues.map((c) => (c.id === "q2" ? { ...c, startTbc: true } : c)),
+    calls: [
+      { id: "k2", cueId: "q2", kind: "Stage" as const, instruction: "Riser lock checked" },
+      { id: "k1", cueId: "q2", kind: "Lighting" as const, instruction: "LX 14 GO" },
+    ],
+  };
+  const render = (locale: string, data = v2Data) =>
+    buildDocumentModel("run-of-show", data, {
+      locale,
+      messages: locale === "en-US" ? EN : ES,
+      brand: BRAND,
+      recordUrl: "u",
+      now: NOW,
+    });
+
+  it("shows TBC planned times, a Department calls column and the curfew for a show on or after it", () => {
+    const model = render("en-US");
+    expect(model.facts.templateVersion).toBe(2);
+    const table = model.blocks.find((b) => b.kind === "table");
+    if (table?.kind !== "table") throw new Error("no cues");
+    expect(table.columns.map((c) => c.label)).toContain("Department calls");
+    expect(table.rows[1]?.[2]).toBe("TBC");
+    expect(table.rows[1]?.[4]).toBe("Lighting: LX 14 GO\nStage: Riser lock checked");
+    expect(table.rows[0]?.[4]).toBe("");
+    expect(strings(model)).toContain("Curfew");
+    const es = render("es-US");
+    expect(strings(es)).toContain("Por confirmar");
+    expect(strings(es)).toContain("Iluminación: LX 14 GO\nEscenario: Riser lock checked");
+    for (const text of [...strings(model), ...strings(es)])
+      expect(text).not.toMatch(/^runOfShow\./);
+  });
+
+  it("names a showcaller link's caller for a cue called through the link (ADR 0142)", () => {
+    const data = {
+      ...v2Data,
+      cues: v2Data.cues.map((c) =>
+        c.id === "q2"
+          ? {
+              ...c,
+              calledAt: "2026-11-08T00:10:00Z",
+              calledByName: null,
+              calledViaLink: "Sam Okafor",
+            }
+          : c,
+      ),
+    };
+    const rows = (model: ReturnType<typeof render>) => {
+      const table = model.blocks.find((b) => b.kind === "table");
+      if (table?.kind !== "table") throw new Error("no cues");
+      return table.rows;
+    };
+    const en = rows(render("en-US", data));
+    expect(en[1]?.[6]).toBe("Sam Okafor (showcaller link)");
+    expect(en[0]?.[6]).toBe("Sam Lee");
+    expect(rows(render("es-US", data))[1]?.[6]).toBe("Sam Okafor (enlace de llamado)");
+  });
+
+  it("leaves the curfew out when none is set", () => {
+    const model = render("en-US", { ...v2Data, run: { ...v2Data.run, curfewAt: null } });
+    expect(strings(model)).not.toContain("Curfew");
+  });
+
+  it("re-renders an earlier show with version 1 unchanged", () => {
+    const model = render("en-US", { ...v2Data, run: { ...v2Data.run, showDate: "2026-10-24" } });
+    expect(model.facts.templateVersion).toBe(1);
+    expect(strings(model)).not.toContain("Department calls");
+    expect(strings(model)).not.toContain("TBC");
   });
 });
 

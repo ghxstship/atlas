@@ -73,17 +73,27 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0075](0075-selection-menus-and-hover-cards-in-every-view.md)       | Selection, Record Menus and Hover Cards in Every View                            | Accepted |
 | [0076](0076-custom-fields-on-pages-and-the-filter-builder.md)       | Custom Fields on Pages, and the Add Filter Control                               | Accepted |
 | [0080](0080-operations-bulk-edit-and-undo.md)                       | Operations Bulk Edit, Undo for Their Deletes and Day Sheet Drafts                | Accepted |
+| [0081](0081-objects-over-plan-limits-become-read-only.md)           | Objects Over the Plan's Limits Become Read-Only                                  | Proposed |
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
+| [0084](0084-record-and-view-shortcut-targets.md)                    | Record and View Shortcuts on Marked Controls, Help Lists from the Registry       | Accepted |
 | [0087](0087-dashboard-template-and-template-roots.md)               | The Dashboard Template, Saved Spans and Template Roots                           | Accepted |
 | [0100](0100-crew-roster-and-production-advancing.md)                | Crew Roster and Production Advancing                                             | Accepted |
 | [0101](0101-roster-access-and-account-engagement-assignments.md)    | Roster Access and Account Engagement Assignments                                 | Accepted |
 | [0102](0102-profile-facts-and-project-facts.md)                     | Profile Facts and Project Facts                                                  | Accepted |
 | [0103](0103-combined-statuses-are-computed.md)                      | Combined Statuses Are Computed                                                   | Accepted |
 | [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
+| [0105][adr-0105]                                                    | Allergies Are Restricted; Catering Lead and On-Site Medical Roles Read Them      | Accepted |
 | [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
 | [0114](0114-stricter-separation-of-duties-options.md)               | Stricter Separation of Duties Options                                            | Proposed |
+| [0117](0117-photo-location-pass-art-and-sponsor-proof-photos.md)    | Photo Location, Pass Art from the Org Logo, and Sponsor Proof Photos             | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
+| [0130](0130-live-share-links-and-display-screens.md)                | Live Share Links to Saved Views and Run-of-Show Display Screens                  | Accepted |
+| [0131](0131-show-calling-and-stream-deck-keys.md)                   | Show Calling: TBC Times, Standby, Cue Moves and Stream Deck Keys                 | Accepted |
+| [0142][adr-0142]                                                    | Run-of-Show Depth, Show Channels and Showcaller Links                            | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
+
+[adr-0105]: 0105-allergies-restricted-and-workforce-role-capabilities.md
+[adr-0142]: 0142-run-of-show-depth-show-channels-and-showcaller-links.md

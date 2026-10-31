@@ -89,7 +89,9 @@
     "notActiveTitle": "Your engagement is not active yet",
     "notActive": "This opens when your engagement becomes Active. Finish onboarding in Gateway.",
     "closedTitle": "Your engagement has ended",
-    "closed": "Compass access ended when your engagement completed. Money and documents stay in Gateway."
+    "closed": "Compass access ended when your engagement completed. Money and documents stay in Gateway.",
+    "rosterMemberTitle": "Your company handles this",
+    "rosterMember": "You work this project on your company's crew, so your company keeps your time, swaps and expenses. Ask your crew lead."
   },
   "sync": {
     "offline": "You're offline. Changes save on this device.",
@@ -155,9 +157,14 @@
       "settlement_lines": "settlement lines",
       "shared_reports": "shared reports",
       "sponsor_entitlements": "sponsor entitlements",
+      "proof_of_performance_photos": "proof-of-performance photos",
       "engagement_documents": "engagement documents",
       "profile_certifications": "your certifications",
-      "profile_documents": "your documents"
+      "profile_documents": "your documents",
+      "roster_entries": "roster entries",
+      "advance_allocations": "items assigned to you",
+      "parking_passes": "parking passes",
+      "cue_calls": "department calls"
     }
   },
   "queue": {
@@ -270,7 +277,8 @@
       "serverState": "{title}, now {state}",
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}.",
-      "expenseReceipt": "Expense: {description}, {day}"
+      "expenseReceipt": "Expense: {description}, {day}",
+      "proofPhoto": "Proof of performance photo, {time}"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
     "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
@@ -287,7 +295,31 @@
     "callTime": "Call {time}",
     "blockEmpty": "Nothing here today.",
     "orgChip": "{org}",
-    "nextCueAt": "Planned for {day} at {time}"
+    "nextCueAt": "Planned for {day} at {time}",
+    "roster": {
+      "callTitle": "Your call",
+      "arrival": "Arrive {day}, {start} to {end}",
+      "fromShift": "Your first shift today.",
+      "noArrival": "Your arrival is not set yet. Your company sets it on the roster.",
+      "parkingTitle": "Parking",
+      "noParking": "No parking pass for you on this project.",
+      "showPass": "Show pass",
+      "gearTitle": "Assigned gear",
+      "noGear": "Nothing is assigned to you yet.",
+      "holding": "With you now",
+      "pickup": "Pick up at the desk: {status}",
+      "status": {
+        "approved": "Approved",
+        "reserved": "Reserved",
+        "awaitingOrder": "Awaiting order",
+        "onOrder": "On order",
+        "confirmed": "Confirmed",
+        "received": "Received"
+      },
+      "contactTitle": "Contact",
+      "contactSentence": "Ask them about your call, gear or parking.",
+      "projectDetails": "Update project details"
+    }
   },
   "orgs": {
     "title": "Organizations",
@@ -309,7 +341,14 @@
     "since": "Since {time}",
     "cueTitle": "Next cue: {cue}",
     "cueBody": "{project} at {time}",
-    "channel": "Shift and next cue"
+    "channel": "Shift and next cue",
+    "gallery": {
+      "todayName": "Compass Today",
+      "todayDescription": "Your shifts today and the next cue.",
+      "nextCueName": "Compass Next Cue",
+      "nextCueDescription": "The time to the next cue."
+    },
+    "cueTbc": "{cue} · TBC"
   },
   "wallet": {
     "holder": "Name",
@@ -438,7 +477,31 @@
     "enterCode": "Type a code",
     "submitCode": "Look Up",
     "vendorEmpty": "No deliveries booked for you on this project yet. Dock slots appear here once booked.",
-    "assignedEmpty": "No gear is assigned to you yet. Items appear here when your crew lead hands them over."
+    "assignedEmpty": "No gear is assigned to you yet. Items appear here when your crew lead hands them over.",
+    "receiveOrder": {
+      "title": "Receive Against an Order",
+      "close": "Close",
+      "open": "Receive Against an Order",
+      "resume": "Review Order Receipt",
+      "scanHint": "Choose a tagged line, then scan each unit. Use the steppers for the other lines.",
+      "tagged": "{count} of {open} tagged",
+      "removeTag": "Remove {tag}",
+      "counted": "{count} of {open} counted",
+      "less": "One fewer {line}",
+      "more": "One more {line}",
+      "note": "Condition or exceptions",
+      "submit": "Receive",
+      "otherOrder": "Choose Another Order",
+      "loading": "Loading orders.",
+      "offline": "Orders load only online. Scans still queue to intake.",
+      "retry": "Try Again",
+      "none": "No approved or sent order on this project has lines left to receive.",
+      "order": "PO {number}",
+      "unnamedVendor": "Unnamed vendor",
+      "tagAdded": "Tag added",
+      "tagSkipped": "Already tagged, or the line is full",
+      "queued": "{count} received; it syncs when you are online"
+    }
   },
   "incidents": {
     "title": "Incidents",
@@ -534,7 +597,24 @@
     "countdownLabel": "{minutes} min {seconds} s to {cue}",
     "countdownLate": "{minutes} min {seconds} s late for {cue}",
     "countdownSoon": "{cue} in {seconds} seconds",
-    "countdownGo": "{cue}: go"
+    "countdownGo": "{cue}: go",
+    "tbc": "TBC",
+    "onStandby": "Standby",
+    "department": "Your department",
+    "allDepartments": "All",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Lighting",
+      "video": "Video",
+      "sfx": "Special Effects",
+      "stage": "Stage"
+    },
+    "yourCallNow": "Your call now: {cue}",
+    "yourCallNext": "Your call next: {cue}",
+    "callLine": "{department} · {instruction}",
+    "noCall": "No {department} call",
+    "noCalls": "No department calls",
+    "countdownTbc": "{cue}: time to be confirmed"
   },
   "kiosk": {
     "title": "Kiosk",

@@ -99,9 +99,32 @@ export function effectiveBindings(
   return out;
 }
 
-/** Whether two scopes can both be active at once: the same scope, or either one global. */
+/**
+ * The scope whose keys the design system's lists own (RecordList, RecordRow, DataTable). A list can
+ * sit in any region (a collection's rows, a record's related items, the Inbox), and the list takes its
+ * keys before the shell sees them, so no other scope may bind them.
+ */
+const LIST_SCOPE = "list";
+
+/**
+ * Scopes whose region never holds a design system list, so their keys may repeat a list's. The show
+ * scope is the showcaller console (ADR 0131): its keys are answered by the console's own handler on
+ * its region, whose cues are a plain list without list keys, and live mode marks no show region for
+ * the shell (B3, ADR 0142), so the show channel and any list beside the console keep their own keys.
+ * A list's J and K therefore move the list and the console's J and K move the standby, never both
+ * (apps/atlas/test/show-keys-dom.test.ts). A design system list inside the console would break this.
+ */
+const LISTLESS_SCOPES: ReadonlySet<string> = new Set(["show"]);
+
+/**
+ * Whether two scopes can both be active at once: the same scope, either one global, or either one
+ * the list scope, which every region may hold except a listless one.
+ */
 export function scopesMeet(a: string, b: string): boolean {
-  return a === b || a === GLOBAL_SCOPE || b === GLOBAL_SCOPE;
+  if (a === b || a === GLOBAL_SCOPE || b === GLOBAL_SCOPE) return true;
+  if (a === LIST_SCOPE) return !LISTLESS_SCOPES.has(b);
+  if (b === LIST_SCOPE) return !LISTLESS_SCOPES.has(a);
+  return false;
 }
 
 /**

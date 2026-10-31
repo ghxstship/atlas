@@ -9,6 +9,8 @@ import { defineAdditions } from "../additions.ts";
 import { editShape, orNull } from "../correct.ts";
 import { showFieldHomes } from "./parts/playbook-field-homes.ts";
 import { cueCallCapabilities, cueCallResources } from "./parts/playbook-field-exposure.ts";
+import { segmentLibraryCapabilities, segmentLibraryResources } from "./parts/segment-library.ts";
+import { showcallerLinkCapabilities, showcallerLinkResources } from "./parts/showcaller-links.ts";
 
 const projectId = (what: string) => ({
   schema: fields.ref(`project of the ${what}`),
@@ -30,8 +32,12 @@ const publishedAt = (what: string) => ({
 });
 
 export const additions = defineAdditions("Show", {
-  resources: [...cueCallResources],
-  capabilities: { ...cueCallCapabilities },
+  resources: [...cueCallResources, ...segmentLibraryResources, ...showcallerLinkResources],
+  capabilities: {
+    ...cueCallCapabilities,
+    ...segmentLibraryCapabilities,
+    ...showcallerLinkCapabilities,
+  },
   corrections: [
     {
       id: "run-of-show-columns",

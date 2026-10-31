@@ -98,6 +98,15 @@ describe("download scope (Section 8.7)", () => {
     ).toBe(true);
   });
 
+  it("admits department calls to internal devices on a readable project and never to externals (ADR 0131)", () => {
+    const call = { id: "k1", cue_id: "q1", project_id: "proj-1" };
+    expect(admits("cue_calls", call, internal)).toBe(true);
+    expect(admits("cue_calls", { ...call, project_id: "proj-9" }, internal)).toBe(false);
+    for (const audience of ["client", "artist", "crew"] as const) {
+      expect(admits("cue_calls", call, external(audience))).toBe(false);
+    }
+  });
+
   it("denies everything once the engagement closes", () => {
     const closed = external("crew", []);
     expect(
@@ -128,6 +137,41 @@ describe("download scope (Section 8.7)", () => {
         { ...external("crew"), orgIds: ["org-1"] },
       ),
     ).toBe(false);
+  });
+
+  it("admits a person on a roster their own entry, gear, allocations and passes only (R8)", () => {
+    const rostered: DownloadScope = { ...external("crew", []), rosterEntryIds: ["entry-mine"] };
+    expect(admits("roster_entries", { id: "entry-mine" }, rostered)).toBe(true);
+    expect(admits("roster_entries", { id: "entry-colleague" }, rostered)).toBe(false);
+    expect(
+      admits(
+        "asset_custody",
+        { id: "c1", roster_entry_id: "entry-mine", custodian_engagement_id: "eng-party" },
+        rostered,
+      ),
+    ).toBe(true);
+    expect(
+      admits(
+        "asset_custody",
+        { id: "c2", roster_entry_id: "entry-colleague", custodian_engagement_id: "eng-party" },
+        rostered,
+      ),
+    ).toBe(false);
+    expect(
+      admits("advance_allocations", { id: "a1", roster_entry_id: "entry-mine" }, rostered),
+    ).toBe(true);
+    expect(admits("advance_allocations", { id: "a2", roster_entry_id: null }, rostered)).toBe(
+      false,
+    );
+    expect(admits("parking_passes", { id: "p1", holder_person_id: "person-ext" }, rostered)).toBe(
+      true,
+    );
+    expect(admits("parking_passes", { id: "p2", holder_person_id: "person-other" }, rostered)).toBe(
+      false,
+    );
+    // Without the key, nothing of a roster passes.
+    expect(admits("roster_entries", { id: "entry-mine" }, external("crew"))).toBe(false);
+    expect(ruleFor("advance_allocations")?.anyOf.every((a) => a.restOnly)).toBe(true);
   });
 
   it("filters a downloaded batch", () => {

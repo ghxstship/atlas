@@ -63,7 +63,8 @@ insert into rule_sources values
   ('external_project', 'app.radio_channels', 'id,project_id,channel_number,name,zone_id', 'api_external.radio_channels'),
   ('external_project', 'app.day_sheets', 'id,project_id,day,body', 'api_external.day_sheets'),
   ('external_project', 'app.run_of_show', 'id,project_id,name,show_date', 'api_external.run_of_show'),
-  ('external_project', 'app.cues', 'id,run_of_show_id,position,label,planned_at,duration,called_at,project_id', 'api_external.cues'),
+  ('roster_entry', 'app.asset_custody', 'id,asset_unit_id,custodian_engagement_id>engagement_id,roster_entry_id,project_id,created_at>held_since', 'api_external.asset_custody'),
+  ('external_project', 'app.cues', 'id,run_of_show_id,position,label,planned_at,duration,called_at,project_id,start_tbc', 'api_external.cues'),
   ('canon_reference', 'xpms.emergency_code', 'code,label,emergency,swatch,sort_order', null),
   ('canon_reference', 'xpms.std_enumeration', 'record_id,enum_code,enum_label,sort_order,color_code', null),
   ('canon_reference', 'xpms.std_enumeration', 'record_id,enum_code,enum_label,sort_order', null),
@@ -90,7 +91,7 @@ select is(
 -- External and person buckets never select every column.
 select is(
   (select array_agg(s.bucket || ' ' || s.source) from rule_sources s
-   where s.columns = '*' and (s.bucket like 'external_%' or s.bucket = 'own_person' or s.bucket = 'canon_reference')),
+   where s.columns = '*' and (s.bucket like 'external_%' or s.bucket in ('own_person', 'roster_entry', 'canon_reference'))),
   null::text[], 'external, person and canon buckets list their columns');
 
 -- Every column an external bucket selects is a column of its api_external projection.
