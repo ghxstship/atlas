@@ -168,6 +168,23 @@ Each kind is seeded by exactly one package, and no two packages send the same fa
 
 Project facts save online only and are never kept on the phone, as Work Details are (ADR 0071, decision 5).
 
+### 8. Typed advance sections, party uploads and the summary body (R9, migrations 2710 to 2716)
+
+An advance section has a `section_kind`: Text, File, Schedule Window, Item Request, Crew Roster, Guest List or
+Credential Request, with its window kind, line limit and per-person flag held to the kind by
+`advance_sections_kind_fields` and fixed once the packet is sent. Item Request offers asset classes and Credential
+Request offers credential categories (`app.advance_section_choices`); the offering is the class's own and is checked
+on each line, so there is no offering column. Typed answers are written only by `private.record_advance_answer`, and
+their item and credential lines become Requested allocations through R7's internals; the answer's review approves or
+declines them, leaving any that need a reviewer's decision Requested. Files a party gives a File section, and the
+brand assets a sponsor supplies, go to the private `party-uploads` bucket, which the scan read gate covers like
+field-media and onboarding-uploads, and become documents of the project. API v1 documents an answer's `body` as
+required, so a typed answer stores a locale-neutral summary there (kind codes, catalog codes or category names,
+quantities, ISO 8601 windows with their zone, file titles; `GUEST_LIST_CONFIRMED`), written once with its immutable
+lines and files and registered in the denormalization register. Contractors and sponsors answer the same Advance tab
+without a guest list. A recipient's `names_due_at` (G-141) closes naming on the credential pools it requested; only
+the producing org renames them afterwards, and cascades are never blocked.
+
 ## Alternatives
 
 - **D1, one roster key and a generic ledger.** The most complete on privacy, but 17 packages are too many to deliver.
