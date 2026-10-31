@@ -275,9 +275,12 @@ select throws_ok(format($$select pg_temp.anon_store(%L)$$, pg_temp.ticket_name(p
 insert into world select 't3', pg_temp.begin_upload('xadv_r10vendor', 's_file', 'plot.pdf')::uuid;
 select is(pg_temp.begin_upload('xadv_r10vendor', 's_file', 'third.pdf'), 'advance_upload_limit',
   'a finished file in no answer counts while its ticket''s 15 minutes run');
-update private.advance_upload_tickets set expires_at = now() - interval '1 second' where id in (pg_temp.id('t1'), pg_temp.id('t3'));
+-- Only t1's window closes; t3 stays open. t1 is finished and in no answer, so it held the section for good before.
+update private.advance_upload_tickets set expires_at = now() - interval '1 second' where id = pg_temp.id('t1');
 select ok(pg_temp.begin_upload('xadv_r10vendor', 's_file', 'retry.pdf') ~ '^[0-9a-f-]{36}$',
-  'once the window closes an unattached file no longer holds the section, so a failed answer can be sent again');
+  'once its window closes an unattached file no longer holds the section, so a failed answer can be sent again');
+select is(pg_temp.begin_upload('xadv_r10vendor', 's_file', 'third.pdf'), 'advance_upload_limit',
+  'the open ticket and the new one fill the section again');
 
 select is(pg_temp.typed('xadv_r10artist', 's_file', '[]', null, array[pg_temp.id('doc1')]), 'advance_file_document',
   'another link cannot attach the file');

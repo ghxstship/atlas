@@ -322,7 +322,7 @@ test("token advance parity", async ({ page, browser }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
 
     // 3. The production returns the carts answer with a reason; the link shows it and takes a new one.
-    // Atlas's review (reviewAdvanceSubmission) is this update under the reviewer's own role;
+    // Atlas's review (reviewSubmission in packages/data) is this update under the reviewer's own role;
     // Gateway has no review page.
     await asPerson(
       DEMO.owner,
