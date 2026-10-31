@@ -1,5 +1,7 @@
 import { listSettingValues, resolveSettings, type StoredSettingValue } from "@xos/data/settings";
 import { listWorkspaces } from "@xos/data";
+import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
+import { getLocale } from "next-intl/server";
 import type { SettingDefinition } from "@xos/schemas/settings";
 import { InlineAlert } from "@/components/ui";
 import { choiceLabelKey, formText, pageSettings } from "@/lib/settings/registry";
@@ -78,12 +80,14 @@ export async function RegistrySection({
 }) {
   const defs = pageSettings(node, group);
   if (defs.length === 0) return null;
-  const [t, resolved, stored, refs] = await Promise.all([
+  const [t, resolved, stored, refs, locale] = await Promise.all([
     getTranslate(),
     resolveSettings(ctx.viewer.db, { orgId: ctx.org.id }),
     listSettingValues(ctx.viewer.db, ctx.org.id),
     referenceOptions(ctx, defs),
+    getLocale(),
   ]);
+  const region = regionFromLocale(locale);
   if (!resolved.ok || !stored.ok) {
     return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
   }
@@ -119,7 +123,13 @@ export async function RegistrySection({
     const source = r?.source ?? "Default";
     return {
       ...common,
-      initial: r ? formText(r.value) : defaultText(def),
+      // A phone reads in the viewer's national format (A139); saving reads it back into E.164.
+      initial:
+        r && def.input === "phone" && typeof r.value === "string"
+          ? formatPhone(r.value, region)
+          : r
+            ? formText(r.value)
+            : defaultText(def),
       sourceText: lockedByOrg
         ? t("settings.source.lockedForYou", { org: ctx.org.name })
         : t(`settings.source.personal${source}`),

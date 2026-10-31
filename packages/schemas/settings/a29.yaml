@@ -42,6 +42,7 @@ settings:
   - key: workforce.work_phone
     type: text
     max_length: 32
+    input: phone
     scopes: [personal]
     capability: me.work_details.write
     label: workforce.settings.workPhone.label
@@ -50,3 +51,5 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1010_workforce_settings_directory.sql
         test: supabase/tests/1010_workforce_settings_directory.test.sql
+      - consumer: supabase/migrations/2321_work_phone_e164.sql
+        test: supabase/tests/2321_work_phone_e164.test.sql

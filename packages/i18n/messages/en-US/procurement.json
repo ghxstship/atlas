@@ -411,7 +411,12 @@
       "sopCode": "Use SOP- and three to five digits, for example SOP-007.",
       "lineFormat": "Check the format: one entry per line, as the help under the field describes.",
       "quizCorrect": "Enter the number of the correct option, from 1 to the number of options.",
-      "httpsUrl": "Enter a web address that starts with https://."
+      "httpsUrl": "Enter a web address that starts with https://.",
+      "addressRequired": "Addresses in this country need this. Fill it in, or clear the whole address.",
+      "postalCode": "That is not a postal code in this country. Check it against the address.",
+      "addressTooLong": "Shorten this part of the address.",
+      "country": "Enter a two-letter country code, for example US.",
+      "countryNeeded": "Enter the country of this address."
     },
     "loadError": {
       "title": "This did not load",

@@ -34,6 +34,11 @@ export interface DirectoryScreenProps {
   readonly onScopeChange: (onSiteOnly: boolean) => void;
   /** Dials a tel: link through the platform. */
   readonly onCall: (href: string) => void;
+  /**
+   * Shows a stored E.164 work phone, in national format for the viewer's own country (A139). The app
+   * passes formatPhone; without it the number shows as stored.
+   */
+  readonly formatPhone?: (e164: string) => string;
   readonly onMessage: (membershipId: string) => void;
   readonly refreshing?: boolean;
   readonly onRefresh?: () => void;
@@ -52,6 +57,7 @@ export function DirectoryScreen({
   onScopeChange,
   onCall,
   onMessage,
+  formatPhone,
   refreshing,
   onRefresh,
   onRetry,
@@ -97,6 +103,11 @@ export function DirectoryScreen({
                     <Tag key={r} label={r} />
                   ))}
                 </Stack>
+                {p.workPhone ? (
+                  <Text variant="text13" tone="secondary">
+                    {formatPhone ? formatPhone(p.workPhone) : p.workPhone}
+                  </Text>
+                ) : null}
                 {p.recognitionCount !== null && p.recognitionCount > 0 ? (
                   <Text variant="text13" tone="secondary">
                     {labels.recognitions(p.recognitionCount)}

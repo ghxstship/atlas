@@ -75,7 +75,9 @@
     "ip_allowlist_self_lockout": "Su dirección actual está fuera de todas las redes de la lista. Agréguela primero o perderá el acceso.",
     "ip_allowlist_empty": "Agregue al menos una red antes de activar la lista de IP permitidas.",
     "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
-    "setting_fixed": "Esta configuración es fija y no se puede cambiar."
+    "setting_fixed": "Esta configuración es fija y no se puede cambiar.",
+    "phone": "Ingrese un número de teléfono con su código de área. Agregue el código de país, como +44, para un número fuera de su país.",
+    "work_phone_e164": "Ingrese el teléfono de trabajo con su código de país, por ejemplo +1 305 555 0199."
   },
   "fields": {
     "legalName": {
@@ -604,7 +606,10 @@
     "fieldErrors": {
       "invalid": "Revise este valor e inténtelo de nuevo.",
       "cidr": "Escriba una dirección o una red como 203.0.113.0/24.",
-      "reason": "Escriba por qué necesita acceso de emergencia, con al menos 20 caracteres."
+      "reason": "Escriba por qué necesita acceso de emergencia, con al menos 20 caracteres.",
+      "addressRequired": "Las direcciones de este país lo necesitan. Complételo o borre toda la dirección.",
+      "postalCode": "Ese no es un código postal de este país. Compárelo con la dirección.",
+      "addressTooLong": "Acorte esta parte de la dirección."
     },
     "errors": {
       "legal_entity_primary": "Marque primero otra entidad legal como principal. La organización siempre conserva una entidad principal.",
@@ -634,7 +639,8 @@
       "project_member_ended": "Esta persona ya no está en el proyecto.",
       "sod_self_grant": "No puede asignarse un rol a sí mismo.",
       "project_share_own_org": "Un proyecto se comparte con otra organización, nunca con la suya.",
-      "project_share_deleted_project": "Un proyecto eliminado no se puede compartir."
+      "project_share_deleted_project": "Un proyecto eliminado no se puede compartir.",
+      "postal_code_invalid": "Ese código postal no corresponde al país de la entidad. Compárelo con la dirección."
     },
     "legalEntities": {
       "title": "Entidades legales",
@@ -657,7 +663,16 @@
       "makePrimary": "Hacer principal",
       "makePrimaryNamed": "Hacer de {name} la entidad legal principal",
       "remove": "Quitar",
-      "removeNamed": "Quitar {name}"
+      "removeNamed": "Quitar {name}",
+      "addressNone": "Sin domicilio registrado",
+      "addAddress": "Agregar domicilio registrado",
+      "editAddress": "Editar domicilio registrado",
+      "addressLabel": "Domicilio registrado de {name}",
+      "streetAddress": "Dirección",
+      "locality": "Ciudad",
+      "administrativeArea": "Estado o provincia",
+      "postalCode": "Código postal",
+      "saveAddress": "Guardar dirección"
     },
     "network": {
       "title": "Redes permitidas",

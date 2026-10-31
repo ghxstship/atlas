@@ -7,7 +7,8 @@ import {
   telHref,
   type ConversationSummary,
 } from "@xos/data/workforce-chat";
-import { getFormatter } from "next-intl/server";
+import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
+import { getFormatter, getLocale } from "next-intl/server";
 import { ActionButton, EntityForm, ErrorPanel, KitLink } from "@/components/collection-kit/kit";
 import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { EmptyStateLink } from "@/components/ui";
@@ -46,7 +47,7 @@ export async function ChatSection({
   const open = first(search["c"]);
   const query = first(search["q"]) ?? "";
   const onSite = first(search["site"]) === "1";
-  const [t, format, conversations, directory] = await Promise.all([
+  const [t, format, conversations, directory, locale] = await Promise.all([
     workforceCopy(),
     getFormatter(),
     listMyConversations(db, ctx.org.id),
@@ -54,6 +55,7 @@ export async function ChatSection({
       search: query === "" ? null : query,
       onSiteOnly: onSite,
     }),
+    getLocale(),
   ]);
   const title = t("chat.title");
   if (!conversations.ok) {
@@ -238,7 +240,13 @@ export async function ChatSection({
                   <span className="flex flex-col gap-2">
                     <strong className="font-medium">{p.preferredName ?? p.name}</strong>
                     <span className="text-text-12 text-text-secondary">
-                      {[p.headline, p.roles.join(", "), p.onSite ? t("chat.onSite") : null]
+                      {[
+                        p.headline,
+                        p.roles.join(", "),
+                        p.onSite ? t("chat.onSite") : null,
+                        // The work phone is stored in E.164 and reads in national format (A139).
+                        p.workPhone ? formatPhone(p.workPhone, regionFromLocale(locale)) : null,
+                      ]
                         .filter(Boolean)
                         .join(" · ")}
                     </span>

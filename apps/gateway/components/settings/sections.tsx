@@ -22,6 +22,7 @@ import { listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
 import { getAccountNotificationDefaults } from "@xos/data/company-settings";
 import { getMyQuietHours, listMyNotificationPreferences } from "@xos/data/party-notifications";
 import { resolveSettings } from "@xos/data/settings";
+import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
 import { getNode } from "@xos/ia";
 import type { Route } from "next";
 import Link from "next/link";
@@ -100,7 +101,7 @@ function Header({ t, node, children }: { t: Translate; node: string; children?: 
 }
 
 /** The registry settings of a personal section, each with where its value comes from. */
-async function RegistrySettings({ ctx, t, node }: SectionProps) {
+async function RegistrySettings({ ctx, t, node, locale }: SectionProps) {
   const defs = personalSettings(node);
   if (defs.length === 0) return null;
   const resolved = await resolveSettings(ctx.db, { orgId: NO_ORG });
@@ -114,7 +115,15 @@ async function RegistrySettings({ ctx, t, node }: SectionProps) {
       {defs.map((def) => {
         const r = resolved.data.get(def.key);
         const source = r?.source ?? "Default";
-        const initial = r ? formText(r.value) : def.default === null ? "" : formText(def.default);
+        // A phone reads in the viewer's national format (A139); saving reads it back into E.164.
+        const initial =
+          r && def.input === "phone" && typeof r.value === "string"
+            ? formatPhone(r.value, regionFromLocale(locale))
+            : r
+              ? formText(r.value)
+              : def.default === null
+                ? ""
+                : formText(def.default);
         return (
           <li key={`${def.key}:${initial}`}>
             <PersonalSetting
