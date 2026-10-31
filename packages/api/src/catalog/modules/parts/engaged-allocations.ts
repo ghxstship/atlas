@@ -103,12 +103,10 @@ const RequestableItem = defineResource({
     item_id: orNull(fields.ref("category, class, fulfillment or block; null for a service")),
     name: text("Its name; Travel or Per Diem for a service.", "Radios"),
     offering: orNull(
-      z
-        .enum(OFFERINGS)
-        .meta({
-          description: "Offering it draws on; null for an Access badge.",
-          example: "Radios",
-        }),
+      z.enum(OFFERINGS).meta({
+        description: "Offering it draws on; null for an Access badge.",
+        example: "Radios",
+      }),
     ),
     cap_per_engagement: orNull(
       z.int().meta({ description: "Cap for the engagement.", example: 6 }),
