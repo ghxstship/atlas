@@ -27,9 +27,12 @@ function headers(token, profile) {
 
 function moveFlight(token, hours) {
   var rows = json(
-    http.get(SUPABASE_URL + "/rest/v1/travel_segments?select=departs_at,arrives_at&id=eq." + FLIGHT, {
-      headers: headers(token, "app"),
-    }).body,
+    http.get(
+      SUPABASE_URL + "/rest/v1/travel_segments?select=departs_at,arrives_at&id=eq." + FLIGHT,
+      {
+        headers: headers(token, "app"),
+      },
+    ).body,
   );
   if (rows.length !== 1) throw new Error("the flight is not readable");
   var shift = hours * 3600000;

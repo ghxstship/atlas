@@ -70,6 +70,41 @@ describe("reading a saved layout", () => {
   });
 });
 
+describe("Today and Show day (B6)", () => {
+  it("keep their spans in me.dashboard_layout.today and me.dashboard_layout.show_day", () => {
+    expect(DASHBOARD_LAYOUT_SETTINGS.today).toBe("me.dashboard_layout.today");
+    expect(DASHBOARD_LAYOUT_SETTINGS.showDay).toBe("me.dashboard_layout.show_day");
+    expect(DASHBOARD_TILES.today).toEqual(["doors", "approvals", "changes", "today"]);
+    expect(DASHBOARD_TILES.showDay).toEqual(["sets", "run-of-show", "arrivals", "hotels"]);
+    const settings = new Map<string, unknown>([
+      ["me.dashboard_layout.today", "doors:6,changes:6"],
+      ["me.dashboard_layout.show_day", "sets:12,hotels:6"],
+    ]);
+    expect(savedLayout("today", (key) => settings.get(key))).toEqual({ doors: 6, changes: 6 });
+    expect(savedLayout("showDay", (key) => settings.get(key))).toEqual({ sets: 12, hotels: 6 });
+  });
+
+  it("drop tiles they do not show and refuse spans outside 1 to 12", () => {
+    expect(formatLayout("today", { doors: 4, approvals: 8 })).toBe("doors:4,approvals:8");
+    expect(formatLayout("today", { sets: 4 })).toBeNull();
+    expect(formatLayout("showDay", { arrivals: 13 })).toBeNull();
+    expect(formatLayout("showDay", { hotels: 0 })).toBeNull();
+    expect(formatLayout("showDay", { "run-of-show": 4 })).toBe("run-of-show:4");
+    // A saved value naming a tile the dashboard no longer shows is read and then left out by the page.
+    expect(parseLayout("doors:4,legacy:6")).toEqual({ doors: 4, legacy: 6 });
+  });
+
+  it("save and reset through the same actions", async () => {
+    expect(await saveDashboardLayoutAction("today", { changes: 8 })).toEqual({ ok: true });
+    expect(state.writes.at(-1)).toEqual({ key: "me.dashboard_layout.today", value: "changes:8" });
+    expect(await saveDashboardLayoutAction("showDay", { sets: 6 })).toEqual({ ok: true });
+    expect(state.writes.at(-1)).toEqual({ key: "me.dashboard_layout.show_day", value: "sets:6" });
+    expect(await saveDashboardLayoutAction("today", { sets: 6 })).toEqual({ ok: false });
+    expect(await resetDashboardLayoutAction("showDay")).toEqual({ ok: true });
+    expect(state.clears.at(-1)).toEqual({ key: "me.dashboard_layout.show_day" });
+  });
+});
+
 describe("writing a layout", () => {
   it("names only tiles the dashboard has, with spans of 1 to 12", () => {
     expect(formatLayout("home", { checklist: 8, plan: 4 })).toBe("checklist:8,plan:4");

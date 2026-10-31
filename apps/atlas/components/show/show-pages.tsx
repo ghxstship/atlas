@@ -11,6 +11,8 @@ import {
   listRunsOfShow,
 } from "@xos/data/show";
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
+import { todayIn } from "@xos/data/calendar";
+import { ButtonLink } from "@/components/ui";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
 import { collectionPeek } from "@/components/shell/collection-peek";
@@ -171,6 +173,18 @@ export async function RunsPage({
         />
       }
       peek={collectionPeek(peekId, peek)}
+      {...(project
+        ? {
+            showDay: (
+              <ButtonLink
+                href={`/${ctx.org.slug}/show/show-day?project=${encodeURIComponent(project.key)}&day=${todayIn(project.timeZone)}`}
+                size="sm"
+              >
+                {t("show.showDay.open")}
+              </ButtonLink>
+            ),
+          }
+        : {})}
     />
   );
 }

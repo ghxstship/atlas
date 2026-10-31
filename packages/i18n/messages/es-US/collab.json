@@ -75,6 +75,7 @@
       "nightly_rate_minor": "Tarifa por noche",
       "pay_max_minor": "Pago hasta",
       "pay_min_minor": "Pago desde",
+      "price_minor": "Tarifa",
       "proposed_fee_minor": "Honorarios propuestos",
       "rate_minor": "Tarifa",
       "shipping_minor": "Envío",

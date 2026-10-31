@@ -58,7 +58,7 @@ describe("field history labels", () => {
         .flatMap((column) => historyLabelKey(column) ?? []),
     );
     expect(keys.size).toBeGreaterThan(200);
-    expect([...keys].filter((key) => key.startsWith("collab.history.money.")).length).toBe(13);
+    expect([...keys].filter((key) => key.startsWith("collab.history.money.")).length).toBe(14);
     for (const locale of ["en-US", "es-US"] as const) {
       const catalog = flatten(getMessages(locale));
       expect(

@@ -26,7 +26,38 @@
     "starts": "{key} empieza hoy",
     "ends": "{key} termina hoy",
     "projectDay": "Día de producción",
-    "open": "Abrir proyecto"
+    "open": "Abrir proyecto",
+    "layoutLabel": "Mosaicos de Hoy",
+    "tiles": {
+      "approvals": {
+        "count": "{count, plural, one {# aprobación pendiente} other {# aprobaciones pendientes}}",
+        "empty": "Nada espera tu aprobación.",
+        "open": "Abrir Bandeja de entrada",
+        "title": "Esperan tu aprobación"
+      },
+      "changes": {
+        "added": "{name} lo agregó",
+        "empty": "Nada cambió desde tu última visita.",
+        "firstVisit": "A partir de tu próxima visita, aquí aparecen los cambios que otros hagan en tus registros y turnos.",
+        "markAllSeen": "Marcar todo como visto",
+        "removed": "{name} lo eliminó",
+        "row": "{name} cambió {fields}",
+        "since": "Desde tu última visita el {date}",
+        "someone": "Alguien",
+        "title": "Desde tu última visita"
+      },
+      "doors": {
+        "in": "Las puertas abren en {hours, plural, =0 {{minutes} min} other {# h {minutes} min}}",
+        "none": "No abren puertas en los próximos 14 días.",
+        "opened": "Las puertas abrieron hace {hours, plural, =0 {{minutes} min} other {# h {minutes} min}}",
+        "time": "Puertas {time}",
+        "title": "Puertas",
+        "where": "{project} en {venue}"
+      },
+      "today": {
+        "title": "Hoy"
+      }
+    }
   },
   "readiness": {
     "title": "Preparación de compuertas",

@@ -22,6 +22,8 @@ export async function ScheduleGrid(props: {
   label: string;
   /** Weekly overtime threshold in hours by project, from its canon wage-hour rule; null is no answer. */
   overtimeHours: ReadonlyMap<string, number | null>;
+  /** A short label per shift, such as Needs review (B6), shown on its chip. */
+  notes?: ReadonlyMap<string, string>;
 }) {
   const t = await getTranslate();
   const format = await getFormatter();
@@ -71,6 +73,9 @@ export async function ScheduleGrid(props: {
             project: s.projectKey,
           })}
         </span>
+        {props.notes?.get(s.id) ? (
+          <span className="font-medium text-warning-text">{props.notes.get(s.id)}</span>
+        ) : null}
       </Link>
     );
   };

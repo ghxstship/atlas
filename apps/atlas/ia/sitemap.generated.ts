@@ -497,6 +497,12 @@ export const sitemap: Sitemap = {
               route: "/{org}/show/call-sheets",
               list: { views: ["list", "table", "calendar"], default: "list" },
             },
+            {
+              id: "show.show-day",
+              kind: "page",
+              label: "nav.atlas.pages.show.showDay",
+              route: "/{org}/show/show-day",
+            },
           ],
         },
         {

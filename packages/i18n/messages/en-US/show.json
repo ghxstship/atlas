@@ -149,5 +149,61 @@
     "table": "Table",
     "timeline": "Timeline",
     "calendar": "Calendar"
+  },
+  "showDay": {
+    "changed": "Changed: {fields}",
+    "day": "Day",
+    "dayNav": "Days",
+    "emptyTitle": "No show day yet",
+    "go": "Show",
+    "layoutLabel": "Show day tiles",
+    "markAllSeen": "Mark all as seen",
+    "minutes": "{minutes} min",
+    "new": "New since you last looked",
+    "nextDay": "Next day",
+    "noProject": "None of your projects has a running order yet. Create one in Show > Run of show and its show day appears here.",
+    "noTime": "No time set",
+    "open": "Open show day",
+    "openRunOfShow": "Open Run of show",
+    "previousDay": "Previous day",
+    "project": "Project",
+    "projectOption": "{key} · {name}",
+    "subtitle": "{project}, {day}",
+    "tiles": {
+      "arrivals": {
+        "arrives": "Arrives {time}",
+        "departs": "Departs {time}",
+        "empty": "Nobody arrives on this day.",
+        "mode": {
+          "Flight": "Flight",
+          "Ground": "Ground"
+        },
+        "route": "{from} to {to}",
+        "title": "Arrivals"
+      },
+      "hotels": {
+        "checkIns": "Checking in: {names}",
+        "checkOuts": "Checking out: {names}",
+        "empty": "Nobody stays in a booked room this night.",
+        "guests": "{count, plural, one {# guest tonight} other {# guests tonight}}",
+        "title": "Hotels"
+      },
+      "runOfShow": {
+        "empty": "No running order on this day.",
+        "nextCue": "Next: {cue} at {time}",
+        "open": "Open the project's Show tab",
+        "progress": "{called} of {total} cues called",
+        "title": "Run of show"
+      },
+      "sets": {
+        "called": "Called {time}",
+        "empty": "No set times on this day. Mark a cue as an artist's set in its running order.",
+        "next": "Up next",
+        "planned": "Planned",
+        "title": "Sets by stage"
+      }
+    },
+    "title": "Show day",
+    "unnamed": "Unnamed"
   }
 }

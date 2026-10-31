@@ -585,12 +585,28 @@
       "item_name": "Artículo",
       "display_status": "Estado",
       "allocation_state": "Decisión",
-      "origin": "Origen",
       "needed_time_zone": "Zona horaria",
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "offering": "Oferta",
+      "category_kind": "Tipo de categoría",
+      "called_at": "Llamado",
+      "duration": "Duración",
+      "planned_at": "Hora prevista",
+      "position": "Posición",
+      "segment": "Segmento",
+      "roster_locks_at": "Cierre de la lista",
+      "arrives_at_place": "Lugar de llegada",
+      "arrives_time_zone": "Zona horaria de llegada",
+      "confirmation_identifier": "Confirmación",
+      "departs_at": "Salida",
+      "departs_from": "Lugar de salida",
+      "departs_time_zone": "Zona horaria de salida",
+      "operator_name": "Operador",
+      "service_identifier": "Número de vuelo o servicio",
+      "travel_mode": "Medio"
     }
   }
 }

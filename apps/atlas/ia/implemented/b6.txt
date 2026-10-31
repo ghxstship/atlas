@@ -1,0 +1,2 @@
+# Hand-written Atlas pages owned by B6 (change tracking and show-day views). One sitemap node id per line.
+show.show-day

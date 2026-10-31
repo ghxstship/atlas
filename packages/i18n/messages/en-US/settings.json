@@ -344,6 +344,14 @@
     "advancingAllowanceOverflow": {
       "label": "Requests beyond the allowance",
       "help": "Refuse turns away a request above an offering's cap. Review lets it in as requested; approving it, or assigning above the cap, then needs a reason that is kept with the allocation."
+    },
+    "todayLayout": {
+      "help": "Widen or narrow a tile of Home > Today by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width.",
+      "label": "Today layout"
+    },
+    "showDayLayout": {
+      "help": "Widen or narrow a tile of Show > Show day by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width.",
+      "label": "Show day layout"
     }
   },
   "choices": {

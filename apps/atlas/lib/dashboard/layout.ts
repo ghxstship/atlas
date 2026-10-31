@@ -1,8 +1,9 @@
 import type { DashboardSpans } from "@xos/ui";
 
 /**
- * A person's dashboard layouts (Section 11.6, A129): the spans they gave the tiles of Home and of the
- * partner console, each kept as one of their own settings for every org (migration 2220). A value is
+ * A person's dashboard layouts (Section 11.6, A129): the spans they gave the tiles of Home, the
+ * partner console, Home > Today and Show > Show day, each kept as one of their own settings for every
+ * org (migrations 2220 and 2953). A value is
  * `tile:span` pairs, such as "checklist:8,plan:4"; reading it skips a pair whose tile id or span does
  * not fit, so a hand-edited or stale value can never break the page, and a tile the person does not
  * see simply keeps no span.
@@ -10,6 +11,8 @@ import type { DashboardSpans } from "@xos/ui";
 export const DASHBOARD_LAYOUT_SETTINGS = {
   home: "me.dashboard_layout.home",
   partner: "me.dashboard_layout.partner",
+  today: "me.dashboard_layout.today",
+  showDay: "me.dashboard_layout.show_day",
 } as const;
 
 export type DashboardId = keyof typeof DASHBOARD_LAYOUT_SETTINGS;
@@ -29,9 +32,12 @@ export const DASHBOARD_TILES: Readonly<Record<DashboardId, readonly string[]>> =
     "activity",
   ],
   partner: ["clients", "owners-joined", "sessions", "seats"],
+  // B6: Home > Today and Show > Show day.
+  today: ["doors", "approvals", "changes", "today"],
+  showDay: ["sets", "run-of-show", "arrivals", "hotels"],
 };
 
-/** The longest value the settings hold (migration 2220). */
+/** The longest value the settings hold (migrations 2220 and 2953). */
 export const LAYOUT_MAX_LENGTH = 600;
 
 const PAIR = /^([a-z][a-z0-9-]{0,39}):(\d{1,2})$/;

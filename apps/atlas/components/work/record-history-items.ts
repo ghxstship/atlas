@@ -35,6 +35,18 @@ const RECORD_FIELD_LABELS: Readonly<Record<string, string>> = {
   replan_reason: "work.fields.replanReason",
 };
 
+/**
+ * The catalog key labelling a record field as its history words it: the form label of a record
+ * field, `work.extension.<column>` for a kind attribute (`attributes.<column>`) and Trash for
+ * deleted_at; null for a field the history leaves out. B6's Since your last visit tile uses it too.
+ */
+export function recordFieldLabelKey(field: string): string | null {
+  const attribute = attributeColumn(field);
+  if (attribute !== null) return `work.extension.${attribute}`;
+  if (field === "deleted_at") return "collab.history.trash";
+  return RECORD_FIELD_LABELS[field] ?? null;
+}
+
 export interface RecordHistoryWording {
   readonly t: Translate;
   readonly locale: string;

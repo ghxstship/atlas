@@ -294,6 +294,26 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
+            v: "XOS tells the person on a published shift when it is assigned to them and when its times move. Other changes, such as a new role, a cancellation or a return to Draft, are not announced, so the shift shows ",
+          },
+          { t: "strong", v: "Needs review" },
+          {
+            t: "text",
+            v: " with the number of changes since the person was told. The shift's peek shows how and when they were last told (by notification, by accepting the shift, or by your mark) and what changed since. After you tell them, choose ",
+          },
+          { t: "strong", v: "Mark as communicated" },
+          { t: "text", v: "; with " },
+          { t: "strong", v: "Review" },
+          { t: "text", v: " set to " },
+          { t: "strong", v: "Needs review" },
+          { t: "text", v: ", you can mark every listed shift at once." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
             v: 'Planners can plan a Draft shift from one line in the quick add field, such as "#stagehand @dana ~NWS-S01 Friday 8am-4pm": ',
           },
           { t: "code", v: "#" },
@@ -677,7 +697,33 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Today lists the records assigned to you or waiting on your decision, ordered by when they are due. Use ",
+            v: "Today is a dashboard of tiles you can widen or narrow; it keeps your layout. ",
+          },
+          { t: "strong", v: "Doors" },
+          {
+            t: "text",
+            v: " counts down to the next doors of an event in the next 14 days, in its project's time zone. ",
+          },
+          { t: "strong", v: "Waiting for your approval" },
+          {
+            t: "text",
+            v: " counts the approvals your Inbox asks you to decide and lists the first five. ",
+          },
+          { t: "strong", v: "Since your last visit" },
+          {
+            t: "text",
+            v: " names what others changed on the records you are assigned to or watch and on your shifts, and who changed it; a visit lasts 30 minutes, so refreshing keeps the list, and ",
+          },
+          { t: "strong", v: "Mark all as seen" },
+          { t: "text", v: " clears it. It starts from your second visit." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Below the tiles, the day's work lists the records assigned to you or waiting on your decision, ordered by when they are due. Use ",
           },
           { t: "strong", v: "J" },
           { t: "text", v: " and " },
@@ -2011,6 +2057,37 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Show day" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Show day puts one project's show day on one page. Pick the project and the day, or step a day back or forward. ",
+          },
+          { t: "strong", v: "Sets by stage" },
+          {
+            t: "text",
+            v: " lists each artist's set with its time and length, what has been called and what is up next. ",
+          },
+          { t: "strong", v: "Run of show" },
+          { t: "text", v: " shows how many cues each running order has called and the next one. " },
+          { t: "strong", v: "Arrivals" },
+          { t: "text", v: " lists who lands that day, in the arrival's own time zone, and " },
+          { t: "strong", v: "Hotels" },
+          {
+            t: "text",
+            v: " who sleeps where that night and who checks in or out; both need access to hospitality. Anything changed since you last looked carries a tag naming what changed, and ",
+          },
+          { t: "strong", v: "Mark all as seen" },
+          {
+            t: "text",
+            v: " clears the tags. The page updates live as cues are called. From a project's Show tab, ",
+          },
+          { t: "strong", v: "Open show day" },
+          { t: "text", v: " opens today's." },
+        ],
+      },
     ],
     "site-operations": [
       { t: "h2", v: "Occupancy" },
@@ -2519,6 +2596,26 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
+            v: "XOS avisa a la persona de un turno publicado cuando se le asigna y cuando cambian sus horas. Otros cambios, como un rol nuevo, una cancelación o la vuelta a Borrador, no se anuncian, así que el turno muestra ",
+          },
+          { t: "strong", v: "Requiere revisión" },
+          {
+            t: "text",
+            v: " con el número de cambios desde el aviso. La vista rápida del turno muestra cómo y cuándo se le avisó por última vez (por notificación, al aceptar el turno o con su marca) y qué cambió desde entonces. Después de avisarle, elija ",
+          },
+          { t: "strong", v: "Marcar como comunicado" },
+          { t: "text", v: "; con " },
+          { t: "strong", v: "Revisión" },
+          { t: "text", v: " en " },
+          { t: "strong", v: "Requiere revisión" },
+          { t: "text", v: ", puede marcar todos los turnos de la lista a la vez." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
             v: 'Quien planifica puede crear un turno en borrador con una línea en el campo de agregar rápido, como "#tramoyista @dana ~NWS-S01 viernes 8am-4pm": ',
           },
           { t: "code", v: "#" },
@@ -2919,7 +3016,28 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hoy muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use ",
+            v: "Hoy es un tablero de mosaicos que puede ensanchar o estrechar; conserva su diseño. El primer mosaico cuenta el tiempo hasta la próxima apertura de un evento en los próximos 14 días, en la zona horaria de su proyecto. ",
+          },
+          { t: "strong", v: "Esperan tu aprobación" },
+          {
+            t: "text",
+            v: " cuenta las aprobaciones que su Bandeja de entrada le pide decidir y muestra las cinco primeras. ",
+          },
+          { t: "strong", v: "Desde tu última visita" },
+          {
+            t: "text",
+            v: " nombra lo que otros cambiaron en los registros que tiene asignados o sigue y en sus turnos, y quién lo cambió; una visita dura 30 minutos, así que al actualizar la lista se mantiene, y ",
+          },
+          { t: "strong", v: "Marcar todo como visto" },
+          { t: "text", v: " la vacía. Empieza a partir de su segunda visita." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Debajo de los mosaicos, el trabajo del día muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use ",
           },
           { t: "strong", v: "J" },
           { t: "text", v: " y " },
@@ -4206,6 +4324,37 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Una hoja de llamado indica a cada persona cuándo y dónde presentarse. Se basa en el horario del equipo, así que los cambios de turnos aparecen en la siguiente versión publicada.",
           },
+        ],
+      },
+      { t: "h2", v: "Día del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El día del show reúne en una página el día de show de un proyecto. Elija el proyecto y el día, o avance o retroceda un día. ",
+          },
+          { t: "strong", v: "Presentaciones por escenario" },
+          {
+            t: "text",
+            v: " muestra la presentación de cada artista con su hora y duración, lo que ya se llamó y lo que sigue. ",
+          },
+          { t: "strong", v: "Órdenes de show" },
+          { t: "text", v: " muestra cuántos cues llamó cada orden de show y el siguiente. " },
+          { t: "strong", v: "Llegadas" },
+          { t: "text", v: " muestra quién llega ese día, en la zona horaria de su llegada, y " },
+          { t: "strong", v: "Hoteles" },
+          {
+            t: "text",
+            v: " quién duerme dónde esa noche y quién entra o sale; ambos requieren acceso a hospitalidad. Lo que cambió desde su última visita lleva una etiqueta que dice qué cambió, y ",
+          },
+          { t: "strong", v: "Marcar todo como visto" },
+          {
+            t: "text",
+            v: " quita las etiquetas. La página se actualiza en vivo a medida que se llaman los cues. Desde la pestaña Show de un proyecto, ",
+          },
+          { t: "strong", v: "Abrir día del show" },
+          { t: "text", v: " abre el de hoy." },
         ],
       },
     ],
