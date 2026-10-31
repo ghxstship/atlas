@@ -61,7 +61,25 @@
     "notSet": "Not set",
     "trash": "In Trash",
     "restored": "Restored",
-    "unavailable": "The field history could not be loaded."
+    "unavailable": "The field history could not be loaded.",
+    "yes": "Yes",
+    "no": "No",
+    "minorUnits": "{amount} minor units",
+    "money": {
+      "agreed_rate_minor": "Agreed rate",
+      "amount_minor": "Amount",
+      "budget_minor": "Budget",
+      "cost_minor": "Cost",
+      "coverage_limit_minor": "Coverage limit",
+      "default_unit_price_minor": "Default price",
+      "nightly_rate_minor": "Nightly rate",
+      "pay_max_minor": "Pay up to",
+      "pay_min_minor": "Pay from",
+      "proposed_fee_minor": "Proposed fee",
+      "rate_minor": "Rate",
+      "shipping_minor": "Shipping",
+      "tax_minor": "Tax"
+    }
   },
   "coedit": {
     "open": "Edit together",

@@ -12,6 +12,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RecordHistory } from "@/components/history/record-history";
 import { ActionForm, type FieldSpec } from "@/components/opportunities/action-form";
 import { SharedProfile } from "@/components/opportunities/shared-profile";
 import {
@@ -562,6 +563,7 @@ async function ApplicationRecord({
           )}
         </Section>
       ) : null}
+      <RecordHistory db={db} table="app.applications" id={a.id} />
     </TemplateRecord>
   );
 }

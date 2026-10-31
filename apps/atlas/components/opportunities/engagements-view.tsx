@@ -30,6 +30,7 @@ import {
   transitionEngagementAction,
   verifyItemAction,
 } from "@/app/[org]/opportunities/actions";
+import { RecordHistory } from "@/components/history/record-history";
 import { ActionForm } from "@/components/opportunities/action-form";
 import { ratingPromptsOn } from "@/lib/shell/org-settings";
 import { EngagementInsureds } from "@/components/opportunities/insured-checks";
@@ -730,6 +731,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
           <Muted>{canPool ? t("engagements.noPools") : t("engagements.poolNeedsWrite")}</Muted>
         )}
       </Section>
+      <RecordHistory db={db} table="app.engagements" id={e.id} />
     </TemplateRecord>
   );
 }
