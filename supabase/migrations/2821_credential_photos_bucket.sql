@@ -6,8 +6,7 @@
 --   * Objects are virus-scanned like every other upload bucket: private.scanned_upload_bucket is recreated from its
 --     latest definition (1265) with credential-photos added, and the restrictive read gate object_scan_read_gate from
 --     1041 with credential-photos joining the private buckets, so before a Clean scan only the uploader reads a photo.
---     Rebuilt from the union of every definition on the branch when merging: R9 adds party-uploads in 2712, so both
---     carry it here too.
+--     Rebuild both from the union of every definition on the branch when merging (R9 adds party-uploads in 27xx).
 --   * Only the holder uploads, into their own folder, while they hold a live credential in the org. The holder and the
 --     org's credential readers read a photo; the holder, or an issuer of the org who issued them a credential (revoked
 --     or expired included), deletes an object once no live badge photo row names it.
@@ -26,10 +25,10 @@ immutable
 set search_path = ''
 as $$
   select p_bucket_id in ('field-media', 'onboarding-uploads', 'profile-media', 'org-brand', 'imports', 'support-screenshots', 'upload-staging',
-    'party-uploads', 'credential-photos');
+    'credential-photos');
 $$;
 
-comment on function private.scanned_upload_bucket(text) is 'True for a bucket whose objects are virus-scanned through private.object_scans (1041, 1240, 1265, 2712, 2821): field-media, onboarding-uploads, profile-media, org-brand, imports, support-screenshots, upload-staging, party-uploads and credential-photos. Attachments keep their own scan state (0590).';
+comment on function private.scanned_upload_bucket(text) is 'True for a bucket whose objects are virus-scanned through private.object_scans (1041, 1240, 1265, 2821): field-media, onboarding-uploads, profile-media, org-brand, imports, support-screenshots, upload-staging and credential-photos. Attachments keep their own scan state (0590).';
 revoke all on function private.scanned_upload_bucket(text) from public, anon;
 grant execute on function private.scanned_upload_bucket(text) to authenticated, service_role;
 
@@ -40,11 +39,11 @@ drop policy object_scan_read_gate on storage.objects;
 create policy object_scan_read_gate on storage.objects
   as restrictive
   for select to authenticated
-  using (bucket_id not in ('field-media', 'onboarding-uploads', 'party-uploads', 'credential-photos')
+  using (bucket_id not in ('field-media', 'onboarding-uploads', 'credential-photos')
          or owner_id = (select auth.uid())::text
          or private.object_scan_clean(bucket_id, name));
 
-comment on policy object_scan_read_gate on storage.objects is 'A22-011: in the private upload buckets field-media, onboarding-uploads, party-uploads (R9) and credential-photos (2821), only the uploader reads an object before it scans Clean.';
+comment on policy object_scan_read_gate on storage.objects is 'A22-011: in the private upload buckets field-media, onboarding-uploads and credential-photos (2821), only the uploader reads an object before it scans Clean.';
 
 -- Path helpers ----------------------------------------------------------------------------------------------------------
 
