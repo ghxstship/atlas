@@ -24,14 +24,16 @@ select policies_are('app', 'time_entries', array['time_entries_insert', 'time_en
   'the same three policies');
 select triggers_are('app', 'time_entries', array[
   't00_unique_id', 't10_derive_org_id', 't15_refuse_read_only_org', 't20_refuse_org_change', 't30_refuse_cross_org_reference',
-  't36_apply_web_clock_rules', 't38_guard_engaged_worker', 't39_time_entry_engagement_project', 't40_guard_time_entry',
+  't36_apply_web_clock_rules', 't38_guard_engaged_worker', 't39_time_entry_engagement_project', 't39_time_entry_roster_entry_project',
+  't40_guard_time_entry',
   't42_refuse_time_entry_delete', 't85_audit_time_entry', 't85_audit_trail', 't86_void_timesheet_approvals',
   't90_emit_clocked_in', 't90_emit_clocked_out', 't90_stamp_audit_columns'],
   'every trigger, the web clock rules of 1321 included, and the id guard');
 select indexes_are('app', 'time_entries', array[
   'time_entries_pkey', 'time_entries_clock_in_idx', 'time_entries_created_by_idx', 'time_entries_engagement_id_idx',
   'time_entries_kiosk_device_id_idx', 'time_entries_membership_id_idx', 'time_entries_needs_review_idx', 'time_entries_open_idx',
-  'time_entries_org_id_idx', 'time_entries_project_clock_in_idx', 'time_entries_shift_id_idx', 'time_entries_updated_by_idx'],
+  'time_entries_org_id_idx', 'time_entries_project_clock_in_idx', 'time_entries_roster_entry_id_idx', 'time_entries_shift_id_idx',
+  'time_entries_updated_by_idx'],
   'every index');
 select table_privs_are('app', 'time_entries', 'authenticated', array['SELECT', 'INSERT', 'UPDATE'],
   'signed-in people read, insert and update, as before');
@@ -46,8 +48,9 @@ select ok(has_table_privilege('authenticated', 'api_external.time_entries', 'sel
 select is((select array_agg(a.attname || ': ' || col_description(a.attrelid, a.attnum) order by a.attnum) from pg_attribute a
            where a.attrelid = 'api_external.time_entries'::regclass and a.attnum > 0),
   array['id: Time entry.', 'engagement_id: Engagement.', 'project_id: Project.', 'shift_id: Shift worked.', 'clock_in: Clock in.',
-        'clock_out: Clock out; NULL while open.', 'break_minutes: Break minutes.', 'source: Where the time was captured.'],
-  'and its column descriptions');
+        'clock_out: Clock out; NULL while open.', 'break_minutes: Break minutes.', 'source: Where the time was captured.',
+        'roster_entry_id: Roster entry the agency staff member worked under (R12); NULL otherwise.'],
+  'and its column descriptions, with the roster entry R12 appends');
 select is((select array_agg(c.conrelid::regclass::text || ' ' || pg_get_constraintdef(c.oid) order by c.conrelid::regclass::text)
            from pg_constraint c where c.confrelid = 'app.time_entries'::regclass and c.conparentid = 0),
   array['app.clock_punches FOREIGN KEY (time_entry_id, time_entry_created_at) REFERENCES app.time_entries(id, created_at)',

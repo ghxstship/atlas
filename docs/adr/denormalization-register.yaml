@@ -552,6 +552,10 @@ restated:
     kind: own
     note: Member who asked the client, from the session; not who requested the change.
   - column: app.clock_punches.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only when no roster entry is named (`clock_punches_one_worker`, migration 2751, R12).
+  - column: app.clock_punches.engagement_id
     parent: app.shifts.engagement_id
     kind: own
     note: Who punched; the shift link is optional.
@@ -587,6 +591,14 @@ restated:
     parent: app.time_entries.project_id
     kind: own
     note: Project worked; the time entry is linked later.
+  - column: app.clock_punches.roster_entry_id
+    parent: app.shifts.roster_entry_id
+    kind: own
+    note: Who punched; the shift link is optional (R12).
+  - column: app.clock_punches.roster_entry_id
+    parent: app.time_entries.roster_entry_id
+    kind: own
+    note: Who punched; the time entry built from punches is linked later (R12).
   - column: app.clock_punches.shift_id
     parent: app.time_entries.shift_id
     kind: own
@@ -1283,6 +1295,10 @@ restated:
     parent: app.records.ends_at
     kind: own
     note: End of the shift; the record link is optional.
+  - column: app.shifts.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: An engaged worker or an agency slot; NULL once a roster entry holds the shift, which names the entry instead (`shifts_one_worker`, migration 2750, R12).
   - column: app.shifts.project_id
     parent: app.engagements.project_id
     kind: own
@@ -1295,6 +1311,10 @@ restated:
     parent: app.scope_nodes.project_id
     kind: own
     note: Project of the shift; the optional scope node narrows it.
+  - column: app.shifts.role_code
+    parent: app.engagement_roster_entries.role_code
+    kind: own
+    note: Role the production staffs the shift with; the entry's role is what the person works on the roster, and the two may differ (R12).
   - column: app.shifts.role_code
     parent: app.engagements.role_code
     kind: own
@@ -1380,6 +1400,10 @@ restated:
     note: The version is required and belongs to one template, so the application's template is the version's.
     finding: A108-003
   - column: app.time_entries.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only when no roster entry is named (`time_entries_one_worker`, migration 2751, R12).
+  - column: app.time_entries.engagement_id
     parent: app.shifts.engagement_id
     kind: own
     note: Who worked; the shift link is optional.
@@ -1399,6 +1423,14 @@ restated:
     parent: app.shifts.project_id
     kind: own
     note: Project worked; `private.guard_time_entry` requires the optional shift's.
+  - column: app.time_entries.roster_entry_id
+    parent: app.shifts.roster_entry_id
+    kind: own
+    note: Who worked; the shift link is optional (R12).
+  - column: app.timesheets.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only when no roster entry is named (`timesheets_one_worker`, migration 2751, R12).
   - column: app.timesheets.project_id
     parent: app.engagements.project_id
     kind: own
@@ -1609,6 +1641,7 @@ restated:
     parent: xpms.role.flag
     kind: own
     note: Flag from the rate card sheet, not the roles sheet.
+
 
 # Every non-generated column named like a total, count, sum, balance, score, percent or readiness: registered, fact
 # (fixed when something happened; later rows cannot reproduce it), input (set by a person, a provider or the canon) or

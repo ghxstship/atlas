@@ -81,6 +81,8 @@ const OPERATIONAL_EXTERNAL: readonly Audience[] = EXTERNAL_AUDIENCES;
 const ownOrEngaged: readonly ScopeAlternative[] = [
   { column: "membership_id", key: "membershipIds", audiences: INTERNAL },
   { column: "engagement_id", key: "engagementIds", audiences: OPERATIONAL_EXTERNAL },
+  // Agency staff work their shifts and record time through their own roster entry (R12).
+  { column: "roster_entry_id", key: "rosterEntryIds" },
 ];
 
 const internalProject: ScopeAlternative = {

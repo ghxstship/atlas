@@ -20,7 +20,9 @@
 #
 # Scope keys: membershipIds, readableProjectIds and orgIds (internal audiences), engagementIds and
 # engagedProjectIds (external audiences, operational area open), rosterEntryIds (a person's own roster entries
-# accepted by both sides on an Active or Closing engagement, R8), personIds (everyone).
+# accepted by both sides on an Active or Closing engagement, R8; their shifts, time and punches, R12), personIds
+# (everyone). A roster shift names its entry instead of the engagement, so it never reaches the engagement bucket
+# of the agency's other members.
 bucket_definitions:
   own_person:
     parameters: >-
@@ -114,6 +116,15 @@ bucket_definitions:
       WHERE person_user_id = request.user_id() AND scope_key = 'rosterEntryIds'
     data:
       - SELECT id, asset_unit_id, custodian_engagement_id, roster_entry_id, project_id, created_at FROM app.asset_custody WHERE roster_entry_id = bucket.roster_entry_id
+
+  external_roster_shifts:
+    parameters: >-
+      SELECT scope_value AS roster_entry_id FROM private.sync_scope_grants
+      WHERE person_user_id = request.user_id() AND scope_key = 'rosterEntryIds'
+    data:
+      - SELECT id, roster_entry_id, project_id, scope_node_id, role_code, starts_at, ends_at, time_zone, shift_state FROM app.shifts WHERE roster_entry_id = bucket.roster_entry_id AND shift_state != 'Draft'
+      - SELECT id, roster_entry_id, project_id, shift_id, clock_in, clock_out, break_minutes, source FROM app.time_entries WHERE roster_entry_id = bucket.roster_entry_id
+      - SELECT id, roster_entry_id, project_id, shift_id, time_entry_id, punch_kind, device_time, effective_at, geofence_verified, skew_flagged, source FROM app.clock_punches WHERE roster_entry_id = bucket.roster_entry_id
 
   canon_reference:
     data:
