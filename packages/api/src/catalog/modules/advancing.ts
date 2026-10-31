@@ -20,6 +20,12 @@ import {
   setCapabilities,
 } from "../correct.ts";
 import { itemAction, resource } from "../define.ts";
+import {
+  ADVANCE_TRACKS,
+  advanceTrackActions,
+  advanceTrackCapabilities,
+  advanceTrackResources,
+} from "./parts/advance-tracks.ts";
 import { allocationCapabilities, allocationResources } from "./parts/allocations.ts";
 import { rosterEntryCapabilities, rosterEntryResources } from "./parts/roster-project-facts.ts";
 import {
@@ -99,6 +105,7 @@ export const additions = defineAdditions("Advancing", {
     ...rosterEntryResources,
     ...allocationResources,
     ...typedAdvanceResources,
+    ...advanceTrackResources,
     resource("Advancing", "/guest-list-entries", GuestListEntry, {
       actions: [
         itemAction("decide", {
@@ -122,10 +129,12 @@ export const additions = defineAdditions("Advancing", {
       ],
     }),
   ],
+  actions: advanceTrackActions,
   capabilities: {
     ...rosterEntryCapabilities,
     ...allocationCapabilities,
     ...typedAdvanceCapabilities,
+    ...advanceTrackCapabilities,
     guestListEntries: {
       read: "advancing.packet.read",
       write: "advancing.rider.write",
@@ -272,6 +281,27 @@ export const additions = defineAdditions("Advancing", {
           { configure: "advancing.packet.write" },
         ),
       ),
+    },
+    {
+      id: "advance-section-track",
+      since: SINCE,
+      resources: ["advanceSections"],
+      change:
+        "Adds `track`, the track the section is grouped under (Finance, Technical, Hospitality, Catering, Travel, Logistics or General), optional on create and General unless given; the `setTrack` action changes it.",
+      reason:
+        "app.advance_sections.track (2743, R11, parity gap G-176) groups a packet's sections into tracks a reviewer signs off one by one; it is a grouping label that stays editable after the packet is sent, and defaults to General.",
+      apply: editShape({
+        add: {
+          track: {
+            schema: z.enum(ADVANCE_TRACKS).meta({
+              description: "Track the section is grouped under; General unless given.",
+              example: "Hospitality",
+            }),
+            create: "optional",
+            update: false,
+          },
+        },
+      }),
     },
     {
       id: "advance-recipient-engagement",

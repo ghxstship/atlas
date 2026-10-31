@@ -6109,6 +6109,11 @@ export interface AdvanceSection {
    * For an Item Request or Credential Request, true when every line names one person on the roster.
    */
   readonly per_person: boolean;
+  /**
+   * Track the section is grouped under; General unless given.
+   */
+  readonly track:
+    "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
 }
 
 /**
@@ -6166,6 +6171,11 @@ export interface AdvanceSectionCreate {
    * For an Item Request or Credential Request, true when every line names one person on the roster.
    */
   readonly per_person?: boolean;
+  /**
+   * Track the section is grouped under; General unless given.
+   */
+  readonly track?:
+    "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
 }
 
 /**
@@ -6224,6 +6234,17 @@ export interface AdvanceSectionConfigureRequest {
    * Every line names a person.
    */
   readonly per_person?: boolean;
+}
+
+/**
+ * The track a section moves to.
+ */
+export interface AdvanceSectionSetTrackRequest {
+  /**
+   * The track.
+   */
+  readonly track:
+    "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
 }
 
 /**
@@ -6352,6 +6373,78 @@ export interface AdvanceRecipientSetNamesDueRequest {
    * Format: `date-time`.
    */
   readonly names_due_at: string | null;
+}
+
+/**
+ * A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress.
+ */
+export interface AdvanceTrackSignoff {
+  /**
+   * Identifier of the advance track signoff.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the recipient whose track was signed off.
+   * Format: `uuid`.
+   */
+  readonly advance_recipient_id: string;
+  /**
+   * Track signed off.
+   */
+  readonly track:
+    "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+  /**
+   * When the track was signed off.
+   * Format: `date-time`.
+   */
+  readonly signed_off_at: string;
+  /**
+   * When the sign-off was revoked; null while it stands.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Why it was revoked.
+   * Length: 1 to 500.
+   */
+  readonly revoke_reason: string | null;
+}
+
+/**
+ * The track to sign off.
+ */
+export interface AdvanceRecipientSignOffTrackRequest {
+  /**
+   * The track.
+   */
+  readonly track:
+    "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
 }
 
 /**
@@ -39097,6 +39190,120 @@ export interface AdvanceSubmissionFile {
    * Range: 1 to unbounded.
    */
   readonly position: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AdvanceTrackSignoffPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceTrackSignoff>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Revoking a sign-off.
+ */
+export interface AdvanceTrackSignoffRevokeRequest {
+  /**
+   * Why the sign-off is revoked.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AdvanceTrackProgressPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceTrackProgress>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Where each recipient of a sent advance packet stands on each track (R11, G-176): one row per packet, recipient and track with a live section. `track_state` is computed from the answers and the live sign-off, never stored.
+ */
+export interface AdvanceTrackProgress {
+  /**
+   * Identifier of the org that sent the packet.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project of the packet.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the packet.
+   * Format: `uuid`.
+   */
+  readonly advance_packet_id: string;
+  /**
+   * Identifier of the recipient.
+   * Format: `uuid`.
+   */
+  readonly advance_recipient_id: string;
+  /**
+   * The recipient's name.
+   * Length: 1 to 200.
+   */
+  readonly recipient_label: string | null;
+  /**
+   * Track.
+   */
+  readonly track:
+    "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+  /**
+   * Live sections on the track.
+   * Range: 0 to unbounded.
+   */
+  readonly sections_total: number;
+  /**
+   * Sections Accepted, Complete or Not Applicable.
+   * Range: 0 to unbounded.
+   */
+  readonly sections_done: number;
+  /**
+   * Sections not done yet.
+   * Range: 0 to unbounded.
+   */
+  readonly sections_outstanding: number;
+  /**
+   * True when a section on the track is overdue.
+   */
+  readonly overdue: boolean;
+  /**
+   * Identifier of the live sign-off.
+   * Format: `uuid`.
+   */
+  readonly signoff_id: string | null;
+  /**
+   * When the track was signed off.
+   * Format: `date-time`.
+   */
+  readonly signed_off_at: string | null;
+  /**
+   * Who signed it off.
+   * Length: 1 to 200.
+   */
+  readonly signed_off_by_name: string | null;
+  /**
+   * Not Started, In Progress, Ready for Sign-off, Signed Off, or Reopened (a section no longer done or an answer newer than the sign-off).
+   */
+  readonly track_state:
+    "Not Started" | "In Progress" | "Ready for Sign-off" | "Signed Off" | "Reopened";
 }
 
 /**

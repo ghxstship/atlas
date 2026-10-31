@@ -356,6 +356,10 @@ export interface Components {
   };
   AdvanceRecipientPage: { data: Array<Components["AdvanceRecipient"]>; next_cursor: string | null };
   AdvanceRecipientSetNamesDueRequest: { names_due_at: string | null };
+  AdvanceRecipientSignOffTrackRequest: {
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+  };
   AdvanceSection: {
     id: string;
     org_id: string;
@@ -385,6 +389,8 @@ export interface Components {
       | null;
     max_lines: number | null;
     per_person: boolean;
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
   };
   AdvanceSectionChoice: {
     id: string;
@@ -449,8 +455,14 @@ export interface Components {
       | null;
     max_lines?: number | null;
     per_person?: boolean;
+    track?:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
   };
   AdvanceSectionPage: { data: Array<Components["AdvanceSection"]>; next_cursor: string | null };
+  AdvanceSectionSetTrackRequest: {
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+  };
   AdvanceSectionUpdate: { position?: number; title?: string; prompt?: string | null };
   AdvanceSubmission: {
     id: string;
@@ -515,6 +527,46 @@ export interface Components {
     next_cursor: string | null;
   };
   AdvanceSubmissionReviewRequest: { outcome: "Accepted" | "Returned"; return_reason?: string };
+  AdvanceTrackProgress: {
+    org_id: string;
+    project_id: string;
+    advance_packet_id: string;
+    advance_recipient_id: string;
+    recipient_label: string | null;
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+    sections_total: number;
+    sections_done: number;
+    sections_outstanding: number;
+    overdue: boolean;
+    signoff_id: string | null;
+    signed_off_at: string | null;
+    signed_off_by_name: string | null;
+    track_state: "Not Started" | "In Progress" | "Ready for Sign-off" | "Signed Off" | "Reopened";
+  };
+  AdvanceTrackProgressPage: {
+    data: Array<Components["AdvanceTrackProgress"]>;
+    next_cursor: string | null;
+  };
+  AdvanceTrackSignoff: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    advance_recipient_id: string;
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+    signed_off_at: string;
+    revoked_at: string | null;
+    revoke_reason: string | null;
+  };
+  AdvanceTrackSignoffPage: {
+    data: Array<Components["AdvanceTrackSignoff"]>;
+    next_cursor: string | null;
+  };
+  AdvanceTrackSignoffRevokeRequest: { reason: string };
   AgencySlate: {
     id: string;
     org_id: string;
@@ -12553,6 +12605,15 @@ export interface Operations {
     body: Components["AdvanceSectionConfigureRequest"];
     responses: { 200: Components["AdvanceSection"] };
   };
+  "advanceSections.setTrack": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-sections/{id}/set-track";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceSectionSetTrackRequest"];
+    responses: { 200: Components["AdvanceSection"] };
+  };
   "advanceRecipients.list": {
     module: "Advancing";
     method: "get";
@@ -12612,6 +12673,15 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AdvanceRecipientSetNamesDueRequest"];
     responses: { 200: Components["AdvanceRecipient"] };
+  };
+  "advanceRecipients.signOffTrack": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-recipients/{id}/sign-off-track";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceRecipientSignOffTrackRequest"];
+    responses: { 201: Components["AdvanceTrackSignoff"] };
   };
   "advanceSubmissions.list": {
     module: "Advancing";
@@ -24829,6 +24899,54 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["AdvanceSubmissionFile"] };
   };
+  "advanceTrackSignoffs.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-track-signoffs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AdvanceTrackSignoffPage"] };
+  };
+  "advanceTrackSignoffs.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-track-signoffs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AdvanceTrackSignoff"] };
+  };
+  "advanceTrackSignoffs.revoke": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-track-signoffs/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceTrackSignoffRevokeRequest"];
+    responses: { 200: Components["AdvanceTrackSignoff"] };
+  };
+  "advanceTrackProgress.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-track-progress";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AdvanceTrackProgressPage"] };
+  };
   "guestListEntries.list": {
     module: "Advancing";
     method: "get";
@@ -28531,12 +28649,14 @@ export interface ModuleOperations {
     | "advanceSections.update"
     | "advanceSections.delete"
     | "advanceSections.configure"
+    | "advanceSections.setTrack"
     | "advanceRecipients.list"
     | "advanceRecipients.create"
     | "advanceRecipients.get"
     | "advanceRecipients.delete"
     | "advanceRecipients.bindEngagement"
     | "advanceRecipients.setNamesDue"
+    | "advanceRecipients.signOffTrack"
     | "advanceSubmissions.list"
     | "advanceSubmissions.create"
     | "advanceSubmissions.get"
@@ -28584,6 +28704,10 @@ export interface ModuleOperations {
     | "advanceSubmissionLines.get"
     | "advanceSubmissionFiles.list"
     | "advanceSubmissionFiles.get"
+    | "advanceTrackSignoffs.list"
+    | "advanceTrackSignoffs.get"
+    | "advanceTrackSignoffs.revoke"
+    | "advanceTrackProgress.list"
     | "guestListEntries.list"
     | "guestListEntries.create"
     | "guestListEntries.get"

@@ -348,6 +348,8 @@ import {
   AdvanceSectionChoicesResource,
   AdvanceSubmissionLinesResource,
   AdvanceSubmissionFilesResource,
+  AdvanceTrackSignoffsResource,
+  AdvanceTrackProgressResource,
   GuestListEntriesResource,
   AssetUnitHireResource,
   AssetReservationsResource,
@@ -1227,6 +1229,14 @@ export class XosClient extends XosClientCore {
   /** Advancing: operations on `advanceSubmissionFiles`. */
   readonly advanceSubmissionFiles: AdvanceSubmissionFilesResource =
     new AdvanceSubmissionFilesResource(this);
+  /** Advancing: operations on `advanceTrackSignoffs`. */
+  readonly advanceTrackSignoffs: AdvanceTrackSignoffsResource = new AdvanceTrackSignoffsResource(
+    this,
+  );
+  /** Advancing: operations on `advanceTrackProgress`. */
+  readonly advanceTrackProgress: AdvanceTrackProgressResource = new AdvanceTrackProgressResource(
+    this,
+  );
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
   /** Assets: operations on `assetUnitHire`. */

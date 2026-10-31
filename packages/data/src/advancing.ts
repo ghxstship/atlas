@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Advancing repository (Section 4.2): advance packets, their sections and party-bound recipients,
@@ -327,6 +328,22 @@ export const ADVANCE_WINDOW_KINDS = [
 ] as const;
 export type AdvanceWindowKind = (typeof ADVANCE_WINDOW_KINDS)[number];
 
+/** The track a section is grouped under (app.advance_track, R11 migration 2743). */
+export const ADVANCE_TRACKS = [
+  "Finance",
+  "Technical",
+  "Hospitality",
+  "Catering",
+  "Travel",
+  "Logistics",
+  "General",
+] as const;
+export type AdvanceTrack = (typeof ADVANCE_TRACKS)[number];
+
+function isTrack(value: unknown): value is AdvanceTrack {
+  return typeof value === "string" && (ADVANCE_TRACKS as readonly string[]).includes(value);
+}
+
 /** The most lines each kind lets an answer hold, as advance_sections_kind_fields checks it. */
 export const SECTION_LINE_LIMITS: Readonly<Partial<Record<AdvanceSectionKind, number>>> = {
   File: 10,
@@ -357,6 +374,8 @@ export interface AdvanceSection extends SectionConfig {
   readonly title: string;
   readonly prompt: string | null;
   readonly choices: readonly SectionChoice[];
+  /** Track the section is grouped under (R11); General unless set. */
+  readonly track: AdvanceTrack;
 }
 
 export interface AdvanceRecipient {
@@ -523,11 +542,18 @@ export async function getPacket(
   ]);
   if (sections.error) return fail(toDataError(sections.error));
   if (recipients.error) return fail(toDataError(recipients.error));
-  const choices = await sectionChoices(
-    db,
-    sections.data.map((s) => s.id),
-  );
+  const [choices, tracks] = await Promise.all([
+    sectionChoices(
+      db,
+      sections.data.map((s) => s.id),
+    ),
+    sectionTracks(
+      db,
+      sections.data.map((s) => s.id),
+    ),
+  ]);
   if (!choices.ok) return fail(choices.error);
+  if (!tracks.ok) return fail(tracks.error);
   const names = await partyNames(
     db,
     recipients.data.flatMap((r) => (r.person_id ? [r.person_id] : [])),
@@ -572,6 +598,7 @@ export async function getPacket(
       maxLines: s.max_lines,
       perPerson: s.per_person,
       choices: choices.data.get(s.id) ?? [],
+      track: tracks.data.get(s.id) ?? "General",
     }))
     .sort(byPosition);
   const progress = packetProgress(
@@ -594,6 +621,24 @@ export async function getPacket(
     recipients: recipientList,
     submissions,
   });
+}
+
+/** The track of each section (2743, newer than the generated types). */
+async function sectionTracks(
+  db: XosClient,
+  sectionIds: readonly string[],
+): Promise<Result<Map<string, AdvanceTrack>>> {
+  const tracks = new Map<string, AdvanceTrack>();
+  if (sectionIds.length === 0) return ok(tracks);
+  const { data, error } = await untyped(db)
+    .from("advance_sections")
+    .select("id, track")
+    .in("id", [...sectionIds]);
+  if (error) return fail(toDataError(error));
+  for (const row of (data ?? []) as { id: string; track: unknown }[]) {
+    if (isTrack(row.track)) tracks.set(row.id, row.track);
+  }
+  return ok(tracks);
 }
 
 function cleanTitle(title: string): string | null {
@@ -2301,4 +2346,351 @@ export async function removeGuest(
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+// Progress, readiness, reminders and tracks (R11, migrations 2740 to 2743) ------------------------------------------
+
+/** Where a recipient stands on one section (app.advance_progress.cell_state). */
+export const ADVANCE_CELL_STATES = [
+  "Missing",
+  "Awaiting Review",
+  "Accepted",
+  "Returned",
+  "Complete",
+  "Not Applicable",
+] as const;
+export type AdvanceCellState = (typeof ADVANCE_CELL_STATES)[number];
+
+/** One cell of the packets heatmap: a recipient of a sent packet on one section. */
+export interface AdvanceProgressCell {
+  readonly packetId: string;
+  readonly packetTitle: string;
+  readonly dueAt: string | null;
+  readonly recipientId: string;
+  readonly recipientEngagementId: string | null;
+  readonly recipientLabel: string | null;
+  readonly sectionId: string;
+  readonly position: number;
+  readonly sectionTitle: string;
+  readonly sectionKind: AdvanceSectionKind;
+  readonly latestSubmissionId: string | null;
+  readonly submittedAt: string | null;
+  readonly state: AdvanceCellState;
+  readonly overdue: boolean;
+}
+
+type Raw = Record<string, unknown>;
+
+function text(v: unknown): string | null {
+  return typeof v === "string" ? v : null;
+}
+
+function count(v: unknown): number {
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * The packets heatmap of a project, from app.advance_progress (2740): every live sent packet, recipient and section
+ * with its computed cell state, optionally for one packet. Computed in the database; nothing is stored.
+ */
+export async function listAdvanceProgress(
+  db: XosClient,
+  projectId: string,
+  packetId?: string,
+): Promise<Result<AdvanceProgressCell[]>> {
+  let query = untyped(db)
+    .from("advance_progress")
+    .select(
+      "advance_packet_id, packet_title, due_at, advance_recipient_id, recipient_engagement_id, recipient_label, advance_section_id, position, section_title, section_kind, latest_submission_id, submitted_at, cell_state, overdue",
+    )
+    .eq("project_id", projectId);
+  if (packetId) query = query.eq("advance_packet_id", packetId);
+  const { data, error } = await query
+    .order("due_at", { ascending: true, nullsFirst: false })
+    .order("advance_packet_id")
+    .order("position");
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Raw[]).map((r) => ({
+      packetId: String(r["advance_packet_id"]),
+      packetTitle: text(r["packet_title"]) ?? "",
+      dueAt: text(r["due_at"]),
+      recipientId: String(r["advance_recipient_id"]),
+      recipientEngagementId: text(r["recipient_engagement_id"]),
+      recipientLabel: text(r["recipient_label"]),
+      sectionId: String(r["advance_section_id"]),
+      position: count(r["position"]),
+      sectionTitle: text(r["section_title"]) ?? "",
+      sectionKind: (text(r["section_kind"]) ?? "Text") as AdvanceSectionKind,
+      latestSubmissionId: text(r["latest_submission_id"]),
+      submittedAt: text(r["submitted_at"]),
+      state: (text(r["cell_state"]) ?? "Missing") as AdvanceCellState,
+      overdue: r["overdue"] === true,
+    })),
+  );
+}
+
+/** A crew readiness category (app.roster_readiness, 2740), in grid order. */
+export const READINESS_CATEGORIES = [
+  "Acceptance",
+  "Contact",
+  "Emergency Contacts",
+  "Dietary Needs",
+  "Accessibility Needs",
+  "Allergies",
+  "Passport",
+  "Uniform",
+  "Travel",
+  "Vehicle",
+] as const;
+export type ReadinessCategory = (typeof READINESS_CATEGORIES)[number];
+
+/** A readiness state: presence and sharing only, never a value (owner decision 5). */
+export type ReadinessState =
+  | "Accepted"
+  | "Awaiting Person"
+  | "Declined"
+  | "On File"
+  | "Missing"
+  | "Not Shared"
+  | "Shared"
+  | "Submitted"
+  | "Not Offered"
+  | "Hidden";
+
+export interface ReadinessCell {
+  readonly rosterEntryId: string;
+  readonly engagementId: string;
+  readonly partyLabel: string | null;
+  readonly personLabel: string | null;
+  readonly roleCode: string | null;
+  readonly entryState: string;
+  readonly category: ReadinessCategory;
+  readonly state: ReadinessState;
+}
+
+/**
+ * The crew readiness grid of a project (app.roster_readiness, 2740): one cell per live roster entry and category,
+ * Hidden where the caller lacks the category's capability. The function returns no value, so nothing is logged.
+ */
+export async function listRosterReadiness(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ReadinessCell[]>> {
+  const { data, error } = await untyped(db).rpc("roster_readiness", { p_project_id: projectId });
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Raw[]).map((r) => ({
+      rosterEntryId: String(r["roster_entry_id"]),
+      engagementId: String(r["engagement_id"]),
+      partyLabel: text(r["party_label"]),
+      personLabel: text(r["person_label"]),
+      roleCode: text(r["role_code"]),
+      entryState: text(r["entry_state"]) ?? "Draft",
+      category: text(r["category"]) as ReadinessCategory,
+      state: (text(r["cell_state"]) ?? "Hidden") as ReadinessState,
+    })),
+  );
+}
+
+/** What one party's engagement is allocated of one offering (app.advance_allocation_heat, 2740). */
+export interface AllocationHeatCell {
+  readonly engagementId: string | null;
+  readonly partyLabel: string | null;
+  readonly kind: string;
+  readonly offering: string | null;
+  readonly requested: number;
+  readonly approved: number;
+  readonly onOrder: number;
+  readonly received: number;
+  readonly reserved: number;
+  readonly issued: number;
+  readonly returned: number;
+  readonly lost: number;
+  readonly allocations: number;
+}
+
+/** The allocation heatmap of a project: R7's computed status summed per party and offering. */
+export async function listAllocationHeat(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<AllocationHeatCell[]>> {
+  const { data, error } = await untyped(db)
+    .from("advance_allocation_heat")
+    .select(
+      "engagement_id, party_label, kind, offering, requested_quantity, approved_quantity, on_order_quantity, received_quantity, reserved_quantity, issued_quantity, returned_quantity, lost_quantity, allocation_count",
+    )
+    .eq("project_id", projectId);
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Raw[]).map((r) => ({
+      engagementId: text(r["engagement_id"]),
+      partyLabel: text(r["party_label"]),
+      kind: text(r["kind"]) ?? "",
+      offering: text(r["offering"]),
+      requested: count(r["requested_quantity"]),
+      approved: count(r["approved_quantity"]),
+      onOrder: count(r["on_order_quantity"]),
+      received: count(r["received_quantity"]),
+      reserved: count(r["reserved_quantity"]),
+      issued: count(r["issued_quantity"]),
+      returned: count(r["returned_quantity"]),
+      lost: count(r["lost_quantity"]),
+      allocations: count(r["allocation_count"]),
+    })),
+  );
+}
+
+/** Most recipients one manual reminder takes (advance_reminder_batch, 2741). */
+export const REMINDER_BATCH_LIMIT = 200;
+
+/**
+ * Reminds chosen recipients of a sent packet now (app.send_advance_reminder_now, 2741): at most once a day each, and
+ * only those with something outstanding. Needs advancing.packet.send on the project.
+ */
+export async function sendAdvanceReminderNow(
+  db: XosClient,
+  packetId: string,
+  recipientIds: readonly string[],
+): Promise<Result<{ sent: number; skipped: number }>> {
+  const ids = [...new Set(recipientIds)];
+  if (ids.length === 0 || ids.length > REMINDER_BATCH_LIMIT) {
+    return refuse("advance_reminder_batch", "Remind 1 to 200 recipients at a time.");
+  }
+  const { data, error } = await untyped(db).rpc("send_advance_reminder_now", {
+    p_packet_id: packetId,
+    p_recipient_ids: ids,
+  });
+  if (error) return fail(toDataError(error));
+  const row = (Array.isArray(data) ? data[0] : data) as Raw | undefined;
+  return ok({ sent: count(row?.["sent"]), skipped: count(row?.["skipped"]) });
+}
+
+/** A track's computed state (app.advance_track_progress.track_state, 2743). */
+export const TRACK_STATES = [
+  "Not Started",
+  "In Progress",
+  "Ready for Sign-off",
+  "Signed Off",
+  "Reopened",
+] as const;
+export type TrackState = (typeof TRACK_STATES)[number];
+
+/** One recipient's track of a sent packet. */
+export interface TrackProgress {
+  readonly packetId: string;
+  readonly recipientId: string;
+  readonly recipientLabel: string | null;
+  readonly track: AdvanceTrack;
+  readonly sectionsTotal: number;
+  readonly sectionsDone: number;
+  readonly overdue: boolean;
+  readonly signoffId: string | null;
+  readonly signedOffAt: string | null;
+  readonly signedOffByName: string | null;
+  readonly state: TrackState;
+}
+
+/** The Tracks pane of a project (app.advance_track_progress, 2743), optionally for one packet. */
+export async function listTrackProgress(
+  db: XosClient,
+  projectId: string,
+  packetId?: string,
+): Promise<Result<TrackProgress[]>> {
+  let query = untyped(db)
+    .from("advance_track_progress")
+    .select(
+      "advance_packet_id, advance_recipient_id, recipient_label, track, sections_total, sections_done, overdue, signoff_id, signed_off_at, signed_off_by_name, track_state",
+    )
+    .eq("project_id", projectId);
+  if (packetId) query = query.eq("advance_packet_id", packetId);
+  const { data, error } = await query;
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Raw[]).flatMap((r) => {
+      const track = r["track"];
+      if (!isTrack(track)) return [];
+      return [
+        {
+          packetId: String(r["advance_packet_id"]),
+          recipientId: String(r["advance_recipient_id"]),
+          recipientLabel: text(r["recipient_label"]),
+          track,
+          sectionsTotal: count(r["sections_total"]),
+          sectionsDone: count(r["sections_done"]),
+          overdue: r["overdue"] === true,
+          signoffId: text(r["signoff_id"]),
+          signedOffAt: text(r["signed_off_at"]),
+          signedOffByName: text(r["signed_off_by_name"]),
+          state: (text(r["track_state"]) ?? "Not Started") as TrackState,
+        },
+      ];
+    }),
+  );
+}
+
+/**
+ * Signs off one recipient's track (app.sign_off_advance_track, 2743): every live section on it Accepted, Complete or
+ * Not Applicable, and no live sign-off. Refusals come back as advance_track_empty, advance_track_incomplete,
+ * advance_track_signed_off or advance_packet_unsent. Returns the sign-off id.
+ */
+export async function signOffTrack(
+  db: XosClient,
+  recipientId: string,
+  track: AdvanceTrack,
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await untyped(db).rpc("sign_off_advance_track", {
+    p_recipient_id: recipientId,
+    p_track: track,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: String(data) });
+}
+
+/** Revokes a live track sign-off with a reason of 1 to 500 characters (app.revoke_advance_track_signoff, 2743). */
+export async function revokeTrackSignoff(
+  db: XosClient,
+  signoffId: string,
+  reason: string,
+): Promise<Result<null>> {
+  const trimmed = reason.trim();
+  if (trimmed.length < 1 || trimmed.length > 500) {
+    return refuse(
+      "advance_track_revoke_reason",
+      "Say why the sign-off is revoked, in 1 to 500 characters.",
+    );
+  }
+  const { error } = await untyped(db).rpc("revoke_advance_track_signoff", {
+    p_signoff_id: signoffId,
+    p_reason: trimmed,
+  });
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/**
+ * Moves a section to another track (2743). The track is a grouping label and stays editable after the packet is sent.
+ * With `version`, the section's updated_at, the change applies only to that version and a stale one is refused.
+ */
+export async function setSectionTrack(
+  db: XosClient,
+  sectionId: string,
+  track: AdvanceTrack,
+  version?: string | null,
+): Promise<Result<null>> {
+  let query = untyped(db)
+    .from("advance_sections")
+    .update({ track })
+    .eq("id", sectionId)
+    .is("deleted_at", null);
+  if (version) query = query.eq("updated_at", version);
+  const { data, error } = await query.select("id");
+  if (error) return fail(toDataError(error));
+  if ((data ?? []).length > 0) return ok(null);
+  return version
+    ? refuse(
+        "advance_section_stale",
+        "The section changed since it was read. Reload it and try again.",
+      )
+    : fail(NOT_FOUND);
 }

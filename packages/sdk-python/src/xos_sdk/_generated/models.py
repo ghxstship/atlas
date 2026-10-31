@@ -206,11 +206,14 @@ __all__ = [
     "AdvanceSectionCreate",
     "AdvanceSectionUpdate",
     "AdvanceSectionConfigureRequest",
+    "AdvanceSectionSetTrackRequest",
     "AdvanceRecipientPage",
     "AdvanceRecipient",
     "AdvanceRecipientCreate",
     "AdvanceRecipientBindEngagementRequest",
     "AdvanceRecipientSetNamesDueRequest",
+    "AdvanceTrackSignoff",
+    "AdvanceRecipientSignOffTrackRequest",
     "AdvanceSubmissionPage",
     "AdvanceSubmission",
     "AdvanceSubmissionCreate",
@@ -1307,6 +1310,10 @@ __all__ = [
     "AdvanceSubmissionLine",
     "AdvanceSubmissionFilePage",
     "AdvanceSubmissionFile",
+    "AdvanceTrackSignoffPage",
+    "AdvanceTrackSignoffRevokeRequest",
+    "AdvanceTrackProgressPage",
+    "AdvanceTrackProgress",
     "GuestListEntryPage",
     "GuestListEntry",
     "GuestListEntryCreate",
@@ -4697,6 +4704,8 @@ class AdvanceSection(TypedDict):
     max_lines: Optional[int]
     #: For an Item Request or Credential Request, true when every line names one person on the roster.
     per_person: bool
+    #: Track the section is grouped under; General unless given.
+    track: Literal["Finance", "Technical", "Hospitality", "Catering", "Travel", "Logistics", "General"]
 
 
 class _AdvanceSectionCreateRequired(TypedDict):
@@ -4721,6 +4730,8 @@ class AdvanceSectionCreate(_AdvanceSectionCreateRequired, total=False):
     max_lines: Optional[int]
     #: For an Item Request or Credential Request, true when every line names one person on the roster.
     per_person: bool
+    #: Track the section is grouped under; General unless given.
+    track: Literal["Finance", "Technical", "Hospitality", "Catering", "Travel", "Logistics", "General"]
 
 
 class AdvanceSectionUpdate(TypedDict, total=False):
@@ -4748,6 +4759,13 @@ class AdvanceSectionConfigureRequest(_AdvanceSectionConfigureRequestRequired, to
     max_lines: Optional[int]
     #: Every line names a person.
     per_person: bool
+
+
+class AdvanceSectionSetTrackRequest(TypedDict):
+    """The track a section moves to."""
+
+    #: The track.
+    track: Literal["Finance", "Technical", "Hospitality", "Catering", "Travel", "Logistics", "General"]
 
 
 class AdvanceRecipientPage(TypedDict):
@@ -4816,6 +4834,40 @@ class AdvanceRecipientSetNamesDueRequest(TypedDict):
 
     #: The deadline, or null to clear it.
     names_due_at: Optional[str]
+
+
+class AdvanceTrackSignoff(TypedDict):
+    """A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress."""
+
+    #: Identifier of the advance track signoff.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the recipient whose track was signed off.
+    advance_recipient_id: str
+    #: Track signed off.
+    track: Literal["Finance", "Technical", "Hospitality", "Catering", "Travel", "Logistics", "General"]
+    #: When the track was signed off.
+    signed_off_at: str
+    #: When the sign-off was revoked; null while it stands.
+    revoked_at: Optional[str]
+    #: Why it was revoked.
+    revoke_reason: Optional[str]
+
+
+class AdvanceRecipientSignOffTrackRequest(TypedDict):
+    """The track to sign off."""
+
+    #: The track.
+    track: Literal["Finance", "Technical", "Hospitality", "Catering", "Travel", "Logistics", "General"]
 
 
 class AdvanceSubmissionPage(TypedDict):
@@ -21652,6 +21704,64 @@ class AdvanceSubmissionFile(TypedDict):
     document_id: str
     #: Order in the answer, 1 to 10.
     position: int
+
+
+class AdvanceTrackSignoffPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AdvanceTrackSignoff]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AdvanceTrackSignoffRevokeRequest(TypedDict):
+    """Revoking a sign-off."""
+
+    #: Why the sign-off is revoked.
+    reason: str
+
+
+class AdvanceTrackProgressPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AdvanceTrackProgress]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AdvanceTrackProgress(TypedDict):
+    """Where each recipient of a sent advance packet stands on each track (R11, G-176): one row per packet, recipient and track with a live section. `track_state` is computed from the answers and the live sign-off, never stored."""
+
+    #: Identifier of the org that sent the packet.
+    org_id: str
+    #: Identifier of the project of the packet.
+    project_id: str
+    #: Identifier of the packet.
+    advance_packet_id: str
+    #: Identifier of the recipient.
+    advance_recipient_id: str
+    #: The recipient's name.
+    recipient_label: Optional[str]
+    #: Track.
+    track: Literal["Finance", "Technical", "Hospitality", "Catering", "Travel", "Logistics", "General"]
+    #: Live sections on the track.
+    sections_total: int
+    #: Sections Accepted, Complete or Not Applicable.
+    sections_done: int
+    #: Sections not done yet.
+    sections_outstanding: int
+    #: True when a section on the track is overdue.
+    overdue: bool
+    #: Identifier of the live sign-off.
+    signoff_id: Optional[str]
+    #: When the track was signed off.
+    signed_off_at: Optional[str]
+    #: Who signed it off.
+    signed_off_by_name: Optional[str]
+    #: Not Started, In Progress, Ready for Sign-off, Signed Off, or Reopened (a section no longer done or an answer newer than the sign-off).
+    track_state: Literal["Not Started", "In Progress", "Ready for Sign-off", "Signed Off", "Reopened"]
 
 
 class GuestListEntryPage(TypedDict):

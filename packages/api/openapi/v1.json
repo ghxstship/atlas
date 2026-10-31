@@ -8432,6 +8432,20 @@
             "type": "boolean",
             "description": "For an Item Request or Credential Request, true when every line names one person on the roster.",
             "example": false
+          },
+          "track": {
+            "type": "string",
+            "enum": [
+              "Finance",
+              "Technical",
+              "Hospitality",
+              "Catering",
+              "Travel",
+              "Logistics",
+              "General"
+            ],
+            "description": "Track the section is grouped under; General unless given.",
+            "example": "Hospitality"
           }
         },
         "required": [
@@ -8448,7 +8462,8 @@
           "section_kind",
           "window_kind",
           "max_lines",
-          "per_person"
+          "per_person",
+          "track"
         ],
         "description": "A section of an advance packet."
       },
@@ -8519,6 +8534,20 @@
             "type": "boolean",
             "description": "For an Item Request or Credential Request, true when every line names one person on the roster.",
             "example": false
+          },
+          "track": {
+            "type": "string",
+            "enum": [
+              "Finance",
+              "Technical",
+              "Hospitality",
+              "Catering",
+              "Travel",
+              "Logistics",
+              "General"
+            ],
+            "description": "Track the section is grouped under; General unless given.",
+            "example": "Hospitality"
           }
         },
         "required": ["advance_packet_id", "position", "title"],
@@ -8596,6 +8625,27 @@
         },
         "required": ["section_kind"],
         "description": "The kind and configuration of a section."
+      },
+      "AdvanceSectionSetTrackRequest": {
+        "type": "object",
+        "properties": {
+          "track": {
+            "type": "string",
+            "enum": [
+              "Finance",
+              "Technical",
+              "Hospitality",
+              "Catering",
+              "Travel",
+              "Logistics",
+              "General"
+            ],
+            "description": "The track.",
+            "example": "Hospitality"
+          }
+        },
+        "required": ["track"],
+        "description": "The track a section moves to."
       },
       "AdvanceRecipientPage": {
         "type": "object",
@@ -8761,6 +8811,121 @@
         },
         "required": ["names_due_at"],
         "description": "A recipient's naming deadline."
+      },
+      "AdvanceTrackSignoff": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the advance track signoff.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "advance_recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the recipient whose track was signed off.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "track": {
+            "type": "string",
+            "enum": [
+              "Finance",
+              "Technical",
+              "Hospitality",
+              "Catering",
+              "Travel",
+              "Logistics",
+              "General"
+            ],
+            "description": "Track signed off.",
+            "example": "Hospitality"
+          },
+          "signed_off_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the track was signed off.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the sign-off was revoked; null while it stands.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoke_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why it was revoked.",
+            "example": "The power answer came in after sign-off."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "advance_recipient_id",
+          "track",
+          "signed_off_at",
+          "revoked_at",
+          "revoke_reason"
+        ],
+        "description": "A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress."
+      },
+      "AdvanceRecipientSignOffTrackRequest": {
+        "type": "object",
+        "properties": {
+          "track": {
+            "type": "string",
+            "enum": [
+              "Finance",
+              "Technical",
+              "Hospitality",
+              "Catering",
+              "Travel",
+              "Logistics",
+              "General"
+            ],
+            "description": "The track.",
+            "example": "Hospitality"
+          }
+        },
+        "required": ["track"],
+        "description": "The track to sign off."
       },
       "AdvanceSubmissionPage": {
         "type": "object",
@@ -52477,6 +52642,169 @@
         ],
         "description": "A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes."
       },
+      "AdvanceTrackSignoffPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdvanceTrackSignoff" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AdvanceTrackSignoffRevokeRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the sign-off is revoked.",
+            "example": "The power answer came in after sign-off."
+          }
+        },
+        "required": ["reason"],
+        "description": "Revoking a sign-off."
+      },
+      "AdvanceTrackProgressPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdvanceTrackProgress" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AdvanceTrackProgress": {
+        "type": "object",
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org that sent the packet.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the packet.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "advance_packet_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the packet.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "advance_recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the recipient.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "recipient_label": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The recipient's name.",
+            "example": "Bayside Audio"
+          },
+          "track": {
+            "type": "string",
+            "enum": [
+              "Finance",
+              "Technical",
+              "Hospitality",
+              "Catering",
+              "Travel",
+              "Logistics",
+              "General"
+            ],
+            "description": "Track.",
+            "example": "Hospitality"
+          },
+          "sections_total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Live sections on the track.",
+            "example": 2
+          },
+          "sections_done": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Sections Accepted, Complete or Not Applicable.",
+            "example": 2
+          },
+          "sections_outstanding": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Sections not done yet.",
+            "example": 0
+          },
+          "overdue": {
+            "type": "boolean",
+            "description": "True when a section on the track is overdue.",
+            "example": false
+          },
+          "signoff_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the live sign-off.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "signed_off_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the track was signed off.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "signed_off_by_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Who signed it off.",
+            "example": "Carol Nguyen"
+          },
+          "track_state": {
+            "type": "string",
+            "enum": ["Not Started", "In Progress", "Ready for Sign-off", "Signed Off", "Reopened"],
+            "description": "Not Started, In Progress, Ready for Sign-off, Signed Off, or Reopened (a section no longer done or an answer newer than the sign-off).",
+            "example": "Ready for Sign-off"
+          }
+        },
+        "required": [
+          "org_id",
+          "project_id",
+          "advance_packet_id",
+          "advance_recipient_id",
+          "recipient_label",
+          "track",
+          "sections_total",
+          "sections_done",
+          "sections_outstanding",
+          "overdue",
+          "signoff_id",
+          "signed_off_at",
+          "signed_off_by_name",
+          "track_state"
+        ],
+        "description": "Where each recipient of a sent advance packet stands on each track (R11, G-176): one row per packet, recipient and track with a live section. `track_state` is computed from the answers and the live sign-off, never stored."
+      },
       "GuestListEntryPage": {
         "type": "object",
         "properties": {
@@ -79712,7 +80040,8 @@
                       "section_kind": "Item Request",
                       "window_kind": "Load In",
                       "max_lines": 6,
-                      "per_person": false
+                      "per_person": false,
+                      "track": "Hospitality"
                     }
                   ],
                   "next_cursor": null
@@ -79747,7 +80076,8 @@
                 "section_kind": "Item Request",
                 "window_kind": "Load In",
                 "max_lines": 6,
-                "per_person": false
+                "per_person": false,
+                "track": "Hospitality"
               },
               "schema": { "$ref": "#/components/schemas/AdvanceSectionCreate" }
             }
@@ -79778,7 +80108,8 @@
                   "section_kind": "Item Request",
                   "window_kind": "Load In",
                   "max_lines": 6,
-                  "per_person": false
+                  "per_person": false,
+                  "track": "Hospitality"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -79841,7 +80172,8 @@
                   "section_kind": "Item Request",
                   "window_kind": "Load In",
                   "max_lines": 6,
-                  "per_person": false
+                  "per_person": false,
+                  "track": "Hospitality"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -79914,7 +80246,8 @@
                   "section_kind": "Item Request",
                   "window_kind": "Load In",
                   "max_lines": 6,
-                  "per_person": false
+                  "per_person": false,
+                  "track": "Hospitality"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -80023,7 +80356,82 @@
                   "section_kind": "Item Request",
                   "window_kind": "Load In",
                   "max_lines": 6,
-                  "per_person": false
+                  "per_person": false,
+                  "track": "Hospitality"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSection" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-sections/{id}/set-track": {
+      "post": {
+        "operationId": "advanceSections.setTrack",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_sections",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Move a section to another track",
+        "description": "Sets the track a section is grouped under (Finance, Technical, Hospitality, Catering, Travel, Logistics or General). A grouping label: it stays editable after the packet is sent. With If-Match, a stale section is refused (412). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance section.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance section.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "track": "Hospitality" },
+              "schema": { "$ref": "#/components/schemas/AdvanceSectionSetTrackRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "position": 1,
+                  "title": "Hospitality",
+                  "prompt": "When does the party arrive?",
+                  "section_kind": "Item Request",
+                  "window_kind": "Load In",
+                  "max_lines": 6,
+                  "per_person": false,
+                  "track": "Hospitality"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -80369,6 +80777,76 @@
                   "names_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceRecipient" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-recipients/{id}/sign-off-track": {
+      "post": {
+        "operationId": "advanceRecipients.signOffTrack",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_recipients",
+        "x-xos-capability": "advancing.submission.review",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.sign_off_advance_track",
+        "summary": "Sign off a recipient's track",
+        "description": "Signs off one track of a sent packet's recipient through `app.sign_off_advance_track`, once every live section on it is Accepted, Complete or Not Applicable. Refuses a track with no section (422 advance_track_empty), one not done (advance_track_incomplete), one already signed off (advance_track_signed_off) and an unsent packet (advance_packet_unsent). Needs advancing.submission.review on the project. Returns the sign-off. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance recipient.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "track": "Hospitality" },
+              "schema": { "$ref": "#/components/schemas/AdvanceRecipientSignOffTrackRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "track": "Hospitality",
+                  "signed_off_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoke_reason": "The power answer came in after sign-off."
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceTrackSignoff" }
               }
             }
           },
@@ -147084,6 +147562,249 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-track-signoffs": {
+      "get": {
+        "operationId": "advanceTrackSignoffs.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_track_signoffs",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List track sign-off rows",
+        "description": "A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress. Returns a cursor page of track sign-off rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of track sign-off rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "track": "Hospitality",
+                      "signed_off_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoke_reason": "The power answer came in after sign-off."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceTrackSignoffPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-track-signoffs/{id}": {
+      "get": {
+        "operationId": "advanceTrackSignoffs.get",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_track_signoffs",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get a track sign-off",
+        "description": "A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress. Returns one track sign-off with its `ETag`. A track sign-off the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance track signoff.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance track signoff.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The track sign-off.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "track": "Hospitality",
+                  "signed_off_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoke_reason": "The power answer came in after sign-off."
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceTrackSignoff" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-track-signoffs/{id}/revoke": {
+      "post": {
+        "operationId": "advanceTrackSignoffs.revoke",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_track_signoffs",
+        "x-xos-capability": "advancing.submission.review",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.revoke_advance_track_signoff",
+        "summary": "Revoke a track sign-off",
+        "description": "Revokes a live sign-off through `app.revoke_advance_track_signoff` with a reason of 1 to 500 characters (422 advance_track_revoke_reason); the row stays and the track can be signed off again. Needs advancing.submission.review on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance track signoff.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance track signoff.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "The power answer came in after sign-off." },
+              "schema": { "$ref": "#/components/schemas/AdvanceTrackSignoffRevokeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "track": "Hospitality",
+                  "signed_off_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoke_reason": "The power answer came in after sign-off."
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceTrackSignoff" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-track-progress": {
+      "get": {
+        "operationId": "advanceTrackProgress.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_track_progress",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["advance_recipient_id"], "numeric": false },
+        "summary": "List track progress rows",
+        "description": "Where each recipient of a sent advance packet stands on each track (R11, G-176): one row per packet, recipient and track with a live section. `track_state` is computed from the answers and the live sign-off, never stored. Returns a cursor page of track progress rows the caller may see. The default order is `advance_recipient_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of track progress rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "recipient_label": "Bayside Audio",
+                      "track": "Hospitality",
+                      "sections_total": 2,
+                      "sections_done": 2,
+                      "sections_outstanding": 0,
+                      "overdue": false,
+                      "signoff_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "signed_off_at": "2026-10-08T14:30:00Z",
+                      "signed_off_by_name": "Carol Nguyen",
+                      "track_state": "Ready for Sign-off"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceTrackProgressPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

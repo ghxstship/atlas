@@ -54,17 +54,22 @@ import type {
   AdvanceRecipientBindEngagementRequest,
   AdvanceRecipientCreate,
   AdvanceRecipientSetNamesDueRequest,
+  AdvanceRecipientSignOffTrackRequest,
   AdvanceSection,
   AdvanceSectionChoice,
   AdvanceSectionChoiceCreate,
   AdvanceSectionConfigureRequest,
   AdvanceSectionCreate,
+  AdvanceSectionSetTrackRequest,
   AdvanceSectionUpdate,
   AdvanceSubmission,
   AdvanceSubmissionCreate,
   AdvanceSubmissionFile,
   AdvanceSubmissionLine,
   AdvanceSubmissionReviewRequest,
+  AdvanceTrackProgress,
+  AdvanceTrackSignoff,
+  AdvanceTrackSignoffRevokeRequest,
   AgencySlate,
   AgencySlateCreate,
   Agreement,
@@ -5903,6 +5908,26 @@ export class AdvanceSectionsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Move a section to another track
+   *
+   * Sets the track a section is grouped under (Finance, Technical, Hospitality, Catering, Travel, Logistics or General). A grouping label: it stays editable after the packet is sent. With If-Match, a stale section is refused (412). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-sections/{id}/set-track` (operation `advanceSections.setTrack`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  setTrack(
+    id: string,
+    body: AdvanceSectionSetTrackRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceSection>> {
+    return this.client.request<AdvanceSection>(
+      $OPERATIONS["advanceSections.setTrack"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -6041,6 +6066,26 @@ export class AdvanceRecipientsResource extends $Resource {
   ): Promise<$ApiResponse<AdvanceRecipient>> {
     return this.client.request<AdvanceRecipient>(
       $OPERATIONS["advanceRecipients.setNamesDue"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Sign off a recipient's track
+   *
+   * Signs off one track of a sent packet's recipient through `app.sign_off_advance_track`, once every live section on it is Accepted, Complete or Not Applicable. Refuses a track with no section (422 advance_track_empty), one not done (advance_track_incomplete), one already signed off (advance_track_signed_off) and an unsent packet (advance_packet_unsent). Needs advancing.submission.review on the project. Returns the sign-off. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-recipients/{id}/sign-off-track` (operation `advanceRecipients.signOffTrack`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  signOffTrack(
+    id: string,
+    body: AdvanceRecipientSignOffTrackRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceTrackSignoff>> {
+    return this.client.request<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceRecipients.signOffTrack"],
       { path: { id }, body },
       options,
     );
@@ -35208,6 +35253,140 @@ export class AdvanceSubmissionFilesResource extends $Resource {
     return this.client.request<AdvanceSubmissionFile>(
       $OPERATIONS["advanceSubmissionFiles.get"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `advanceTrackSignoffs`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AdvanceTrackSignoffsResource extends $Resource {
+  /**
+   * List track sign-off rows
+   *
+   * A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress. Returns a cursor page of track sign-off rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /advance-track-signoffs` (operation `advanceTrackSignoffs.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AdvanceTrackSignoff>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AdvanceTrackSignoff>> {
+    return this.client.requestPage<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceTrackSignoffs.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List track sign-off rows
+   *
+   * A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress. Returns a cursor page of track sign-off rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /advance-track-signoffs` (operation `advanceTrackSignoffs.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AdvanceTrackSignoff>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AdvanceTrackSignoff, void, undefined> {
+    return this.client.paginate<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceTrackSignoffs.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a track sign-off
+   *
+   * A reviewer's sign-off of one recipient's track of an advance packet (R11, G-176): every section on the track was accepted, complete or not applicable when it was signed. The signer is `created_by`. A revoked sign-off keeps its row with the reason; the track's state is computed in advanceTrackProgress. Returns one track sign-off with its `ETag`. A track sign-off the caller may not see returns 404.
+   *
+   * `GET /advance-track-signoffs/{id}` (operation `advanceTrackSignoffs.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AdvanceTrackSignoff>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AdvanceTrackSignoff>> {
+    return this.client.request<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceTrackSignoffs.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a track sign-off
+   *
+   * Revokes a live sign-off through `app.revoke_advance_track_signoff` with a reason of 1 to 500 characters (422 advance_track_revoke_reason); the row stays and the track can be signed off again. Needs advancing.submission.review on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-track-signoffs/{id}/revoke` (operation `advanceTrackSignoffs.revoke`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  revoke(
+    id: string,
+    body: AdvanceTrackSignoffRevokeRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceTrackSignoff>> {
+    return this.client.request<AdvanceTrackSignoff>(
+      $OPERATIONS["advanceTrackSignoffs.revoke"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `advanceTrackProgress`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AdvanceTrackProgressResource extends $Resource {
+  /**
+   * List track progress rows
+   *
+   * Where each recipient of a sent advance packet stands on each track (R11, G-176): one row per packet, recipient and track with a live section. `track_state` is computed from the answers and the live sign-off, never stored. Returns a cursor page of track progress rows the caller may see. The default order is `advance_recipient_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /advance-track-progress` (operation `advanceTrackProgress.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AdvanceTrackProgress>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AdvanceTrackProgress>> {
+    return this.client.requestPage<AdvanceTrackProgress>(
+      $OPERATIONS["advanceTrackProgress.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List track progress rows
+   *
+   * Where each recipient of a sent advance packet stands on each track (R11, G-176): one row per packet, recipient and track with a live section. `track_state` is computed from the answers and the live sign-off, never stored. Returns a cursor page of track progress rows the caller may see. The default order is `advance_recipient_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /advance-track-progress` (operation `advanceTrackProgress.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AdvanceTrackProgress>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AdvanceTrackProgress, void, undefined> {
+    return this.client.paginate<AdvanceTrackProgress>(
+      $OPERATIONS["advanceTrackProgress.list"],
+      { query: params },
       options,
     );
   }

@@ -354,6 +354,8 @@ from .resources import (
     AdvanceSectionChoicesResource,
     AdvanceSubmissionLinesResource,
     AdvanceSubmissionFilesResource,
+    AdvanceTrackSignoffsResource,
+    AdvanceTrackProgressResource,
     GuestListEntriesResource,
     AssetUnitHireResource,
     AssetReservationsResource,
@@ -798,6 +800,8 @@ class XosClient(XosClientCore):
     advance_section_choices: AdvanceSectionChoicesResource
     advance_submission_lines: AdvanceSubmissionLinesResource
     advance_submission_files: AdvanceSubmissionFilesResource
+    advance_track_signoffs: AdvanceTrackSignoffsResource
+    advance_track_progress: AdvanceTrackProgressResource
     guest_list_entries: GuestListEntriesResource
     asset_unit_hire: AssetUnitHireResource
     asset_reservations: AssetReservationsResource
@@ -1230,6 +1234,8 @@ class XosClient(XosClientCore):
         self.advance_section_choices = AdvanceSectionChoicesResource(self)
         self.advance_submission_lines = AdvanceSubmissionLinesResource(self)
         self.advance_submission_files = AdvanceSubmissionFilesResource(self)
+        self.advance_track_signoffs = AdvanceTrackSignoffsResource(self)
+        self.advance_track_progress = AdvanceTrackProgressResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
         self.asset_reservations = AssetReservationsResource(self)

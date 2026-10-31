@@ -215,12 +215,14 @@ export type OperationId =
   | "advanceSections.update"
   | "advanceSections.delete"
   | "advanceSections.configure"
+  | "advanceSections.setTrack"
   | "advanceRecipients.list"
   | "advanceRecipients.create"
   | "advanceRecipients.get"
   | "advanceRecipients.delete"
   | "advanceRecipients.bindEngagement"
   | "advanceRecipients.setNamesDue"
+  | "advanceRecipients.signOffTrack"
   | "advanceSubmissions.list"
   | "advanceSubmissions.create"
   | "advanceSubmissions.get"
@@ -1380,6 +1382,10 @@ export type OperationId =
   | "advanceSubmissionLines.get"
   | "advanceSubmissionFiles.list"
   | "advanceSubmissionFiles.get"
+  | "advanceTrackSignoffs.list"
+  | "advanceTrackSignoffs.get"
+  | "advanceTrackSignoffs.revoke"
+  | "advanceTrackProgress.list"
   | "guestListEntries.list"
   | "guestListEntries.create"
   | "guestListEntries.get"
@@ -6505,6 +6511,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "advancing.packet.write",
     scopes: ["advancing"],
   },
+  "advanceSections.setTrack": {
+    id: "advanceSections.setTrack",
+    resource: "advanceSections",
+    verb: "setTrack",
+    method: "POST",
+    path: "/advance-sections/{id}/set-track",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "AdvanceSectionSetTrackRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "AdvanceSection",
+    item: null,
+    tag: "Advancing",
+    summary: "Move a section to another track",
+    capability: "advancing.packet.write",
+    scopes: ["advancing"],
+  },
   "advanceRecipients.list": {
     id: "advanceRecipients.list",
     resource: "advanceRecipients",
@@ -6641,6 +6670,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     tag: "Advancing",
     summary: "Set a recipient's naming deadline",
     capability: "advancing.packet.write",
+    scopes: ["advancing"],
+  },
+  "advanceRecipients.signOffTrack": {
+    id: "advanceRecipients.signOffTrack",
+    resource: "advanceRecipients",
+    verb: "signOffTrack",
+    method: "POST",
+    path: "/advance-recipients/{id}/sign-off-track",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "AdvanceRecipientSignOffTrackRequest",
+    bodyRequired: true,
+    successStatus: 201,
+    response: "AdvanceTrackSignoff",
+    item: null,
+    tag: "Advancing",
+    summary: "Sign off a recipient's track",
+    capability: "advancing.submission.review",
     scopes: ["advancing"],
   },
   "advanceSubmissions.list": {
@@ -33300,6 +33352,98 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "advancing.packet.read",
     scopes: ["advancing"],
   },
+  "advanceTrackSignoffs.list": {
+    id: "advanceTrackSignoffs.list",
+    resource: "advanceTrackSignoffs",
+    verb: "list",
+    method: "GET",
+    path: "/advance-track-signoffs",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: true,
+    fields: true,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "AdvanceTrackSignoffPage",
+    item: "AdvanceTrackSignoff",
+    tag: "Advancing",
+    summary: "List track sign-off rows",
+    capability: "advancing.packet.read",
+    scopes: ["advancing"],
+  },
+  "advanceTrackSignoffs.get": {
+    id: "advanceTrackSignoffs.get",
+    resource: "advanceTrackSignoffs",
+    verb: "get",
+    method: "GET",
+    path: "/advance-track-signoffs/{id}",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: true,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "AdvanceTrackSignoff",
+    item: null,
+    tag: "Advancing",
+    summary: "Get a track sign-off",
+    capability: "advancing.packet.read",
+    scopes: ["advancing"],
+  },
+  "advanceTrackSignoffs.revoke": {
+    id: "advanceTrackSignoffs.revoke",
+    resource: "advanceTrackSignoffs",
+    verb: "revoke",
+    method: "POST",
+    path: "/advance-track-signoffs/{id}/revoke",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "AdvanceTrackSignoffRevokeRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "AdvanceTrackSignoff",
+    item: null,
+    tag: "Advancing",
+    summary: "Revoke a track sign-off",
+    capability: "advancing.submission.review",
+    scopes: ["advancing"],
+  },
+  "advanceTrackProgress.list": {
+    id: "advanceTrackProgress.list",
+    resource: "advanceTrackProgress",
+    verb: "list",
+    method: "GET",
+    path: "/advance-track-progress",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: true,
+    fields: true,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "AdvanceTrackProgressPage",
+    item: "AdvanceTrackProgress",
+    tag: "Advancing",
+    summary: "List track progress rows",
+    capability: "advancing.packet.read",
+    scopes: ["advancing"],
+  },
   "guestListEntries.list": {
     id: "guestListEntries.list",
     resource: "guestListEntries",
@@ -41344,6 +41488,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "advanceSections.update",
       "advanceSections.delete",
       "advanceSections.configure",
+      "advanceSections.setTrack",
     ],
   },
   {
@@ -41356,6 +41501,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "advanceRecipients.delete",
       "advanceRecipients.bindEngagement",
       "advanceRecipients.setNamesDue",
+      "advanceRecipients.signOffTrack",
     ],
   },
   {
@@ -43731,6 +43877,16 @@ export const RESOURCES: readonly ResourceInfo[] = [
     tag: "Advancing",
     operations: ["advanceSubmissionFiles.list", "advanceSubmissionFiles.get"],
   },
+  {
+    name: "advanceTrackSignoffs",
+    tag: "Advancing",
+    operations: [
+      "advanceTrackSignoffs.list",
+      "advanceTrackSignoffs.get",
+      "advanceTrackSignoffs.revoke",
+    ],
+  },
+  { name: "advanceTrackProgress", tag: "Advancing", operations: ["advanceTrackProgress.list"] },
   {
     name: "guestListEntries",
     tag: "Advancing",
