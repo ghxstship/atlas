@@ -1,0 +1,12 @@
+{
+  "id": "https://api.weather.gov/stations/KMIA/observations/2027-06-02T18:53:00+00:00",
+  "type": "Feature",
+  "properties": {
+    "station": "https://api.weather.gov/stations/KMIA",
+    "timestamp": "2027-06-02T18:53:00+00:00",
+    "temperature": { "unitCode": "wmoUnit:degC", "value": 32.2 },
+    "windSpeed": { "unitCode": "wmoUnit:km_h-1", "value": 29.5 },
+    "windGust": { "unitCode": "wmoUnit:km_h-1", "value": 54 },
+    "heatIndex": { "unitCode": "wmoUnit:degC", "value": 38.1 }
+  }
+}

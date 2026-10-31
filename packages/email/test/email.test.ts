@@ -482,11 +482,18 @@ describe("sendEmail", () => {
 });
 
 describe("attachments (B8)", () => {
-  const pass = { filename: "guest-pass.pdf", content: new Uint8Array([37, 80, 68, 70]), contentType: "application/pdf" };
+  const pass = {
+    filename: "guest-pass.pdf",
+    content: new Uint8Array([37, 80, 68, 70]),
+    contentType: "application/pdf",
+  };
 
   it("keep the files on a recorded send, through the recipient guard", async () => {
     const recording = new RecordingTransport();
-    const guarded = new GuardedTransport(recording, { allowed: ["northwind.test"], deliverToAny: false });
+    const guarded = new GuardedTransport(recording, {
+      allowed: ["northwind.test"],
+      deliverToAny: false,
+    });
     await sendEmail({
       transport: guarded,
       template: "guest_message",
@@ -514,7 +521,9 @@ describe("attachments (B8)", () => {
     const { client, calls } = fakeResend({ data: { id: "re_msg_2" }, error: null, headers: null });
     await new ResendTransport(client).send({ ...message, attachments: [pass] });
     expect(calls[0]?.payload).toMatchObject({
-      attachments: [{ filename: "guest-pass.pdf", content: "JVBERg==", contentType: "application/pdf" }],
+      attachments: [
+        { filename: "guest-pass.pdf", content: "JVBERg==", contentType: "application/pdf" },
+      ],
     });
   });
 
@@ -524,9 +533,14 @@ describe("attachments (B8)", () => {
       bodies.push(JSON.parse(String(init?.body)));
       return new Response(JSON.stringify({ ID: "m1" }), { status: 200 });
     }) as typeof fetch;
-    await new MailpitTransport("http://127.0.0.1:61314", fakeFetch).send({ ...message, attachments: [pass] });
+    await new MailpitTransport("http://127.0.0.1:61314", fakeFetch).send({
+      ...message,
+      attachments: [pass],
+    });
     expect(bodies[0]).toMatchObject({
-      Attachments: [{ Content: "JVBERg==", Filename: "guest-pass.pdf", ContentType: "application/pdf" }],
+      Attachments: [
+        { Content: "JVBERg==", Filename: "guest-pass.pdf", ContentType: "application/pdf" },
+      ],
     });
   });
 
@@ -552,7 +566,12 @@ describe("attachments (B8)", () => {
   it("render the guest message in Spanish, with the guest's own subject for a Message", async () => {
     const rendered = await renderEmail(
       "guest_message",
-      { ...samples.guest_message, kind: "Message", subject: "Puertas a las 7", body: "Las puertas abren a las 7." },
+      {
+        ...samples.guest_message,
+        kind: "Message",
+        subject: "Puertas a las 7",
+        body: "Las puertas abren a las 7.",
+      },
       { locale: "es-US", sender, recipientName: "Sasha Bell" },
     );
     expect(rendered.subject).toBe("Puertas a las 7");

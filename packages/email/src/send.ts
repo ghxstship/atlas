@@ -1,6 +1,11 @@
 import { renderEmail, type RenderOptions } from "./render.ts";
 import type { TemplateCode, TemplateProps } from "./templates/index.tsx";
-import { assertAttachmentSize, type EmailAttachment, type EmailTransport, type SendResult } from "./transport.ts";
+import {
+  assertAttachmentSize,
+  type EmailAttachment,
+  type EmailTransport,
+  type SendResult,
+} from "./transport.ts";
 
 export interface SendRequest<C extends TemplateCode> extends RenderOptions {
   readonly transport: EmailTransport;

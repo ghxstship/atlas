@@ -223,6 +223,42 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "weather.warning",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.warning.subject",
+      body: "kinds.weather.warning.body",
+    },
+  },
+  {
+    kind: "weather.hold",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.hold.subject",
+      body: "kinds.weather.hold.body",
+    },
+  },
+  {
+    kind: "weather.all_clear",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.all_clear.subject",
+      body: "kinds.weather.all_clear.body",
+    },
+  },
+  {
     kind: "account.security_changed",
     category: "account",
     emailTemplate: "notification",
@@ -655,6 +691,30 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "credential_photo.requested",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.credential_photo.requested.subject",
+      body: "kinds.credential_photo.requested.body",
+    },
+  },
+  {
+    kind: "guest.arrived",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.guest.arrived.subject",
+      body: "kinds.guest.arrived.body",
+    },
+  },
+  {
     kind: "opportunity.matched",
     category: "opportunities",
     emailTemplate: "notification",
@@ -864,7 +924,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/2698_notification_kind_seed.sql"
+"supabase/migrations/2979_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

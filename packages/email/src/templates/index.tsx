@@ -408,10 +408,13 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
       const subject =
         p.kind === "Message" && p.subject !== undefined
           ? p.subject
-          : ctx.t(p.kind === "Pass" ? "guest_message.passSubject" : "guest_message.invitationSubject", {
-              orgName,
-              projectName: p.projectName,
-            });
+          : ctx.t(
+              p.kind === "Pass" ? "guest_message.passSubject" : "guest_message.invitationSubject",
+              {
+                orgName,
+                projectName: p.projectName,
+              },
+            );
       const show =
         p.showName === undefined
           ? null
@@ -426,14 +429,20 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             t={ctx.t}
             sender={ctx.sender}
             preview={subject}
-            heading={p.kind === "Message" ? subject : ctx.t("guest_message.heading", { projectName: p.projectName })}
+            heading={
+              p.kind === "Message"
+                ? subject
+                : ctx.t("guest_message.heading", { projectName: p.projectName })
+            }
             transactional={false}
             why={ctx.t("guest_message.why", { orgName })}
             preferencesLabel={ctx.t("guest_message.preferences")}
           >
             <Paragraph>{ctx.t("guest_message.greeting", { name: p.guestName })}</Paragraph>
             {p.kind === "Invitation" && (
-              <Paragraph>{ctx.t("guest_message.invitation", { orgName, projectName: p.projectName })}</Paragraph>
+              <Paragraph>
+                {ctx.t("guest_message.invitation", { orgName, projectName: p.projectName })}
+              </Paragraph>
             )}
             {p.kind === "Pass" && (
               <Paragraph>

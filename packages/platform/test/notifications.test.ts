@@ -1430,7 +1430,7 @@ describe("texts held by quiet hours go out as one summary", () => {
 
   it("keeps the bypass list short and in the registry", () => {
     // ADR 0033 decision 62 (1620) adds a new shift within 12 hours, security changes (with a recovery code used)
-    // and emergency access.
+    // and emergency access; B8 (2979, ADR 0147) the official weather warning, the weather hold and its all-clear.
     expect(
       NOTIFICATION_KINDS.filter((k) => k.quietHoursBypass !== null).map((k) => k.kind),
     ).toEqual([
@@ -1439,6 +1439,9 @@ describe("texts held by quiet hours go out as one summary", () => {
       "incident.reported",
       "occupancy.threshold",
       "weather.alert",
+      "weather.warning",
+      "weather.hold",
+      "weather.all_clear",
       "account.security_changed",
       "account.recovery_code_used",
       "access.break_glass_started",

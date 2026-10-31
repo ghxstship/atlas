@@ -2,6 +2,24 @@
 // Never edit by hand; the @xos/platform tests fail when this file differs from the build output.
 import { z } from "zod";
 //#region ../email/src/transport.ts
+/** The most an email's attachments may weigh together, below every provider's message limit. */
+var MAX_ATTACHMENT_BYTES = 10485760;
+/** Refuses attachments that weigh more than MAX_ATTACHMENT_BYTES together, before any transport runs. */
+function assertAttachmentSize(attachments) {
+  const total = (attachments ?? []).reduce((sum, file) => sum + file.content.byteLength, 0);
+  if (total > 10485760)
+    throw new EmailSendError(
+      `The attachments weigh ${total} bytes, more than the ${MAX_ATTACHMENT_BYTES} an email may carry.`,
+      "attachment_size",
+    );
+}
+/** Base64 of bytes, without Node's Buffer, so the Edge Functions can encode too. */
+function toBase64(bytes) {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 32768)
+    binary += String.fromCharCode(...bytes.subarray(i, i + 32768));
+  return btoa(binary);
+}
 /** The provider refused or failed the send. */
 var EmailSendError = class extends Error {
   code;
@@ -49,6 +67,15 @@ var ResendTransport = class {
       ...(message.replyTo === void 0 ? {} : { replyTo: message.replyTo }),
       ...(message.headers === void 0 ? {} : { headers: { ...message.headers } }),
       ...(message.tags === void 0 ? {} : { tags: message.tags.map((tag) => ({ ...tag })) }),
+      ...(message.attachments === void 0 || message.attachments.length === 0
+        ? {}
+        : {
+            attachments: message.attachments.map((file) => ({
+              filename: file.filename,
+              content: toBase64(file.content),
+              contentType: file.contentType,
+            })),
+          }),
     };
     const response = await this.#client.emails.send(
       payload,
@@ -125,6 +152,15 @@ var MailpitTransport = class {
         Text: message.text,
         ...(message.headers === void 0 ? {} : { Headers: { ...message.headers } }),
         ...(message.tags === void 0 ? {} : { Tags: message.tags.map((t) => t.value) }),
+        ...(message.attachments === void 0 || message.attachments.length === 0
+          ? {}
+          : {
+              Attachments: message.attachments.map((file) => ({
+                Content: toBase64(file.content),
+                Filename: file.filename,
+                ContentType: file.contentType,
+              })),
+            }),
       }),
     });
     if (!response.ok)
@@ -228,6 +264,7 @@ function createTransport(env, makeClient = lazyResendClient) {
 export {
   EmailSendError,
   RecipientRefusedError,
+  assertAttachmentSize,
   createTransport,
   lazyResendClient,
   readEmailEnv,

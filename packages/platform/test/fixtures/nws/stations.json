@@ -1,0 +1,7 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "id": "https://api.weather.gov/stations/KMIA", "type": "Feature", "properties": { "stationIdentifier": "KMIA", "name": "Miami International Airport" } },
+    { "id": "https://api.weather.gov/stations/KTMB", "type": "Feature", "properties": { "stationIdentifier": "KTMB", "name": "Miami, Kendall-Tamiami Executive Airport" } }
+  ]
+}

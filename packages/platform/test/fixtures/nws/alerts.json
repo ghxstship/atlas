@@ -1,0 +1,40 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.1001",
+      "type": "Feature",
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.1001",
+        "sent": "2027-06-02T18:40:00-04:00",
+        "onset": "2027-06-02T18:40:00-04:00",
+        "expires": "2027-06-02T19:30:00-04:00",
+        "ends": "2027-06-02T19:30:00-04:00",
+        "status": "Actual",
+        "messageType": "Alert",
+        "severity": "Severe",
+        "certainty": "Observed",
+        "urgency": "Immediate",
+        "event": "Severe Thunderstorm Warning",
+        "headline": "Severe Thunderstorm Warning issued June 2 at 6:40PM EDT until June 2 at 7:30PM EDT by NWS Miami FL",
+        "description": "At 640 PM EDT, a severe thunderstorm was located over Miami Beach, moving east at 15 mph.",
+        "instruction": "For your protection move to an interior room on the lowest floor of a building.",
+        "references": []
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.1002",
+      "type": "Feature",
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.1002",
+        "sent": "2027-06-02T18:45:00-04:00",
+        "status": "Actual",
+        "messageType": "Cancel",
+        "severity": "Moderate",
+        "event": "Heat Advisory",
+        "headline": "The Heat Advisory has been cancelled.",
+        "references": [{ "identifier": "urn:oid:2.49.0.1.840.0.0990", "sent": "2027-06-02T10:00:00-04:00" }]
+      }
+    }
+  ]
+}
