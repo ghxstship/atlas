@@ -564,7 +564,8 @@
       "checkIn": "Check in {name}",
       "edit": "Edit {name}",
       "remove": "Remove {name}"
-    }
+    },
+    "import": "Import guests"
   },
   "crew": {
     "sentence": "The people each party puts on its engagements. Accept or return each submitted entry.",
