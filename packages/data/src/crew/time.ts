@@ -79,6 +79,8 @@ export interface TimeEntryFilter {
   readonly projectId?: string;
   readonly membershipId?: string;
   readonly engagementId?: string;
+  /** Entries of an agency staff member's roster entry (R12). */
+  readonly rosterEntryId?: string;
   readonly shiftId?: string;
   /** Entries clocked in at or after this instant. */
   readonly from?: string;
@@ -102,6 +104,7 @@ export async function listTimeEntries(
   if (filter.projectId) query = query.eq("project_id", filter.projectId);
   if (filter.membershipId) query = query.eq("membership_id", filter.membershipId);
   if (filter.engagementId) query = query.eq("engagement_id", filter.engagementId);
+  if (filter.rosterEntryId) query = query.eq("roster_entry_id", filter.rosterEntryId);
   if (filter.shiftId) query = query.eq("shift_id", filter.shiftId);
   if (filter.from) query = query.gte("clock_in", filter.from);
   if (filter.to) query = query.lt("clock_in", filter.to);
@@ -414,7 +417,7 @@ export interface Timesheet {
   readonly hasOpenEntry: boolean;
 }
 
-const SHEET_SELECT = `id, org_id, project_id, membership_id, period_start, period_end, timesheet_state, submitted_by, project:projects!timesheets_project_id_fkey(project_key), membership:memberships!timesheets_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!timesheets_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
+const SHEET_SELECT = `id, org_id, project_id, membership_id, period_start, period_end, timesheet_state, submitted_by, project:projects!timesheets_project_id_fkey(project_key), membership:memberships!timesheets_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!timesheets_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id`;
 
 interface SheetRow {
   id: string;
@@ -423,6 +426,7 @@ interface SheetRow {
   membership_id: string | null;
   engagement_id: string | null;
   engagement: EngagementRow | null;
+  roster_entry_id?: string | null;
   period_start: string;
   period_end: string;
   timesheet_state: TimesheetState;
@@ -534,6 +538,7 @@ export async function getTimesheet(db: XosClient, id: string): Promise<Result<Ti
     projectId: row.project_id,
     ...(row.membership_id ? { membershipId: row.membership_id } : {}),
     ...(row.engagement_id ? { engagementId: row.engagement_id } : {}),
+    ...(row.roster_entry_id ? { rosterEntryId: row.roster_entry_id } : {}),
     from: `${row.period_start}T00:00:00Z`,
     to: end.toISOString(),
   });
@@ -606,4 +611,30 @@ export async function decideTimesheet(
   });
   if (error) return fail(toDataError(error));
   return ok({ transitionId: data });
+}
+
+/**
+ * Who punched each time entry for its worker (R12, G-126): the people who created a Supervisor punch on it, by entry.
+ * The timesheet detail shows "Clocked by" for them, and app.decide_timesheet refuses them as approvers
+ * (sod_supervisor_punch).
+ */
+export async function listSupervisorPunchers(
+  db: XosClient,
+  timeEntryIds: readonly string[],
+): Promise<Result<Map<string, string[]>>> {
+  if (timeEntryIds.length === 0) return ok(new Map());
+  const { data, error } = await db
+    .from("clock_punches")
+    .select("time_entry_id, created_by")
+    .in("time_entry_id", [...new Set(timeEntryIds)])
+    .eq("source", "Supervisor");
+  if (error) return fail(toDataError(error));
+  const byEntry = new Map<string, string[]>();
+  for (const p of data as { time_entry_id: string | null; created_by: string | null }[]) {
+    if (!p.time_entry_id || !p.created_by) continue;
+    const people = byEntry.get(p.time_entry_id) ?? [];
+    if (!people.includes(p.created_by)) people.push(p.created_by);
+    byEntry.set(p.time_entry_id, people);
+  }
+  return ok(byEntry);
 }

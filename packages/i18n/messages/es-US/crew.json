@@ -53,7 +53,8 @@
     "money": "Ingrese un monto con dos decimales como máximo, o déjelo en blanco para Sin precio.",
     "moneyRequired": "Ingrese la tarifa como un monto con dos decimales como máximo.",
     "currency": "Elija una moneda.",
-    "hours": "Ingrese las horas como un número mayor que cero."
+    "hours": "Ingrese las horas como un número mayor que cero.",
+    "worker": "Elige a alguien de la lista o deja el turno libre."
   },
   "refusals": {
     "shift_accept_rpc": "Solo la persona del turno lo acepta, o un miembro del equipo lo reclama mientras está abierto.",
@@ -152,7 +153,18 @@
     "per_diem_member_org": "Ese miembro ya no pertenece a esta organización. Elija un miembro actual.",
     "per_diem_day_taken": "Ya hay un viático registrado para un día de ese rango. Quítelo o elija otros días.",
     "engagement_worker_person": "El tiempo, los turnos y los viáticos van a una contratación que nombra a una persona, no a una contratación de empresa. Elija una persona.",
-    "engagement_not_working": "El personal externo registra tiempo y recibe viáticos solo mientras su contratación está Activa o En cierre."
+    "engagement_not_working": "El personal externo registra tiempo y recibe viáticos solo mientras su contratación está Activa o En cierre.",
+    "roster_shift_rpc": "Asigna personal de agencia desde el campo Persona o el calendario, que primero comprueba su formación.",
+    "roster_shift_not_agency_slot": "Solo un puesto de agencia, o un turno que tiene el equipo de la agencia, admite personal de agencia. Asigna primero el turno a la agencia.",
+    "roster_entry_other_engagement": "Este turno está asignado a otra agencia. Elige a alguien del equipo de esa agencia.",
+    "roster_entry_not_accepted": "Asigna a esta persona cuando tú y ella hayan aceptado su entrada en el equipo.",
+    "roster_training_incomplete": "Esta persona tiene formación por confirmar o verificar antes de su primer turno. Verifícala desde su entrada en el equipo.",
+    "roster_shift_overlap": "Esta persona ya tiene un turno que se superpone con este. Elige a otra persona.",
+    "roster_shift_closed": "Este turno está cancelado o ya terminó.",
+    "roster_shift_not_assigned": "Nadie del equipo de una agencia tiene este turno.",
+    "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
+    "sod_roster_training": "Una persona no puede verificar su propia formación. Pide a otra persona que la verifique.",
+    "sod_supervisor_punch": "Fichaste la entrada o la salida de esta persona, así que otra persona aprueba esta hoja de horas."
   },
   "states": {
     "shift": {
@@ -448,7 +460,12 @@
     "emptyWriter": "No hay tiempo registrado esta semana. El equipo marca la entrada desde Compass, o registre tiempo para alguien aquí.",
     "emptyReader": "No hay tiempo registrado esta semana. Marque la entrada desde su turno en Compass o desde el turno aquí.",
     "caption": "Registros de tiempo",
-    "weekTotal": "Semana"
+    "weekTotal": "Semana",
+    "punchSources": {
+      "Mobile": "Compass",
+      "Kiosk": "Quiosco",
+      "Supervisor": "Supervisor"
+    }
   },
   "sheets": {
     "title": "{name} · {hours} h",
@@ -731,5 +748,28 @@
       "currency": "Moneda",
       "day": "Día"
     }
+  },
+  "agency": {
+    "groupMembers": "Miembros",
+    "groupAgencies": "Agencias",
+    "groupStaff": "Personal de agencia",
+    "agencyOption": "Puesto de agencia: {account}",
+    "staffOption": "{name} ({account})",
+    "staffTrainingDue": "{name} ({account}, formación pendiente)",
+    "staffConflict": "{name} ({account}, se superpone con otro turno)",
+    "slotLabel": "Puesto de agencia: {account}",
+    "slotUnnamed": "Puesto de agencia",
+    "unassignReason": "Se quitó del turno en Atlas.",
+    "allocated": "{n} asignados a agencias",
+    "trainingTitle": "Formación",
+    "trainingEmpty": "Todavía no hay nada confirmado.",
+    "recordVerification": "Registrar verificación",
+    "passed": "Aprobada",
+    "failed": "No aprobada",
+    "awaiting": "Pendiente de verificación"
+  },
+  "timesheets": {
+    "clockedBy": "Fichado por {name}",
+    "clockedByColumn": "Fichado por"
   }
 }

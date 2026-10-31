@@ -53,7 +53,8 @@
     "money": "Enter an amount with at most two decimals, or leave it blank for Unpriced.",
     "moneyRequired": "Enter the rate as an amount with at most two decimals.",
     "currency": "Choose a currency.",
-    "hours": "Enter the hours as a number above zero."
+    "hours": "Enter the hours as a number above zero.",
+    "worker": "Choose someone from the list, or leave the shift open."
   },
   "refusals": {
     "shift_accept_rpc": "Only the person on the shift accepts it, or a crew member claims it while it is open.",
@@ -152,7 +153,18 @@
     "per_diem_member_org": "That member no longer belongs to this organization. Choose a current member.",
     "per_diem_day_taken": "A per diem is already recorded for a day in that range. Remove it or choose other days.",
     "engagement_worker_person": "Time, shifts and per diems go to an engagement that names a person, not a company engagement. Choose a person.",
-    "engagement_not_working": "External crew record time and receive per diems only while their engagement is Active or Closing."
+    "engagement_not_working": "External crew record time and receive per diems only while their engagement is Active or Closing.",
+    "roster_shift_rpc": "Put agency staff on a shift from the Person field or the schedule, which checks their training first.",
+    "roster_shift_not_agency_slot": "Only an agency slot, or a shift the agency's roster holds, takes agency staff. Allocate the shift to the agency first.",
+    "roster_entry_other_engagement": "This shift is allocated to another agency. Choose someone from that agency's roster.",
+    "roster_entry_not_accepted": "Place this person once their roster entry is accepted by you and by them.",
+    "roster_training_incomplete": "This person has training to acknowledge or verify before their first shift. Verify it from their roster entry.",
+    "roster_shift_overlap": "This person already holds a shift that overlaps this one. Choose someone else.",
+    "roster_shift_closed": "This shift is canceled or already over.",
+    "roster_shift_not_assigned": "No one from an agency's roster holds this shift.",
+    "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
+    "sod_roster_training": "A person cannot verify their own training. Ask someone else to verify it.",
+    "sod_supervisor_punch": "You punched this person in or out, so someone else approves this timesheet."
   },
   "states": {
     "shift": {
@@ -448,7 +460,12 @@
     "emptyWriter": "No time recorded this week. Crew clock in from Compass, or record time for someone here.",
     "emptyReader": "No time recorded this week. Clock in from your shift in Compass or from the shift here.",
     "caption": "Time entries",
-    "weekTotal": "Week"
+    "weekTotal": "Week",
+    "punchSources": {
+      "Mobile": "Compass",
+      "Kiosk": "Kiosk",
+      "Supervisor": "Supervisor"
+    }
   },
   "sheets": {
     "title": "{name} · {hours} h",
@@ -731,5 +748,28 @@
       "currency": "Currency",
       "day": "Day"
     }
+  },
+  "agency": {
+    "groupMembers": "Members",
+    "groupAgencies": "Agencies",
+    "groupStaff": "Agency staff",
+    "agencyOption": "Agency slot: {account}",
+    "staffOption": "{name} ({account})",
+    "staffTrainingDue": "{name} ({account}, training due)",
+    "staffConflict": "{name} ({account}, overlaps another shift)",
+    "slotLabel": "Agency slot: {account}",
+    "slotUnnamed": "Agency slot",
+    "unassignReason": "Moved off the shift in Atlas.",
+    "allocated": "{n} allocated to agencies",
+    "trainingTitle": "Training",
+    "trainingEmpty": "Nothing acknowledged yet.",
+    "recordVerification": "Record verification",
+    "passed": "Passed",
+    "failed": "Failed",
+    "awaiting": "Waiting for verification"
+  },
+  "timesheets": {
+    "clockedBy": "Clocked by {name}",
+    "clockedByColumn": "Clocked by"
   }
 }

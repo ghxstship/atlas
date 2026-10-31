@@ -5,6 +5,7 @@ import {
   listAssignableRosterEntries,
   listRosterTrainingRecords,
   listShifts,
+  listSupervisorPunchers,
   rosterTrainingSummary,
   unassignRosterShift,
   verifyRosterTraining,
@@ -210,5 +211,24 @@ describe("agency shifts (R12)", () => {
       ok: false,
       error: { rule: "sod_roster_training" },
     });
+  });
+});
+
+describe("supervisor punches (R12, G-126)", () => {
+  it("names who punched each entry, once each", async () => {
+    const { db, calls } = fakeClient({
+      "from:clock_punches": [
+        okResponse([
+          { time_entry_id: "te1", created_by: "carol" },
+          { time_entry_id: "te1", created_by: "carol" },
+          { time_entry_id: "te2", created_by: "olga" },
+          { time_entry_id: null, created_by: "x" },
+        ]),
+      ],
+    });
+    const result = await listSupervisorPunchers(db, ["te1", "te2", "te1"]);
+    expect(result.ok && Object.fromEntries(result.data)).toEqual({ te1: ["carol"], te2: ["olga"] });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["source", "Supervisor"]]);
+    expect(await listSupervisorPunchers(db, [])).toEqual({ ok: true, data: new Map() });
   });
 });

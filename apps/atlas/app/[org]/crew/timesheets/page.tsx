@@ -1,6 +1,7 @@
 import { todayIn } from "@xos/data/calendar";
 import {
   getTimesheet,
+  listSupervisorPunchers,
   listTimesheets,
   personNames,
   TIMESHEET_STATES,
@@ -87,10 +88,23 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       const s = detail.data;
       const zone = projects.find((p) => p.id === s.projectId)?.timeZone ?? "UTC";
       const own = s.member.membershipId === crew.membershipId;
-      const approvers = await personNames(
+      // Supervisor punches on the entries (R12, G-126): who clocked the worker, and whether the viewer did, which
+      // the database refuses as an approver (sod_supervisor_punch).
+      const punchers = await listSupervisorPunchers(
         db,
-        s.approvals.map((a) => a.approvedBy),
+        s.entries.map((e) => e.id),
       );
+      if (!punchers.ok) throw new Error(`Cannot read who punched: ${punchers.error.kind}`);
+      const approvers = await personNames(db, [
+        ...s.approvals.map((a) => a.approvedBy),
+        ...[...punchers.data.values()].flat(),
+      ]);
+      const me = crew.ctx.viewer.person?.id ?? null;
+      const punchedByMe = me !== null && [...punchers.data.values()].some((p) => p.includes(me));
+      const clockedBy = (entryId: string) =>
+        (punchers.data.get(entryId) ?? [])
+          .map((p) => (approvers.ok ? approvers.data.get(p) : null) ?? t("crew.common.unnamed"))
+          .join(", ");
       const hidden = { org: crew.slug, id: s.id };
       const record = (
         <CrewRecord
@@ -119,14 +133,20 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
               ) : null}
               {s.state === "Submitted" && canApprove && !own ? (
                 <>
-                  <ConfirmButton
-                    label={t("crew.swapsPage.approve")}
-                    title={t("crew.sheets.approveTitle", { hours: hours(s) })}
-                    defaultReason={t("crew.sheets.approveReason")}
-                    action={decideTimesheetAction}
-                    hidden={{ ...hidden, decision: "Approved" }}
-                    variant="primary"
-                  />
+                  {punchedByMe ? (
+                    <InlineAlert tone="info" title={t("crew.swapsPage.approve")}>
+                      {t("crew.refusals.sod_supervisor_punch")}
+                    </InlineAlert>
+                  ) : (
+                    <ConfirmButton
+                      label={t("crew.swapsPage.approve")}
+                      title={t("crew.sheets.approveTitle", { hours: hours(s) })}
+                      defaultReason={t("crew.sheets.approveReason")}
+                      action={decideTimesheetAction}
+                      hidden={{ ...hidden, decision: "Approved" }}
+                      variant="primary"
+                    />
+                  )}
                   <ConfirmButton
                     label={t("crew.swapsPage.reject")}
                     title={t("crew.sheets.rejectTitle")}
@@ -164,8 +184,18 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
               { key: "out", label: t("crew.entries.clockOut") },
               { key: "break", label: t("crew.entries.break"), type: "number" },
               { key: "hours", label: t("crew.fields.hours"), type: "number" },
+              ...(punchers.data.size > 0
+                ? [{ key: "clockedBy", label: t("crew.timesheets.clockedByColumn") }]
+                : []),
             ]}
             rows={s.entries.map((e) => ({
+              ...(punchers.data.size > 0
+                ? {
+                    clockedBy: punchers.data.has(e.id)
+                      ? t("crew.timesheets.clockedBy", { name: clockedBy(e.id) })
+                      : "",
+                  }
+                : {}),
               id: e.id,
               day: format.dateTime(new Date(e.clockIn), {
                 timeZone: zone,

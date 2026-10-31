@@ -40,6 +40,10 @@ const RosterProfilePeek = dynamic(() =>
 const RosterProjectFactsPeek = dynamic(() =>
   import("./roster-project-facts").then((m) => m.RosterProjectFactsPeek),
 );
+// Training on an agency's roster entry (R12) is read when the peek opens.
+const RosterTrainingPeek = dynamic(() =>
+  import("./roster-training-peek").then((m) => m.RosterTrainingPeek),
+);
 // The names lock dialog (R5, G-142) loads with its first open, so the page carries none of its code.
 const RosterLockDialog = dynamic(() =>
   import("./roster-lock-dialog").then((m) => m.RosterLockDialog),
@@ -299,6 +303,9 @@ export async function CrewRoster({
               <RosterReviewActions org={ctx.org.slug} id={peek.id} name={name(peek)} />
             ) : null}
             {peek.personId ? <RosterProfilePeek org={ctx.org.slug} id={peek.id} /> : null}
+            {peek.personId && peek.roleType === "Staff" && !peek.isSelf ? (
+              <RosterTrainingPeek db={ctx.viewer.db} org={ctx.org.slug} id={peek.id} />
+            ) : null}
             {peek.personId && statusOf.has(peek.id) ? (
               <RosterProjectFactsPeek
                 org={ctx.org.slug}

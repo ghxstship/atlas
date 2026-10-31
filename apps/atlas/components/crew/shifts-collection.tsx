@@ -2,11 +2,14 @@ import {
   doubleBookings,
   getShift,
   getWageHourRule,
+  listAgencyEngagements,
+  listAssignableRosterEntries,
   listShifts,
   listTimeEntries,
   shiftMinutes,
   type Shift,
 } from "@xos/data/crew";
+import { encodeWorker } from "@/lib/crew/workers";
 import { startOfDayIn, todayIn } from "@xos/data/calendar";
 import Link from "next/link";
 import type { Route } from "next";
@@ -155,8 +158,15 @@ export async function ShiftsCollection(props: {
   const peekHref = (id: string) => withParams(base, search, { peek: id, full: null });
   const roleName = (code: string | null) =>
     code === null ? t("crew.common.noRole") : (roles.get(code)?.title ?? code);
+  // An agency slot names the agency until it places someone from its roster (R12).
   const personName = (s: Shift) =>
-    s.member ? (s.member.name ?? t("crew.common.unnamed")) : t("crew.shifts.open");
+    s.member
+      ? (s.member.name ?? t("crew.common.unnamed"))
+      : s.agencySlot
+        ? s.agencySlot.accountName
+          ? t("crew.agency.slotLabel", { account: s.agencySlot.accountName })
+          : t("crew.agency.slotUnnamed")
+        : t("crew.shifts.open");
   const when = (s: Shift) =>
     t("crew.common.range", {
       start: format.dateTime(new Date(s.startsAt), {
@@ -447,6 +457,58 @@ export async function ShiftsCollection(props: {
   const members = canWrite || search["swap"] ? await getMembers(crew.ctx) : [];
   const editing = search["edit"] ? (shifts.find((s) => s.id === search["edit"]) ?? null) : null;
   const defaultProject = projectFilter ?? projects[0] ?? null;
+  // Agencies and their roster staff load only while the editor is open (R12), for the project it plans on.
+  const editorOpen = canWrite && (search["create"] === "1" || editing !== null);
+  const agencyProject = editing?.projectId ?? crew.project?.id ?? defaultProject?.id ?? null;
+  const agencies =
+    editorOpen && agencyProject ? await listAgencyEngagements(db, agencyProject) : null;
+  if (agencies && !agencies.ok) throw new Error(`Cannot read the agencies: ${agencies.error.kind}`);
+  const agencyStaff =
+    agencies && agencies.data.length > 0
+      ? await listAssignableRosterEntries(db, {
+          engagementIds: agencies.data.map((a) => a.engagementId),
+          ...(editing
+            ? {
+                window: { shiftId: editing.id, startsAt: editing.startsAt, endsAt: editing.endsAt },
+              }
+            : {}),
+        })
+      : null;
+  if (agencyStaff && !agencyStaff.ok)
+    throw new Error(`Cannot read the agencies' staff: ${agencyStaff.error.kind}`);
+  const agencyOptions = [
+    ...(agencies?.ok ? agencies.data : []).map((a) => ({
+      value: encodeWorker({ kind: "agency", engagementId: a.engagementId }),
+      label: `${t("crew.agency.groupAgencies")} · ${t("crew.agency.agencyOption", { account: a.accountName ?? "" })}`,
+    })),
+    ...(agencyStaff?.ok ? agencyStaff.data : []).map((e) => {
+      const values = { name: e.name ?? t("crew.common.unnamed"), account: e.accountName ?? "" };
+      return {
+        value: encodeWorker({
+          kind: "staff",
+          rosterEntryId: e.rosterEntryId,
+          engagementId: e.engagementId,
+        }),
+        label: `${t("crew.agency.groupStaff")} · ${
+          e.training.due > 0
+            ? t("crew.agency.staffTrainingDue", values)
+            : e.conflict
+              ? t("crew.agency.staffConflict", values)
+              : t("crew.agency.staffOption", values)
+        }`,
+      };
+    }),
+  ];
+  const workerValue = (s: Shift | null) => {
+    if (!s) return "";
+    if (s.agencySlot)
+      return encodeWorker({ kind: "agency", engagementId: s.agencySlot.engagementId });
+    if (s.rosterEntryId) {
+      const held = agencyOptions.find((o) => o.value.startsWith(`staff:${s.rosterEntryId}:`));
+      return held?.value ?? `staff:${s.rosterEntryId}`;
+    }
+    return s.member?.membershipId ?? "";
+  };
   const shiftFields = (s: Shift | null): FieldSpec[] => {
     const zone = s?.timeZone ?? defaultProject?.timeZone ?? "UTC";
     return [
@@ -484,14 +546,23 @@ export async function ShiftsCollection(props: {
         kind: "select",
         name: "membershipId",
         label: t("crew.fields.person"),
-        value: s?.member?.membershipId ?? "",
+        value: workerValue(s),
         help: t("crew.shifts.openHelp"),
         options: [
           { value: "", label: t("crew.shifts.open") },
           ...members.map((m) => ({
             value: m.membershipId,
-            label: m.name ?? t("crew.common.unnamed"),
+            label:
+              agencyOptions.length > 0
+                ? `${t("crew.agency.groupMembers")} · ${m.name ?? t("crew.common.unnamed")}`
+                : (m.name ?? t("crew.common.unnamed")),
           })),
+          ...agencyOptions,
+          // A roster shift whose person is not assignable now still shows who holds it.
+          ...(s?.rosterEntryId &&
+          !agencyOptions.some((o) => o.value.startsWith(`staff:${s.rosterEntryId}:`))
+            ? [{ value: `staff:${s.rosterEntryId}`, label: personName(s) }]
+            : []),
         ],
       },
       {
@@ -725,7 +796,13 @@ export async function ShiftsCollection(props: {
     );
   } else if (view === "resource-schedule") {
     // Crew fill (Section 11.11): planners get the drag board with its live meter; readers see the meter.
-    const fill = fillRate(shifts.map((s) => ({ state: s.state, assigned: s.member !== null })));
+    const fill = fillRate(
+      shifts.map((s) => ({
+        state: s.state,
+        assigned: s.member !== null,
+        agencySlot: Boolean(s.agencySlot),
+      })),
+    );
     const fillText = t("crew.scheduling.fill.value", { ...fill });
     // Open shifts on projects the planner may staff: crew.shift.write can reach some projects only (2252).
     const staffableOpen = canWrite
@@ -765,6 +842,8 @@ export async function ShiftsCollection(props: {
             total={fill.total}
             percent={fill.percent}
             valueText={fillText}
+            allocated={fill.allocated}
+            allocatedText={t("crew.agency.allocated", { n: fill.allocated })}
           />
         )}
         <ScheduleGrid
