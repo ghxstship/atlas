@@ -55704,6 +55704,324 @@
         "required": ["attachment_id"],
         "description": "Fields accepted when creating a ShareLink."
       },
+      "LiveLinkPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LiveLink" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "LiveLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the live link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the link shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "link_kind": {
+            "type": "string",
+            "enum": ["View", "Display"],
+            "description": "View, a saved view; Display, a running order on a screen.",
+            "example": "View"
+          },
+          "saved_view_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Saved view a View link shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "run_of_show_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Running order a Display link shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "default_mode": {
+            "type": ["string", "null"],
+            "enum": ["Room Clock", "Presenter Timer", "Backstage", null],
+            "description": "Mode a display screen opens in.",
+            "example": "Backstage"
+          },
+          "token_hint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4,
+            "description": "Last four characters of the token, to tell links apart.",
+            "example": "3f9a"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for. Never shown on the public page.",
+            "example": "Venue screens"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening: within 90 days of when it was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "failed_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Wrong access codes since the link was made or regenerated; it locks at 5.",
+            "example": 0
+          },
+          "open_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Successful opens with the access code.",
+            "example": 3
+          },
+          "last_opened_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last opened.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "rotated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last regenerated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was revoked; it never opens again.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "link_kind",
+          "saved_view_id",
+          "run_of_show_id",
+          "default_mode",
+          "token_hint",
+          "note",
+          "expires_at",
+          "failed_attempts",
+          "open_count",
+          "last_opened_at",
+          "rotated_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens)."
+      },
+      "LiveViewLinkToken": {
+        "type": "object",
+        "properties": {
+          "live_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xshv_[0-9a-f]{64}$",
+            "description": "The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.",
+            "example": "xshv_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["live_link_id", "token", "access_code", "expires_at"],
+        "description": "A new live link with its token and access code, shown once."
+      },
+      "LiveViewLinkRequest": {
+        "type": "object",
+        "properties": {
+          "saved_view_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved view to share.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the link shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening: after now and within 90 days.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for. Never shown on the public page.",
+            "example": "Venue screens"
+          }
+        },
+        "required": ["saved_view_id", "project_id", "expires_at"],
+        "description": "A live link to a saved view."
+      },
+      "LiveDisplayLinkToken": {
+        "type": "object",
+        "properties": {
+          "live_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xscr_[0-9a-f]{64}$",
+            "description": "The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.",
+            "example": "xscr_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["live_link_id", "token", "access_code", "expires_at"],
+        "description": "A new live link with its token and access code, shown once."
+      },
+      "LiveDisplayLinkRequest": {
+        "type": "object",
+        "properties": {
+          "run_of_show_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the running order to show.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening; by default the end of the day after the show.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "default_mode": {
+            "type": "string",
+            "enum": ["Room Clock", "Presenter Timer", "Backstage"],
+            "description": "Mode a display screen opens in.",
+            "example": "Backstage"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for. Never shown on the public page.",
+            "example": "Venue screens"
+          }
+        },
+        "required": ["run_of_show_id"],
+        "description": "A display screen link to a running order."
+      },
+      "LiveLinkRegenerated": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^xs(hv|cr)_[0-9a-f]{64}$",
+            "description": "The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.",
+            "example": "xshv_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening; regenerating keeps the expiry.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["token", "access_code", "expires_at"],
+        "description": "A regenerated live link's new token and access code, shown once."
+      },
       "PersonCalendarFeedPage": {
         "type": "object",
         "properties": {
@@ -148533,6 +148851,367 @@
                   "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ShareLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links": {
+      "get": {
+        "operationId": "liveLinks.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List live link rows",
+        "description": "A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns a cursor page of live link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of live link rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "link_kind": "View",
+                      "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "default_mode": "Backstage",
+                      "token_hint": "3f9a",
+                      "note": "Venue screens",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "failed_attempts": 0,
+                      "open_count": 3,
+                      "last_opened_at": "2026-10-08T14:30:00Z",
+                      "rotated_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/LiveLinkPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/{id}": {
+      "get": {
+        "operationId": "liveLinks.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a live link",
+        "description": "A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns one live link with its `ETag`. A live link the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the live link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the live link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The live link.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "link_kind": "View",
+                  "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "default_mode": "Backstage",
+                  "token_hint": "3f9a",
+                  "note": "Venue screens",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 3,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/view": {
+      "post": {
+        "operationId": "liveLinks.createView",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "create_view_link",
+        "summary": "Create a live link to a saved view",
+        "description": "Makes a no-account link to a saved view the caller can read, on one project of its org, through app.create_view_link. The caller must be a member of the project's org and hold the collection's share capability on the project (schedule.timeline.export for the Schedule, show.run_of_show.write for running orders, show.day_sheet.write for day sheets; 422 `live_link_capability`). The view's page and every filter, sort and grouping must be ones a live link shows (422 `live_link_view_unsupported`). `expires_at` is required, after now and within 90 days (422 `live_link_expiry`, `live_link_expiry_range`); a view holds at most 20 live links (422 `live_link_limit`); a read-only org makes none (422 `org_read_only`). Every link has an access code. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "note": "Venue screens"
+              },
+              "schema": { "$ref": "#/components/schemas/LiveViewLinkRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "live_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xshv_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveViewLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/display": {
+      "post": {
+        "operationId": "liveLinks.createDisplay",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "create_display_link",
+        "summary": "Create a display screen link to a running order",
+        "description": "Makes a no-account display screen link (room clock, presenter timer, backstage) to a running order through app.create_display_link. The caller must be a member of its org and hold show.run_of_show.write on the project (422 `live_link_capability`). `expires_at` defaults to the end of the day after the show in the project's zone, at most 90 days ahead; when given it must be after now and within 90 days (422 `live_link_expiry_range`). A running order holds at most 20 live links (422 `live_link_limit`); a read-only org makes none (422 `org_read_only`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "default_mode": "Backstage",
+                "note": "Venue screens"
+              },
+              "schema": { "$ref": "#/components/schemas/LiveDisplayLinkRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "live_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xscr_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveDisplayLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/{id}/regenerate": {
+      "post": {
+        "operationId": "liveLinks.regenerate",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "regenerate_live_link",
+        "summary": "Regenerate a live link",
+        "description": "Draws a new token and access code through app.regenerate_live_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device that opened the link must enter the new code. Its creator, or a holder of the collection's share capability on the project, may. A revoked link (422 `live_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the live link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the live link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "xshv_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveLinkRegenerated" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/{id}/revoke": {
+      "post": {
+        "operationId": "liveLinks.revoke",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "revoke_live_link",
+        "summary": "Revoke a live link",
+        "description": "Revokes the link through app.revoke_live_link so it never opens again and every open page stops on its next update. Its creator, or a holder of the collection's share capability on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the live link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the live link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "link_kind": "View",
+                  "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "default_mode": "Backstage",
+                  "token_hint": "3f9a",
+                  "note": "Venue screens",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 3,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveLink" }
               }
             }
           },

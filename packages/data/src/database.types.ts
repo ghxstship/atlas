@@ -25909,6 +25909,156 @@ export type Database = {
           },
         ];
       };
+      live_links: {
+        Row: {
+          access_code_hash: string;
+          created_at: string;
+          created_by: string | null;
+          default_mode: Database["app"]["Enums"]["display_mode"] | null;
+          deleted_at: string | null;
+          expires_at: string;
+          failed_attempts: number;
+          id: string;
+          last_opened_at: string | null;
+          link_kind: Database["app"]["Enums"]["live_link_kind"];
+          note: string | null;
+          open_count: number;
+          org_id: string;
+          project_id: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          rotated_at: string | null;
+          run_of_show_id: string | null;
+          saved_view_id: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          access_code_hash: string;
+          created_at?: string;
+          created_by?: string | null;
+          default_mode?: Database["app"]["Enums"]["display_mode"] | null;
+          deleted_at?: string | null;
+          expires_at: string;
+          failed_attempts?: number;
+          id?: string;
+          last_opened_at?: string | null;
+          link_kind: Database["app"]["Enums"]["live_link_kind"];
+          note?: string | null;
+          open_count?: number;
+          org_id: string;
+          project_id: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          rotated_at?: string | null;
+          run_of_show_id?: string | null;
+          saved_view_id?: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          access_code_hash?: string;
+          created_at?: string;
+          created_by?: string | null;
+          default_mode?: Database["app"]["Enums"]["display_mode"] | null;
+          deleted_at?: string | null;
+          expires_at?: string;
+          failed_attempts?: number;
+          id?: string;
+          last_opened_at?: string | null;
+          link_kind?: Database["app"]["Enums"]["live_link_kind"];
+          note?: string | null;
+          open_count?: number;
+          org_id?: string;
+          project_id?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          rotated_at?: string | null;
+          run_of_show_id?: string | null;
+          saved_view_id?: string | null;
+          token_hash?: string;
+          token_hint?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "live_links_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "live_links_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "live_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "live_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "live_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "live_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "live_links_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "live_links_run_of_show_id_fkey";
+            columns: ["run_of_show_id"];
+            isOneToOne: false;
+            referencedRelation: "run_of_show";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "live_links_saved_view_id_fkey";
+            columns: ["saved_view_id"];
+            isOneToOne: false;
+            referencedRelation: "saved_views";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "live_links_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       lost_found_claims: {
         Row: {
           claimant_contact: string;
@@ -58935,6 +59085,22 @@ export type Database = {
         };
         Relationships: [];
       };
+      live_link_states: {
+        Row: {
+          id: string | null;
+          link_state: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: string | null;
+          link_state?: never;
+        };
+        Update: {
+          id?: string | null;
+          link_state?: never;
+        };
+        Relationships: [];
+      };
       measurement_metric_tags: {
         Row: {
           metric_code: string | null;
@@ -62036,6 +62202,20 @@ export type Database = {
         };
         Returns: string;
       };
+      create_display_link: {
+        Args: {
+          p_default_mode?: Database["app"]["Enums"]["display_mode"];
+          p_expires_at?: string;
+          p_note?: string;
+          p_run_of_show_id: string;
+        };
+        Returns: {
+          access_code: string;
+          expires_at: string;
+          live_link_id: string;
+          token: string;
+        }[];
+      };
       create_engagement_from_application: {
         Args: {
           p_application_id: string;
@@ -62176,6 +62356,20 @@ export type Database = {
       create_template_from_project: {
         Args: { p_description?: string; p_name: string; p_project_id: string };
         Returns: string;
+      };
+      create_view_link: {
+        Args: {
+          p_expires_at?: string;
+          p_note?: string;
+          p_project_id: string;
+          p_saved_view_id: string;
+        };
+        Returns: {
+          access_code: string;
+          expires_at: string;
+          live_link_id: string;
+          token: string;
+        }[];
       };
       create_webhook_endpoint: {
         Args: { p_description?: string; p_event_types: string[]; p_org_id: string; p_url: string };
@@ -64017,6 +64211,14 @@ export type Database = {
         };
         Returns: undefined;
       };
+      regenerate_live_link: {
+        Args: { p_live_link_id: string };
+        Returns: {
+          access_code: string;
+          expires_at: string;
+          token: string;
+        }[];
+      };
       register_kiosk_device: {
         Args: { p_name: string; p_org_id: string; p_project_id?: string };
         Returns: {
@@ -64285,6 +64487,7 @@ export type Database = {
       };
       revoke_engagement_document_token: { Args: { p_token_id: string }; Returns: undefined };
       revoke_invite_link: { Args: { p_invite_link_id: string }; Returns: undefined };
+      revoke_live_link: { Args: { p_live_link_id: string }; Returns: string };
       revoke_organization_verification: {
         Args: { p_reason: string; p_verification_id: string };
         Returns: undefined;
@@ -65554,6 +65757,7 @@ export type Database = {
         | "Nut Free"
         | "Shellfish Free";
       digest_frequency: "Off" | "Daily" | "Weekly";
+      display_mode: "Room Clock" | "Presenter Timer" | "Backstage";
       domain_provisioning_status:
         "Not Started" | "Requested" | "Pending DNS" | "Active" | "Failed" | "Released";
       domain_verification_state: "Pending" | "Verified" | "Failed";
@@ -65689,6 +65893,7 @@ export type Database = {
         | "Misleading Information"
         | "Missing Pay Range"
         | "Safety";
+      live_link_kind: "View" | "Display";
       lost_item_category:
         "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
       lost_item_state: "Logged" | "Claimed" | "Returned" | "Disposed";
@@ -72140,6 +72345,7 @@ export const Constants = {
         "Shellfish Free",
       ],
       digest_frequency: ["Off", "Daily", "Weekly"],
+      display_mode: ["Room Clock", "Presenter Timer", "Backstage"],
       domain_provisioning_status: [
         "Not Started",
         "Requested",
@@ -72304,6 +72510,7 @@ export const Constants = {
         "Missing Pay Range",
         "Safety",
       ],
+      live_link_kind: ["View", "Display"],
       lost_item_category: [
         "Bag",
         "Clothing",
