@@ -491,7 +491,8 @@
           "unknown_airport": "Sin código de aeropuerto conocido",
           "duplicate_in_batch": "Repite otro tramo",
           "inferred_zone": "Zona leída del lugar",
-          "inferred_year": "Año tomado del documento"
+          "inferred_year": "Año tomado del documento",
+          "already_booked": "Ya reservado para este viajero"
         }
       },
       "contracts": {
@@ -580,6 +581,10 @@
       "advance_section_not_draftable": "Esta sección ya tiene respuesta o ya no acepta una respuesta de Aurora.",
       "advance_answer_pending": "Esta sección tiene una respuesta pendiente de revisión. Devuélvela antes de registrar otra.",
       "sod_advance_submitter": "Tú registraste esta respuesta, así que la revisa otra persona.",
+      "aurora_intake_immutable": "Una importación conserva su proyecto, tipo, servicio y número de archivos. Inicia otra para cambiarlos.",
+      "aurora_draft_request_invalid": "Esta sugerencia no es una respuesta de avance redactada por Aurora.",
+      "aurora_draft_target_required": "Elige para qué redacta Aurora antes de pedirlo: {detail}",
+      "aurora_draft_target_mismatch": "Aurora redacta esto para otro tipo de registro: {detail}",
       "plan_limit_exceeded": "Tu organización usó la asignación de este mes: {detail}"
     },
     "advanceAnswers": {

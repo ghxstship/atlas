@@ -811,13 +811,10 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Import itineraries with Aurora" },
           {
             t: "text",
-            v: " reads up to 25 booking confirmations, as files or as verified messages in the project inbox, into one preview. Each file is one Aurora request from this month's allowance, and the panel says how many you use. Every row is one passenger on one segment, with the excerpt it was read from. You always choose the traveler: a suggested name is only a hint. Zones are read from each place, so check them; a date or time the confirmation does not print is left empty. ",
+            v: " reads up to 25 booking confirmations, as files or as verified messages in the project inbox, into one preview. Each file is one Aurora request from this month's allowance, and the panel says how many you use. Every row is one passenger on one segment, with the excerpt it was read from. You always choose the traveler: a suggested name is only a hint. Zones are read from each place, so check them; a date or time the confirmation does not print is left empty. A row the traveler already has as a segment, with the same flight or service and departure, is marked Already booked and left out; ",
           },
           { t: "strong", v: "Add segments" },
-          {
-            t: "text",
-            v: " adds the rows you keep in one step, and a segment the traveler already has is refused.",
-          },
+          { t: "text", v: " adds the rows you keep in one step." },
         ],
       },
     ],
@@ -3211,13 +3208,10 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Importar itinerarios con Aurora" },
           {
             t: "text",
-            v: " lee hasta 25 confirmaciones de reserva, como archivos o como mensajes verificados del buzón del proyecto, en una sola vista previa. Cada archivo es una solicitud de Aurora de la asignación de este mes, y el panel indica cuántas usa. Cada fila es un pasajero en un tramo, con el fragmento del que se leyó. Usted siempre elige al viajero: un nombre sugerido es solo una pista. Las zonas se leen de cada lugar, así que revíselas; una fecha u hora que la confirmación no imprime queda vacía. ",
+            v: " lee hasta 25 confirmaciones de reserva, como archivos o como mensajes verificados del buzón del proyecto, en una sola vista previa. Cada archivo es una solicitud de Aurora de la asignación de este mes, y el panel indica cuántas usa. Cada fila es un pasajero en un tramo, con el fragmento del que se leyó. Usted siempre elige al viajero: un nombre sugerido es solo una pista. Las zonas se leen de cada lugar, así que revíselas; una fecha u hora que la confirmación no imprime queda vacía. Una fila que el viajero ya tiene como tramo, con el mismo vuelo o servicio y la misma salida, se marca como Ya reservado y queda fuera; ",
           },
           { t: "strong", v: "Agregar tramos" },
-          {
-            t: "text",
-            v: " agrega en un solo paso las filas que conserva, y se rechaza un tramo que el viajero ya tiene.",
-          },
+          { t: "text", v: " agrega en un solo paso las filas que conserva." },
         ],
       },
     ],

@@ -491,7 +491,8 @@
           "unknown_airport": "No known airport code",
           "duplicate_in_batch": "Repeats another segment",
           "inferred_zone": "Zone read from the place",
-          "inferred_year": "Year taken from the document"
+          "inferred_year": "Year taken from the document",
+          "already_booked": "Already booked for this traveler"
         }
       },
       "contracts": {
@@ -580,6 +581,10 @@
       "advance_section_not_draftable": "This section is answered already or no longer takes an answer from Aurora.",
       "advance_answer_pending": "This section has an answer waiting for review. Return it before you record another.",
       "sod_advance_submitter": "You recorded this answer, so someone else reviews it.",
+      "aurora_intake_immutable": "An import keeps its project, kind, fulfillment and number of files. Start a new one to change them.",
+      "aurora_draft_request_invalid": "This suggestion is not an advance answer Aurora drafted.",
+      "aurora_draft_target_required": "Choose what Aurora drafts for before you ask: {detail}",
+      "aurora_draft_target_mismatch": "Aurora drafts this for another kind of record: {detail}",
       "plan_limit_exceeded": "Your org has used this month's allowance: {detail}"
     },
     "advanceAnswers": {

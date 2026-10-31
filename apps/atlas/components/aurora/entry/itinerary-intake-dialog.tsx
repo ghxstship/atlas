@@ -9,7 +9,7 @@ import type {
 import { checkItinerary, localInstant, type ItineraryLine } from "@xos/ai/itinerary";
 import { Button, Checkbox, InlineAlert, Input, Select, Tag } from "@xos/ui";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   fieldOf,
   fileSource,
@@ -45,6 +45,8 @@ interface Row {
   readonly arrivesLocal: string;
   readonly arrivesZone: string;
   readonly flags: readonly AuroraItineraryFlag["type"][];
+  /** The traveler already has this segment live (same service and departure), as the apply would refuse it. */
+  readonly booked: boolean;
   readonly excerpt: string;
 }
 
@@ -62,7 +64,8 @@ function rowOf(
   const best = candidates[0];
   return {
     suggestionId: s.id,
-    // An already-booked segment is left out until the person keeps it.
+    // A row repeating another of the batch is left out until the person keeps it; one the traveler
+    // already has is left out once the booked check finds it.
     include: !flags.includes("duplicate_in_batch"),
     passenger: textOf(s, "passenger_name"),
     personId: best?.person_id ?? "",
@@ -76,6 +79,7 @@ function rowOf(
     arrivesLocal: textOf(s, "arrives_local"),
     arrivesZone: textOf(s, "arrives_time_zone"),
     flags,
+    booked: false,
     excerpt:
       fieldOf(s, "departs_local")?.source_excerpt ??
       fieldOf(s, "passenger_name")?.source_excerpt ??
@@ -208,6 +212,57 @@ export function ItineraryIntakeDialog({
     departsAt: localInstant(r.departsLocal || null, r.departsZone || null),
     arrivesAt: localInstant(r.arrivesLocal || null, r.arrivesZone || null),
   });
+
+  // Already booked: whenever a row's traveler, service or departure changes, ask which rows the traveler
+  // already has as a live segment, and leave each such row out the first time it is found, so one repeat
+  // never refuses the whole batch. The person may keep a row again; the apply still decides.
+  const batchId = phase.kind === "review" ? phase.batchId : null;
+  const checkable = rows.map((r) => ({
+    person_id: r.personId,
+    service_identifier: r.service.trim() || null,
+    departs_at: instantsOf(r).departsAt,
+  }));
+  const checkKey = JSON.stringify(checkable);
+  const leftOut = useRef(new Set<string>());
+  useEffect(() => {
+    if (!batchId) return;
+    const asked = checkable
+      .map((row, i) => ({ row, i }))
+      .filter(({ row }) => row.person_id && row.service_identifier && row.departs_at);
+    let live = true;
+    const timer = setTimeout(() => {
+      if (asked.length === 0) {
+        setRows((current) => current.map((r) => (r.booked ? { ...r, booked: false } : r)));
+        return;
+      }
+      void client
+        .checkItineraries(
+          batchId,
+          asked.map(({ row }) => row),
+        )
+        .then((result) => {
+          if (!live || !result.ok) return;
+          const booked = new Set(result.data.booked.map((n) => asked[n - 1]?.i));
+          setRows((current) =>
+            current.map((r, i) => {
+              const isBooked = booked.has(i);
+              const key = JSON.stringify(checkable[i]);
+              if (isBooked && !leftOut.current.has(key)) {
+                leftOut.current.add(key);
+                return { ...r, booked: true, include: false };
+              }
+              return r.booked === isBooked ? r : { ...r, booked: isBooked };
+            }),
+          );
+        });
+    }, 300);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+    // checkKey stands for the rows' traveler, service and departure; the rest of a row never changes the answer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [batchId, checkKey, client]);
   const kept = rows.filter((r) => r.include);
   const invalid = kept.some((r) => {
     const at = instantsOf(r);
@@ -421,6 +476,9 @@ export function ItineraryIntakeDialog({
                     />
                   </div>
                   <span className="flex flex-wrap gap-4">
+                    {r.booked ? (
+                      <Tag tone="warning">{t("intake.itineraries.flags.already_booked")}</Tag>
+                    ) : null}
                     {(live[i] ?? []).map((f) => (
                       <Tag
                         key={f}
