@@ -1159,3 +1159,106 @@ export async function cancelTravelSegment(db: XosClient, id: string): Promise<Re
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
+
+// The flight grid (B5, G-58) ---------------------------------------------------------------------------------------
+
+export type FlightPhase = "Upcoming" | "In Flight" | "Departed" | "Landed";
+export const FLIGHT_PHASES: readonly FlightPhase[] = ["Upcoming", "In Flight", "Departed", "Landed"];
+
+export interface TravelGridRow {
+  readonly id: string;
+  readonly projectId: string;
+  readonly personId: string;
+  readonly travelerName: string | null;
+  readonly mode: TravelMode;
+  readonly operatorName: string | null;
+  readonly serviceIdentifier: string | null;
+  readonly confirmationIdentifier: string | null;
+  readonly departsFrom: string;
+  readonly departsAt: string;
+  readonly departsTimeZone: string;
+  readonly arrivesAtPlace: string;
+  readonly arrivesAt: string | null;
+  readonly arrivesTimeZone: string;
+  readonly phase: FlightPhase;
+  readonly journeyId: string;
+  readonly legNumber: number;
+  readonly legCount: number;
+  readonly finalArrivalAt: string | null;
+  readonly finalArrivalPlace: string | null;
+  readonly finalArrivalTimeZone: string | null;
+}
+
+export interface TravelGridScope extends OperationsScope {
+  /** Defaults to Flight: the grid lists flights, and Ground rows are transfers' business. */
+  readonly mode?: TravelMode | undefined;
+  readonly phases?: readonly FlightPhase[] | undefined;
+}
+
+const asPhase = (v: string | null): FlightPhase =>
+  (FLIGHT_PHASES as readonly string[]).includes(v ?? "") ? (v as FlightPhase) : "Upcoming";
+
+/** Segments of app.travel_grid with their journey and phase, in departure order (Flight unless asked). */
+export async function listTravelGrid(db: XosClient, scope: TravelGridScope): Promise<Result<TravelGridRow[]>> {
+  let query = db
+    .from("travel_grid")
+    .select(
+      "id, project_id, person_id, traveler_name, travel_mode, operator_name, service_identifier, confirmation_identifier, " +
+        "departs_from, departs_at, departs_time_zone, arrives_at_place, arrives_at, arrives_time_zone, phase, journey_id, " +
+        "leg_number, leg_count, final_arrival_at, final_arrival_place, final_arrival_time_zone",
+    )
+    .eq("org_id", scope.orgId)
+    .eq("travel_mode", scope.mode ?? "Flight");
+  if (scope.projectId) query = query.eq("project_id", scope.projectId);
+  if (scope.phases && scope.phases.length > 0) query = query.in("phase", [...scope.phases]);
+  const { data, error } = await query.order("departs_at").order("id");
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as unknown as {
+    id: string;
+    project_id: string;
+    person_id: string;
+    traveler_name: string | null;
+    travel_mode: TravelMode;
+    operator_name: string | null;
+    service_identifier: string | null;
+    confirmation_identifier: string | null;
+    departs_from: string;
+    departs_at: string;
+    departs_time_zone: string;
+    arrives_at_place: string;
+    arrives_at: string | null;
+    arrives_time_zone: string;
+    phase: string | null;
+    journey_id: string | null;
+    leg_number: number | null;
+    leg_count: number | null;
+    final_arrival_at: string | null;
+    final_arrival_place: string | null;
+    final_arrival_time_zone: string | null;
+  }[];
+  return ok(
+    rows.map((r) => ({
+      id: r.id,
+      projectId: r.project_id,
+      personId: r.person_id,
+      travelerName: r.traveler_name,
+      mode: r.travel_mode,
+      operatorName: r.operator_name,
+      serviceIdentifier: r.service_identifier,
+      confirmationIdentifier: r.confirmation_identifier,
+      departsFrom: r.departs_from,
+      departsAt: r.departs_at,
+      departsTimeZone: r.departs_time_zone,
+      arrivesAtPlace: r.arrives_at_place,
+      arrivesAt: r.arrives_at,
+      arrivesTimeZone: r.arrives_time_zone,
+      phase: asPhase(r.phase),
+      journeyId: r.journey_id ?? r.id,
+      legNumber: r.leg_number ?? 1,
+      legCount: r.leg_count ?? 1,
+      finalArrivalAt: r.final_arrival_at,
+      finalArrivalPlace: r.final_arrival_place,
+      finalArrivalTimeZone: r.final_arrival_time_zone,
+    })),
+  );
+}
