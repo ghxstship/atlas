@@ -50,13 +50,11 @@ export function InsideNow({
           {t("title")}
         </h2>
         <div className="flex flex-wrap items-center gap-8">
-          <p className="m-0 text-text-12 text-text-secondary" aria-live="polite">
-            {t("updated", { time })}
-          </p>
+          {/* Not a live region: announcing the time every 30 seconds would interrupt a screen reader. */}
+          <p className="m-0 text-text-12 text-text-secondary">{t("updated", { time })}</p>
           <Button
             variant="secondary"
             size="sm"
-            aria-pressed={paused}
             onClick={() => {
               setPaused((p) => !p);
               if (paused) void refresh();
