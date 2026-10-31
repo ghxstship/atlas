@@ -84,6 +84,7 @@ export function SetNamesDueForm({
         label={t("label")}
         help={t("help", { zone: timeZone })}
         defaultValue={current}
+        error={state.fieldErrors?.["namesDueAt"] ? t("error") : ""}
       />
       <Button type="submit" size="sm" loading={pending}>
         {t("set")}

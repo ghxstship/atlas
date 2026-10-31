@@ -818,6 +818,7 @@ export function AddRecipientForm({
         label={t("namesDue.label")}
         help={t("namesDue.help", { zone: timeZone })}
         disabled={engagement === ""}
+        error={state.fieldErrors?.["namesDueAt"] ? t("namesDue.error") : ""}
       />
       <Button type="submit" size="sm" icon="UserPlus" loading={pending}>
         {t("add")}

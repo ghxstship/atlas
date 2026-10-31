@@ -232,7 +232,11 @@ export async function addSectionAction(_: AdvancingState, form: FormData): Promi
       sectionId: added.data.id,
       target: { kind, id: targetId },
     });
-    if (!made.ok) return done(ctx.org.slug, made);
+    if (!made.ok) {
+      // Leave no half-built section behind: the builder adds it again with its choices.
+      await removeSection(ctx.viewer.db, added.data.id);
+      return done(ctx.org.slug, made);
+    }
   }
   return done(ctx.org.slug, added);
 }
@@ -340,9 +344,9 @@ export async function addRecipientAction(
     });
   if (!parsed.success) return { fieldErrors: { party: "party" } };
   // R9: the engagement the recipient answers under, and its naming deadline in the project's zone (G-141).
-  const namesDue = parsed.data.engagementId
-    ? localToInstant(text(form, "namesDueAt"), parsed.data.timeZone)
-    : null;
+  const local = parsed.data.engagementId ? text(form, "namesDueAt") : "";
+  const namesDue = local === "" ? null : localToInstant(local, parsed.data.timeZone);
+  if (local !== "" && namesDue === null) return { fieldErrors: { namesDueAt: "namesDueAt" } };
   return done(
     ctx.org.slug,
     await addRecipient(ctx.viewer.db, {

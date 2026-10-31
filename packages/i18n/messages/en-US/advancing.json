@@ -290,7 +290,8 @@
       "closed": "Names closed",
       "action": "Set names deadline",
       "set": "Save deadline",
-      "saved": "Saved."
+      "saved": "Saved.",
+      "error": "Enter a date and time, or leave it empty."
     }
   },
   "links": {

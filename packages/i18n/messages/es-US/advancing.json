@@ -290,7 +290,8 @@
       "closed": "Nombres cerrados",
       "action": "Fijar fecha límite de nombres",
       "set": "Guardar fecha límite",
-      "saved": "Guardado."
+      "saved": "Guardado.",
+      "error": "Escribe una fecha y una hora, o déjalo vacío."
     }
   },
   "links": {
