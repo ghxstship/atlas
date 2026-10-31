@@ -76,6 +76,7 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
   const briefing = `Gate safety briefing ${suffix()}`;
   let rules: { retire: () => Promise<void> } | null = null;
   let engagementId: string | null = null;
+  let applicationId: string | null = null;
   try {
     const opportunity = await publishStaffOpportunity();
     const party = (await value<string>("select name as v from app.organizations where id = $1", [
@@ -101,7 +102,7 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
     await form.getByLabel("Demo Staff Two").check();
     await form.getByRole("button", { name: "Send application" }).click();
     await expect(page.getByText(/You applied on|Application sent/).first()).toBeVisible();
-    const { applicationId } = await offerToApplication(opportunity.id);
+    ({ applicationId } = await offerToApplication(opportunity.id));
     await page.goto("/work/applications?view=list");
     const card = page.getByRole("listitem").filter({ hasText: opportunity.title });
     await page.waitForLoadState("networkidle");
@@ -121,9 +122,9 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
     await atlas.page.waitForLoadState("networkidle");
     await atlas.page.getByLabel("Worker classification").selectOption("INDEPENDENT_CONTRACTOR");
     await atlas.page.getByRole("button", { name: "Create engagement", exact: true }).click();
-    await expect(
-      atlas.page.getByText("Engagement created. Its onboarding packet is ready."),
-    ).toBeVisible();
+    // The action revalidates the record, which then links to the engagement in place of the form (and its status
+    // line), so the link is what shows it was made.
+    await expect(atlas.page.getByRole("link", { name: "Open the engagement" })).toBeVisible();
     await expect
       .poll(async () => {
         engagementId =
@@ -397,6 +398,14 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
     await two.context().close();
   } finally {
     await rules?.retire();
+    // A step that fails before the engagement id is read still leaves its engagement behind; find it by application.
+    if (!engagementId && applicationId) {
+      engagementId =
+        (await value<string>(
+          "select id as v from app.engagements where application_id = $1 and deleted_at is null",
+          [applicationId],
+        ).catch(() => undefined)) ?? null;
+    }
     if (engagementId) {
       // The demo project's crew stays as the seed left it for later journeys.
       for (const statement of [
