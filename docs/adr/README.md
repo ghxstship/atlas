@@ -89,6 +89,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0111](0111-timeline-reschedule-pushes-successors.md)               | A Timeline Reschedule Pushes Successors by What It Adds                          | Accepted |
 | [0114](0114-stricter-separation-of-duties-options.md)               | Stricter Separation of Duties Options                                            | Proposed |
 | [0116](0116-file-previews-and-the-brand-color-picker.md)            | File Previews and the Brand Color Picker                                         | Accepted |
+| [0118](0118-route-view-transitions-and-region-boundaries.md)        | Route View Transitions and Region Boundaries                                     | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
 

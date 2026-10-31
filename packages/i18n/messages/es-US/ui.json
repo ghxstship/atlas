@@ -389,6 +389,10 @@
   "record": {
     "untitled": "Sin título"
   },
+  "region": {
+    "title": "Esta sección no se cargó",
+    "body": "El resto de la página sigue funcionando. Reintente para cargar esta sección de nuevo."
+  },
   "resource": {
     "doubleBooked": "Reserva duplicada",
     "person": "Persona"

@@ -126,6 +126,49 @@
   }
 }
 
+/* Route view transitions (RouteTransition, @xos/ui/route-transition): the page that leaves fades
+   out fast, the page that arrives fades in rising a little, at the route transition duration. The
+   overlay lets clicks through to the live page. Reduced motion, from the device or from
+   me.reduced_motion, turns them off: no animation runs and the page swaps at once. */
+@keyframes xos-route-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes xos-route-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-8));
+  }
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(.xos-route) {
+  animation: xos-route-out var(--motion-duration-fast) var(--motion-easing-exit) both;
+}
+
+::view-transition-new(.xos-route) {
+  animation: xos-route-in var(--motion-duration-deliberate) var(--motion-easing-enter) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"])::view-transition-group(*),
+  :root:not([data-motion="full"])::view-transition-old(*),
+  :root:not([data-motion="full"])::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+:root[data-motion="reduce"]::view-transition-group(*),
+:root[data-motion="reduce"]::view-transition-old(*),
+:root[data-motion="reduce"]::view-transition-new(*) {
+  animation: none !important;
+}
+
 /* Icons that point along the reading direction mirror in right-to-left locales. */
 [dir="rtl"] .xos-flip-rtl {
   transform: scaleX(-1);

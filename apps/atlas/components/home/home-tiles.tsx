@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import type { HomeTilesData } from "@/lib/home/data";
 import { ActivityLine } from "@/components/activity/activity-line";
 import { collapseRepeats, useDescribe } from "@/components/activity/describe";
+import { RegionFailed } from "@/components/shell/region";
 
 function Tile({
   id,
@@ -44,7 +45,8 @@ function Tile({
  * The Home dashboard tiles A07 adds under the checklist, each one tile of the Dashboard template
  * (Section 11.6, A129). Alert texts and relative activity times arrive formatted by the server:
  * building Intl date and relative-time formatters during hydration was the largest part of Home's
- * main-thread work on a slow CPU (gate 10, Total Blocking Time).
+ * main-thread work on a slow CPU (gate 10, Total Blocking Time). A tile whose read failed shows Retry
+ * below its title (ADR 0118); the dashboard grid puts every tile in its own Region.
  */
 export function ReadinessTile({
   org,
@@ -60,11 +62,13 @@ export function ReadinessTile({
   const p = useTranslations("projects");
   return (
     <Tile id="home-readiness" title={t("readinessTitle")} href={href}>
-      {readiness.length === 0 ? (
+      {!readiness.ok ? (
+        <RegionFailed />
+      ) : readiness.data.length === 0 ? (
         <p className="m-0 text-text-13 text-text-secondary">{t("noReadiness")}</p>
       ) : (
         <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-          {readiness.map((x) => (
+          {readiness.data.map((x) => (
             <li key={x.project.id} className="flex flex-col gap-2 py-8">
               <Link
                 href={`/${org}/p/${x.project.key}/gates` as Route}
@@ -101,11 +105,13 @@ export function AlertsTile({
   const t = useTranslations("home.dashboard");
   return (
     <Tile id="home-alerts" title={t("alertsTitle")} href={href}>
-      {alerts.length === 0 ? (
+      {!alerts.ok ? (
+        <RegionFailed />
+      ) : alerts.data.length === 0 ? (
         <p className="m-0 text-text-13 text-text-secondary">{t("noAlerts")}</p>
       ) : (
         <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
-          {alerts.map((a) => (
+          {alerts.data.map((a) => (
             <li key={a.id}>{text[a.id]}</li>
           ))}
         </ul>
@@ -128,11 +134,13 @@ export function ActivityTile({
   const describe = useDescribe();
   return (
     <Tile id="home-activity" title={t("recentTitle")} href={href}>
-      {activity.length === 0 ? (
+      {!activity.ok ? (
+        <RegionFailed />
+      ) : activity.data.length === 0 ? (
         <p className="m-0 text-text-13 text-text-secondary">{t("noActivity")}</p>
       ) : (
         <ol className="m-0 flex list-none flex-col gap-4 p-0">
-          {collapseRepeats(activity, describe).map(({ entry: e, description, count }) => (
+          {collapseRepeats(activity.data, describe).map(({ entry: e, description, count }) => (
             <li key={e.id}>
               <ActivityLine description={description} count={count} time={times[e.id] ?? ""} />
             </li>
