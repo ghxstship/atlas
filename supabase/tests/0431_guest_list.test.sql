@@ -66,6 +66,10 @@ select is((select count(*)::int from app.domain_events where subject_id = pg_tem
   'the decline emits decided once');
 
 -- Engaged party path (0965) --------------------------------------------------------------------------------------
+-- R9 (2715): a party asks for guests only while the project offers a guest list.
+select pg_temp.as_platform();
+insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_text, locked)
+values (pg_temp.id('org_a'), 'offerings.guest_list', 'Project', pg_temp.id('prj_a'), 'provided', false);
 select pg_temp.as_user('art');
 select isnt(app.request_engaged_guest(pg_temp.id('eng_art_a'), 'Sasha Bell', 2, 'Family.'), null, 'the engaged artist requests a guest');
 select is((select count(*)::int from app.engaged_guest_list(pg_temp.id('eng_art_a'))), 1, 'and sees their own guest list');

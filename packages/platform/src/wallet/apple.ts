@@ -25,6 +25,7 @@ import {
 } from "./der.ts";
 import { cssTriple, ON_ACCENT, passBackground } from "./colors.ts";
 import { sha1Hex, solidPng, storedZip } from "./files.ts";
+import type { Rgba } from "./png.ts";
 
 /** What one pass shows: a row of app.my_wallet_pass (1501), with its labels in the holder's language. */
 export interface WalletPass {
@@ -44,6 +45,8 @@ export interface WalletPass {
   readonly endsAt: string | null;
   readonly timeZone: string;
   readonly voided: boolean;
+  /** The org's logo in the org-brand bucket (its dark-theme logo, else its light one), or null for none. */
+  readonly logoPath?: string | null;
 }
 
 export interface WalletLabels {
@@ -70,11 +73,12 @@ export interface PassSigner {
   sign(manifest: Uint8Array): Promise<Uint8Array>;
 }
 
-/** The pass.json for a pass. */
+/** The pass.json for a pass; with the org's logo as the logo image, the org's name is not repeated beside it. */
 export function passJson(
   pass: WalletPass,
   config: ApplePassConfig,
   labels: WalletLabels,
+  withLogo = false,
 ): Record<string, unknown> {
   const color = passBackground(pass.accentHex);
   const date = (key: string, label: string, value: string) => ({
@@ -125,7 +129,7 @@ export function passJson(
     serialNumber: `${pass.kind}-${pass.serial}`,
     organizationName: pass.orgName,
     description: `${pass.title}, ${pass.projectName}`,
-    logoText: pass.orgName,
+    ...(withLogo ? {} : { logoText: pass.orgName }),
     foregroundColor: cssTriple(ON_ACCENT),
     labelColor: cssTriple(ON_ACCENT),
     backgroundColor: cssTriple(color),
@@ -149,23 +153,85 @@ export function passJson(
   };
 }
 
-/** The signed .pkpass bytes. Throws when the signer is not configured. */
+export interface PassFile {
+  readonly name: string;
+  readonly data: Uint8Array;
+}
+
+/** Wallet's image sizes in points, drawn at 1x, 2x and 3x. */
+const ICON = 29;
+const LOGO = { width: 160, height: 50 };
+const STRIP = { width: 375, height: 98 };
+const SCALES = [1, 2, 3] as const;
+
+function named(base: string, scale: number): string {
+  return scale === 1 ? `${base}.png` : `${base}@${String(scale)}x.png`;
+}
+
+/**
+ * The pass's images (A140). With the org's logo, read as a PNG: the icon is the logo on the pass color, the logo image
+ * is the logo itself at the top of the pass, and a shift pass (an event ticket) carries a strip of the pass color
+ * with the logo in its middle; Wallet has no strip for a generic pass. Without a logo it reads, the icon is the
+ * accent color alone, as before.
+ */
+export async function passImages(
+  pass: WalletPass,
+  logo: Uint8Array | null,
+): Promise<{ readonly files: readonly PassFile[]; readonly fromLogo: boolean }> {
+  const color = passBackground(pass.accentHex);
+  // The PNG code loads only for a pass with a logo, so the function's boot stays inside its budget.
+  const png = logo ? await import("./png.ts") : null;
+  const image: Rgba | null = png && logo ? await png.decodePng(logo) : null;
+  if (!png || !image) {
+    return {
+      fromLogo: false,
+      files: SCALES.map((s) => ({ name: named("icon", s), data: solidPng(ICON * s, color) })),
+    };
+  }
+  const files: PassFile[] = [];
+  for (const s of SCALES)
+    files.push({
+      name: named("icon", s),
+      data: await png.encodePng(png.centered(image, ICON * s, ICON * s, color, 0.8)),
+    });
+  for (const s of SCALES) {
+    const size = png.fit(image, LOGO.width * s, LOGO.height * s);
+    const art = png.canvas(size.width, size.height, null);
+    png.draw(art, image, 0, 0, size.width, size.height);
+    files.push({ name: named("logo", s), data: await png.encodePng(art) });
+  }
+  if (pass.kind === "shift")
+    for (const s of SCALES)
+      files.push({
+        name: named("strip", s),
+        data: await png.encodePng(
+          png.centered(image, STRIP.width * s, STRIP.height * s, color, 0.6),
+        ),
+      });
+  return { files, fromLogo: true };
+}
+
+/**
+ * The signed .pkpass bytes, its images drawn from the org's logo when given one Wallet can show (passImages).
+ * Throws when the signer is not configured.
+ */
 export async function buildPkpass(
   pass: WalletPass,
   config: ApplePassConfig,
   labels: WalletLabels,
   signer: PassSigner,
+  logo: Uint8Array | null = null,
 ): Promise<Uint8Array> {
   if (!signer.configured) throw new Error("The Apple Wallet signer is not configured.");
-  const color = passBackground(pass.accentHex);
+  const images = await passImages(pass, logo);
   const files = [
     {
       name: "pass.json",
-      data: new TextEncoder().encode(JSON.stringify(passJson(pass, config, labels))),
+      data: new TextEncoder().encode(
+        JSON.stringify(passJson(pass, config, labels, images.fromLogo)),
+      ),
     },
-    { name: "icon.png", data: solidPng(29, color) },
-    { name: "icon@2x.png", data: solidPng(58, color) },
-    { name: "icon@3x.png", data: solidPng(87, color) },
+    ...images.files,
   ];
   const manifest: Record<string, string> = {};
   for (const file of files) manifest[file.name] = await sha1Hex(file.data);

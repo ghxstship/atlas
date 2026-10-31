@@ -43,7 +43,10 @@
     "generate:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts",
     "check:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts --check",
     "generate:denormalization": "node --experimental-strip-types --no-warnings src/denormalization/generate-cli.ts",
-    "check:denormalization": "node --experimental-strip-types --no-warnings src/denormalization/generate-cli.ts --check"
+    "check:denormalization": "node --experimental-strip-types --no-warnings src/denormalization/generate-cli.ts --check",
+    "generate:airports": "node --experimental-strip-types --no-warnings src/airports/generate-cli.ts",
+    "check:airports": "node --experimental-strip-types --no-warnings src/airports/generate-cli.ts --check",
+    "fetch:airports": "node --experimental-strip-types --no-warnings src/airports/fetch-cli.ts"
   },
   "dependencies": {
     "yaml": "2.9.1",
