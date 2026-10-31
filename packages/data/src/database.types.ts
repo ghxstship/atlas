@@ -241,10 +241,10 @@ export type Database = {
           class_name: string | null;
           credential_category_id: string | null;
           id: string | null;
+          line_note: string | null;
           line_number: number | null;
           needed_from: string | null;
           needed_to: string | null;
-          note: string | null;
           person_name: string | null;
           quantity: number | null;
           roster_entry_id: string | null;
@@ -286,9 +286,9 @@ export type Database = {
         Row: {
           advance_recipient_id: string | null;
           advance_section_id: string | null;
+          answer_note: string | null;
           body: string | null;
           id: string | null;
-          note: string | null;
           return_reason: string | null;
           review_outcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at: string | null;
@@ -298,9 +298,9 @@ export type Database = {
         Insert: {
           advance_recipient_id?: string | null;
           advance_section_id?: string | null;
+          answer_note?: string | null;
           body?: string | null;
           id?: string | null;
-          note?: string | null;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at?: string | null;
@@ -309,9 +309,9 @@ export type Database = {
         Update: {
           advance_recipient_id?: string | null;
           advance_section_id?: string | null;
+          answer_note?: string | null;
           body?: string | null;
           id?: string | null;
-          note?: string | null;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at?: string | null;

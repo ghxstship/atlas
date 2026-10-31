@@ -5,7 +5,17 @@
  * through the same repository functions Atlas uses, whose refusals come back as 422 with the rule.
  * See packages/api/README.md and ADR 0023 (the Advancing corrections in catalog/modules/advancing.ts).
  */
-import { checkInGuest, decideGuest, reviewSubmission, sendPacket } from "@xos/data/advancing";
+import {
+  bindRecipientEngagement,
+  checkInGuest,
+  configureSection,
+  decideGuest,
+  reviewSubmission,
+  sectionConfig,
+  sendPacket,
+  setRecipientNamesDue,
+} from "@xos/data/advancing";
+import { badRequest } from "../problem.ts";
 import { requirePerson } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
 import { allocationHandlers } from "./parts/allocations.ts";
@@ -24,6 +34,10 @@ const promotions = tableResource("advancePromotions", { softDelete: false });
 const riders = tableResource("riders");
 const riderLines = tableResource("riderLines");
 const guests = tableResource("guestListEntries");
+// R9: section choices, and the lines and files of typed answers.
+const choices = tableResource("advanceSectionChoices");
+const answerLines = tableResource("advanceSubmissionLines");
+const answerFiles = tableResource("advanceSubmissionFiles");
 
 export const handlers = defineHandlers("Advancing", {
   ...handlersFor("Advancing", packets),
@@ -34,6 +48,9 @@ export const handlers = defineHandlers("Advancing", {
   ...handlersFor("Advancing", riders),
   ...handlersFor("Advancing", riderLines),
   ...handlersFor("Advancing", guests),
+  ...handlersFor("Advancing", choices),
+  ...handlersFor("Advancing", answerLines),
+  ...handlersFor("Advancing", answerFiles),
   // Roster entries and their project facts (R5): see ./parts/roster-project-facts.ts.
   ...rosterEntryHandlers,
   // Advance allocations (R7): see ./parts/allocations.ts.
@@ -43,6 +60,31 @@ export const handlers = defineHandlers("Advancing", {
     await packets.read(context, params.id, ["id"]);
     unwrap(await sendPacket(context.db, params.id));
     return ok((await packets.read(context, params.id)) as never);
+  },
+
+  "advanceSections.configure": async ({ params, body }, context) => {
+    await sections.read(context, params.id, ["id"]);
+    const config = sectionConfig({
+      kind: body.section_kind,
+      windowKind: body.window_kind ?? null,
+      maxLines: body.max_lines ?? null,
+      perPerson: body.per_person ?? false,
+    });
+    if (config === null) throw badRequest("The configuration does not fit the section kind.");
+    unwrap(await configureSection(context.db, params.id, config));
+    return ok((await sections.read(context, params.id)) as never);
+  },
+
+  "advanceRecipients.bindEngagement": async ({ params, body }, context) => {
+    await recipients.read(context, params.id, ["id"]);
+    unwrap(await bindRecipientEngagement(context.db, params.id, body.engagement_id));
+    return ok((await recipients.read(context, params.id)) as never);
+  },
+
+  "advanceRecipients.setNamesDue": async ({ params, body }, context) => {
+    await recipients.read(context, params.id, ["id"]);
+    unwrap(await setRecipientNamesDue(context.db, params.id, body.names_due_at));
+    return ok((await recipients.read(context, params.id)) as never);
   },
 
   "advanceSubmissions.review": async ({ params, body }, context) => {

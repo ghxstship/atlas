@@ -205,9 +205,12 @@ __all__ = [
     "AdvanceSection",
     "AdvanceSectionCreate",
     "AdvanceSectionUpdate",
+    "AdvanceSectionConfigureRequest",
     "AdvanceRecipientPage",
     "AdvanceRecipient",
     "AdvanceRecipientCreate",
+    "AdvanceRecipientBindEngagementRequest",
+    "AdvanceRecipientSetNamesDueRequest",
     "AdvanceSubmissionPage",
     "AdvanceSubmission",
     "AdvanceSubmissionCreate",
@@ -1297,6 +1300,13 @@ __all__ = [
     "AllocationRadioChannels",
     "AssetReservationConflictPage",
     "AssetReservationConflict",
+    "AdvanceSectionChoicePage",
+    "AdvanceSectionChoice",
+    "AdvanceSectionChoiceCreate",
+    "AdvanceSubmissionLinePage",
+    "AdvanceSubmissionLine",
+    "AdvanceSubmissionFilePage",
+    "AdvanceSubmissionFile",
     "GuestListEntryPage",
     "GuestListEntry",
     "GuestListEntryCreate",
@@ -4679,6 +4689,14 @@ class AdvanceSection(TypedDict):
     title: str
     #: What the recipient is asked.
     prompt: Optional[str]
+    #: What the section asks for; Text unless given.
+    section_kind: Literal["Text", "File", "Schedule Window", "Item Request", "Crew Roster", "Guest List", "Credential Request"]
+    #: For a Schedule Window section, what the window is.
+    window_kind: Optional[Literal["Load In", "Load Out", "Arrival", "Soundcheck", "Activation Setup", "Activation Strike"]]
+    #: Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.
+    max_lines: Optional[int]
+    #: For an Item Request or Credential Request, true when every line names one person on the roster.
+    per_person: bool
 
 
 class _AdvanceSectionCreateRequired(TypedDict):
@@ -4695,6 +4713,14 @@ class AdvanceSectionCreate(_AdvanceSectionCreateRequired, total=False):
 
     #: What the recipient is asked.
     prompt: Optional[str]
+    #: What the section asks for; Text unless given.
+    section_kind: Literal["Text", "File", "Schedule Window", "Item Request", "Crew Roster", "Guest List", "Credential Request"]
+    #: For a Schedule Window section, what the window is.
+    window_kind: Optional[Literal["Load In", "Load Out", "Arrival", "Soundcheck", "Activation Setup", "Activation Strike"]]
+    #: Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.
+    max_lines: Optional[int]
+    #: For an Item Request or Credential Request, true when every line names one person on the roster.
+    per_person: bool
 
 
 class AdvanceSectionUpdate(TypedDict, total=False):
@@ -4706,6 +4732,22 @@ class AdvanceSectionUpdate(TypedDict, total=False):
     title: str
     #: What the recipient is asked.
     prompt: Optional[str]
+
+
+class _AdvanceSectionConfigureRequestRequired(TypedDict):
+    #: Section kind.
+    section_kind: Literal["Text", "File", "Schedule Window", "Item Request", "Crew Roster", "Guest List", "Credential Request"]
+
+
+class AdvanceSectionConfigureRequest(_AdvanceSectionConfigureRequestRequired, total=False):
+    """The kind and configuration of a section."""
+
+    #: Window kind, for a Schedule Window.
+    window_kind: Optional[Literal["Load In", "Load Out", "Arrival", "Soundcheck", "Activation Setup", "Activation Strike"]]
+    #: Most lines or files of one answer.
+    max_lines: Optional[int]
+    #: Every line names a person.
+    per_person: bool
 
 
 class AdvanceRecipientPage(TypedDict):
@@ -4738,6 +4780,10 @@ class AdvanceRecipient(TypedDict):
     person_id: Optional[str]
     #: Identifier of the recipient counterparty.
     counterparty_id: Optional[str]
+    #: Identifier of the engagement the recipient answers under.
+    engagement_id: Optional[str]
+    #: When the party stops naming people on the passes it requested through this recipient.
+    names_due_at: Optional[str]
 
 
 class _AdvanceRecipientCreateRequired(TypedDict):
@@ -4752,6 +4798,24 @@ class AdvanceRecipientCreate(_AdvanceRecipientCreateRequired, total=False):
     person_id: Optional[str]
     #: Identifier of the recipient counterparty.
     counterparty_id: Optional[str]
+    #: Identifier of the engagement the recipient answers under.
+    engagement_id: Optional[str]
+    #: When the party stops naming people on the passes it requested through this recipient.
+    names_due_at: Optional[str]
+
+
+class AdvanceRecipientBindEngagementRequest(TypedDict):
+    """The engagement a recipient answers under."""
+
+    #: The engagement, or null to clear it.
+    engagement_id: Optional[str]
+
+
+class AdvanceRecipientSetNamesDueRequest(TypedDict):
+    """A recipient's naming deadline."""
+
+    #: The deadline, or null to clear it.
+    names_due_at: Optional[str]
 
 
 class AdvanceSubmissionPage(TypedDict):
@@ -21466,6 +21530,128 @@ class AssetReservationConflict(TypedDict):
     quantity: float
     #: What no longer fits.
     conflict: Literal["Unit Unavailable", "Class Over Reserved", "Lot Over Reserved", "Order Short"]
+
+
+class AdvanceSectionChoicePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AdvanceSectionChoice]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AdvanceSectionChoice(TypedDict):
+    """What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422)."""
+
+    #: Identifier of the advance section choice.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the section the choice belongs to.
+    advance_section_id: str
+    #: Identifier of the asset class an Item Request offers.
+    asset_class_id: Optional[str]
+    #: Identifier of the credential category a Credential Request offers.
+    credential_category_id: Optional[str]
+
+
+class _AdvanceSectionChoiceCreateRequired(TypedDict):
+    #: Identifier of the section the choice belongs to.
+    advance_section_id: str
+
+
+class AdvanceSectionChoiceCreate(_AdvanceSectionChoiceCreateRequired, total=False):
+    """Fields accepted when creating a AdvanceSectionChoice."""
+
+    #: Identifier of the asset class an Item Request offers.
+    asset_class_id: Optional[str]
+    #: Identifier of the credential category a Credential Request offers.
+    credential_category_id: Optional[str]
+
+
+class AdvanceSubmissionLinePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AdvanceSubmissionLine]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AdvanceSubmissionLine(TypedDict):
+    """A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes."""
+
+    #: Identifier of the advance submission line.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the answer the line belongs to.
+    advance_submission_id: str
+    #: Order in the answer, 1 to 50.
+    line_number: int
+    #: Identifier of the asset class asked for.
+    asset_class_id: Optional[str]
+    #: Identifier of the credential category asked for.
+    credential_category_id: Optional[str]
+    #: Identifier of the roster entry of the person the line is for.
+    roster_entry_id: Optional[str]
+    #: How many, 1 to 10000.
+    quantity: Optional[int]
+    #: When it is needed, as a Postgres tstzrange literal.
+    needed_window: Optional[str]
+    #: IANA time zone of the window.
+    window_zone: Optional[str]
+    #: Note on the line.
+    note: Optional[str]
+
+
+class AdvanceSubmissionFilePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AdvanceSubmissionFile]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AdvanceSubmissionFile(TypedDict):
+    """A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes."""
+
+    #: Identifier of the advance submission file.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the answer the file belongs to.
+    advance_submission_id: str
+    #: Identifier of the document of the uploaded file.
+    document_id: str
+    #: Order in the answer, 1 to 10.
+    position: int
 
 
 class GuestListEntryPage(TypedDict):

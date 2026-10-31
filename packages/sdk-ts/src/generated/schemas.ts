@@ -6078,6 +6078,37 @@ export interface AdvanceSection {
    * Length: 1 to 2000.
    */
   readonly prompt: string | null;
+  /**
+   * What the section asks for; Text unless given.
+   */
+  readonly section_kind:
+    | "Text"
+    | "File"
+    | "Schedule Window"
+    | "Item Request"
+    | "Crew Roster"
+    | "Guest List"
+    | "Credential Request";
+  /**
+   * For a Schedule Window section, what the window is.
+   */
+  readonly window_kind:
+    | "Load In"
+    | "Load Out"
+    | "Arrival"
+    | "Soundcheck"
+    | "Activation Setup"
+    | "Activation Strike"
+    | null;
+  /**
+   * Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.
+   * Range: 1 to unbounded.
+   */
+  readonly max_lines: number | null;
+  /**
+   * For an Item Request or Credential Request, true when every line names one person on the roster.
+   */
+  readonly per_person: boolean;
 }
 
 /**
@@ -6104,6 +6135,37 @@ export interface AdvanceSectionCreate {
    * Length: 1 to 2000.
    */
   readonly prompt?: string | null;
+  /**
+   * What the section asks for; Text unless given.
+   */
+  readonly section_kind?:
+    | "Text"
+    | "File"
+    | "Schedule Window"
+    | "Item Request"
+    | "Crew Roster"
+    | "Guest List"
+    | "Credential Request";
+  /**
+   * For a Schedule Window section, what the window is.
+   */
+  readonly window_kind?:
+    | "Load In"
+    | "Load Out"
+    | "Arrival"
+    | "Soundcheck"
+    | "Activation Setup"
+    | "Activation Strike"
+    | null;
+  /**
+   * Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.
+   * Range: 1 to unbounded.
+   */
+  readonly max_lines?: number | null;
+  /**
+   * For an Item Request or Credential Request, true when every line names one person on the roster.
+   */
+  readonly per_person?: boolean;
 }
 
 /**
@@ -6125,6 +6187,43 @@ export interface AdvanceSectionUpdate {
    * Length: 1 to 2000.
    */
   readonly prompt?: string | null;
+}
+
+/**
+ * The kind and configuration of a section.
+ */
+export interface AdvanceSectionConfigureRequest {
+  /**
+   * Section kind.
+   */
+  readonly section_kind:
+    | "Text"
+    | "File"
+    | "Schedule Window"
+    | "Item Request"
+    | "Crew Roster"
+    | "Guest List"
+    | "Credential Request";
+  /**
+   * Window kind, for a Schedule Window.
+   */
+  readonly window_kind?:
+    | "Load In"
+    | "Load Out"
+    | "Arrival"
+    | "Soundcheck"
+    | "Activation Setup"
+    | "Activation Strike"
+    | null;
+  /**
+   * Most lines or files of one answer.
+   * Range: 1 to 50.
+   */
+  readonly max_lines?: number | null;
+  /**
+   * Every line names a person.
+   */
+  readonly per_person?: boolean;
 }
 
 /**
@@ -6190,6 +6289,16 @@ export interface AdvanceRecipient {
    * Format: `uuid`.
    */
   readonly counterparty_id: string | null;
+  /**
+   * Identifier of the engagement the recipient answers under.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * When the party stops naming people on the passes it requested through this recipient.
+   * Format: `date-time`.
+   */
+  readonly names_due_at: string | null;
 }
 
 /**
@@ -6211,6 +6320,38 @@ export interface AdvanceRecipientCreate {
    * Format: `uuid`.
    */
   readonly counterparty_id?: string | null;
+  /**
+   * Identifier of the engagement the recipient answers under.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string | null;
+  /**
+   * When the party stops naming people on the passes it requested through this recipient.
+   * Format: `date-time`.
+   */
+  readonly names_due_at?: string | null;
+}
+
+/**
+ * The engagement a recipient answers under.
+ */
+export interface AdvanceRecipientBindEngagementRequest {
+  /**
+   * The engagement, or null to clear it.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+}
+
+/**
+ * A recipient's naming deadline.
+ */
+export interface AdvanceRecipientSetNamesDueRequest {
+  /**
+   * The deadline, or null to clear it.
+   * Format: `date-time`.
+   */
+  readonly names_due_at: string | null;
 }
 
 /**
@@ -38711,6 +38852,251 @@ export interface AssetReservationConflict {
    */
   readonly conflict:
     "Unit Unavailable" | "Class Over Reserved" | "Lot Over Reserved" | "Order Short";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AdvanceSectionChoicePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceSectionChoice>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422).
+ */
+export interface AdvanceSectionChoice {
+  /**
+   * Identifier of the advance section choice.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the section the choice belongs to.
+   * Format: `uuid`.
+   */
+  readonly advance_section_id: string;
+  /**
+   * Identifier of the asset class an Item Request offers.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string | null;
+  /**
+   * Identifier of the credential category a Credential Request offers.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id: string | null;
+}
+
+/**
+ * Fields accepted when creating a AdvanceSectionChoice.
+ */
+export interface AdvanceSectionChoiceCreate {
+  /**
+   * Identifier of the section the choice belongs to.
+   * Format: `uuid`.
+   */
+  readonly advance_section_id: string;
+  /**
+   * Identifier of the asset class an Item Request offers.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * Identifier of the credential category a Credential Request offers.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AdvanceSubmissionLinePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceSubmissionLine>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes.
+ */
+export interface AdvanceSubmissionLine {
+  /**
+   * Identifier of the advance submission line.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the answer the line belongs to.
+   * Format: `uuid`.
+   */
+  readonly advance_submission_id: string;
+  /**
+   * Order in the answer, 1 to 50.
+   * Range: 1 to unbounded.
+   */
+  readonly line_number: number;
+  /**
+   * Identifier of the asset class asked for.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string | null;
+  /**
+   * Identifier of the credential category asked for.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id: string | null;
+  /**
+   * Identifier of the roster entry of the person the line is for.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * How many, 1 to 10000.
+   * Range: 1 to unbounded.
+   */
+  readonly quantity: number | null;
+  /**
+   * When it is needed, as a Postgres tstzrange literal.
+   */
+  readonly needed_window: string | null;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly window_zone: string | null;
+  /**
+   * Note on the line.
+   * Length: 1 to 500.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AdvanceSubmissionFilePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceSubmissionFile>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes.
+ */
+export interface AdvanceSubmissionFile {
+  /**
+   * Identifier of the advance submission file.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the answer the file belongs to.
+   * Format: `uuid`.
+   */
+  readonly advance_submission_id: string;
+  /**
+   * Identifier of the document of the uploaded file.
+   * Format: `uuid`.
+   */
+  readonly document_id: string;
+  /**
+   * Order in the answer, 1 to 10.
+   * Range: 1 to unbounded.
+   */
+  readonly position: number;
 }
 
 /**

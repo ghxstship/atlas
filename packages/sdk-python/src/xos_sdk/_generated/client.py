@@ -351,6 +351,9 @@ from .resources import (
     RosterEntriesResource,
     AdvanceAllocationsResource,
     AssetReservationConflictsResource,
+    AdvanceSectionChoicesResource,
+    AdvanceSubmissionLinesResource,
+    AdvanceSubmissionFilesResource,
     GuestListEntriesResource,
     AssetUnitHireResource,
     AssetReservationsResource,
@@ -792,6 +795,9 @@ class XosClient(XosClientCore):
     roster_entries: RosterEntriesResource
     advance_allocations: AdvanceAllocationsResource
     asset_reservation_conflicts: AssetReservationConflictsResource
+    advance_section_choices: AdvanceSectionChoicesResource
+    advance_submission_lines: AdvanceSubmissionLinesResource
+    advance_submission_files: AdvanceSubmissionFilesResource
     guest_list_entries: GuestListEntriesResource
     asset_unit_hire: AssetUnitHireResource
     asset_reservations: AssetReservationsResource
@@ -1221,6 +1227,9 @@ class XosClient(XosClientCore):
         self.roster_entries = RosterEntriesResource(self)
         self.advance_allocations = AdvanceAllocationsResource(self)
         self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
+        self.advance_section_choices = AdvanceSectionChoicesResource(self)
+        self.advance_submission_lines = AdvanceSubmissionLinesResource(self)
+        self.advance_submission_files = AdvanceSubmissionFilesResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
         self.asset_reservations = AssetReservationsResource(self)

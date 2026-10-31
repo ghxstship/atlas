@@ -345,6 +345,9 @@ import {
   RosterEntriesResource,
   AdvanceAllocationsResource,
   AssetReservationConflictsResource,
+  AdvanceSectionChoicesResource,
+  AdvanceSubmissionLinesResource,
+  AdvanceSubmissionFilesResource,
   GuestListEntriesResource,
   AssetUnitHireResource,
   AssetReservationsResource,
@@ -1214,6 +1217,16 @@ export class XosClient extends XosClientCore {
   /** Advancing: operations on `assetReservationConflicts`. */
   readonly assetReservationConflicts: AssetReservationConflictsResource =
     new AssetReservationConflictsResource(this);
+  /** Advancing: operations on `advanceSectionChoices`. */
+  readonly advanceSectionChoices: AdvanceSectionChoicesResource = new AdvanceSectionChoicesResource(
+    this,
+  );
+  /** Advancing: operations on `advanceSubmissionLines`. */
+  readonly advanceSubmissionLines: AdvanceSubmissionLinesResource =
+    new AdvanceSubmissionLinesResource(this);
+  /** Advancing: operations on `advanceSubmissionFiles`. */
+  readonly advanceSubmissionFiles: AdvanceSubmissionFilesResource =
+    new AdvanceSubmissionFilesResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
   /** Assets: operations on `assetUnitHire`. */

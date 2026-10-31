@@ -86,10 +86,15 @@ export interface EngagedAllocation {
   readonly neededTimeZone: string;
   readonly requestedByMe: boolean;
   readonly declineReason: string | null;
+  /**
+   * For a credential pool, or a share of one, requested through an advance answer: when the party
+   * stops naming people on it (G-141, R9). Null otherwise.
+   */
+  readonly namesDueAt: string | null;
 }
 
 const ALLOCATION_COLUMNS =
-  "allocation_id, engagement_id, roster_entry_id, person_name, kind, item_name, quantity, allocation_state, display_status, reserved_quantity, issued_quantity, returned_quantity, parent_allocation_id, needed_from, needed_to, needed_time_zone, requested_by_me, decline_reason";
+  "allocation_id, engagement_id, roster_entry_id, person_name, kind, item_name, quantity, allocation_state, display_status, reserved_quantity, issued_quantity, returned_quantity, parent_allocation_id, needed_from, needed_to, needed_time_zone, requested_by_me, decline_reason, names_due_at";
 
 function toAllocation(row: ExternalRow<"advance_allocations">): EngagedAllocation {
   return {
@@ -111,7 +116,13 @@ function toAllocation(row: ExternalRow<"advance_allocations">): EngagedAllocatio
     neededTimeZone: req(row.needed_time_zone, "advance_allocations.needed_time_zone"),
     requestedByMe: row.requested_by_me ?? false,
     declineReason: row.decline_reason,
+    namesDueAt: row.names_due_at,
   };
+}
+
+/** True once a credential allocation's naming deadline has passed: only production renames it (G-141). */
+export function namesClosed(a: Pick<EngagedAllocation, "namesDueAt">, now: Date = new Date()): boolean {
+  return a.namesDueAt !== null && new Date(a.namesDueAt).getTime() <= now.getTime();
 }
 
 /** Live means Requested or Approved: what still counts toward an engagement's needs. */

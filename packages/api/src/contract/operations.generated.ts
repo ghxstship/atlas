@@ -343,13 +343,19 @@ export interface Components {
     advance_packet_id: string;
     person_id: string | null;
     counterparty_id: string | null;
+    engagement_id: string | null;
+    names_due_at: string | null;
   };
+  AdvanceRecipientBindEngagementRequest: { engagement_id: string | null };
   AdvanceRecipientCreate: {
     advance_packet_id: string;
     person_id?: string | null;
     counterparty_id?: string | null;
+    engagement_id?: string | null;
+    names_due_at?: string | null;
   };
   AdvanceRecipientPage: { data: Array<Components["AdvanceRecipient"]>; next_cursor: string | null };
+  AdvanceRecipientSetNamesDueRequest: { names_due_at: string | null };
   AdvanceSection: {
     id: string;
     org_id: string;
@@ -361,12 +367,88 @@ export interface Components {
     position: number;
     title: string;
     prompt: string | null;
+    section_kind:
+      | "Text"
+      | "File"
+      | "Schedule Window"
+      | "Item Request"
+      | "Crew Roster"
+      | "Guest List"
+      | "Credential Request";
+    window_kind:
+      | "Load In"
+      | "Load Out"
+      | "Arrival"
+      | "Soundcheck"
+      | "Activation Setup"
+      | "Activation Strike"
+      | null;
+    max_lines: number | null;
+    per_person: boolean;
+  };
+  AdvanceSectionChoice: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    advance_section_id: string;
+    asset_class_id: string | null;
+    credential_category_id: string | null;
+  };
+  AdvanceSectionChoiceCreate: {
+    advance_section_id: string;
+    asset_class_id?: string | null;
+    credential_category_id?: string | null;
+  };
+  AdvanceSectionChoicePage: {
+    data: Array<Components["AdvanceSectionChoice"]>;
+    next_cursor: string | null;
+  };
+  AdvanceSectionConfigureRequest: {
+    section_kind:
+      | "Text"
+      | "File"
+      | "Schedule Window"
+      | "Item Request"
+      | "Crew Roster"
+      | "Guest List"
+      | "Credential Request";
+    window_kind?:
+      | "Load In"
+      | "Load Out"
+      | "Arrival"
+      | "Soundcheck"
+      | "Activation Setup"
+      | "Activation Strike"
+      | null;
+    max_lines?: number | null;
+    per_person?: boolean;
   };
   AdvanceSectionCreate: {
     advance_packet_id: string;
     position: number;
     title: string;
     prompt?: string | null;
+    section_kind?:
+      | "Text"
+      | "File"
+      | "Schedule Window"
+      | "Item Request"
+      | "Crew Roster"
+      | "Guest List"
+      | "Credential Request";
+    window_kind?:
+      | "Load In"
+      | "Load Out"
+      | "Arrival"
+      | "Soundcheck"
+      | "Activation Setup"
+      | "Activation Strike"
+      | null;
+    max_lines?: number | null;
+    per_person?: boolean;
   };
   AdvanceSectionPage: { data: Array<Components["AdvanceSection"]>; next_cursor: string | null };
   AdvanceSectionUpdate: { position?: number; title?: string; prompt?: string | null };
@@ -391,6 +473,42 @@ export interface Components {
     advance_section_id: string;
     advance_recipient_id: string;
     body: string;
+  };
+  AdvanceSubmissionFile: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    advance_submission_id: string;
+    document_id: string;
+    position: number;
+  };
+  AdvanceSubmissionFilePage: {
+    data: Array<Components["AdvanceSubmissionFile"]>;
+    next_cursor: string | null;
+  };
+  AdvanceSubmissionLine: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    advance_submission_id: string;
+    line_number: number;
+    asset_class_id: string | null;
+    credential_category_id: string | null;
+    roster_entry_id: string | null;
+    quantity: number | null;
+    needed_window: string | null;
+    window_zone: string | null;
+    note: string | null;
+  };
+  AdvanceSubmissionLinePage: {
+    data: Array<Components["AdvanceSubmissionLine"]>;
+    next_cursor: string | null;
   };
   AdvanceSubmissionPage: {
     data: Array<Components["AdvanceSubmission"]>;
@@ -12423,6 +12541,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "advanceSections.configure": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-sections/{id}/configure";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceSectionConfigureRequest"];
+    responses: { 200: Components["AdvanceSection"] };
+  };
   "advanceRecipients.list": {
     module: "Advancing";
     method: "get";
@@ -12464,6 +12591,24 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "advanceRecipients.bindEngagement": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-recipients/{id}/bind-engagement";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceRecipientBindEngagementRequest"];
+    responses: { 200: Components["AdvanceRecipient"] };
+  };
+  "advanceRecipients.setNamesDue": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-recipients/{id}/set-names-due";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceRecipientSetNamesDueRequest"];
+    responses: { 200: Components["AdvanceRecipient"] };
   };
   "advanceSubmissions.list": {
     module: "Advancing";
@@ -24591,6 +24736,96 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["AssetReservationConflictPage"] };
   };
+  "advanceSectionChoices.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-section-choices";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AdvanceSectionChoicePage"] };
+  };
+  "advanceSectionChoices.create": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-section-choices";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AdvanceSectionChoiceCreate"];
+    responses: { 201: Components["AdvanceSectionChoice"] };
+  };
+  "advanceSectionChoices.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-section-choices/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AdvanceSectionChoice"] };
+  };
+  "advanceSectionChoices.delete": {
+    module: "Advancing";
+    method: "delete";
+    path: "/advance-section-choices/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "advanceSubmissionLines.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-submission-lines";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AdvanceSubmissionLinePage"] };
+  };
+  "advanceSubmissionLines.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-submission-lines/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AdvanceSubmissionLine"] };
+  };
+  "advanceSubmissionFiles.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-submission-files";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AdvanceSubmissionFilePage"] };
+  };
+  "advanceSubmissionFiles.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-submission-files/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AdvanceSubmissionFile"] };
+  };
   "guestListEntries.list": {
     module: "Advancing";
     method: "get";
@@ -28292,10 +28527,13 @@ export interface ModuleOperations {
     | "advanceSections.get"
     | "advanceSections.update"
     | "advanceSections.delete"
+    | "advanceSections.configure"
     | "advanceRecipients.list"
     | "advanceRecipients.create"
     | "advanceRecipients.get"
     | "advanceRecipients.delete"
+    | "advanceRecipients.bindEngagement"
+    | "advanceRecipients.setNamesDue"
     | "advanceSubmissions.list"
     | "advanceSubmissions.create"
     | "advanceSubmissions.get"
@@ -28335,6 +28573,14 @@ export interface ModuleOperations {
     | "advanceAllocations.allowances"
     | "advanceAllocations.setRadioChannels"
     | "assetReservationConflicts.list"
+    | "advanceSectionChoices.list"
+    | "advanceSectionChoices.create"
+    | "advanceSectionChoices.get"
+    | "advanceSectionChoices.delete"
+    | "advanceSubmissionLines.list"
+    | "advanceSubmissionLines.get"
+    | "advanceSubmissionFiles.list"
+    | "advanceSubmissionFiles.get"
     | "guestListEntries.list"
     | "guestListEntries.create"
     | "guestListEntries.get"

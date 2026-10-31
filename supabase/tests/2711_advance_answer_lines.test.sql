@@ -230,7 +230,7 @@ select is(pg_temp.n('victor', $$select 1 from api_external.my_advance_recipients
   'the recipient shows its engagement');
 select is(pg_temp.n('victor', $$select 1 from api_external.advance_sections where section_kind = 'Item Request' and max_lines = 3$$), 1,
   'sections show their kind and configuration');
-select is(pg_temp.n('victor', 'select 1 from api_external.advance_submissions where note is not null'), 1, 'answers show their note');
+select is(pg_temp.n('victor', 'select 1 from api_external.advance_submissions where answer_note is not null'), 1, 'answers show their note');
 select is(pg_temp.n('quinn', 'select 1 from api_external.advance_submission_lines'), 0, 'another party reads no lines');
 select is(pg_temp.n('ivy', 'select 1 from api_external.advance_section_choices'), 0, 'nor choices');
 select is(pg_temp.n('kai', 'select 1 from api_external.advance_submission_lines'), 0, 'an Account Member nobody assigned reads nothing (owner decision 6)');

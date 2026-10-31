@@ -40,6 +40,7 @@ const row = {
   needed_time_zone: "America/New_York",
   requested_by_me: true,
   decline_reason: null,
+  names_due_at: null,
 };
 
 const allocation = (over: Partial<EngagedAllocation>): EngagedAllocation => ({
@@ -61,6 +62,7 @@ const allocation = (over: Partial<EngagedAllocation>): EngagedAllocation => ({
   neededTimeZone: "America/New_York",
   requestedByMe: false,
   declineReason: null,
+  namesDueAt: null,
   ...over,
 });
 

@@ -6,7 +6,8 @@
 --   1. api_external.my_advance_recipients (0768) appends engagement_id; 2716 appends names_due_at.
 --   2. api_external.advance_sections (0768) appends section_kind, window_kind, max_lines and per_person.
 --   3. api_external.advance_section_choices: the classes and categories a section offers, with their names.
---   4. api_external.advance_submissions (0768) appends note.
+--   4. api_external.advance_submissions (0768) appends answer_note, the recipient's own note (0750's doctrine test keeps
+--      the bare name note for internal notes).
 --   5. api_external.advance_submission_lines: the lines of the caller's answers, with the allocation each asked for.
 --   6. api_external.advance_submission_files: the files of the caller's answers, with the title and scan state.
 --   7. api_external.sponsor_assets (1133) appends asset_source; awaiting_sponsor holds for an org asset Submitted to
@@ -60,21 +61,21 @@ call private.describe('api_external.advance_section_choices', 'What the caller''
 
 create or replace view api_external.advance_submissions as
 select a.id, a.advance_section_id, a.advance_recipient_id, a.body, a.submitted_at, a.reviewed_at, a.review_outcome, a.return_reason,
-  a.note
+  a.note as answer_note
 from app.advance_submissions a
 where a.deleted_at is null and a.advance_recipient_id in (select x.id from api_external.my_advance_recipients x);
 
 call private.describe('api_external.advance_submissions', 'Answers given for the caller''s advance recipients, with the review outcome and any reason an answer was returned. Who reviewed never appears.', array[
   'id', 'Answer.', 'advance_section_id', 'Section.', 'advance_recipient_id', 'Recipient.', 'body', 'Answer as rich text, or the summary of a typed answer.',
   'submitted_at', 'When given.', 'reviewed_at', 'When reviewed.', 'review_outcome', 'Accepted or Returned.', 'return_reason', 'Why it was returned.',
-  'note', 'The recipient''s note on a typed answer (R9).']);
+  'answer_note', 'The recipient''s own note on a typed answer (R9).']);
 
 -- 5. Lines -----------------------------------------------------------------------------------------------------------------------
 
 create view api_external.advance_submission_lines as
 select l.id, l.advance_submission_id, l.line_number, l.asset_class_id, ac.name as class_name, l.credential_category_id,
   k.name as category_name, l.roster_entry_id, pp.full_name as person_name, l.quantity,
-  lower(l.needed_window) as needed_from, upper(l.needed_window) as needed_to, l.window_zone, l.note, al.id as allocation_id
+  lower(l.needed_window) as needed_from, upper(l.needed_window) as needed_to, l.window_zone, l.note as line_note, al.id as allocation_id
 from app.advance_submission_lines l
 left join app.asset_classes ac on ac.id = l.asset_class_id
 left join app.credential_categories k on k.id = l.credential_category_id
@@ -87,7 +88,7 @@ call private.describe('api_external.advance_submission_lines', 'The lines of the
   'id', 'Line.', 'advance_submission_id', 'Answer.', 'line_number', 'Order in the answer.', 'asset_class_id', 'Asset class asked for.',
   'class_name', 'Class name.', 'credential_category_id', 'Credential category asked for.', 'category_name', 'Category name.',
   'roster_entry_id', 'Person on the roster the line is for.', 'person_name', 'That person''s name.', 'quantity', 'How many.',
-  'needed_from', 'Window start.', 'needed_to', 'Window end.', 'window_zone', 'IANA time zone of the window.', 'note', 'Note on the line.',
+  'needed_from', 'Window start.', 'needed_to', 'Window end.', 'window_zone', 'IANA time zone of the window.', 'line_note', 'The recipient''s own note on the line.',
   'allocation_id', 'Allocation the line asked for; NULL for a window line.']);
 
 -- 6. Files ---------------------------------------------------------------------------------------------------------------------------
