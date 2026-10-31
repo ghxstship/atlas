@@ -33,7 +33,8 @@ import { getTranslate } from "@/lib/shell/translate";
 /**
  * Crew > Time Off (Section 4.5.5): requests under the org's time off policies in list, table and
  * calendar views. An approver other than the requester decides (invariant 18); the requester or an
- * approver cancels. Policies are set in Payroll and Time Off settings.
+ * approver cancels. Policies and the holiday calendar are set in Payroll and Time Off settings; a
+ * request's days off skip the org calendar's holidays (2270).
  */
 export default async function Page({ params, searchParams }: PageProps<"/[org]/crew/time-off">) {
   const routeParams = await params;
@@ -67,6 +68,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       month: "short",
       day: "numeric",
     });
+  const dayCount = (r: TimeOffRequest) => t("crew.timeOff.dayCount", { count: r.dayCount });
   const title = (r: TimeOffRequest) =>
     t("crew.timeOff.title", { name: name(r), policy: r.policyName });
 
@@ -127,6 +129,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
             { label: t("crew.fields.person"), value: name(r) },
             { label: t("crew.timeOff.policy"), value: r.policyName },
             { label: t("crew.timeOff.days"), value: days(r) },
+            { label: t("crew.timeOff.dayCountLabel"), value: dayCount(r) },
             { label: t("crew.fields.hours"), value: format.number(r.hours) },
           ]}
         />
@@ -247,6 +250,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           { key: "person", label: t("crew.fields.person") },
           { key: "policy", label: t("crew.timeOff.policy") },
           { key: "days", label: t("crew.timeOff.days") },
+          { key: "dayCount", label: t("crew.timeOff.dayCountLabel"), type: "number" },
           { key: "hours", label: t("crew.fields.hours"), type: "number" },
           { key: "state", label: t("crew.fields.state"), type: "state" },
         ]}
@@ -255,6 +259,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           person: name(r),
           policy: r.policyName,
           days: days(r),
+          dayCount: r.dayCount,
           hours: r.hours,
           state: {
             state: stateIcon("timeOff", r.state),
@@ -278,7 +283,11 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
               <span className="flex flex-col">
                 <span className="text-text-13 font-medium">{title(r)}</span>
                 <span className="text-text-12 text-text-secondary">
-                  {t("crew.timeOff.meta", { days: days(r), hours: format.number(r.hours) })}
+                  {t("crew.timeOff.meta", {
+                    days: days(r),
+                    dayCount: dayCount(r),
+                    hours: format.number(r.hours),
+                  })}
                 </span>
               </span>
               <span className="text-text-12 text-text-secondary">

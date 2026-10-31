@@ -174,6 +174,15 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
+  // P8 (2853): the poll's project and days.
+  "availability.requested": {
+    title: "Load-in week",
+    orgName: "Demo Productions",
+    projectName: "Tidewater Weekend",
+    firstDay: "2027-03-08",
+    lastDay: "2027-03-12",
+    dayCount: "5",
+  },
   "survey.opened": { title: "Load-In Pulse", anonymous: "true" },
   "training.assigned": { title: "Rigging Basics for Crew", due_on: "2026-10-27" },
   "weather.alert": { level: "Monitor", hazard: "Wind", reading: "24" },
@@ -421,6 +430,12 @@ describe("Inbox item copy", () => {
     expect(inboxTarget("demo", { subjectTable: null, kind: "billing.read_only" })).toBe(
       "/demo/settings/billing-and-plan",
     );
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "app.availability_polls",
+        kind: "availability.requested",
+      }),
+    ).toBe("/demo/me/work-details");
     expect(inboxTarget("demo", { subjectTable: "app.shifts", kind: "shift.changed" })).toBe(
       "/demo/crew/shifts",
     );

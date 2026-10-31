@@ -127,6 +127,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "availability.requested",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.availability.requested.subject",
+      body: "kinds.availability.requested.body",
+    },
+  },
+  {
     kind: "event.invited",
     category: "schedule",
     emailTemplate: "notification",
@@ -864,7 +876,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/2698_notification_kind_seed.sql"
+"supabase/migrations/2859_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

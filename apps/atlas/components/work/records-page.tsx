@@ -1,4 +1,10 @@
-import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
+import {
+  buildTimeline,
+  latestBaselinePlan,
+  listDependencies,
+  lockedRecordIds,
+  scheduleWindow,
+} from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
 import { todayIn } from "@xos/data/calendar";
 import { getNode } from "@xos/ia";
@@ -108,20 +114,50 @@ export async function RecordsPage({
 
   const timeZone =
     project?.timeZone ?? records[0]?.projectTimeZone ?? meta.projects[0]?.timeZone ?? "UTC";
+  // People who may change the timeline drag its bars to reschedule (A133).
+  const canReschedule = view === "timeline" && caps.has("schedule.timeline.write");
+  // P8: beside their timeline, the records with no dates wait in an Unscheduled list to be placed.
+  // Schedule pages load dated records only, so the backlog is its own read with the same filters. The
+  // database picks the undated, open records, so dated and closed ones never use up the read's limit.
+  let backlog: { id: string; label: string }[] = [];
+  if (canReschedule) {
+    const undated = await listRecords(db, {
+      orgId: ctx.org.id,
+      ...(projectId ? { projectId } : {}),
+      ...(fixedKinds ? { kinds: fixedKinds } : kinds.length > 0 ? { kinds } : {}),
+      ...(states.length > 0 ? { states } : {}),
+      ...(q ? { search: q } : {}),
+      undatedOnly: true,
+      excludeStates: ["Canceled", "Complete"],
+    });
+    backlog = must(undated, "records")
+      .filter((r) => custom.keep(r.id))
+      .map((r) => ({ id: r.id, label: `${r.key} ${r.title}` }));
+  }
   let timeline = null;
-  if (view === "timeline" && records.length > 0) {
+  if (view === "timeline" && (records.length > 0 || backlog.length > 0)) {
     const ids = records.map((r) => r.id);
-    const [deps, plan] = await Promise.all([
+    const [deps, plan, locked] = await Promise.all([
       listDependencies(db, ids),
       projectId
         ? latestBaselinePlan(db, projectId)
         : Promise.resolve({ ok: true as const, data: new Map() }),
+      canReschedule
+        ? lockedRecordIds(db, records)
+        : Promise.resolve({ ok: true as const, data: new Set<string>() }),
     ]);
+    // With nothing dated, the project's days (or the next four weeks) still draw, to place onto.
+    const drawn =
+      backlog.length > 0 ? must(await scheduleWindow(db, projectId, today), "window") : null;
     timeline = buildTimeline({
       records,
       dependencies: must(deps, "dependencies"),
       baseline: must(plan, "baseline"),
+      locked: must(locked, "locked records"),
       timeZone,
+      ...(drawn ? { window: drawn } : {}),
+      // A week of room on each side to drag bars into.
+      ...(canReschedule ? { pad: 7 } : {}),
     });
   }
 
@@ -146,8 +182,11 @@ export async function RecordsPage({
   }
 
   const canCreate = caps.has("work.record.write");
-  // Bulk edit (Section 11.7) for people who may change records.
-  const bulk: BulkConfig | null = canCreate ? recordBulkConfig(ctx.org.slug, meta, t) : null;
+  // Bulk edit (Section 11.7) for people who may change records, with Shift time (P8) for those who
+  // may also change the timeline.
+  const bulk: BulkConfig | null = canCreate
+    ? recordBulkConfig(ctx.org.slug, meta, t, { shift: caps.has("schedule.timeline.write") })
+    : null;
   const label = title ?? t(getNode(sitemap, node).node.label);
   const visibleKinds = fixedKinds ?? meta.kinds.map((k) => k.kind);
   // Quick add (Section 11.7): a line lands in the page's project (its tab or its filter), as the New
@@ -199,6 +238,8 @@ export async function RecordsPage({
         today={today}
         timeZone={timeZone}
         timeline={timeline}
+        canReschedule={canReschedule}
+        backlog={backlog}
         canCreate={canCreate}
         bulk={bulk}
         quickAdd={quickAdd}

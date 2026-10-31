@@ -471,7 +471,8 @@
     "links": "Linked from custom objects"
   },
   "duplicate": {
-    "button": "Duplicate"
+    "button": "Duplicate",
+    "withoutDates": "Duplicate without dates"
   },
   "trash": {
     "move": "Move to Trash",
@@ -614,6 +615,12 @@
       "dependency_cycle": "That dependency would make the schedule circular. Choose another predecessor.",
       "dependency_project": "Dependencies link records of the same project.",
       "baseline_locked": "A locked baseline never changes. Capture a new baseline instead.",
+      "reschedule_cycle": "The schedule is circular here, so the record cannot move. Remove one of its dependencies first.",
+      "reschedule_locked": "This change would move a record that is complete or locked into a baseline. Move it less, or change the dependency.",
+      "reschedule_canceled": "This record is canceled, so it stays where it was on the timeline.",
+      "reschedule_window": "A record cannot end before it starts. Resize it the other way.",
+      "reschedule_single_date": "A record with one date can only move. Give it a start and an end to resize it.",
+      "reschedule_undated": "Give the record a date before moving it on the timeline.",
       "cue_already_called": "That cue was already called. Call the next cue.",
       "cue_call_capability": "You cannot call cues on this project. Ask the stage manager to call it.",
       "sheet_publish_capability": "You cannot publish sheets on this project. Ask a producer to publish it.",
@@ -635,7 +642,11 @@
       "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
       "time_zone_unknown": "Choose a time zone from the list.",
       "engagement_cue_artist_only": "Set times belong to artist engagements. Choose an artist.",
-      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project."
+      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project.",
+      "shift_empty": "Select at least one record to shift.",
+      "shift_too_large": "This shift moves more than 500 records with their successors. Shift fewer at a time.",
+      "place_dated": "This record already has dates; drag its bar instead.",
+      "cue_called": "A called cue keeps its time. Clear it from the selection."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",
@@ -646,7 +657,8 @@
       "scope": "That scope is not one you can open.",
       "scopeProject": "That scope belongs to another project.",
       "project": "Name the project with ~ and a scope, for example ~NWS-E01."
-    }
+    },
+    "shiftMinutes": "Enter whole minutes other than 0, up to seven days either way."
   },
   "grammar": {
     "Approval": "A noun phrase naming what is approved, for example Rigging Plan Sign-Off.",

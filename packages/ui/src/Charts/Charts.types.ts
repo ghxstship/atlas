@@ -3,6 +3,9 @@ import type {
   GalleryProps as ReferenceGalleryProps,
   OrgChartProps as ReferenceOrgChartProps,
   ResourceScheduleProps as ReferenceResourceScheduleProps,
+  TimelineChange as ReferenceTimelineChange,
+  TimelineLink as ReferenceTimelineLink,
+  TimelinePreview as ReferenceTimelinePreview,
   TimelineProps as ReferenceTimelineProps,
 } from "../types/reference";
 import type { ItemSelection } from "../lib/selection.ts";
@@ -24,6 +27,9 @@ export type CalendarProps = Omit<ReferenceCalendarProps, "events"> & {
 };
 
 export type TimelineProps = ReferenceTimelineProps;
+export type TimelineChange = ReferenceTimelineChange;
+export type TimelineLink = ReferenceTimelineLink;
+export type TimelinePreview = ReferenceTimelinePreview;
 
 export type ResourceScheduleProps = ReferenceResourceScheduleProps;
 

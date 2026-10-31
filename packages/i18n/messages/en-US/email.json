@@ -49,6 +49,12 @@
         "body": "Your shift {title} now starts {startsAt, date, full} at {startsAt, time, short}."
       }
     },
+    "availability": {
+      "requested": {
+        "subject": "{orgName} asks for your availability: {title}",
+        "body": "{orgName} asks which days you can work on {projectName}: {dayCount, plural, one {# day} other {# days}} from {firstDay} to {lastDay}. Your answers are shared with its planners."
+      }
+    },
     "invoice": {
       "approved": {
         "subject": "Invoice approved: {title}",

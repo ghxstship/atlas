@@ -61,6 +61,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0057](0057-encrypted-bank-and-certificate-numbers.md)              | Encrypted Bank and Certificate Numbers                                           | Accepted |
 | [0060](0060-collection-exports-and-the-export-worker.md)            | Exports of Every Collection and the Export Worker                                | Proposed |
 | [0061](0061-watermarked-uploaded-pdfs.md)                           | Watermarked Uploaded PDFs                                                        | Proposed |
+| [0063](0063-shift-templates-availability-and-crew-drag.md)          | Shift Templates, Members' Availability and the Crew Drag Board                   | Proposed |
 | [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0065](0065-carrier-client-credentials.md)                          | UPS and FedEx Mint Their Access Tokens with the Client-Credentials Grant         | Proposed |
 | [0068](0068-denormalization-register-and-catalog-lints.md)          | Denormalization Register and Catalog Lints                                       | Proposed |
@@ -84,6 +85,8 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
 | [0105][adr-0105]                                                    | Allergies Are Restricted; Catering Lead and On-Site Medical Roles Read Them      | Accepted |
 | [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
+| [0111](0111-timeline-reschedule-pushes-successors.md)               | A Timeline Reschedule Pushes Successors by What It Adds                          | Accepted |
+| [0112](0112-holiday-calendars-for-time-off-and-payroll.md)          | Holiday Calendars for Time Off and Payroll                                       | Accepted |
 | [0114](0114-stricter-separation-of-duties-options.md)               | Stricter Separation of Duties Options                                            | Proposed |
 | [0117](0117-photo-location-pass-art-and-sponsor-proof-photos.md)    | Photo Location, Pass Art from the Org Logo, and Sponsor Proof Photos             | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |

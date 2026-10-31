@@ -101,7 +101,9 @@
       "sponsor_asset_files_required": "Attach between 1 and 10 files.",
       "sponsor_asset_files_invalid": "Attach the files again: each file goes to one asset.",
       "sponsor_asset_source": "The organization approves the assets you supply. To change one it returned, resubmit it with new files.",
-      "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them."
+      "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them.",
+      "availability_poll_closed": "This poll has closed. Tell the org your availability directly.",
+      "availability_poll_answer": "Answer each day of the poll once, as Available, Tentative or Unavailable."
     }
   },
   "common": {
@@ -1476,7 +1478,8 @@
         "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
         "certificationExpiring": "Your {title} certification expires on {expiresOn}",
         "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}",
-        "projectFactsEntered": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}} for {projectName}. Check them and correct anything that is wrong."
+        "projectFactsEntered": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}} for {projectName}. Check them and correct anything that is wrong.",
+        "availabilityRequested": "{orgName} asks for your availability: {title}"
       }
     },
     "feed": {
@@ -1705,7 +1708,24 @@
       "account": "Enter the company name and a web address of 2 to 48 lowercase letters, numbers and hyphens.",
       "company": "Check the handle and visibility.",
       "website": "Enter a full web address starting with https://.",
-      "email": "Enter an email address like team@company.com."
+      "email": "Enter an email address like team@company.com.",
+      "availabilityAnswer": "Choose Available, Tentative or Unavailable for at least one day."
+    },
+    "availabilityRequests": {
+      "title": "Availability requests",
+      "shared": "Your answers go on your availability for that org and are shared with its planners.",
+      "closes": "Answer by {when}",
+      "locked": "{day}: {answer}, locked by the notice period",
+      "formLabel": "Answer {title}",
+      "choose": "Choose",
+      "save": "Send answers",
+      "saved": "Answers saved.",
+      "kinds": {
+        "Available": "Available",
+        "Tentative": "Tentative",
+        "Unavailable": "Unavailable",
+        "Unstated": "Not stated"
+      }
     }
   },
   "documents": {

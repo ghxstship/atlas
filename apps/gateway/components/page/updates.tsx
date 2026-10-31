@@ -20,6 +20,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "document.expiring": "documentExpiring",
   // A company entered project details for the person (R5): they open their details here and correct them.
   "roster_entry.project_facts_entered": "projectFactsEntered",
+  // P8 (2853): an org asks for the person's availability; it links to /profile#availability-requests.
+  "availability.requested": "availabilityRequested",
 };
 
 /**

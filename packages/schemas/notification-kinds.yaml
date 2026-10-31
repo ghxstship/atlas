@@ -179,6 +179,12 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_shift_change
         test: supabase/tests/1394_notification_kind_emitters.test.sql
+  # A planner's availability poll (P8, 2853): members open it from the Inbox, freelancers from Gateway.
+  - kind: availability.requested
+    category: schedule
+    emitted_by:
+      - emitter: supabase/migrations/2853_availability_polls.sql#app.send_availability_poll
+        test: supabase/tests/2853_availability_polls.test.sql
   - kind: event.invited
     category: schedule
     emitted_by:

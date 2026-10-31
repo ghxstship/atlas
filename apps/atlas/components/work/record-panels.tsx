@@ -1004,21 +1004,20 @@ export function DuplicateButton({ org, recordId }: { org: string; recordId: stri
   const t = useCopy("work");
   const router = useRouter();
   const { pending, error, run } = useAction();
+  const duplicate = (withoutDates: boolean) =>
+    run(
+      () => duplicateRecordAction(org, recordId, { withoutDates }),
+      (data) => router.push(`/${org}/r/${data.key}` as Route),
+    );
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Button
-          variant="ghost"
-          icon="Copy"
-          loading={pending}
-          onClick={() =>
-            run(
-              () => duplicateRecordAction(org, recordId),
-              (data) => router.push(`/${org}/r/${data.key}` as Route),
-            )
-          }
-        >
+      <div className="flex flex-wrap gap-6">
+        <Button variant="ghost" icon="Copy" loading={pending} onClick={() => duplicate(false)}>
           {t("duplicate.button")}
+        </Button>
+        {/* P8: the copy waits in the schedule's Unscheduled list. */}
+        <Button variant="ghost" icon="Copy" loading={pending} onClick={() => duplicate(true)}>
+          {t("duplicate.withoutDates")}
         </Button>
       </div>
       <ActionErrorAlert error={error} />
