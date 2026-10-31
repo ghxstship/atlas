@@ -3,6 +3,13 @@
 //#region ../data/src/import-parse.ts
 /** Reads CSV text into rows of cells; a leading byte order mark is dropped. */
 function parseCsv(text) {
+  return parseDelimited(text, ",");
+}
+/**
+ * Reads delimited text into rows of cells (RFC 4180 with any one-character delimiter): quoted cells may hold the
+ * delimiter, doubled quotes and line breaks. A leading byte order mark is dropped.
+ */
+function parseDelimited(text, delimiter) {
   const input = text.charCodeAt(0) === 65279 ? text.slice(1) : text;
   const rows = [];
   let row = [];
@@ -20,7 +27,7 @@ function parseCsv(text) {
       continue;
     }
     if (ch === '"' && cell === "") quoted = true;
-    else if (ch === ",") {
+    else if (ch === delimiter) {
       row.push(cell);
       cell = "";
     } else if (ch === "\n" || ch === "\r") {
@@ -36,6 +43,84 @@ function parseCsv(text) {
     rows.push(row);
   }
   return rows;
+}
+/** A cue number as a positive whole number: '12', 'Q12', 'CUE-07' or 'Cue 7'. Null for '12.5', 0 or anything else. */
+function cuePosition(text) {
+  const m = /^(?:(?:q|cue)[\s#-]*|#\s*)?(\d{1,9})$/i.exec(text.trim());
+  if (!m) return null;
+  const n = Number(m[1]);
+  return n > 0 ? n : null;
+}
+/** Offset of an IANA zone from UTC at an instant, in milliseconds. */
+function zoneOffset(instant, timeZone) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(instant));
+  const get = (type) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+  return (
+    Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second")) -
+    instant
+  );
+}
+var ISO_WITH_OFFSET =
+  /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})$/i;
+/**
+ * A planned time as an ISO instant: 'HH:MM[:SS]' or 'h:mm AM/PM' on the running order's show date (YYYY-MM-DD) in
+ * the project's time zone, or an ISO 8601 date and time with an offset as written. Null when the text is none of
+ * these. A wall-clock time that a clock change skips lands an hour later, as the zone reads it.
+ */
+function plannedAt(text, showDate, timeZone) {
+  const v = text.trim();
+  if (ISO_WITH_OFFSET.test(v)) {
+    const at = Date.parse(v.replace(" ", "T").replace(/([+-]\d{2})(\d{2})$/, "$1:$2"));
+    return Number.isNaN(at) ? null : new Date(at).toISOString();
+  }
+  const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(showDate);
+  if (!date) return null;
+  let hour;
+  let minute;
+  let second;
+  const h24 = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(v);
+  const h12 = /^(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?\s*([ap])\.?\s*m\.?$/i.exec(v);
+  if (h24) {
+    [hour, minute, second] = [Number(h24[1]), Number(h24[2]), Number(h24[3] ?? 0)];
+    if (hour > 23) return null;
+  } else if (h12) {
+    [hour, minute, second] = [Number(h12[1]), Number(h12[2] ?? 0), Number(h12[3] ?? 0)];
+    if (hour < 1 || hour > 12) return null;
+    hour = (hour % 12) + (h12[4]?.toLowerCase() === "p" ? 12 : 0);
+  } else return null;
+  if (minute > 59 || second > 59) return null;
+  const [y, mo, d] = [Number(date[1]), Number(date[2]), Number(date[3])];
+  const wall = Date.UTC(y, mo - 1, d, hour, minute, second);
+  if (new Date(wall).getUTCDate() !== d) return null;
+  try {
+    let instant = wall - zoneOffset(wall, timeZone);
+    instant = wall - zoneOffset(instant, timeZone);
+    return new Date(instant).toISOString();
+  } catch (error) {
+    if (error instanceof RangeError) return null;
+    throw error;
+  }
+}
+/** A duration in seconds from minutes ('90', '2.5'), 'm:ss' or 'h:mm:ss'; null outside 0 to one day or unreadable. */
+function durationSeconds(text) {
+  const v = text.trim();
+  let seconds;
+  if (/^\d+(?:\.\d+)?$/.test(v)) seconds = Math.round(Number(v) * 60);
+  else {
+    const m = /^(?:(\d+):)?(\d{1,3}):(\d{2})$/.exec(v);
+    if (!m || Number(m[3]) > 59 || (m[1] !== void 0 && Number(m[2]) > 59)) return null;
+    seconds = Number(m[1] ?? 0) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+  }
+  return seconds <= 86400 ? seconds : null;
 }
 var isBlank = (row) => row.every((c) => c.trim() === "");
 /** The header row: the first row with any text. Its one-based row number, or null for an empty sheet. */
@@ -92,7 +177,27 @@ var FIELD_SYNONYMS = {
   asset_tag: ["tag", "assettag", "barcode"],
   asset_class_id: ["assetclass", "class", "category"],
   home_venue_id: ["homevenue", "venue", "location"],
+  position: ["cue", "cueno", "cuenumber", "cueid", "number", "no"],
+  label: ["scene", "title", "cuename", "item"],
+  segment: ["act", "section", "segment", "block"],
+  planned_at: ["time", "start", "starttime", "at"],
+  duration: ["length", "duration", "mins", "durationmin", "runtime"],
+  space_id: ["location", "space", "room", "stage"],
+  guest_name: ["guest", "name", "fullname", "guestname", "attendee"],
+  plus_ones: ["plus", "plusones", "plus1", "extra"],
+  note: ["notes", "comment", "access"],
+  scope_node_id: ["show", "night", "scope"],
+  counterparty_id: ["list", "company", "onlistof", "sponsor", "client"],
 };
+/** The target field a header names by its own name or a synonym; a header of only '#' is the cue number. */
+function similarField(header, fields) {
+  const n = normalize(header);
+  if (header.trim() === "#") return fields.includes("position") ? "position" : void 0;
+  return (
+    fields.find((f) => normalize(f) === n) ??
+    fields.find((f) => (FIELD_SYNONYMS[f] ?? []).includes(n))
+  );
+}
 /** Header row, data range and size of a sheet (Section 4.6.2 step 2). */
 function sheetLayout(sheet) {
   const rows = dataRows(sheet);
@@ -114,16 +219,22 @@ var IMPORT_TARGET_TABLES = {
   counterparties: "app.counterparties",
   vendor_products: "app.vendor_products",
   asset_units: "app.asset_units",
+  cues: "app.cues",
+  guest_list_entries: "app.guest_list_entries",
 };
 /** Playbook targets that land in an import field of another table: a counterparty's name is its organization's. */
 var PLAYBOOK_ALIASES = { counterparties: { "app.organizations.name": "name" } };
-/** Playbook entities whose sheet is imported into a target: Asset Inventory into asset units, Vendor Directory into counterparties. */
+/**
+ * Playbook entities whose sheet is imported into a target: Asset Inventory into asset units, Vendor Directory into
+ * counterparties, Run of Show into cues (S4.6.2-02).
+ */
 var PLAYBOOK_ENTITY_TARGETS = {
   "app.asset_units": "asset_units",
   "app.vendors": "counterparties",
   "app.counterparties": "counterparties",
   "app.venues": "venues",
   "app.vendor_products": "vendor_products",
+  "app.cues": "cues",
 };
 /**
  * Header-to-field pairs the Playbook column map gives one target: a Playbook column whose target is a field of
@@ -166,9 +277,7 @@ function suggestWithSources(
   return headerTexts.map((header) => {
     const n = normalize(header);
     const fromProfile = profile.get(header.toLowerCase());
-    const similar =
-      fields.find((f) => normalize(f) === n) ??
-      fields.find((f) => (FIELD_SYNONYMS[f] ?? []).includes(n));
+    const similar = similarField(header, fields);
     const hit = [
       [fromProfile && fields.includes(fromProfile) ? fromProfile : void 0, "Profile"],
       [playbook.get(n), "Playbook"],
@@ -382,6 +491,10 @@ async function readGoogleSheet(fetchImpl, token, link) {
  * database queues detection on the Clean verdict, and every step checks again before reading.
  * When validation or a commit finishes, the person who started or committed the import is sent import.finished
  * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
+ * Cues and guest list entries (P3, 2800 to 2802) import into the running order or project the import names: every
+ * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
+ * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
+ * the uploader's mapping preview.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 var IMPORT_JOB_KINDS = ["import.fetch", "import.detect", "import.validate", "import.commit"];
@@ -462,8 +575,19 @@ function isTimeZone(zone) {
     throw error;
   }
 }
-/** Checks one row against its target; cell issues name the column and an issue code from the catalogs. */
-async function validateRow(orgId, targetCode, fields, columns, row, lookups) {
+/** The longest text each cue and guest field holds (the column checks of 0350, 1180 and 0431). */
+var MAX_LENGTH = {
+  label: 200,
+  segment: 200,
+  description: 2e3,
+  guest_name: 200,
+  note: 500,
+};
+/**
+ * Checks one row against its target; cell issues name the column and an issue code from the catalogs. A cue or guest
+ * list row is checked inside its destination (P3): the running order's show date, time zone and venue, or the project.
+ */
+async function validateRow(orgId, targetCode, fields, columns, row, lookups, destination = {}) {
   const issues = [];
   const raw = {};
   for (const c of columns)
@@ -492,6 +616,16 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups) {
         issue,
       });
     else values[column] = out === true ? v : out;
+  };
+  const bounded = (field) => {
+    const v = text(field).trim();
+    if (!v) return;
+    if (v.length > (MAX_LENGTH[field] ?? 200))
+      issues.push({
+        columnIndex: columnOf(field),
+        issue: "too_long",
+      });
+    else values[field] = v;
   };
   switch (targetCode) {
     case "counterparties":
@@ -543,23 +677,69 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups) {
       await set("asset_class_id", (v) => lookups.assetClassId(orgId, v), "unknown_asset_class");
       await set("home_venue_id", (v) => lookups.venueId(orgId, v), "unknown_venue");
       break;
+    case "cues": {
+      const run = destination.runOfShow;
+      for (const f of ["label", "segment", "description"]) bounded(f);
+      await set("position", (v) => cuePosition(v), "invalid_position");
+      await set(
+        "planned_at",
+        (v) => (run ? plannedAt(v, run.showDate, run.timeZone) : null),
+        "invalid_time",
+      );
+      await set(
+        "duration",
+        (v) => {
+          const seconds = durationSeconds(v);
+          return seconds === null ? null : `${seconds} seconds`;
+        },
+        "invalid_duration",
+      );
+      await set("space_id", (v) => lookups.spaceId(run?.venueId ?? null, v), "unknown_space");
+      break;
+    }
+    case "guest_list_entries": {
+      const projectId = destination.project?.id ?? null;
+      for (const f of ["guest_name", "note"]) bounded(f);
+      await set(
+        "plus_ones",
+        (v) => {
+          const n = v.trim();
+          return /^\d{1,2}$/.test(n) && Number(n) <= 20 ? Number(n) : null;
+        },
+        "invalid_plus_ones",
+      );
+      await set(
+        "scope_node_id",
+        (v) => (projectId ? lookups.scopeNodeId(projectId, v) : null),
+        "unknown_show",
+      );
+      await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
+      break;
+    }
     default:
       issues.push({
         columnIndex: 0,
         issue: "target_not_importable",
       });
   }
-  const strongKeys = {};
-  for (const f of fields) if (f.strongKey && text(f.name)) strongKeys[f.name] = text(f.name);
+  const strongKeys = destinationStrongKeys(targetCode, values) ?? {};
+  if (!DESTINATION_TARGETS.has(targetCode)) {
+    for (const f of fields) if (f.strongKey && text(f.name)) strongKeys[f.name] = text(f.name);
+  }
   if (targetCode === "vendor_products" && typeof values["vendor_id"] === "string")
     strongKeys["vendor_id"] = values["vendor_id"];
-  const fuzzy = targetCode === "venues" || targetCode === "counterparties";
+  const matchName =
+    targetCode === "venues" ||
+    targetCode === "counterparties" ||
+    targetCode === "guest_list_entries"
+      ? text(targetCode === "guest_list_entries" ? "guest_name" : "name").trim()
+      : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
     issues,
     values,
     strongKeys,
-    matchName: fuzzy && text("name") ? text("name") : null,
+    matchName: matchName || null,
     matchAddress:
       targetCode === "venues"
         ? [text("street_address"), text("locality"), text("postal_code")]
@@ -567,6 +747,106 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups) {
             .join(" ") || null
         : null,
   };
+}
+/** Targets whose imports name a running order or a project (P3). */
+var DESTINATION_TARGETS = /* @__PURE__ */ new Set(["cues", "guest_list_entries"]);
+/**
+ * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
+ * label and planned time; a guest's trimmed, lower-case name and show. A missing time or show is left out, which
+ * app.import_strong_key_match reads as NULL. Null for other targets.
+ */
+function destinationStrongKeys(targetCode, values) {
+  const str = (key) => (typeof values[key] === "string" ? values[key] : null);
+  if (targetCode === "cues") {
+    if (typeof values["position"] === "number") return { position: String(values["position"]) };
+    const label = str("label");
+    if (label === null) return {};
+    const at = str("planned_at");
+    return at === null
+      ? { label }
+      : {
+          label,
+          planned_at: at,
+        };
+  }
+  if (targetCode === "guest_list_entries") {
+    const name = str("guest_name");
+    if (name === null) return {};
+    const show = str("scope_node_id");
+    const guest_name = name.trim().toLowerCase();
+    return show === null
+      ? { guest_name }
+      : {
+          guest_name,
+          scope_node_id: show,
+        };
+  }
+  return null;
+}
+/** The column whose cell a duplicate-in-file issue points at. */
+var DUPLICATE_COLUMN_FIELD = {
+  position: "position",
+  label: "label",
+  guest_name: "guest_name",
+};
+/**
+ * Marks every row whose strong key repeats an earlier row of the file Invalid with duplicate_in_file (C10): a cue's
+ * position, or its label and time without one; a guest's name and show. Run over the whole sheet, in validation and
+ * again at commit, so two rows never update the same cue or guest. Other targets are returned as they are.
+ */
+function markInFileDuplicates(targetCode, columns, checked) {
+  if (!DESTINATION_TARGETS.has(targetCode)) return [...checked];
+  const seen = /* @__PURE__ */ new Set();
+  return checked.map((v) => {
+    const keys = Object.entries(v.strongKeys);
+    if (keys.length === 0) return v;
+    const key = JSON.stringify(keys.sort(([a], [b]) => a.localeCompare(b)));
+    if (!seen.has(key)) {
+      seen.add(key);
+      return v;
+    }
+    const field = DUPLICATE_COLUMN_FIELD[keys[0]?.[0] ?? ""] ?? "";
+    const columnIndex = columns.find((c) => c.fieldName === field)?.index ?? 0;
+    return {
+      ...v,
+      state: "Invalid",
+      issues: [
+        ...v.issues,
+        {
+          columnIndex,
+          issue: "duplicate_in_file",
+        },
+      ],
+    };
+  });
+}
+/** The running order or project a cue or guest list import writes into; empty for an org-wide target. */
+async function destinationOf(store, job) {
+  if (job.targetCode === "cues" && job.runOfShowId) {
+    const run = await store.lookups.runOfShow(job.runOfShowId);
+    if (run === null) throw new Error(`The running order of import ${job.id} no longer exists.`);
+    return { runOfShow: run };
+  }
+  if (job.targetCode === "guest_list_entries" && job.projectId)
+    return { project: { id: job.projectId } };
+  return {};
+}
+/** Every data row of a sheet checked against the target, with repeats within the file marked. */
+async function checkSheet(store, job, rows, fields, columns, destination) {
+  const checked = [];
+  for (const row of rows)
+    checked.push(
+      await validateRow(
+        job.orgId,
+        job.targetCode,
+        fields,
+        columns,
+        row,
+        store.lookups,
+        destination,
+      ),
+    );
+  return markInFileDuplicates(job.targetCode, columns, checked);
 }
 /** The upload has not scanned Clean yet; the job goes back to the queue. */
 var UploadNotScannedError = class extends Error {
@@ -642,7 +922,7 @@ async function detect(store, jobId) {
     );
     await store.setSheet(job.id, sheet.name.slice(0, 200) || "Sheet 1");
   }
-  await store.insertColumns(
+  const columnIds = await store.insertColumns(
     job.id,
     sheet.name,
     heads.map((header, i) => ({
@@ -651,7 +931,21 @@ async function detect(store, jobId) {
       source: suggested[i]?.source ?? null,
     })),
   );
+  await store.recordColumnSamples(job.id, columnSamples(columnIds, dataRows(sheet)));
   await store.setStatus(job.id, "Mapped");
+}
+/**
+ * The first three data rows' cells under each column, aligned by row (2801): a blank cell is kept as empty text so
+ * every column shows the same rows. Cells are cut to 200 characters.
+ */
+function columnSamples(columnIds, rows) {
+  return rows.slice(0, 3).flatMap((row, r) =>
+    columnIds.map((columnId, c) => ({
+      columnId,
+      index: r + 1,
+      value: (row.cells[c] ?? "").slice(0, 200),
+    })),
+  );
 }
 /** Where an import is reviewed in Atlas: the import wizard opened at that import (`/{org}/import?import={id}`). */
 function importReviewUrl(appUrl, orgSlug, jobId) {
@@ -715,33 +1009,35 @@ async function validate(store, jobId, options) {
   const sheet = await readUpload(store, job);
   const fields = await store.targetFields(job.targetCode);
   const columns = await store.mappedColumns(job.id);
-  for (const row of dataRows(sheet)) {
-    const checked = await validateRow(
-      job.orgId,
-      job.targetCode,
-      fields,
-      columns,
-      row,
-      store.lookups,
-    );
+  const rows = dataRows(sheet);
+  const checked = await checkSheet(
+    store,
+    job,
+    rows,
+    fields,
+    columns,
+    await destinationOf(store, job),
+  );
+  for (const [i, row] of rows.entries()) {
+    const result = checked[i];
+    if (!result) continue;
+    const match =
+      result.state === "Valid" && Object.keys(result.strongKeys).length > 0
+        ? DESTINATION_TARGETS.has(job.targetCode)
+          ? await store.lookups.destinationKeyMatch(job.id, result.strongKeys)
+          : await store.lookups.strongKeyMatch(job.orgId, job.targetCode, result.strongKeys)
+        : null;
     const rowId = await store.recordRow({
       jobId: job.id,
       sheet: sheet.name,
       rowNumber: row.rowNumber,
-      state: checked.state,
-      reason: checked.state === "Invalid" ? checked.issues.map((i) => i.issue).join(", ") : null,
-      matchName: checked.state === "Valid" ? checked.matchName : null,
-      matchAddress: checked.state === "Valid" ? checked.matchAddress : null,
+      state: result.state,
+      reason: result.state === "Invalid" ? result.issues.map((x) => x.issue).join(", ") : null,
+      matchName: result.state === "Valid" && match === null ? result.matchName : null,
+      matchAddress: result.state === "Valid" && match === null ? result.matchAddress : null,
     });
-    if (checked.issues.length > 0) await store.recordCellIssues(rowId, checked.issues);
-    if (checked.state === "Valid" && Object.keys(checked.strongKeys).length > 0) {
-      const match = await store.lookups.strongKeyMatch(
-        job.orgId,
-        job.targetCode,
-        checked.strongKeys,
-      );
-      if (match) await store.recordMatch(rowId, match);
-    }
+    if (result.issues.length > 0) await store.recordCellIssues(rowId, result.issues);
+    if (match) await store.recordMatch(rowId, match);
   }
   await store.setStatus(job.id, "Validated");
   return notifyFinished(store, job, null, options);
@@ -753,21 +1049,29 @@ async function commit(store, batchId, options) {
   const sheet = await readUpload(store, job);
   const fields = await store.targetFields(job.targetCode);
   const columns = await store.mappedColumns(job.id);
-  const byNumber = new Map(dataRows(sheet).map((r) => [r.rowNumber, r]));
-  for (const valid of await store.validRows(job.id)) {
-    const row = byNumber.get(valid.rowNumber);
-    if (!row) {
+  const rows = dataRows(sheet);
+  const checkedRows = await checkSheet(
+    store,
+    job,
+    rows,
+    fields,
+    columns,
+    await destinationOf(store, job),
+  );
+  const byNumber = new Map(rows.map((r, i) => [r.rowNumber, checkedRows[i]]));
+  const valids = await store.validRows(job.id);
+  const appended = (v) =>
+    job.targetCode === "cues" &&
+    v.mergeInto === null &&
+    v.matchedId === null &&
+    typeof byNumber.get(v.rowNumber)?.values["position"] !== "number";
+  const ordered = [...valids.filter((v) => !appended(v)), ...valids.filter(appended)];
+  for (const valid of ordered) {
+    const checked = byNumber.get(valid.rowNumber);
+    if (!checked) {
       await store.refuseRow(valid.id, "The row is no longer in the uploaded file.");
       continue;
     }
-    const checked = await validateRow(
-      job.orgId,
-      job.targetCode,
-      fields,
-      columns,
-      row,
-      store.lookups,
-    );
     if (checked.state !== "Valid") {
       await store.refuseRow(valid.id, checked.issues.map((i) => i.issue).join(", "));
       continue;
@@ -775,8 +1079,9 @@ async function commit(store, batchId, options) {
     try {
       const target = valid.mergeInto?.id ?? valid.matchedId;
       if (target) {
-        const changes = { ...checked.values };
-        if (job.targetCode === "counterparties") delete changes["name"];
+        const changes = updateChanges(job.targetCode, checked.values);
+        if (job.targetCode === "cues" && (await store.lookups.cueCalled(target)))
+          throw new ImportWriteError("This cue was already called");
         const before = await store.lookups.update(job.targetCode, target, changes);
         await store.commitWrite({
           rowId: valid.id,
@@ -786,7 +1091,8 @@ async function commit(store, batchId, options) {
           before,
         });
       } else {
-        const id = await store.lookups.create(job.orgId, job.targetCode, checked.values);
+        const values = await createValues(store, job, checked.values);
+        const id = await store.lookups.create(job.orgId, job.targetCode, values);
         await store.commitWrite({
           rowId: valid.id,
           batchId,
@@ -802,6 +1108,43 @@ async function commit(store, batchId, options) {
   }
   await store.finishBatch(batchId);
   return notifyFinished(store, job, batchId, options);
+}
+/**
+ * What an update or merge may change (C11): a counterparty keeps its name; a cue keeps its running order and position;
+ * a guest keeps its project, name and show, so a merge never moves a guest to another night.
+ */
+function updateChanges(targetCode, values) {
+  const keep =
+    {
+      counterparties: ["name"],
+      cues: ["run_of_show_id", "project_id", "position"],
+      guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+    }[targetCode] ?? [];
+  return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
+}
+/**
+ * What a create writes (C11): a cue goes into the import's running order (the database stamps its project), at its
+ * own position or appended after the highest; a guest goes into the import's project as Requested only.
+ */
+async function createValues(store, job, values) {
+  if (job.targetCode === "cues" && job.runOfShowId) {
+    const position =
+      typeof values["position"] === "number"
+        ? values["position"]
+        : await store.lookups.nextCuePosition(job.runOfShowId);
+    return {
+      ...values,
+      run_of_show_id: job.runOfShowId,
+      position,
+    };
+  }
+  if (job.targetCode === "guest_list_entries" && job.projectId)
+    return {
+      ...values,
+      project_id: job.projectId,
+      entry_state: "Requested",
+    };
+  return values;
 }
 /** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
 var ImportWriteError = class extends Error {
@@ -856,7 +1199,19 @@ var TABLES = {
   counterparties: "counterparties",
   vendor_products: "vendor_products",
   asset_units: "asset_units",
+  cues: "cues",
+  guest_list_entries: "guest_list_entries",
 };
+/** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
+var nameKey = (v) => v.trim().toLowerCase();
+/** The one id whose name matches, or null for none or more than one. */
+function onlyMatch(rows, name, ...keys) {
+  const wanted = nameKey(name);
+  const hits = rows.filter((r) =>
+    keys.some((k) => typeof r[k] === "string" && nameKey(r[k]) === wanted),
+  );
+  return hits.length === 1 && typeof hits[0]?.["id"] === "string" ? hits[0]["id"] : null;
+}
 function text(row, key) {
   const v = row?.[key];
   if (typeof v !== "string") throw new Error(`Expected text in ${key} of the database response.`);
@@ -1011,6 +1366,95 @@ function supabaseImportStore(client) {
         if (error) throw new ImportWriteError(error.message);
         return text(data[0], "id");
       },
+      async runOfShow(id) {
+        const row = await one(
+          app
+            .from("run_of_show")
+            .select(
+              "id, project_id, show_date, scope_nodes (venue_id), projects!inner (time_zone, venue_id)",
+            )
+            .eq("id", id)
+            .is("deleted_at", null),
+          "run_of_show",
+        );
+        if (!row) return null;
+        const node = row["scope_nodes"];
+        const project = row["projects"];
+        const venue = (r) => (typeof r?.["venue_id"] === "string" ? r["venue_id"] : null);
+        return {
+          id: text(row, "id"),
+          projectId: text(row, "project_id"),
+          showDate: text(row, "show_date"),
+          timeZone: text(project, "time_zone"),
+          venueId: venue(node) ?? venue(project),
+        };
+      },
+      async spaceId(venueId, idOrName) {
+        if (venueId === null) return null;
+        const { data, error } = await app
+          .from("spaces")
+          .select("id, name")
+          .eq("venue_id", venueId)
+          .is("deleted_at", null);
+        if (error) throw new Error(`spaces: ${error.message}`);
+        const spaces = data ?? [];
+        const id = idOrName.trim().toLowerCase();
+        if (UUID.test(id)) return spaces.some((r) => r["id"] === id) ? id : null;
+        return onlyMatch(spaces, idOrName, "name");
+      },
+      async scopeNodeId(projectId, codeOrName) {
+        const { data, error } = await app
+          .from("scope_nodes")
+          .select("id, scope_code, name")
+          .eq("project_id", projectId)
+          .is("deleted_at", null);
+        if (error) throw new Error(`scope_nodes: ${error.message}`);
+        const nodes = data ?? [];
+        return onlyMatch(nodes, codeOrName, "scope_code") ?? onlyMatch(nodes, codeOrName, "name");
+      },
+      async counterpartyIdByName(orgId, name) {
+        const { data, error } = await app
+          .from("counterparties")
+          .select("id, organizations!counterparties_organization_id_fkey!inner (name)")
+          .eq("org_id", orgId)
+          .is("deleted_at", null);
+        if (error) throw new Error(`counterparties: ${error.message}`);
+        return onlyMatch(
+          (data ?? []).map((r) => ({
+            id: r["id"],
+            name: r["organizations"]?.["name"],
+          })),
+          name,
+          "name",
+        );
+      },
+      async destinationKeyMatch(importJobId, keys) {
+        const id = await call("import_strong_key_match", {
+          p_import_job_id: importJobId,
+          p_keys: keys,
+        });
+        return typeof id === "string" ? id : null;
+      },
+      async nextCuePosition(runOfShowId) {
+        const row = await one(
+          app
+            .from("cues")
+            .select("position")
+            .eq("run_of_show_id", runOfShowId)
+            .is("deleted_at", null)
+            .order("position", { ascending: false })
+            .limit(1),
+          "cues",
+        );
+        return typeof row?.["position"] === "number" ? row["position"] + 1 : 1;
+      },
+      async cueCalled(id) {
+        return (
+          typeof (await one(app.from("cues").select("called_at").eq("id", id), "cues"))?.[
+            "called_at"
+          ] === "string"
+        );
+      },
       async update(targetCode, id, values) {
         const table = TABLES[targetCode];
         if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -1056,7 +1500,7 @@ function supabaseImportStore(client) {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -1075,6 +1519,8 @@ function supabaseImportStore(client) {
             profileId: optional("import_mapping_profile_id"),
             sheetName: optional("sheet_name"),
             sourceUrl: optional("source_url"),
+            projectId: optional("project_id"),
+            runOfShowId: optional("run_of_show_id"),
           }
         : null;
     },
@@ -1237,9 +1683,10 @@ function supabaseImportStore(client) {
       );
     },
     async insertColumns(jobId, sheet, columns) {
-      if (columns.length === 0) return;
-      await exec(
-        app.from("import_job_columns").insert(
+      if (columns.length === 0) return [];
+      const { data, error } = await app
+        .from("import_job_columns")
+        .insert(
           columns.map((c, i) => ({
             import_job_id: jobId,
             sheet_name: sheet,
@@ -1248,9 +1695,23 @@ function supabaseImportStore(client) {
             suggested_field_name: c.suggested,
             suggestion_source: c.suggested === null ? null : (c.source ?? null),
           })),
-        ),
-        "import_job_columns",
-      );
+        )
+        .select("id, column_index");
+      if (error) throw new Error(`import_job_columns: ${error.message}`);
+      return (data ?? [])
+        .sort((a, b) => Number(a["column_index"]) - Number(b["column_index"]))
+        .map((c) => text(c, "id"));
+    },
+    async recordColumnSamples(jobId, samples) {
+      if (samples.length === 0) return;
+      await call("record_import_column_samples", {
+        p_import_job_id: jobId,
+        p_samples: samples.map((x) => ({
+          import_job_column_id: x.columnId,
+          sample_index: x.index,
+          sample_value: x.value,
+        })),
+      });
     },
     async mappedColumns(jobId) {
       const { data, error } = await app

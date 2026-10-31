@@ -254,5 +254,6 @@
     "nudgeLaterLabel": "Nudge the remaining plan one minute later",
     "keys": "Keys answer while the console has focus. Stream Deck keys F13 to F20 work even with single-key shortcuts off.",
     "cancel": "Cancel"
-  }
+  },
+  "importCues": "Import cues"
 }

@@ -564,7 +564,8 @@
       "checkIn": "Registrar llegada de {name}",
       "edit": "Editar a {name}",
       "remove": "Quitar a {name}"
-    }
+    },
+    "import": "Importar invitados"
   },
   "crew": {
     "sentence": "Las personas que cada parte incluye en sus contrataciones. Acepta o devuelve cada entrada enviada.",

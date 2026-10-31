@@ -254,5 +254,6 @@
     "nudgeLaterLabel": "Retrasar un minuto el plan restante",
     "keys": "Las teclas responden mientras la consola tiene el foco. Las teclas F13 a F20 de un Stream Deck funcionan aunque los atajos de una tecla estén desactivados.",
     "cancel": "Cancelar"
-  }
+  },
+  "importCues": "Importar cues"
 }
