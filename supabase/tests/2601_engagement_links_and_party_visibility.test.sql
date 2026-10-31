@@ -134,8 +134,8 @@ select pg_temp.move_engagement('eng_vendor_a', 'Closing', 'Complete');
 select is(pg_temp.reads('victor', m.view_name), 0, 'Complete closes ' || m.view_name || ' for the Owner') from matrix m;
 select is(pg_temp.reads('sam', m.view_name), 0, 'and for the person') from matrix m;
 
--- Columns keep their order ----------------------------------------------------------------------------------------------------------
-select is(pg_temp.columns_of('credentials'), array['id', 'project_id', 'project_name', 'category_code', 'category_name', 'holder_person_id',
+-- Columns keep their order; later packages append only (R8 adds credentials.category_kind and per_diems.roster_entry_id) ---------
+select is((pg_temp.columns_of('credentials'))[1:12], array['id', 'project_id', 'project_name', 'category_code', 'category_name', 'holder_person_id',
   'holder_name', 'credential_number', 'valid_from', 'valid_to', 'revoked_at', 'engagement_id'], 'credentials keeps its columns in order');
 select is(pg_temp.columns_of('lodging'), array['id', 'project_id', 'project_name', 'block_title', 'hotel_name', 'person_id', 'guest_name',
   'check_in_on', 'check_out_on'], 'lodging keeps its columns in order');
@@ -144,7 +144,7 @@ select is(pg_temp.columns_of('hospitality'), array['id', 'fulfillment_id', 'proj
 select is(pg_temp.columns_of('travel'), array['id', 'engagement_id', 'project_id', 'project_name', 'travel_mode', 'operator_name',
   'service_identifier', 'confirmation_identifier', 'departs_from', 'departs_at', 'departs_time_zone', 'arrives_at_place', 'arrives_at',
   'arrives_time_zone'], 'travel keeps its columns in order');
-select is(pg_temp.columns_of('per_diems'), array['id', 'engagement_id', 'project_id', 'project_name', 'day', 'amount_minor', 'currency_code'],
+select is((pg_temp.columns_of('per_diems'))[1:7], array['id', 'engagement_id', 'project_id', 'project_name', 'day', 'amount_minor', 'currency_code'],
   'per_diems keeps its columns in order');
 select ok(has_table_privilege('authenticated', 'api_external.' || m.view_name, 'select'), m.view_name || ' stays readable by signed-in users')
 from matrix m;

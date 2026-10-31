@@ -5,6 +5,7 @@ import {
   listEntitlementDeliveries,
   listProofOfPerformance,
   listSponsorAssets,
+  sponsorSuppliedMoves,
   listSponsorEntitlements,
   listTransitionRules,
   SPONSOR_ASSET_KINDS,
@@ -210,7 +211,23 @@ export async function SponsorEntitlements({
                 <span className="text-text-13 font-medium">
                   {a.title} · {t(`assets.kinds.${a.kind}`)} · {t(`reviewStates.${a.state}`)}
                   {a.revision > 0 ? ` · ${t("assets.revision", { revision: a.revision })}` : ""}
+                  {a.source === "Sponsor Supplied" ? ` · ${t("assets.sponsorSupplied")}` : ""}
                 </span>
+                {a.files.length > 0 ? (
+                  <span className="flex flex-wrap gap-8 text-text-12">
+                    {a.files.map((f, i) =>
+                      f.versionId ? (
+                        <a
+                          key={i}
+                          href={`/files/party/${f.versionId}`}
+                          className="text-accent-text hover:underline"
+                        >
+                          {f.title}
+                        </a>
+                      ) : null,
+                    )}
+                  </span>
+                ) : null}
                 {canWrite ? (
                   <TransitionButtons
                     action={transitionSponsorAssetAction}
@@ -218,7 +235,11 @@ export async function SponsorEntitlements({
                     id={a.id}
                     expected={a.state}
                     refusals={REFUSALS}
-                    moves={nextStates(assetRules.data, a.state).map((next) => ({
+                    // R9: the org approves, returns or cancels what the sponsor supplied; resubmitting is the sponsor's.
+                    moves={(a.source === "Sponsor Supplied"
+                      ? sponsorSuppliedMoves(a.state)
+                      : nextStates(assetRules.data, a.state)
+                    ).map((next) => ({
                       next,
                       label: t(`reviewMoves.${next}`),
                       danger: next === "Canceled",

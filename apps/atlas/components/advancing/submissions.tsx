@@ -1,4 +1,9 @@
-import { listSubmissions, type SubmissionFilter } from "@xos/data/advancing";
+import {
+  listAnswerDetails,
+  listProjectZones,
+  listSubmissions,
+  type SubmissionFilter,
+} from "@xos/data/advancing";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
@@ -7,6 +12,7 @@ import { EmptyStateLink } from "@/components/ui";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
+import { AnswerDetails } from "./answer-details";
 import { ReviewForm } from "./forms";
 import { isRowId, partyLabel, withQuery, type Search } from "./shared";
 import { PageHeader, Tag, TemplateSplitView } from "./ui";
@@ -48,6 +54,16 @@ export async function SubmissionsSplit({
   // A reviewed answer leaves the queue, so an id it no longer holds falls back to its first answer;
   // a key that is no submission id at all (a record key from elsewhere) goes to the shell's peek.
   const selected = items.find((s) => s.id === peekId) ?? items[0];
+  // R9: the lines and files of the selected typed answer, and the docks a Load In or Load Out window books.
+  const dock = selected?.windowKind === "Load In" || selected?.windowKind === "Load Out";
+  const [details, zones] = await Promise.all([
+    selected && selected.sectionKind !== "Text"
+      ? listAnswerDetails(ctx.viewer.db, [selected.id])
+      : Promise.resolve(null),
+    selected && dock && can.review
+      ? listProjectZones(ctx.viewer.db, selected.projectId)
+      : Promise.resolve(null),
+  ]);
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const projectKey = (id: string) => projects.find((p) => p.id === id)?.key ?? "";
@@ -139,9 +155,32 @@ export async function SubmissionsSplit({
               {selected.sectionPrompt ? (
                 <p className="m-0 text-text-13 text-text-secondary">{selected.sectionPrompt}</p>
               ) : null}
-              <p className="m-0 whitespace-pre-wrap rounded-card border border-border-subtle p-12 text-text-14">
-                {selected.body}
-              </p>
+              {details?.ok ? (
+                <AnswerDetails
+                  org={ctx.org.slug}
+                  note={selected.note}
+                  accepted={selected.reviewOutcome === "Accepted"}
+                  bookable={dock && can.review}
+                  lines={details.data.lines}
+                  files={details.data.files}
+                  zones={(zones?.ok ? zones.data : []).map((z) => ({
+                    value: z.id,
+                    label: `${z.code} · ${z.name}`,
+                  }))}
+                  t={t}
+                  when={(iso, zone) =>
+                    format.dateTime(new Date(iso), {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                      ...(zone ? { timeZone: zone } : {}),
+                    })
+                  }
+                />
+              ) : (
+                <p className="m-0 whitespace-pre-wrap rounded-card border border-border-subtle p-12 text-text-14">
+                  {selected.body}
+                </p>
+              )}
               {selected.returnReason ? (
                 <p className="m-0 text-text-13 text-text-secondary">
                   {t("advancing.review.returnedBecause", { reason: selected.returnReason })}
@@ -153,7 +192,14 @@ export async function SubmissionsSplit({
                 </p>
               ) : null}
               {can.review && selected.reviewedAt === null ? (
-                <ReviewForm org={ctx.org.slug} submissionId={selected.id} />
+                <ReviewForm
+                  org={ctx.org.slug}
+                  submissionId={selected.id}
+                  typed={
+                    selected.sectionKind === "Item Request" ||
+                    selected.sectionKind === "Credential Request"
+                  }
+                />
               ) : null}
               {!can.review && selected.reviewedAt === null ? (
                 <p className="m-0 text-text-13 text-text-secondary">

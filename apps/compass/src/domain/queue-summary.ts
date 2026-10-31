@@ -123,6 +123,11 @@ export function summarizeMutation(
             }
           : generic(m, ctx);
       }
+      case "app.record_proof_of_performance_photo": {
+        // A sponsor's proof photo (A140): when it was taken, never the photo's path.
+        const at = text(a["p_captured_at"]);
+        return { key: "proofPhoto", values: { time: ctx.time(at ?? m.queuedAt) } };
+      }
       case "app.add_incident_party": {
         const description = text(a["p_description"]);
         return description ? { key: "incidentParty", values: { description } } : generic(m, ctx);

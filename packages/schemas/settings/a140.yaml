@@ -1,0 +1,21 @@
+# Settings registry: A140 (Compass media, wallet passes and sponsor photos; RRR-204, trace S13-10). Section 13 Media.
+# Field reference: see a30.yaml.
+contributor: a140
+settings:
+  # Data and Privacy ----------------------------------------------------------------------------------------------
+  # Compass resizes every field photo and re-encodes it, which drops its EXIF. With this on, the photo keeps where it
+  # was taken: the GPS tags the camera recorded are written back into the resized file. Off by default, because a
+  # photo's location can say where a person was.
+  - key: media.keep_photo_location
+    type: boolean
+    default: false
+    scopes: [organization]
+    capability: data.classification.write
+    label: settings.fields.keepPhotoLocation.label
+    help: settings.fields.keepPhotoLocation.help
+    pages: { org: settings.data-and-privacy }
+    enforced_by:
+      - consumer: apps/compass/src/domain/settings.ts#keepsPhotoLocation
+        test: apps/compass/test/settings.test.ts
+      - consumer: apps/compass/src/runtime/media.ts#processPhoto
+        test: apps/compass/test/media.test.ts

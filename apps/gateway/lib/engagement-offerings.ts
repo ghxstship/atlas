@@ -3,7 +3,7 @@ import {
   engagementTabIds,
   isNodeVisible,
   type Condition,
-  type ExternalRoleType,
+  type EngagementTabSetKey,
   type NavContext,
   type Sitemap,
 } from "@xos/ia";
@@ -18,7 +18,8 @@ import {
 /**
  * The sitemap conditions an engagement's offerings meet: Travel and lodging when travel or lodging
  * is offered, Per diem for per diem, Hospitality when catering, lodging or travel is, and Guest list
- * for a guest list. An offering that is absent or Not Offered meets none.
+ * for a guest list, and Project details (R5) when travel, uniforms or parking is. An offering that is absent or Not
+ * Offered meets none.
  */
 export function offeringConditions(rows: readonly EngagementOffering[]): Condition[] {
   const offered = new Set(rows.filter((r) => r.mode !== "Not Offered").map((r) => r.offering));
@@ -29,13 +30,16 @@ export function offeringConditions(rows: readonly EngagementOffering[]): Conditi
     conditions.push("offered-hospitality");
   }
   if (offered.has("Guest List")) conditions.push("offered-guest-list");
+  if (offered.has("Travel") || offered.has("Uniforms") || offered.has("Parking")) {
+    conditions.push("offered-project-facts");
+  }
   return conditions;
 }
 
-/** The shell's navigation context with an engagement's role type, scopes and offering conditions. */
+/** The shell's navigation context with an engagement's tab set, scopes and offering conditions. */
 export function engagementNav(
   nav: NavContext,
-  roleType: ExternalRoleType,
+  roleType: EngagementTabSetKey,
   scopes: readonly string[],
   conditions: readonly Condition[],
 ): NavContext {
@@ -51,7 +55,7 @@ export function engagementNav(
 export function visibleEngagementTabs(
   sitemap: Sitemap,
   nav: NavContext,
-  roleType: ExternalRoleType,
+  roleType: EngagementTabSetKey,
   scopes: readonly string[],
   conditions: readonly Condition[],
 ): string[] {

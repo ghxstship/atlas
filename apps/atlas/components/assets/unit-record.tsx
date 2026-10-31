@@ -1,6 +1,11 @@
 import type { XosClient } from "@xos/data";
+import { listReservationConflicts, listUnitReservations } from "@xos/data/allocations";
 import type { AssetUnitDetail } from "@xos/data/assets";
-import { assetStateKey, scanActionsFor } from "@xos/data/assets";
+import { assetStateKey, getAssetUnitProvenance, scanActionsFor } from "@xos/data/assets";
+import { getPurchaseOrder } from "@xos/data/procurement";
+import { Tag } from "@xos/ui";
+import Link from "next/link";
+import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Money, PropertyList, StateIcon, TemplateRecord } from "@/components/assets/ui";
@@ -52,7 +57,10 @@ export async function UnitRecord({
       unit.custody.venueName ??
       t("assets.common.notRecorded"))
     : t("assets.units.noCustody");
+  // Returned is reached only through a return on the unit's order (R7a), never from this dialog. Reserved is no
+  // longer offered (R7): a hold is a row of app.asset_reservations, made by approving an allocation.
   const next = (pickers.transitions.get(unit.state) ?? [])
+    .filter((s) => s !== "Returned" && s !== "Reserved")
     .filter((s) => s !== "Retired" || can.writeOff)
     .map((s) => ({ value: s, label: stateLabel(s) }));
 
@@ -130,8 +138,13 @@ export async function UnitRecord({
     </div>
   );
 
+  const provenance = await Provenance({ db, org, unitId: unit.id, t, when });
+  const reservations = await Reservations({ db, unit, t, when });
+
   const content = (
     <>
+      {provenance}
+      {reservations}
       <Section title={t("assets.units.sections.custody")}>
         {unit.custodyHistory.length === 0 ? (
           <Empty>{t("assets.units.none.custody")}</Empty>
@@ -258,6 +271,132 @@ export async function UnitRecord({
     >
       {content}
     </TemplateRecord>
+  );
+}
+
+/**
+ * Where the unit came from (R7a): the order it arrived on, the vendor, when it was received and, for a hire, when
+ * it goes back. app.asset_unit_provenance runs as the reader, so the section is left out for anyone who cannot
+ * read the order (procurement.po.read) and cost never reaches an asset-only reader.
+ */
+async function Provenance({
+  db,
+  org,
+  unitId,
+  t,
+  when,
+}: {
+  db: XosClient;
+  org: string;
+  unitId: string;
+  t: Translate;
+  when: (iso: string) => string;
+}) {
+  const provenance = await getAssetUnitProvenance(db, unitId);
+  if (!provenance.ok || provenance.data === null) return null;
+  const p = provenance.data;
+  const order = await getPurchaseOrder(db, p.purchaseOrderId);
+  const orderLabel = order.ok ? order.data.key : t("assets.provenance.order");
+  return (
+    <Section title={t("assets.provenance.title")}>
+      <dl className="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-12 gap-y-4 text-text-13">
+        <dt className="text-text-secondary">{t("assets.provenance.order")}</dt>
+        <dd className="m-0">
+          <Link
+            href={`/${org}/procurement/purchase-orders?peek=${p.purchaseOrderId}&full=1` as Route}
+            className="font-mono text-accent-text underline"
+          >
+            {orderLabel}
+          </Link>
+          {p.acquisitionKind === "Rental" ? (
+            <span className="ms-8">
+              <Tag tone="accent">{t("assets.provenance.rental")}</Tag>
+            </span>
+          ) : null}
+        </dd>
+        <dt className="text-text-secondary">{t("assets.provenance.vendor")}</dt>
+        <dd className="m-0">
+          {(order.ok ? order.data.vendorName : null) ?? t("assets.common.notRecorded")}
+        </dd>
+        <dt className="text-text-secondary">{t("assets.provenance.receivedAt")}</dt>
+        <dd className="m-0">{when(p.receivedAt)}</dd>
+        {p.hireEndsAt ? (
+          <>
+            <dt className="text-text-secondary">{t("assets.provenance.hireEnds")}</dt>
+            <dd className="m-0">{when(p.hireEndsAt)}</dd>
+          </>
+        ) : null}
+      </dl>
+    </Section>
+  );
+}
+
+/**
+ * The holds on this unit and the class-stock holds of its class that have not ended (R7): a pinned hold names the
+ * unit, a class-stock hold may take any unit of the class. A hold in conflict (app.asset_reservation_conflicts) is
+ * flagged with what no longer fits.
+ */
+async function Reservations({
+  db,
+  unit,
+  t,
+  when,
+}: {
+  db: XosClient;
+  unit: AssetUnitDetail;
+  t: Translate;
+  when: (iso: string) => string;
+}) {
+  const holds = await listUnitReservations(db, {
+    assetUnitId: unit.id,
+    assetClassId: unit.classId,
+  });
+  const rows = holds.ok ? holds.data : [];
+  // The conflicts view sweeps every live hold the viewer can see, so it runs only when this unit has holds to flag.
+  const conflicts =
+    rows.length > 0 ? await listReservationConflicts(db, { assetClassId: unit.classId }) : null;
+  const conflictOf = new Map(
+    (conflicts?.ok ? conflicts.data : []).map((c) => [c.reservationId, c.conflict]),
+  );
+  return (
+    <Section title={t("assets.reservations.title")}>
+      {rows.length === 0 ? (
+        <Empty>{t("assets.reservations.empty")}</Empty>
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-8 p-0">
+          {rows.map((r) => {
+            const conflict = conflictOf.get(r.id);
+            return (
+              <li key={r.id} className="flex flex-col gap-2 text-text-13">
+                <span className="font-medium">
+                  {r.assetUnitId
+                    ? t("assets.reservations.pinned")
+                    : t("assets.reservations.classStock")}
+                  {r.assetUnitId ? "" : ` · ${r.quantity}`}
+                </span>
+                <span className="text-text-12 text-text-secondary">
+                  {r.neededFrom && r.neededTo
+                    ? t("assets.reservations.window", {
+                        from: when(r.neededFrom),
+                        to: when(r.neededTo),
+                      })
+                    : ""}
+                </span>
+                {conflict ? (
+                  <Tag tone="danger">
+                    {t("assets.reservations.conflict", {
+                      conflict: t(
+                        `advancing.allocations.conflicts.kinds.${conflict.toLowerCase().replace(/ /g, "_")}`,
+                      ),
+                    })}
+                  </Tag>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Section>
   );
 }
 
