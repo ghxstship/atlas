@@ -156,6 +156,12 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
     transactional: false,
     description: "Announces a Subprocessor List change at least 30 days before it applies.",
   },
+  {
+    code: "party_invitation",
+    transactional: true,
+    description:
+      "Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.",
+  },
 ];
 
 /** The templates index: every notification kind. */
@@ -388,6 +394,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.account.session_signed_out.subject",
       body: "kinds.account.session_signed_out.body",
+    },
+  },
+  {
+    kind: "account.work_details_moved",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.work_details_moved.subject",
+      body: "kinds.account.work_details_moved.body",
     },
   },
   {
@@ -789,6 +807,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "offer.sent",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.offer.sent.subject",
+      body: "kinds.offer.sent.body",
+    },
+  },
+  {
     kind: "onboarding.item_expiring",
     category: "expiry_reminders",
     emailTemplate: "notification",
@@ -822,6 +852,198 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.document.expiring.subject",
       body: "kinds.document.expiring.body",
+    },
+  },
+  {
+    kind: "roster_entry.invited",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.invited.subject",
+      body: "kinds.roster_entry.invited.body",
+    },
+  },
+  {
+    kind: "roster_entry.returned",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.returned.subject",
+      body: "kinds.roster_entry.returned.body",
+    },
+  },
+  {
+    kind: "roster_entry.declined",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.declined.subject",
+      body: "kinds.roster_entry.declined.body",
+    },
+  },
+  {
+    kind: "roster_entry.project_facts_entered",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.project_facts_entered.subject",
+      body: "kinds.roster_entry.project_facts_entered.body",
+    },
+  },
+  {
+    kind: "engagement.roster_lock_changed",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.engagement.roster_lock_changed.subject",
+      body: "kinds.engagement.roster_lock_changed.body",
+    },
+  },
+  {
+    kind: "allocation.decided",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.decided.subject",
+      body: "kinds.allocation.decided.body",
+    },
+  },
+  {
+    kind: "allocation.assigned",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.assigned.subject",
+      body: "kinds.allocation.assigned.body",
+    },
+  },
+  {
+    kind: "allocation.issued",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.issued.subject",
+      body: "kinds.allocation.issued.body",
+    },
+  },
+  {
+    kind: "allocation.withdrawn",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.withdrawn.subject",
+      body: "kinds.allocation.withdrawn.body",
+    },
+  },
+  {
+    kind: "advance_packet.reminder",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.advance_packet.reminder.subject",
+      body: "kinds.advance_packet.reminder.body",
+    },
+  },
+  {
+    kind: "advance_submission.returned",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.advance_submission.returned.subject",
+      body: "kinds.advance_submission.returned.body",
+    },
+  },
+  {
+    kind: "submittal.returned",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.submittal.returned.subject",
+      body: "kinds.submittal.returned.body",
+    },
+  },
+  {
+    kind: "roster_entry.removed",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.removed.subject",
+      body: "kinds.roster_entry.removed.body",
+    },
+  },
+  {
+    kind: "roster_entry.facts_requested",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.facts_requested.subject",
+      body: "kinds.roster_entry.facts_requested.body",
+    },
+  },
+  {
+    kind: "roster_entry.share_revoked",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.share_revoked.subject",
+      body: "kinds.roster_entry.share_revoked.body",
+    },
+  },
+  {
+    kind: "credential.revoked",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.credential.revoked.subject",
+      body: "kinds.credential.revoked.body",
     },
   },
 ];

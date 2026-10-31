@@ -20,6 +20,20 @@ import {
   setCapabilities,
 } from "../correct.ts";
 import { itemAction, resource } from "../define.ts";
+import {
+  ADVANCE_TRACKS,
+  advanceTrackActions,
+  advanceTrackCapabilities,
+  advanceTrackResources,
+} from "./parts/advance-tracks.ts";
+import { allocationCapabilities, allocationResources } from "./parts/allocations.ts";
+import { rosterEntryCapabilities, rosterEntryResources } from "./parts/roster-project-facts.ts";
+import {
+  SECTION_KINDS,
+  WINDOW_KINDS,
+  typedAdvanceCapabilities,
+  typedAdvanceResources,
+} from "./parts/typed-advances.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -88,6 +102,10 @@ const GuestListEntry = editDefinition(
 
 export const additions = defineAdditions("Advancing", {
   resources: [
+    ...rosterEntryResources,
+    ...allocationResources,
+    ...typedAdvanceResources,
+    ...advanceTrackResources,
     resource("Advancing", "/guest-list-entries", GuestListEntry, {
       actions: [
         itemAction("decide", {
@@ -111,7 +129,12 @@ export const additions = defineAdditions("Advancing", {
       ],
     }),
   ],
+  actions: advanceTrackActions,
   capabilities: {
+    ...rosterEntryCapabilities,
+    ...allocationCapabilities,
+    ...typedAdvanceCapabilities,
+    ...advanceTrackCapabilities,
     guestListEntries: {
       read: "advancing.packet.read",
       write: "advancing.rider.write",
@@ -169,6 +192,186 @@ export const additions = defineAdditions("Advancing", {
           },
         },
       }),
+    },
+    {
+      id: "advance-section-kinds",
+      since: SINCE,
+      resources: ["advanceSections"],
+      components: ["schemas/AdvanceSectionConfigureRequest"],
+      change:
+        "Adds `section_kind`, `window_kind`, `max_lines` and `per_person`, optional on create, and the `configure` action that changes them while the packet is a draft.",
+      reason:
+        "app.advance_sections (2710, R9) stores the section kind (Text, File, Schedule Window, Item Request, Crew Roster, Guest List or Credential Request) and its configuration, held to the kind by advance_sections_kind_fields and fixed once the packet is sent (advance_packet_sections_fixed).",
+      apply: all(
+        editShape({
+          add: {
+            section_kind: {
+              schema: z.enum(SECTION_KINDS).meta({
+                description: "What the section asks for; Text unless given.",
+                example: "Item Request",
+              }),
+              create: "optional",
+              update: false,
+            },
+            window_kind: {
+              schema: orNull(
+                z.enum(WINDOW_KINDS).meta({
+                  description: "For a Schedule Window section, what the window is.",
+                  example: "Load In",
+                }),
+              ),
+              create: "optional",
+              update: false,
+            },
+            max_lines: {
+              schema: orNull(
+                fields.int(
+                  "Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.",
+                  6,
+                  1,
+                ),
+              ),
+              create: "optional",
+              update: false,
+            },
+            per_person: {
+              schema: fields.bool(
+                "For an Item Request or Credential Request, true when every line names one person on the roster.",
+                false,
+              ),
+              create: "optional",
+              update: false,
+            },
+          },
+        }),
+        putActions(
+          [
+            itemAction("configure", {
+              summary: "Configure an advance section",
+              description:
+                "Sets a draft section's kind and configuration. The kind decides which of window_kind, max_lines and per_person apply (23514 as 422 otherwise); a sent packet's sections are fixed (advance_packet_sections_fixed, 422), and a section with choices keeps its kind (advance_section_kind_choices, 422).",
+              body: z
+                .object({
+                  section_kind: z
+                    .enum(SECTION_KINDS)
+                    .meta({ description: "Section kind.", example: "Schedule Window" }),
+                  window_kind: z.enum(WINDOW_KINDS).nullable().optional().meta({
+                    description: "Window kind, for a Schedule Window.",
+                    example: "Load In",
+                  }),
+                  max_lines: z
+                    .number()
+                    .int()
+                    .min(1)
+                    .max(50)
+                    .nullable()
+                    .optional()
+                    .meta({ description: "Most lines or files of one answer.", example: 2 }),
+                  per_person: z
+                    .boolean()
+                    .optional()
+                    .meta({ description: "Every line names a person.", example: false }),
+                })
+                .meta({
+                  id: "AdvanceSectionConfigureRequest",
+                  description: "The kind and configuration of a section.",
+                }),
+            }),
+          ],
+          { configure: "advancing.packet.write" },
+        ),
+      ),
+    },
+    {
+      id: "advance-section-track",
+      since: SINCE,
+      resources: ["advanceSections"],
+      change:
+        "Adds `track`, the track the section is grouped under (Finance, Technical, Hospitality, Catering, Travel, Logistics or General), optional on create and General unless given; the `setTrack` action changes it.",
+      reason:
+        "app.advance_sections.track (2743, R11, parity gap G-176) groups a packet's sections into tracks a reviewer signs off one by one; it is a grouping label that stays editable after the packet is sent, and defaults to General.",
+      apply: editShape({
+        add: {
+          track: {
+            schema: z.enum(ADVANCE_TRACKS).meta({
+              description: "Track the section is grouped under; General unless given.",
+              example: "Hospitality",
+            }),
+            create: "optional",
+            update: false,
+          },
+        },
+      }),
+    },
+    {
+      id: "advance-recipient-engagement",
+      since: SINCE,
+      resources: ["advanceRecipients"],
+      components: [
+        "schemas/AdvanceRecipientBindEngagementRequest",
+        "schemas/AdvanceRecipientSetNamesDueRequest",
+      ],
+      change:
+        "Adds `engagement_id`, the engagement the recipient answers under, and `names_due_at`, the naming deadline (both optional on create), with the `bindEngagement` and `setNamesDue` actions.",
+      reason:
+        "app.advance_recipients.engagement_id (2710, R9) links a recipient to a live engagement of the same party on the packet's project, fixed once the packet is sent (advance_recipient_engagement); names_due_at (2716, G-141) is when the party stops naming people on requested passes, only with an engagement and editable after send.",
+      apply: all(
+        editShape({
+          add: {
+            engagement_id: {
+              schema: orNull(fields.ref("engagement the recipient answers under")),
+              create: "optional",
+              update: false,
+            },
+            names_due_at: {
+              schema: orNull(
+                fields.instant(
+                  "When the party stops naming people on the passes it requested through this recipient.",
+                ),
+              ),
+              create: "optional",
+              update: false,
+            },
+          },
+        }),
+        putActions(
+          [
+            itemAction("bindEngagement", {
+              summary: "Link a recipient to its engagement",
+              description:
+                "Sets or clears the engagement a draft packet's recipient answers under: a live engagement of the same party on the packet's project (advance_recipient_engagement, 422); fixed once the packet is sent.",
+              body: z
+                .object({
+                  engagement_id: z.uuid().nullable().meta({
+                    description: "The engagement, or null to clear it.",
+                    example: "01920000-0000-7000-8000-000000000001",
+                  }),
+                })
+                .meta({
+                  id: "AdvanceRecipientBindEngagementRequest",
+                  description: "The engagement a recipient answers under.",
+                }),
+            }),
+            itemAction("setNamesDue", {
+              summary: "Set a recipient's naming deadline",
+              description:
+                "Sets or clears when the party stops naming, renaming and unnaming people on the passes it requested through this recipient (G-141). Production can still change them afterwards. Needs an engagement (advance_recipients_names_due_engagement, 422); editable after the packet is sent.",
+              body: z
+                .object({
+                  names_due_at: z.iso.datetime({ offset: true }).nullable().meta({
+                    description: "The deadline, or null to clear it.",
+                    example: "2027-05-20T23:59:00Z",
+                  }),
+                })
+                .meta({
+                  id: "AdvanceRecipientSetNamesDueRequest",
+                  description: "A recipient's naming deadline.",
+                }),
+            }),
+          ],
+          { bindEngagement: "advancing.packet.write", setNamesDue: "advancing.packet.write" },
+        ),
+      ),
     },
     {
       id: "advance-submission-answer-and-review",

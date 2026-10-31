@@ -3,12 +3,17 @@ import {
   linkStatus,
   listAdvanceLinks,
   listAdvanceParties,
+  listAnswerDetails,
   listPackets,
+  listProjectEngagements,
+  listProjectZones,
+  listSectionChoiceOptions,
   PACKET_STATES,
   type PacketDetail,
   type PacketState,
   type PacketSummary,
 } from "@xos/data/advancing";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
 import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
@@ -19,6 +24,9 @@ import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
+import { AnswerDetails } from "./answer-details";
+import { SetNamesDueForm } from "./answer-forms";
+import { instantToLocal } from "@/lib/operations/time";
 import {
   AddRecipientForm,
   ArchivePacketButton,
@@ -330,7 +338,13 @@ async function PacketPage({
   const format = await getFormatter();
   const org = ctx.org.slug;
   const sent = packet.sentAt !== null;
-  const [parties, links] = await Promise.all([
+  const latestIds = packet.submissions.filter((s) => s.latest).map((s) => s.id);
+  const dockSections = new Set(
+    packet.sections
+      .filter((s) => s.windowKind === "Load In" || s.windowKind === "Load Out")
+      .map((s) => s.id),
+  );
+  const [parties, links, options, engagements, details, zones, projectRow] = await Promise.all([
     can.write ? listAdvanceParties(ctx.viewer.db, ctx.org.id) : Promise.resolve(null),
     can.send && sent
       ? listAdvanceLinks(
@@ -338,7 +352,26 @@ async function PacketPage({
           packet.recipients.map((r) => r.id),
         )
       : Promise.resolve(null),
+    // R9: what request sections can offer, the engagements recipients answer under, typed answer details.
+    can.write && !sent
+      ? listSectionChoiceOptions(ctx.viewer.db, { orgId: ctx.org.id, projectId: packet.projectId })
+      : Promise.resolve(null),
+    listProjectEngagements(ctx.viewer.db, packet.projectId),
+    sent ? listAnswerDetails(ctx.viewer.db, latestIds) : Promise.resolve(null),
+    sent && can.review && dockSections.size > 0
+      ? listProjectZones(ctx.viewer.db, packet.projectId)
+      : Promise.resolve(null),
+    ctx.viewer.db.from("projects").select("time_zone").eq("id", packet.projectId).maybeSingle(),
   ]);
+  const timeZone = projectRow.data?.time_zone ?? "UTC";
+  const engagementList = engagements.ok ? engagements.data : [];
+  const engagementOf = (id: string | null) => engagementList.find((e) => e.id === id);
+  const guestWarning =
+    packet.sections.some((s) => s.kind === "Guest List") &&
+    packet.recipients.some((r) => {
+      const role = engagementOf(r.engagementId)?.roleType;
+      return role === "Contractor" || role === "Sponsor";
+    });
   if (parties && !parties.ok)
     throw new Error(`Cannot list parties: ${JSON.stringify(parties.error)}`);
   if (links && !links.ok) throw new Error(`Cannot list links: ${JSON.stringify(links.error)}`);
@@ -353,6 +386,8 @@ async function PacketPage({
       label: `${partyLabel(p, t)} · ${t(p.kind === "person" ? "advancing.common.person" : "advancing.common.counterparty")}`,
     }));
   const latest = packet.submissions.filter((s) => s.latest);
+  // A reviewed answer's review form leaves in the commit that brings the result; the scope stays to hear of it (A146).
+  const reviews = latest.map((s) => `${s.id}:${s.reviewedAt ?? ""}`).join(",");
   const recipientName = (id: string) => {
     const r = packet.recipients.find((x) => x.id === id);
     return r ? partyLabel(r.party, t) : t("advancing.recipients.removed");
@@ -457,6 +492,19 @@ async function PacketPage({
           sections={packet.sections}
           canEdit={can.write}
           sent={sent}
+          guestWarning={guestWarning}
+          choiceOptions={{
+            assetClasses: (options?.ok ? options.data.assetClasses : []).map((c) => ({
+              value: `asset_class:${c.id}`,
+              label: c.name,
+            })),
+            credentialCategories: (options?.ok ? options.data.credentialCategories : []).map(
+              (k) => ({
+                value: `credential_category:${k.id}`,
+                label: k.name,
+              }),
+            ),
+          }}
           draftContext={[
             { collection: "advance-packets", id: packet.id, label: packet.title },
             ...(project
@@ -489,6 +537,39 @@ async function PacketPage({
                       <RemoveRecipientButton org={org} recipientId={r.id} name={name} />
                     ) : null}
                   </div>
+                  {r.engagementId ? (
+                    <p className="m-0 text-text-12 text-text-secondary">
+                      {t("advancing.recipients.engagementLine", {
+                        role: engagementOf(r.engagementId)?.roleType ?? "",
+                      })}
+                      {r.namesDueAt
+                        ? ` · ${
+                            r.namesClosed
+                              ? t("advancing.recipients.namesDue.closed")
+                              : t("advancing.recipients.namesDue.due", {
+                                  date: format.dateTime(new Date(r.namesDueAt), {
+                                    dateStyle: "medium",
+                                    timeStyle: "short",
+                                    timeZone,
+                                  }),
+                                })
+                          }`
+                        : ""}
+                    </p>
+                  ) : null}
+                  {r.engagementId && can.write ? (
+                    <details>
+                      <summary className="cursor-pointer text-text-12 text-accent-text">
+                        {t("advancing.recipients.namesDue.action")}
+                      </summary>
+                      <SetNamesDueForm
+                        org={org}
+                        recipientId={r.id}
+                        timeZone={timeZone}
+                        current={instantToLocal(r.namesDueAt, timeZone)}
+                      />
+                    </details>
+                  ) : null}
                   {own.length > 0 ? (
                     <ul className="m-0 flex list-none flex-col gap-4 p-0 text-text-12 text-text-secondary">
                       {own.map((l) => (
@@ -513,53 +594,105 @@ async function PacketPage({
           </ul>
         )}
         {can.write ? (
-          <AddRecipientForm org={org} packetId={packet.id} parties={partyOptions} />
+          <AddRecipientForm
+            org={org}
+            packetId={packet.id}
+            parties={partyOptions}
+            timeZone={timeZone}
+            engagements={engagementList.flatMap((e) => {
+              const party = e.counterpartyId
+                ? `counterparty:${e.counterpartyId}`
+                : e.personId
+                  ? `person:${e.personId}`
+                  : null;
+              const person = e.personId ? `person:${e.personId}` : null;
+              const label = t("advancing.recipients.engagementOption", {
+                name: e.name ?? "",
+                role: e.roleType,
+              });
+              return [party, person]
+                .filter((p, i, all): p is string => p !== null && all.indexOf(p) === i)
+                .map((p) => ({ value: e.id, label, party: p }));
+            })}
+          />
         ) : null}
         {can.send && !sent && packet.recipients.length > 0 ? (
           <p className="m-0 text-text-12 text-text-tertiary">{t("advancing.links.afterSend")}</p>
         ) : null}
       </Panel>
       <Panel id="packet-answers" title={t("advancing.answers.title")}>
-        {!sent ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("advancing.answers.unsent")}</p>
-        ) : latest.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("advancing.answers.none")}</p>
-        ) : (
-          <ul className="m-0 flex list-none flex-col gap-12 p-0">
-            {latest.map((s) => {
-              const section = packet.sections.find((x) => x.id === s.sectionId);
-              return (
-                <li
-                  key={s.id}
-                  className="flex flex-col gap-8 rounded-card border border-border-subtle p-12"
-                >
-                  <div className="flex flex-wrap items-center gap-8 text-text-12 text-text-secondary">
-                    <span className="text-label-13 font-medium text-text-primary">
-                      {section?.title ?? t("advancing.answers.removedSection")}
-                    </span>
-                    <span>{recipientName(s.recipientId)}</span>
-                    <span>{when(s.submittedAt)}</span>
-                    {s.viaLink ? <Tag tone="accent">{t("advancing.answers.viaLink")}</Tag> : null}
-                    {s.reviewOutcome ? (
-                      <Tag tone={s.reviewOutcome === "Accepted" ? "success" : "warning"}>
-                        {t(`advancing.review.outcomes.${s.reviewOutcome}`)}
-                      </Tag>
+        <ActionOutcomeScope token={reviews}>
+          {!sent ? (
+            <p className="m-0 text-text-13 text-text-secondary">{t("advancing.answers.unsent")}</p>
+          ) : latest.length === 0 ? (
+            <p className="m-0 text-text-13 text-text-secondary">{t("advancing.answers.none")}</p>
+          ) : (
+            <ul className="m-0 flex list-none flex-col gap-12 p-0">
+              {latest.map((s) => {
+                const section = packet.sections.find((x) => x.id === s.sectionId);
+                return (
+                  <li
+                    key={s.id}
+                    className="flex flex-col gap-8 rounded-card border border-border-subtle p-12"
+                  >
+                    <div className="flex flex-wrap items-center gap-8 text-text-12 text-text-secondary">
+                      <span className="text-label-13 font-medium text-text-primary">
+                        {section?.title ?? t("advancing.answers.removedSection")}
+                      </span>
+                      <span>{recipientName(s.recipientId)}</span>
+                      <span>{when(s.submittedAt)}</span>
+                      {s.viaLink ? <Tag tone="accent">{t("advancing.answers.viaLink")}</Tag> : null}
+                      {s.reviewOutcome ? (
+                        <Tag tone={s.reviewOutcome === "Accepted" ? "success" : "warning"}>
+                          {t(`advancing.review.outcomes.${s.reviewOutcome}`)}
+                        </Tag>
+                      ) : null}
+                    </div>
+                    {section?.kind && section.kind !== "Text" && details?.ok ? null : (
+                      <p className="m-0 whitespace-pre-wrap text-text-14">{s.body}</p>
+                    )}
+                    {details?.ok ? (
+                      <AnswerDetails
+                        org={org}
+                        note={s.note}
+                        accepted={s.reviewOutcome === "Accepted"}
+                        bookable={can.review && dockSections.has(s.sectionId)}
+                        lines={details.data.lines.filter((l) => l.submissionId === s.id)}
+                        files={details.data.files.filter((f) => f.submissionId === s.id)}
+                        zones={(zones?.ok ? zones.data : []).map((z) => ({
+                          value: z.id,
+                          label: `${z.code} · ${z.name}`,
+                        }))}
+                        t={t}
+                        when={(iso, zone) =>
+                          format.dateTime(new Date(iso), {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                            timeZone: zone ?? timeZone,
+                          })
+                        }
+                      />
                     ) : null}
-                  </div>
-                  <p className="m-0 whitespace-pre-wrap text-text-14">{s.body}</p>
-                  {s.returnReason ? (
-                    <p className="m-0 text-text-13 text-text-secondary">
-                      {t("advancing.review.returnedBecause", { reason: s.returnReason })}
-                    </p>
-                  ) : null}
-                  {can.review && s.reviewedAt === null ? (
-                    <ReviewForm org={org} submissionId={s.id} />
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                    {s.returnReason ? (
+                      <p className="m-0 text-text-13 text-text-secondary">
+                        {t("advancing.review.returnedBecause", { reason: s.returnReason })}
+                      </p>
+                    ) : null}
+                    {can.review && s.reviewedAt === null ? (
+                      <ReviewForm
+                        org={org}
+                        submissionId={s.id}
+                        typed={
+                          section?.kind === "Item Request" || section?.kind === "Credential Request"
+                        }
+                      />
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </ActionOutcomeScope>
         {sent && can.review && packet.sections.length > 0 && packet.recipients.length > 0 ? (
           <details className="rounded-card border border-border-subtle p-12">
             <summary className="cursor-pointer text-label-13 font-medium">
@@ -568,7 +701,10 @@ async function PacketPage({
             <div className="pt-12">
               <RecordAnswerForm
                 org={org}
-                sections={packet.sections.map((s) => ({ value: s.id, label: s.title }))}
+                // Typed answers come from the party in Gateway; a phone answer is text (R9).
+                sections={packet.sections
+                  .filter((s) => s.kind === "Text")
+                  .map((s) => ({ value: s.id, label: s.title }))}
                 recipients={packet.recipients.map((r) => ({
                   value: r.id,
                   label: partyLabel(r.party, t),

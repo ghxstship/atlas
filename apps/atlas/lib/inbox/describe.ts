@@ -39,11 +39,15 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   // A99: a recovery code used (the codes left) and sessions signed out (how many).
   "account.recovery_code_used": ["remaining"],
   "account.session_signed_out": ["count"],
+  // R6a (2664): which profile facts moved to each project (uniform, travel or both).
+  "account.work_details_moved": ["moved"],
   "billing.payment_failed": ["days"],
   // 2051: the rows of a validated or committed import.
   "import.finished": ["written", "refused", "skipped"],
   // Marketplace matches and expiry reminders (A89, migrations 1462 and 1463).
   "opportunity.matched": ["count", "searchName"],
+  // An offer that waits on the applicant (A127, 2200).
+  "offer.sent": ["orgName"],
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],
@@ -52,6 +56,14 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "content_report.overdue": ["subject"],
   "content_report.decided": ["subject", "action", "statement"],
   "content.removed": ["subject", "ruleReference", "statement"],
+  // Advancing reminders and notices (R11, 2741 and 2742).
+  "advance_packet.reminder": ["reminder", "due", "outstanding", "orgName", "projectName"],
+  "advance_submission.returned": ["packetTitle"],
+  "submittal.returned": ["projectName"],
+  "roster_entry.removed": ["partyName", "projectName"],
+  "roster_entry.facts_requested": ["kind", "partyName", "projectName"],
+  "roster_entry.share_revoked": ["personName", "partyName", "projectName"],
+  "credential.revoked": ["projectName"],
 };
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
@@ -144,7 +156,11 @@ function values(
   const startsAt = date(a["startsAt"]);
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
-  for (const key of ["days", "count", "written", "refused", "skipped"]) {
+  // An advance reminder's due date (R11) is an instant too; without one the copy reads its other branch.
+  const dueAt = date(a["dueAt"]);
+  if (dueAt) out["dueAt"] = dueAt;
+  else delete out["dueAt"];
+  for (const key of ["days", "count", "written", "refused", "skipped", "outstanding"]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }
   return out;

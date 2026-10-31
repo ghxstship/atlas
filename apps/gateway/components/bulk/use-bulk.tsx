@@ -35,7 +35,12 @@ export interface Bulk {
  * useBulk: the selection keeps only rows the page still shows, so a live update never leaves a
  * hidden row selected. A list whose rows have no action to take in bulk selects nothing.
  */
-export function useBulk(action: GatewayActionId | null, rows: readonly BulkRowRef[]): Bulk {
+export function useBulk(
+  action: GatewayActionId | null,
+  rows: readonly BulkRowRef[],
+  /** Values the page picked for the action (assign: the pool and the quantity); omitted for fixed actions. */
+  values?: Readonly<Record<string, string>>,
+): Bulk {
   const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set());
   const [open, setOpen] = useState(false);
   const selected = useMemo(() => {
@@ -64,6 +69,7 @@ export function useBulk(action: GatewayActionId | null, rows: readonly BulkRowRe
       <loaded.BulkBar
         action={action}
         rows={rows}
+        {...(values ? { values } : {})}
         selected={selected}
         open={open}
         onOpen={() => setOpen(true)}

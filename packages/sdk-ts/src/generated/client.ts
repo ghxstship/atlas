@@ -342,8 +342,21 @@ import {
   EarnedMediaItemsResource,
   ProjectMeasurementSummaryResource,
   CueCallsResource,
+  RosterEntriesResource,
+  AdvanceAllocationsResource,
+  AssetReservationConflictsResource,
+  AdvanceSectionChoicesResource,
+  AdvanceSubmissionLinesResource,
+  AdvanceSubmissionFilesResource,
+  AdvanceTrackSignoffsResource,
+  AdvanceTrackProgressResource,
   GuestListEntriesResource,
+  AssetUnitHireResource,
+  AssetReservationsResource,
   Form1099NecResource,
+  GoodsReturnsResource,
+  ReturnLinesResource,
+  PoLineHireWarningsResource,
   InsuranceCertificateInsuredsResource,
   RequiredAdditionalInsuredsResource,
   CanonStdEmergencyProtocolsResource,
@@ -353,6 +366,9 @@ import {
   AiSuggestionsResource,
   AiRequestsResource,
   AiUsageResource,
+  EngagedAllocationsResource,
+  RequestableItemsResource,
+  MyParkingPassesResource,
   WorkDetailsResource,
   EmergencyContactsResource,
   LoyaltyProgramsResource,
@@ -1196,10 +1212,45 @@ export class XosClient extends XosClientCore {
     new ProjectMeasurementSummaryResource(this);
   /** Show: operations on `cueCalls`. */
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
+  /** Advancing: operations on `rosterEntries`. */
+  readonly rosterEntries: RosterEntriesResource = new RosterEntriesResource(this);
+  /** Advancing: operations on `advanceAllocations`. */
+  readonly advanceAllocations: AdvanceAllocationsResource = new AdvanceAllocationsResource(this);
+  /** Advancing: operations on `assetReservationConflicts`. */
+  readonly assetReservationConflicts: AssetReservationConflictsResource =
+    new AssetReservationConflictsResource(this);
+  /** Advancing: operations on `advanceSectionChoices`. */
+  readonly advanceSectionChoices: AdvanceSectionChoicesResource = new AdvanceSectionChoicesResource(
+    this,
+  );
+  /** Advancing: operations on `advanceSubmissionLines`. */
+  readonly advanceSubmissionLines: AdvanceSubmissionLinesResource =
+    new AdvanceSubmissionLinesResource(this);
+  /** Advancing: operations on `advanceSubmissionFiles`. */
+  readonly advanceSubmissionFiles: AdvanceSubmissionFilesResource =
+    new AdvanceSubmissionFilesResource(this);
+  /** Advancing: operations on `advanceTrackSignoffs`. */
+  readonly advanceTrackSignoffs: AdvanceTrackSignoffsResource = new AdvanceTrackSignoffsResource(
+    this,
+  );
+  /** Advancing: operations on `advanceTrackProgress`. */
+  readonly advanceTrackProgress: AdvanceTrackProgressResource = new AdvanceTrackProgressResource(
+    this,
+  );
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Assets: operations on `assetUnitHire`. */
+  readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
+  /** Assets: operations on `assetReservations`. */
+  readonly assetReservations: AssetReservationsResource = new AssetReservationsResource(this);
   /** Finance: operations on `form1099Nec`. */
   readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
+  /** Procurement: operations on `goodsReturns`. */
+  readonly goodsReturns: GoodsReturnsResource = new GoodsReturnsResource(this);
+  /** Procurement: operations on `returnLines`. */
+  readonly returnLines: ReturnLinesResource = new ReturnLinesResource(this);
+  /** Procurement: operations on `poLineHireWarnings`. */
+  readonly poLineHireWarnings: PoLineHireWarningsResource = new PoLineHireWarningsResource(this);
   /** Vendors: operations on `insuranceCertificateInsureds`. */
   readonly insuranceCertificateInsureds: InsuranceCertificateInsuredsResource =
     new InsuranceCertificateInsuredsResource(this);
@@ -1222,6 +1273,12 @@ export class XosClient extends XosClientCore {
   readonly aiRequests: AiRequestsResource = new AiRequestsResource(this);
   /** Settings: operations on `aiUsage`. */
   readonly aiUsage: AiUsageResource = new AiUsageResource(this);
+  /** Gateway: operations on `engagedAllocations`. */
+  readonly engagedAllocations: EngagedAllocationsResource = new EngagedAllocationsResource(this);
+  /** Gateway: operations on `requestableItems`. */
+  readonly requestableItems: RequestableItemsResource = new RequestableItemsResource(this);
+  /** Gateway: operations on `myParkingPasses`. */
+  readonly myParkingPasses: MyParkingPassesResource = new MyParkingPassesResource(this);
   /** Identity: operations on `workDetails`. */
   readonly workDetails: WorkDetailsResource = new WorkDetailsResource(this);
   /** Identity: operations on `emergencyContacts`. */

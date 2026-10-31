@@ -18,6 +18,7 @@
     "./pwa/analytics": "./src/pwa/analytics.ts",
     "./pwa/offline-key": "./src/pwa/offline-key.ts",
     "./pwa/browser-push": "./src/pwa/browser-push.tsx",
+    "./pwa/action-outcome": "./src/pwa/action-outcome.tsx",
     "./styles.css": "./src/styles/index.css",
     "./tailwind.config.cjs": "./tailwind.config.cjs",
     "./brand/*": "./src/brand/defaults/*"

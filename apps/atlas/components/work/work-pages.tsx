@@ -25,6 +25,7 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
+import { RecordHistory } from "@/components/history/record-history";
 import { formatWhen } from "./format";
 import {
   capabilitySet,
@@ -116,15 +117,18 @@ export async function WorkOrdersPage({
           canAward={caps.has("work.work_order.award")}
           meIsCreator={order.data.createdBy !== null && order.data.createdBy === me}
         >
-          <CollabPanels
-            org={ctx.org.slug}
-            subject={subject}
-            threads={must(threads, "comments")}
-            attachments={must(attachments, "attachments")}
-            names={names}
-            me={me}
-            canPost
-          />
+          <>
+            <RecordHistory db={db} table={subject.table} id={subject.id} />
+            <CollabPanels
+              org={ctx.org.slug}
+              subject={subject}
+              threads={must(threads, "comments")}
+              attachments={must(attachments, "attachments")}
+              names={names}
+              me={me}
+              canPost
+            />
+          </>
         </WorkOrderBody>
       );
       const heading = `${order.data.key} ${order.data.title}`;

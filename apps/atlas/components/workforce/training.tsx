@@ -22,6 +22,7 @@ import {
 } from "@/components/collection-kit/kit";
 import type { KitRow, KitState, ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
+import { RecordHistory } from "@/components/history/record-history";
 import { EmptyStateLink } from "@/components/ui";
 import {
   addLessonAction,
@@ -343,6 +344,7 @@ export async function TrainingSection({
             )}
           </KitSection>
         ) : null}
+        <RecordHistory db={db} table="app.training_courses" id={selected.id} />
       </RecordPage>
     );
   }
@@ -412,6 +414,7 @@ export async function TrainingSection({
         }
       >
         {selected.summary ? <p className="m-0 text-text-14">{selected.summary}</p> : null}
+        <RecordHistory db={db} table="app.training_courses" id={selected.id} />
       </PeekDrawer>
     );
   }

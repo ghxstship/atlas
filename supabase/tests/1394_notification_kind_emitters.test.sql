@@ -59,7 +59,7 @@ select is(pg_temp.notes('dave', 'shift.assigned'), 1, 'publishing a shift tells 
 select is((pg_temp.latest('dave', 'shift.assigned')).message_args ->> 'startsAt',
   (select to_char(s.starts_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') from app.shifts s where s.id = (select id from k where key = 'sh1')),
   'with the start as an ISO instant');
-select is((pg_temp.latest('dave', 'shift.assigned')).message_args - 'startsAt' - 'endsAt',
+select is((pg_temp.latest('dave', 'shift.assigned')).message_args - 'startsAt' - 'endsAt' - 'shiftState',
   jsonb_build_object('title', (select ro.job_title || ' (Northwind Summer Series)' from xpms.role ro where ro.role_code = '0000.50.01'),
     'actorName', 'Carol Nguyen'),
   'its role and project as the title, and the scheduler as the actor');

@@ -19,13 +19,16 @@ import { OFFLINE_KEY_HEADER, offlineKey } from "@xos/ui/pwa/offline-key";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import {
+  forwardPreviousSeen,
   LAST_SEEN_COOKIE,
   lastSeenSetCookie,
+  NETWORK_RESTRICTED_PATH,
   recordsLastSeen,
   opensWithoutSecondFactor,
   orgAuthRedirect,
   parseLastSeen,
   PATH_HEADER,
+  PREVIOUS_SEEN_HEADER,
   secondFactorRedirect,
 } from "@/lib/auth/assurance";
 import { apiHostResponse, isApiHost } from "@/lib/api-host";
@@ -83,13 +86,13 @@ function withRouteOrg(request: NextRequest, slug: string | undefined): Headers {
   const headers = new Headers(request.headers);
   if (slug) headers.set(ROUTE_ORG_HEADER, slug);
   else headers.delete(ROUTE_ORG_HEADER);
+  // Only the proxy names the previous request (forwardPreviousSeen), never the browser.
+  headers.delete(PREVIOUS_SEEN_HEADER);
   return headers;
 }
 
 /** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
 const NOT_FOUND_PATH = "/auth/not-found";
-/** Where a member whose network an org's IP allow-list refuses is sent. */
-const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
 /** A top-level page load, not a server action, an RSC fetch or a prefetch. */
 function isDocumentRequest(request: NextRequest): boolean {
@@ -137,13 +140,21 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
     supabaseOrigin: new URL(config.SUPABASE_URL).origin,
     secureSite,
   });
+  // The org idle timeout judges the device's previous request, recorded at most once a minute
+  // (recordsLastSeen); pages and actions behind this request see it recorded already, and get the
+  // previous one in PREVIOUS_SEEN_HEADER.
+  const now = Date.now();
+  const lastSeenAt = parseLastSeen(request.cookies.get(LAST_SEEN_COOKIE)?.value);
+  const recordSeen = recordsLastSeen(lastSeenAt, now);
+  if (recordSeen) request.cookies.set(LAST_SEEN_COOKIE, String(now));
+
   /** Request headers for the app, rebuilt after any cookie refresh so they carry the new cookies. */
   const forwardedHeaders = () => {
     const headers = withRouteOrg(request, slug);
     headers.set("x-nonce", nonce);
     headers.set("content-security-policy", csp);
     headers.set(PATH_HEADER, `${request.nextUrl.pathname}${request.nextUrl.search}`);
-    return headers;
+    return forwardPreviousSeen(headers, lastSeenAt);
   };
   // Global Privacy Control (Section 14.3): a browser that sends it and has no recorded GPC choice yet.
   const consent = parseConsent(request.cookies.get(CONSENT_COOKIE)?.value);
@@ -171,13 +182,6 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
     }
     return response;
   };
-
-  // The org idle timeout judges the device's previous request, recorded at most once a minute
-  // (recordsLastSeen); pages and actions behind this request see it recorded already.
-  const now = Date.now();
-  const lastSeenAt = parseLastSeen(request.cookies.get(LAST_SEEN_COOKIE)?.value);
-  const recordSeen = recordsLastSeen(lastSeenAt, now);
-  if (recordSeen) request.cookies.set(LAST_SEEN_COOKIE, String(now));
 
   const { db, response } = createProxySupabase(request, () =>
     NextResponse.next({ request: { headers: forwardedHeaders() } }),

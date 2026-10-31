@@ -225,6 +225,13 @@
     "hint": "Arrow keys move, Enter edits, Delete clears to Unpriced, paste from Excel fills the range.",
     "row": "Row"
   },
+  "heatmap": {
+    "cell": "{row}, {col}: {state}",
+    "detail": "{row}, {col}: {state}. {detail}",
+    "none": "{row}, {col}: not asked",
+    "select": "Select {row}",
+    "legend": "What each state means"
+  },
   "help": {
     "ask": "Ask a question about this page",
     "assistant": "Assistant",

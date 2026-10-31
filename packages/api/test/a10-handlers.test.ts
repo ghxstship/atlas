@@ -52,6 +52,11 @@ function world() {
           position: 1,
           title: "Arrival",
           prompt: "When does the party arrive?",
+          section_kind: "Text",
+          window_kind: null,
+          max_lines: null,
+          per_person: false,
+          track: "General",
         }),
       ],
       advance_recipients: [
@@ -59,6 +64,8 @@ function world() {
           advance_packet_id: PACKET,
           person_id: PERSON,
           counterparty_id: null,
+          engagement_id: null,
+          names_due_at: null,
         }),
       ],
       advance_submissions: [
@@ -124,8 +131,20 @@ function world() {
     },
     {
       advance_packets: { sent_at: null, due_at: null },
-      advance_sections: { prompt: null },
-      advance_recipients: { person_id: null, counterparty_id: null },
+      advance_sections: {
+        prompt: null,
+        section_kind: "Text",
+        window_kind: null,
+        max_lines: null,
+        per_person: false,
+        track: "General",
+      },
+      advance_recipients: {
+        person_id: null,
+        counterparty_id: null,
+        engagement_id: null,
+        names_due_at: null,
+      },
       advance_submissions: {
         submitted_at: SENT,
         reviewed_at: null,

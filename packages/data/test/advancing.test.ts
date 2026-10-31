@@ -242,7 +242,10 @@ describe("packets", () => {
           { id: "sec2", position: 2, title: "Backline", prompt: null },
           { id: "sec1", position: 1, title: "Arrival", prompt: "When?" },
         ]),
+        // R11: the tracks, read after the sections (2743).
+        okResponse([{ id: "sec2", track: "Technical" }]),
       ],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [
         okResponse([
           { id: "r1", person_id: "p1", counterparty_id: null },
@@ -262,6 +265,7 @@ describe("packets", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.sections.map((s) => s.title)).toEqual(["Arrival", "Backline"]);
+    expect(result.data.sections.map((s) => s.track)).toEqual(["General", "Technical"]);
     expect(result.data.recipients.map((r) => r.party.name)).toEqual(["Mia", "Harbor Audio"]);
     expect(result.data.submissions.map((s) => [s.id, s.latest, s.viaLink])).toEqual([
       ["s2", true, true],
@@ -278,18 +282,21 @@ describe("packets", () => {
     const sections = fakeClient({
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [down()],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [okResponse([])],
     });
     expect((await getPacket(sections.db, "pk1")).ok).toBe(false);
     const recipients = fakeClient({
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [okResponse([])],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [down()],
     });
     expect((await getPacket(recipients.db, "pk1")).ok).toBe(false);
     const names = fakeClient({
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [okResponse([])],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [
         okResponse([{ id: "r1", person_id: "p1", counterparty_id: null }]),
       ],
@@ -299,6 +306,7 @@ describe("packets", () => {
     const cpNames = fakeClient({
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [okResponse([])],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [
         okResponse([{ id: "r1", person_id: null, counterparty_id: "c1" }]),
       ],
@@ -309,7 +317,9 @@ describe("packets", () => {
       "from:advance_packets": [okResponse(packetRow)],
       "from:advance_sections": [
         okResponse([{ id: "sec1", position: 1, title: "A", prompt: null }]),
+        okResponse([]),
       ],
+      "from:advance_section_choices": [okResponse([])],
       "from:advance_recipients": [okResponse([])],
       "from:advance_submissions": [down()],
     });
@@ -414,7 +424,19 @@ describe("sections and recipients", () => {
     ).toEqual({ ok: true, data: { id: "sec4" } });
     expect(calls[1]?.steps[0]).toEqual([
       "insert",
-      [{ org_id: "o1", advance_packet_id: "pk1", position: 4, title: "Hospitality", prompt: null }],
+      [
+        {
+          org_id: "o1",
+          advance_packet_id: "pk1",
+          position: 4,
+          title: "Hospitality",
+          prompt: null,
+          section_kind: "Text",
+          window_kind: null,
+          max_lines: null,
+          per_person: false,
+        },
+      ],
     ]);
   });
 
@@ -432,7 +454,17 @@ describe("sections and recipients", () => {
       true,
     );
     expect(calls[1]?.steps[0]?.[1]).toEqual([
-      { org_id: "o", advance_packet_id: "p", position: 1, title: "A", prompt: "Q" },
+      {
+        org_id: "o",
+        advance_packet_id: "p",
+        position: 1,
+        title: "A",
+        prompt: "Q",
+        section_kind: "Text",
+        window_kind: null,
+        max_lines: null,
+        per_person: false,
+      },
     ]);
     expect((await addSection(db, { orgId: "o", packetId: "p", title: "A", prompt: null })).ok).toBe(
       false,
@@ -534,7 +566,16 @@ describe("sections and recipients", () => {
     expect(await addRecipient(db, input)).toEqual({ ok: true, data: { id: "r1" } });
     expect(calls[1]?.steps[0]).toEqual([
       "insert",
-      [{ org_id: "o1", advance_packet_id: "pk1", person_id: null, counterparty_id: "c1" }],
+      [
+        {
+          org_id: "o1",
+          advance_packet_id: "pk1",
+          person_id: null,
+          counterparty_id: "c1",
+          engagement_id: null,
+          names_due_at: null,
+        },
+      ],
     ]);
     const again = await addRecipient(db, { ...input, party: { kind: "person", id: "p1" } });
     expect(!again.ok && again.error.kind === "refusal" && again.error.rule).toBe(

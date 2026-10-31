@@ -12,6 +12,7 @@ import {
   ReconciliationTable,
   RunOfShowLive,
   StalenessIndicator,
+  StatusHeatmap,
   XOSProvider,
 } from "../src/index.ts";
 import { expectAccessible } from "./a11y.ts";
@@ -290,6 +291,84 @@ describe("matrices", () => {
     expect(onChange).toHaveBeenLastCalledWith(["Artist|Backstage"]);
     await userEvent.keyboard("{ArrowDown}{Enter}");
     expect(onChange).toHaveBeenCalledTimes(3);
+    await expectAccessible(container);
+  });
+});
+
+describe("StatusHeatmap", () => {
+  const legend = [
+    { state: "Missing", icon: "proposed" as const, label: "Missing" },
+    { state: "Awaiting Review", icon: "in-review" as const, label: "Awaiting review" },
+    { state: "Accepted", icon: "complete" as const, label: "Accepted" },
+  ];
+  const props = {
+    label: "Production Advance",
+    corner: "Recipient",
+    rows: [
+      { id: "r1", label: "Bayside Audio", sublabel: "Vendor" },
+      { id: "r2", label: "Arturo Bell" },
+    ],
+    cols: [
+      { id: "s1", label: "Power" },
+      { id: "s2", label: "Hotel" },
+    ],
+    cells: {
+      "r1:s1": { state: "Awaiting Review", href: "/demo/answers/1" },
+      "r1:s2": { state: "Accepted", detail: "Reviewed today" },
+      "r2:s1": { state: "Missing" },
+    },
+    legend,
+  };
+
+  it("moves with the arrow keys, opens a cell with Enter and labels every state", async () => {
+    const onCellSelect = vi.fn();
+    const { container } = render(<StatusHeatmap {...props} onCellSelect={onCellSelect} />);
+    const first = screen.getByRole("gridcell", { name: "Bayside Audio, Power: Awaiting review" });
+    expect(first.textContent).toContain("Awaiting review");
+    expect(first.querySelector("svg[data-state='in-review']")).not.toBeNull();
+    act(() => first.focus());
+    await userEvent.keyboard("{Enter}");
+    expect(onCellSelect).toHaveBeenCalledWith("r1", "s1", props.cells["r1:s1"]);
+    await userEvent.keyboard("{ArrowRight}");
+    expect(document.activeElement?.getAttribute("aria-label")).toBe(
+      "Bayside Audio, Hotel: Accepted. Reviewed today",
+    );
+    await userEvent.keyboard("{ArrowDown}");
+    expect(document.activeElement?.getAttribute("aria-label")).toBe(
+      "Arturo Bell, Hotel: not asked",
+    );
+    await userEvent.keyboard("{Enter}");
+    expect(onCellSelect).toHaveBeenCalledTimes(1);
+    await userEvent.keyboard("{Home}{ArrowUp}");
+    expect(document.activeElement).toBe(first);
+    await expectAccessible(container);
+  });
+
+  it("is its own table alternative, with a legend and selectable rows", async () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <StatusHeatmap {...props} selection={{ selected: ["r2"], onChange }} />,
+    );
+    expect(screen.getAllByRole("columnheader").map((h) => h.textContent)).toEqual([
+      "Recipient",
+      "Power",
+      "Hotel",
+    ]);
+    expect(screen.getAllByRole("rowheader").map((h) => h.textContent)).toEqual([
+      "Bayside AudioVendor",
+      "Arturo Bell",
+    ]);
+    expect(
+      within(screen.getByRole("list", { name: "What each state means" })).getAllByRole("listitem"),
+    ).toHaveLength(3);
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select Bayside Audio" }));
+    expect(onChange).toHaveBeenCalledWith(["r1", "r2"]);
+    expect(
+      screen
+        .getByRole("gridcell", { name: "Bayside Audio, Power: Awaiting review" })
+        .querySelector("a")
+        ?.getAttribute("href"),
+    ).toBe("/demo/answers/1");
     await expectAccessible(container);
   });
 });

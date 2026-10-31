@@ -10,7 +10,8 @@ select plan(17);
 
 select has_table('app', 'product_events', 'events live in app.product_events');
 select is((select relrowsecurity from pg_class where oid = 'app.product_events'::regclass), true, 'row level security is on');
-select is((select count(*)::int from private.product_workflows), 26, 'every workflow of Sections 11.11 to 11.13 is named');
+-- 26 from 1532, and R11's three advancing workflows (2745).
+select is((select count(*)::int from private.product_workflows), 29, 'every workflow of Sections 11.11 to 11.13 is named');
 select is_empty($$
   select a.attname from pg_attribute a where a.attrelid = 'app.product_events'::regclass and a.attnum > 0 and not a.attisdropped
     and a.attname in ('person_id', 'org_id', 'user_id', 'path', 'url', 'properties', 'email', 'ip')

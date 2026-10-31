@@ -99,6 +99,10 @@ export {
   dispatchPush,
   expoPushClient,
   outcomeOf,
+  ENGAGEMENT_OFFER_CATEGORY,
+  MESSAGE_REPLY_CATEGORY,
+  SHIFT_OFFER_CATEGORY,
+  pushCategoryFor,
   pushEnvSchema,
   pushMessage,
   readPushEnv,
@@ -119,6 +123,16 @@ export {
   type WebPushStore,
   webPushPayload,
 } from "./notifications/push.ts";
+export {
+  ACTION_PATH,
+  ACTION_TOKEN,
+  actionLinks,
+  actionPath,
+  isActionToken,
+  type ActionAudience,
+  type ActionLinkBases,
+  type MintedAction,
+} from "./notifications/action-links.ts";
 export {
   RecordingWebPushClient,
   WEB_PUSH_MAX_PAYLOAD,
@@ -304,6 +318,7 @@ export {
 export { scanStore, supabaseStorage } from "./scanning/stores.ts";
 export {
   buildPkpass,
+  passImages,
   passJson,
   readAppleWalletEnv,
   unconfiguredPassSigner,
@@ -311,6 +326,7 @@ export {
   type ApplePassConfig,
   type AppleSignerKeys,
   type AppleWalletEnv,
+  type PassFile,
   type PassSigner,
   type WalletLabels,
   type WalletPass,
@@ -349,7 +365,9 @@ export {
   callerPassLoader,
   parseWalletRequest,
   passFromRow,
+  publicBrandLogo,
   walletPassResponse,
+  type BrandLogo,
   type WalletDeps,
   type WalletRequest,
   type WalletResponse,

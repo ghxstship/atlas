@@ -65,6 +65,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
           state="active"
           stateLabel={t("people.directory.active")}
           backHref={withParams(base, search, { peek: null, full: null })}
+          historySubject={{ table: "app.memberships", id: person.membershipId }}
           actions={
             canAssign ? (
               <ButtonLink href={withParams(base, search, { assign: person.personId })} size="sm">

@@ -15,6 +15,7 @@ import {
 import { listGlAccounts } from "@xos/data/finance";
 import { listGateCriteria } from "@xos/data/projects";
 import { getNode } from "@xos/ia";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
@@ -28,6 +29,9 @@ import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panel
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import { Chart } from "@/components/platform/client/chart";
 import { ExportCsvButton, MatrixWithDrill } from "./client";
+
+/** A figure opened to the records behind it completes the Reports funnel (A146). */
+const DRILL = workflowMarker("atlas.reports:done");
 import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
@@ -224,6 +228,7 @@ export async function GateReadinessReport({ page }: { page: FinancePage }) {
             key="p"
             className="text-accent-text underline"
             href={`/${org}/p/${r.project.key}/gates` as Route}
+            {...DRILL}
           >
             {r.project.key}
           </Link>,
@@ -246,6 +251,7 @@ export async function GateReadinessReport({ page }: { page: FinancePage }) {
             key="p"
             className="text-accent-text underline"
             href={`/${org}/p/${r.project.key}/gates` as Route}
+            {...DRILL}
           >
             {r.project.key} · {r.project.name}
           </Link>,
@@ -366,6 +372,7 @@ export async function CoordinateMatrixReport({ page }: { page: FinancePage }) {
                   key={p.code}
                   className="text-accent-text underline"
                   href={recordsHref(d.code, p.code) as Route}
+                  {...DRILL}
                 >
                   {c.number(n)}
                 </Link>
@@ -533,7 +540,12 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         head={header}
         numeric={[2, 3, 4, 5, 6]}
         rows={rows.map((r) => [
-          <Link key="k" className="text-accent-text underline" href={drill(r.key) as Route}>
+          <Link
+            key="k"
+            className="text-accent-text underline"
+            href={drill(r.key) as Route}
+            {...DRILL}
+          >
             {keyLabel(r.key)}
           </Link>,
           ...line(r, "").slice(1),
@@ -660,6 +672,7 @@ export async function LaborReport({ page }: { page: FinancePage }) {
               key="p"
               className="text-accent-text underline"
               href={`/${org}/p/${p.project.key}/crew` as Route}
+              {...DRILL}
             >
               {p.project.key} · {p.project.name}
             </Link>,
@@ -683,6 +696,7 @@ export async function LaborReport({ page }: { page: FinancePage }) {
                 key="r"
                 className="text-accent-text underline"
                 href={`/${org}/crew/payroll-exports?peek=${r.payrollRunId}` as Route}
+                {...DRILL}
               >
                 {r.payrollRunId.slice(0, 8)}
               </Link>,

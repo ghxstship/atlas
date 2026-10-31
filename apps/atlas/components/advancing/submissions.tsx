@@ -1,4 +1,10 @@
-import { listSubmissions, type SubmissionFilter } from "@xos/data/advancing";
+import {
+  listAnswerDetails,
+  listProjectZones,
+  listSubmissions,
+  type SubmissionFilter,
+} from "@xos/data/advancing";
+import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
@@ -7,6 +13,7 @@ import { EmptyStateLink } from "@/components/ui";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
+import { AnswerDetails } from "./answer-details";
 import { ReviewForm } from "./forms";
 import { isRowId, partyLabel, withQuery, type Search } from "./shared";
 import { PageHeader, Tag, TemplateSplitView } from "./ui";
@@ -48,10 +55,23 @@ export async function SubmissionsSplit({
   // A reviewed answer leaves the queue, so an id it no longer holds falls back to its first answer;
   // a key that is no submission id at all (a record key from elsewhere) goes to the shell's peek.
   const selected = items.find((s) => s.id === peekId) ?? items[0];
+  // R9: the lines and files of the selected typed answer, and the docks a Load In or Load Out window books.
+  const dock = selected?.windowKind === "Load In" || selected?.windowKind === "Load Out";
+  const [details, zones] = await Promise.all([
+    selected && selected.sectionKind !== "Text"
+      ? listAnswerDetails(ctx.viewer.db, [selected.id])
+      : Promise.resolve(null),
+    selected && dock && can.review
+      ? listProjectZones(ctx.viewer.db, selected.projectId)
+      : Promise.resolve(null),
+  ]);
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const projectKey = (id: string) => projects.find((p) => p.id === id)?.key ?? "";
   const fixedProject = actx.project !== null && search["project"] === undefined;
+  // A reviewed answer leaves the queue, and its review form with it, in the commit that brings the result; the scope
+  // stays to hear of it (funnel signals, A146).
+  const reviews = items.map((s) => `${s.id}:${s.reviewedAt ?? ""}`).join(",");
 
   return (
     <CollectionPage gap={12} header={<PageHeader title={title} count={items.length} />}>
@@ -79,103 +99,135 @@ export async function SubmissionsSplit({
           }))}
         />
       </div>
-      {!selected ? (
-        <EmptyStateLink
-          icon="Inbox"
-          sentence={t(`advancing.submissions.empty.${review}`)}
-          actionLabel={t("advancing.submissions.viewPackets")}
-          href={packetsHref}
-        />
-      ) : (
-        <TemplateSplitView
-          listLabel={t("advancing.submissions.queue")}
-          list={
-            <ul
-              aria-label={t("advancing.submissions.queue")}
-              className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
-            >
-              {items.map((s) => (
-                <li key={s.id}>
-                  <Link
-                    href={withQuery(path, search, { peek: s.id }) as Route}
-                    aria-current={s.id === selected.id ? "true" : undefined}
-                    className="flex flex-col gap-2 px-12 py-8 hover:bg-bg-hover focus-visible:bg-bg-hover aria-[current=true]:bg-bg-hover"
-                  >
-                    <span className="truncate text-label-13 font-medium text-text-primary">
-                      {s.sectionTitle}
-                    </span>
-                    <span className="truncate text-text-12 text-text-secondary">
-                      {partyLabel(s.recipient, t)} · {projectKey(s.projectId)} · {s.packetTitle}
-                    </span>
-                    <span className="text-text-12 text-text-tertiary">{when(s.submittedAt)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          }
-          detail={
-            <article aria-labelledby="submission-title" className="flex flex-col gap-12">
-              <div className="flex flex-wrap items-center gap-8">
-                <h2 id="submission-title" className="m-0 text-heading-16 font-semibold">
-                  {selected.sectionTitle}
-                </h2>
-                {selected.viaLink ? (
-                  <Tag tone="accent">{t("advancing.answers.viaLink")}</Tag>
-                ) : null}
-                {selected.reviewOutcome ? (
-                  <Tag tone={selected.reviewOutcome === "Accepted" ? "success" : "warning"}>
-                    {t(`advancing.review.outcomes.${selected.reviewOutcome}`)}
-                  </Tag>
-                ) : (
-                  <Tag>{t("advancing.review.awaiting")}</Tag>
-                )}
-              </div>
-              <p className="m-0 text-text-13 text-text-secondary">
-                {t("advancing.submissions.from", {
-                  name: partyLabel(selected.recipient, t),
-                  date: when(selected.submittedAt),
-                })}
-              </p>
-              {selected.sectionPrompt ? (
-                <p className="m-0 text-text-13 text-text-secondary">{selected.sectionPrompt}</p>
-              ) : null}
-              <p className="m-0 whitespace-pre-wrap rounded-card border border-border-subtle p-12 text-text-14">
-                {selected.body}
-              </p>
-              {selected.returnReason ? (
-                <p className="m-0 text-text-13 text-text-secondary">
-                  {t("advancing.review.returnedBecause", { reason: selected.returnReason })}
-                </p>
-              ) : null}
-              {!selected.latest ? (
-                <p className="m-0 text-text-13 text-text-secondary">
-                  {t("advancing.submissions.superseded")}
-                </p>
-              ) : null}
-              {can.review && selected.reviewedAt === null ? (
-                <ReviewForm org={ctx.org.slug} submissionId={selected.id} />
-              ) : null}
-              {!can.review && selected.reviewedAt === null ? (
-                <p className="m-0 text-text-13 text-text-secondary">
-                  {t("advancing.review.needsAuthority")}
-                </p>
-              ) : null}
-              <Link
-                href={`${packetsHref}?peek=${selected.packetId}&full=1` as Route}
-                className="self-start text-text-13 text-accent-text hover:underline"
+      <ActionOutcomeScope token={reviews}>
+        {!selected ? (
+          <EmptyStateLink
+            icon="Inbox"
+            sentence={t(`advancing.submissions.empty.${review}`)}
+            actionLabel={t("advancing.submissions.viewPackets")}
+            href={packetsHref}
+          />
+        ) : (
+          <TemplateSplitView
+            listLabel={t("advancing.submissions.queue")}
+            list={
+              <ul
+                aria-label={t("advancing.submissions.queue")}
+                className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
               >
-                {t("advancing.submissions.openPacket", { title: selected.packetTitle })}
-              </Link>
-              <RecordCollab
-                actx={actx}
-                table="app.advance_submissions"
-                id={selected.id}
-                canUpload={can.review}
-              />
-            </article>
-          }
-        />
-      )}
+                {items.map((s) => (
+                  <li key={s.id}>
+                    <Link
+                      href={withQuery(path, search, { peek: s.id }) as Route}
+                      aria-current={s.id === selected.id ? "true" : undefined}
+                      className="flex flex-col gap-2 px-12 py-8 hover:bg-bg-hover focus-visible:bg-bg-hover aria-[current=true]:bg-bg-hover"
+                    >
+                      <span className="truncate text-label-13 font-medium text-text-primary">
+                        {s.sectionTitle}
+                      </span>
+                      <span className="truncate text-text-12 text-text-secondary">
+                        {partyLabel(s.recipient, t)} · {projectKey(s.projectId)} · {s.packetTitle}
+                      </span>
+                      <span className="text-text-12 text-text-tertiary">{when(s.submittedAt)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            }
+            detail={
+              <article aria-labelledby="submission-title" className="flex flex-col gap-12">
+                <div className="flex flex-wrap items-center gap-8">
+                  <h2 id="submission-title" className="m-0 text-heading-16 font-semibold">
+                    {selected.sectionTitle}
+                  </h2>
+                  {selected.viaLink ? (
+                    <Tag tone="accent">{t("advancing.answers.viaLink")}</Tag>
+                  ) : null}
+                  {selected.reviewOutcome ? (
+                    <Tag tone={selected.reviewOutcome === "Accepted" ? "success" : "warning"}>
+                      {t(`advancing.review.outcomes.${selected.reviewOutcome}`)}
+                    </Tag>
+                  ) : (
+                    <Tag>{t("advancing.review.awaiting")}</Tag>
+                  )}
+                </div>
+                <p className="m-0 text-text-13 text-text-secondary">
+                  {t("advancing.submissions.from", {
+                    name: partyLabel(selected.recipient, t),
+                    date: when(selected.submittedAt),
+                  })}
+                </p>
+                {selected.sectionPrompt ? (
+                  <p className="m-0 text-text-13 text-text-secondary">{selected.sectionPrompt}</p>
+                ) : null}
+                {details?.ok ? (
+                  <AnswerDetails
+                    org={ctx.org.slug}
+                    note={selected.note}
+                    accepted={selected.reviewOutcome === "Accepted"}
+                    bookable={dock && can.review}
+                    lines={details.data.lines}
+                    files={details.data.files}
+                    zones={(zones?.ok ? zones.data : []).map((z) => ({
+                      value: z.id,
+                      label: `${z.code} · ${z.name}`,
+                    }))}
+                    t={t}
+                    when={(iso, zone) =>
+                      format.dateTime(new Date(iso), {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                        ...(zone ? { timeZone: zone } : {}),
+                      })
+                    }
+                  />
+                ) : (
+                  <p className="m-0 whitespace-pre-wrap rounded-card border border-border-subtle p-12 text-text-14">
+                    {selected.body}
+                  </p>
+                )}
+                {selected.returnReason ? (
+                  <p className="m-0 text-text-13 text-text-secondary">
+                    {t("advancing.review.returnedBecause", { reason: selected.returnReason })}
+                  </p>
+                ) : null}
+                {!selected.latest ? (
+                  <p className="m-0 text-text-13 text-text-secondary">
+                    {t("advancing.submissions.superseded")}
+                  </p>
+                ) : null}
+                {can.review && selected.reviewedAt === null ? (
+                  <ReviewForm
+                    org={ctx.org.slug}
+                    submissionId={selected.id}
+                    typed={
+                      selected.sectionKind === "Item Request" ||
+                      selected.sectionKind === "Credential Request"
+                    }
+                  />
+                ) : null}
+                {!can.review && selected.reviewedAt === null ? (
+                  <p className="m-0 text-text-13 text-text-secondary">
+                    {t("advancing.review.needsAuthority")}
+                  </p>
+                ) : null}
+                <Link
+                  href={`${packetsHref}?peek=${selected.packetId}&full=1` as Route}
+                  className="self-start text-text-13 text-accent-text hover:underline"
+                >
+                  {t("advancing.submissions.openPacket", { title: selected.packetTitle })}
+                </Link>
+                <RecordCollab
+                  actx={actx}
+                  table="app.advance_submissions"
+                  id={selected.id}
+                  canUpload={can.review}
+                />
+              </article>
+            }
+          />
+        )}
+      </ActionOutcomeScope>
       {peekId && !isRowId(peekId) ? <PeekHandoff recordKey={peekId} /> : null}
     </CollectionPage>
   );

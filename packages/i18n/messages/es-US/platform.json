@@ -37,6 +37,7 @@
     "slug_reserved": "Esa dirección web está reservada por la plataforma. Elija otra.",
     "plan_unknown": "Ese plan no existe.",
     "plan_limit_exceeded": "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    "plan_limit_read_only": "Esto es de solo lectura porque la organización supera los límites de su plan. El aviso en la parte superior de la página indica qué límite y cómo levantarlo.",
     "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
     "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     "plan_feature_required": "Su plan no incluye esto. Mejore el plan para usarlo.",
@@ -577,7 +578,8 @@
       "account": {
         "security_changed": "Cambió la seguridad de la cuenta",
         "recovery_code_used": "Código de recuperación usado",
-        "session_signed_out": "Sesión cerrada"
+        "session_signed_out": "Sesión cerrada",
+        "work_details_moved": "Datos de trabajo pasados a cada proyecto"
       },
       "announcement": {
         "posted": "Anuncio publicado"
@@ -676,6 +678,9 @@
       "opportunity": {
         "matched": "Nueva oportunidad coincidente"
       },
+      "offer": {
+        "sent": "Oferta nueva"
+      },
       "onboarding": {
         "item_expiring": "Elemento de incorporación por vencer"
       },
@@ -692,6 +697,36 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "roster_entry": {
+        "invited": "Incluido en una lista de equipo",
+        "returned": "Entrada de la lista devuelta",
+        "declined": "Entrada de la lista rechazada",
+        "project_facts_entered": "Datos del proyecto ingresados para ti",
+        "removed": "Retirado de una lista de equipo",
+        "facts_requested": "Faltan datos del proyecto",
+        "share_revoked": "Datos de trabajo ya no compartidos"
+      },
+      "engagement": {
+        "roster_lock_changed": "Cambió el cierre de nombres"
+      },
+      "allocation": {
+        "decided": "Asignación decidida",
+        "assigned": "Asignación recibida",
+        "issued": "Asignación entregada",
+        "withdrawn": "Asignación retirada"
+      },
+      "advance_packet": {
+        "reminder": "Recordatorio de avance"
+      },
+      "advance_submission": {
+        "returned": "Respuesta de avance devuelta"
+      },
+      "submittal": {
+        "returned": "Entregable devuelto"
+      },
+      "credential": {
+        "revoked": "Credencial revocada"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

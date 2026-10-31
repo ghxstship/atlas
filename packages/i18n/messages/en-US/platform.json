@@ -37,6 +37,7 @@
     "slug_reserved": "That web address is reserved by the platform. Choose another.",
     "plan_unknown": "That plan does not exist.",
     "plan_limit_exceeded": "Your plan's limit is reached. Upgrade the plan or remove something first.",
+    "plan_limit_read_only": "This is read-only because the organization is over its plan's limits. The banner at the top of the page says which limit and how to lift it.",
     "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
     "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     "plan_feature_required": "Your plan does not include this. Upgrade the plan to use it.",
@@ -577,7 +578,8 @@
       "account": {
         "security_changed": "Account security changed",
         "recovery_code_used": "Recovery code used",
-        "session_signed_out": "Session signed out"
+        "session_signed_out": "Session signed out",
+        "work_details_moved": "Work details moved to each project"
       },
       "announcement": {
         "posted": "Announcement posted"
@@ -676,6 +678,9 @@
       "opportunity": {
         "matched": "New opportunity match"
       },
+      "offer": {
+        "sent": "New offer"
+      },
       "onboarding": {
         "item_expiring": "Onboarding item expiring"
       },
@@ -692,6 +697,36 @@
       },
       "content": {
         "removed": "Your content removed"
+      },
+      "roster_entry": {
+        "invited": "Put on a crew roster",
+        "returned": "Roster entry returned",
+        "declined": "Roster entry declined",
+        "project_facts_entered": "Project details entered for you",
+        "removed": "Taken off a crew roster",
+        "facts_requested": "Project details needed",
+        "share_revoked": "Work details no longer shared"
+      },
+      "engagement": {
+        "roster_lock_changed": "Names lock changed"
+      },
+      "allocation": {
+        "decided": "Allocation decided",
+        "assigned": "Allocation given to you",
+        "issued": "Allocation handed over",
+        "withdrawn": "Allocation withdrawn"
+      },
+      "advance_packet": {
+        "reminder": "Advance reminder"
+      },
+      "advance_submission": {
+        "returned": "Advance answer returned"
+      },
+      "submittal": {
+        "returned": "Submittal returned"
+      },
+      "credential": {
+        "revoked": "Credential revoked"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",
