@@ -1,0 +1,68 @@
+import { isCharacterKey } from "@xos/schemas/shortcuts/keys";
+
+/**
+ * The showcaller console's keys (ADR 0131): which console action a chord pressed in the console makes,
+ * from the shortcut registry's show scope with the person's own bindings. Pure, so the rule is tested
+ * without a page: letters and symbols obey me.shortcuts_enabled, function keys F13 to F20 always answer
+ * (WCAG 2.1.4 covers character keys only), and Space stays with RunOfShowLive so one press makes one call.
+ */
+
+export type ShowAction =
+  "go" | "standby" | "previous" | "next" | "jump" | "nudge-later" | "nudge-earlier" | "department";
+
+const ACTIONS: readonly ShowAction[] = [
+  "go",
+  "standby",
+  "previous",
+  "next",
+  "jump",
+  "nudge-later",
+  "nudge-earlier",
+  "department",
+];
+
+/** The console action a registry id names: show.next and show.deck.next are both Next. */
+export function showActionOf(id: string): ShowAction | null {
+  if (!id.startsWith("show.")) return null;
+  const name = id.replace(/^show\.(?:deck\.)?/, "");
+  return (ACTIONS as readonly string[]).includes(name) ? (name as ShowAction) : null;
+}
+
+/**
+ * The action for a chord, or null when the console leaves the key alone. `scoped` is the person's
+ * scoped keys by registry id (ShellKeys.scoped); `singleKeys` is me.shortcuts_enabled as applied.
+ */
+export function showKeyAction(
+  chord: string,
+  scoped: Readonly<Record<string, string>>,
+  singleKeys: boolean,
+): ShowAction | null {
+  if (chord === "Space") return null;
+  const id = Object.keys(scoped).find((k) => scoped[k] === chord && showActionOf(k) !== null);
+  if (id === undefined) return null;
+  if (isCharacterKey(chord) && !singleKeys) return null;
+  return showActionOf(id);
+}
+
+/**
+ * The cue Previous or Next puts on standby, as an index into the position-ordered cues, or undefined when there is
+ * none that way. They move from the picked cue, else the standby cue, else the current cue, so with nothing on
+ * standby the first Next stands by the next cue rather than the one after it; called cues are passed over and
+ * skipped ones are not.
+ */
+export function stepTarget(
+  cues: readonly { readonly calledAt: string | null }[],
+  at: {
+    readonly picked: number;
+    readonly current: number;
+    readonly next: number;
+    readonly standby: boolean;
+  },
+  direction: -1 | 1,
+): number | undefined {
+  const from = at.picked >= 0 ? at.picked : at.standby ? at.next : at.current;
+  const uncalled = cues.flatMap((c, i) => (c.calledAt === null ? [i] : []));
+  return direction === 1
+    ? uncalled.find((i) => i > from)
+    : [...uncalled].reverse().find((i) => i < from);
+}

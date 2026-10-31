@@ -423,6 +423,8 @@ export interface SharedRecord {
   readonly state: RecordState;
   readonly title: string;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed: Gateway shows TBC, not the time. */
+  readonly startTbc: boolean;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
@@ -440,7 +442,7 @@ export async function listSharedRecords(
   let query = external(db)
     .from("records")
     .select(
-      "id, project_id, record_kind, record_subtype, record_state, title, starts_at, ends_at, due_at, time_zone",
+      "id, project_id, record_kind, record_subtype, record_state, title, starts_at, start_tbc, ends_at, due_at, time_zone",
     );
   if (filter.projectIds) query = query.in("project_id", filter.projectIds);
   if (filter.kinds) query = query.in("record_kind", filter.kinds);
@@ -454,6 +456,7 @@ export async function listSharedRecords(
     state: req(row.record_state, "records.record_state"),
     title: req(row.title, "records.title"),
     startsAt: row.starts_at,
+    startTbc: row.start_tbc === true,
     endsAt: row.ends_at,
     dueAt: row.due_at,
     timeZone: row.time_zone,

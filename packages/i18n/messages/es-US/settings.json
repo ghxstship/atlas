@@ -271,7 +271,7 @@
     },
     "shortcutsEnabled": {
       "label": "Atajos de teclado",
-      "help": "Atajos de una tecla como J, K y ? en el escritorio."
+      "help": "Atajos de una tecla de carácter como J, K y ? en el escritorio. Las teclas de función F13 a F20, como las de un Stream Deck, siempre funcionan."
     },
     "messageTranslation": {
       "label": "Traducir mensajes del chat",
@@ -806,7 +806,7 @@
     "resetOne": "{action} vuelve a usar sus teclas predeterminadas.",
     "resetAll": "Restablecer todos los atajos",
     "resetAllDone": "Todos los atajos vuelven a usar sus teclas predeterminadas.",
-    "singleKeysOff": "Los atajos de una sola tecla están desactivados, así que los atajos sin Ctrl, Cmd o Alt no hacen nada. Activa Atajos de teclado arriba para usarlos.",
+    "singleKeysOff": "Los atajos de una sola tecla están desactivados, así que las teclas de carácter sin Ctrl, Cmd o Alt no hacen nada. Las teclas de función F13 a F20 siguen funcionando. Activa Atajos de teclado arriba para usarlos.",
     "fixed": "Esc, Intro y las teclas de lista J, K y X pertenecen a todas las listas y diálogos, así que no cambian. La Ayuda muestra todos los atajos.",
     "problems": {
       "conflict": "{keys} ya hace {action}. Cambia primero ese atajo o elige otras teclas.",

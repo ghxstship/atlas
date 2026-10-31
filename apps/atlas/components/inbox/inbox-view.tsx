@@ -83,8 +83,9 @@ async function sendAct(org: string, id: string, action: Quick): Promise<Platform
 /**
  * The Inbox list (Section 11.10 rule 5). Keyboard: J or Down and K or Up move between items, A approves,
  * R rejects with a reason, E marks Done, H snoozes until tomorrow and Enter opens the item, as the
- * person's shortcuts say (Personal settings, Keyboard Shortcuts). Single keys obey me.shortcuts_enabled;
- * the arrow keys and Enter always work. Acting removes the item at once and moves to the next, so a queue
+ * person's shortcuts say (Personal settings, Keyboard Shortcuts). Single character-key shortcuts obey
+ * me.shortcuts_enabled; function keys F13 to F20 do not, because WCAG 2.1.4 covers character keys only.
+ * The arrow keys and Enter always work. Acting removes the item at once and moves to the next, so a queue
  * is cleared without waiting; a refusal puts the item back and says why.
  *
  * The selection is held by item id, not by position, and the focus moves to the neighbour before the
