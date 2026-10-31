@@ -9,8 +9,9 @@ set search_path = extensions, public;
 select plan(9);
 
 select is((select array_agg(setting_key::text order by setting_key) from private.setting_definitions
-  where setting_key like 'me.dashboard_layout.%'), array['me.dashboard_layout.home', 'me.dashboard_layout.partner'],
-  'both dashboard layouts are registered');
+  where setting_key like 'me.dashboard_layout.%'),
+  array['me.dashboard_layout.home', 'me.dashboard_layout.partner', 'me.dashboard_layout.show_day', 'me.dashboard_layout.today'],
+  'every dashboard layout is registered: Home and the partner console (2220), Show day and Today (B6, 2953)');
 select ok((select allows_personal and not (allows_organization or allows_workspace or allows_team or allows_project)
   from private.setting_definitions where setting_key = 'me.dashboard_layout.home'), 'a dashboard layout is personal only');
 select is((select max_length from private.setting_definitions where setting_key = 'me.dashboard_layout.partner'),
