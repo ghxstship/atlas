@@ -37,7 +37,11 @@ and waste plans. Four questions had no recorded answer:
    (`ai_suggestion_batch_apply`). Rejecting one stays allowed. The suggestions name real public
    operations: `aurora.applyItineraries`, `aurora.applyContracts`, `riders.create`, `riderLines.create` and
    `aurora.applyAdvanceAnswer`. Every resource names its own op, so the batch operations are
-   `auroraIntakes.start`, `get`, `close`, `applyItineraries` and `applyContracts` under `/aurora/intakes`.
+   `auroraIntakes.start`, `get`, `close`, `checkItineraries`, `applyItineraries` and `applyContracts` under
+   `/aurora/intakes`. A segment the traveler already has as a live segment of the org (same service and
+   departure) refuses the whole apply (`itinerary_duplicate`), so the preview asks `checkItineraries`
+   whenever a row's traveler, service or departure changes and starts such rows unchecked. The check reads
+   `app.travel_segments` in the caller's session: it is a hint, and the apply still decides.
 3. **Direct bookings.** Contract intake books Artist engagements at Onboarding without an application or an
    offer (Section 4.4.4 stages 3 to 5): the signed contract stands for the accepted offer. The person sets
    the party (a person the org already holds, an account, or both), the role, the worker classification,
@@ -48,8 +52,10 @@ and waste plans. Four questions had no recorded answer:
    caller reads pay rates (`app.my_capabilities_on_project`), never from a client flag; otherwise it is
    NO_ANSWER. `app.ai_propose_suggestion` marks such a field with `restricted_capability` itself, from
    `private.ai_restricted_fields`, and refuses a value from a caller without the capability
-   (`aurora_field_restricted`); the field is hidden from anyone without it, audit.log.read holders
-   included. The logged output shows `[Restricted]` for the fee and its excerpt, and every money amount of
+   (`aurora_field_restricted`); a marked field is hidden from anyone without it, audit.log.read holders
+   included. Only a field with a value or an excerpt is marked, since an excerpt can quote the fee: a
+   NO_ANSWER fee with neither stays readable, so the reason it was not read ("Fees are read only by
+   someone who may see pay rates.") reaches everyone who may read the suggestion. The logged output shows `[Restricted]` for the fee and its excerpt, and every money amount of
    a contract's other excerpts is withheld the same way, since a date excerpt can quote the fee. Applying
    a fee without the capability refuses `intake_fee_restricted`. A person-chosen document may contain
    values that become Restricted once written; reading the document is not reading a Restricted column
@@ -80,7 +86,10 @@ and waste plans. Four questions had no recorded answer:
    or a tax rate: the budget line always comes from the person.
 9. **Governance drafts.** Event plans, briefs, approval packs and waste plans are prose drafts with subject
    null (a drafting request about `app.projects` is P6's drafted risk list), read from the project's own
-   records through the caller's permissions and held to a fixed outline in the person's locale. "Save to
+   records through the caller's permissions and held to a fixed outline in the person's locale. An
+   insurance certificate belongs to a vendor, not a project, so an approval pack sends only the
+   certificates of the project vendors: the vendors of its purchase orders and of its live Vendor
+   engagements. "Save to
    project documents" files the Markdown as a project document whose first line is the AI label; the file
    becomes the document's first version once it scans Clean.
 
@@ -92,5 +101,8 @@ and waste plans. Four questions had no recorded answer:
   party sees it labeled and may ask for it to be returned.
 - Mail as a source works in production only once the inbound domain of decision 60 is live; until then the
   mail lists are empty and file sources work.
-- Open: an already-booked itinerary row is known only when the apply refuses it (`itinerary_duplicate`);
-  the preview unchecks rows that repeat another row of the batch.
+- The handler asks the model for a fee when the caller reads pay rates on the batch's project
+  (`app.my_capabilities_on_project`), while storing and reading the fee need the capability across the
+  org (`private.has_capability`). Someone who reads pay rates only through a project role is asked for
+  the fee, and storing it then refuses `aurora_field_restricted` after a metered request. Open: an
+  org-wide check the API can call would close the gap.
