@@ -91,7 +91,9 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
 | [0130](0130-live-share-links-and-display-screens.md)                | Live Share Links to Saved Views and Run-of-Show Display Screens                  | Accepted |
 | [0131](0131-show-calling-and-stream-deck-keys.md)                   | Show Calling: TBC Times, Standby, Cue Moves and Stream Deck Keys                 | Accepted |
+| [0142][adr-0142]                                                    | Run-of-Show Depth, Show Channels and Showcaller Links                            | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 
 [adr-0105]: 0105-allergies-restricted-and-workforce-role-capabilities.md
+[adr-0142]: 0142-run-of-show-depth-show-channels-and-showcaller-links.md
