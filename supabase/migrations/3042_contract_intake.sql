@@ -245,6 +245,7 @@ begin
         end if;
         if v_person is not null and not exists (
              select 1 from app.memberships m where m.person_id = v_person and m.org_id = v_batch.org_id and m.deleted_at is null
+               and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now())
              union all
              select 1 from app.engagements e where e.person_id = v_person and e.org_id = v_batch.org_id and e.deleted_at is null
              union all

@@ -121,6 +121,14 @@ select throws_ok($$select app.apply_itinerary_intake((select id from world where
     jsonb_build_array(pg_temp.item('s1', pg_temp.traveler('ivy', '2027-06-01T12:15:00Z')),
       pg_temp.item('s3', pg_temp.traveler('art', '2027-06-03T14:00:00Z'))))$$,
   'XR001', 'itinerary_duplicate: Item 2 is already booked for this traveler.', 'a segment the traveler already has is refused');
+
+-- Another org's booking of the same traveler never counts as a repeat here (the apply below writes ivy's GA 100).
+select pg_temp.as_user('xavier');
+insert into app.travel_segments (project_id, person_id, travel_mode, service_identifier, departs_from, departs_at,
+    departs_time_zone, arrives_at_place, arrives_time_zone)
+  values (pg_temp.id('prj_b'), pg_temp.id('ivy'), 'Flight', 'GA 100', 'MIA', '2027-06-01T12:15:00Z', 'America/New_York', 'ORD',
+    'America/Chicago');
+select pg_temp.as_user('dave');
 select is(pg_temp.segments(), 1, 'no refused apply wrote a segment');
 select is((select count(*)::int from app.ai_suggestions where request_id = pg_temp.id('r1') and suggestion_state = 'Proposed'), 4,
   'and every suggestion is still Proposed');

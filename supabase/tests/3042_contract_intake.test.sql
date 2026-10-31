@@ -98,6 +98,17 @@ select throws_ok($$select app.apply_contract_intake((select id from world where 
     'act_name', 'Quinn', 'engagement', jsonb_build_object('mode', 'new', 'values', pg_temp.terms(jsonb_build_object('person_id', (select id from world where key = 'quinn'),
       'start_date', '2027-06-04'))))))$$,
   'XR001', 'intake_group_party: Act 1: the person is not one of the org''s people.', 'a person outside the org is refused');
+-- A membership that has ended no longer makes someone one of the org's people, as in the candidates.
+select pg_temp.as_platform();
+update app.memberships set valid_from = now() - interval '10 days', valid_to = now() - interval '1 day' where id = pg_temp.id('gina@org_a');
+select pg_temp.as_user('carol');
+select throws_ok($$select app.apply_contract_intake((select id from world where key = 'b_c'), jsonb_build_array(jsonb_build_object(
+    'act_name', 'Gina', 'engagement', jsonb_build_object('mode', 'new', 'values', pg_temp.terms(jsonb_build_object('person_id', (select id from world where key = 'gina'),
+      'start_date', '2027-06-04'))))))$$,
+  'XR001', 'intake_group_party: Act 1: the person is not one of the org''s people.', 'a former member is refused');
+select pg_temp.as_platform();
+update app.memberships set valid_to = null where id = pg_temp.id('gina@org_a');
+select pg_temp.as_user('carol');
 select throws_ok($$select app.apply_contract_intake((select id from world where key = 'b_c'), jsonb_build_array(jsonb_build_object(
     'act_name', 'The Midnight Owls', 'engagement', jsonb_build_object('mode', 'new', 'contract_suggestion_id', (select id from world where key = 'c1'),
       'values', pg_temp.terms(jsonb_build_object('person_id', (select id from world where key = 'ivy'), 'agreed_rate_minor', 750000))))))$$,

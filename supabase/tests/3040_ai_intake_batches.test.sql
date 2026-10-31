@@ -192,8 +192,16 @@ select throws_ok($$select app.ai_propose_suggestion((select id from world where 
 select lives_ok($$insert into world values ('s_nofee', app.ai_propose_suggestion((select id from world where key = 'r_fee_carol'), 'aurora.applyContracts', null,
   'Book the act.', '[{"field_path": "fee_minor", "refusal": "NO_ANSWER", "missing": "Fees are read only by someone who may see pay rates."}]'))$$,
   'a NO_ANSWER fee is stored for them');
-select is(pg_temp.n('carol', 'select 1 from app.ai_suggestion_fields where suggestion_id = (select id from world where key = ''s_nofee'')'), 0,
-  'and stays hidden from them as Restricted');
+select is(pg_temp.n('carol', 'select 1 from app.ai_suggestion_fields where suggestion_id = (select id from world where key = ''s_nofee'') and missing is not null'), 1,
+  'and they read why: with no value and no excerpt it holds nothing Restricted');
+select is((select restricted_capability from app.ai_suggestion_fields where suggestion_id = pg_temp.id('s_nofee')), null,
+  'so the database leaves it unmarked');
+select pg_temp.as_user('carol');
+select lives_ok($$insert into world values ('s_excerpt', app.ai_propose_suggestion((select id from world where key = 'r_fee_carol'), 'aurora.applyContracts', null,
+  'Book the act.', '[{"field_path": "fee_minor", "refusal": "NO_ANSWER", "missing": "Not read.", "source_excerpt": "Guarantee: USD 7,500"}]'))$$,
+  'an excerpt without a value is stored');
+select is(pg_temp.n('carol', 'select 1 from app.ai_suggestion_fields where suggestion_id = (select id from world where key = ''s_excerpt'')'), 0,
+  'but an excerpt can quote the fee, so it stays hidden as Restricted');
 
 -- Trash and privileges -----------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();

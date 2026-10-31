@@ -17,8 +17,9 @@
 --      instead of redefining app.transition_ai_suggestion again (2830).
 --   5. app.ai_suggestion_fields.restricted_capability: app.ai_propose_suggestion (from 0650, no later redefinition) sets
 --      it itself from private.ai_restricted_fields, never from the caller, and refuses aurora_field_restricted when a
---      Restricted field carries a value the caller may not read. The read policy hides such a field from anyone
---      without the capability, audit.log.read holders included. ai_suggestion_fields_value_or_refusal is unchanged.
+--      Restricted field carries a value the caller may not read. Only a field with a value or an excerpt is marked: a
+--      NO_ANSWER fee stays readable with its reason. The read policy hides a marked field from anyone without the
+--      capability, audit.log.read holders included. ai_suggestion_fields_value_or_refusal is unchanged.
 --   6. Comments on app.ai_settings.extraction_enabled (0650), drafting_enabled and app.ai_suggestions.operation_id
 --      (2830), extended with the new kinds.
 -- 3045 to 3049 are reserved and unused.
@@ -310,6 +311,10 @@ begin
     if v_capability is not null and v_has_value and not private.has_capability(v_request.org_id, v_capability) then
       perform private.refuse('aurora_field_restricted', 'This value is Restricted and was not read for you.');
     end if;
+    -- A field with neither a value nor an excerpt holds nothing Restricted, so its reason stays readable.
+    if not v_has_value and nullif(btrim(v_field ->> 'source_excerpt'), '') is null then
+      v_capability := null;
+    end if;
     insert into app.ai_suggestion_fields (suggestion_id, field_path, proposed_value, confidence, refusal, missing, source_excerpt,
       position, restricted_capability)
     values (v_suggestion, v_field ->> 'field_path',
@@ -326,7 +331,7 @@ begin
 end;
 $$;
 
-comment on function app.ai_propose_suggestion(uuid, text, uuid, text, jsonb) is 'Stores a change an answered request proposes, with its fields (field_path, value, confidence, or refusal NO_ANSWER with missing, and source_excerpt). Only the person who asked. Nothing is written to the target until they confirm. A field listed in private.ai_restricted_fields for the operation gets its restricted_capability set here, never from the caller, and a value in it from a caller without that capability refuses aurora_field_restricted (B15).';
+comment on function app.ai_propose_suggestion(uuid, text, uuid, text, jsonb) is 'Stores a change an answered request proposes, with its fields (field_path, value, confidence, or refusal NO_ANSWER with missing, and source_excerpt). Only the person who asked. Nothing is written to the target until they confirm. A field listed in private.ai_restricted_fields for the operation gets its restricted_capability set here when it carries a value or an excerpt, never from the caller, and a value in it from a caller without that capability refuses aurora_field_restricted (B15).';
 
 call private.install_policies('app.ai_suggestion_fields',
   'private.ai_suggestion_visible(suggestion_id) and (restricted_capability is null or private.has_capability(org_id, restricted_capability))');
