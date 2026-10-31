@@ -153,11 +153,20 @@ function world() {
     },
     {
       acts_without_rooms: (args) => {
-        if (args["p_project_id"] !== PROJECT) throw { code: "42501", message: "hospitality.fulfillment.read is required" };
-        return [{ engagement_id: id(60), act_name: "Arturo Bell", engagement_state: "Onboarding", people_count: 1 }];
+        if (args["p_project_id"] !== PROJECT)
+          throw { code: "42501", message: "hospitality.fulfillment.read is required" };
+        return [
+          {
+            engagement_id: id(60),
+            act_name: "Arturo Bell",
+            engagement_state: "Onboarding",
+            people_count: 1,
+          },
+        ];
       },
       rooming_list: (args) => {
-        if (args["p_project_id"] !== PROJECT) throw { code: "42501", message: "hospitality.fulfillment.read is required" };
+        if (args["p_project_id"] !== PROJECT)
+          throw { code: "42501", message: "hospitality.fulfillment.read is required" };
         return [
           {
             roster_entry_id: id(70),
@@ -166,7 +175,9 @@ function world() {
             person_id: id(2),
             person_name: "Kai Morgan",
             role_code: "9000.50.02",
-            suggested_stays: [{ check_in_on: "2027-06-01", check_out_on: "2027-06-04", source: "Travel" }],
+            suggested_stays: [
+              { check_in_on: "2027-06-01", check_out_on: "2027-06-04", source: "Travel" },
+            ],
             assigned_stays: [],
             uncovered_nights: 3,
             status: "Missing",
@@ -193,20 +204,29 @@ describe("Hospitality: flights, transfers, space bookings, local contacts and ni
 
   it("lists and reads transfers and vehicles", async () => {
     const http = world();
-    const page = (await expectContract(await success(http.get("/transfers")), "transfers.list")) as {
+    const page = (await expectContract(
+      await success(http.get("/transfers")),
+      "transfers.list",
+    )) as {
       data: { status: string }[];
     };
     expect(page.data[0]?.status).toBe("Assigned");
     await expectContract(await success(http.get(`/transfers/${id(20)}`)), "transfers.get");
     await expectContract(await success(http.get("/transfer-vehicles")), "transferVehicles.list");
-    await expectContract(await success(http.get(`/transfer-vehicles/${id(21)}`)), "transferVehicles.get");
+    await expectContract(
+      await success(http.get(`/transfer-vehicles/${id(21)}`)),
+      "transferVehicles.get",
+    );
   });
 
   it("lists and reads space bookings, and lists local contacts", async () => {
     const http = world();
     await expectContract(await success(http.get("/space-bookings")), "spaceBookings.list");
     await expectContract(await success(http.get(`/space-bookings/${id(30)}`)), "spaceBookings.get");
-    const contacts = (await expectContract(await success(http.get("/local-contacts")), "localContacts.list")) as {
+    const contacts = (await expectContract(
+      await success(http.get("/local-contacts")),
+      "localContacts.list",
+    )) as {
       data: { phone: string | null }[];
     };
     expect(contacts.data[0]?.phone).toBe("+13055550100");
@@ -214,7 +234,10 @@ describe("Hospitality: flights, transfers, space bookings, local contacts and ni
 
   it("lists nights, the acts without rooms and the rooming list", async () => {
     const http = world();
-    await expectContract(await success(http.get("/accommodation-nights")), "accommodationNights.list");
+    await expectContract(
+      await success(http.get("/accommodation-nights")),
+      "accommodationNights.list",
+    );
     const acts = (await expectContract(
       await success(http.get(`/accommodation-nights/acts-without-rooms?project_id=${PROJECT}`)),
       "accommodationNights.actsWithoutRooms",
@@ -225,6 +248,8 @@ describe("Hospitality: flights, transfers, space bookings, local contacts and ni
       "accommodationNights.roomingList",
     )) as { data: { status: string }[] };
     expect(rooming.data[0]?.status).toBe("Missing");
-    expect((await http.get(`/accommodation-nights/rooming-list?project_id=${id(98)}`)).status).toBe(404);
+    expect((await http.get(`/accommodation-nights/rooming-list?project_id=${id(98)}`)).status).toBe(
+      404,
+    );
   });
 });

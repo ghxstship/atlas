@@ -126,7 +126,11 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     entity: "Ground transfers and vehicles",
     operations: [...read("transfers"), ...read("transferVehicles")],
   },
-  { module: "Hospitality", entity: "Green room and dressing room bookings", operations: read("spaceBookings") },
+  {
+    module: "Hospitality",
+    entity: "Green room and dressing room bookings",
+    operations: read("spaceBookings"),
+  },
   { module: "Hospitality", entity: "Local contacts", operations: ["localContacts.list"] },
   {
     module: "Hospitality",

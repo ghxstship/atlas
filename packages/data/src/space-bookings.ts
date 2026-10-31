@@ -116,7 +116,10 @@ export function toSpaceBooking(row: BoardRow): SpaceBooking {
 }
 
 /** Live bookings in start order. */
-export async function listSpaceBookings(db: XosClient, scope: OperationsScope): Promise<Result<SpaceBooking[]>> {
+export async function listSpaceBookings(
+  db: XosClient,
+  scope: OperationsScope,
+): Promise<Result<SpaceBooking[]>> {
   let query = db.from("space_booking_board").select(BOARD_COLUMNS).eq("org_id", scope.orgId);
   if (scope.projectId) query = query.eq("project_id", scope.projectId);
   const { data, error } = await query.order("starts_at").order("space_name");
@@ -133,7 +136,9 @@ export function conflictGroups(bookings: readonly SpaceBooking[]): SpaceBooking[
     list.push(b);
     groups.set(b.conflictGroup, list);
   }
-  return [...groups.values()].map((g) => [...g].sort((a, b) => a.startsAt.localeCompare(b.startsAt)));
+  return [...groups.values()].map((g) =>
+    [...g].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+  );
 }
 
 export interface SpaceBookingInput {
@@ -189,21 +194,39 @@ export async function createSpaceBooking(
   projectId: string,
   input: SpaceBookingInput,
 ): Promise<Result<{ id: string }>> {
-  const row: Derived<Tables["space_bookings"]["Insert"]> = { project_id: projectId, ...bookingColumns(input) };
-  const { data, error } = await db.from("space_bookings").insert(row as Tables["space_bookings"]["Insert"]).select("id");
+  const row: Derived<Tables["space_bookings"]["Insert"]> = {
+    project_id: projectId,
+    ...bookingColumns(input),
+  };
+  const { data, error } = await db
+    .from("space_bookings")
+    .insert(row as Tables["space_bookings"]["Insert"])
+    .select("id");
   if (error) return fail(toDataError(error));
   const created = data?.[0];
   return created ? ok(created) : fail({ kind: "not-found" });
 }
 
-export async function updateSpaceBooking(db: XosClient, id: string, input: SpaceBookingInput): Promise<Result<null>> {
-  const { data, error } = await db.from("space_bookings").update(bookingColumns(input)).eq("id", id).select("id");
+export async function updateSpaceBooking(
+  db: XosClient,
+  id: string,
+  input: SpaceBookingInput,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("space_bookings")
+    .update(bookingColumns(input))
+    .eq("id", id)
+    .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
 /** Cancels a booking, or restores it with `deleted` false; the guard checks the space again. */
-export async function cancelSpaceBooking(db: XosClient, id: string, deleted = true): Promise<Result<null>> {
+export async function cancelSpaceBooking(
+  db: XosClient,
+  id: string,
+  deleted = true,
+): Promise<Result<null>> {
   const { data, error } = await db
     .from("space_bookings")
     .update({ deleted_at: deleted ? new Date().toISOString() : null })
@@ -211,4 +234,62 @@ export async function cancelSpaceBooking(db: XosClient, id: string, deleted = tr
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+export interface SetTimeOption {
+  /** The engagement cue (app.engagement_cues) a booking names. */
+  readonly id: string;
+  readonly engagementId: string;
+  readonly label: string;
+  readonly plannedAt: string | null;
+  readonly durationMinutes: number | null;
+}
+
+/** "01:15:00" or "75 minutes" style intervals as minutes; null when unknown. */
+export function intervalMinutes(raw: string | null): number | null {
+  if (!raw) return null;
+  const clock = /^(\d+):(\d{2})(?::(\d{2}))?$/.exec(raw.trim());
+  if (clock)
+    return Number(clock[1]) * 60 + Number(clock[2]) + Math.round(Number(clock[3] ?? 0) / 60);
+  const minutes = /^(\d+) min/.exec(raw.trim());
+  return minutes ? Number(minutes[1]) : null;
+}
+
+/** Artist set times of a project the reader may read (show.run_of_show.read), in planned order. Cues carry their
+ * project (0412), so the engagement itself, read with opportunities.engagement.read, is never needed. */
+export async function listProjectSetTimes(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<SetTimeOption[]>> {
+  const { data, error } = await db
+    .from("engagement_cues")
+    .select(
+      "id, engagement_id, cue:cues!engagement_cues_cue_id_fkey!inner(project_id, label, planned_at, duration, deleted_at)",
+    )
+    .is("deleted_at", null)
+    .eq("cue.project_id", projectId);
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as unknown as {
+    id: string;
+    engagement_id: string;
+    cue: {
+      project_id: string;
+      label: string;
+      planned_at: string | null;
+      duration: string | null;
+      deleted_at: string | null;
+    } | null;
+  }[];
+  return ok(
+    rows
+      .filter((r) => r.cue?.project_id === projectId && r.cue.deleted_at === null)
+      .map((r) => ({
+        id: r.id,
+        engagementId: r.engagement_id,
+        label: r.cue?.label ?? "",
+        plannedAt: r.cue?.planned_at ?? null,
+        durationMinutes: intervalMinutes(r.cue?.duration ?? null),
+      }))
+      .sort((a, b) => (a.plannedAt ?? "").localeCompare(b.plannedAt ?? "")),
+  );
 }

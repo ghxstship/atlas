@@ -25,9 +25,15 @@ const projectQuery = z.object({
 const ActWithoutRoom = z
   .object({
     engagement_id: fields.uuid("Artist engagement."),
-    act_name: orNull(z.string().meta({ description: "Supplying account, else the artist.", example: "Arturo Bell" })),
+    act_name: orNull(
+      z
+        .string()
+        .meta({ description: "Supplying account, else the artist.", example: "Arturo Bell" }),
+    ),
     engagement_state: z.string().meta({ description: "Engagement state.", example: "Onboarding" }),
-    people_count: z.int().meta({ description: "People of the act: the artist and live roster people.", example: 3 }),
+    people_count: z
+      .int()
+      .meta({ description: "People of the act: the artist and live roster people.", example: 3 }),
   })
   .meta({
     id: "ActWithoutRoom",
@@ -40,45 +46,70 @@ const Stay = z
     check_in_on: fields.date("First night."),
     check_out_on: fields.date("Departure day."),
     source: z.enum(["Credentials", "Travel"]).meta({
-      description: "Credentials (access days, for credentials.credential.read holders) or Travel (the travel request dates).",
+      description:
+        "Credentials (access days, for credentials.credential.read holders) or Travel (the travel request dates).",
       example: "Credentials",
     }),
   })
-  .meta({ id: "SuggestedStay", description: "A stay suggested from access days or travel dates; never stored." });
+  .meta({
+    id: "SuggestedStay",
+    description: "A stay suggested from access days or travel dates; never stored.",
+  });
 
 const AssignedStay = z
   .object({
     assignment_id: fields.uuid("Room assignment."),
     block_id: fields.uuid("Accommodation block."),
-    block_title: orNull(z.string().meta({ description: "Block name.", example: "Harborview Crew Block" })),
+    block_title: orNull(
+      z.string().meta({ description: "Block name.", example: "Harborview Crew Block" }),
+    ),
     check_in_on: fields.date("First night."),
     check_out_on: fields.date("Departure day."),
     allocation_id: orNull(fields.uuid("Allocation the room was issued under.")),
   })
-  .meta({ id: "AssignedStay", description: "A live room assignment on one of the project's blocks." });
+  .meta({
+    id: "AssignedStay",
+    description: "A live room assignment on one of the project's blocks.",
+  });
 
 const RoomingCost = z
   .object({
     currency_code: orNull(fields.currency("Currency of the blocks; null for unpriced blocks.")),
     nights: z.int().meta({ description: "Assigned nights.", example: 3 }),
-    amount_minor: orNull(fields.money("Nights times the nightly rate; null when a block is unpriced.", 56700)),
+    amount_minor: orNull(
+      fields.money("Nights times the nightly rate; null when a block is unpriced.", 56700),
+    ),
   })
-  .meta({ id: "RoomingCost", description: "The cost of a person's assigned nights in one currency." });
+  .meta({
+    id: "RoomingCost",
+    description: "The cost of a person's assigned nights in one currency.",
+  });
 
 const RoomingEntry = z
   .object({
     roster_entry_id: fields.uuid("Roster entry."),
     engagement_id: fields.uuid("Engagement."),
-    party_name: orNull(z.string().meta({ description: "Supplying account, else the engaged person.", example: "Bayside Audio" })),
+    party_name: orNull(
+      z.string().meta({
+        description: "Supplying account, else the engaged person.",
+        example: "Bayside Audio",
+      }),
+    ),
     person_id: fields.uuid("Person."),
     person_name: orNull(z.string().meta({ description: "Person's name.", example: "Kai Morgan" })),
     role_code: orNull(fields.code("Role worked.", "9000.50.02")),
     suggested_stays: z.array(Stay),
     assigned_stays: z.array(AssignedStay),
-    uncovered_nights: z.int().meta({ description: "Suggested nights no assignment covers.", example: 2 }),
-    status: z.enum(["Covered", "Partial", "Missing", "No Dates"]).meta({ description: "Rooming status.", example: "Partial" }),
+    uncovered_nights: z
+      .int()
+      .meta({ description: "Suggested nights no assignment covers.", example: 2 }),
+    status: z
+      .enum(["Covered", "Partial", "Missing", "No Dates"])
+      .meta({ description: "Rooming status.", example: "Partial" }),
     cost: z.array(RoomingCost),
-    lodging_allocation_id: orNull(fields.uuid("An Approved block allocation of the entry not yet fully issued.")),
+    lodging_allocation_id: orNull(
+      fields.uuid("An Approved block allocation of the entry not yet fully issued."),
+    ),
   })
   .meta({
     id: "RoomingEntry",

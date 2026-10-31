@@ -18,7 +18,10 @@ const transfers = tableResource("transfers", { softDelete: false });
 const transferVehicles = tableResource("transferVehicles");
 const spaceBookings = tableResource("spaceBookings", { softDelete: false });
 const localContacts = tableResource("localContacts", { softDelete: false });
-const accommodationNights = tableResource("accommodationNights", { softDelete: false, key: "night" });
+const accommodationNights = tableResource("accommodationNights", {
+  softDelete: false,
+  key: "night",
+});
 
 const page = <T>(data: T[]) => ({ data, next_cursor: null });
 

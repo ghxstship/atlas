@@ -69,7 +69,9 @@ const COLUMNS =
 /** Display order on a day sheet: by role, then name. */
 const ROLE_ORDER = new Map(LOCAL_CONTACT_ROLES.map((r, i) => [r, i]));
 
-export function sortLocalContacts<T extends { role: LocalContactRole; displayName: string | null }>(rows: readonly T[]): T[] {
+export function sortLocalContacts<T extends { role: LocalContactRole; displayName: string | null }>(
+  rows: readonly T[],
+): T[] {
   return [...rows].sort(
     (a, b) =>
       (ROLE_ORDER.get(a.role) ?? 99) - (ROLE_ORDER.get(b.role) ?? 99) ||
@@ -121,14 +123,22 @@ export async function listProjectLocalContacts(
 }
 
 /** A venue's own rows, as the Places venue peek manages them. Member rows show the current name only. */
-export async function listVenueContacts(db: XosClient, venueId: string): Promise<Result<LocalContact[]>> {
+export async function listVenueContacts(
+  db: XosClient,
+  venueId: string,
+): Promise<Result<LocalContact[]>> {
   const { data, error } = await db
     .from("local_contacts")
-    .select("id, project_id, venue_id, day, contact_role, contact_title, membership_id, contact_name, phone, email, audience, notes")
+    .select(
+      "id, project_id, venue_id, day, contact_role, contact_title, membership_id, contact_name, phone, email, audience, notes",
+    )
     .eq("venue_id", venueId)
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
-  const rows = (data ?? []) as unknown as (Omit<ContactRow, "source" | "display_name" | "organization_name" | "member_active"> & {
+  const rows = (data ?? []) as unknown as (Omit<
+    ContactRow,
+    "source" | "display_name" | "organization_name" | "member_active"
+  > & {
     contact_name: string | null;
   })[];
   return ok(
@@ -154,7 +164,8 @@ export async function listVenueContacts(db: XosClient, venueId: string): Promise
   );
 }
 
-export type LocalContactHome = { readonly projectId: string; readonly day: string | null } | { readonly venueId: string };
+export type LocalContactHome =
+  { readonly projectId: string; readonly day: string | null } | { readonly venueId: string };
 
 export interface LocalContactInput {
   readonly role: LocalContactRole;
@@ -193,10 +204,15 @@ export async function createLocalContact(
   input: LocalContactInput,
 ): Promise<Result<{ id: string }>> {
   const row: Derived<Tables["local_contacts"]["Insert"]> = {
-    ...("venueId" in home ? { venue_id: home.venueId } : { project_id: home.projectId, day: home.day }),
+    ...("venueId" in home
+      ? { venue_id: home.venueId }
+      : { project_id: home.projectId, day: home.day }),
     ...contactColumns(input),
   };
-  const { data, error } = await db.from("local_contacts").insert(row as Tables["local_contacts"]["Insert"]).select("id");
+  const { data, error } = await db
+    .from("local_contacts")
+    .insert(row as Tables["local_contacts"]["Insert"])
+    .select("id");
   if (error) return fail(toDataError(error));
   const created = data?.[0];
   return created ? ok(created) : fail({ kind: "not-found" });

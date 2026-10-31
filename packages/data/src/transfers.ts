@@ -16,10 +16,23 @@ type Tables = Database["app"]["Tables"];
 type Derived<T> = Omit<T, "org_id">;
 
 export type VehicleType = Database["app"]["Enums"]["vehicle_type"];
-export const VEHICLE_TYPES: readonly VehicleType[] = ["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"];
+export const VEHICLE_TYPES: readonly VehicleType[] = [
+  "Sedan",
+  "SUV",
+  "Van",
+  "Sprinter",
+  "Minibus",
+  "Coach",
+  "Other",
+];
 
 export type TransferStatus = "Unassigned" | "Assigned" | "Underway" | "Done";
-export const TRANSFER_STATUSES: readonly TransferStatus[] = ["Unassigned", "Assigned", "Underway", "Done"];
+export const TRANSFER_STATUSES: readonly TransferStatus[] = [
+  "Unassigned",
+  "Assigned",
+  "Underway",
+  "Done",
+];
 
 export interface Transfer {
   readonly id: string;
@@ -148,7 +161,10 @@ function one<T>(data: T[] | null): Result<T> {
 }
 
 /** Live transfers in pickup order. */
-export async function listTransfers(db: XosClient, scope: TransferScope): Promise<Result<Transfer[]>> {
+export async function listTransfers(
+  db: XosClient,
+  scope: TransferScope,
+): Promise<Result<Transfer[]>> {
   let query = db.from("transfer_board").select(BOARD_COLUMNS).eq("org_id", scope.orgId);
   if (scope.projectId) query = query.eq("project_id", scope.projectId);
   if (scope.driverPersonId) query = query.eq("driver_person_id", scope.driverPersonId);
@@ -161,7 +177,11 @@ export async function listTransfers(db: XosClient, scope: TransferScope): Promis
 
 /** One live transfer with its passengers, or not-found. */
 export async function getTransfer(db: XosClient, id: string): Promise<Result<TransferDetail>> {
-  const { data, error } = await db.from("transfer_board").select(BOARD_COLUMNS).eq("id", id).maybeSingle();
+  const { data, error } = await db
+    .from("transfer_board")
+    .select(BOARD_COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
   const passengers = await listTransferPassengers(db, id);
@@ -170,7 +190,10 @@ export async function getTransfer(db: XosClient, id: string): Promise<Result<Tra
 }
 
 /** Live passengers of a transfer, primary first, then by name. Names come through app.person_names. */
-export async function listTransferPassengers(db: XosClient, transferId: string): Promise<Result<TransferPassenger[]>> {
+export async function listTransferPassengers(
+  db: XosClient,
+  transferId: string,
+): Promise<Result<TransferPassenger[]>> {
   const { data, error } = await db
     .from("transfer_passengers")
     .select("id, person_id, is_primary")
@@ -186,8 +209,17 @@ export async function listTransferPassengers(db: XosClient, transferId: string):
   }
   return ok(
     rows
-      .map((r) => ({ id: r.id, personId: r.person_id, personName: names.get(r.person_id) ?? null, isPrimary: r.is_primary }))
-      .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || (a.personName ?? "").localeCompare(b.personName ?? "")),
+      .map((r) => ({
+        id: r.id,
+        personId: r.person_id,
+        personName: names.get(r.person_id) ?? null,
+        isPrimary: r.is_primary,
+      }))
+      .sort(
+        (a, b) =>
+          Number(b.isPrimary) - Number(a.isPrimary) ||
+          (a.personName ?? "").localeCompare(b.personName ?? ""),
+      ),
   );
 }
 
@@ -227,8 +259,14 @@ export async function createTransfer(
   projectId: string,
   input: TransferInput,
 ): Promise<Result<{ id: string }>> {
-  const row: Derived<Tables["transfers"]["Insert"]> = { project_id: projectId, ...transferColumns(input) };
-  const { data, error } = await db.from("transfers").insert(row as Tables["transfers"]["Insert"]).select("id");
+  const row: Derived<Tables["transfers"]["Insert"]> = {
+    project_id: projectId,
+    ...transferColumns(input),
+  };
+  const { data, error } = await db
+    .from("transfers")
+    .insert(row as Tables["transfers"]["Insert"])
+    .select("id");
   if (error) return fail(toDataError(error));
   return one(data);
 }
@@ -245,7 +283,9 @@ export async function updateTransfer(
   const { data, error } = await query.select("id");
   if (error) return fail(toDataError(error));
   if (data.length === 1) return ok(null);
-  return expectedUpdatedAt ? fail({ kind: "conflict", message: "transfer_changed" }) : fail({ kind: "not-found" });
+  return expectedUpdatedAt
+    ? fail({ kind: "conflict", message: "transfer_changed" })
+    : fail({ kind: "not-found" });
 }
 
 async function setDeleted(
@@ -368,7 +408,10 @@ export interface TransferVehicleInput {
 }
 
 /** Live vehicles of a project, by label. */
-export async function listTransferVehicles(db: XosClient, scope: OperationsScope): Promise<Result<TransferVehicle[]>> {
+export async function listTransferVehicles(
+  db: XosClient,
+  scope: OperationsScope,
+): Promise<Result<TransferVehicle[]>> {
   let query = db
     .from("transfer_vehicles")
     .select("id, project_id, label, vehicle_type, seats, counterparty_id")
@@ -417,7 +460,12 @@ export async function updateTransferVehicle(
 ): Promise<Result<null>> {
   const { data, error } = await db
     .from("transfer_vehicles")
-    .update({ label: input.label, vehicle_type: input.vehicleType, seats: input.seats, counterparty_id: input.supplierId })
+    .update({
+      label: input.label,
+      vehicle_type: input.vehicleType,
+      seats: input.seats,
+      counterparty_id: input.supplierId,
+    })
     .eq("id", id)
     .select("id");
   if (error) return fail(toDataError(error));
@@ -425,6 +473,10 @@ export async function updateTransferVehicle(
 }
 
 /** Moves a vehicle to Trash, or restores it with `deleted` false. */
-export function deleteTransferVehicle(db: XosClient, id: string, deleted = true): Promise<Result<null>> {
+export function deleteTransferVehicle(
+  db: XosClient,
+  id: string,
+  deleted = true,
+): Promise<Result<null>> {
   return setDeleted(db, "transfer_vehicles", id, deleted);
 }

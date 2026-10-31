@@ -23,10 +23,15 @@ export interface BlockNight {
 }
 
 /** One row per live block and night it holds, in night order. */
-export async function listAccommodationNights(db: XosClient, scope: OperationsScope): Promise<Result<BlockNight[]>> {
+export async function listAccommodationNights(
+  db: XosClient,
+  scope: OperationsScope,
+): Promise<Result<BlockNight[]>> {
   let query = db
     .from("accommodation_block_nights")
-    .select("block_id, project_id, block_number, title, night, rooms_held, assigned, free, release_on, nightly_rate_minor, currency_code")
+    .select(
+      "block_id, project_id, block_number, title, night, rooms_held, assigned, free, release_on, nightly_rate_minor, currency_code",
+    )
     .eq("org_id", scope.orgId);
   if (scope.projectId) query = query.eq("project_id", scope.projectId);
   const { data, error } = await query.order("night").order("block_number");
@@ -50,7 +55,9 @@ export async function listAccommodationNights(db: XosClient, scope: OperationsSc
 
 /** Days from `today` to a release date; negative once it has passed. */
 export function daysUntil(releaseOn: string, today: string): number {
-  return Math.round((Date.parse(`${releaseOn}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
+  return Math.round(
+    (Date.parse(`${releaseOn}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000,
+  );
 }
 
 /** How close a release date marks a matrix cell with free rooms (ADR 0144 decision 8). */
@@ -64,7 +71,12 @@ export interface NightsMatrix {
     readonly title: string;
     readonly releaseOn: string | null;
     /** Cells by night; null on a night the block does not hold. */
-    readonly cells: readonly ({ readonly assigned: number; readonly held: number; readonly free: number; readonly releaseDue: boolean } | null)[];
+    readonly cells: readonly ({
+      readonly assigned: number;
+      readonly held: number;
+      readonly free: number;
+      readonly releaseDue: boolean;
+    } | null)[];
   }[];
 }
 
@@ -91,7 +103,14 @@ export function buildNightsMatrix(rows: readonly BlockNight[], today: string): N
         releaseOn: first.releaseOn,
         cells: nights.map((n) => {
           const r = byNight.get(n);
-          return r ? { assigned: r.assigned, held: r.roomsHeld, free: r.free, releaseDue: releaseSoon && r.free > 0 } : null;
+          return r
+            ? {
+                assigned: r.assigned,
+                held: r.roomsHeld,
+                free: r.free,
+                releaseDue: releaseSoon && r.free > 0,
+              }
+            : null;
         }),
       };
     })
@@ -106,7 +125,10 @@ export interface ActWithoutRoom {
   readonly peopleCount: number;
 }
 
-export async function listActsWithoutRooms(db: XosClient, projectId: string): Promise<Result<ActWithoutRoom[]>> {
+export async function listActsWithoutRooms(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ActWithoutRoom[]>> {
   const { data, error } = await db.rpc("acts_without_rooms", { p_project_id: projectId });
   if (error) return fail(toDataError(error));
   return ok(
@@ -122,7 +144,12 @@ export async function listActsWithoutRooms(db: XosClient, projectId: string): Pr
 // Rooming list ---------------------------------------------------------------------------------------------------
 
 export type RoomingStatus = "Covered" | "Partial" | "Missing" | "No Dates";
-export const ROOMING_STATUSES: readonly RoomingStatus[] = ["Missing", "Partial", "No Dates", "Covered"];
+export const ROOMING_STATUSES: readonly RoomingStatus[] = [
+  "Missing",
+  "Partial",
+  "No Dates",
+  "Covered",
+];
 
 export interface SuggestedStay {
   readonly checkInOn: string;
@@ -166,7 +193,8 @@ type Obj = Record<string, unknown>;
 const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
 const num = (v: unknown): number | null =>
   typeof v === "number" ? v : typeof v === "string" && v !== "" ? Number(v) : null;
-const arr = (v: unknown): Obj[] => (Array.isArray(v) ? (v.filter((x) => x && typeof x === "object") as Obj[]) : []);
+const arr = (v: unknown): Obj[] =>
+  Array.isArray(v) ? (v.filter((x) => x && typeof x === "object") as Obj[]) : [];
 
 const asStatus = (v: unknown): RoomingStatus =>
   (ROOMING_STATUSES as readonly unknown[]).includes(v) ? (v as RoomingStatus) : "No Dates";
@@ -205,7 +233,10 @@ export function parseRoomingEntry(v: unknown): RoomingEntry {
 }
 
 /** The rooming list of a project. Each call writes project_facts.viewed (Travel) for every person returned. */
-export async function listRoomingList(db: XosClient, projectId: string): Promise<Result<RoomingEntry[]>> {
+export async function listRoomingList(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<RoomingEntry[]>> {
   const { data, error } = await db.rpc("rooming_list", { p_project_id: projectId });
   if (error) return fail(toDataError(error));
   return ok(((data ?? []) as unknown[]).map(parseRoomingEntry));
@@ -226,7 +257,10 @@ export interface BudgetLineLodging {
 }
 
 /** Lodging drawn on a budget's lines; withheld (every figure null) for a reader without hospitality.fulfillment.read. */
-export async function listBudgetLineLodging(db: XosClient, budgetId: string): Promise<Result<BudgetLineLodging[]>> {
+export async function listBudgetLineLodging(
+  db: XosClient,
+  budgetId: string,
+): Promise<Result<BudgetLineLodging[]>> {
   const { data, error } = await db
     .from("budget_line_lodging")
     .select(
@@ -262,7 +296,11 @@ export async function listBudgetLineLodging(db: XosClient, budgetId: string): Pr
 }
 
 /** Links a block to a budget line of its own project (finance.budget.read), or unlinks it with null. */
-export async function setBlockBudgetLine(db: XosClient, blockId: string, budgetLineId: string | null): Promise<Result<null>> {
+export async function setBlockBudgetLine(
+  db: XosClient,
+  blockId: string,
+  budgetLineId: string | null,
+): Promise<Result<null>> {
   const { data, error } = await db
     .from("accommodation_blocks")
     .update({ budget_line_id: budgetLineId })

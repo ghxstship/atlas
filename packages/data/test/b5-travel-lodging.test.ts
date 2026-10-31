@@ -88,10 +88,17 @@ describe("transfers", () => {
 
   it("lists the org's board with the project and window filters", async () => {
     const { db, calls } = fakeClient({ "from:transfer_board": [okResponse([boardRow])] });
-    const r = await listTransfers(db, { orgId: "o1", projectId: "p1", from: "2027-06-02T00:00:00Z", to: "2027-06-03T00:00:00Z" });
+    const r = await listTransfers(db, {
+      orgId: "o1",
+      projectId: "p1",
+      from: "2027-06-02T00:00:00Z",
+      to: "2027-06-03T00:00:00Z",
+    });
     expect(r.ok && r.data[0]?.driverName).toBe("Dave Lindqvist");
     const steps = calls[0]?.steps.map(([m, a]) => `${m}:${String(a[0])}`) ?? [];
-    expect(steps).toEqual(expect.arrayContaining(["eq:org_id", "eq:project_id", "gte:pickup_at", "lt:pickup_at"]));
+    expect(steps).toEqual(
+      expect.arrayContaining(["eq:org_id", "eq:project_id", "gte:pickup_at", "lt:pickup_at"]),
+    );
   });
 
   it("reads a transfer with its passengers named through person_names, primary first", async () => {
@@ -111,12 +118,20 @@ describe("transfers", () => {
       ],
     });
     const r = await getTransfer(db, "t1");
-    expect(r.ok && r.data.passengers.map((p) => p.personName)).toEqual(["Kai Morgan", "Sam Kowalski"]);
+    expect(r.ok && r.data.passengers.map((p) => p.personName)).toEqual([
+      "Kai Morgan",
+      "Sam Kowalski",
+    ]);
   });
 
   it("creates, edits with a conflict check, cancels and restores", async () => {
     const { db, calls } = fakeClient({
-      "from:transfers": [okResponse([{ id: "t1" }]), okResponse([]), okResponse([{ id: "t1" }]), okResponse([{ id: "t1" }])],
+      "from:transfers": [
+        okResponse([{ id: "t1" }]),
+        okResponse([]),
+        okResponse([{ id: "t1" }]),
+        okResponse([{ id: "t1" }]),
+      ],
     });
     expect(await createTransfer(db, "p1", input)).toEqual({ ok: true, data: { id: "t1" } });
     expect(await updateTransfer(db, "t1", input, "2027-05-01T00:00:00Z")).toEqual({
@@ -131,14 +146,22 @@ describe("transfers", () => {
 
   it("passes the database's refusal through", async () => {
     const { db } = fakeClient({
-      "from:transfer_passengers": [errorResponse("XR001", "transfer_vehicle_full: The vehicle seats 2 passengers.", "transfer_vehicle_full")],
+      "from:transfer_passengers": [
+        errorResponse(
+          "XR001",
+          "transfer_vehicle_full: The vehicle seats 2 passengers.",
+          "transfer_vehicle_full",
+        ),
+      ],
     });
     const r = await addTransferPassenger(db, "t1", "mo");
     expect(r.ok).toBe(false);
   });
 
   it("clears the current primary before marking another", async () => {
-    const { db, calls } = fakeClient({ "from:transfer_passengers": [okResponse([{ id: "q1" }]), okResponse([{ id: "q2" }])] });
+    const { db, calls } = fakeClient({
+      "from:transfer_passengers": [okResponse([{ id: "q1" }]), okResponse([{ id: "q2" }])],
+    });
     expect((await setPrimaryPassenger(db, "t1", "q2")).ok).toBe(true);
     expect(calls[0]?.steps.find(([m]) => m === "update")?.[1][0]).toEqual({ is_primary: false });
     expect(calls[1]?.steps.find(([m]) => m === "update")?.[1][0]).toEqual({ is_primary: true });
@@ -148,12 +171,23 @@ describe("transfers", () => {
     const { db } = fakeClient({
       "rpc:transfer_person_options": [
         okResponse([
-          { person_id: "kai", full_name: "Kai Morgan", party_name: "Bayside Audio", roster_entry_id: "e1", membership_id: null, engagement_id: "g1" },
+          {
+            person_id: "kai",
+            full_name: "Kai Morgan",
+            party_name: "Bayside Audio",
+            roster_entry_id: "e1",
+            membership_id: null,
+            engagement_id: "g1",
+          },
         ]),
       ],
     });
     const r = await listTransferPersonOptions(db, "p1");
-    expect(r.ok && r.data[0]).toMatchObject({ personId: "kai", partyName: "Bayside Audio", rosterEntryId: "e1" });
+    expect(r.ok && r.data[0]).toMatchObject({
+      personId: "kai",
+      partyName: "Bayside Audio",
+      rosterEntryId: "e1",
+    });
   });
 });
 
@@ -189,7 +223,12 @@ describe("the flight grid", () => {
       ],
     });
     const r = await listTravelGrid(db, { orgId: "o1", phases: ["In Flight", "Departed"] });
-    expect(r.ok && r.data[0]).toMatchObject({ phase: "In Flight", legNumber: 1, legCount: 3, finalArrivalPlace: "MIA" });
+    expect(r.ok && r.data[0]).toMatchObject({
+      phase: "In Flight",
+      legNumber: 1,
+      legCount: 3,
+      finalArrivalPlace: "MIA",
+    });
     const steps = calls[0]?.steps ?? [];
     expect(steps).toContainEqual(["eq", ["travel_mode", "Flight"]]);
     expect(steps).toContainEqual(["in", ["phase", ["In Flight", "Departed"]]]);
@@ -269,18 +308,30 @@ describe("local contacts", () => {
   });
 
   it("writes a member row with nothing copied, and a typed row with its phone and lowercased email", async () => {
-    const { db, calls } = fakeClient({ "from:local_contacts": [okResponse([{ id: "c1" }]), okResponse([{ id: "c2" }])] });
-    await createLocalContact(db, { projectId: "p1", day: null }, {
-      role: "Transport",
-      title: "Dispatch",
-      audience: "Shared",
-      notes: null,
-      who: { membershipId: "m1" },
+    const { db, calls } = fakeClient({
+      "from:local_contacts": [okResponse([{ id: "c1" }]), okResponse([{ id: "c2" }])],
     });
+    await createLocalContact(
+      db,
+      { projectId: "p1", day: null },
+      {
+        role: "Transport",
+        title: "Dispatch",
+        audience: "Shared",
+        notes: null,
+        who: { membershipId: "m1" },
+      },
+    );
     await updateLocalContact(
       db,
       "c2",
-      { role: "Venue", title: null, audience: "Internal", notes: null, who: { name: "Desk", phone: "+13055550100", email: "Desk@Pier.test", supplierId: null } },
+      {
+        role: "Venue",
+        title: null,
+        audience: "Internal",
+        notes: null,
+        who: { name: "Desk", phone: "+13055550100", email: "Desk@Pier.test", supplierId: null },
+      },
       "2027-06-02",
     );
     expect(calls[0]?.steps.find(([m]) => m === "insert")?.[1][0]).toMatchObject({
@@ -299,7 +350,13 @@ describe("local contacts", () => {
 });
 
 describe("lodging", () => {
-  const night = (blockId: string, n: string, assigned: number, held = 2, releaseOn: string | null = null): BlockNight => ({
+  const night = (
+    blockId: string,
+    n: string,
+    assigned: number,
+    held = 2,
+    releaseOn: string | null = null,
+  ): BlockNight => ({
     blockId,
     projectId: "p1",
     blockNumber: blockId === "b1" ? 1 : 2,
@@ -315,7 +372,11 @@ describe("lodging", () => {
 
   it("builds blocks by nights, marking free rooms near the release date", () => {
     const m = buildNightsMatrix(
-      [night("b1", "2027-06-01", 1, 2, "2027-05-20"), night("b1", "2027-06-02", 2, 2, "2027-05-20"), night("b2", "2027-06-02", 0, 1)],
+      [
+        night("b1", "2027-06-01", 1, 2, "2027-05-20"),
+        night("b1", "2027-06-02", 2, 2, "2027-05-20"),
+        night("b2", "2027-06-02", 0, 1),
+      ],
       "2027-05-10",
     );
     expect(m.nights).toEqual(["2027-06-01", "2027-06-02"]);
@@ -330,7 +391,9 @@ describe("lodging", () => {
       roster_entry_id: "e1",
       engagement_id: "g1",
       person_id: "kai",
-      suggested_stays: [{ check_in_on: "2027-06-01", check_out_on: "2027-06-04", source: "Credentials" }],
+      suggested_stays: [
+        { check_in_on: "2027-06-01", check_out_on: "2027-06-04", source: "Credentials" },
+      ],
       assigned_stays: [],
       uncovered_nights: 3,
       status: "Missing",

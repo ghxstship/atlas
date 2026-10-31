@@ -721,6 +721,8 @@ export interface AccommodationBlock {
   readonly releaseOn: string | null;
   readonly nightlyRateMinor: number | null;
   readonly currencyCode: string | null;
+  /** Budget line the block's cost draws on (B5, migration 2945); null when unlinked. */
+  readonly budgetLineId: string | null;
   readonly updatedAt: string;
   readonly occupancy: BlockOccupancy;
   /** Nightly rate times room nights held; NULL when the rate is unpriced. */
@@ -787,6 +789,7 @@ interface BlockRow {
   release_on: string | null;
   nightly_rate_minor: number | null;
   currency_code: string | null;
+  budget_line_id?: string | null;
   updated_at: string;
   project: { project_key: string; name: string } | null;
   hotel: { counterparty_name: string | null } | null;
@@ -794,7 +797,7 @@ interface BlockRow {
 }
 
 const BLOCK_COLUMNS =
-  "id, block_number, project_id, title, counterparty_id, check_in_on, check_out_on, rooms_held, release_on, nightly_rate_minor, currency_code, updated_at, " +
+  "id, block_number, project_id, title, counterparty_id, check_in_on, check_out_on, rooms_held, release_on, nightly_rate_minor, currency_code, budget_line_id, updated_at, " +
   "project:projects!accommodation_blocks_project_id_fkey(project_key, name), " +
   "hotel:counterparties!accommodation_blocks_counterparty_id_fkey(counterparty_name), " +
   "accommodation_assignments(id, person_id, check_in_on, check_out_on, deleted_at, person:people!accommodation_assignments_person_id_fkey(full_name))";
@@ -838,6 +841,7 @@ function toBlock(row: BlockRow): AccommodationBlock {
     releaseOn: row.release_on,
     nightlyRateMinor: row.nightly_rate_minor,
     currencyCode: row.currency_code,
+    budgetLineId: row.budget_line_id ?? null,
     updatedAt: row.updated_at,
     occupancy,
     contractTotal: totalOf([
@@ -1163,7 +1167,12 @@ export async function cancelTravelSegment(db: XosClient, id: string): Promise<Re
 // The flight grid (B5, G-58) ---------------------------------------------------------------------------------------
 
 export type FlightPhase = "Upcoming" | "In Flight" | "Departed" | "Landed";
-export const FLIGHT_PHASES: readonly FlightPhase[] = ["Upcoming", "In Flight", "Departed", "Landed"];
+export const FLIGHT_PHASES: readonly FlightPhase[] = [
+  "Upcoming",
+  "In Flight",
+  "Departed",
+  "Landed",
+];
 
 export interface TravelGridRow {
   readonly id: string;
@@ -1199,7 +1208,10 @@ const asPhase = (v: string | null): FlightPhase =>
   (FLIGHT_PHASES as readonly string[]).includes(v ?? "") ? (v as FlightPhase) : "Upcoming";
 
 /** Segments of app.travel_grid with their journey and phase, in departure order (Flight unless asked). */
-export async function listTravelGrid(db: XosClient, scope: TravelGridScope): Promise<Result<TravelGridRow[]>> {
+export async function listTravelGrid(
+  db: XosClient,
+  scope: TravelGridScope,
+): Promise<Result<TravelGridRow[]>> {
   let query = db
     .from("travel_grid")
     .select(
