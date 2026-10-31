@@ -2,14 +2,14 @@
 -- rule opens one approval, whose state is computed (ADR 0103); the most specific rule wins; steps are fixed once the rule
 -- is Active; an access scan of a pass waiting on its approval is Denied; each refusal of a decision names its rule; an
 -- engagement step's outside approver decides; revoking or deleting the subject cancels the approval; a step nobody may
--- decide stays In Review for a rule writer to cancel; readers, the vendor of a delivery and everyone else see what the
--- read rule allows.
+-- decide stays In Review for a rule writer to cancel; the subject's writer cancels too; readers of the subject read the
+-- approval and its decisions, the vendor of a delivery only the approval, and everyone else what the read rule allows.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(59);
+select plan(65);
 
 create function pg_temp.approval_of(p_credential text) returns uuid language sql as $$
   select a.id from app.subject_approvals a where a.credential_id = pg_temp.id(p_credential) and a.canceled_at is null
@@ -170,6 +170,12 @@ select is((select decided_via from app.subject_approval_decisions where subject_
 select is((select message_args ->> 'decision' from app.notifications where kind = 'approval.decided' and subject_id = (select id from a)
            and recipient_person_id = pg_temp.id('carol')), 'approved', 'the requester hears it was approved');
 select is(pg_temp.scan('cred_frank'), 'Granted', 'and the pass opens the door');
+-- erin, a Collaborator on prj_a, reads passes there (credentials.credential.read) but neither asked, decides nor writes rules.
+select pg_temp.as_user('erin');
+select is((select count(*)::integer from app.subject_approvals where id = (select id from a)), 1,
+  'a reader of passes on the project reads the pass''s approval');
+select is((select count(*)::integer from app.subject_approval_decisions where subject_approval_id = (select id from a)), 2,
+  'and both of its decisions');
 
 -- A rejection gates, a canceled approval does not ---------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -215,6 +221,13 @@ select is((select approval_rule_id from app.subject_approvals where credential_i
   'a rule whose filter matches wins over a rule with none');
 select is((select approval_rule_id from app.subject_approvals where credential_id = pg_temp.id('cred_mia_crew')), pg_temp.id('rule_any'),
   'and the rule with no filter takes the rest');
+-- dave, a Member on prj_a, issues and revokes passes there, but neither asked for this one nor writes rules.
+select pg_temp.as_user('dave');
+select lives_ok(format($$select app.cancel_subject_approval(%L, 'Wrong category.')$$, pg_temp.approval_of('cred_mia_all')),
+  'the pass''s writer cancels its approval');
+select pg_temp.as_platform();
+select is((select canceled_by from app.subject_approvals where credential_id = pg_temp.id('cred_mia_all')), pg_temp.id('dave'),
+  'recorded as his');
 
 -- A step nobody may decide ---------------------------------------------------------------------------------------------------------
 -- alice is the only approver of Every pass; a pass for alice leaves the step with nobody.
@@ -244,6 +257,19 @@ select pg_temp.as_user('sam');
 select is((select approval_state::text from app.subject_approval_status where dock_slot_id = pg_temp.id('slot')), 'In Review',
   'the vendor whose engagement the slot serves reads its approval state');
 select is((select count(*)::integer from app.subject_approval_decisions), 0, 'but none of its decisions');
+select pg_temp.as_user('erin');
+select is((select approval_state::text from app.subject_approval_status where dock_slot_id = pg_temp.id('slot')), 'In Review',
+  'a reader of dock slots on the project reads the booking''s approval');
+-- alice booked a second slot; dave, who books dock slots on prj_a (logistics.dock_slot.write), withdraws its approval.
+select pg_temp.as_user('alice');
+with x as (insert into app.dock_slots (project_id, zone_id, starts_at, ends_at)
+           values (pg_temp.id('prj_a'), pg_temp.id('dock'), now() + interval '3 days', now() + interval '3 days 2 hours')
+           returning id) insert into world select 'slot2', id from x;
+select pg_temp.as_platform();
+insert into world select 'appr_slot2', a.id from app.subject_approvals a where a.dock_slot_id = pg_temp.id('slot2');
+select pg_temp.as_user('dave');
+select lives_ok(format($$select app.cancel_subject_approval(%L, 'Moved to Dock B.')$$, pg_temp.id('appr_slot2')),
+  'the dock slot''s writer cancels its approval');
 select pg_temp.as_user('xavier');
 select is((select count(*)::integer from app.subject_approval_status), 0, 'another org sees none of these approvals');
 select pg_temp.as_user('alice');

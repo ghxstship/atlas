@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(36);
+select plan(38);
 
 create function pg_temp.reminders(p_subject text, p_person text default null) returns integer language sql as $$
   select count(*)::integer from app.notifications n
@@ -169,6 +169,27 @@ select ok(private.send_approval_reminders(now() + interval '5 hours') > 0, 'with
 select is(pg_temp.reminders('appr_p4'), 1, 'to the pass waiting 5 hours');
 select is(private.send_approval_reminders(now() + interval '10 hours'), 0, 'and with a limit of 1, nothing more goes');
 delete from app.setting_values where setting_key in ('approvals.reminder_interval_hours', 'approvals.reminder_limit');
+
+-- A delivery whose slot has ended is not reminded about -------------------------------------------------------------------------
+select pg_temp.as_user('alice');
+with x as (insert into app.zones (venue_id, code, name) values (pg_temp.id('venue_a'), 'DCK', 'Dock A') returning id) insert into world select 'dock', id from x;
+with x as (insert into app.approval_rules (project_id, subject, name, zone_id)
+           values (pg_temp.id('prj_a'), 'Delivery', 'Dock A bookings', pg_temp.id('dock')) returning id) insert into world select 'rule_dock', id from x;
+insert into app.approval_rule_steps (approval_rule_id, step_order, name, approver_membership_id)
+values (pg_temp.id('rule_dock'), 1, 'Logistics', pg_temp.id('bob@org_a'));
+select app.transition_approval_rule(pg_temp.id('rule_dock'), 'Draft', 'Active', 'Gate Dock A.');
+with x as (insert into app.dock_slots (project_id, zone_id, starts_at, ends_at)
+           values (pg_temp.id('prj_a'), pg_temp.id('dock'), now() + interval '1 hour', now() + interval '3 hours') returning id)
+  insert into world select 'slot_ended', id from x;
+with x as (insert into app.dock_slots (project_id, zone_id, starts_at, ends_at)
+           values (pg_temp.id('prj_a'), pg_temp.id('dock'), now() + interval '3 days', now() + interval '3 days 2 hours') returning id)
+  insert into world select 'slot_live', id from x;
+select pg_temp.as_platform();
+insert into world select 'appr_' || w.key, a.id from app.subject_approvals a join world w on w.id = a.dock_slot_id
+where w.key in ('slot_ended', 'slot_live');
+select private.send_approval_reminders(now() + interval '25 hours');
+select is(pg_temp.reminders('appr_slot_ended'), 0, 'a booking whose slot ended before the reminder is due reminds no one');
+select is(pg_temp.reminders('appr_slot_live', 'bob'), 1, 'one still to come reminds its approver');
 
 -- 13. The schedule, and the backup login -----------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
