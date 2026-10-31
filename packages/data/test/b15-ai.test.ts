@@ -366,11 +366,11 @@ describe("drafted advance answers (B15)", () => {
     });
     expect(await readsPayroll(db, "p1")).toEqual({ ok: true, data: true });
     expect(await readsPayroll(db, "p1")).toEqual({ ok: true, data: false });
-    expect(await activeAirportCodes(db, ["MIA", "XXX", "mia", "MIA"])).toEqual({
+    expect(await activeAirportCodes(db, ["MIA", "QQQ", "mia", "MIA"])).toEqual({
       ok: true,
       data: new Set(["MIA"]),
     });
-    expect(calls[2]?.steps).toContainEqual(["in", ["iata_code", ["MIA", "XXX"]]]);
+    expect(calls[2]?.steps).toContainEqual(["in", ["iata_code", ["MIA", "QQQ"]]]);
     expect(await activeAirportCodes(db, ["Terminal"])).toEqual({ ok: true, data: new Set() });
   });
 });
