@@ -83,6 +83,7 @@ insert into register_restated values
   ('app.advance_recipients.counterparty_id', 'app.engagements.counterparty_id', 'own'),
   ('app.advance_recipients.person_id', 'app.engagements.person_id', 'own'),
   ('app.advance_submissions.advance_recipient_id', 'app.advance_recipient_tokens.advance_recipient_id', 'own'),
+  ('app.ai_intake_batches.project_id', 'app.fulfillments.project_id', 'own'),
   ('app.api_keys.expires_at', 'app.service_accounts.expires_at', 'own'),
   ('app.applications.currency_code', 'app.opportunities.currency_code', 'own'),
   ('app.approval_decisions.decided_at', 'app.approval_instances.decided_at', 'own'),
@@ -390,6 +391,7 @@ insert into register_restated values
 create temporary table register_stored (column_name text not null, kind text not null, primary key (column_name));
 insert into register_stored values
   ('app.addon_purchases.amount_total_minor', 'input'),
+  ('app.ai_intake_batches.file_count', 'input'),
   ('app.beos.guest_count', 'input'),
   ('app.export_jobs.row_count', 'fact'),
   ('app.form_submissions.max_score', 'registered'),

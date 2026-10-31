@@ -289,6 +289,8 @@ export type Database = {
           answer_note: string | null;
           body: string | null;
           id: string | null;
+          recorded_by_producer: boolean | null;
+          recorded_from_message: boolean | null;
           return_reason: string | null;
           review_outcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at: string | null;
@@ -301,6 +303,8 @@ export type Database = {
           answer_note?: string | null;
           body?: string | null;
           id?: string | null;
+          recorded_by_producer?: never;
+          recorded_from_message?: never;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at?: string | null;
@@ -312,6 +316,8 @@ export type Database = {
           answer_note?: string | null;
           body?: string | null;
           id?: string | null;
+          recorded_by_producer?: never;
+          recorded_from_message?: never;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at?: string | null;
@@ -5400,6 +5406,92 @@ export type Database = {
           },
         ];
       };
+      advance_answer_drafts: {
+        Row: {
+          advance_submission_id: string;
+          ai_suggestion_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          inbound_message_id: string | null;
+          org_id: string;
+          source_file_name: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          advance_submission_id: string;
+          ai_suggestion_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inbound_message_id?: string | null;
+          org_id: string;
+          source_file_name?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          advance_submission_id?: string;
+          ai_suggestion_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inbound_message_id?: string | null;
+          org_id?: string;
+          source_file_name?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_answer_drafts_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_answer_drafts_ai_suggestion_id_fkey";
+            columns: ["ai_suggestion_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_suggestions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_answer_drafts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_answer_drafts_inbound_message_id_fkey";
+            columns: ["inbound_message_id"];
+            isOneToOne: false;
+            referencedRelation: "inbound_messages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_answer_drafts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_answer_drafts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       advance_issue_events: {
         Row: {
           advance_allocation_id: string;
@@ -6645,6 +6737,109 @@ export type Database = {
           },
         ];
       };
+      ai_intake_batches: {
+        Row: {
+          closed_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          file_count: number;
+          fulfillment_id: string | null;
+          id: string;
+          intake_kind: Database["app"]["Enums"]["ai_intake_kind"];
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          closed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          file_count: number;
+          fulfillment_id?: string | null;
+          id?: string;
+          intake_kind: Database["app"]["Enums"]["ai_intake_kind"];
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          closed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          file_count?: number;
+          fulfillment_id?: string | null;
+          id?: string;
+          intake_kind?: Database["app"]["Enums"]["ai_intake_kind"];
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_intake_batches_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_intake_batches_fulfillment_id_fkey";
+            columns: ["fulfillment_id"];
+            isOneToOne: false;
+            referencedRelation: "fulfillments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_intake_batches_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_intake_batches_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "ai_intake_batches_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "ai_intake_batches_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "ai_intake_batches_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_intake_batches_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ai_requests: {
         Row: {
           completed_at: string | null;
@@ -6819,6 +7014,7 @@ export type Database = {
           position: number;
           proposed_value: Json | null;
           refusal: string | null;
+          restricted_capability: string | null;
           source_excerpt: string | null;
           suggestion_id: string;
           updated_at: string;
@@ -6837,6 +7033,7 @@ export type Database = {
           position: number;
           proposed_value?: Json | null;
           refusal?: string | null;
+          restricted_capability?: string | null;
           source_excerpt?: string | null;
           suggestion_id: string;
           updated_at?: string;
@@ -6854,6 +7051,7 @@ export type Database = {
           position?: number;
           proposed_value?: Json | null;
           refusal?: string | null;
+          restricted_capability?: string | null;
           source_excerpt?: string | null;
           suggestion_id?: string;
           updated_at?: string;
@@ -23623,6 +23821,8 @@ export type Database = {
           mapping_confirmed_at: string | null;
           org_id: string;
           original_filename: string;
+          project_id: string | null;
+          run_of_show_id: string | null;
           sheet_name: string | null;
           source: Database["app"]["Enums"]["import_source"];
           source_url: string | null;
@@ -23644,6 +23844,8 @@ export type Database = {
           mapping_confirmed_at?: string | null;
           org_id: string;
           original_filename: string;
+          project_id?: string | null;
+          run_of_show_id?: string | null;
           sheet_name?: string | null;
           source: Database["app"]["Enums"]["import_source"];
           source_url?: string | null;
@@ -23664,6 +23866,8 @@ export type Database = {
           mapping_confirmed_at?: string | null;
           org_id?: string;
           original_filename?: string;
+          project_id?: string | null;
+          run_of_show_id?: string | null;
           sheet_name?: string | null;
           source?: Database["app"]["Enums"]["import_source"];
           source_url?: string | null;
@@ -23699,6 +23903,41 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_jobs_run_of_show_id_fkey";
+            columns: ["run_of_show_id"];
+            isOneToOne: false;
+            referencedRelation: "run_of_show";
             referencedColumns: ["id"];
           },
           {
@@ -62142,6 +62381,7 @@ export type Database = {
       import_targets: {
         Row: {
           code: string | null;
+          destination: string | null;
           fuzzy_match: boolean | null;
           sort_order: number | null;
           write_capability: string | null;
@@ -62149,12 +62389,14 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           code?: string | null;
+          destination?: string | null;
           fuzzy_match?: boolean | null;
           sort_order?: number | null;
           write_capability?: string | null;
         };
         Update: {
           code?: string | null;
+          destination?: string | null;
           fuzzy_match?: boolean | null;
           sort_order?: number | null;
           write_capability?: string | null;
@@ -65068,7 +65310,13 @@ export type Database = {
         };
         Returns: boolean;
       };
+      apply_contract_intake: { Args: { p_batch_id: string; p_groups: Json }; Returns: Json };
+      apply_drafted_advance_answer: {
+        Args: { p_source: Json; p_suggestion_id: string; p_values: Json };
+        Returns: string;
+      };
       apply_drafted_list: { Args: { p_items: Json; p_request_id: string }; Returns: Json };
+      apply_itinerary_intake: { Args: { p_batch_id: string; p_items: Json }; Returns: Json };
       apply_sync_mutation: {
         Args: {
           p_args?: Json;
@@ -65741,6 +65989,7 @@ export type Database = {
         };
         Returns: boolean;
       };
+      close_ai_intake: { Args: { p_batch_id: string }; Returns: number };
       close_incident: { Args: { p_incident_id: string; p_signoff_note: string }; Returns: string };
       close_occupancy_counter: { Args: { p_counter_id: string }; Returns: string };
       commit_import_write: {
@@ -66443,6 +66692,7 @@ export type Database = {
           plus_ones_admitted: number;
         }[];
       };
+      draftable_advance_sections: { Args: { p_recipient_id: string }; Returns: Json };
       drafted_list_is_empty: { Args: { p_kind: string; p_target_id: string }; Returns: boolean };
       edit_chat_message: { Args: { p_body: string; p_message_id: string }; Returns: string };
       effective_brand: {
@@ -66840,8 +67090,30 @@ export type Database = {
         Args: { p_hire_from: string; p_hire_to: string; p_project_id: string };
         Returns: string[];
       };
+      import_column_samples: {
+        Args: { p_import_job_id: string };
+        Returns: {
+          import_job_column_id: string;
+          sample_index: number;
+          sample_value: string;
+        }[];
+      };
+      import_destinations: {
+        Args: { p_include?: string; p_org_id: string; p_target_code: string };
+        Returns: {
+          destination_id: string;
+          label: string;
+          project_id: string;
+          show_date: string;
+        }[];
+      };
       import_detected_sheet: {
-        Args: { p_sheet_id: string; p_target_code: string };
+        Args: {
+          p_project_id?: string;
+          p_run_of_show_id?: string;
+          p_sheet_id: string;
+          p_target_code: string;
+        };
         Returns: string;
       };
       import_dry_run: {
@@ -66855,7 +67127,20 @@ export type Database = {
           updates: number;
         }[];
       };
+      import_strong_key_match: { Args: { p_import_job_id: string; p_keys: Json }; Returns: string };
       inbound_email_org: { Args: { p_local_part: string }; Returns: string };
+      intake_party_candidates: {
+        Args: { p_batch_id: string; p_names: string[] };
+        Returns: {
+          already_booked: boolean;
+          candidate_id: string;
+          candidate_kind: string;
+          engagement_id: string;
+          name: string;
+          name_index: number;
+          similarity: number;
+        }[];
+      };
       integration_inbound_secrets_stored: {
         Args: { p_org_id: string };
         Returns: {
@@ -66916,6 +67201,17 @@ export type Database = {
       issue_invoice: { Args: { p_invoice_id: string; p_reason: string }; Returns: string };
       issue_scim_token: { Args: { p_identity_provider_id: string }; Returns: string };
       issue_training_certification: { Args: { p_completion_id: string }; Returns: string };
+      itinerary_traveler_candidates: {
+        Args: { p_batch_id: string; p_names: string[] };
+        Returns: {
+          engagement_id: string;
+          full_name: string;
+          name_index: number;
+          person_id: string;
+          roster_entry_id: string;
+          similarity: number;
+        }[];
+      };
       join_by_sso: { Args: { p_org_id: string }; Returns: string };
       join_by_sso_session: {
         Args: Record<PropertyKey, never>;
@@ -67924,6 +68220,10 @@ export type Database = {
       record_gate_arrival: {
         Args: { p_project_id: string; p_shipment_id?: string; p_vehicle_identifier: string };
         Returns: string;
+      };
+      record_import_column_samples: {
+        Args: { p_import_job_id: string; p_samples: Json };
+        Returns: number;
       };
       record_import_row: {
         Args: {
@@ -69179,6 +69479,15 @@ export type Database = {
           standard_count: number;
         }[];
       };
+      start_ai_intake: {
+        Args: {
+          p_file_count: number;
+          p_fulfillment_id?: string;
+          p_kind: Database["app"]["Enums"]["ai_intake_kind"];
+          p_project_id: string;
+        };
+        Returns: string;
+      };
       start_break_glass: {
         Args: { p_org_id: string; p_reason: string };
         Returns: {
@@ -69794,6 +70103,21 @@ export type Database = {
         };
         Returns: string;
       };
+      vendor_line_history: {
+        Args: { p_descriptions: string[]; p_invoice_id: string };
+        Returns: {
+          currency_code: string;
+          description: string;
+          description_index: number;
+          issued_on: string;
+          line_number: number;
+          quantity: number;
+          reference: string;
+          similarity: number;
+          source: string;
+          unit_price_minor: number;
+        }[];
+      };
       venue_latitude: {
         Args: {
           p_venue: Omit<
@@ -69957,6 +70281,7 @@ export type Database = {
       agreement_state: "Proposed" | "Sent" | "Signed" | "Superseded" | "Expired" | "Canceled";
       ai_feature:
         "assistant" | "plain_language" | "extraction" | "drafting" | "summaries" | "mapping";
+      ai_intake_kind: "Itineraries" | "Contracts and Riders";
       ai_request_outcome: "Pending" | "Answered" | "No Answer" | "Failed";
       ai_suggestion_state: "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
       allocation_origin: "Requested" | "Assigned" | "Split";
@@ -76569,6 +76894,7 @@ export const Constants = {
       ],
       agreement_state: ["Proposed", "Sent", "Signed", "Superseded", "Expired", "Canceled"],
       ai_feature: ["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"],
+      ai_intake_kind: ["Itineraries", "Contracts and Riders"],
       ai_request_outcome: ["Pending", "Answered", "No Answer", "Failed"],
       ai_suggestion_state: ["Proposed", "Confirmed", "Applied", "Rejected", "Expired"],
       allocation_origin: ["Requested", "Assigned", "Split"],

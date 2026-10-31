@@ -400,6 +400,10 @@ restated:
     parent: app.advance_recipient_tokens.advance_recipient_id
     kind: own
     note: Who answered, required on every answer; for an answer through a token, `private.guard_advance_submission` requires the token's recipient.
+  - column: app.ai_intake_batches.project_id
+    parent: app.fulfillments.project_id
+    kind: own
+    note: Project the files are read for; the Travel fulfillment is optional and `t39_ai_intake_batch_project` refuses one of another project (migration 3040, B15).
   - column: app.api_keys.expires_at
     parent: app.service_accounts.expires_at
     kind: own
@@ -1651,6 +1655,9 @@ stored:
   - column: app.addon_purchases.amount_total_minor
     kind: input
     note: Amount paid as Stripe reports it (migration 1250).
+  - column: app.ai_intake_batches.file_count
+    kind: input
+    note: Files the person chose to read into the batch, 1 to 25; the cap the request guard holds requests to (migration 3040, B15).
   - column: app.beos.guest_count
     kind: input
     note: Guests the client guarantees.
