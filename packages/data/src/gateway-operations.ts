@@ -295,6 +295,116 @@ export function submitAdvanceAnswer(
   );
 }
 
+// Typed advance answers and party uploads (R9, migrations 2711 and 2712) ----------------------------
+
+/** What a party-uploads object is for: a File section of an advance, or a sponsor entitlement. */
+export type PartyUploadTarget =
+  | { readonly kind: "advance"; readonly recipientId: string; readonly sectionId: string }
+  | { readonly kind: "sponsor-asset"; readonly entitlementId: string };
+
+/**
+ * The object name a party upload takes in the party-uploads bucket (2712):
+ * <org>/advance/<recipient>/<section>/<file> or <org>/sponsor-asset/<entitlement>/<file>.
+ */
+export function partyUploadObjectName(input: {
+  readonly orgId: string;
+  readonly target: PartyUploadTarget;
+  readonly fileName: string;
+}): string {
+  const safe = input.fileName.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "upload";
+  const folder =
+    input.target.kind === "advance"
+      ? `advance/${input.target.recipientId}/${input.target.sectionId}`
+      : `sponsor-asset/${input.target.entitlementId}`;
+  return `${input.orgId}/${folder}/${Date.now().toString(36)}-${safe}`;
+}
+
+/**
+ * Uploads a file to party-uploads and registers it (app.register_party_upload), which makes it a
+ * document of the project, ready to attach to an answer or a supplied sponsor asset. The scan
+ * worker clears it before anyone but the uploader can read it.
+ */
+export async function uploadPartyFile(
+  db: XosClient,
+  input: {
+    readonly objectName: string;
+    readonly title: string;
+    readonly body: Blob;
+    readonly contentType: string;
+    readonly checksumSha256: string;
+  },
+): Promise<Result<{ documentId: string }>> {
+  const uploaded = await db.storage
+    .from("party-uploads")
+    .upload(input.objectName, input.body, { contentType: input.contentType, upsert: false });
+  if (uploaded.error) return fail({ kind: "unexpected", message: uploaded.error.message });
+  const { data, error } = await db.rpc("register_party_upload", {
+    p_object_name: input.objectName,
+    p_title: input.title,
+    p_checksum_sha256: input.checksumSha256,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ documentId: data });
+}
+
+/** One line of a typed answer, as app.submit_advance_answer takes it. */
+export interface AdvanceAnswerLine {
+  readonly assetClassId?: string | null;
+  readonly credentialCategoryId?: string | null;
+  readonly quantity?: number | null;
+  readonly rosterEntryId?: string | null;
+  readonly neededFrom?: string | null;
+  readonly neededTo?: string | null;
+  readonly windowZone?: string | null;
+  readonly note?: string | null;
+}
+
+/** The p_lines payload of app.submit_advance_answer: snake_case keys, empty values left out. */
+export function advanceAnswerLines(lines: readonly AdvanceAnswerLine[]): Json {
+  return lines.map((line) => {
+    const out: Record<string, string | number> = {};
+    const put = (key: string, value: string | number | null | undefined) => {
+      if (value !== null && value !== undefined && value !== "") out[key] = value;
+    };
+    put("asset_class_id", line.assetClassId);
+    put("credential_category_id", line.credentialCategoryId);
+    put("quantity", line.quantity);
+    put("roster_entry_id", line.rosterEntryId);
+    put("needed_window_start", line.neededFrom);
+    put("needed_window_end", line.neededTo);
+    put("window_zone", line.windowZone);
+    put("note", line.note?.trim());
+    return out;
+  });
+}
+
+/**
+ * The signed-in recipient answers a section of any kind (app.submit_advance_answer): text, files
+ * already registered from party-uploads, windows, items or credentials. Refusals keep their rule.
+ */
+export function submitTypedAdvanceAnswer(
+  db: XosClient,
+  input: {
+    readonly recipientId: string;
+    readonly sectionId: string;
+    readonly text?: string | null;
+    readonly note?: string | null;
+    readonly lines?: readonly AdvanceAnswerLine[];
+    readonly documentIds?: readonly string[];
+  },
+): Promise<Result<{ id: string }>> {
+  return callId(
+    db.rpc("submit_advance_answer", {
+      p_recipient_id: input.recipientId,
+      p_section_id: input.sectionId,
+      ...(input.text?.trim() ? { p_text: input.text.trim() } : {}),
+      ...(input.note?.trim() ? { p_note: input.note.trim() } : {}),
+      p_lines: advanceAnswerLines(input.lines ?? []),
+      p_document_ids: [...(input.documentIds ?? [])],
+    }),
+  );
+}
+
 // Client ---------------------------------------------------------------------------------------------
 
 /** The client approves or rejects a requested approval (app.decide_client_approval). */
