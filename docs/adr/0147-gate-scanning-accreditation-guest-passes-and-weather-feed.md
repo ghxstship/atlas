@@ -29,17 +29,22 @@ name), and the AI-drafted induction quiz, anti-passback, lightning networks and 
 2. **Exit is never refused.** An Out scan is Granted whatever the credential's state, so nobody is held inside, and it
    ends the person's presence.
 3. **Presence and counts are views over a 24-hour window.** `app.zone_presence`, `app.zone_counts_live`,
-   `app.muster_list` and `app.credential_review` run as their reader (`security_invoker`), so row level security
+   `app.muster_list` run as their reader (`security_invoker`), so row level security
    decides who sees whom; presence is per person across the org's credentials, Parking passes are left out, a
    geofenced clock-in counts unless a scan places the person at the same venue, and offline scans are ordered by
    device time. A reader who cannot see a person's newer scan elsewhere may see their last readable zone: the muster
    list errs toward listing. Guest rows need both the guest list (`advancing.packet.read`) and the door check-ins
-   (`credentials.scan.write`).
+   (`credentials.scan.write`). The Issued page's checks are not a view: `app.credential_review(ids)` is a definer
+   function that answers only credentials the caller can read, because its checks re-read `app.credentials` on other
+   projects, which ADR 0016 rule 14 forbids a definer helper to do from a view that scans that table.
 4. **Required training blocks issuing.** A category may require a training course or a certification. A course is
    met by a passed, unexpired completion through a membership of the org; a certification by a live, unexpired
    `app.certification_holders` row a verifier recorded, which is how people without a membership meet a
    requirement. `t44_guard_credential_requirements` refuses `credential_training_incomplete` for direct issue,
-   `app.issue_allocation` and the API alike; existing credentials are untouched.
+   `app.issue_allocation` and the API alike; existing credentials are untouched. Because a certification record now
+   opens a gate, the holder of one may change only their consent to public verification
+   (`certification_holder_verifier_only`): clearing an expiry, changing the dates or restoring a removed record is a
+   verifier's job.
 5. **One live Access badge per holder, category and window.** `t45_guard_credential_duplicate` refuses
    `credential_duplicate` for a second live credential of the same holder and Access category whose window overlaps.
    Parking categories are exempt, because one person may hold passes for several vehicles. Moving to revoked is

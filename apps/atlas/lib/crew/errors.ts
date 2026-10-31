@@ -92,6 +92,7 @@ export const KNOWN_REFUSALS = [
   "agreement_token_validity",
   "credential_self_issue",
   "certification_holder_immutable",
+  "certification_holder_verifier_only",
   "per_diem_one_worker",
   "per_diem_range",
   "per_diem_member_org",

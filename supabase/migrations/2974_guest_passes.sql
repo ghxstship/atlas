@@ -87,12 +87,15 @@ begin
     for i in 0..9 loop
       v_code := v_code || substr(v_alphabet, (get_byte(v_bytes, i) % 32) + 1, 1);
     end loop;
+    -- The stamp runs in a before trigger, where a unique violation cannot be caught and retried, so the drawn code is
+    -- locked first: a concurrent approval that drew the same code waits here, then sees the committed row and draws again.
+    perform pg_advisory_xact_lock(hashtextextended('guest_pass_code:' || p_org_id || ':' || v_code, 0));
     exit when not exists (select 1 from app.guest_list_entries g where g.org_id = p_org_id and g.pass_code = v_code);
   end loop;
   return v_code;
 end;
 $$;
-comment on function private.new_guest_pass_code(uuid) is 'A guest pass code unused in the org: GP- and 10 base32 characters (A to Z, 2 to 7) from 10 random bytes, drawn again until it is free.';
+comment on function private.new_guest_pass_code(uuid) is 'A guest pass code unused in the org: GP- and 10 base32 characters (A to Z, 2 to 7) from 10 random bytes, drawn again until it is free. Each drawn code is held with a transaction advisory lock before it is checked, so two concurrent approvals never stamp the same code and the unique index never surfaces as a raw 23505.';
 revoke all on function private.new_guest_pass_code(uuid) from public, anon, authenticated;
 
 create function private.normalize_guest_email(p_email text)
@@ -456,7 +459,8 @@ begin
   if v_entry.host_person_id is not null and v_entry.host_person_id is distinct from private.current_person_id() then
     perform private.notify(v_entry.org_id, v_entry.host_person_id, 'guest.arrived', 'app.guest_list_entries', v_entry.id,
       v_entry.project_id, jsonb_build_object('guest_name', v_entry.guest_name, 'plus_ones_admitted', coalesce(p_plus_ones_admitted, 0),
-        'door', nullif(btrim(p_door), ''), 'table_label', v_entry.table_label));
+        'door', coalesce(nullif(btrim(p_door), ''), ''), 'has_door', case when nullif(btrim(p_door), '') is null then 'no' else 'yes' end,
+        'table_label', coalesce(v_entry.table_label, ''), 'has_table', case when v_entry.table_label is null then 'no' else 'yes' end));
   end if;
   return v_id;
 end;

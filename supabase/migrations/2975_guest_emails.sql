@@ -47,8 +47,8 @@ create table app.guest_email_sends (
     and (body is null or char_length(btrim(body)) between 1 and 5000)),
   constraint guest_email_sends_locale check (locale in ('en-US', 'es-US'))
 );
-create index guest_email_sends_project_idx on app.guest_email_sends (project_id, created_at desc);
 call private.install_domain_table('app.guest_email_sends', 'app.projects', 'project_id', '{}', true);
+create index guest_email_sends_project_idx on app.guest_email_sends (project_id, created_at desc);
 call private.describe('app.guest_email_sends', 'Bulk emails staff sent to a project''s guests (gap G-71, ADR 0147 decision 7): what was sent and in which language. Append-only; written only by app.queue_guest_emails.', array[
   'project_id', 'Project.',
   'email_kind', 'Invitation, Pass or Message.',
@@ -80,12 +80,12 @@ create table app.guest_emails (
   constraint guest_emails_error_length check (error is null or char_length(error) <= 1000),
   constraint guest_emails_sent check ((send_state = 'Sent') = (sent_at is not null))
 );
+call private.install_domain_table('app.guest_emails', 'app.guest_email_sends', 'guest_email_send_id',
+  array['app.guest_list_entries', 'guest_list_entry_id']);
 create unique index guest_emails_send_entry_key on app.guest_emails (guest_email_send_id, guest_list_entry_id);
 create index guest_emails_entry_idx on app.guest_emails (guest_list_entry_id);
 create index guest_emails_due_idx on app.guest_emails (send_state, created_at) where send_state in ('Queued', 'Sending');
 create index guest_emails_org_created_idx on app.guest_emails (org_id, created_at);
-call private.install_domain_table('app.guest_emails', 'app.guest_email_sends', 'guest_email_send_id',
-  array['app.guest_list_entries', 'guest_list_entry_id']);
 call private.describe('app.guest_emails', 'One guest''s email of a send (gap G-71): the address at queue time and what happened to it. The project comes through the send. Written only by the queue and the guest-email worker.', array[
   'guest_email_send_id', 'Send it belongs to.',
   'guest_list_entry_id', 'Guest.',

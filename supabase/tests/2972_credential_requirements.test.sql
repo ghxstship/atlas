@@ -86,6 +86,15 @@ select lives_ok($$insert into app.credentials (credential_category_id, holder_pe
 insert into app.certification_holders (certification_id, person_id, issued_on, expires_on) values (pg_temp.id('cert'), pg_temp.id('paul'), current_date - 30, current_date - 1);
 select throws_ok($$insert into app.credentials (credential_category_id, holder_person_id) values ((select id from world where key = 'cat_ind'), (select id from world where key = 'paul'))$$,
   'XR001', null, 'an expired certification blocks again');
+select pg_temp.as_user('paul');
+select throws_ok($$update app.certification_holders set expires_on = null where person_id = (select id from world where key = 'paul')$$,
+  'XR001', 'certification_holder_verifier_only: The holder changes only their consent; a verifier corrects the dates or restores the record.',
+  'the holder cannot clear the expiry of their own certification to meet the requirement');
+select lives_ok($$update app.certification_holders set public_verification_consented = true where person_id = (select id from world where key = 'paul')$$,
+  'the holder still changes their consent');
+select pg_temp.as_user('carol');
+select throws_ok($$insert into app.credentials (credential_category_id, holder_person_id) values ((select id from world where key = 'cat_ind'), (select id from world where key = 'paul'))$$,
+  'XR001', null, 'so the expired certification still blocks');
 select pg_temp.as_user('xavier');
 select throws_ok($$insert into app.credential_category_requirements (credential_category_id, certification_id)
   values ((select id from world where key = 'cat_ind'), (select id from world where key = 'cert'))$$,

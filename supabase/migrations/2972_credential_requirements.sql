@@ -8,7 +8,9 @@
 --     holder in the course's org, that has not expired. Only org members train (0804).
 --   * A certification requirement is met by a live app.certification_holders row of the holder that has not expired.
 --     A verifier records it (0352, invariant 21), so anyone, member or not, meets it; that is how a pass desk records
---     an in-person induction.
+--     an in-person induction. Because the row now opens a gate, private.guard_certification_holder (0352, its only
+--     definition) also stops the holder changing anything but their consent: 0352's update policy lets the holder
+--     update their own row for that consent, and without this they could clear an expiry or restore a removed record.
 --   * private.credential_requirements_state answers, for a category, a holder and the badge's end, each requirement
 --     with is_met and, for a met one that expires before the badge ends, when it expires. The guard calls it directly.
 --     private.credential_requirements_missing is the same answer for readers: app.credential_review (2973) calls it as
@@ -43,6 +45,47 @@ call private.install_policies('app.credential_category_requirements',
   $$credential_category_id in (select c.id from app.credential_categories c where c.project_id in (select private.project_ids_with('credentials.category.write')))$$);
 call private.install_audit_trail('app.credential_category_requirements');
 call private.install_default_retention('app.credential_category_requirements');
+
+-- The holder changes only their consent ------------------------------------------------------------------------------------
+
+-- Recreated from 0352 (its only definition) with every rule kept; the new rule is the holder's.
+create or replace function private.guard_certification_holder()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := private.current_person_id();
+begin
+  if tg_op = 'INSERT' then
+    if auth.uid() is not null then
+      new.verified_by := v_me;
+    end if;
+    if new.verified_by = new.person_id then
+      perform private.refuse('credential_self_issue', 'A person never issues their own credential or certification.');
+    end if;
+    new.verification_code := encode(extensions.gen_random_bytes(12), 'hex');
+    new.public_verification_consented := false;
+    return new;
+  end if;
+  if new.person_id <> old.person_id or new.verified_by is distinct from old.verified_by or new.verification_code <> old.verification_code then
+    perform private.refuse('certification_holder_immutable', 'A certification record keeps its holder, verifier and code.');
+  end if;
+  if new.public_verification_consented <> old.public_verification_consented and auth.uid() is not null and v_me is distinct from new.person_id then
+    perform private.refuse('certification_consent_holder_only', 'Only the holder consents to public verification.');
+  end if;
+  if auth.uid() is not null and v_me = old.person_id
+     and (new.certification_id <> old.certification_id or new.issued_on <> old.issued_on
+          or new.expires_on is distinct from old.expires_on or (old.deleted_at is not null and new.deleted_at is null)) then
+    perform private.refuse('certification_holder_verifier_only',
+      'The holder changes only their consent; a verifier corrects the dates or restores the record.');
+  end if;
+  return new;
+end;
+$$;
+comment on function private.guard_certification_holder() is 'Certification holders: recorded by someone other than the holder (invariant 21), with a database-issued code; only the holder changes consent to public verification, and the holder changes nothing else but removing their own record (B8: a certification can be required before a badge, 2972), so a holder cannot clear an expiry, change the dates or restore a removed record.';
+revoke all on function private.guard_certification_holder() from public, anon, authenticated;
 
 -- Which requirements a holder meets ----------------------------------------------------------------------------------------
 

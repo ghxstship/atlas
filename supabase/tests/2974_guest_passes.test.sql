@@ -100,6 +100,12 @@ select pg_temp.as_platform();
 select is((select (n.message_args ->> 'guest_name') || '/' || (n.message_args ->> 'plus_ones_admitted') || '/' || (n.message_args ->> 'door') || '/' || (n.message_args ->> 'table_label')
            from app.notifications n where n.kind = 'guest.arrived' and n.subject_id = pg_temp.id('g_req')),
   'Sasha Bell/1/North Gate/Table 4', 'with the guest''s name, plus-ones, door and table');
+select is((select (n.message_args ->> 'has_door') || '/' || (n.message_args ->> 'has_table')
+           from app.notifications n where n.kind = 'guest.arrived' and n.subject_id = pg_temp.id('g_req')),
+  'yes/yes', 'with the has_door and has_table arguments the copy selects on');
+select is((select count(*)::int from app.notifications n, jsonb_each(n.message_args) a
+           where n.kind = 'guest.arrived' and n.subject_id = pg_temp.id('g_req') and jsonb_typeof(a.value) = 'null'), 0,
+  'no argument is null, so the message always renders');
 select matches((select pass_code from app.guest_list_entries where id = pg_temp.id('g_req')), '^GP-', 'check-in keeps the pass code');
 select pg_temp.as_user('carol');
 select app.check_in_guest(pg_temp.id('g_appr'), 0::smallint, 'South Gate');

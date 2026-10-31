@@ -1086,7 +1086,7 @@ export async function credentialIssueCheck(
 
 export type HolderSource = "Allocation" | "Engagement" | "Member" | "Direct";
 
-/** The accreditation checks of one credential (app.credential_review), as the Issued page's chips show them. */
+/** The accreditation checks of one credential (app.credential_review, 2973), as the Issued page's chips show them. */
 export interface CredentialReview {
   readonly credentialId: string;
   readonly holderSource: HolderSource;
@@ -1108,18 +1108,15 @@ export function needsAttention(review: CredentialReview): boolean {
   );
 }
 
-/** The review rows of the listed credentials, in one query. */
+/** The review rows of the listed credentials (at most 500, a page's worth), in one call. */
 export async function credentialReviews(
   db: XosClient,
   credentialIds: readonly string[],
 ): Promise<Result<Map<string, CredentialReview>>> {
   if (credentialIds.length === 0) return ok(new Map());
-  const { data, error } = await untyped(db)
-    .from("credential_review")
-    .select(
-      "credential_id, holder_source, other_badges_on_project, same_name_on_project, duplicate_live, missing_requirements, booked_elsewhere",
-    )
-    .in("credential_id", [...credentialIds]);
+  const { data, error } = await untyped(db).rpc("credential_review", {
+    p_credential_ids: [...credentialIds].slice(0, 500),
+  });
   if (error) return fail(toDataError(error));
   const rows = (data ?? []) as {
     credential_id: string;

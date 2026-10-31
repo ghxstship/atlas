@@ -132,6 +132,7 @@
     "agreement_token_validity": "A signing link is valid for 1 to 90 days.",
     "credential_self_issue": "Nobody records their own certificate. Ask another verifier to record it.",
     "certification_holder_immutable": "A certificate record keeps its holder, verifier and code. Remove it and record it again.",
+    "certification_holder_verifier_only": "You can change only your consent to public verification. Ask a verifier to correct the dates or restore the record.",
     "swap_not_allowed": "This project does not allow shift swaps. Ask your supervisor to cover the shift.",
     "swap_needs_approval": "A supervisor approves swaps on this project. Wait for their decision.",
     "shift_claim_waiting": "You already claimed this shift. A supervisor decides.",

@@ -1,7 +1,7 @@
 -- pgTAP: migration 2973 (B8, G-147), one accreditation list. A second live Access credential of the same category and
 -- holder for an overlapping window is refused, on insert and on an update that widens the window or brings a deleted
 -- or revoked one back; Parking is exempt; revoke then issue works; a holder booked on another project (credential or
--- engagement) is flagged; the other project's key shows only to someone who can read it; credential_review gives the
+-- engagement) is flagged; the other project's key shows only to someone who can read it; credential_review(ids) gives the
 -- checks the Issued page shows; the issue check lists them.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -55,11 +55,11 @@ with x as (insert into app.credentials (credential_category_id, holder_person_id
   values (pg_temp.id('cat_a2'), pg_temp.id('ivy'), '2027-05-31 08:00+00', '2027-06-02 08:00+00') returning id) insert into world select 'c_ivy', id from x;
 with x as (insert into app.credentials (credential_category_id, holder_person_id, valid_from, valid_to)
   values (pg_temp.id('cat'), pg_temp.id('erin'), '2027-06-10 08:00+00', '2027-06-12 08:00+00') returning id) insert into world select 'c_erin', id from x;
-select is((select booked_elsewhere from app.credential_review where credential_id = pg_temp.id('c3')), true,
+select is((select booked_elsewhere from app.credential_review(array[pg_temp.id('c3')])), true,
   'frank''s NWL badge is booked elsewhere: a live overlapping badge on NWX');
-select is((select booked_elsewhere from app.credential_review where credential_id = pg_temp.id('c_ivy')), true,
+select is((select booked_elsewhere from app.credential_review(array[pg_temp.id('c_ivy')])), true,
   'ivy''s NWX badge is booked elsewhere: a live engagement on NWL the same days');
-select is((select booked_elsewhere from app.credential_review where credential_id = pg_temp.id('c_erin')), false, 'erin is booked nowhere else');
+select is((select booked_elsewhere from app.credential_review(array[pg_temp.id('c_erin')])), false, 'erin is booked nowhere else');
 select is((select string_agg(coalesce(project_key, '-') || ':' || kind, ',') from app.credential_bookings_elsewhere(pg_temp.id('c_ivy'))),
   'NWL:Engagement', 'carol sees the engagement''s project');
 select is((select string_agg(coalesce(project_key, '-') || ':' || kind, ',') from app.credential_bookings_elsewhere(pg_temp.id('c3'))),
@@ -69,22 +69,23 @@ select is((select string_agg(coalesce(project_key, '-') || ':' || kind || ':' ||
   '-:Credential:true', 'a Collaborator who cannot read NWX sees only that the holder is booked on another production');
 select throws_ok($$select * from app.credential_bookings_elsewhere((select id from world where key = 'c_ivy'))$$,
   '42501', null, 'and cannot ask about a credential of a project they cannot read');
-select is(private.holder_booked_elsewhere(pg_temp.id('org_a'), pg_temp.id('prj_a2'), pg_temp.id('ivy'), '2027-05-31 08:00+00', '2027-06-02 08:00+00', null), false,
-  'the helper answers false to a caller without credentials.credential.read on the project');
-select pg_temp.as_user('xavier');
-select is(private.same_name_holders(pg_temp.id('prj_a'), pg_temp.id('frank')), 0, 'same_name_holders tells another org nothing');
+select pg_temp.as_platform();
+select ok(not has_function_privilege('authenticated', 'private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid)', 'execute')
+  and not has_function_privilege('authenticated', 'private.same_name_holders(uuid, uuid)', 'execute')
+  and not has_function_privilege('authenticated', 'private.holder_is_member(uuid, uuid, uuid)', 'execute'),
+  'the review helpers are internal: only the definer functions call them');
 
--- The review view --------------------------------------------------------------------------------------------------------------------
+-- The review ------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-select is((select holder_source from app.credential_review where credential_id = pg_temp.id('c3')), 'Member', 'a member''s badge is Member');
-select is((select holder_source from app.credential_review where credential_id = pg_temp.id('c_ivy')), 'Direct', 'a freelancer''s badge issued by hand is Direct');
-select is((select other_badges_on_project from app.credential_review where credential_id = pg_temp.id('c3')), 1, 'frank holds one other badge on NWL');
-select is((select duplicate_live from app.credential_review where credential_id = pg_temp.id('c3')), false, 'and no duplicate');
+select is((select holder_source from app.credential_review(array[pg_temp.id('c3')])), 'Member', 'a member''s badge is Member');
+select is((select holder_source from app.credential_review(array[pg_temp.id('c_ivy')])), 'Direct', 'a freelancer''s badge issued by hand is Direct');
+select is((select other_badges_on_project from app.credential_review(array[pg_temp.id('c3')])), 1, 'frank holds one other badge on NWL');
+select is((select duplicate_live from app.credential_review(array[pg_temp.id('c3')])), false, 'and no duplicate');
 select pg_temp.as_platform();
 update app.people set full_name = 'Frank Adeyemi' where id = pg_temp.id('erin');
 select pg_temp.as_user('carol');
-select is((select same_name_on_project from app.credential_review where credential_id = pg_temp.id('c3')), 1, 'another holder with the same name on the project is counted');
-select is((select missing_requirements from app.credential_review where credential_id = pg_temp.id('c3')), 0, 'no requirement is missing');
+select is((select same_name_on_project from app.credential_review(array[pg_temp.id('c3')])), 1, 'another holder with the same name on the project is counted');
+select is((select missing_requirements from app.credential_review(array[pg_temp.id('c3')])), 0, 'no requirement is missing');
 select pg_temp.as_platform();
 set local session_replication_role = replica;
 insert into app.credentials (id, org_id, project_id, credential_category_id, holder_person_id, credential_number, valid_from, valid_to)
@@ -92,7 +93,7 @@ values ('01920000-0000-7000-8973-000000000001', pg_temp.id('org_a'), pg_temp.id(
         '2027-06-02 08:00+00', '2027-06-04 08:00+00');
 set local session_replication_role = origin;
 select pg_temp.as_user('carol');
-select is((select duplicate_live from app.credential_review where credential_id = pg_temp.id('c3')), true,
+select is((select duplicate_live from app.credential_review(array[pg_temp.id('c3')])), true,
   'a duplicate from before 2973 shows on the review');
 select is((select string_agg(check_code || ':' || blocking::text, ',' order by check_code)
            from app.credential_issue_check(pg_temp.id('cat'), pg_temp.id('frank'), '2027-06-02 09:00+00', '2027-06-02 10:00+00')),
@@ -101,9 +102,9 @@ select is((select string_agg(check_code || ':' || blocking::text, ',' order by c
 select is((select project_key from app.credential_issue_check(pg_temp.id('cat'), pg_temp.id('frank'), '2027-06-02 09:00+00', '2027-06-02 10:00+00') where check_code = 'booked_elsewhere'),
   'NWX', 'with the other project''s key for a reader of it');
 select pg_temp.as_user('gina');
-select is((select count(*)::int from app.credential_review where credential_id = pg_temp.id('c3')), 1, 'a Viewer reads the review of credentials they can read');
+select is((select count(*)::int from app.credential_review(array[pg_temp.id('c3')])), 1, 'a Viewer reads the review of credentials they can read');
 select pg_temp.as_user('xavier');
-select is((select count(*)::int from app.credential_review), 0, 'another org reads none');
+select is((select count(*)::int from app.credential_review(array[pg_temp.id('c3'), pg_temp.id('c_ivy')])), 0, 'another org reads none');
 select pg_temp.as_platform();
 
 select * from finish();

@@ -119,10 +119,9 @@ select pg_temp.as_platform();
 select ok(not has_table_privilege('xos_backup', 'app.zone_presence', 'select'), 'xos_backup has no select on app.zone_presence');
 select ok(not has_table_privilege('xos_backup', 'app.zone_counts_live', 'select'), 'xos_backup has no select on app.zone_counts_live');
 select ok(not has_table_privilege('xos_backup', 'app.muster_list', 'select'), 'xos_backup has no select on app.muster_list');
-select ok(not has_table_privilege('xos_backup', 'app.credential_review', 'select'), 'xos_backup has no select on app.credential_review');
 select ok((select bool_and(coalesce('security_invoker=on' = any (c.reloptions), false)) from pg_catalog.pg_class c
-           where c.oid in ('app.zone_presence'::regclass, 'app.zone_counts_live'::regclass, 'app.muster_list'::regclass, 'app.credential_review'::regclass)),
-  'the four views run as their reader');
+           where c.oid in ('app.zone_presence'::regclass, 'app.zone_counts_live'::regclass, 'app.muster_list'::regclass)),
+  'the three views run as their reader');
 
 -- The read stays on recent partitions ---------------------------------------------------------------------------------------
 create function pg_temp.presence_plan() returns text language plpgsql as $$

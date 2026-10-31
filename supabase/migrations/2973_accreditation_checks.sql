@@ -12,11 +12,13 @@
 --   * answers, for a holder, whether they are booked elsewhere in the org (a live overlapping credential or a live
 --     overlapping engagement on another project), with app.credential_bookings_elsewhere naming only the projects the
 --     caller can read;
---   * adds app.credential_review, one row per credential the reader can read with its checks, for the Issued page's
+--   * adds app.credential_review(ids), the checks of each listed credential the caller can read, for the Issued page's
 --     chips and "Needs attention" filter, and the accreditation rows of app.credential_issue_check.
 --
--- The view scans app.credentials, so its definer helpers take column values and never a credential id (ADR 0016 rule
--- 14), and each answers nothing to a reader without credentials.credential.read on the project, so none is an oracle.
+-- The helpers take column values, never a credential id, and each answers nothing to a caller without
+-- credentials.credential.read on the project, so none is an oracle. Only definer functions call them, so they are not
+-- granted to callers. app.credential_review is a function, not a security_invoker view, because its checks re-read
+-- app.credentials, which ADR 0016 rule 14 forbids a definer helper to do from a view scanning that table.
 
 -- The duplicate rule ------------------------------------------------------------------------------------------------------
 
@@ -89,8 +91,7 @@ begin
 end;
 $$;
 comment on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) is 'True when the holder, in the same org, has on another project a live credential whose window overlaps, or a live engagement (Onboarding, Blocked, Active or Closing) whose days overlap the window''s days in that project''s time zone (gap G-147). Takes values, never a credential id (ADR 0016 rule 14); false for a caller without credentials.credential.read on the project.';
-revoke all on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) from public, anon;
-grant execute on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) to authenticated, service_role;
+revoke all on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) from public, anon, authenticated;
 
 create function private.same_name_holders(p_project_id uuid, p_holder_person_id uuid)
 returns integer
@@ -113,8 +114,7 @@ begin
 end;
 $$;
 comment on function private.same_name_holders(uuid, uuid) is 'How many other people hold credentials on the project under the same name, ignoring case and outer spaces: perhaps the same person twice. Takes values (ADR 0016 rule 14); 0 for a caller without credentials.credential.read on the project.';
-revoke all on function private.same_name_holders(uuid, uuid) from public, anon;
-grant execute on function private.same_name_holders(uuid, uuid) to authenticated, service_role;
+revoke all on function private.same_name_holders(uuid, uuid) from public, anon, authenticated;
 
 create function private.holder_is_member(p_project_id uuid, p_org_id uuid, p_person_id uuid)
 returns boolean
@@ -133,8 +133,7 @@ begin
 end;
 $$;
 comment on function private.holder_is_member(uuid, uuid, uuid) is 'True when the holder is a current member of the org, for app.credential_review''s holder source; a reader of the project''s credentials need not read the member directory. Takes values (ADR 0016 rule 14); false without credentials.credential.read on the project.';
-revoke all on function private.holder_is_member(uuid, uuid, uuid) from public, anon;
-grant execute on function private.holder_is_member(uuid, uuid, uuid) to authenticated, service_role;
+revoke all on function private.holder_is_member(uuid, uuid, uuid) from public, anon, authenticated;
 
 create function app.credential_bookings_elsewhere(p_credential_id uuid)
 returns table (
@@ -189,50 +188,58 @@ comment on function app.credential_bookings_elsewhere(uuid) is 'Where else in th
 revoke all on function app.credential_bookings_elsewhere(uuid) from public, anon;
 grant execute on function app.credential_bookings_elsewhere(uuid) to authenticated, service_role;
 
--- The review view ------------------------------------------------------------------------------------------------------------
+-- The review ----------------------------------------------------------------------------------------------------------------
 
-create view app.credential_review with (security_invoker = on) as
-select c.id as credential_id, c.org_id, c.project_id, c.holder_person_id,
-  case
-    when c.allocation_id is not null then 'Allocation'
-    when c.engagement_id is not null then 'Engagement'
-    when private.holder_is_member(c.project_id, c.org_id, c.holder_person_id) then 'Member'
-    else 'Direct'
-  end as holder_source,
-  (select count(*)::integer from app.credentials o
-   where o.project_id = c.project_id and o.holder_person_id = c.holder_person_id
-     and o.credential_category_id <> c.credential_category_id and o.deleted_at is null and o.revoked_at is null) as other_badges_on_project,
-  private.same_name_holders(c.project_id, c.holder_person_id) as same_name_on_project,
-  (cc.category_kind = 'Access' and c.revoked_at is null and exists (
-     select 1 from app.credentials o
-     where o.holder_person_id = c.holder_person_id and o.credential_category_id = c.credential_category_id and o.id <> c.id
-       and o.deleted_at is null and o.revoked_at is null
-       and tstzrange(o.valid_from, coalesce(o.valid_to, 'infinity')) && tstzrange(c.valid_from, coalesce(c.valid_to, 'infinity')))) as duplicate_live,
-  (select count(*)::integer from private.credential_requirements_missing(c.credential_category_id, c.holder_person_id, c.valid_to) m
-   where not m.is_met) as missing_requirements,
-  private.holder_booked_elsewhere(c.org_id, c.project_id, c.holder_person_id, c.valid_from, c.valid_to, c.id) as booked_elsewhere
-from app.credentials c
-join app.credential_categories cc on cc.id = c.credential_category_id
-where c.deleted_at is null;
-
-call private.describe('app.credential_review', 'The accreditation checks of each credential the reader can read (gap G-147, ADR 0147 decision 5), for the Issued page. Runs as the reader; its helpers answer only with credentials.credential.read on the project.', array[
-  'credential_id', 'Credential.',
-  'org_id', 'Org.',
-  'project_id', 'Project.',
-  'holder_person_id', 'Holder.',
-  'holder_source', 'How the holder came to be accredited: Allocation (issued under an R7 allocation), Engagement, Member (a current member of the org) or Direct.',
-  'other_badges_on_project', 'Live credentials of the same holder on the same project in another category.',
-  'same_name_on_project', 'Other holders on the project with the same name, ignoring case and outer spaces.',
-  'duplicate_live', 'Another live credential of the same holder and Access category overlaps this one. Only possible for credentials issued before migration 2973.',
-  'missing_requirements', 'Requirements of the category the holder does not meet now.',
-  'booked_elsewhere', 'The holder has a live overlapping credential or engagement on another project of the org.'
-]);
-revoke all on app.credential_review from public, anon;
-grant select on app.credential_review to authenticated, service_role;
-revoke select on app.credential_review from xos_backup;
-
-insert into private.view_column_sources (view_name, column_name, source_table, source_column) values
-  ('app.credential_review', 'credential_id', 'app.credentials', 'id');
+-- A function rather than a security_invoker view: its checks read app.credentials on other projects and other
+-- holders' names, which only a definer can, and a definer helper that re-reads app.credentials from a view that scans
+-- app.credentials is what ADR 0016 rule 14 forbids. Here nothing is a view, so the helpers run as the function's owner,
+-- and each row is checked against the caller's credentials.credential.read on its project instead.
+create function app.credential_review(p_credential_ids uuid[])
+returns table (
+  credential_id uuid,
+  org_id uuid,
+  project_id uuid,
+  holder_person_id uuid,
+  holder_source text,
+  other_badges_on_project integer,
+  same_name_on_project integer,
+  duplicate_live boolean,
+  missing_requirements integer,
+  booked_elsewhere boolean
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select c.id, c.org_id, c.project_id, c.holder_person_id,
+    case
+      when c.allocation_id is not null then 'Allocation'
+      when c.engagement_id is not null then 'Engagement'
+      when private.holder_is_member(c.project_id, c.org_id, c.holder_person_id) then 'Member'
+      else 'Direct'
+    end,
+    (select count(*)::integer from app.credentials o
+     where o.project_id = c.project_id and o.holder_person_id = c.holder_person_id
+       and o.credential_category_id <> c.credential_category_id and o.deleted_at is null and o.revoked_at is null),
+    private.same_name_holders(c.project_id, c.holder_person_id),
+    (cc.category_kind = 'Access' and c.revoked_at is null and exists (
+       select 1 from app.credentials o
+       where o.holder_person_id = c.holder_person_id and o.credential_category_id = c.credential_category_id and o.id <> c.id
+         and o.deleted_at is null and o.revoked_at is null
+         and tstzrange(o.valid_from, coalesce(o.valid_to, 'infinity')) && tstzrange(c.valid_from, coalesce(c.valid_to, 'infinity')))),
+    (select count(*)::integer from private.credential_requirements_state(c.credential_category_id, c.holder_person_id, c.valid_to) m
+     where not m.is_met),
+    private.holder_booked_elsewhere(c.org_id, c.project_id, c.holder_person_id, c.valid_from, c.valid_to, c.id)
+  from app.credentials c
+  join app.credential_categories cc on cc.id = c.credential_category_id
+  where c.id = any (p_credential_ids[1:500]) and c.deleted_at is null
+    and private.can_on_project(c.project_id, 'credentials.credential.read')
+  order by c.id;
+$$;
+comment on function app.credential_review(uuid[]) is 'The accreditation checks of the listed credentials (gap G-147, ADR 0147 decision 5), for the Issued page''s chips and its Needs attention filter: holder_source (Allocation, Engagement, Member or Direct), other live badges of the holder on the project, other holders with the same name, a live duplicate (only possible from before 2973), unmet requirements now, and whether the holder is booked on another project of the org. Answers only credentials whose project the caller has credentials.credential.read on; the first 500 ids are read.';
+revoke all on function app.credential_review(uuid[]) from public, anon;
+grant execute on function app.credential_review(uuid[]) to authenticated, service_role;
 
 -- The issue form's checks (from 2972) -----------------------------------------------------------------------------------------
 
