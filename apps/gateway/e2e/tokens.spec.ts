@@ -322,12 +322,14 @@ test("token advance parity", async ({ page, browser }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
 
     // 3. The production returns the carts answer with a reason; the link shows it and takes a new one.
-    await sql(
+    // Atlas's review (reviewAdvanceSubmission) is this update under the reviewer's own role;
+    // Gateway has no review page.
+    await asPerson(
+      DEMO.owner,
       `update app.advance_submissions x set review_outcome = 'Returned', return_reason = 'Two carts are enough.'
         from app.advance_sections s
        where s.id = x.advance_section_id and s.advance_packet_id = $1 and s.position = 2 and x.review_outcome is null`,
       [packetId],
-      DEMO.owner,
     );
     await open();
     await slow(
@@ -395,12 +397,21 @@ test("token advance parity", async ({ page, browser }) => {
     expect(new Set(mine.map((m) => m.section_title))).toEqual(
       new Set(["Rider", "Carts", "Guests"]),
     );
-    const [requester] = await sql<{ requested_by: string | null; created_by: string | null }>(
-      `select private.allocation_requester(a.id) as requested_by, a.created_by from app.advance_allocations a
+    // The production's allocation status, as Atlas reads it, names the representative as requester;
+    // no column was written at claim.
+    const [status] = await asPerson<{ requested_by: string | null }>(
+      DEMO.owner,
+      `select requested_by from app.advance_allocation_status
+        where holder_engagement_id = $1 and item_name = $2 and allocation_state = 'Requested'`,
+      [engagementId, cartName],
+    );
+    expect(status).toEqual({ requested_by: repId });
+    const [row] = await sql<{ created_by: string | null }>(
+      `select a.created_by from app.advance_allocations a
         where a.engagement_id = $1 and a.asset_class_id = $2 and a.allocation_state = 'Requested' and a.deleted_at is null`,
       [engagementId, carts?.id],
     );
-    expect(requester).toEqual({ requested_by: repId, created_by: null });
+    expect(row).toEqual({ created_by: null });
   } finally {
     await invitee?.close();
     for (const statement of [
