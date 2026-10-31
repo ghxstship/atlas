@@ -37,6 +37,7 @@ import {
   TaxFormForm,
 } from "./forms";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
+import { AccountTeamSection } from "./tabs-roster";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { MySharingPanel } from "@/components/settings/work-details";
@@ -197,6 +198,8 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
             stages={STAGE_KEYS.map((k) => ({ label: t(`gateway.engagement.overview.stage.${k}`) }))}
           />
         </Section>
+        {/* The account's assigned members (R4): only its Owner and Admin see this. */}
+        <AccountTeamSection view={view} t={t} />
         {/* Work Details shared with this engagement, with consent (A78); only the engaged person sees it. */}
         <MySharingPanel ctx={view.ctx} engagementId={e.id} />
         {e.state === "Complete" ? (
