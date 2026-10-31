@@ -19,6 +19,7 @@
     "./views": "./src/views/index.ts",
     "./views.yaml": "./views.yaml",
     "./notifications": "./src/notifications/index.ts",
+    "./notifications/action-token": "./src/notifications/action-token.ts",
     "./notification-kinds.yaml": "./notification-kinds.yaml",
     "./automations": "./src/automations/index.ts",
     "./automation.schema.json": "./automation.schema.json"

@@ -58,15 +58,18 @@ async function propsFor(claim, store) {
   if (!isTemplateCode(claim.emailTemplateCode))
     throw new Error(`Unknown email template ${claim.emailTemplateCode}`);
   switch (claim.emailTemplateCode) {
-    case "notification":
+    case "notification": {
+      const actions = (await store.actionLinksFor?.(claim)) ?? [];
       return {
         code: "notification",
         props: {
           kind: claim.kind,
           args: messageArgs(claim.messageArgs),
           url: await store.linkFor(claim),
+          ...(actions.length === 0 ? {} : { actions }),
         },
       };
+    }
     case "export_ready":
       return {
         code: "export_ready",
@@ -142,13 +145,35 @@ async function dispatchEmail(store, transport, limit = 50) {
  * which makes a retry idempotent per delivery and device), and later reads the receipts, revoking the
  * devices Expo reports as DeviceNotRegistered.
  *
- * The contract Compass handles (apps/compass/src/domain/notifications.ts):
- *   - `categoryId` is the kind's push category from notification-kinds.yaml (`approval_request` for
- *     approval.requested), whose Approve and Reject actions answer through notifications.act;
+ * The contract Compass handles (apps/compass/src/domain/notifications.ts and offer-actions.ts):
+ *   - `categoryId` is the kind's push category (pushCategoryFor): `approval_request` for approval.requested, from
+ *     notification-kinds.yaml, whose Approve and Reject actions answer through notifications.act; and the
+ *     categories below (A127), whose Accept, Decline and Reply actions answer through the same operation;
  *   - `data` is { notificationId, kind, subjectTable, subjectId, title, recordKey, url }, where url is the deep
  *     link (Section 4.5.7: a push always carries one) and recordKey the display key of the record a notification is
  *     about (message_args.recordKey, 1600), which Compass opens on a tap (A101).
  */
+/** Push categories Compass registers in offer-actions.ts (A127, ADR 0106); approval_request is the registry's. */
+var SHIFT_OFFER_CATEGORY = "shift_offer";
+var ENGAGEMENT_OFFER_CATEGORY = "engagement_offer";
+var MESSAGE_REPLY_CATEGORY = "message_reply";
+/** A notification's push category: the registry's, else a still Published shift's, an offer's or a message's. */
+function pushCategoryFor(kind, messageArgs) {
+  const registered = notificationKind(kind)?.pushCategory ?? null;
+  if (registered !== null) return registered;
+  if (
+    (kind === "shift.assigned" || kind === "shift.changed") &&
+    messageArgs["shiftState"] === "Published"
+  )
+    return SHIFT_OFFER_CATEGORY;
+  if (kind === "offer.sent") return ENGAGEMENT_OFFER_CATEGORY;
+  if (kind === "message.received") return MESSAGE_REPLY_CATEGORY;
+  return null;
+}
+/** A decision goes out at high priority; a message's Reply does not. */
+function urgentCategory(category) {
+  return category !== null && category !== "message_reply";
+}
 /** Expo push service endpoints. */
 var EXPO_PUSH_SEND_URL = "https://exp.host/--/api/v2/push/send";
 var EXPO_PUSH_RECEIPTS_URL = "https://exp.host/--/api/v2/push/getReceipts";
@@ -163,7 +188,7 @@ function pushMessage(claim, device, recipient, url) {
     localeOf(recipient.locale),
     recipient.timeZone,
   );
-  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const pushCategory = pushCategoryFor(claim.kind, claim.messageArgs);
   const title = claim.messageArgs["title"];
   const recordKey = claim.messageArgs["recordKey"];
   return {
@@ -181,7 +206,7 @@ function pushMessage(claim, device, recipient, url) {
     },
     ...(pushCategory === null ? {} : { categoryId: pushCategory }),
     sound: "default",
-    priority: pushCategory === null ? "default" : "high",
+    priority: urgentCategory(pushCategory) ? "high" : "default",
     ttl: 86400,
   };
 }
@@ -351,7 +376,7 @@ async function dispatchPush(store, client, options = {}) {
 async function pushBrowsers(claim, recipient, web) {
   const devices = await web.store.webDevices(claim.deliveryId);
   if (devices.length === 0) return [];
-  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const pushCategory = pushCategoryFor(claim.kind, claim.messageArgs);
   const links = /* @__PURE__ */ new Map();
   for (const device of devices)
     if (!links.has(device.app)) links.set(device.app, await web.store.webLink(claim, device.app));
@@ -360,7 +385,7 @@ async function pushBrowsers(claim, recipient, web) {
       const payload = webPushPayload(claim, recipient, links.get(device.app) ?? "/");
       const answer = await web.client.send(device, payload, {
         ttl: 86400,
-        urgency: pushCategory === null ? "normal" : "high",
+        urgency: urgentCategory(pushCategory) ? "high" : "normal",
       });
       return answer.status === "ok"
         ? {

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BillingStore } from "./billing/webhook.ts";
 import type { InboundStore } from "./inbound/parse.ts";
+import { actionLinks } from "./notifications/action-links.ts";
 import type { ClaimedEmail, NotificationStore, Recipient } from "./notifications/dispatch.ts";
 import type { ClaimedWebhook, WebhookStore } from "./webhooks/dispatch.ts";
 
@@ -315,6 +316,9 @@ export function notificationStore(
         messageArgs: (row["message_args"] as Readonly<Record<string, unknown>> | null) ?? {},
         subjectTable: optionalText(row, "subject_table"),
         subjectId: optionalText(row, "subject_id"),
+        ...(typeof row["notification_id"] === "string"
+          ? { notificationId: row["notification_id"] }
+          : {}),
       }));
     },
     async senderFor(orgId, personId) {
@@ -342,6 +346,16 @@ export function notificationStore(
         p_subject_id: claim.subjectId,
       });
       return typeof local === "string" ? `${local}@${options.inboundDomain}` : null;
+    },
+    async actionLinksFor(claim) {
+      const minted = rows(
+        await db.rpc("mint_notification_action_tokens", { p_delivery_id: claim.deliveryId }),
+      ).map((r) => ({
+        action: optionalText(r, "action") ?? "",
+        token: optionalText(r, "token") ?? "",
+        audience: optionalText(r, "audience") ?? "",
+      }));
+      return actionLinks(minted, { atlasUrl: options.appUrl, gatewayUrl: options.gatewayUrl });
     },
     async record(deliveryId, outcome, providerMessageId, error) {
       await db.rpc("record_notification_delivery", {

@@ -108,20 +108,29 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // R5 (2650): the two project facts and names lock kinds in both locales took it to 181.6 KB on 2026-10-28.
   // R7 (2698): the four allocation kinds (decided, assigned, issued, withdrawn) in both locales took it to 186.9 KB
   // on 2026-10-30; the same 2 percent of headroom R5 left.
-  "notification-dispatch": 190,
+  // A127: one-tap email action links in the shared stores, the offer and message push categories, offer.sent and the
+  // email action copy in both locales (about 3.5 KB); 182.1 KB on 2026-10-27, alone. Both lines together (A127 on
+  // R4 to R7, merged for B9) measured 191.6 KB on 2026-10-31; the same 2 percent of headroom.
+  "notification-dispatch": 195,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. R7: the radio hand-out's document copy in both
-  // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30.
-  "org-lifecycle": 222,
+  // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30. A127's
+  // one-tap action links in the same shared stores chunk took both lines together to 222.6 KB on 2026-10-31 (merged
+  // for B9); 2 percent of headroom.
+  "org-lifecycle": 227,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
   // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
   // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent. R7 (2698): the four
-  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom.
-  "sms-webhook": 152,
+  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom. A127's
+  // offer.sent and one-tap copy with both lines together took it to 153.6 KB on 2026-10-31 (merged for B9); 2 KB of
+  // headroom.
+  "sms-webhook": 156,
   "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // The shared stores chunk it boots with carries R4 to R7's kinds and A127's one-tap action links; together they
+  // took it to 116.8 KB on 2026-10-31 (merged for B9); 2 percent of headroom.
+  "subprocessor-notices": 120,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
   "wallet-pass": 120,

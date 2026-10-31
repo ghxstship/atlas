@@ -8,8 +8,8 @@ import { DEMO, signIn, sql } from "./support";
  *   - A freelance crew member fills the Project details wizard (travel, uniform sizes, vehicle) on their engagement.
  *     The tab shows only while travel, uniforms or parking is offered.
  *   - A staffing agency's Account Owner (seed 1080) sees a member's chips on the Crew tab, opens Project details and,
- *     with the org's setting on, enters the member's vehicle; the member sees the notice in Gateway's updates, opens
- *     their details from it and corrects the plate.
+ *     with the org's setting on, enters the member's vehicle; the member sees the notice in Gateway's For Your
+ *     Information, opens their details from it and corrects the plate.
  *   - The producing org sets a names lock: the Crew tab says when names lock, and once it has passed Add and Invite
  *     close, while a Returned entry is still submitted again.
  * Each test runs on a project of its own, so the demo project's offerings stay as the seed left them, and removes
@@ -213,13 +213,13 @@ test("crew tab: the company enters a member's vehicle, and the names lock", asyn
       ),
     ).toBeGreaterThan(0);
 
-    // The member sees the notice in Gateway's updates, opens their own details from it and corrects the plate; the
+    // The member sees the notice in Gateway's For Your Information, opens their own details from it and corrects the plate; the
     // vehicle is then theirs, so the company can no longer change it.
     const member = await browser.newContext({ reducedMotion: "reduce" });
     const memberPage = await member.newPage();
     await signIn(memberPage, "staff.one@example.com", "/home");
     const notice = memberPage
-      .getByRole("list", { name: "Updates" })
+      .getByRole("list", { name: "For your information" })
       .getByRole("listitem")
       .filter({ hasText: `added your vehicle details for Names Lock Run ${project.key}` });
     await expect(notice).toBeVisible();
