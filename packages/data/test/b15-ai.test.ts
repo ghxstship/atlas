@@ -79,7 +79,7 @@ describe("intake batches (B15)", () => {
           {
             id: "s1",
             request_id: "r1",
-            operation_id: "aurora.applyItineraries",
+            operation_id: "auroraIntakes.applyItineraries",
             target_id: null,
             summary: "Add a segment.",
             suggestion_state: "Proposed",
@@ -324,6 +324,36 @@ describe("drafted advance answers (B15)", () => {
       data: [],
     });
     expect(calls).toHaveLength(1);
+  });
+
+  it("checks a full batch in lookups of at most 100 rows", async () => {
+    const { db, calls } = fakeClient({
+      "from:travel_segments": [
+        okResponse([]),
+        okResponse([]),
+        okResponse([
+          { person_id: "p1", service_identifier: "GA 249", departs_at: "2027-06-01T00:00:00Z" },
+        ]),
+      ],
+    });
+    // 250 rows with distinct departures; only the last, in the third lookup, is already booked.
+    const rows = Array.from({ length: 250 }, (_, i) => ({
+      person_id: `p${i % 2}`,
+      service_identifier: `GA ${i}`,
+      departs_at: new Date(Date.UTC(2027, 5, 1) + ((i + 1) % 250) * 60_000).toISOString(),
+    }));
+    expect(await bookedItinerarySegments(db, "o1", rows)).toEqual({ ok: true, data: [250] });
+    expect(calls).toHaveLength(3);
+    const departures = calls.map(
+      (c) =>
+        (
+          c.steps.find((s) => s[0] === "in" && (s[1] as unknown[])[0] === "departs_at")?.[1] as [
+            string,
+            string[],
+          ]
+        )[1].length,
+    );
+    expect(departures).toEqual([100, 100, 50]);
   });
 
   it("asks the database whether the caller reads pay rates, and which airports are active", async () => {

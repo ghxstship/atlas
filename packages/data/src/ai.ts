@@ -577,6 +577,9 @@ export interface ItineraryCheckRow {
 
 const serviceKey = (service: string) => service.trim().toUpperCase();
 
+/** Preview rows per travel_segments lookup in bookedItinerarySegments. */
+const CHECK_CHUNK = 100;
+
 /**
  * Which preview rows of an itinerary intake the traveler already has as a live segment of the org with the same
  * service identifier and departure, the rule app.apply_itinerary_intake refuses as itinerary_duplicate. It reads
@@ -596,21 +599,26 @@ export async function bookedItinerarySegments(
       ? [{ position: i + 1, person: row.person_id, service: serviceKey(service), at }]
       : [];
   });
-  if (checked.length === 0) return ok([]);
-  const { data, error } = await db
-    .from("travel_segments")
-    .select("person_id, service_identifier, departs_at")
-    .eq("org_id", orgId)
-    .in("person_id", [...new Set(checked.map((c) => c.person))])
-    .in("departs_at", [...new Set(checked.map((c) => new Date(c.at).toISOString()))])
-    .not("service_identifier", "is", null)
-    .is("deleted_at", null);
-  if (error) return fail(toDataError(error));
-  const live = new Set(
-    (data ?? []).map(
-      (s) => `${s.person_id}|${serviceKey(s.service_identifier ?? "")}|${Date.parse(s.departs_at)}`,
-    ),
-  );
+  const live = new Set<string>();
+  // A full batch has up to 1,500 rows; each lookup carries at most CHECK_CHUNK rows' travelers and
+  // departures, so its query string stays well inside gateway URL limits.
+  for (let start = 0; start < checked.length; start += CHECK_CHUNK) {
+    const chunk = checked.slice(start, start + CHECK_CHUNK);
+    const { data, error } = await db
+      .from("travel_segments")
+      .select("person_id, service_identifier, departs_at")
+      .eq("org_id", orgId)
+      .in("person_id", [...new Set(chunk.map((c) => c.person))])
+      .in("departs_at", [...new Set(chunk.map((c) => new Date(c.at).toISOString()))])
+      .not("service_identifier", "is", null)
+      .is("deleted_at", null);
+    if (error) return fail(toDataError(error));
+    for (const s of data ?? []) {
+      live.add(
+        `${s.person_id}|${serviceKey(s.service_identifier ?? "")}|${Date.parse(s.departs_at)}`,
+      );
+    }
+  }
   return ok(
     checked.filter((c) => live.has(`${c.person}|${c.service}|${c.at}`)).map((c) => c.position),
   );
