@@ -1,3 +1,4 @@
+import { draftedListIsEmpty } from "@xos/data/ai";
 import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
 import { todayIn } from "@xos/data/calendar";
@@ -11,6 +12,7 @@ import type { BulkConfig } from "@/components/bulk/types";
 import { LiveRefresh } from "@/components/live/live-refresh";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CustomFieldList } from "@/components/custom-fields/list";
+import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
 import { customFieldList } from "@/lib/custom-fields/server";
 import { CreateRecordDialog } from "./create-record";
 import {
@@ -164,6 +166,20 @@ export async function RecordsPage({
         }
       : null;
 
+  // Aurora's risk assessment (P6): on a project tab filtered to exactly Risk, with no other filter
+  // and no Risk record shown. The database answers whether the viewer may write the project's
+  // records and whether its risk list is truly empty (Risk records the viewer cannot see, and
+  // Canceled ones, count), so an assigned-reach member never sees a button that ends in a refusal.
+  const riskList =
+    project &&
+    kinds.length === 1 &&
+    kinds[0] === "Risk" &&
+    states.length === 0 &&
+    q === "" &&
+    records.length === 0
+      ? await draftedListIsEmpty(db, "risk_assessment", project.id).then((r) => r.ok && r.data)
+      : false;
+
   // Records update live (Section 11.7, ADR 0044): the project's when on a project tab, else the org's.
   const live = [
     {
@@ -218,6 +234,17 @@ export async function RecordsPage({
           />
         }
         peek={collectionPeek(peekKey, peek)}
+        {...(riskList && project
+          ? {
+              emptyAction: (
+                <ListDraftEntry
+                  kind="risk_assessment"
+                  target={{ collection: "projects", id: project.id, label: project.key }}
+                  context={[]}
+                />
+              ),
+            }
+          : {})}
       />
     </CustomFieldList>
   );

@@ -37901,12 +37901,34 @@ export interface AuroraDraftRequest {
   /**
    * What to draft.
    */
-  readonly kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+  readonly kind:
+    | "sop"
+    | "advance_packet"
+    | "email"
+    | "day_sheet"
+    | "change_order_description"
+    | "run_of_show"
+    | "risk_assessment";
   /**
    * What the draft should say.
    * Length: 1 to 4000.
    */
   readonly instructions: string;
+  /**
+   * The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+   */
+  readonly target?: {
+    /**
+     * Collection of the list's record.
+     * Pattern: `^[a-z][a-z0-9-]*$`.
+     */
+    readonly collection: string;
+    /**
+     * The running order or project.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  };
   /**
    * Records to draft from, read with the caller's permissions.
    */
@@ -37932,6 +37954,57 @@ export interface AuroraDraftRequest {
      * Length: 1 to 200.
      */
     readonly preferred: string;
+  }>;
+}
+
+/**
+ * What a confirmed drafted list wrote.
+ */
+export interface AuroraAppliedDraft {
+  /**
+   * Each kept line with the row it wrote, in list order.
+   */
+  readonly written: ReadonlyArray<{
+    /**
+     * Identifier of the suggestion applied.
+     * Format: `uuid`.
+     */
+    readonly suggestion_id: string;
+    /**
+     * Identifier of the cue or Risk record written.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  }>;
+  /**
+   * Lines of the draft left out and rejected.
+   * Range: 0 to unbounded.
+   */
+  readonly rejected: number;
+}
+
+/**
+ * The lines of a drafted list to add.
+ */
+export interface AuroraApplyDraftRequest {
+  /**
+   * Identifier of the drafting request whose list is confirmed.
+   * Format: `uuid`.
+   */
+  readonly request_id: string;
+  /**
+   * The kept lines in list order: at most 60 cues or 40 risks.
+   */
+  readonly items: ReadonlyArray<{
+    /**
+     * Identifier of the suggestion holding the line.
+     * Format: `uuid`.
+     */
+    readonly suggestion_id: string;
+    /**
+     * Values the person changed, overriding the proposed ones key by key. Cues take label, planned_at, duration, segment and description; risks take record_subtype, title, risk.likelihood, risk.impact and risk.mitigation.
+     */
+    readonly values?: { readonly [key: string]: unknown };
   }>;
 }
 
@@ -38048,6 +38121,10 @@ export interface AuroraPreview {
    * Range: 0 to unbounded.
    */
   readonly vocabulary_terms: number;
+  /**
+   * For a risk assessment, the canon Risk categories the draft may use.
+   */
+  readonly categories?: ReadonlyArray<string>;
 }
 
 /**
@@ -38089,6 +38166,25 @@ export interface AuroraPreviewRequest {
    * The feature whose request is previewed.
    */
   readonly feature: "drafting" | "summaries";
+  /**
+   * For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.
+   */
+  readonly draft_kind?: "run_of_show" | "risk_assessment";
+  /**
+   * The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+   */
+  readonly target?: {
+    /**
+     * Collection of the list's record.
+     * Pattern: `^[a-z][a-z0-9-]*$`.
+     */
+    readonly collection: string;
+    /**
+     * The running order or project.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  };
   /**
    * For summaries, what is summarized.
    */

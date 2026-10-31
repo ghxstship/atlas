@@ -78,6 +78,8 @@ export type Outcome<A> =
       readonly kind: "answer";
       readonly answer: A;
       readonly model: string | null;
+      /** The logged request, which a drafted list is confirmed by. */
+      readonly requestId: string | null;
       readonly suggestions: readonly AuroraProposalSummary[];
     }
   | { readonly kind: "no-answer"; readonly missing: string }
@@ -93,6 +95,7 @@ export function outcomeOf<A>(call: AuroraCall<AuroraApiResult<A>>): Outcome<A> {
     kind: "answer",
     answer: result.answer,
     model: result.model,
+    requestId: result.request_id,
     suggestions: result.suggestions,
   };
 }

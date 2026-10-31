@@ -94,6 +94,70 @@ export interface AuroraDraft {
   readonly verbiageMisses: readonly string[];
 }
 
+/** One flag of the gaps and clashes check on a drafted run of show (`@xos/ai/lists`). */
+export interface AuroraRunOfShowFlag {
+  readonly type: "overlap" | "gap" | "untimed" | "out_of_order";
+  readonly positions: readonly number[];
+  readonly minutes?: number;
+}
+
+/** A drafted cue, with the suggestion that holds it. */
+export interface AuroraDraftedCue {
+  readonly suggestion_id: string;
+  readonly position: number;
+  readonly label: string;
+  readonly planned_at: string | null;
+  readonly local_time: string | null;
+  readonly day_offset: 0 | 1;
+  readonly duration: string | null;
+  readonly segment: string | null;
+  readonly description: string | null;
+}
+
+/** A drafted risk, with the suggestion that holds it. */
+export interface AuroraDraftedRisk {
+  readonly suggestion_id: string;
+  readonly title: string;
+  readonly category: string;
+  readonly likelihood: number | null;
+  readonly impact: number | null;
+  readonly mitigation: string;
+}
+
+interface AuroraListDraftBase {
+  readonly title: string;
+  readonly body: string;
+  readonly gaps: readonly string[];
+  readonly dropped: readonly { readonly line: number; readonly reason: string }[];
+  readonly verbiageMisses: readonly string[];
+  readonly flags: readonly AuroraRunOfShowFlag[];
+}
+
+/** The answer of `aurora.draft` for a run of show or a risk assessment (P6). */
+export type AuroraListDraft =
+  | (AuroraListDraftBase & {
+      readonly kind: "run_of_show";
+      readonly items: readonly AuroraDraftedCue[];
+    })
+  | (AuroraListDraftBase & {
+      readonly kind: "risk_assessment";
+      readonly items: readonly AuroraDraftedRisk[];
+      /** The canon Risk subtypes a risk may take. */
+      readonly categories: readonly string[];
+    });
+
+/** One kept line of a drafted list, with the values the person changed (`aurora.applyDraft`). */
+export interface AuroraApplyDraftItem {
+  readonly suggestion_id: string;
+  readonly values?: Readonly<Record<string, unknown>>;
+}
+
+/** `AuroraAppliedDraft` in the OpenAPI document. */
+export interface AuroraAppliedDraft {
+  readonly written: readonly { readonly suggestion_id: string; readonly id: string }[];
+  readonly rejected: number;
+}
+
 /** The answer of `aurora.summarize`. */
 export interface AuroraSummary {
   readonly kind: string;
@@ -121,6 +185,10 @@ export interface AuroraCodeBinding {
 /** `AuroraPreviewRequest` in the OpenAPI document. */
 export interface AuroraPreviewRequest {
   readonly feature: "drafting" | "summaries";
+  /** For a drafted list: what is drafted, so the preview reads what the draft reads. */
+  readonly draft_kind?: "run_of_show" | "risk_assessment";
+  /** For a drafted list: the running order or project it fills. */
+  readonly target?: { readonly collection: string; readonly id: string };
   readonly kind?: "record_activity" | "project_week" | "gate_readiness";
   readonly subject_collection?: string;
   readonly subject_id?: string;
@@ -146,6 +214,8 @@ export interface AuroraPreviewResult {
   readonly records: readonly AuroraPreviewRecord[];
   /** Verbiage library terms a draft would follow. */
   readonly vocabulary_terms: number;
+  /** For a risk assessment, the canon Risk categories the draft may use. */
+  readonly categories?: readonly string[];
 }
 
 /** A failed call: a problem the API answered (refusal, not found) or a network failure (status 0). */
@@ -209,6 +279,22 @@ export interface AuroraClient {
     context?: readonly { collection: string; id: string }[];
     verbiage?: readonly { term: string; preferred: string }[];
   }): Promise<AuroraCall<AuroraApiResult<AuroraDraft>>>;
+  /** A run of show or risk assessment drafted into an empty list (P6); `target` names the list. */
+  draft(input: {
+    kind: "run_of_show" | "risk_assessment";
+    instructions: string;
+    target: { collection: string; id: string };
+    context?: readonly { collection: string; id: string }[];
+    verbiage?: readonly { term: string; preferred: string }[];
+  }): Promise<AuroraCall<AuroraApiResult<AuroraListDraft>>>;
+  /**
+   * Adds the kept lines of a drafted list in one step (aurora.applyDraft), only while the list is
+   * still empty; every other line of the draft is rejected. Calls no model.
+   */
+  applyDraft(input: {
+    request_id: string;
+    items: readonly AuroraApplyDraftItem[];
+  }): Promise<AuroraCall<AuroraAppliedDraft>>;
   summarize(input: {
     kind: "record_activity" | "project_week" | "gate_readiness";
     subject_collection: string;
@@ -318,7 +404,8 @@ export function createAuroraClient(options: AuroraClientOptions): AuroraClient {
     ask: (question, history = []) => call("POST", "/aurora/ask", { question, history }),
     filter: (input) => call("POST", "/aurora/filter", input),
     extract: (input) => call("POST", "/aurora/extract", input),
-    draft: (input) => call("POST", "/aurora/draft", input),
+    draft: (input: unknown) => call("POST", "/aurora/draft", input),
+    applyDraft: (input) => call("POST", "/aurora/apply-draft", input),
     summarize: (input) => call("POST", "/aurora/summarize", input),
     mapColumns: (input) => call("POST", "/aurora/map-columns", input),
     bindCode: (input) => call("POST", "/aurora/bind-code", input),
