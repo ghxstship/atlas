@@ -373,6 +373,386 @@ export async function applyDraftedList(
   });
 }
 
+// Intake batches and drafted answers (B15, migrations 3040 to 3044) ---------------------------
+
+export type AiIntakeKind = Database["app"]["Enums"]["ai_intake_kind"];
+
+/** A refusal for a value of the wrong type or format, named by its item, is an invalid value. */
+function intakeError(error: { code?: string; message: string; hint?: string | null }) {
+  if (["22007", "22008", "23502", "22003", "22P02"].includes(error.code ?? "")) {
+    return fail({ kind: "invalid", message: error.message });
+  }
+  return fail(toDataError(error));
+}
+
+/** Opens an intake batch (app.start_ai_intake): the capabilities, plan, switch and allowance are checked there. */
+export async function startIntake(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly kind: AiIntakeKind;
+    readonly fileCount: number;
+    readonly fulfillmentId?: string | null;
+  },
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("start_ai_intake", {
+    p_project_id: input.projectId,
+    p_kind: input.kind,
+    p_file_count: input.fileCount,
+    ...(input.fulfillmentId ? { p_fulfillment_id: input.fulfillmentId } : {}),
+  });
+  if (error) return intakeError(error);
+  return ok(String(data));
+}
+
+export interface AiIntakeSuggestion {
+  readonly id: string;
+  readonly request_id: string;
+  readonly operation_id: string;
+  readonly target_id: string | null;
+  readonly summary: string;
+  readonly suggestion_state: AiSuggestionState;
+  readonly expires_at: string;
+  readonly applied_id: string | null;
+  readonly proposed_fields: readonly {
+    readonly field_path: string;
+    readonly proposed_value: unknown;
+    readonly confidence: number | null;
+    readonly refusal: "NO_ANSWER" | null;
+    readonly missing: string | null;
+    readonly source_excerpt: string | null;
+    readonly provenance: "agent";
+  }[];
+}
+
+export interface AiIntake {
+  readonly id: string;
+  readonly project_id: string;
+  readonly intake_kind: AiIntakeKind;
+  readonly fulfillment_id: string | null;
+  readonly file_count: number;
+  readonly closed_at: string | null;
+  readonly requests: readonly {
+    readonly id: string;
+    readonly outcome: Database["app"]["Enums"]["ai_request_outcome"];
+    readonly failure_code: string | null;
+    readonly created_at: string;
+  }[];
+  readonly suggestions: readonly AiIntakeSuggestion[];
+}
+
+/**
+ * A batch with its requests and Proposed suggestions, read in the caller's session, so a batch of
+ * someone else is not found and a Restricted field stays hidden from anyone who may not read it.
+ */
+export async function getIntake(db: XosClient, id: string): Promise<Result<AiIntake>> {
+  const batch = await db
+    .from("ai_intake_batches")
+    .select("id, project_id, intake_kind, fulfillment_id, file_count, closed_at, created_by")
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (batch.error) return fail(toDataError(batch.error));
+  if (!batch.data) return fail({ kind: "not-found" });
+  const requests = await db
+    .from("ai_requests")
+    .select("id, outcome, failure_code, created_at")
+    .eq("subject_table", "app.ai_intake_batches")
+    .eq("subject_id", id)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true });
+  if (requests.error) return fail(toDataError(requests.error));
+  const requestIds = (requests.data ?? []).map((r) => r.id);
+  let suggestions: AiIntakeSuggestion[] = [];
+  if (requestIds.length > 0) {
+    const rows = await db
+      .from("ai_suggestions")
+      .select(
+        "id, request_id, operation_id, target_id, summary, suggestion_state, expires_at, applied_id",
+      )
+      .in("request_id", requestIds)
+      .eq("suggestion_state", "Proposed")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true });
+    if (rows.error) return fail(toDataError(rows.error));
+    const ids = (rows.data ?? []).map((r) => r.id);
+    const fields =
+      ids.length === 0
+        ? { data: [], error: null }
+        : await db
+            .from("ai_suggestion_fields")
+            .select(
+              "suggestion_id, field_path, proposed_value, confidence, refusal, missing, source_excerpt, position",
+            )
+            .in("suggestion_id", ids)
+            .is("deleted_at", null)
+            .order("position", { ascending: true });
+    if (fields.error) return fail(toDataError(fields.error));
+    suggestions = (rows.data ?? []).map((r) => ({
+      ...r,
+      proposed_fields: (fields.data ?? [])
+        .filter((f) => f.suggestion_id === r.id)
+        .map((f) => ({
+          field_path: f.field_path,
+          proposed_value: f.proposed_value ?? null,
+          confidence: f.confidence === null ? null : Number(f.confidence),
+          refusal: (f.refusal as "NO_ANSWER" | null) ?? null,
+          missing: f.missing ?? null,
+          source_excerpt: f.source_excerpt ?? null,
+          provenance: "agent" as const,
+        })),
+    }));
+  }
+  const b = batch.data;
+  return ok({
+    id: b.id,
+    project_id: b.project_id,
+    intake_kind: b.intake_kind,
+    fulfillment_id: b.fulfillment_id ?? null,
+    file_count: b.file_count,
+    closed_at: b.closed_at ?? null,
+    requests: (requests.data ?? []).map((r) => ({
+      id: r.id,
+      outcome: r.outcome,
+      failure_code: r.failure_code ?? null,
+      created_at: r.created_at,
+    })),
+    suggestions,
+  });
+}
+
+/** Closes the caller's batch (app.close_ai_intake) and returns how many suggestions it rejected. */
+export async function closeIntake(db: XosClient, id: string): Promise<Result<number>> {
+  const { data, error } = await db.rpc("close_ai_intake", { p_batch_id: id });
+  if (error) return fail(toDataError(error));
+  return ok(Number(data ?? 0));
+}
+
+export interface AppliedIntake {
+  readonly written: readonly { readonly suggestion_id: string; readonly id: string }[];
+  readonly rejected: number;
+}
+
+/** Files the kept segments of an itinerary batch in one transaction (app.apply_itinerary_intake). */
+export async function applyItineraryIntake(
+  db: XosClient,
+  batchId: string,
+  items: readonly {
+    readonly suggestion_id: string;
+    readonly values: Readonly<Record<string, unknown>>;
+  }[],
+): Promise<Result<AppliedIntake>> {
+  const { data, error } = await db.rpc("apply_itinerary_intake", {
+    p_batch_id: batchId,
+    p_items: items as unknown as Json,
+  });
+  if (error) return intakeError(error);
+  const value = (data ?? {}) as { written?: unknown; rejected?: unknown };
+  return ok({
+    written: Array.isArray(value.written) ? (value.written as AppliedIntake["written"]) : [],
+    rejected: typeof value.rejected === "number" ? value.rejected : 0,
+  });
+}
+
+export interface AppliedContractIntake {
+  readonly applied: readonly { readonly suggestion_id: string; readonly id: string }[];
+  readonly engagements: number;
+  readonly riders: number;
+  readonly rider_lines: number;
+  readonly rejected: number;
+}
+
+/** Books the kept acts of a contract batch with their riders in one transaction (app.apply_contract_intake). */
+export async function applyContractIntake(
+  db: XosClient,
+  batchId: string,
+  groups: readonly unknown[],
+): Promise<Result<AppliedContractIntake>> {
+  const { data, error } = await db.rpc("apply_contract_intake", {
+    p_batch_id: batchId,
+    p_groups: groups as unknown as Json,
+  });
+  if (error) return intakeError(error);
+  const v = (data ?? {}) as Record<string, unknown>;
+  const n = (key: string) => (typeof v[key] === "number" ? (v[key] as number) : 0);
+  return ok({
+    applied: Array.isArray(v["applied"]) ? (v["applied"] as AppliedContractIntake["applied"]) : [],
+    engagements: n("engagements"),
+    riders: n("riders"),
+    rider_lines: n("rider_lines"),
+    rejected: n("rejected"),
+  });
+}
+
+export interface TravelerCandidate {
+  readonly name_index: number;
+  readonly person_id: string;
+  readonly full_name: string;
+  readonly roster_entry_id: string | null;
+  readonly engagement_id: string | null;
+  readonly similarity: number;
+}
+
+/** The project's people a printed passenger name may be (app.itinerary_traveler_candidates); names and ids only. */
+export async function itineraryTravelerCandidates(
+  db: XosClient,
+  batchId: string,
+  names: readonly string[],
+): Promise<Result<readonly TravelerCandidate[]>> {
+  if (names.length === 0) return ok([]);
+  const { data, error } = await db.rpc("itinerary_traveler_candidates", {
+    p_batch_id: batchId,
+    p_names: [...names],
+  });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({ ...r, similarity: Number(r.similarity) })) as TravelerCandidate[],
+  );
+}
+
+export interface PartyCandidate {
+  readonly name_index: number;
+  readonly candidate_kind: "counterparty" | "person" | "engagement";
+  readonly candidate_id: string;
+  readonly name: string;
+  readonly similarity: number;
+  readonly engagement_id: string | null;
+  readonly already_booked: boolean;
+}
+
+/** The org's counterparties, held people and booked Artist engagements a name may be (app.intake_party_candidates). */
+export async function intakePartyCandidates(
+  db: XosClient,
+  batchId: string,
+  names: readonly string[],
+): Promise<Result<readonly PartyCandidate[]>> {
+  if (names.length === 0) return ok([]);
+  const { data, error } = await db.rpc("intake_party_candidates", {
+    p_batch_id: batchId,
+    p_names: [...names],
+  });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({ ...r, similarity: Number(r.similarity) })) as PartyCandidate[],
+  );
+}
+
+export interface VendorLineHistoryEntry {
+  readonly description_index: number;
+  readonly source: "invoice" | "purchase_order";
+  readonly reference: string | null;
+  readonly line_number: number;
+  readonly issued_on: string | null;
+  readonly description: string;
+  readonly quantity: number;
+  readonly unit_price_minor: number | null;
+  readonly currency_code: string;
+  readonly similarity: number;
+}
+
+/** Earlier lines of the invoice's vendor, as hints (app.vendor_line_history); never a budget line. */
+export async function vendorLineHistory(
+  db: XosClient,
+  invoiceId: string,
+  descriptions: readonly string[],
+): Promise<Result<readonly VendorLineHistoryEntry[]>> {
+  if (descriptions.length === 0) return ok([]);
+  const { data, error } = await db.rpc("vendor_line_history", {
+    p_invoice_id: invoiceId,
+    p_descriptions: [...descriptions],
+  });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      ...r,
+      quantity: Number(r.quantity),
+      unit_price_minor: r.unit_price_minor === null ? null : Number(r.unit_price_minor),
+      similarity: Number(r.similarity),
+    })) as VendorLineHistoryEntry[],
+  );
+}
+
+export interface DraftableAdvanceSections {
+  readonly recipient_id: string;
+  readonly packet_id: string;
+  readonly project_id: string;
+  readonly time_zone: string;
+  readonly engagement_id: string | null;
+  readonly sections: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly prompt: string | null;
+    readonly kind: "Text" | "Schedule Window" | "Item Request" | "Credential Request";
+    readonly window_kind: string | null;
+    readonly max_lines: number | null;
+    readonly per_person: boolean;
+    readonly choices: readonly {
+      readonly asset_class_id?: string;
+      readonly credential_category_id?: string;
+      readonly code?: string;
+      readonly name: string;
+      readonly offering?: string | null;
+    }[];
+  }[];
+  readonly roster: readonly { readonly id: string; readonly name: string }[];
+}
+
+/** What Aurora may draft for a recipient of a sent packet (app.draftable_advance_sections). */
+export async function draftableAdvanceSections(
+  db: XosClient,
+  recipientId: string,
+): Promise<Result<DraftableAdvanceSections>> {
+  const { data, error } = await db.rpc("draftable_advance_sections", {
+    p_recipient_id: recipientId,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data as unknown as DraftableAdvanceSections);
+}
+
+/** Records one drafted advance answer on the recipient's behalf (app.apply_drafted_advance_answer). */
+export async function applyDraftedAdvanceAnswer(
+  db: XosClient,
+  input: {
+    readonly suggestionId: string;
+    readonly values?: Readonly<Record<string, unknown>>;
+    readonly source: { readonly inbound_message_id: string } | { readonly file_name: string };
+  },
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("apply_drafted_advance_answer", {
+    p_suggestion_id: input.suggestionId,
+    p_values: (input.values ?? {}) as unknown as Json,
+    p_source: input.source as unknown as Json,
+  });
+  if (error) return intakeError(error);
+  return ok(String(data));
+}
+
+/** Whether the caller may read pay rates on the project, decided by the database (never a client flag). */
+export async function readsPayroll(db: XosClient, projectId: string): Promise<Result<boolean>> {
+  const { data, error } = await db.rpc("my_capabilities_on_project", {
+    p_project_id: projectId,
+    p_capabilities: ["data.restricted.read.payroll"],
+  });
+  if (error) return fail(toDataError(error));
+  return ok((data ?? []).includes("data.restricted.read.payroll"));
+}
+
+/** Which of the codes are active IATA airports (app.airports, R5), for the itinerary checks. */
+export async function activeAirportCodes(
+  db: XosClient,
+  codes: readonly string[],
+): Promise<Result<ReadonlySet<string>>> {
+  const unique = [...new Set(codes.filter((c) => /^[A-Z]{3}$/.test(c)))];
+  if (unique.length === 0) return ok(new Set());
+  const { data, error } = await db
+    .from("airports")
+    .select("iata_code")
+    .in("iata_code", unique.slice(0, 200))
+    .eq("is_active", true);
+  if (error) return fail(toDataError(error));
+  return ok(new Set((data ?? []).map((r) => String(r.iata_code))));
+}
+
 // Request log --------------------------------------------------------------------------------
 
 export interface AiRequestLogEntry {
