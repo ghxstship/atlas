@@ -233,6 +233,7 @@ export const TABLE_RULES: readonly TableRule[] = [
       ["per_diems", "engagement_id", "engagementIds", CREW_STAFF],
       ["travel_segments", "engagement_id", "engagementIds", CREW_STAFF],
       ["lodging", "person_id", "personIds", CREW_STAFF],
+      ["itinerary_changes", "engagement_id", "engagementIds", CREW_STAFF],
       ["onboarding_items", "engagement_id", "onboardingEngagementIds", CREW_STAFF],
       ["purchase_orders", "project_id", "engagedProjectIds", VENDOR],
       ["po_lines", "project_id", "engagedProjectIds", VENDOR],

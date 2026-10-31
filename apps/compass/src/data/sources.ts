@@ -420,6 +420,21 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     personColumn: "person_id",
     audiences: ["crew", "staff"],
   },
+  // What changed on the person's itinerary since they last looked (B6, 2952), so Travel and lodging marks it offline.
+  // A row is keyed by what it is about and the engagement whose itinerary holds it.
+  {
+    table: "itinerary_changes",
+    schema: "api_external",
+    relation: "itinerary_changes",
+    select:
+      "subject_kind,subject_id,engagement_id,project_id,change_kind,changed_fields,changed_at,baseline_at,title",
+    projectColumn: "project_id",
+    audiences: ["crew", "staff"],
+    map: (r) => ({
+      ...r,
+      id: `${String(r["subject_kind"])}:${String(r["subject_id"])}:${String(r["engagement_id"])}`,
+    }),
+  },
   {
     table: "onboarding_items",
     schema: "api_external",

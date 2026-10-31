@@ -1,0 +1,40 @@
+appId: pro.ghxstship.compass
+# B6 (G-65, Section 4.5.7): Travel and lodging is a whole-stay itinerary grouped by day, and a row that changed since
+# the crew member last looked carries a Changed chip that reads offline. scripts/itinerary-changes.js has Demo Road
+# Crew (seed 1490) mark their itinerary all as seen, then the demo Owner moves their LAX to MIA flight by an hour; the
+# flow opens More, then Travel and lodging, and finds the chip on the moved flight. When the flow completes the flight
+# goes back.
+# Named after its file: config.yaml orders flows by name.
+name: itinerary-changes
+onFlowComplete:
+  - runScript:
+      file: ../scripts/itinerary-changes.js
+      env:
+        STEP: undo
+---
+- runScript:
+    file: ../scripts/itinerary-changes.js
+- assertTrue:
+    condition: ${output.itinerary.status === "ok"}
+    label: The flight moved after the crew member's last look (${output.itinerary.status})
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: road.crew@example.com
+- assertVisible:
+    id: "today"
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-travel-and-lodging"
+- extendedWaitUntil:
+    visible:
+      id: "external-section-day-.*"
+    timeout: 60000
+# The moved flight carries the chip, and its screen reader sentence names the departure.
+- extendedWaitUntil:
+    visible:
+      id: "external-item-01920000-0000-7000-8000-000014900821-changed"
+    timeout: 30000
+- assertVisible: "Changed"
+- assertVisible: ".*LAX → MIA.*"

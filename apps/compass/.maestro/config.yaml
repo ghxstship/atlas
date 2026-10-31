@@ -40,6 +40,7 @@ executionOrder:
     - crew-external-today
     - roster-member-today
     - crew-external-work
+    - itinerary-changes
     - project-details
     - profile-credentials
     - vendor-external-scan

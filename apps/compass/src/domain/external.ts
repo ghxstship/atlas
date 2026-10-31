@@ -13,6 +13,7 @@
  */
 import type { Audience, Row } from "@xos/sync";
 import type { EngagementSummary } from "./access";
+import { buildItinerary } from "@xos/data/itinerary";
 import { dayIn, daysUntil } from "./dates";
 
 export type ExternalPageId =
@@ -57,6 +58,11 @@ export interface ExternalItem {
   readonly tag?: { readonly key: string; readonly tone: Tone } | undefined;
   /** Lines under the item: purchase order lines, rider asks, settlement lines, advance sections. */
   readonly lines?: readonly ExternalItem[];
+  /** Changed or new since the person last looked (B6, the itinerary): the screen shows a chip naming the fields. */
+  readonly changed?: {
+    readonly kind: "added" | "changed" | "removed";
+    readonly fields: readonly string[];
+  };
 }
 
 export interface ExternalSection {
@@ -66,6 +72,8 @@ export interface ExternalSection {
   readonly items: readonly ExternalItem[];
   /** Done of total, shown as a progress bar (onboarding). */
   readonly progress?: { readonly done: number; readonly total: number };
+  /** The calendar date a day section of the itinerary is for, `YYYY-MM-DD`; its heading names it. */
+  readonly day?: string;
 }
 
 export interface PageInput {
@@ -78,6 +86,11 @@ export interface PageInput {
   readonly zoneOf: (projectId: string | null | undefined) => string | null;
   /** Today on a project's calendar, YYYY-MM-DD. */
   readonly todayOf: (projectId: string | null | undefined) => string;
+  /**
+   * The itinerary baseline the screen's last online visit returned (app.record_visit): changes at or before it were
+   * seen and show no chip. Absent offline, when the downloaded marks stay as they are.
+   */
+  readonly seenBaseline?: string | null;
 }
 
 export interface ExternalPage {
@@ -249,76 +262,160 @@ function perDiem(input: PageInput): ExternalSection[] {
   ];
 }
 
+/** A travel segment as one item: the route, the operator and each end in its own zone. */
+function travelItem(r: Row, projectZone: string | null): ExternalItem {
+  const departs = str(r, "departs_at");
+  const arrives = str(r, "arrives_at");
+  const service = [str(r, "operator_name"), str(r, "service_identifier")].filter(Boolean).join(" ");
+  const route = [str(r, "departs_from"), str(r, "arrives_at_place")].filter(Boolean);
+  const confirmation = str(r, "confirmation_identifier");
+  return {
+    id: r.id,
+    icon: str(r, "travel_mode") === "Flight" ? "plane" : "truck",
+    title: route.length === 2 ? `${route[0]} → ${route[1]}` : (route[0] ?? service),
+    facts: [
+      ...(service ? [{ kind: "text", text: service } as const] : []),
+      // Each end in its own zone: a 9:00 departure from Miami reads 9:00, wherever the phone is.
+      ...(departs
+        ? [
+            { kind: "label", key: "compassExternal.travel.departs" } as const,
+            {
+              kind: "instant",
+              at: departs,
+              zone: str(r, "departs_time_zone") ?? projectZone,
+            } as const,
+          ]
+        : []),
+      ...(arrives
+        ? [
+            { kind: "label", key: "compassExternal.travel.arrives" } as const,
+            {
+              kind: "instant",
+              at: arrives,
+              zone: str(r, "arrives_time_zone") ?? projectZone,
+            } as const,
+          ]
+        : []),
+      ...(confirmation
+        ? [
+            {
+              kind: "label",
+              key: "compassExternal.travel.confirmation",
+              values: { code: confirmation },
+            } as const,
+          ]
+        : []),
+    ],
+    tag: stateTag("travelMode", str(r, "travel_mode"), {}),
+  };
+}
+
+const asText = (value: unknown): string | null => (typeof value === "string" ? value : null);
+
+/**
+ * Travel and lodging as a whole-stay itinerary (B6, G-65): the person's segments, check-ins and check-outs grouped by
+ * day (packages/data itinerary.ts, as Gateway builds it), each marked when it changed since they last looked
+ * (api_external.itinerary_changes, downloaded, so the marks read offline), and what was removed. A change at or before
+ * the baseline the screen's last visit returned is hidden: it was seen.
+ */
 function travelAndLodging(input: PageInput): ExternalSection[] {
-  const travel = onProject(input, "travel_segments")
-    .sort(byKey("departs_at"))
-    .map((r): ExternalItem => {
-      const projectZone = input.zoneOf(str(r, "project_id"));
-      const departs = str(r, "departs_at");
-      const arrives = str(r, "arrives_at");
-      const service = [str(r, "operator_name"), str(r, "service_identifier")]
-        .filter(Boolean)
-        .join(" ");
-      const route = [str(r, "departs_from"), str(r, "arrives_at_place")].filter(Boolean);
-      const confirmation = str(r, "confirmation_identifier");
+  const projectZone = input.zoneOf(input.projectId);
+  const travelRows = onProject(input, "travel_segments");
+  const lodgingRows = onProject(input, "lodging").filter(
+    (r) => str(r, "person_id") === input.personId,
+  );
+  const itinerary = buildItinerary({
+    travel: travelRows.map((r) => ({
+      id: r.id,
+      travel_mode: str(r, "travel_mode") ?? "Flight",
+      operator_name: str(r, "operator_name"),
+      service_identifier: str(r, "service_identifier"),
+      departs_from: str(r, "departs_from") ?? "",
+      departs_at: str(r, "departs_at") ?? "",
+      departs_time_zone: str(r, "departs_time_zone") ?? projectZone ?? "UTC",
+      arrives_at_place: str(r, "arrives_at_place") ?? "",
+      arrives_at: str(r, "arrives_at"),
+      arrives_time_zone: str(r, "arrives_time_zone") ?? projectZone ?? "UTC",
+    })),
+    lodging: lodgingRows.map((r) => ({
+      id: r.id,
+      hotel_name: str(r, "hotel_name"),
+      block_title: str(r, "block_title"),
+      check_in_on: str(r, "check_in_on") ?? "",
+      check_out_on: str(r, "check_out_on") ?? "",
+    })),
+    changes: onProject(input, "itinerary_changes").map((r) => ({
+      subject_kind: str(r, "subject_kind"),
+      subject_id: str(r, "subject_id"),
+      change_kind: str(r, "change_kind"),
+      changed_fields: Array.isArray(r["changed_fields"])
+        ? (r["changed_fields"] as unknown[]).map(asText).filter((f): f is string => f !== null)
+        : [],
+      changed_at: str(r, "changed_at"),
+      baseline_at: str(r, "baseline_at"),
+      title: str(r, "title"),
+    })),
+    projectZone,
+    hideAtOrBefore: input.seenBaseline ?? null,
+  });
+  const travelById = new Map(travelRows.map((r) => [r.id, r]));
+  const days = itinerary.days.map((day): ExternalSection => ({
+    id: `day-${day.date}`,
+    titleKey: "compassExternal.itinerary.day",
+    day: day.date,
+    items: day.items.map((item): ExternalItem => {
+      const changed = item.changed ? { changed: item.changed } : {};
+      if (item.type === "travel") {
+        const row = travelById.get(item.id);
+        return {
+          ...(row
+            ? travelItem(row, projectZone)
+            : { id: item.id, icon: "plane", title: "", facts: [] }),
+          ...changed,
+        };
+      }
+      if (item.type === "set") {
+        return {
+          id: `set-${item.id}`,
+          icon: "clock",
+          title: item.set.label,
+          facts: [{ kind: "instant", at: item.at, zone: projectZone }],
+          ...changed,
+        };
+      }
+      const hotel = item.lodging.hotel_name ?? item.lodging.block_title ?? "";
       return {
-        id: r.id,
-        icon: str(r, "travel_mode") === "Flight" ? "plane" : "truck",
-        title: route.length === 2 ? `${route[0]} → ${route[1]}` : (route[0] ?? service),
+        id: `${item.type}-${item.id}`,
+        icon: item.type === "check-in" ? "bed-double" : "log-out",
+        title: hotel,
         facts: [
-          ...(service ? [{ kind: "text", text: service } as const] : []),
-          // Each end in its own zone: a 9:00 departure from Miami reads 9:00, wherever the phone is.
-          ...(departs
-            ? [
-                { kind: "label", key: "compassExternal.travel.departs" } as const,
-                {
-                  kind: "instant",
-                  at: departs,
-                  zone: str(r, "departs_time_zone") ?? projectZone,
-                } as const,
-              ]
-            : []),
-          ...(arrives
-            ? [
-                { kind: "label", key: "compassExternal.travel.arrives" } as const,
-                {
-                  kind: "instant",
-                  at: arrives,
-                  zone: str(r, "arrives_time_zone") ?? projectZone,
-                } as const,
-              ]
-            : []),
-          ...(confirmation
-            ? [
-                {
-                  kind: "label",
-                  key: "compassExternal.travel.confirmation",
-                  values: { code: confirmation },
-                } as const,
-              ]
+          {
+            kind: "label",
+            key:
+              item.type === "check-in"
+                ? "compassExternal.itinerary.checkIn"
+                : "compassExternal.itinerary.checkOut",
+          },
+          ...(item.lodging.hotel_name && item.lodging.block_title
+            ? [{ kind: "text", text: item.lodging.block_title } as const]
             : []),
         ],
-        tag: stateTag("travelMode", str(r, "travel_mode"), {}),
+        ...changed,
       };
-    });
-  const lodging = onProject(input, "lodging")
-    .filter((r) => str(r, "person_id") === input.personId)
-    .sort(byKey("check_in_on"))
-    .map((r): ExternalItem => ({
-      id: r.id,
-      icon: "bed-double",
-      title: str(r, "hotel_name") ?? str(r, "block_title") ?? "",
-      facts: [
-        { kind: "range", from: str(r, "check_in_on") ?? "", to: str(r, "check_out_on") },
-        ...(str(r, "hotel_name") && str(r, "block_title")
-          ? [{ kind: "text", text: str(r, "block_title") ?? "" } as const]
-          : []),
-      ],
-    }));
-  return [
-    ...section("travel", "compassExternal.travel.title", travel),
-    ...section("lodging", "compassExternal.lodging.title", lodging),
-  ];
+    }),
+  }));
+  const removed = itinerary.removed.map((r): ExternalItem => ({
+    id: `removed-${r.id}`,
+    icon: "circle-x",
+    title: r.title ?? "",
+    facts: [
+      {
+        kind: "label",
+        key: `compassExternal.itinerary.removedKind.${r.kind === "set_time" ? "set" : r.kind}`,
+      },
+    ],
+  }));
+  return [...days, ...section("removed", "compassExternal.itinerary.removedTitle", removed)];
 }
 
 /** Where an onboarding item stands on the project's calendar, as Gateway's checklist reads it. */
@@ -935,7 +1032,7 @@ export const EXTERNAL_PAGES: Readonly<Record<ExternalPageId, ExternalPage>> = {
   "travel-and-lodging": {
     id: "travel-and-lodging",
     audiences: CREW,
-    tables: ["travel_segments", "lodging"],
+    tables: ["travel_segments", "lodging", "itinerary_changes"],
     gatewayTab: "travel-and-lodging",
     icon: "plane",
     emptyKey: "compassExternal.travel.empty",
