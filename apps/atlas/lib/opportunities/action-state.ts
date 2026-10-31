@@ -68,6 +68,8 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "XOS-ENG-6",
   "plan_limit_exceeded",
   "transition_reason_required",
+  "question_template_not_found",
+  "question_template_not_draft",
 ]);
 
 /** A repository error as the state a form shows. */

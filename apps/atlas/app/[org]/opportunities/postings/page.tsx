@@ -1,3 +1,10 @@
+import {
+  defaultDeadline,
+  defaultVisibility,
+  getOpportunityDefaults,
+  listQuestionTemplates,
+  NO_DEFAULTS,
+} from "@xos/data/opportunity-templates";
 import { listProjects } from "@xos/data/projects";
 import { resolveSettings } from "@xos/data/settings";
 import { allowedVisibilities } from "@/lib/shell/org-settings";
@@ -258,10 +265,16 @@ function PostingList({ page, rows }: { page: PageSetup; rows: readonly Opportuni
 
 async function CreatePosting({ page }: { page: PageSetup }) {
   const { ctx, t, param } = page;
-  const [projects, requisitions] = await Promise.all([
+  const [projects, requisitions, savedDefaults, templates] = await Promise.all([
     listProjects(ctx.viewer.db, ctx.org.id),
     listRequisitions(ctx.viewer.db, ctx.org.id),
+    getOpportunityDefaults(ctx.viewer.db, ctx.org.id),
+    listQuestionTemplates(ctx.viewer.db, ctx.org.id),
   ]);
+  // The org's opportunity defaults and question templates prefill the form (2290); every value stays editable.
+  const defaults = savedDefaults.ok ? savedDefaults.data : NO_DEFAULTS;
+  const templateRows = templates.ok ? templates.data : [];
+  const deadline = defaultDeadline(new Date(), defaults.applicationWindowDays);
   const approved = must(requisitions, "requisitions").filter((r) => r.state === "Approved");
   const fromRequisition = approved.find((r) => r.id === param("requisition"));
   // gateway.marketplace_visibility caps how widely a posting reaches (1327).
@@ -323,7 +336,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
       name: "visibility",
       label: t("fields.visibility"),
       kind: "select",
-      defaultValue: "Invited",
+      defaultValue: defaultVisibility(defaults.visibility, visibilities),
       help: t("postings.visibilityHelp"),
       options: visibilities.map((v) => ({ value: v, label: t(`visibilities.${enumKey(v)}`) })),
     },
@@ -331,7 +344,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
       name: "rateType",
       label: t("fields.rateType"),
       kind: "select",
-      defaultValue: "",
+      defaultValue: defaults.rateType ?? "",
       options: [
         { value: "", label: t("rateOnRequest") },
         ...RATE_TYPES.map((r) => ({ value: r, label: t(`rateTypes.${enumKey(r)}`) })),
@@ -344,7 +357,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
       name: "currencyCode",
       label: t("fields.currency"),
       kind: "text",
-      defaultValue: fromRequisition?.currencyCode ?? "USD",
+      defaultValue: fromRequisition?.currencyCode ?? defaults.currencyCode ?? "USD",
     },
     {
       name: "startsOn",
@@ -358,8 +371,30 @@ async function CreatePosting({ page }: { page: PageSetup }) {
       kind: "date",
       defaultValue: fromRequisition?.endsOn ?? "",
     },
-    { name: "deadlineAt", label: t("fields.deadline"), kind: "datetime-local" },
+    {
+      name: "deadlineAt",
+      label: t("fields.deadline"),
+      kind: "datetime-local",
+      defaultValue: deadline ? deadline.slice(0, 16) : "",
+    },
     { name: "description", label: t("fields.description"), kind: "textarea" },
+    {
+      name: "questionTemplateId",
+      label: t("postings.questionTemplate"),
+      kind: "select",
+      defaultValue: defaults.questionTemplateId ?? "",
+      help: t("postings.questionTemplateHelp"),
+      options: [
+        { value: "", label: t("postings.noQuestionTemplate") },
+        ...templateRows.map((tpl) => ({
+          value: tpl.id,
+          label: t("postings.questionTemplateOption", {
+            name: tpl.name,
+            count: tpl.questions.length,
+          }),
+        })),
+      ],
+    },
   ];
   return (
     <Card title={t("postings.createTitle")}>
