@@ -11,12 +11,16 @@ import {
   listSpendAuthorities,
   SPEND_DOCUMENT_TYPES,
 } from "@xos/data/governance";
+import { audiencesFor, listCueFieldAudiences } from "@xos/data/custom-fields";
 import { listSettingValues } from "@xos/data/settings";
+import { SEGMENT_COLORS, isSegmentColor } from "@xos/data/show";
+import { Tag } from "@xos/ui";
 import {
   addCustomFieldChoiceAction,
   addSpendLimitAction,
   createCustomFieldAction,
   removeCustomFieldAction,
+  setCueFieldAudiencesAction,
   removeSpendLimitAction,
   setSeparationOptionAction,
 } from "@/app/[org]/settings/surface-actions";
@@ -295,13 +299,22 @@ function targetLabel(f: Formatters, table: string): string {
   return f.t(key);
 }
 
+/** The palette a choice may take: none, then the seven themed categorical colours, each by name. */
+function colorOptions(f: Formatters) {
+  return [
+    { value: "", label: f.t(`${P}.customFields.colors.none`) },
+    ...SEGMENT_COLORS.map((c) => ({ value: c, label: f.t(`${P}.customFields.colors.${c}`) })),
+  ];
+}
+
 export async function CustomFieldsPanel({ ctx }: SettingsPanelProps) {
-  const [f, fields, targets] = await Promise.all([
+  const [f, fields, targets, audiences] = await Promise.all([
     formatters(ctx),
     listCustomFields(ctx.viewer.db, ctx.org.id),
     listCustomFieldTargets(ctx.viewer.db),
+    listCueFieldAudiences(ctx.viewer.db, ctx.org.id),
   ]);
-  if (!fields.ok || !targets.ok) return <LoadFailed t={f.t} />;
+  if (!fields.ok || !targets.ok || !audiences.ok) return <LoadFailed t={f.t} />;
   const canEdit = ctx.capabilities.has("org.custom_fields.write");
   return (
     <Section
@@ -329,12 +342,38 @@ export async function CustomFieldsPanel({ ctx }: SettingsPanelProps) {
               targetLabel(f, field.targetTable),
               <Code key="k">{field.key}</Code>,
               field.filterable ? f.t(`${P}.customFields.filterable`) : null,
-              field.dataType === "Choice"
-                ? field.choices.length === 0
-                  ? f.t(`${P}.customFields.noChoices`)
-                  : f.t(`${P}.customFields.choices`, {
-                      choices: field.choices.map((c) => c.label).join(", "),
-                    })
+              field.dataType === "Choice" ? (
+                field.choices.length === 0 ? (
+                  f.t(`${P}.customFields.noChoices`)
+                ) : field.choices.some((c) => isSegmentColor(c.colorKey)) ? (
+                  <span key="choices" className="inline-flex flex-wrap gap-4">
+                    {field.choices.map((c) => (
+                      <Tag
+                        key={c.id}
+                        {...(isSegmentColor(c.colorKey) ? { swatch: c.colorKey } : {})}
+                      >
+                        {isSegmentColor(c.colorKey)
+                          ? f.t(`${P}.customFields.choiceWithColor`, {
+                              label: c.label,
+                              color: f.t(`${P}.customFields.colors.${c.colorKey}`),
+                            })
+                          : c.label}
+                      </Tag>
+                    ))}
+                  </span>
+                ) : (
+                  f.t(`${P}.customFields.choices`, {
+                    choices: field.choices.map((c) => c.label).join(", "),
+                  })
+                )
+              ) : null,
+              field.targetTable === "app.cues"
+                ? f.t(`${P}.customFields.audienceList`, {
+                    audiences:
+                      (audiences.data.get(field.id) ?? [])
+                        .map((a) => f.t(`${P}.customFields.audiences.${a}`))
+                        .join(", ") || f.t(`${P}.customFields.audiences.none`),
+                  })
                 : null,
             ],
             actions: canEdit ? (
@@ -345,28 +384,64 @@ export async function CustomFieldsPanel({ ctx }: SettingsPanelProps) {
                 confirm={removeConfirm(f, "customFields.removeConfirm", { label: field.label })}
               />
             ) : undefined,
-            children:
-              canEdit && field.dataType === "Choice" ? (
-                <SurfaceForm
-                  id={`choice-${field.id}`}
-                  action={addCustomFieldChoiceAction}
-                  label={f.t(`${P}.customFields.addChoiceFor`, { label: field.label })}
-                  hidden={{
-                    org: ctx.org.slug,
-                    fieldId: field.id,
-                    sortOrder: String((field.choices.length + 1) * 10),
-                  }}
-                  submitLabel={f.t(`${P}.customFields.addChoice`)}
-                  fields={[
-                    {
-                      kind: "text",
-                      name: "label",
-                      label: f.t(`${P}.customFields.choiceLabel`),
-                      maxLength: 100,
-                    },
-                  ]}
-                />
-              ) : undefined,
+            children: canEdit ? (
+              <>
+                {field.dataType === "Choice" ? (
+                  <SurfaceForm
+                    id={`choice-${field.id}`}
+                    action={addCustomFieldChoiceAction}
+                    label={f.t(`${P}.customFields.addChoiceFor`, { label: field.label })}
+                    hidden={{
+                      org: ctx.org.slug,
+                      fieldId: field.id,
+                      sortOrder: String((field.choices.length + 1) * 10),
+                    }}
+                    submitLabel={f.t(`${P}.customFields.addChoice`)}
+                    fields={[
+                      {
+                        kind: "text",
+                        name: "label",
+                        label: f.t(`${P}.customFields.choiceLabel`),
+                        maxLength: 100,
+                      },
+                      {
+                        kind: "select",
+                        name: "color",
+                        label: f.t(`${P}.customFields.choiceColor`),
+                        help: f.t(`${P}.customFields.choiceColorHelp`),
+                        options: colorOptions(f),
+                        defaultValue: "",
+                      },
+                    ]}
+                  />
+                ) : null}
+                {field.targetTable === "app.cues" ? (
+                  <SurfaceForm
+                    id={`audiences-${field.id}`}
+                    action={setCueFieldAudiencesAction}
+                    label={f.t(`${P}.customFields.audiencesFor`, { label: field.label })}
+                    hidden={{ org: ctx.org.slug, fieldId: field.id, dataType: field.dataType }}
+                    submitLabel={f.t(`${P}.customFields.audiencesSave`)}
+                    fields={[
+                      {
+                        kind: "checkboxes",
+                        name: "audiences",
+                        label: f.t(`${P}.customFields.audiencesLabel`),
+                        help:
+                          audiencesFor(field.dataType).length === 1
+                            ? f.t(`${P}.customFields.audiencesCrewOnly`)
+                            : f.t(`${P}.customFields.audiencesHelp`),
+                        options: audiencesFor(field.dataType).map((a) => ({
+                          value: a,
+                          label: f.t(`${P}.customFields.audiences.${a}`),
+                        })),
+                        defaultValues: audiences.data.get(field.id) ?? [],
+                      },
+                    ]}
+                  />
+                ) : null}
+              </>
+            ) : undefined,
           }))}
         />
       )}

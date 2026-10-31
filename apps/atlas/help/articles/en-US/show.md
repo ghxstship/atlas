@@ -2,7 +2,7 @@
 title: Run of show, day sheets and call sheets
 summary: Build the running order of a show, run it live with cues, and publish day and call sheets.
 kind: page
-nodes: [show.run-of-show, show.day-sheets, show.call-sheets, project.show, show]
+nodes: [show.run-of-show, show.day-sheets, show.call-sheets, show.segments, project.show, show]
 order: 22
 ---
 
@@ -41,6 +41,28 @@ Put the running order on any TV or laptop with no sign-in. Open the running orde
 - **Backstage** shows the cue on now, the next cue with its planned time, the three after it, and whether the show is running late.
 
 When a cue runs past its duration the timer turns red and reads **Over by** the time, until the next cue is called. On the screen, keys 1, 2 and 3 switch modes, **Open in new window** pops the screen out to a second display, and **Fullscreen** fills the screen. The screen follows cues within a few seconds of them being called. Revoke the link to take it off every screen.
+
+### Cue fields and colours
+
+Add your own columns to cues in **Settings, Custom fields**: choose **Cues** as the table, then a type. A **Choice** field can give each option one of seven colours; the option's name always shows beside its colour. For each cue field, choose who it is for: **Crew** sees it in Atlas, **Showcaller** shows it on showcaller links, and **Client** shows it in Gateway to a Client engaged on the project. Every new cue field starts with Crew. Person, Money and Email fields stay with the crew. Crew is a display choice: members still see every value their access allows.
+
+Fill the fields in the cue editor. The editor also holds the cue's **Segment** and its **Segment colour**, which colours the whole segment at once, the **Description**, and the **Script**, up to 20,000 characters. In live mode the running cue shows its segment colour and a **Script** you can open.
+
+### Segment library
+
+Keep blocks you run in many shows, such as a walk-in, an awards block or a sponsor moment, in **Show, Segment library**: each segment has a name, a colour, a description and cues with their department calls. To use one, open a running order and choose **Insert segment**: pick the segment, where it goes (after the last called cue) and, if you like, the time it starts. The copies are yours to edit in that running order.
+
+When you change a library segment, it shows **Library updated**. Choose the shows to update under **Publish to shows**: in each, the segment's uncalled cues are replaced with the current version, and local edits to those cues, their custom field values included, are lost. Shows where a cue of the segment was called (**Has called cues**) or is an artist's set time (**Has set times**) are left as they are.
+
+### Show channel
+
+In live mode, the show channel sits beside the running cue: the project's crew chat, which Clients are never in. Choose **Open the show channel** the first time (it needs permission to edit the run of show) and the project's members join it; others choose **Join the show channel**. New messages appear as they are sent, and **M** moves to the message box from the console.
+
+### Showcaller links
+
+Let someone without an XOS account call the show. Open the running order, choose **Showcaller links**, name the showcaller, pick when the link expires (by default the end of the day after the show, at most 14 days) and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show and to call cues.
+
+Anyone with the link and code can call cues and edit this running order until it expires: call, standby, nudge, move, add, edit and remove uncalled cues, and change department calls. They never reach another running order. A cue they call reads **Called by** their name **through a showcaller link**. A link works on up to 5 devices; **Sign out devices** makes every device enter the code again, **Regenerate** gives a new link and code, and **Revoke** stops it for good. On the link, **Open clock** pops out a room clock and presenter timer.
 
 ## Day sheets
 

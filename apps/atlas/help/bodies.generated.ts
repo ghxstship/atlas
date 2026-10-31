@@ -1323,6 +1323,92 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " action." },
         ],
       },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The show channel beside the running cue answers " },
+          { t: "strong", v: "M" },
+          { t: "text", v: ", which moves to its message box." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Space" },
+            { t: "text", v: ": Call the selected cue" },
+          ],
+          [
+            { t: "strong", v: "J" },
+            { t: "text", v: ": Move the standby to the next cue" },
+          ],
+          [
+            { t: "strong", v: "K" },
+            { t: "text", v: ": Move the standby to the previous cue" },
+          ],
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Put the selected cue on standby" },
+          ],
+          [
+            { t: "strong", v: "T" },
+            { t: "text", v: ": Jump to a cue" },
+          ],
+          [
+            { t: "strong", v: "]" },
+            { t: "text", v: ": Nudge the remaining plan one minute later" },
+          ],
+          [
+            { t: "strong", v: "[" },
+            { t: "text", v: ": Nudge the remaining plan one minute earlier" },
+          ],
+          [
+            { t: "strong", v: "D" },
+            { t: "text", v: ": Show the next department's calls" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Focus the show channel message box" },
+          ],
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "F13" },
+            { t: "text", v: ": Call the selected cue" },
+          ],
+          [
+            { t: "strong", v: "F14" },
+            { t: "text", v: ": Put the selected cue on standby" },
+          ],
+          [
+            { t: "strong", v: "F15" },
+            { t: "text", v: ": Move the standby to the previous cue" },
+          ],
+          [
+            { t: "strong", v: "F16" },
+            { t: "text", v: ": Move the standby to the next cue" },
+          ],
+          [
+            { t: "strong", v: "F17" },
+            { t: "text", v: ": Nudge the remaining plan one minute later" },
+          ],
+          [
+            { t: "strong", v: "F18" },
+            { t: "text", v: ": Nudge the remaining plan one minute earlier" },
+          ],
+          [
+            { t: "strong", v: "F19" },
+            { t: "text", v: ": Jump to a cue" },
+          ],
+          [
+            { t: "strong", v: "F20" },
+            { t: "text", v: ": Show the next department's calls" },
+          ],
+        ],
+      },
       { t: "h2", v: "Make the keys your own" },
       {
         t: "p",
@@ -2575,6 +2661,142 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: " fills the screen. The screen follows cues within a few seconds of them being called. Revoke the link to take it off every screen.",
           },
+        ],
+      },
+      { t: "h3", v: "Cue fields and colours" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Add your own columns to cues in " },
+          { t: "strong", v: "Settings, Custom fields" },
+          { t: "text", v: ": choose " },
+          { t: "strong", v: "Cues" },
+          { t: "text", v: " as the table, then a type. A " },
+          { t: "strong", v: "Choice" },
+          {
+            t: "text",
+            v: " field can give each option one of seven colours; the option's name always shows beside its colour. For each cue field, choose who it is for: ",
+          },
+          { t: "strong", v: "Crew" },
+          { t: "text", v: " sees it in Atlas, " },
+          { t: "strong", v: "Showcaller" },
+          { t: "text", v: " shows it on showcaller links, and " },
+          { t: "strong", v: "Client" },
+          {
+            t: "text",
+            v: " shows it in Gateway to a Client engaged on the project. Every new cue field starts with Crew. Person, Money and Email fields stay with the crew. Crew is a display choice: members still see every value their access allows.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Fill the fields in the cue editor. The editor also holds the cue's " },
+          { t: "strong", v: "Segment" },
+          { t: "text", v: " and its " },
+          { t: "strong", v: "Segment colour" },
+          { t: "text", v: ", which colours the whole segment at once, the " },
+          { t: "strong", v: "Description" },
+          { t: "text", v: ", and the " },
+          { t: "strong", v: "Script" },
+          {
+            t: "text",
+            v: ", up to 20,000 characters. In live mode the running cue shows its segment colour and a ",
+          },
+          { t: "strong", v: "Script" },
+          { t: "text", v: " you can open." },
+        ],
+      },
+      { t: "h3", v: "Segment library" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Keep blocks you run in many shows, such as a walk-in, an awards block or a sponsor moment, in ",
+          },
+          { t: "strong", v: "Show, Segment library" },
+          {
+            t: "text",
+            v: ": each segment has a name, a colour, a description and cues with their department calls. To use one, open a running order and choose ",
+          },
+          { t: "strong", v: "Insert segment" },
+          {
+            t: "text",
+            v: ": pick the segment, where it goes (after the last called cue) and, if you like, the time it starts. The copies are yours to edit in that running order.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When you change a library segment, it shows " },
+          { t: "strong", v: "Library updated" },
+          { t: "text", v: ". Choose the shows to update under " },
+          { t: "strong", v: "Publish to shows" },
+          {
+            t: "text",
+            v: ": in each, the segment's uncalled cues are replaced with the current version, and local edits to those cues, their custom field values included, are lost. Shows where a cue of the segment was called (",
+          },
+          { t: "strong", v: "Has called cues" },
+          { t: "text", v: ") or is an artist's set time (" },
+          { t: "strong", v: "Has set times" },
+          { t: "text", v: ") are left as they are." },
+        ],
+      },
+      { t: "h3", v: "Show channel" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "In live mode, the show channel sits beside the running cue: the project's crew chat, which Clients are never in. Choose ",
+          },
+          { t: "strong", v: "Open the show channel" },
+          {
+            t: "text",
+            v: " the first time (it needs permission to edit the run of show) and the project's members join it; others choose ",
+          },
+          { t: "strong", v: "Join the show channel" },
+          { t: "text", v: ". New messages appear as they are sent, and " },
+          { t: "strong", v: "M" },
+          { t: "text", v: " moves to the message box from the console." },
+        ],
+      },
+      { t: "h3", v: "Showcaller links" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Let someone without an XOS account call the show. Open the running order, choose ",
+          },
+          { t: "strong", v: "Showcaller links" },
+          {
+            t: "text",
+            v: ", name the showcaller, pick when the link expires (by default the end of the day after the show, at most 14 days) and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show and to call cues.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Anyone with the link and code can call cues and edit this running order until it expires: call, standby, nudge, move, add, edit and remove uncalled cues, and change department calls. They never reach another running order. A cue they call reads ",
+          },
+          { t: "strong", v: "Called by" },
+          { t: "text", v: " their name " },
+          { t: "strong", v: "through a showcaller link" },
+          { t: "text", v: ". A link works on up to 5 devices; " },
+          { t: "strong", v: "Sign out devices" },
+          { t: "text", v: " makes every device enter the code again, " },
+          { t: "strong", v: "Regenerate" },
+          { t: "text", v: " gives a new link and code, and " },
+          { t: "strong", v: "Revoke" },
+          { t: "text", v: " stops it for good. On the link, " },
+          { t: "strong", v: "Open clock" },
+          { t: "text", v: " pops out a room clock and presenter timer." },
         ],
       },
       { t: "h2", v: "Day sheets" },
@@ -4152,6 +4374,92 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "El canal del show junto al cue en curso responde a " },
+          { t: "strong", v: "M" },
+          { t: "text", v: ", que lleva a su cuadro de mensaje." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Espacio" },
+            { t: "text", v: ": Llamar el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "J" },
+            { t: "text", v: ": Pasar la espera al cue siguiente" },
+          ],
+          [
+            { t: "strong", v: "K" },
+            { t: "text", v: ": Pasar la espera al cue anterior" },
+          ],
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Poner en espera el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "T" },
+            { t: "text", v: ": Saltar a un cue" },
+          ],
+          [
+            { t: "strong", v: "]" },
+            { t: "text", v: ": Retrasar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "[" },
+            { t: "text", v: ": Adelantar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "D" },
+            { t: "text", v: ": Mostrar las llamadas del siguiente departamento" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Ir al cuadro de mensaje del canal del show" },
+          ],
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "F13" },
+            { t: "text", v: ": Llamar el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "F14" },
+            { t: "text", v: ": Poner en espera el cue seleccionado" },
+          ],
+          [
+            { t: "strong", v: "F15" },
+            { t: "text", v: ": Pasar la espera al cue anterior" },
+          ],
+          [
+            { t: "strong", v: "F16" },
+            { t: "text", v: ": Pasar la espera al cue siguiente" },
+          ],
+          [
+            { t: "strong", v: "F17" },
+            { t: "text", v: ": Retrasar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "F18" },
+            { t: "text", v: ": Adelantar un minuto el plan restante" },
+          ],
+          [
+            { t: "strong", v: "F19" },
+            { t: "text", v: ": Saltar a un cue" },
+          ],
+          [
+            { t: "strong", v: "F20" },
+            { t: "text", v: ": Mostrar las llamadas del siguiente departamento" },
+          ],
+        ],
+      },
       { t: "h2", v: "Adapte las teclas" },
       {
         t: "p",
@@ -5365,6 +5673,142 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: " la llena. La pantalla sigue las señales a los pocos segundos de llamarse. Revoque el enlace para quitarlo de todas las pantallas.",
           },
+        ],
+      },
+      { t: "h3", v: "Campos y colores de cues" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Agregue sus propias columnas a los cues en " },
+          { t: "strong", v: "Configuración, Campos personalizados" },
+          { t: "text", v: ": elija " },
+          { t: "strong", v: "Cues" },
+          { t: "text", v: " como tabla y luego un tipo. Un campo de " },
+          { t: "strong", v: "Opción" },
+          {
+            t: "text",
+            v: " puede dar a cada opción uno de siete colores; el nombre de la opción siempre se muestra junto a su color. Para cada campo de cue, elija para quién es: ",
+          },
+          { t: "strong", v: "Equipo" },
+          { t: "text", v: " lo ve en Atlas, " },
+          { t: "strong", v: "Llamado del show" },
+          { t: "text", v: " lo muestra en los enlaces de llamado y " },
+          { t: "strong", v: "Cliente" },
+          {
+            t: "text",
+            v: " lo muestra en Gateway a un cliente contratado en el proyecto. Cada campo nuevo empieza con Equipo. Los campos de Persona, Dinero y Correo quedan con el equipo. Equipo es una elección de presentación: los miembros siguen viendo cada valor que su acceso permite.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Complete los campos en el editor del cue. El editor también tiene el " },
+          { t: "strong", v: "Segmento" },
+          { t: "text", v: " del cue y su " },
+          { t: "strong", v: "Color del segmento" },
+          { t: "text", v: ", que colorea todo el segmento a la vez, la " },
+          { t: "strong", v: "Descripción" },
+          { t: "text", v: " y el " },
+          { t: "strong", v: "Guion hablado" },
+          {
+            t: "text",
+            v: ", de hasta 20.000 caracteres. En vivo, el cue en curso muestra el color de su segmento y un ",
+          },
+          { t: "strong", v: "Guion hablado" },
+          { t: "text", v: " que puede abrir." },
+        ],
+      },
+      { t: "h3", v: "Biblioteca de segmentos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Guarde los bloques que usa en muchos shows, como una entrada de público, un bloque de premios o un momento de patrocinio, en ",
+          },
+          { t: "strong", v: "Show, Biblioteca de segmentos" },
+          {
+            t: "text",
+            v: ": cada segmento tiene un nombre, un color, una descripción y cues con sus llamadas por departamento. Para usar uno, abra un guion y elija ",
+          },
+          { t: "strong", v: "Insertar segmento" },
+          {
+            t: "text",
+            v: ": elija el segmento, dónde va (después del último cue llamado) y, si quiere, la hora en que empieza. Las copias son suyas para editar en ese guion.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Cuando cambia un segmento de la biblioteca, muestra " },
+          { t: "strong", v: "Biblioteca actualizada" },
+          { t: "text", v: ". Elija los shows que actualizar en " },
+          { t: "strong", v: "Publicar en shows" },
+          {
+            t: "text",
+            v: ": en cada uno, los cues no llamados del segmento se reemplazan por la versión actual, y se pierden los cambios locales a esos cues, incluidos sus valores de campos personalizados. Los shows donde se llamó un cue del segmento (",
+          },
+          { t: "strong", v: "Tiene cues llamados" },
+          { t: "text", v: ") o uno es el horario de un artista (" },
+          { t: "strong", v: "Tiene horarios de artistas" },
+          { t: "text", v: ") quedan como están." },
+        ],
+      },
+      { t: "h3", v: "Canal del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En vivo, el canal del show está junto al cue en curso: el chat del equipo del proyecto, donde nunca están los clientes. Elija ",
+          },
+          { t: "strong", v: "Abrir el canal del show" },
+          {
+            t: "text",
+            v: " la primera vez (necesita permiso para editar el guion) y los miembros del proyecto se unen; los demás eligen ",
+          },
+          { t: "strong", v: "Unirse al canal del show" },
+          { t: "text", v: ". Los mensajes nuevos aparecen al enviarse, y " },
+          { t: "strong", v: "M" },
+          { t: "text", v: " lleva al cuadro de mensaje desde la consola." },
+        ],
+      },
+      { t: "h3", v: "Enlaces de llamado del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Permita que alguien sin cuenta de XOS llame el show. Abra el guion, elija ",
+          },
+          { t: "strong", v: "Enlaces de llamado del show" },
+          {
+            t: "text",
+            v: ", nombre a quien llama, elija cuándo vence el enlace (por defecto al final del día después del show, como máximo 14 días) y copie el enlace y su código de acceso de 6 dígitos, que se muestran una sola vez. Necesita permiso para editar el guion y para llamar cues.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cualquiera con el enlace y el código puede llamar cues y editar este guion hasta que venza: llamar, poner en espera, ajustar, mover, agregar, editar y quitar cues no llamados, y cambiar las llamadas por departamento. Nunca llega a otro guion. Un cue que llame dice ",
+          },
+          { t: "strong", v: "Llamado por" },
+          { t: "text", v: " su nombre " },
+          { t: "strong", v: "con un enlace de llamado del show" },
+          { t: "text", v: ". Un enlace funciona en hasta 5 dispositivos; " },
+          { t: "strong", v: "Cerrar sesión de dispositivos" },
+          { t: "text", v: " hace que cada dispositivo ingrese el código otra vez, " },
+          { t: "strong", v: "Regenerar" },
+          { t: "text", v: " da un enlace y código nuevos, y " },
+          { t: "strong", v: "Revocar" },
+          { t: "text", v: " lo detiene para siempre. En el enlace, " },
+          { t: "strong", v: "Abrir reloj" },
+          { t: "text", v: " abre un reloj de sala y un temporizador de presentador." },
         ],
       },
       { t: "h2", v: "Hojas del día" },

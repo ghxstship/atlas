@@ -10,12 +10,13 @@ import {
   type RunOfShow,
 } from "@xos/data/show";
 import { cueProgress, showClock } from "@xos/data/show-timing";
-import { chordOf } from "@xos/schemas/shortcuts/keys";
+import { chordOf, type Platform } from "@xos/schemas/shortcuts/keys";
 import { Button, Dialog, Input, RunOfShowLive, Select, Tag } from "@xos/ui";
 import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import { useLocale } from "next-intl";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useShellKeys } from "@/components/shell/shell-keys-context";
+import type { ActionResult } from "@/components/work/action-result";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
 import { formatScheduleTime, formatStartTime } from "@/components/work/format";
 import { useScheduleView } from "@/components/work/use-schedule-view";
@@ -36,6 +37,47 @@ import { showKeyAction, stepTarget, type ShowAction } from "./show-keys";
  * clock, time of day and countdown sit outside any live region (A23-009); RunBody's status lines
  * announce the current and standby cue once per change.
  */
+
+/**
+ * How the console writes (B3, ADR 0142): signed in, the show actions under the person's own access; on a
+ * showcaller link's portal, the portal's actions under the link's token and device grant. The console decides
+ * nothing the database does not check again.
+ */
+export interface ShowcallerTransport {
+  call(cueId: string): Promise<ActionResult<unknown>>;
+  standby(cueId: string | null): Promise<ActionResult<unknown>>;
+  nudge(seconds: number): Promise<ActionResult<unknown>>;
+}
+
+/** The signed-in console's writes: app.call_cue, app.standby_cue and app.shift_cue_plan through the show actions. */
+export function signedInTransport(org: string, runId: string): ShowcallerTransport {
+  return {
+    call: (cueId) => callCueAction(org, cueId),
+    standby: (cueId) => standbyCueAction(org, runId, cueId),
+    nudge: (seconds) => shiftCuePlanAction(org, runId, seconds),
+  };
+}
+
+/**
+ * The console action a key press makes, or null. Keys pressed in a field (the show channel's message box among
+ * them), outside the console (an open dialog is portaled away; the show channel sits beside it), while composing,
+ * repeated, or while Jump to cue is open make none; the rest follow showKeyAction.
+ */
+export function consoleKeyAction(press: {
+  readonly defaultPrevented: boolean;
+  readonly composing: boolean;
+  readonly repeat: boolean;
+  readonly jumping: boolean;
+  readonly inside: boolean;
+  readonly typing: boolean;
+  readonly chord: string | null;
+  readonly scoped: Readonly<Record<string, string>>;
+  readonly singleKeys: boolean;
+}): ShowAction | null {
+  if (press.defaultPrevented || press.composing || press.repeat || press.jumping) return null;
+  if (!press.inside || press.typing || press.chord === null) return null;
+  return showKeyAction(press.chord, press.scoped, press.singleKeys);
+}
 
 /** Seconds as m:ss, or h:mm:ss past an hour. */
 function clock(total: number): string {
@@ -67,6 +109,8 @@ export function ShowcallerConsole({
   calls,
   department,
   onDepartment,
+  transport,
+  shortcuts,
 }: {
   org: string;
   run: RunOfShow;
@@ -75,11 +119,20 @@ export function ShowcallerConsole({
   calls: readonly CueCall[];
   department: CueCallKind | null;
   onDepartment: (kind: CueCallKind | null) => void;
+  /** Where writes go; the signed-in show actions by default. */
+  transport?: ShowcallerTransport;
+  /**
+   * The show-scope keys outside the Atlas shell (the showcaller portal), by registry id; inside the shell the
+   * person's own bindings come from useShellKeys.
+   */
+  shortcuts?: { readonly platform: Platform; readonly scoped: Readonly<Record<string, string>> };
 }) {
   const t = useCopy("show");
   const locale = useLocale();
   const view = useScheduleView();
-  const keys = useShellKeys();
+  const shellKeys = useShellKeys();
+  const keys = shortcuts ?? shellKeys;
+  const writes = transport ?? signedInTransport(org, run.id);
   const action = useAction();
   const region = useRef<HTMLElement>(null);
   const [now, setNow] = useState(() => new Date());
@@ -115,20 +168,20 @@ export function ShowcallerConsole({
     const cue = selectedCue;
     if (!cue || cue.calledAt) return;
     action.run(
-      () => callCueAction(org, cue.id),
+      () => writes.call(cue.id),
       () => setPicked(null),
     );
   };
   const standby = (cue: Cue | undefined) => {
     if (!cue || cue.calledAt) return;
     setPicked(cue.id);
-    action.run(() => standbyCueAction(org, run.id, cue.id));
+    action.run(() => writes.standby(cue.id));
   };
   const step = (direction: -1 | 1) => {
     const to = stepTarget(cues, { ...progress, picked: pickedIndex }, direction);
     if (to !== undefined) standby(cues[to]);
   };
-  const nudge = (seconds: number) => action.run(() => shiftCuePlanAction(org, run.id, seconds));
+  const nudge = (seconds: number) => action.run(() => writes.nudge(seconds));
   const cycleDepartment = () => {
     const at = department === null ? -1 : CUE_CALL_KINDS.indexOf(department);
     onDepartment(at + 1 < CUE_CALL_KINDS.length ? (CUE_CALL_KINDS[at + 1] ?? null) : null);
@@ -155,13 +208,18 @@ export function ShowcallerConsole({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    // Keys pressed in a field, an open dialog (portaled outside the console) or while composing do nothing.
-    if (event.defaultPrevented || event.nativeEvent.isComposing || event.repeat || jumping) return;
-    if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) return;
-    if (typing(event.target)) return;
-    const chord = chordOf(event.nativeEvent, keys.platform);
-    const what =
-      chord === null ? null : showKeyAction(chord, keys.scoped, singleKeyShortcutsEnabled());
+    const inside = event.target instanceof Node && event.currentTarget.contains(event.target);
+    const what = consoleKeyAction({
+      defaultPrevented: event.defaultPrevented,
+      composing: event.nativeEvent.isComposing,
+      repeat: event.repeat,
+      jumping,
+      inside,
+      typing: typing(event.target),
+      chord: chordOf(event.nativeEvent, keys.platform),
+      scoped: keys.scoped,
+      singleKeys: singleKeyShortcutsEnabled(),
+    });
     if (what === null) return;
     event.preventDefault();
     perform(what);
@@ -287,7 +345,7 @@ export function ShowcallerConsole({
           onClick={() => {
             if (upcoming)
               action.run(
-                () => callCueAction(org, upcoming.id),
+                () => writes.call(upcoming.id),
                 () => setPicked(null),
               );
           }}

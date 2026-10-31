@@ -399,7 +399,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Build the running order of a show, run it live with cues, and publish day and call sheets.",
         kind: "page",
-        nodes: ["show.run-of-show", "show.day-sheets", "show.call-sheets", "project.show", "show"],
+        nodes: [
+          "show.run-of-show",
+          "show.day-sheets",
+          "show.call-sheets",
+          "show.segments",
+          "project.show",
+          "show",
+        ],
         order: 22,
       },
       {
@@ -851,7 +858,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Arme el orden de un espectáculo, ejecútelo en vivo con señales y publique hojas del día y de llamado.",
         kind: "page",
-        nodes: ["show.run-of-show", "show.day-sheets", "show.call-sheets", "project.show", "show"],
+        nodes: [
+          "show.run-of-show",
+          "show.day-sheets",
+          "show.call-sheets",
+          "show.segments",
+          "project.show",
+          "show",
+        ],
         order: 22,
       },
       {

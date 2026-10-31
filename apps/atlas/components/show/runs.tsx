@@ -10,6 +10,7 @@ import {
   type CueEngagement,
   type CueProgress,
   type RunOfShow,
+  type SegmentColor,
 } from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
 import {
@@ -65,6 +66,50 @@ const ShowcallerConsole = dynamic(() =>
 );
 const CueEditor = dynamic(() => import("./cue-editor").then((m) => m.CueEditor));
 const MoveCueDialog = dynamic(() => import("./cue-editor").then((m) => m.MoveCueDialog));
+// B3 (ADR 0142): the show channel beside the running cue and the segment insert dialog load when used.
+const ShowChannelPanel = dynamic(() =>
+  import("./show-channel-panel").then((m) => m.ShowChannelPanel),
+);
+const InsertSegmentDialog = dynamic(() =>
+  import("./segment-insert-dialog").then((m) => m.InsertSegmentDialog),
+);
+
+/** A cue's custom field chip in the running order: a Crew-audience field and its value (ADR 0142). */
+export interface CueFieldChip {
+  readonly key: string;
+  readonly label: string;
+  readonly text: string;
+  readonly colorKey: SegmentColor | null;
+}
+
+/** A segment's name, with its colour as the Tag's swatch when the running order gives it one. */
+function SegmentMark({ segment, color }: { segment: string; color: SegmentColor | null }) {
+  return color ? (
+    <Tag swatch={color}>{segment}</Tag>
+  ) : (
+    <span className="text-text-12 font-semibold text-text-secondary">{segment}</span>
+  );
+}
+
+/** Crew-audience custom values of a cue as chips; a choice with a colour shows it beside the label. */
+function FieldChips({ chips }: { chips: readonly CueFieldChip[] | undefined }) {
+  const t = useCopy("show");
+  if (!chips || chips.length === 0) return null;
+  return (
+    <span className="flex flex-wrap gap-4">
+      {chips.map((chip) => (
+        <Tag key={chip.key} {...(chip.colorKey ? { swatch: chip.colorKey } : {})}>
+          {t("cues.fieldValue", { label: chip.label, value: chip.text })}
+        </Tag>
+      ))}
+    </span>
+  );
+}
+
+/** The segment's key as the database matches it: case and outer spaces ignored. */
+function segmentOf(cue: Cue | undefined): string {
+  return (cue?.segment ?? "").trim().toLowerCase();
+}
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -593,6 +638,9 @@ export function RunBody({
   calls = [],
   department = null,
   importHref = null,
+  segmentColors = {},
+  fieldChips = {},
+  channelProjectId = null,
   children,
 }: {
   org: string;
@@ -612,6 +660,12 @@ export function RunBody({
   department?: CueCallKind | null;
   /** The import wizard preselected on this running order (P3); null when the viewer cannot import cues here. */
   importHref?: string | null;
+  /** Segment colours of the running order, by segment name lowercased and trimmed (app.run_segment_colors). */
+  segmentColors?: Readonly<Record<string, SegmentColor>>;
+  /** Crew-audience custom values by cue id, as chips (ADR 0142). */
+  fieldChips?: Readonly<Record<string, readonly CueFieldChip[]>>;
+  /** The project whose show channel sits beside the running cue in live mode; null hides the panel. */
+  channelProjectId?: string | null;
   children?: ReactNode;
 }) {
   const t = useCopy("show");
@@ -633,6 +687,17 @@ export function RunBody({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [moving, setMoving] = useState<Cue | null>(null);
+  const [inserting, setInserting] = useState(false);
+  const colorOf = (cue: Cue | undefined): SegmentColor | null =>
+    segmentColors[segmentOf(cue)] ?? null;
+  const calledText = (c: Cue) =>
+    c.calledAt
+      ? c.calledViaLink
+        ? t("cues.calledViaLink", { time: time(c.calledAt) ?? "", name: c.calledViaLink })
+        : c.calledByName
+          ? t("cues.called", { time: time(c.calledAt) ?? "", name: c.calledByName })
+          : t("cues.calledBySomeone", { time: time(c.calledAt) ?? "" })
+      : t("cues.notCalled");
   // Cue times follow me.time_zone_display and carry their zone abbreviation (Section 15).
   const view = useScheduleView();
   const time = (at: string | null) => formatScheduleTime(at, locale, tz, view, "time");
@@ -648,8 +713,8 @@ export function RunBody({
     );
 
   if (live) {
-    return (
-      <div className="flex flex-col gap-16">
+    const running = (
+      <div className="flex min-w-0 flex-col gap-16">
         <LiveCues runId={runOfShow.id} />
         <p className="m-0 text-text-12 text-text-secondary">{t("live.syncing")}</p>
         {/* The current and standby lines are the only live regions; each changes once per call. */}
@@ -662,6 +727,18 @@ export function RunBody({
               ? t("live.current", { label: current.label })
               : t("live.notStarted")}
         </p>
+        {current?.segment ? (
+          <SegmentMark segment={current.segment} color={colorOf(current)} />
+        ) : null}
+        <FieldChips chips={current ? fieldChips[current.id] : undefined} />
+        {current?.script ? (
+          <details className="rounded-card border border-border-subtle p-8">
+            <summary className="cursor-pointer text-label-13 font-semibold">
+              {t("live.script")}
+            </summary>
+            <p className="m-0 mt-8 whitespace-pre-wrap text-text-14">{current.script}</p>
+          </details>
+        ) : null}
         {next ? (
           <p className="m-0 flex flex-wrap items-baseline gap-x-8 text-text-14">
             <span role="status">
@@ -680,6 +757,7 @@ export function RunBody({
             </span>
           </p>
         ) : null}
+        {next ? <FieldChips chips={fieldChips[next.id]} /> : null}
         {canCall ? (
           <ShowcallerConsole
             org={org}
@@ -699,6 +777,7 @@ export function RunBody({
               progress={progress}
               calls={calls}
               department={department}
+              colorOf={colorOf}
             />
           </>
         )}
@@ -714,6 +793,18 @@ export function RunBody({
             {t("live.stop")}
           </Button>
         </div>
+      </div>
+    );
+    if (!channelProjectId) return running;
+    // Two columns from 1024 px: the running cue and the show channel; stacked below that. The region is the show
+    // scope, so show.chat (M) reaches the channel's message box from the console.
+    return (
+      <div
+        data-shortcut-scope="show"
+        className="grid gap-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]"
+      >
+        {running}
+        <ShowChannelPanel org={org} projectId={channelProjectId} />
       </div>
     );
   }
@@ -749,12 +840,32 @@ export function RunBody({
           <h3 id={`cues-${runOfShow.id}`} className="m-0 text-label-13 font-semibold">
             {t("cues.title")}
           </h3>
-          {importHref ? (
-            <Link href={importHref as Route} className="text-text-13 text-accent-text underline">
-              {t("importCues")}
-            </Link>
-          ) : null}
+          <span className="flex flex-wrap items-center gap-12">
+            {canEdit ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                icon="Layers"
+                onClick={() => setInserting(true)}
+              >
+                {t("segmentLibrary.insert")}
+              </Button>
+            ) : null}
+            {importHref ? (
+              <Link href={importHref as Route} className="text-text-13 text-accent-text underline">
+                {t("importCues")}
+              </Link>
+            ) : null}
+          </span>
         </div>
+        {inserting ? (
+          <InsertSegmentDialog
+            org={org}
+            run={runOfShow}
+            cues={cues}
+            onClose={() => setInserting(false)}
+          />
+        ) : null}
         <ActionErrorAlert error={cueAction.error} />
         {cues.length > 0 ? <DepartmentFilter runId={runOfShow.id} department={department} /> : null}
         {cues.length === 0 ? (
@@ -778,6 +889,7 @@ export function RunBody({
                       run={runOfShow}
                       cue={c}
                       calls={own}
+                      segmentColor={colorOf(c)}
                       onClose={() => setEditing(null)}
                     />
                   </li>
@@ -811,6 +923,9 @@ export function RunBody({
                   }
                 >
                   <span className="flex flex-col gap-2">
+                    {c.segment && segmentOf(c) !== segmentOf(cues[i - 1]) ? (
+                      <SegmentMark segment={c.segment} color={colorOf(c)} />
+                    ) : null}
                     <span className="flex items-baseline gap-8">
                       <span className="font-mono text-text-12 text-text-secondary">
                         {c.position}
@@ -825,6 +940,7 @@ export function RunBody({
                         </span>
                       ) : null}
                     </span>
+                    <FieldChips chips={fieldChips[c.id]} />
                     <CallLines calls={own} department={department} />
                   </span>
                   <span className="flex items-center gap-4">
@@ -837,13 +953,7 @@ export function RunBody({
                         action={cueAction}
                       />
                     ) : null}
-                    <span className="text-text-12 text-text-secondary">
-                      {c.calledAt
-                        ? c.calledByName
-                          ? t("cues.called", { time: time(c.calledAt) ?? "", name: c.calledByName })
-                          : t("cues.calledBySomeone", { time: time(c.calledAt) ?? "" })
-                        : t("cues.notCalled")}
-                    </span>
+                    <span className="text-text-12 text-text-secondary">{calledText(c)}</span>
                     {canEdit ? (
                       <IconButton
                         icon="Pencil"
@@ -1048,12 +1158,14 @@ function CueList({
   progress,
   calls,
   department,
+  colorOf,
 }: {
   cues: readonly Cue[];
   tz: string;
   progress: CueProgress;
   calls: readonly CueCall[];
   department: CueCallKind | null;
+  colorOf: (cue: Cue) => SegmentColor | null;
 }) {
   const t = useCopy("show");
   const cueTime = useCueTime(tz);
@@ -1066,6 +1178,11 @@ function CueList({
           aria-current={i === highlight ? "true" : undefined}
           className={`flex flex-wrap items-baseline gap-8 px-8 py-4 ${i === highlight ? "bg-bg-hover font-semibold" : i < highlight ? "text-text-tertiary" : ""}`}
         >
+          {c.segment && segmentOf(c) !== segmentOf(cues[i - 1]) ? (
+            <span className="basis-full">
+              <SegmentMark segment={c.segment} color={colorOf(c)} />
+            </span>
+          ) : null}
           <span className="font-mono text-text-12">{c.position}</span>
           <span className="text-text-secondary">{cueTime(c)}</span>
           <span>{c.label}</span>

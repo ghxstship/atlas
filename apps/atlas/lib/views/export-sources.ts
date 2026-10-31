@@ -1145,6 +1145,10 @@ export const NOT_EXPORTED: Readonly<Record<string, string>> = {
   // which shows a moderator what they need to decide and nothing to carry away.
   "people/moderation":
     "Reported content stays in the moderation queue; an export would carry it out.",
+  // B3 (ADR 0142): a library segment is a template of cues, not a record of the show; the running orders that copy
+  // it export with show/run_of_show and its PDF.
+  "show/segments":
+    "Library segments are templates copied into running orders; the running orders export instead.",
 };
 
 export function exportEntryFor(collectionKey: string | null): ExportEntry | null {

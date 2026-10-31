@@ -121,6 +121,8 @@ const KIND_NOT_FOUND: Readonly<Record<string, string>> = {
   "components/logistics-hospitality/shipments.tsx#ShipmentsSection":
     "finds the id by key (findIdByKey)",
   "components/schedule/schedule-pages.tsx#BaselinesPage": "reads a baseline only for a UUID key",
+  "components/show/segment-library-page.tsx#SegmentLibraryPage":
+    "reads a library segment only for a UUID key",
   "components/show/show-pages.tsx#RunsPage": "reads a running order only for a UUID key",
   // Its comparison is about the door list's read, not the `?peek` row, which it finds in the list.
   "components/workforce/guest-check-in.tsx#GuestCheckInSection": "finds the guest in its list",

@@ -497,6 +497,13 @@ export const sitemap: Sitemap = {
               route: "/{org}/show/call-sheets",
               list: { views: ["list", "table", "calendar"], default: "list" },
             },
+            {
+              id: "show.segments",
+              kind: "page",
+              label: "nav.atlas.pages.show.segments",
+              route: "/{org}/show/segments",
+              list: { views: ["list", "table"], default: "list" },
+            },
           ],
         },
         {

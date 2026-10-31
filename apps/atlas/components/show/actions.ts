@@ -145,6 +145,10 @@ export async function updateCueAction(
     plannedAt: string | null;
     durationSeconds: number | null;
     startTbc?: boolean;
+    /** B3 (ADR 0142): the segment, the description and the script, sent only when the editor shows them. */
+    segment?: string;
+    description?: string;
+    script?: string;
   },
 ): Promise<ActionResult> {
   const ctx = await context(org);
@@ -154,6 +158,9 @@ export async function updateCueAction(
       plannedAt: instant,
       durationSeconds: z.number().int().min(0).max(86_400).nullable(),
       startTbc: z.boolean().optional(),
+      segment: z.string().max(200).optional(),
+      description: z.string().max(2000).optional(),
+      script: z.string().max(20_000).optional(),
     })
     .safeParse(input);
   if (!id.safeParse(cueId).success || !parsed.success) return invalid("cueLabel");
@@ -162,6 +169,9 @@ export async function updateCueAction(
     plannedAt: parsed.data.plannedAt ?? null,
     durationSeconds: parsed.data.durationSeconds,
     ...(parsed.data.startTbc === undefined ? {} : { startTbc: parsed.data.startTbc }),
+    ...(parsed.data.segment === undefined ? {} : { segment: parsed.data.segment }),
+    ...(parsed.data.description === undefined ? {} : { description: parsed.data.description }),
+    ...(parsed.data.script === undefined ? {} : { script: parsed.data.script }),
   });
   if (!result.ok) return failed(result.error);
   refresh(org);

@@ -56,6 +56,21 @@ const EXPLAINED = new Set([
   "approval_decided",
   "approval_not_eligible",
   "time_zone_unknown",
+  // B3 (ADR 0142): segments, show channels and showcaller links.
+  "segment_insert_before_called",
+  "segment_insert_cue_limit",
+  "segment_library_empty",
+  "segment_publish_runs",
+  "segment_library_cue_limit",
+  "segment_color_key",
+  "segment_color_segment",
+  "show_channel_client",
+  "showcaller_link_capability",
+  "showcaller_link_limit",
+  "showcaller_link_expiry_range",
+  "showcaller_link_caller_name",
+  "showcaller_link_revoked",
+  "org_read_only",
 ]);
 
 /** Refusals whose database sentence is the correction the person needs. */
