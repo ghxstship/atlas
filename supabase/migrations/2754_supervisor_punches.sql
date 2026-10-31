@@ -11,7 +11,8 @@
 --     hours before the shift starts and its end (supervisor_punch_outside_shift); a roster worker's entry is working
 --     (roster_entry_not_working). Then private.apply_punch (2751) records it with source Supervisor, the shift's worker
 --     and the supervisor's device time and position, so time.geofence_required applies to where the supervisor stands.
---     A replayed punch id answers duplicate. Who punched is created_by on each app.clock_punches row; no new column.
+--     A replay of a punch the caller already recorded answers duplicate before any other check, so a lost answer
+--     replayed after the shift was canceled or its window passed is not refused. Who punched is created_by on each app.clock_punches row; no new column.
 --   * One audit event per call (time.supervisor_punches). The RPC replays offline (private.sync_rpcs), idempotent on
 --     each client punch id, and has exactly one signature.
 --   * Separation of duties: sod_supervisor_punch. app.decide_timesheet, recreated from 2751, refuses an approver who
@@ -97,33 +98,42 @@ begin
       if v_punch_id is null then
         perform private.refuse('punch_id_required', 'Every punch carries its client punch id.');
       end if;
-      select * into v_shift from app.shifts s where s.id = v_shift_id and s.deleted_at is null;
-      if v_shift.id is null or v_shift.project_id <> p_project_id or v_shift.shift_state = 'Canceled' then
-        perform private.refuse('supervisor_punch_project', 'Punch the team in on live shifts of this project.');
+      -- A replay of a punch this supervisor already recorded answers duplicate before the shift is checked again:
+      -- the answer to the first upload may have been lost, and since then the shift may have been canceled, the
+      -- entry withdrawn or the In window passed.
+      if exists (select 1 from app.clock_punches c
+                 where c.id = v_punch_id and c.created_by = v_me and c.source = 'Supervisor'
+                   and c.punch_kind = p_punch_kind and c.shift_id is not distinct from v_shift_id) then
+        v_outcome := 'duplicate';
+      else
+        select * into v_shift from app.shifts s where s.id = v_shift_id and s.deleted_at is null;
+        if v_shift.id is null or v_shift.project_id <> p_project_id or v_shift.shift_state = 'Canceled' then
+          perform private.refuse('supervisor_punch_project', 'Punch the team in on live shifts of this project.');
+        end if;
+        v_worker := private.shift_worker_person_id(v_shift.membership_id, v_shift.engagement_id, v_shift.roster_entry_id);
+        if v_worker is null then
+          perform private.refuse('supervisor_punch_no_worker', 'Nobody holds this shift yet.');
+        end if;
+        select r.engagement_id into v_entry_engagement from app.engagement_roster_entries r where r.id = v_shift.roster_entry_id;
+        if not (private.can_on_project(p_project_id, 'crew.shift.write')
+                or (v_entry_engagement is not null and private.can_manage_roster(v_entry_engagement))) then
+          perform private.refuse('supervisor_punch_not_lead', 'You punch in only the people you supervise.');
+        end if;
+        if v_worker = v_me then
+          perform private.refuse('supervisor_punch_self', 'Clock yourself in from your own clock.');
+        end if;
+        if p_punch_kind = 'In' and (v_effective < v_shift.starts_at - interval '2 hours' or v_effective > v_shift.ends_at) then
+          perform private.refuse('supervisor_punch_outside_shift', 'Punch the team in from two hours before the shift starts until it ends.');
+        end if;
+        if v_shift.roster_entry_id is not null and not private.roster_entry_working(v_shift.roster_entry_id) then
+          perform private.refuse('roster_entry_not_working', 'Agency staff record time only while their roster entry stands and its engagement is Active or Closing.');
+        end if;
+        v_duplicate := exists (select 1 from app.clock_punches c where c.id = v_punch_id);
+        perform private.apply_punch(v_punch_id, p_project_id, p_punch_kind, p_device_time, p_monotonic_offset_ms, v_shift.id,
+          p_latitude, p_longitude, p_accuracy_m, p_geofence_id, 'Supervisor', null, null,
+          v_shift.membership_id, v_shift.engagement_id, v_shift.roster_entry_id);
+        v_outcome := case when v_duplicate then 'duplicate' else 'applied' end;
       end if;
-      v_worker := private.shift_worker_person_id(v_shift.membership_id, v_shift.engagement_id, v_shift.roster_entry_id);
-      if v_worker is null then
-        perform private.refuse('supervisor_punch_no_worker', 'Nobody holds this shift yet.');
-      end if;
-      select r.engagement_id into v_entry_engagement from app.engagement_roster_entries r where r.id = v_shift.roster_entry_id;
-      if not (private.can_on_project(p_project_id, 'crew.shift.write')
-              or (v_entry_engagement is not null and private.can_manage_roster(v_entry_engagement))) then
-        perform private.refuse('supervisor_punch_not_lead', 'You punch in only the people you supervise.');
-      end if;
-      if v_worker = v_me then
-        perform private.refuse('supervisor_punch_self', 'Clock yourself in from your own clock.');
-      end if;
-      if p_punch_kind = 'In' and (v_effective < v_shift.starts_at - interval '2 hours' or v_effective > v_shift.ends_at) then
-        perform private.refuse('supervisor_punch_outside_shift', 'Punch the team in from two hours before the shift starts until it ends.');
-      end if;
-      if v_shift.roster_entry_id is not null and not private.roster_entry_working(v_shift.roster_entry_id) then
-        perform private.refuse('roster_entry_not_working', 'Agency staff record time only while their roster entry stands and its engagement is Active or Closing.');
-      end if;
-      v_duplicate := exists (select 1 from app.clock_punches c where c.id = v_punch_id);
-      perform private.apply_punch(v_punch_id, p_project_id, p_punch_kind, p_device_time, p_monotonic_offset_ms, v_shift.id,
-        p_latitude, p_longitude, p_accuracy_m, p_geofence_id, 'Supervisor', null, null,
-        v_shift.membership_id, v_shift.engagement_id, v_shift.roster_entry_id);
-      v_outcome := case when v_duplicate then 'duplicate' else 'applied' end;
     exception when sqlstate 'XR001' or sqlstate '42501' or invalid_text_representation then
       get stacked diagnostics v_code = pg_exception_hint, v_state = returned_sqlstate;
       v_outcome := 'refused';
@@ -146,11 +156,14 @@ begin
   perform private.write_audit_event(v_project.org_id, 'time.supervisor_punches', 'app.projects', v_project.id,
     jsonb_build_object('batch_id', p_batch_id, 'punch_kind', p_punch_kind, 'punch_ids', v_punch_ids,
       'applied', v_applied, 'refused', v_refused));
-  return jsonb_build_object('id', p_batch_id, 'batch_id', p_batch_id, 'results', v_results);
+  -- The whole batch as Compass keeps it (supervisor_punch_batches): the answer replaces the optimistic row, so it
+  -- carries the project, the kind and the device time beside each worker's outcome.
+  return jsonb_build_object('id', p_batch_id, 'batch_id', p_batch_id, 'project_id', p_project_id,
+    'punch_kind', p_punch_kind, 'device_time', p_device_time, 'results', v_results);
 end;
 $$;
 
-comment on function app.record_supervisor_punches(uuid, uuid, app.punch_kind, timestamptz, jsonb, bigint, numeric, numeric, numeric, uuid) is 'A supervisor punches a team in or out at once (R12, G-126), offline too: p_punches is 1 to 100 {punch_id, shift_id} (supervisor_punch_batch; the batch id is required, supervisor_punch_batch_required). Each punch runs on its own, so one refusal never fails the rest: the shift is live on the project and not Canceled (supervisor_punch_project) and names a person (supervisor_punch_no_worker); the caller holds crew.shift.write on the project or leads the roster of a roster shift (supervisor_punch_not_lead) and is not the worker (supervisor_punch_self); an In counts from two hours before the shift until its end (supervisor_punch_outside_shift); a roster worker''s entry is working (roster_entry_not_working). Each punch is then recorded by private.apply_punch as a Supervisor punch at the supervisor''s time and position, so every punch rule, time.geofence_required included, applies. A replayed punch id answers duplicate. Returns {id, batch_id, results: [{punch_id, shift_id, outcome: applied, duplicate or refused, code}]}, id being the batch id so Compass keeps the answer as the batch''s row and writes one audit event (time.supervisor_punches).';
+comment on function app.record_supervisor_punches(uuid, uuid, app.punch_kind, timestamptz, jsonb, bigint, numeric, numeric, numeric, uuid) is 'A supervisor punches a team in or out at once (R12, G-126), offline too: p_punches is 1 to 100 {punch_id, shift_id} (supervisor_punch_batch; the batch id is required, supervisor_punch_batch_required). Each punch runs on its own, so one refusal never fails the rest: the shift is live on the project and not Canceled (supervisor_punch_project) and names a person (supervisor_punch_no_worker); the caller holds crew.shift.write on the project or leads the roster of a roster shift (supervisor_punch_not_lead) and is not the worker (supervisor_punch_self); an In counts from two hours before the shift until its end (supervisor_punch_outside_shift); a roster worker''s entry is working (roster_entry_not_working). Each punch is then recorded by private.apply_punch as a Supervisor punch at the supervisor''s time and position, so every punch rule, time.geofence_required included, applies. A replay of a punch the caller already recorded answers duplicate before any other check. Returns {id, batch_id, project_id, punch_kind, device_time, results: [{punch_id, shift_id, outcome: applied, duplicate or refused, code}]}, id being the batch id so Compass keeps the answer as the batch''s row, and writes one audit event (time.supervisor_punches).';
 
 revoke all on function app.record_supervisor_punches(uuid, uuid, app.punch_kind, timestamptz, jsonb, bigint, numeric, numeric, numeric, uuid) from public, anon;
 grant execute on function app.record_supervisor_punches(uuid, uuid, app.punch_kind, timestamptz, jsonb, bigint, numeric, numeric, numeric, uuid) to authenticated, service_role;

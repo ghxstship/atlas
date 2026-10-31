@@ -64822,6 +64822,10 @@ export type Database = {
         Returns: string;
       };
       assign_open_shift: { Args: { p_membership_id: string; p_shift_id: string }; Returns: string };
+      assign_open_shift_to_roster: {
+        Args: { p_roster_entry_id: string; p_shift_id: string };
+        Returns: string;
+      };
       assign_roster_shift: {
         Args: { p_roster_entry_id: string; p_shift_id: string };
         Returns: string;
@@ -67390,6 +67394,22 @@ export type Database = {
           tags_issued: string[];
         }[];
       };
+      rank_roster_candidates: {
+        Args: { p_shift_id: string; p_week_start?: string };
+        Returns: {
+          account_name: string;
+          availability: string;
+          candidate_rank: number;
+          conflict: boolean;
+          engagement_id: string;
+          full_name: string;
+          person_id: string;
+          roster_entry_id: string;
+          training_due: number;
+          week_minutes: number;
+          worked_role: boolean;
+        }[];
+      };
       rank_shift_candidates: {
         Args: { p_shift_id: string; p_week_start?: string };
         Returns: {
@@ -68421,6 +68441,22 @@ export type Database = {
           p_name: string;
           p_venue_id: string;
           p_zone_id: string;
+        };
+        Returns: string;
+      };
+      save_roster_shift: {
+        Args: {
+          p_ends_at: string;
+          p_engagement_id: string;
+          p_membership_id: string;
+          p_org_id: string;
+          p_project_id: string;
+          p_reason?: string;
+          p_role_code: string;
+          p_roster_entry_id: string;
+          p_shift_id: string;
+          p_starts_at: string;
+          p_time_zone: string;
         };
         Returns: string;
       };

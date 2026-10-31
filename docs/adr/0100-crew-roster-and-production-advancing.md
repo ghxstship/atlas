@@ -69,7 +69,7 @@ opens on `engagement.overview` and carries `engagement.documents` and `engagemen
   principal (ADR 0101), so this grants nothing the roster rules do not already allow.
 - **roster-member** renders when a person reaches an engagement only through an Accepted roster entry (R8).
 - **roster-staff** renders for a person who reaches a Staff company engagement only through a roster entry (R12).
-- Amendment (R12, migrations 2750 to 2754): agency staff work through roster entries, never through engagements of
+- Amendment (R12, migrations 2750 to 2756): agency staff work through roster entries, never through engagements of
   their own. An agency slot is a shift whose `engagement_id` is a Staff company engagement (counterparty set, no
   person); `app.assign_roster_shift` places an accepted, trained roster entry on it, after which the shift names
   `roster_entry_id` and no longer the engagement, so a shift names exactly one worker column. Time entries,
@@ -77,7 +77,11 @@ opens on `engagement.overview` and carries `engagement.documents` and `engagemen
   (`membership_id`, `engagement_id`, `roster_entry_id`) to be NULL, so an engagement-assigned shift or an agency slot
   is never offered to members as open. A supervisor, or the agency's lead, punches a team in or out at once
   (`app.record_supervisor_punches`, source Supervisor); that supervisor never approves the timesheet holding the time
-  (`sod_supervisor_punch`).
+  (`sod_supervisor_punch`). Every write that places agency staff runs in one transaction with the placement, so a
+  refusal leaves the shift as it was: Atlas's shift editor saves through `app.save_roster_shift`, and A132's drag
+  board ranks the agencies' accepted people beside the members (`app.rank_roster_candidates`, by the availability
+  they share with the org) and drops one on an open shift through `app.assign_open_shift_to_roster`. Slate seeding
+  runs whenever a slate member's account membership becomes confirmed, by any path.
 - **The new tab is `engagement.crew`**, routed `/work/engagements/{engagementKey}/crew`. `engagement.roster` stays
   the representative's list of represented artists. In the staff set, crew shows only to a roster manager
   (`private.can_manage_roster`, ADR 0101), so individually engaged staff never see it.

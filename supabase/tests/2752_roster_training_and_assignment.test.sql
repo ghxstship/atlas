@@ -1,7 +1,8 @@
 -- pgTAP: migration 2752 (R12), training before positions and placing agency staff. What is due follows role type,
 -- blocking and jurisdiction; only the person acknowledges and the verifier is never the person (sod_roster_training);
 -- every refusal of app.assign_roster_shift is reached; the agency's lead and a crew.shift.write holder both place;
--- reassigning and unassigning move the shift's state; slate seeding creates Draft entries idempotently, for a slate
+-- reassigning and unassigning move the shift's state; slate seeding creates Draft entries idempotently, by any path that
+-- confirms the membership (an account invitation included), for a slate
 -- person only once they confirm their membership, and skips an engagement whose names lock has passed.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -31,6 +32,16 @@ select is(pg_temp.entries_of('stella') || ' ' || pg_temp.entries_of('theo'), 'Ac
   'the award seeded Stella''s and Theo''s entries, which the world then took through review');
 select is(pg_temp.entries_of('uma'), '', 'Uma has not confirmed her membership, so she has no entry');
 select is(private.seed_slate_entries(pg_temp.id('eng_agency')), 0, 'seeding again adds nobody');
+
+-- Vic confirms by accepting the agency's account invitation, not app.accept_account_membership.
+select pg_temp.as_user('olga');
+insert into world values ('inv_vic', app.invite_account_member(pg_temp.id('acct_s'), 'vic@crestline-staffing.test', 'Account Member'));
+select pg_temp.as_user('vic');
+select is(pg_temp.entries_of('vic'), '', 'Vic, on the slate but not confirmed, has no entry');
+select app.respond_party_invitation('account', pg_temp.id('inv_vic'), true);
+select is(pg_temp.entries_of('vic'), 'Draft/Pending', 'accepting the account invitation confirms him and seeds his Draft entry');
+select pg_temp.as_platform();
+select is(private.seed_member_slate_entries(pg_temp.id('acct_s'), pg_temp.id('vic')), 0, 'and seeding him again adds nothing');
 
 select pg_temp.as_user('carol');
 select app.set_roster_lock(pg_temp.id('eng_agency'), now() - interval '1 minute');

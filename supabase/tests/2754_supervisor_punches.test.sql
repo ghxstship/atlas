@@ -1,6 +1,6 @@
 -- pgTAP: migrations 2753 and 2754 (R12 parity addition G-126), a supervisor clocks in a whole team. One batch punches a
 -- member, an engaged external and a roster entry in, each a Supervisor punch created by the supervisor with an open
--- time entry; a replay answers duplicate and adds nothing; one refused worker never fails the rest; the agency's lead
+-- time entry; a replay answers duplicate and adds nothing, even after the shift is canceled; one refused worker never fails the rest; the agency's lead
 -- punches only its roster; every refusal code is reached; record_punch never writes Supervisor; one audit event per
 -- call; the RPC replays offline with one signature; the supervisor never approves that time (sod_supervisor_punch).
 begin;
@@ -105,6 +105,17 @@ select is(pg_temp.outcomes((select result from answers where key = 'replay')), '
 select pg_temp.as_platform();
 select is((select count(*)::int from app.clock_punches where shift_id in (pg_temp.id('now_frank'), pg_temp.id('now_ivy'), pg_temp.id('now_slot_s'))), 3,
   'and adds no rows');
+select is((select result - 'results' from answers where key = 'first'),
+  jsonb_build_object('id', pg_temp.id('batch_1'), 'batch_id', pg_temp.id('batch_1'), 'project_id', pg_temp.id('prj_a'),
+    'punch_kind', 'In', 'device_time', (select result ->> 'device_time' from answers where key = 'first')),
+  'the answer is the whole batch, so it can stand as the device''s row: id, project, kind and device time');
+select ok((select (result ->> 'device_time') is not null from answers where key = 'first'), 'with the device time set');
+select pg_temp.as_user('carol');
+select app.transition_shift(pg_temp.id('now_ivy'), 'Published', 'Canceled', 'Rained out.');
+insert into answers values ('late_replay', app.record_supervisor_punches(pg_temp.id('batch_1'), pg_temp.id('prj_a'), 'In', now(),
+  pg_temp.batch('in', array['now_ivy'])));
+select is(pg_temp.outcomes((select result from answers where key = 'late_replay')), 'now_ivy=duplicate',
+  'a replay whose first answer was lost still answers duplicate after the shift was canceled');
 
 -- One refusal never fails the team ------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -136,7 +147,7 @@ select is(pg_temp.outcomes(app.record_supervisor_punches(gen_random_uuid(), pg_t
   pg_temp.batch('uma', array['now_slot_t']))), 'now_slot_t=refused:supervisor_punch_not_lead', 'an Account Member is no lead');
 
 select pg_temp.as_platform();
-select is(pg_temp.audits(), 6, 'one audit event per call that ran');
+select is(pg_temp.audits(), 7, 'one audit event per call that ran');
 
 -- Separation of duties --------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');

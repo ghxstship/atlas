@@ -23,8 +23,10 @@
 --   * app.accept_engaged_shift (1000) also accepts a Published shift of the caller's operational roster entry.
 --   * Slate seeding: a Staff company engagement created from an agency's application (0720 application_id) seeds a
 --     Draft roster entry, through R4's private.insert_roster_entry, for each slate person who has confirmed their
---     membership of the agency's account; app.accept_account_membership (2630) seeds the rest as they confirm, and
---     skips, without failing, an engagement whose names lock (R5's private.roster_locked) has passed. The role comes
+--     membership of the agency's account; the rest are seeded as they confirm, by any path: app.accept_account_membership
+--     (2630) or accepting an account or roster invitation (2636's private.ensure_accepted_membership), through the
+--     trigger t92_seed_roster_on_membership on app.account_memberships. Seeding skips, without failing, an engagement
+--     whose names lock (R5's private.roster_locked) has passed; confirming again once it is lifted seeds the entry. The role comes
 --     from the engagement: a slate's opportunity position names no role. The person still accepts, and the agency
 --     still submits.
 --   * api_external.my_roster_training: the training due on the caller's own roster entries (onboarding area) and, for
@@ -438,8 +440,65 @@ create trigger t92_seed_roster_from_slate after insert on app.engagements
   for each row when (new.role_type = 'Staff' and new.application_id is not null and new.person_id is null and new.counterparty_id is not null)
   execute function private.seed_roster_from_slate();
 
--- Confirming an account membership (latest: 2630) ----------------------------------------------------------------------------------------
+-- Confirming an account membership --------------------------------------------------------------------------------------------------
 
+create or replace function private.seed_member_slate_entries(p_account_id uuid, p_person_id uuid)
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_engagement uuid;
+  v_seeded integer := 0;
+begin
+  for v_engagement in
+    select e.id from app.engagements e
+    join app.counterparties c on c.id = e.counterparty_id and c.organization_id = p_account_id
+    join app.applications a on a.id = e.application_id and a.applicant_organization_id = p_account_id
+    where e.deleted_at is null and e.role_type = 'Staff' and e.person_id is null
+      and exists (select 1 from app.agency_slates s where s.application_id = a.id and s.person_id = p_person_id and s.deleted_at is null)
+      -- A person confirming by claiming the agency's roster invitation to this engagement takes that entry, not a
+      -- seeded one beside it (respond_party_invitation confirms the membership before the claim).
+      and not (p_person_id = private.current_person_id() and exists (
+        select 1 from app.roster_invitations i
+        join app.engagement_roster_entries r on r.id = i.roster_entry_id and r.engagement_id = e.id and r.deleted_at is null
+        where i.deleted_at is null and i.claimed_at is null and i.declined_at is null and i.revoked_at is null
+          and i.expires_at > now() and i.email = private.my_confirmed_email()))
+  loop
+    v_seeded := v_seeded + private.seed_slate_entries(v_engagement, p_person_id);
+  end loop;
+  return v_seeded;
+end;
+$$;
+
+comment on function private.seed_member_slate_entries(uuid, uuid) is 'R12: seeds a person''s Draft roster entries on every Staff company engagement an account won with them on its slate (private.seed_slate_entries, which skips a closed or names-locked engagement and anyone already on the roster), except an engagement where the signed-in person holds a pending roster invitation, whose entry they are claiming. Returns how many it seeded.';
+revoke all on function private.seed_member_slate_entries(uuid, uuid) from public, anon, authenticated;
+
+create or replace function private.seed_roster_on_membership()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.accepted_at is null or new.deleted_at is not null or (tg_op = 'UPDATE' and old.accepted_at is not null) then
+    return null;
+  end if;
+  perform private.seed_member_slate_entries(new.org_id, new.person_id);
+  return null;
+end;
+$$;
+
+comment on function private.seed_roster_on_membership() is 'When a person''s account membership becomes confirmed, by any path (app.accept_account_membership, or accepting an account or roster invitation through private.ensure_accepted_membership), seeds their pending slate entries (private.seed_member_slate_entries, R12).';
+revoke all on function private.seed_roster_on_membership() from public, anon, authenticated;
+
+create trigger t92_seed_roster_on_membership after insert or update of accepted_at on app.account_memberships
+  for each row execute function private.seed_roster_on_membership();
+
+-- Latest: 2630. The first confirmation seeds through the trigger above; confirming again retries the seeding, so an
+-- entry skipped while the names lock stood is seeded once the lock is lifted.
 create or replace function app.accept_account_membership(p_account_membership_id uuid)
 returns void
 language plpgsql
@@ -450,7 +509,6 @@ as $$
 declare
   v_me uuid := private.require_person();
   v_member app.account_memberships;
-  v_engagement uuid;
 begin
   select * into v_member from app.account_memberships m
   where m.id = p_account_membership_id and m.deleted_at is null
@@ -459,19 +517,13 @@ begin
     perform private.refuse('account_membership_not_yours', 'Only the person a live account membership names confirms it.');
   end if;
   update app.account_memberships set accepted_at = now() where id = v_member.id and accepted_at is null;
-  for v_engagement in
-    select e.id from app.engagements e
-    join app.counterparties c on c.id = e.counterparty_id and c.organization_id = v_member.org_id
-    join app.applications a on a.id = e.application_id and a.applicant_organization_id = v_member.org_id
-    where e.deleted_at is null and e.role_type = 'Staff' and e.person_id is null
-      and exists (select 1 from app.agency_slates s where s.application_id = a.id and s.person_id = v_me and s.deleted_at is null)
-  loop
-    perform private.seed_slate_entries(v_engagement, v_me);
-  end loop;
+  if not found then
+    perform private.seed_member_slate_entries(v_member.org_id, v_me);
+  end if;
 end;
 $$;
 
-comment on function app.accept_account_membership(uuid) is 'The person a live, active account membership names confirms it (ADR 0101 decision 2); confirming again changes nothing. Confirming also seeds their Draft roster entries on the Staff engagements the account won with them on its slate (R12), except where the names lock has passed. Declining is app.end_account_membership.';
+comment on function app.accept_account_membership(uuid) is 'The person a live, active account membership names confirms it (ADR 0101 decision 2); confirming again changes nothing but retrying the slate seeding. Confirming seeds their Draft roster entries on the Staff engagements the account won with them on its slate (R12, through t92_seed_roster_on_membership), except where the names lock has passed. Declining is app.end_account_membership.';
 
 -- What the person and the agency read ------------------------------------------------------------------------------------------------------
 

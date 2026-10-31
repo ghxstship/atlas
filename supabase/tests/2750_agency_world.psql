@@ -3,10 +3,10 @@
 -- Nothing persists: each suite rolls back.
 --
 -- Crestline Staffing (acct_s, Northwind's counterparty cp_s_a), a staffing agency: olga Account Owner, stella and theo Account Members who confirmed,
--- uma an Account Member who has not confirmed yet. Crestline applied to Northwind's Staff opportunity (opp_agency) on
--- prj_a with stella, theo and uma on its slate; the application was accepted and carol made the Staff company
+-- uma and vic Account Members who have not confirmed yet. Crestline applied to Northwind's Staff opportunity (opp_agency)
+-- on prj_a with stella, theo, uma and vic on its slate; the application was accepted and carol made the Staff company
 -- engagement eng_agency from it, which seeded Draft roster entries for stella and theo (e_stella, e_theo) and none for
--- uma. Both accepted their entries, olga submitted the roster, alice accepted both entries and eng_agency is Active.
+-- uma or vic. Both accepted their entries, olga submitted the roster, alice accepted both entries and eng_agency is Active.
 -- Shifts on prj_a, all published, starting tomorrow: slot_1 and slot_2 are agency slots of eng_agency (08:00 to 16:00
 -- and 10:00 to 18:00 UTC), sh_frank_day is frank's (08:00 to 16:00), sh_open is open.
 -- The phone geofence rule (time.geofence_required) is off for org_a; the 1321 suite covers it.
@@ -45,9 +45,10 @@ select pg_temp.new_user('olga', 'olga@crestline-staffing.test', 'Olga Brandt');
 select pg_temp.new_user('stella', 'stella@crestline-staffing.test', 'Stella Okafor');
 select pg_temp.new_user('theo', 'theo@crestline-staffing.test', 'Theo Ramires');
 select pg_temp.new_user('uma', 'uma@crestline-staffing.test', 'Uma Castell');
+select pg_temp.new_user('vic', 'vic@crestline-staffing.test', 'Vic Haldane');
 select pg_temp.as_user('olga');
 insert into world values ('acct_s', app.create_external_account('Crestline Staffing', 'crestline-staffing'));
-select app.add_account_member(pg_temp.id('acct_s'), pg_temp.id(p), 'Account Member') from unnest(array['stella', 'theo', 'uma']) p;
+select app.add_account_member(pg_temp.id('acct_s'), pg_temp.id(p), 'Account Member') from unnest(array['stella', 'theo', 'uma', 'vic']) p;
 select pg_temp.as_user('stella');
 select app.accept_account_membership(pg_temp.membership('acct_s', 'stella'));
 select pg_temp.as_user('theo');
@@ -66,7 +67,7 @@ select app.transition_opportunity(pg_temp.id('opp_agency'), 'Pending Approval', 
 select pg_temp.as_user('olga');
 with a as (insert into app.applications (opportunity_id, applicant_organization_id) values (pg_temp.id('opp_agency'), pg_temp.id('acct_s')) returning id)
   insert into world select 'app_agency', id from a;
-insert into app.agency_slates (application_id, person_id) select pg_temp.id('app_agency'), pg_temp.id(p) from unnest(array['stella', 'theo', 'uma']) p;
+insert into app.agency_slates (application_id, person_id) select pg_temp.id('app_agency'), pg_temp.id(p) from unnest(array['stella', 'theo', 'uma', 'vic']) p;
 select pg_temp.as_user('carol');
 select app.transition_application(pg_temp.id('app_agency'), 'Submitted', 'In Review', 'Screening.');
 select app.transition_application(pg_temp.id('app_agency'), 'In Review', 'Offered', 'Offer sent.');
