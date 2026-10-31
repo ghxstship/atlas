@@ -122,7 +122,13 @@
     "integration_disconnected": "That connection is disconnected and cannot change.",
     "moderation_appeal_window": "Appeals are accepted for six months after a decision; this one is older.",
     "moderation_appeal_grounds": "Say why the decision is wrong, in up to 4,000 characters.",
-    "moderation_appeal_exists": "This decision has already been appealed."
+    "moderation_appeal_exists": "This decision has already been appealed.",
+    "earning_code_taken": "Another earning code already uses this code. Choose a different code.",
+    "time_off_policy_taken": "Another time off policy already has this name. Choose a different name.",
+    "holiday_calendar_taken": "Another holiday calendar already has this name. Choose a different name.",
+    "holiday_calendar_applies_taken": "Another calendar already applies across the org for this state, or for no state. Change that one, or leave Applies across the org unchecked.",
+    "holiday_day_taken": "This calendar already has a holiday on that day. Remove it first, or choose another day.",
+    "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first."
   },
   "partner": {
     "sections": "Partner console sections",

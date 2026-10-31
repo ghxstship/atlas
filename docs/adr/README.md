@@ -87,6 +87,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
 | [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
 | [0111](0111-timeline-reschedule-pushes-successors.md)               | A Timeline Reschedule Pushes Successors by What It Adds                          | Accepted |
+| [0112](0112-holiday-calendars-for-time-off-and-payroll.md)          | Holiday Calendars for Time Off and Payroll                                       | Accepted |
 | [0113](0113-opportunity-question-templates-and-defaults.md)         | Opportunity Question Templates and Defaults                                      | Accepted |
 | [0114](0114-stricter-separation-of-duties-options.md)               | Stricter Separation of Duties Options                                            | Proposed |
 | [0115](0115-addresses-and-work-phones-checked-by-country.md)        | Addresses and Work Phones Checked by Country                                     | Accepted |
