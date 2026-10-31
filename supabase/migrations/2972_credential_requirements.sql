@@ -13,9 +13,10 @@
 --     update their own row for that consent, and without this they could clear an expiry or restore a removed record.
 --   * private.credential_requirements_state answers, for a category, a holder and the badge's end, each requirement
 --     with is_met and, for a met one that expires before the badge ends, when it expires. The guard calls it directly.
---     private.credential_requirements_missing is the same answer for readers: app.credential_review (2973) calls it as
---     its reader, so it is granted to authenticated and answers nothing to someone who cannot read the category's
---     credentials (ADR 0016 rule 14: it takes values, never a credential id).
+--     private.credential_requirements_missing is the same answer checked against the caller's
+--     credentials.credential.read on the category's project; both are internal, and callers reach them through
+--     app.credential_issue_check and app.credential_review (2973), which check the project first (ADR 0016 rule 14:
+--     they take values, never a credential id).
 --   * app.credential_issue_check lists what the issue form shows before Issue; 2973 adds the accreditation checks.
 
 create table app.credential_category_requirements (
@@ -157,9 +158,8 @@ begin
   return query select * from private.credential_requirements_state(p_category_id, p_person_id, p_valid_to);
 end;
 $$;
-comment on function private.credential_requirements_missing(uuid, uuid, timestamptz) is 'private.credential_requirements_state for a reader with credentials.credential.read on the category''s project; nothing for anyone else, so it is no oracle. Takes values, never a credential id, because app.credential_review calls it as its reader (ADR 0016 rule 14).';
-revoke all on function private.credential_requirements_missing(uuid, uuid, timestamptz) from public, anon;
-grant execute on function private.credential_requirements_missing(uuid, uuid, timestamptz) to authenticated, service_role;
+comment on function private.credential_requirements_missing(uuid, uuid, timestamptz) is 'private.credential_requirements_state for a caller with credentials.credential.read on the category''s project; nothing for anyone else, so it is no oracle. Takes values, never a credential id (ADR 0016 rule 14). Internal: callers reach the requirements through app.credential_issue_check and app.credential_review (2973), which run as their owner.';
+revoke all on function private.credential_requirements_missing(uuid, uuid, timestamptz) from public, anon, authenticated;
 
 -- The guard -------------------------------------------------------------------------------------------------------------------
 

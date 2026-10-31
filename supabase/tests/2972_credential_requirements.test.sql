@@ -114,13 +114,17 @@ insert into app.certification_holders (certification_id, person_id, issued_on) v
 select is((app.issue_allocation('01920000-0000-7000-8972-000000000002', pg_temp.id('badge'), '[{}]')) ->> 'outcome', 'applied',
   'and is issued once kai holds the certification');
 
--- The reader helper answers only readers ------------------------------------------------------------------------------------------
+-- The helpers are internal ------------------------------------------------------------------------------------------------------
+-- Callers reach the requirements through app.credential_issue_check and app.credential_review (2973), which check the
+-- project first; neither helper is granted to them.
+select ok(not has_function_privilege('authenticated', 'private.credential_requirements_missing(uuid, uuid, timestamptz)', 'execute')
+  and not has_function_privilege('authenticated', 'private.credential_requirements_state(uuid, uuid, timestamptz)', 'execute'),
+  'the requirement helpers are not granted to callers');
+select pg_temp.as_user('carol');
+select is((select missing_requirements from app.credential_review(array[pg_temp.id('old_badge')])), 1,
+  'the review counts what the holder of an older badge does not meet');
 select pg_temp.as_user('xavier');
-select is((select count(*)::int from private.credential_requirements_missing(pg_temp.id('cat_rig'), pg_temp.id('dave'), null)), 0,
-  'private.credential_requirements_missing tells another org nothing');
-select pg_temp.as_user('gina');
-select is((select count(*)::int from private.credential_requirements_missing(pg_temp.id('cat_rig'), pg_temp.id('dave'), null) where not is_met), 1,
-  'and tells a reader of the project''s credentials what is unmet');
+select is((select count(*)::int from app.credential_review(array[pg_temp.id('old_badge')])), 0, 'and tells another org nothing');
 select pg_temp.as_platform();
 
 select * from finish();
