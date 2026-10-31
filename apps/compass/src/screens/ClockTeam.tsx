@@ -3,7 +3,7 @@
  * offline too. Internal field supervisors see today's shifts of the project with someone on them; a staffing
  * agency's lead sees the shifts of its roster staff with their names (api_external.shifts). The whole selection
  * queues as one team punch (app.record_supervisor_punches); each worker's answer shows beside their name once it
- * syncs. The database decides who may be punched: crew.shift.write on the project, or leading the roster.
+ * syncs, and who is in follows the synced time entries, so a worker who clocked in on their own phone shows In. The database decides who may be punched: crew.shift.write on the project, or leading the roster.
  */
 import { stampEvent, type Row } from "@xos/sync";
 import { useMemo, useState, type ReactElement } from "react";
@@ -17,6 +17,7 @@ import {
   teamShifts,
   type TeamPunchBatch,
   type TeamShiftRow,
+  type TeamTimeEntry,
 } from "../domain/clock";
 import { evaluateGeofence, parseGeoShape, samplingPlan, type Geofence } from "../domain/geo";
 import { useCompass, useRows } from "../runtime/CompassProvider";
@@ -37,6 +38,12 @@ export function ClockTeam(): ReactElement {
     TEAM_PUNCH_TABLE,
     (b) => b.project_id === projectId,
   );
+  // Who is in comes from the synced time: the worker's open entry, whoever punched it.
+  const { rows: entries } = useRows<TeamTimeEntry & Row>(
+    "time_entries",
+    (e) => e.project_id === projectId,
+  );
+  const { rows: punches } = useRows<Row>("clock_punches", (p) => p["project_id"] === projectId);
   const { rows: shapes } = useRows<Row & { name: string; boundary_geojson: unknown }>(
     "geofence_shapes",
   );
@@ -59,7 +66,7 @@ export function ClockTeam(): ReactElement {
     (s.membership_id ? names.get(s.membership_id) : undefined) ??
     s.job_title ??
     t(`${C}.unnamed`);
-  const state = teamClockState(batches);
+  const state = teamClockState(team, entries, punches, batches);
   // The newest answer for each shift, for a refusal beside the name.
   const latest = new Map<string, { outcome: string; code: string | null }>();
   for (const b of [...batches].sort((a, z) => a.device_time.localeCompare(z.device_time))) {

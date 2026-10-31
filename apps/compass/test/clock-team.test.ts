@@ -7,7 +7,9 @@ import {
   type Mutation,
   type UploadOutcome,
 } from "@xos/sync";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
+import { SupabaseUploader } from "../src/data/uploader";
 import { access, type CompassIdentity, type EngagementSummary } from "../src/domain/access";
 import {
   buildPunch,
@@ -17,6 +19,7 @@ import {
   teamClockState,
   teamShifts,
   type TeamPunchBatch,
+  type TeamShiftRow,
 } from "../src/domain/clock";
 
 /**
@@ -117,7 +120,76 @@ describe("buildSupervisorPunchBatch", () => {
     expect(sent[0]?.payload["p_punches"]).toEqual(m.payload["p_punches"]);
     expect(sent[0]?.payload["p_batch_id"]).toBe(m.payload["p_batch_id"]);
   });
+
+  it("keeps the batch on the board once the server's answer replaces it", async () => {
+    // The lead's device calls the RPC directly (no member org), and the store takes the answer as the row.
+    const m = buildSupervisorPunchBatch(
+      "In",
+      "proj-1",
+      team,
+      { ...stampEvent(clock, null), deviceAt: new Date(T0).toISOString() },
+      null,
+      [],
+      T0,
+    );
+    const punches = m.payload["p_punches"] as { punch_id: string; shift_id: string }[];
+    const answer = {
+      id: m.rowId,
+      batch_id: m.rowId,
+      project_id: "proj-1",
+      punch_kind: "In",
+      device_time: new Date(T0).toISOString(),
+      results: [
+        { ...punches[0], outcome: "applied", code: null },
+        { ...punches[1], outcome: "refused", code: "punch_already_in" },
+      ],
+    };
+    const client = {
+      rpc: () => Promise.resolve({ data: answer, error: null, status: 200 }),
+    } as unknown as SupabaseClient;
+    const store = new MemoryStore();
+    const engine = new SyncEngine({
+      store,
+      uploader: new SupabaseUploader({
+        client,
+        functionsUrl: "https://x.example.com",
+        accessToken: () => Promise.resolve(null),
+        orgId: () => null,
+        deviceId: "device-1",
+        clock,
+      }),
+      schedule: () => () => undefined,
+    });
+    await engine.outbox.enqueue(m);
+    await engine.setNetwork(ONLINE);
+    const rows = (await store.list(TEAM_PUNCH_TABLE)) as unknown as TeamPunchBatch[];
+    const onBoard = rows.filter((b) => b.project_id === "proj-1");
+    expect(onBoard).toHaveLength(1);
+    expect(onBoard[0]?.punch_kind).toBe("In");
+    expect(onBoard[0]?.results.map((r) => r.outcome)).toEqual(["applied", "refused"]);
+    const board = [
+      held("shift-a", { roster_entry_id: "re1" }),
+      held("shift-b", { roster_entry_id: "re2" }),
+    ];
+    // Not yet downloaded: the applied punch shows In, the refused one changes nothing.
+    const state = teamClockState(board, [], [], onBoard);
+    expect(state.get("shift-a")).toBe("in");
+    expect(state.get("shift-b")).toBe("out");
+    expect(primaryTeamPunch(["shift-a", "shift-b"], state)).toBe("Out");
+  });
 });
+
+/** A shift on the board that someone holds, today. */
+function held(id: string, extra: Partial<TeamShiftRow> = {}): TeamShiftRow {
+  return {
+    id,
+    project_id: "proj-1",
+    starts_at: new Date(T0 - 3600_000).toISOString(),
+    ends_at: new Date(T0 + 7 * 3600_000).toISOString(),
+    shift_state: "Published",
+    ...extra,
+  };
+}
 
 describe("the team's clock state", () => {
   const batch = (
@@ -138,14 +210,60 @@ describe("the team's clock state", () => {
     })),
   });
 
-  it("follows the newest punch that reached each worker, pending ones included", () => {
-    const state = teamClockState([
-      batch("b2", "Out", T0 + 60_000, { "shift-a": "applied" }),
-      batch("b1", "In", T0, { "shift-a": "applied", "shift-b": "pending", "shift-c": "refused" }),
-    ]);
+  const board = [
+    held("shift-a", { membership_id: "m1" }),
+    held("shift-b", { engagement_id: "e1" }),
+    held("shift-c", { roster_entry_id: "re1" }),
+  ];
+
+  it("follows this device's punches until the download brings them back", () => {
+    const state = teamClockState(
+      board,
+      [],
+      [],
+      [
+        batch("b2", "Out", T0 + 60_000, { "shift-a": "applied" }),
+        batch("b1", "In", T0, { "shift-a": "applied", "shift-b": "pending", "shift-c": "refused" }),
+      ],
+    );
     expect(state.get("shift-a")).toBe("out");
     expect(state.get("shift-b")).toBe("in");
-    expect(state.has("shift-c")).toBe(false);
+    expect(state.get("shift-c")).toBe("out");
+  });
+
+  it("reads who is in from the synced time, whoever punched it", () => {
+    // Staff Two clocked in on their own phone; nobody on this device punched anyone.
+    const entries = [
+      { project_id: "proj-1", roster_entry_id: "re1", clock_in: new Date(T0).toISOString() },
+      {
+        project_id: "proj-1",
+        membership_id: "m1",
+        clock_in: new Date(T0 - 7200_000).toISOString(),
+        clock_out: new Date(T0 - 3600_000).toISOString(),
+      },
+      { project_id: "proj-2", engagement_id: "e1", clock_in: new Date(T0).toISOString() },
+    ];
+    const state = teamClockState(board, entries, [], []);
+    expect(state.get("shift-c")).toBe("in");
+    expect(state.get("shift-a")).toBe("out");
+    expect(state.get("shift-b")).toBe("out");
+    expect(primaryTeamPunch(["shift-c"], state)).toBe("Out");
+  });
+
+  it("lets the synced time win once a team punch is back from the server", () => {
+    const b = batch("b1", "In", T0, { "shift-c": "applied" });
+    const closed = [
+      {
+        project_id: "proj-1",
+        shift_id: "shift-c",
+        clock_in: new Date(T0).toISOString(),
+        clock_out: new Date(T0 + 3600_000).toISOString(),
+      },
+    ];
+    // The punch is downloaded, and the entry it opened has since been closed on another device.
+    expect(teamClockState(board, closed, [{ id: "b1-shift-c" }], [b]).get("shift-c")).toBe("out");
+    // A newer synced entry also wins over a punch the download never returned.
+    expect(teamClockState(board, closed, [], [b]).get("shift-c")).toBe("out");
   });
 
   it("leads with Clock in while nobody selected is in, else Clock out", () => {

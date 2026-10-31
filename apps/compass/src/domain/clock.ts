@@ -345,7 +345,8 @@ export const TEAM_PUNCH_LIMIT = 100;
  * offline as one call to app.record_supervisor_punches. The batch id and one punch id per worker are minted
  * now, at capture, with the device time and the monotonic age, so a replay after reconnecting is the same
  * punch and the server answers duplicate instead of punching twice. The optimistic row shows every worker
- * as pending until the server's answer, with an outcome and refusal code each, replaces it.
+ * as pending until the server's answer replaces it: the whole batch again (id, project, kind, device time),
+ * with an outcome and refusal code for each worker.
  */
 export function buildSupervisorPunchBatch(
   kind: PunchKind,
@@ -394,23 +395,63 @@ export function buildSupervisorPunchBatch(
   };
 }
 
+/** A worker's time entry as the device holds it (internal sync or api_external.time_entries). */
+export interface TeamTimeEntry {
+  readonly project_id: string;
+  readonly shift_id?: string | null;
+  readonly membership_id?: string | null;
+  readonly engagement_id?: string | null;
+  readonly roster_entry_id?: string | null;
+  readonly clock_in: string;
+  readonly clock_out?: string | null;
+  readonly deleted_at?: string | null;
+}
+
+/** Whether a time entry belongs to the worker who holds the shift: its shift, or the same worker column. */
+function holdsEntry(shift: TeamShiftRow, entry: TeamTimeEntry): boolean {
+  if (entry.project_id !== shift.project_id) return false;
+  if (entry.shift_id && entry.shift_id === shift.id) return true;
+  return (
+    (Boolean(shift.membership_id) && entry.membership_id === shift.membership_id) ||
+    (Boolean(shift.engagement_id) && entry.engagement_id === shift.engagement_id) ||
+    (Boolean(shift.roster_entry_id) && entry.roster_entry_id === shift.roster_entry_id)
+  );
+}
+
 /**
- * Whether each selected worker is clocked in now, from the newest team punch that reached them: an In that
- * applied (or was already recorded) puts them in, an Out takes them out. Their own punches are theirs to read
- * in their own app; a supervisor sees what they punched.
+ * Whether each worker on the board is clocked in now. The synced time entries decide: an open entry puts the
+ * worker in, whoever punched it (the worker on their own phone, another supervisor, a kiosk), which is what the
+ * server checks (punch_already_in). A team punch from this device counts on top only until the download brings it
+ * back: while its punch id is not among the synced clock punches and no synced entry of that worker is newer, it
+ * shows what it did, pending or already answered. A refused punch changes nothing.
  */
 export function teamClockState(
+  team: readonly TeamShiftRow[],
+  entries: readonly TeamTimeEntry[],
+  punches: readonly { readonly id: string }[],
   batches: readonly TeamPunchBatch[],
 ): ReadonlyMap<string, "in" | "out"> {
-  const state = new Map<string, "in" | "out">();
+  const recorded = new Set(punches.map((p) => p.id));
   const ordered = [...batches].sort(
     (a, b) => Date.parse(a.device_time) - Date.parse(b.device_time) || a.id.localeCompare(b.id),
   );
-  for (const batch of ordered) {
-    for (const r of batch.results) {
-      if (r.outcome === "refused") continue;
-      state.set(r.shift_id, batch.punch_kind === "Out" ? "out" : "in");
+  const state = new Map<string, "in" | "out">();
+  for (const shift of team) {
+    const own = entries.filter((e) => !e.deleted_at && holdsEntry(shift, e));
+    let current: "in" | "out" = own.some((e) => !e.clock_out) ? "in" : "out";
+    const newest = Math.max(
+      Number.NEGATIVE_INFINITY,
+      ...own.map((e) => Date.parse(e.clock_out ?? e.clock_in)),
+    );
+    for (const batch of ordered) {
+      if (Date.parse(batch.device_time) <= newest) continue;
+      for (const r of batch.results) {
+        if (r.shift_id !== shift.id || r.outcome === "refused" || recorded.has(r.punch_id))
+          continue;
+        current = batch.punch_kind === "Out" ? "out" : "in";
+      }
     }
+    state.set(shift.id, current);
   }
   return state;
 }
