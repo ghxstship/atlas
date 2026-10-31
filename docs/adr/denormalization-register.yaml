@@ -1642,7 +1642,6 @@ restated:
     kind: own
     note: Flag from the rate card sheet, not the roles sheet.
 
-
 # Every non-generated column named like a total, count, sum, balance, score, percent or readiness: registered, fact
 # (fixed when something happened; later rows cannot reproduce it), input (set by a person, a provider or the canon) or
 # finding.

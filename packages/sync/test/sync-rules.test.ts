@@ -133,7 +133,9 @@ describe("sync rules (Section 13: tested against the same scope rules as RLS)", 
   it("external buckets are parameterized only by engagement or roster entry scope", () => {
     for (const [name, bucket] of Object.entries(rules.bucket_definitions)) {
       if (!name.startsWith("external_")) continue;
-      expect(bucket.parameters).toMatch(/scope_key = '(engagementIds|engagedProjectIds|rosterEntryIds)'/);
+      expect(bucket.parameters).toMatch(
+        /scope_key = '(engagementIds|engagedProjectIds|rosterEntryIds)'/,
+      );
     }
   });
 
