@@ -162,6 +162,7 @@ begin
 end;
 $$;
 comment on function private.guard_advance_section() is 'Once a packet is sent, sections are not added, removed or reordered, and their kind and configuration (window kind, most lines, per person) are fixed; titles and prompts may be corrected. A section with live choices keeps its kind (advance_section_kind_choices) (R9).';
+revoke all on function private.guard_advance_section() from public, anon, authenticated;
 
 -- 5. Sending needs every requested item offered, from 0430 -------------------------------------------------------------
 

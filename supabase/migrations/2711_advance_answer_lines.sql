@@ -213,6 +213,7 @@ begin
 end;
 $$;
 comment on function private.guard_advance_submission() is 'Answers reach only sent packets from recipients of the same packet, arrive unreviewed, one at a time per section and recipient until the latest is Returned (advance_answer_pending), never on a Crew Roster section (advance_section_derived), typed ones only from private.record_advance_answer (advance_typed_answer_rpc, R9); they never change and are reviewed once by someone other than their submitter, stamped with the reviewer and the database time.';
+revoke all on function private.guard_advance_submission() from public, anon, authenticated;
 
 -- Lines and files are validated against the section kind --------------------------------------------------------------
 
