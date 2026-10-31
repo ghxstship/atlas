@@ -354,7 +354,8 @@ describe("QuickAdd with a resolver", () => {
     await userEvent.type(screen.getByRole("textbox"), "Rig @dan @x ~open #zz");
     await screen.findByText("Dana Kim");
     expect(screen.getByRole("button", { name: "Remove Dana Kim" })).toBeTruthy();
-    const choice = screen.getByRole("combobox", { name: "~open" });
+    // The scope resolves in a later lookup than the person, so wait for its choice too.
+    const choice = await screen.findByRole("combobox", { name: "~open" });
     expect(within(choice).getByRole("option", { name: "open (2)" })).toBeTruthy();
     await waitFor(() =>
       // The second person, the unchosen scope and the unknown tag stay in the title.
