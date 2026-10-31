@@ -101,6 +101,14 @@ false` only when the recipient answers through such a step and has no active mem
 - `org-lifecycle` and `sms-webhook` boot ceilings rose (219 and 149 KB) for the access-code email and the reminder
   copy (recorded in `packages/platform/test/edge-bundle.test.ts`).
 - No API change: `notifications.act` already takes approve and reject, and the v1 OpenAPI contract is unchanged.
+- The denormalization register (ADR 0002, A108) carries `app.subject_approvals.project_id` under `derived` and the
+  code columns that restate their link's under `restated`. The other entries the package spec asked for have no home
+  the 1282 lints accept, so they are recorded here and in their column comments instead:
+  `private.notification_action_codes.token_id` is a plain foreign key that restates nothing;
+  `app.approval_reminders (subject_table, subject_id)` is the polymorphic reference `app.notifications` already uses,
+  for which the register has no section; and `private.notification_action_tokens.failed_attempts` and
+  `app.approval_reminders.reminder_number` are facts the stored-total lint does not match by name, while its reverse
+  check refuses a `stored` entry the lint does not match.
 
 ## Alternatives considered
 
