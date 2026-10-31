@@ -10,7 +10,9 @@ const HEADER = "type,name,municipality,iso_country,scheduled_service,iata_code";
 
 describe("airports seed", () => {
   it("matches the committed migration", () => {
-    expect(readFileSync(`${repoRoot}${AIRPORTS_SEED_MIGRATION}`, "utf8")).toBe(renderAirportsSeed(loadAirports()));
+    expect(readFileSync(`${repoRoot}${AIRPORTS_SEED_MIGRATION}`, "utf8")).toBe(
+      renderAirportsSeed(loadAirports()),
+    );
   });
 
   it("holds the airports the tests and journeys name, sorted by code", () => {
@@ -32,7 +34,12 @@ describe("airports seed", () => {
     ].join("\n");
     expect(selectAirports(csv)).toEqual([
       { iataCode: "BLK", name: "Blank Town", municipality: null, countryCode: "US" },
-      { iataCode: "MIA", name: "Miami International Airport", municipality: "Miami", countryCode: "US" },
+      {
+        iataCode: "MIA",
+        name: "Miami International Airport",
+        municipality: "Miami",
+        countryCode: "US",
+      },
     ]);
   });
 
@@ -52,14 +59,21 @@ describe("airports seed", () => {
       '1,"ORD","Chicago O\'Hare ""Field"", main","large_airport","yes","US","Chicago"',
     ].join("\r\n");
     expect(selectAirports(csv)).toEqual([
-      { iataCode: "ORD", name: 'Chicago O\'Hare "Field", main', municipality: "Chicago", countryCode: "US" },
+      {
+        iataCode: "ORD",
+        name: 'Chicago O\'Hare "Field", main',
+        municipality: "Chicago",
+        countryCode: "US",
+      },
     ]);
     expect(parseCsv("a,b\n")).toEqual([["a", "b"]]);
   });
 
   it("refuses a missing column and a bad country", () => {
     expect(() => selectAirports("type,name\nlarge_airport,X")).toThrow(/municipality/);
-    expect(() => selectAirports(`${HEADER}\nlarge_airport,Bad,Town,USA,yes,BAD`)).toThrow(/country/);
+    expect(() => selectAirports(`${HEADER}\nlarge_airport,Bad,Town,USA,yes,BAD`)).toThrow(
+      /country/,
+    );
     expect(selectAirports("")).toEqual([]);
   });
 
@@ -87,7 +101,9 @@ describe("airports seed", () => {
   });
 
   it("escapes quotes and batches the upsert", () => {
-    const sql = renderAirportsSeed([{ iataCode: "ORD", name: "O'Hare", municipality: null, countryCode: "US" }]);
+    const sql = renderAirportsSeed([
+      { iataCode: "ORD", name: "O'Hare", municipality: null, countryCode: "US" },
+    ]);
     expect(sql).toContain("('ORD', 'O''Hare', null, 'US')");
     expect(sql).toContain("on conflict (iata_code) do update");
   });

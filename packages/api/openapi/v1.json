@@ -8393,6 +8393,45 @@
             "maxLength": 2000,
             "description": "What the recipient is asked.",
             "example": "When does the party arrive?"
+          },
+          "section_kind": {
+            "type": "string",
+            "enum": [
+              "Text",
+              "File",
+              "Schedule Window",
+              "Item Request",
+              "Crew Roster",
+              "Guest List",
+              "Credential Request"
+            ],
+            "description": "What the section asks for; Text unless given.",
+            "example": "Item Request"
+          },
+          "window_kind": {
+            "type": ["string", "null"],
+            "enum": [
+              "Load In",
+              "Load Out",
+              "Arrival",
+              "Soundcheck",
+              "Activation Setup",
+              "Activation Strike",
+              null
+            ],
+            "description": "For a Schedule Window section, what the window is.",
+            "example": "Load In"
+          },
+          "max_lines": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.",
+            "example": 6
+          },
+          "per_person": {
+            "type": "boolean",
+            "description": "For an Item Request or Credential Request, true when every line names one person on the roster.",
+            "example": false
           }
         },
         "required": [
@@ -8405,7 +8444,11 @@
           "advance_packet_id",
           "position",
           "title",
-          "prompt"
+          "prompt",
+          "section_kind",
+          "window_kind",
+          "max_lines",
+          "per_person"
         ],
         "description": "A section of an advance packet."
       },
@@ -8437,6 +8480,45 @@
             "maxLength": 2000,
             "description": "What the recipient is asked.",
             "example": "When does the party arrive?"
+          },
+          "section_kind": {
+            "type": "string",
+            "enum": [
+              "Text",
+              "File",
+              "Schedule Window",
+              "Item Request",
+              "Crew Roster",
+              "Guest List",
+              "Credential Request"
+            ],
+            "description": "What the section asks for; Text unless given.",
+            "example": "Item Request"
+          },
+          "window_kind": {
+            "type": ["string", "null"],
+            "enum": [
+              "Load In",
+              "Load Out",
+              "Arrival",
+              "Soundcheck",
+              "Activation Setup",
+              "Activation Strike",
+              null
+            ],
+            "description": "For a Schedule Window section, what the window is.",
+            "example": "Load In"
+          },
+          "max_lines": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.",
+            "example": 6
+          },
+          "per_person": {
+            "type": "boolean",
+            "description": "For an Item Request or Credential Request, true when every line names one person on the roster.",
+            "example": false
           }
         },
         "required": ["advance_packet_id", "position", "title"],
@@ -8467,6 +8549,53 @@
           }
         },
         "description": "Fields accepted when updating a AdvanceSection. Omitted fields are unchanged."
+      },
+      "AdvanceSectionConfigureRequest": {
+        "type": "object",
+        "properties": {
+          "section_kind": {
+            "type": "string",
+            "enum": [
+              "Text",
+              "File",
+              "Schedule Window",
+              "Item Request",
+              "Crew Roster",
+              "Guest List",
+              "Credential Request"
+            ],
+            "description": "Section kind.",
+            "example": "Schedule Window"
+          },
+          "window_kind": {
+            "type": ["string", "null"],
+            "enum": [
+              "Load In",
+              "Load Out",
+              "Arrival",
+              "Soundcheck",
+              "Activation Setup",
+              "Activation Strike",
+              null
+            ],
+            "description": "Window kind, for a Schedule Window.",
+            "example": "Load In"
+          },
+          "max_lines": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Most lines or files of one answer.",
+            "example": 2
+          },
+          "per_person": {
+            "type": "boolean",
+            "description": "Every line names a person.",
+            "example": false
+          }
+        },
+        "required": ["section_kind"],
+        "description": "The kind and configuration of a section."
       },
       "AdvanceRecipientPage": {
         "type": "object",
@@ -8541,6 +8670,18 @@
             "format": "uuid",
             "description": "Identifier of the recipient counterparty.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement the recipient answers under.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "names_due_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the party stops naming people on the passes it requested through this recipient.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -8552,7 +8693,9 @@
           "updated_by",
           "advance_packet_id",
           "person_id",
-          "counterparty_id"
+          "counterparty_id",
+          "engagement_id",
+          "names_due_at"
         ],
         "description": "A party bound to an advance packet. Recipients without an account use a token and access code."
       },
@@ -8576,10 +8719,48 @@
             "format": "uuid",
             "description": "Identifier of the recipient counterparty.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement the recipient answers under.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "names_due_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the party stops naming people on the passes it requested through this recipient.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": ["advance_packet_id"],
         "description": "Fields accepted when creating a AdvanceRecipient."
+      },
+      "AdvanceRecipientBindEngagementRequest": {
+        "type": "object",
+        "properties": {
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "The engagement, or null to clear it.",
+            "example": "01920000-0000-7000-8000-000000000001"
+          }
+        },
+        "required": ["engagement_id"],
+        "description": "The engagement a recipient answers under."
+      },
+      "AdvanceRecipientSetNamesDueRequest": {
+        "type": "object",
+        "properties": {
+          "names_due_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "The deadline, or null to clear it.",
+            "example": "2027-05-20T23:59:00Z"
+          }
+        },
+        "required": ["names_due_at"],
+        "description": "A recipient's naming deadline."
       },
       "AdvanceSubmissionPage": {
         "type": "object",
@@ -51965,6 +52146,337 @@
         ],
         "description": "A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored."
       },
+      "AdvanceSectionChoicePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdvanceSectionChoice" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AdvanceSectionChoice": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the advance section choice.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "advance_section_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the section the choice belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the asset class an Item Request offers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "credential_category_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the credential category a Credential Request offers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "advance_section_id",
+          "asset_class_id",
+          "credential_category_id"
+        ],
+        "description": "What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422)."
+      },
+      "AdvanceSectionChoiceCreate": {
+        "type": "object",
+        "properties": {
+          "advance_section_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the section the choice belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the asset class an Item Request offers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "credential_category_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the credential category a Credential Request offers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["advance_section_id"],
+        "description": "Fields accepted when creating a AdvanceSectionChoice."
+      },
+      "AdvanceSubmissionLinePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdvanceSubmissionLine" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AdvanceSubmissionLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the advance submission line.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "advance_submission_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the answer the line belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "line_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order in the answer, 1 to 50.",
+            "example": 1
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the asset class asked for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "credential_category_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the credential category asked for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the roster entry of the person the line is for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "How many, 1 to 10000.",
+            "example": 6
+          },
+          "needed_window": {
+            "type": ["string", "null"],
+            "description": "When it is needed, as a Postgres tstzrange literal.",
+            "example": "[\"2027-06-01 08:00:00+00\",\"2027-06-01 10:00:00+00\")"
+          },
+          "window_zone": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the window.",
+            "example": "America/New_York"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Note on the line.",
+            "example": "Delivered to the FOH riser."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "advance_submission_id",
+          "line_number",
+          "asset_class_id",
+          "credential_category_id",
+          "roster_entry_id",
+          "quantity",
+          "needed_window",
+          "window_zone",
+          "note"
+        ],
+        "description": "A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes."
+      },
+      "AdvanceSubmissionFilePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdvanceSubmissionFile" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AdvanceSubmissionFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the advance submission file.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "advance_submission_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the answer the file belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the document of the uploaded file.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order in the answer, 1 to 10.",
+            "example": 1
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "advance_submission_id",
+          "document_id",
+          "position"
+        ],
+        "description": "A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes."
+      },
       "GuestListEntryPage": {
         "type": "object",
         "properties": {
@@ -54403,6 +54915,538 @@
           "output_tokens"
         ],
         "description": "Aurora metering (ADR 0020): one row per authorized request. The monthly allowance aurora_requests_per_month counts these rows by UTC month."
+      },
+      "EngagedAllocationPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EngagedAllocation" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "EngagedAllocation": {
+        "type": "object",
+        "properties": {
+          "allocation_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the allocation.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the engagement it is held under: the pool's own or the roster entry's.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the roster entry of the person who holds it; null for the pool.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_name": {
+            "type": ["string", "null"],
+            "description": "Name of the person who holds it; null for the pool.",
+            "example": "Kai Morgan"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "Credential",
+              "Parking Pass",
+              "Asset",
+              "Catering",
+              "Lodging",
+              "Travel",
+              "Per Diem"
+            ],
+            "description": "What the allocation gives.",
+            "example": "Asset"
+          },
+          "item_name": {
+            "type": ["string", "null"],
+            "description": "Category, class, catering or block name; null for Travel and Per Diem.",
+            "example": "Radios"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity allocated; a pool goes down as it is shared out.",
+            "example": 6
+          },
+          "allocation_state": {
+            "type": "string",
+            "enum": ["Requested", "Approved", "Declined", "Withdrawn"],
+            "description": "Stored state.",
+            "example": "Approved"
+          },
+          "display_status": {
+            "type": "string",
+            "enum": [
+              "Requested",
+              "Approved",
+              "Reserved",
+              "Awaiting Order",
+              "On Order",
+              "Confirmed",
+              "Received",
+              "Partly Issued",
+              "Issued",
+              "Returned",
+              "Revoked",
+              "Declined",
+              "Withdrawn"
+            ],
+            "description": "The computed status.",
+            "example": "Reserved"
+          },
+          "reserved_quantity": {
+            "type": "number",
+            "description": "Quantity held for it.",
+            "example": 6
+          },
+          "issued_quantity": {
+            "type": "number",
+            "description": "Quantity handed over.",
+            "example": 0
+          },
+          "returned_quantity": {
+            "type": "number",
+            "description": "Quantity handed back.",
+            "example": 0
+          },
+          "parent_allocation_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the pool a share was split from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "needed_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is first needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is no longer needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the window.",
+            "example": "America/New_York"
+          },
+          "requested_by_me": {
+            "type": "boolean",
+            "description": "True when the caller asked for it.",
+            "example": true
+          },
+          "decline_reason": {
+            "type": ["string", "null"],
+            "description": "Why production declined it.",
+            "example": "Kai already has a badge."
+          }
+        },
+        "required": [
+          "allocation_id",
+          "engagement_id",
+          "roster_entry_id",
+          "person_name",
+          "kind",
+          "item_name",
+          "quantity",
+          "allocation_state",
+          "display_status",
+          "reserved_quantity",
+          "issued_quantity",
+          "returned_quantity",
+          "parent_allocation_id",
+          "needed_from",
+          "needed_to",
+          "needed_time_zone",
+          "requested_by_me",
+          "decline_reason"
+        ],
+        "description": "What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags."
+      },
+      "EngagedAllocationRequest": {
+        "type": "object",
+        "properties": {
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the engagement the caller answers for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "roster_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the roster entry of one person; left out for the pool.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": [
+              "credential_category",
+              "asset_class",
+              "fulfillment",
+              "accommodation_block",
+              "service"
+            ],
+            "description": "What is asked for.",
+            "example": "asset_class"
+          },
+          "item_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the category, class, fulfillment or block; left out for a service.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "service_kind": {
+            "type": "string",
+            "enum": ["Travel", "Per Diem"],
+            "description": "Travel or Per Diem, for a service.",
+            "example": "Travel"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity.",
+            "example": 6
+          },
+          "needed_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is first needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is no longer needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the window.",
+            "example": "America/New_York"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "What it is for.",
+            "example": "For the audio crew."
+          }
+        },
+        "required": [
+          "engagement_id",
+          "item_kind",
+          "quantity",
+          "needed_from",
+          "needed_to",
+          "time_zone"
+        ],
+        "description": "One request: one holder and one item."
+      },
+      "EngagedAllocationSplitResult": {
+        "type": "object",
+        "properties": {
+          "allocation_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "The shares, in the order given.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          }
+        },
+        "required": ["allocation_ids"],
+        "description": "The shares written."
+      },
+      "EngagedAllocationSplit": {
+        "type": "object",
+        "properties": {
+          "parts": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EngagedAllocationSplitPart" },
+            "minItems": 1
+          }
+        },
+        "required": ["parts"],
+        "description": "Shares of an approved pool for its people."
+      },
+      "EngagedAllocationSplitPart": {
+        "type": "object",
+        "properties": {
+          "roster_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the roster entry on the pool's engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity for the person.",
+            "example": 1
+          }
+        },
+        "required": ["roster_entry_id", "quantity"],
+        "description": "One person's share."
+      },
+      "EngagedAllocationUnsplitResult": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "description": "Quantity given back to the pool.",
+            "example": 1
+          }
+        },
+        "required": ["quantity"],
+        "description": "What went back."
+      },
+      "EngagedAllocationUnsplit": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "How much goes back; all of it when left out.",
+            "example": 1
+          }
+        },
+        "description": "A share given back to its pool."
+      },
+      "EngagedAllocationWithdraw": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why it is withdrawn.",
+            "example": "No longer needed."
+          }
+        },
+        "description": "Withdrawing a request or a share."
+      },
+      "RequestableItemPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RequestableItem" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "RequestableItem": {
+        "type": "object",
+        "properties": {
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the engagement it may be asked for on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": [
+              "credential_category",
+              "asset_class",
+              "fulfillment",
+              "accommodation_block",
+              "service"
+            ],
+            "description": "The item_kind of the request action.",
+            "example": "asset_class"
+          },
+          "item_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the category, class, fulfillment or block; null for a service.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name": {
+            "type": "string",
+            "description": "Its name; Travel or Per Diem for a service.",
+            "example": "Radios"
+          },
+          "offering": {
+            "type": ["string", "null"],
+            "enum": [
+              "Travel",
+              "Lodging",
+              "Catering",
+              "Parking",
+              "Uniforms",
+              "Per Diem",
+              "Radios",
+              "Carts",
+              "Guest List",
+              null
+            ],
+            "description": "Offering it draws on; null for an Access badge.",
+            "example": "Radios"
+          },
+          "cap_per_engagement": {
+            "type": ["integer", "null"],
+            "description": "Cap for the engagement.",
+            "example": 6
+          },
+          "cap_per_person": {
+            "type": ["integer", "null"],
+            "description": "Cap for one person.",
+            "example": 2
+          },
+          "requested_quantity": {
+            "type": "number",
+            "description": "Already requested or approved under the engagement and its roster.",
+            "example": 4
+          }
+        },
+        "required": [
+          "engagement_id",
+          "item_kind",
+          "item_id",
+          "name",
+          "offering",
+          "cap_per_engagement",
+          "cap_per_person",
+          "requested_quantity"
+        ],
+        "description": "What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for."
+      },
+      "ParkingPassPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ParkingPass" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ParkingPass": {
+        "type": "object",
+        "properties": {
+          "credential_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the pass.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "credential_number": {
+            "type": ["string", "null"],
+            "description": "Number printed on the pass.",
+            "example": "P-0042"
+          },
+          "category_name": {
+            "type": "string",
+            "description": "Parking category.",
+            "example": "Crew Parking"
+          },
+          "valid_from": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Valid from.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "valid_to": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Valid until.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was revoked.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "zone_codes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Zone codes.",
+            "example": ["LOT-A"]
+          },
+          "zone_names": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Zone names, in the order of zone_codes.",
+            "example": ["Lot A"]
+          },
+          "vehicle_make": {
+            "type": ["string", "null"],
+            "description": "Make of the vehicle.",
+            "example": "Ford"
+          },
+          "vehicle_model": {
+            "type": ["string", "null"],
+            "description": "Model of the vehicle.",
+            "example": "Transit"
+          },
+          "vehicle_color": {
+            "type": ["string", "null"],
+            "description": "Colour of the vehicle.",
+            "example": "White"
+          },
+          "holder_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the the caller, the pass holder.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "credential_id",
+          "project_id",
+          "credential_number",
+          "category_name",
+          "valid_from",
+          "valid_to",
+          "revoked_at",
+          "zone_codes",
+          "zone_names",
+          "vehicle_make",
+          "vehicle_model",
+          "vehicle_color",
+          "holder_person_id"
+        ],
+        "description": "The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears."
       },
       "WorkDetailsPage": {
         "type": "object",
@@ -78664,7 +79708,11 @@
                       "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "position": 1,
                       "title": "Hospitality",
-                      "prompt": "When does the party arrive?"
+                      "prompt": "When does the party arrive?",
+                      "section_kind": "Item Request",
+                      "window_kind": "Load In",
+                      "max_lines": 6,
+                      "per_person": false
                     }
                   ],
                   "next_cursor": null
@@ -78695,7 +79743,11 @@
                 "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "position": 1,
                 "title": "Hospitality",
-                "prompt": "When does the party arrive?"
+                "prompt": "When does the party arrive?",
+                "section_kind": "Item Request",
+                "window_kind": "Load In",
+                "max_lines": 6,
+                "per_person": false
               },
               "schema": { "$ref": "#/components/schemas/AdvanceSectionCreate" }
             }
@@ -78722,7 +79774,11 @@
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "title": "Hospitality",
-                  "prompt": "When does the party arrive?"
+                  "prompt": "When does the party arrive?",
+                  "section_kind": "Item Request",
+                  "window_kind": "Load In",
+                  "max_lines": 6,
+                  "per_person": false
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -78781,7 +79837,11 @@
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "title": "Hospitality",
-                  "prompt": "When does the party arrive?"
+                  "prompt": "When does the party arrive?",
+                  "section_kind": "Item Request",
+                  "window_kind": "Load In",
+                  "max_lines": 6,
+                  "per_person": false
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -78850,7 +79910,11 @@
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "title": "Hospitality",
-                  "prompt": "When does the party arrive?"
+                  "prompt": "When does the party arrive?",
+                  "section_kind": "Item Request",
+                  "window_kind": "Load In",
+                  "max_lines": 6,
+                  "per_person": false
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -78896,6 +79960,84 @@
         }
       }
     },
+    "/advance-sections/{id}/configure": {
+      "post": {
+        "operationId": "advanceSections.configure",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_sections",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Configure an advance section",
+        "description": "Sets a draft section's kind and configuration. The kind decides which of window_kind, max_lines and per_person apply (23514 as 422 otherwise); a sent packet's sections are fixed (advance_packet_sections_fixed, 422), and a section with choices keeps its kind (advance_section_kind_choices, 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance section.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance section.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "section_kind": "Schedule Window",
+                "window_kind": "Load In",
+                "max_lines": 2,
+                "per_person": false
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceSectionConfigureRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "position": 1,
+                  "title": "Hospitality",
+                  "prompt": "When does the party arrive?",
+                  "section_kind": "Item Request",
+                  "window_kind": "Load In",
+                  "max_lines": 6,
+                  "per_person": false
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSection" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/advance-recipients": {
       "get": {
         "operationId": "advanceRecipients.list",
@@ -78934,7 +80076,9 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "names_due_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -78964,7 +80108,9 @@
               "example": {
                 "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "names_due_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/AdvanceRecipientCreate" }
             }
@@ -78990,7 +80136,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "names_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceRecipient" }
               }
@@ -79048,7 +80196,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "names_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceRecipient" }
               }
@@ -79086,6 +80236,146 @@
           "204": { "description": "The advance recipient moved to Trash." },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-recipients/{id}/bind-engagement": {
+      "post": {
+        "operationId": "advanceRecipients.bindEngagement",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_recipients",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Link a recipient to its engagement",
+        "description": "Sets or clears the engagement a draft packet's recipient answers under: a live engagement of the same party on the packet's project (advance_recipient_engagement, 422); fixed once the packet is sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance recipient.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "engagement_id": "01920000-0000-7000-8000-000000000001" },
+              "schema": { "$ref": "#/components/schemas/AdvanceRecipientBindEngagementRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "names_due_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceRecipient" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-recipients/{id}/set-names-due": {
+      "post": {
+        "operationId": "advanceRecipients.setNamesDue",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_recipients",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Set a recipient's naming deadline",
+        "description": "Sets or clears when the party stops naming, renaming and unnaming people on the passes it requested through this recipient (G-141). Production can still change them afterwards. Needs an engagement (advance_recipients_names_due_engagement, 422); editable after the packet is sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance recipient.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "names_due_at": "2027-05-20T23:59:00Z" },
+              "schema": { "$ref": "#/components/schemas/AdvanceRecipientSetNamesDueRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "names_due_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceRecipient" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -145371,6 +146661,433 @@
         }
       }
     },
+    "/advance-section-choices": {
+      "get": {
+        "operationId": "advanceSectionChoices.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_section_choices",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List advance section choice rows",
+        "description": "What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Returns a cursor page of advance section choice rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of advance section choice rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSectionChoicePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "advanceSectionChoices.create",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_section_choices",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Create an advance section choice",
+        "description": "What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Creates an advance section choice. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceSectionChoiceCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created advance section choice.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSectionChoice" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-section-choices/{id}": {
+      "get": {
+        "operationId": "advanceSectionChoices.get",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_section_choices",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get an advance section choice",
+        "description": "What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Returns one advance section choice with its `ETag`. A advance section choice the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance section choice.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance section choice.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The advance section choice.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSectionChoice" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "advanceSectionChoices.delete",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_section_choices",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Delete an advance section choice",
+        "description": "What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Soft-deletes the advance section choice: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance section choice.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance section choice.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The advance section choice moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-submission-lines": {
+      "get": {
+        "operationId": "advanceSubmissionLines.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_submission_lines",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List advance submission line rows",
+        "description": "A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of advance submission line rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "advance_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "line_number": 1,
+                      "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "quantity": 6,
+                      "needed_window": "[\"2027-06-01 08:00:00+00\",\"2027-06-01 10:00:00+00\")",
+                      "window_zone": "America/New_York",
+                      "note": "Delivered to the FOH riser."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSubmissionLinePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-submission-lines/{id}": {
+      "get": {
+        "operationId": "advanceSubmissionLines.get",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_submission_lines",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get an advance submission line",
+        "description": "A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes. Returns one advance submission line with its `ETag`. A advance submission line the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance submission line.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance submission line.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The advance submission line.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "line_number": 1,
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "quantity": 6,
+                  "needed_window": "[\"2027-06-01 08:00:00+00\",\"2027-06-01 10:00:00+00\")",
+                  "window_zone": "America/New_York",
+                  "note": "Delivered to the FOH riser."
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSubmissionLine" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-submission-files": {
+      "get": {
+        "operationId": "advanceSubmissionFiles.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_submission_files",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List advance submission file rows",
+        "description": "A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission file rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of advance submission file rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "advance_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "position": 1
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSubmissionFilePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-submission-files/{id}": {
+      "get": {
+        "operationId": "advanceSubmissionFiles.get",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_submission_files",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get an advance submission file",
+        "description": "A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes. Returns one advance submission file with its `ETag`. A advance submission file the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance submission file.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance submission file.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The advance submission file.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "position": 1
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSubmissionFile" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/guest-list-entries": {
       "get": {
         "operationId": "guestListEntries.list",
@@ -148550,6 +150267,515 @@
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/AiUsagePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/engaged-allocations": {
+      "get": {
+        "operationId": "engagedAllocations.list",
+        "tags": ["Gateway"],
+        "x-xos-table": "api_external.advance_allocations",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["allocation_id"], "numeric": false, "descending": true },
+        "summary": "List engaged allocation rows",
+        "description": "What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of engaged allocation rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_name": "Kai Morgan",
+                      "kind": "Asset",
+                      "item_name": "Radios",
+                      "quantity": 6,
+                      "allocation_state": "Approved",
+                      "display_status": "Reserved",
+                      "reserved_quantity": 6,
+                      "issued_quantity": 0,
+                      "returned_quantity": 0,
+                      "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "needed_from": "2026-10-08T14:30:00Z",
+                      "needed_to": "2026-10-08T14:30:00Z",
+                      "needed_time_zone": "America/New_York",
+                      "requested_by_me": true,
+                      "decline_reason": "Kai already has a badge."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/EngagedAllocationPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/engaged-allocations/{allocation_id}": {
+      "get": {
+        "operationId": "engagedAllocations.get",
+        "tags": ["Gateway"],
+        "x-xos-table": "api_external.advance_allocations",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get an engaged allocation",
+        "description": "What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns one engaged allocation with its `ETag`. A engaged allocation the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The engaged allocation.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_name": "Kai Morgan",
+                  "kind": "Asset",
+                  "item_name": "Radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "display_status": "Reserved",
+                  "reserved_quantity": 6,
+                  "issued_quantity": 0,
+                  "returned_quantity": 0,
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by_me": true,
+                  "decline_reason": "Kai already has a badge."
+                },
+                "schema": { "$ref": "#/components/schemas/EngagedAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/engaged-allocations/request": {
+      "post": {
+        "operationId": "engagedAllocations.request",
+        "tags": ["Gateway"],
+        "x-xos-table": "api_external.advance_allocations",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.request_engaged_allocation",
+        "summary": "Request an item for the pool or one person",
+        "description": "The party side asks for an item for its pool or one person on its roster through `app.request_engaged_allocation`; it starts Requested for the producing org to decide. A credential need is a request: Gateway never issues. Refusals answer 422 with the rule, among them allocation_not_your_engagement, allocation_entry_not_on_engagement, allocation_not_requestable, offering_not_offered, allocation_cap_engagement, allocation_cap_person and allocation_engagement_closed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "item_kind": "asset_class",
+                "item_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "service_kind": "Travel",
+                "quantity": 6,
+                "needed_from": "2026-10-08T14:30:00Z",
+                "needed_to": "2026-10-08T14:30:00Z",
+                "time_zone": "America/New_York",
+                "note": "For the audio crew."
+              },
+              "schema": { "$ref": "#/components/schemas/EngagedAllocationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_name": "Kai Morgan",
+                  "kind": "Asset",
+                  "item_name": "Radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "display_status": "Reserved",
+                  "reserved_quantity": 6,
+                  "issued_quantity": 0,
+                  "returned_quantity": 0,
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by_me": true,
+                  "decline_reason": "Kai already has a badge."
+                },
+                "schema": { "$ref": "#/components/schemas/EngagedAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/engaged-allocations/{allocation_id}/split": {
+      "post": {
+        "operationId": "engagedAllocations.split",
+        "tags": ["Gateway"],
+        "x-xos-table": "api_external.advance_allocations",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.split_engaged_allocation",
+        "summary": "Share an approved pool to people on the roster",
+        "description": "Gives shares of an approved pool to people accepted on the roster through `app.split_engaged_allocation`, moving holds with them (422 allocation_not_pool, allocation_split_exceeds, allocation_cap_person, allocation_entry_not_accepted). Each person is sent allocation.assigned. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "parts": [
+                  { "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f", "quantity": 1 }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/EngagedAllocationSplit" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "allocation_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"] },
+                "schema": { "$ref": "#/components/schemas/EngagedAllocationSplitResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/engaged-allocations/{allocation_id}/unsplit": {
+      "post": {
+        "operationId": "engagedAllocations.unsplit",
+        "tags": ["Gateway"],
+        "x-xos-table": "api_external.advance_allocations",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.unsplit_engaged_allocation",
+        "summary": "Give a share back to its pool",
+        "description": "Gives part or all of a person's share back to its pool through `app.unsplit_engaged_allocation`, never what was issued (422 allocation_issued). A share given back whole is Withdrawn. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "quantity": 1 },
+              "schema": { "$ref": "#/components/schemas/EngagedAllocationUnsplit" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "quantity": 1 },
+                "schema": { "$ref": "#/components/schemas/EngagedAllocationUnsplitResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/engaged-allocations/{allocation_id}/withdraw": {
+      "post": {
+        "operationId": "engagedAllocations.withdraw",
+        "tags": ["Gateway"],
+        "x-xos-table": "api_external.advance_allocations",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.withdraw_engaged_allocation",
+        "summary": "Withdraw a request or a share",
+        "description": "Withdraws a Requested allocation, or an Approved one nothing of which was issued (422 allocation_issued), through `app.withdraw_engaged_allocation`: by the party side, or by the person on the roster for a request they made. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "No longer needed." },
+              "schema": { "$ref": "#/components/schemas/EngagedAllocationWithdraw" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_name": "Kai Morgan",
+                  "kind": "Asset",
+                  "item_name": "Radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "display_status": "Reserved",
+                  "reserved_quantity": 6,
+                  "issued_quantity": 0,
+                  "returned_quantity": 0,
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by_me": true,
+                  "decline_reason": "Kai already has a badge."
+                },
+                "schema": { "$ref": "#/components/schemas/EngagedAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/requestable-items": {
+      "get": {
+        "operationId": "requestableItems.list",
+        "tags": ["Gateway"],
+        "x-xos-table": "api_external.requestable_items",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["engagement_id", "item_kind", "name"], "numeric": false },
+        "summary": "List requestable item rows",
+        "description": "What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of requestable item rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "item_kind": "asset_class",
+                      "item_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "name": "Radios",
+                      "offering": "Radios",
+                      "cap_per_engagement": 6,
+                      "cap_per_person": 2,
+                      "requested_quantity": 4
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/RequestableItemPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/my-parking-passes": {
+      "get": {
+        "operationId": "myParkingPasses.list",
+        "tags": ["Gateway"],
+        "x-xos-table": "api_external.my_parking_passes",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-order": { "by": ["credential_id"], "numeric": false },
+        "summary": "List parking pass rows",
+        "description": "The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of parking pass rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "credential_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "credential_number": "P-0042",
+                      "category_name": "Crew Parking",
+                      "valid_from": "2026-10-08T14:30:00Z",
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "zone_codes": ["LOT-A"],
+                      "zone_names": ["Lot A"],
+                      "vehicle_make": "Ford",
+                      "vehicle_model": "Transit",
+                      "vehicle_color": "White",
+                      "holder_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ParkingPassPage" }
               }
             }
           },

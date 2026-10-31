@@ -233,7 +233,8 @@
     "usage": "Where it is used",
     "dueOn": "Needed by",
     "revision": "Revision {revision}",
-    "add": "Add asset"
+    "add": "Add asset",
+    "sponsorSupplied": "Supplied by the sponsor"
   },
   "deliveries": {
     "title": "Deliveries and proof",

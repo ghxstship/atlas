@@ -351,6 +351,9 @@ from .resources import (
     RosterEntriesResource,
     AdvanceAllocationsResource,
     AssetReservationConflictsResource,
+    AdvanceSectionChoicesResource,
+    AdvanceSubmissionLinesResource,
+    AdvanceSubmissionFilesResource,
     GuestListEntriesResource,
     AssetUnitHireResource,
     AssetReservationsResource,
@@ -367,6 +370,9 @@ from .resources import (
     AiSuggestionsResource,
     AiRequestsResource,
     AiUsageResource,
+    EngagedAllocationsResource,
+    RequestableItemsResource,
+    MyParkingPassesResource,
     WorkDetailsResource,
     EmergencyContactsResource,
     LoyaltyProgramsResource,
@@ -789,6 +795,9 @@ class XosClient(XosClientCore):
     roster_entries: RosterEntriesResource
     advance_allocations: AdvanceAllocationsResource
     asset_reservation_conflicts: AssetReservationConflictsResource
+    advance_section_choices: AdvanceSectionChoicesResource
+    advance_submission_lines: AdvanceSubmissionLinesResource
+    advance_submission_files: AdvanceSubmissionFilesResource
     guest_list_entries: GuestListEntriesResource
     asset_unit_hire: AssetUnitHireResource
     asset_reservations: AssetReservationsResource
@@ -805,6 +814,9 @@ class XosClient(XosClientCore):
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
     ai_usage: AiUsageResource
+    engaged_allocations: EngagedAllocationsResource
+    requestable_items: RequestableItemsResource
+    my_parking_passes: MyParkingPassesResource
     work_details: WorkDetailsResource
     emergency_contacts: EmergencyContactsResource
     loyalty_programs: LoyaltyProgramsResource
@@ -1215,6 +1227,9 @@ class XosClient(XosClientCore):
         self.roster_entries = RosterEntriesResource(self)
         self.advance_allocations = AdvanceAllocationsResource(self)
         self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
+        self.advance_section_choices = AdvanceSectionChoicesResource(self)
+        self.advance_submission_lines = AdvanceSubmissionLinesResource(self)
+        self.advance_submission_files = AdvanceSubmissionFilesResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
         self.asset_reservations = AssetReservationsResource(self)
@@ -1231,6 +1246,9 @@ class XosClient(XosClientCore):
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
         self.ai_usage = AiUsageResource(self)
+        self.engaged_allocations = EngagedAllocationsResource(self)
+        self.requestable_items = RequestableItemsResource(self)
+        self.my_parking_passes = MyParkingPassesResource(self)
         self.work_details = WorkDetailsResource(self)
         self.emergency_contacts = EmergencyContactsResource(self)
         self.loyalty_programs = LoyaltyProgramsResource(self)

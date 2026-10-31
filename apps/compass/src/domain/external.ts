@@ -14,6 +14,7 @@
 import type { Audience, Row } from "@xos/sync";
 import type { EngagementSummary } from "./access";
 import { dayIn, daysUntil } from "./dates";
+import { photoCounts, PROOF_PHOTOS_TABLE } from "./proof";
 
 export type ExternalPageId =
   | "timesheets"
@@ -846,6 +847,8 @@ function reports(input: PageInput): ExternalSection[] {
 }
 
 function proofOfPerformance(input: PageInput): ExternalSection[] {
+  // Proof photos of the sponsor's engagements on the device, queued or downloaded (A140).
+  const photos = photoCounts(input.rows(PROOF_PHOTOS_TABLE));
   const entitlements = onProject(input, "sponsor_entitlements")
     .sort(byKey("due_on"))
     .map((r): ExternalItem => {
@@ -853,11 +856,24 @@ function proofOfPerformance(input: PageInput): ExternalSection[] {
       const fulfilled = str(r, "fulfilled_at");
       const overdue = !fulfilled && due !== null && due < input.todayOf(str(r, "project_id"));
       const quantity = num(r, "quantity");
+      const photoCount = photos.get(r.id) ?? 0;
       return {
         id: r.id,
         icon: "megaphone",
         title: str(r, "description") ?? "",
         facts: [
+          ...(photoCount > 0
+            ? [
+                {
+                  kind: "label",
+                  key:
+                    photoCount === 1
+                      ? "compassExternal.proof.photosOne"
+                      : "compassExternal.proof.photosOther",
+                  values: { count: photoCount },
+                } as const,
+              ]
+            : []),
           ...(quantity !== null
             ? [
                 {
@@ -1034,7 +1050,7 @@ export const EXTERNAL_PAGES: Readonly<Record<ExternalPageId, ExternalPage>> = {
   "proof-of-performance": {
     id: "proof-of-performance",
     audiences: ["sponsor"],
-    tables: ["sponsor_entitlements", "engagement_documents"],
+    tables: ["sponsor_entitlements", "engagement_documents", PROOF_PHOTOS_TABLE],
     gatewayTab: "proof-of-performance",
     icon: "megaphone",
     emptyKey: "compassExternal.proof.empty",

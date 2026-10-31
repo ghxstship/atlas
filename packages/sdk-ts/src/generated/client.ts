@@ -345,6 +345,9 @@ import {
   RosterEntriesResource,
   AdvanceAllocationsResource,
   AssetReservationConflictsResource,
+  AdvanceSectionChoicesResource,
+  AdvanceSubmissionLinesResource,
+  AdvanceSubmissionFilesResource,
   GuestListEntriesResource,
   AssetUnitHireResource,
   AssetReservationsResource,
@@ -361,6 +364,9 @@ import {
   AiSuggestionsResource,
   AiRequestsResource,
   AiUsageResource,
+  EngagedAllocationsResource,
+  RequestableItemsResource,
+  MyParkingPassesResource,
   WorkDetailsResource,
   EmergencyContactsResource,
   LoyaltyProgramsResource,
@@ -1211,6 +1217,16 @@ export class XosClient extends XosClientCore {
   /** Advancing: operations on `assetReservationConflicts`. */
   readonly assetReservationConflicts: AssetReservationConflictsResource =
     new AssetReservationConflictsResource(this);
+  /** Advancing: operations on `advanceSectionChoices`. */
+  readonly advanceSectionChoices: AdvanceSectionChoicesResource = new AdvanceSectionChoicesResource(
+    this,
+  );
+  /** Advancing: operations on `advanceSubmissionLines`. */
+  readonly advanceSubmissionLines: AdvanceSubmissionLinesResource =
+    new AdvanceSubmissionLinesResource(this);
+  /** Advancing: operations on `advanceSubmissionFiles`. */
+  readonly advanceSubmissionFiles: AdvanceSubmissionFilesResource =
+    new AdvanceSubmissionFilesResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
   /** Assets: operations on `assetUnitHire`. */
@@ -1247,6 +1263,12 @@ export class XosClient extends XosClientCore {
   readonly aiRequests: AiRequestsResource = new AiRequestsResource(this);
   /** Settings: operations on `aiUsage`. */
   readonly aiUsage: AiUsageResource = new AiUsageResource(this);
+  /** Gateway: operations on `engagedAllocations`. */
+  readonly engagedAllocations: EngagedAllocationsResource = new EngagedAllocationsResource(this);
+  /** Gateway: operations on `requestableItems`. */
+  readonly requestableItems: RequestableItemsResource = new RequestableItemsResource(this);
+  /** Gateway: operations on `myParkingPasses`. */
+  readonly myParkingPasses: MyParkingPassesResource = new MyParkingPassesResource(this);
   /** Identity: operations on `workDetails`. */
   readonly workDetails: WorkDetailsResource = new WorkDetailsResource(this);
   /** Identity: operations on `emergencyContacts`. */

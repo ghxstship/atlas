@@ -34,6 +34,7 @@ export * from "./gateway-marketplace.ts";
 export * from "./gateway-operations.ts";
 export * from "./gateway-conversations.ts";
 export * from "./gateway-public.ts";
+export * from "./gateway-allocations.ts";
 
 /**
  * Gateway repository (Section 4.4, Section 4.5.8): the external party's engagements, documents,

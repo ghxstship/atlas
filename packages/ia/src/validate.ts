@@ -1,6 +1,7 @@
 import {
   ATLAS_PERSONAS,
   BASIC_VISIBILITY_VALUES,
+  ENGAGEMENT_TAB_SET_KEYS,
   EXTERNAL_ROLE_TYPES,
   SCAN_MODES,
   SHELL_ROLES,
@@ -358,7 +359,7 @@ function checkGateway(sitemap: Sitemap, out: Collector): void {
     out.add("engagement-tabs", `container "${config.container}" has no tabs`);
   }
   const used = new Set<string>();
-  for (const roleType of EXTERNAL_ROLE_TYPES) {
+  for (const roleType of ENGAGEMENT_TAB_SET_KEYS) {
     const set = config.sets[roleType];
     if (!set) {
       out.add("engagement-tabs", `role type ${roleType} has no engagement tab set`);

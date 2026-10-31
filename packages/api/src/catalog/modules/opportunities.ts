@@ -50,7 +50,11 @@ export const additions = defineAdditions("Opportunities", {
       apply: editShape({
         add: {
           roster_locks_at: {
-            schema: orNull(fields.instant("Names lock: after this instant the company side can no longer name new crew; null means no lock.")),
+            schema: orNull(
+              fields.instant(
+                "Names lock: after this instant the company side can no longer name new crew; null means no lock.",
+              ),
+            ),
           },
         },
       }),

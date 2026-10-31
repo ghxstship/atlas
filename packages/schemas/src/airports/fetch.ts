@@ -25,8 +25,13 @@ function csvField(value: string): string {
  * reads, in the source's order. The loader still applies the full filter (scheduled service, IATA code), so the
  * snapshot only drops rows and columns it would never keep, which keeps the committed file small.
  */
-export function snapshotCsv(source: string, downloadedOn: string, url: string = OURAIRPORTS_URL): string {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(downloadedOn)) throw new Error("the download date must be YYYY-MM-DD");
+export function snapshotCsv(
+  source: string,
+  downloadedOn: string,
+  url: string = OURAIRPORTS_URL,
+): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(downloadedOn))
+    throw new Error("the download date must be YYYY-MM-DD");
   const [header, ...rows] = parseCsv(source).filter((r) => r.some((f) => f.trim() !== ""));
   if (!header) throw new Error("airports.csv is empty");
   const indexes = SNAPSHOT_COLUMNS.map((name) => {

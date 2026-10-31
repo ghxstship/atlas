@@ -26,7 +26,7 @@ import {
 } from "../src/domain/kiosk";
 import { kioskRules, soundsOn } from "../src/domain/settings";
 import { useCompass, useRows } from "../src/runtime/CompassProvider";
-import { fieldMediaUploader, processPhoto } from "../src/runtime/media";
+import { fieldMediaUploader, processPhoto, wantsExif } from "../src/runtime/media";
 import { countKey } from "../src/runtime/i18n";
 import { deviceClock } from "../src/runtime/platform";
 
@@ -450,11 +450,14 @@ function Kiosk(): ReactElement {
                 setCapturing(true);
                 try {
                   const shot = await camera.current.takePictureAsync({
-                    exif: false,
+                    exif: wantsExif(orgSettings),
                     quality: 0.8,
                     shutterSound: soundsOn(orgSettings),
                   });
-                  const localUri = await processPhoto(shot.uri, shot.width, shot.height);
+                  const localUri = await processPhoto(shot.uri, shot.width, shot.height, {
+                    settings: orgSettings,
+                    exif: shot.exif as Record<string, unknown> | undefined,
+                  });
                   await submit({
                     path: kioskPhotoPath(resolved.orgId, projectId, uuidv7(Date.now())),
                     localUri,

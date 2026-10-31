@@ -51,12 +51,19 @@ import type {
   AdvancePromotion,
   AdvancePromotionCreate,
   AdvanceRecipient,
+  AdvanceRecipientBindEngagementRequest,
   AdvanceRecipientCreate,
+  AdvanceRecipientSetNamesDueRequest,
   AdvanceSection,
+  AdvanceSectionChoice,
+  AdvanceSectionChoiceCreate,
+  AdvanceSectionConfigureRequest,
   AdvanceSectionCreate,
   AdvanceSectionUpdate,
   AdvanceSubmission,
   AdvanceSubmissionCreate,
+  AdvanceSubmissionFile,
+  AdvanceSubmissionLine,
   AdvanceSubmissionReviewRequest,
   AgencySlate,
   AgencySlateCreate,
@@ -371,6 +378,13 @@ import type {
   EmergencyContact,
   EmergencyContactCreate,
   EmergencyContactUpdate,
+  EngagedAllocation,
+  EngagedAllocationRequest,
+  EngagedAllocationSplit,
+  EngagedAllocationSplitResult,
+  EngagedAllocationUnsplit,
+  EngagedAllocationUnsplitResult,
+  EngagedAllocationWithdraw,
   Engagement,
   EngagementCreate,
   EngagementDocument,
@@ -632,6 +646,7 @@ import type {
   OvertimeRule,
   OwnershipTransfer,
   OwnershipTransferOfferRequest,
+  ParkingPass,
   PartnerStandingGrant,
   PartnerStandingGrantRecordRequest,
   PassportReveal,
@@ -798,6 +813,7 @@ import type {
   ReportScheduleUpdate,
   Representation,
   RepresentationCreate,
+  RequestableItem,
   RequiredAdditionalInsured,
   RequiredAdditionalInsuredCreate,
   RequiredAdditionalInsuredUpdate,
@@ -5867,6 +5883,26 @@ export class AdvanceSectionsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Configure an advance section
+   *
+   * Sets a draft section's kind and configuration. The kind decides which of window_kind, max_lines and per_person apply (23514 as 422 otherwise); a sent packet's sections are fixed (advance_packet_sections_fixed, 422), and a section with choices keeps its kind (advance_section_kind_choices, 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-sections/{id}/configure` (operation `advanceSections.configure`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  configure(
+    id: string,
+    body: AdvanceSectionConfigureRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceSection>> {
+    return this.client.request<AdvanceSection>(
+      $OPERATIONS["advanceSections.configure"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -5966,6 +6002,46 @@ export class AdvanceRecipientsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["advanceRecipients.delete"],
       { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Link a recipient to its engagement
+   *
+   * Sets or clears the engagement a draft packet's recipient answers under: a live engagement of the same party on the packet's project (advance_recipient_engagement, 422); fixed once the packet is sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-recipients/{id}/bind-engagement` (operation `advanceRecipients.bindEngagement`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  bindEngagement(
+    id: string,
+    body: AdvanceRecipientBindEngagementRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceRecipient>> {
+    return this.client.request<AdvanceRecipient>(
+      $OPERATIONS["advanceRecipients.bindEngagement"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Set a recipient's naming deadline
+   *
+   * Sets or clears when the party stops naming, renaming and unnaming people on the passes it requested through this recipient (G-141). Production can still change them afterwards. Needs an engagement (advance_recipients_names_due_engagement, 422); editable after the packet is sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-recipients/{id}/set-names-due` (operation `advanceRecipients.setNamesDue`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  setNamesDue(
+    id: string,
+    body: AdvanceRecipientSetNamesDueRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceRecipient>> {
+    return this.client.request<AdvanceRecipient>(
+      $OPERATIONS["advanceRecipients.setNamesDue"],
+      { path: { id }, body },
       options,
     );
   }
@@ -34902,6 +34978,242 @@ export class AssetReservationConflictsResource extends $Resource {
 }
 
 /**
+ * Operations on `advanceSectionChoices`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AdvanceSectionChoicesResource extends $Resource {
+  /**
+   * List advance section choice rows
+   *
+   * What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Returns a cursor page of advance section choice rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /advance-section-choices` (operation `advanceSectionChoices.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AdvanceSectionChoice>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AdvanceSectionChoice>> {
+    return this.client.requestPage<AdvanceSectionChoice>(
+      $OPERATIONS["advanceSectionChoices.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List advance section choice rows
+   *
+   * What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Returns a cursor page of advance section choice rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /advance-section-choices` (operation `advanceSectionChoices.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AdvanceSectionChoice>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AdvanceSectionChoice, void, undefined> {
+    return this.client.paginate<AdvanceSectionChoice>(
+      $OPERATIONS["advanceSectionChoices.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an advance section choice
+   *
+   * What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Creates an advance section choice. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /advance-section-choices` (operation `advanceSectionChoices.create`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  create(
+    body: AdvanceSectionChoiceCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceSectionChoice>> {
+    return this.client.request<AdvanceSectionChoice>(
+      $OPERATIONS["advanceSectionChoices.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get an advance section choice
+   *
+   * What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Returns one advance section choice with its `ETag`. A advance section choice the caller may not see returns 404.
+   *
+   * `GET /advance-section-choices/{id}` (operation `advanceSectionChoices.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AdvanceSectionChoice>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AdvanceSectionChoice>> {
+    return this.client.request<AdvanceSectionChoice>(
+      $OPERATIONS["advanceSectionChoices.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete an advance section choice
+   *
+   * What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422). Soft-deletes the advance section choice: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /advance-section-choices/{id}` (operation `advanceSectionChoices.delete`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["advanceSectionChoices.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `advanceSubmissionLines`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AdvanceSubmissionLinesResource extends $Resource {
+  /**
+   * List advance submission line rows
+   *
+   * A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /advance-submission-lines` (operation `advanceSubmissionLines.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AdvanceSubmissionLine>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AdvanceSubmissionLine>> {
+    return this.client.requestPage<AdvanceSubmissionLine>(
+      $OPERATIONS["advanceSubmissionLines.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List advance submission line rows
+   *
+   * A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /advance-submission-lines` (operation `advanceSubmissionLines.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AdvanceSubmissionLine>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AdvanceSubmissionLine, void, undefined> {
+    return this.client.paginate<AdvanceSubmissionLine>(
+      $OPERATIONS["advanceSubmissionLines.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an advance submission line
+   *
+   * A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes. Returns one advance submission line with its `ETag`. A advance submission line the caller may not see returns 404.
+   *
+   * `GET /advance-submission-lines/{id}` (operation `advanceSubmissionLines.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AdvanceSubmissionLine>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AdvanceSubmissionLine>> {
+    return this.client.request<AdvanceSubmissionLine>(
+      $OPERATIONS["advanceSubmissionLines.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `advanceSubmissionFiles`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AdvanceSubmissionFilesResource extends $Resource {
+  /**
+   * List advance submission file rows
+   *
+   * A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission file rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /advance-submission-files` (operation `advanceSubmissionFiles.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AdvanceSubmissionFile>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AdvanceSubmissionFile>> {
+    return this.client.requestPage<AdvanceSubmissionFile>(
+      $OPERATIONS["advanceSubmissionFiles.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List advance submission file rows
+   *
+   * A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes. Returns a cursor page of advance submission file rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /advance-submission-files` (operation `advanceSubmissionFiles.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AdvanceSubmissionFile>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AdvanceSubmissionFile, void, undefined> {
+    return this.client.paginate<AdvanceSubmissionFile>(
+      $OPERATIONS["advanceSubmissionFiles.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an advance submission file
+   *
+   * A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes. Returns one advance submission file with its `ETag`. A advance submission file the caller may not see returns 404.
+   *
+   * `GET /advance-submission-files/{id}` (operation `advanceSubmissionFiles.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AdvanceSubmissionFile>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AdvanceSubmissionFile>> {
+    return this.client.request<AdvanceSubmissionFile>(
+      $OPERATIONS["advanceSubmissionFiles.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `guestListEntries`, in the Advancing module.
  *
  * Advance packets, sections, recipients, submissions and riders (Section 4.2).
@@ -36260,6 +36572,243 @@ export class AiUsageResource extends $Resource {
     options?: $RequestOptions,
   ): AsyncGenerator<AiUsage, void, undefined> {
     return this.client.paginate<AiUsage>($OPERATIONS["aiUsage.list"], { query: params }, options);
+  }
+}
+
+/**
+ * Operations on `engagedAllocations`, in the Gateway module.
+ *
+ * External-party resources: marketplace, saved searches, profile shares, availability, messages, tax and payout details (Section 4.4).
+ */
+export class EngagedAllocationsResource extends $Resource {
+  /**
+   * List engaged allocation rows
+   *
+   * What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /engaged-allocations` (operation `engagedAllocations.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<EngagedAllocation>,
+    options?: $RequestOptions,
+  ): Promise<$Page<EngagedAllocation>> {
+    return this.client.requestPage<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List engaged allocation rows
+   *
+   * What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns a cursor page of engaged allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /engaged-allocations` (operation `engagedAllocations.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<EngagedAllocation>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<EngagedAllocation, void, undefined> {
+    return this.client.paginate<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an engaged allocation
+   *
+   * What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags. Returns one engaged allocation with its `ETag`. A engaged allocation the caller may not see returns 404.
+   *
+   * `GET /engaged-allocations/{allocation_id}` (operation `engagedAllocations.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    allocationId: string,
+    params?: $FieldsParams<EngagedAllocation>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<EngagedAllocation>> {
+    return this.client.request<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.get"],
+      { path: { allocation_id: allocationId }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Request an item for the pool or one person
+   *
+   * The party side asks for an item for its pool or one person on its roster through `app.request_engaged_allocation`; it starts Requested for the producing org to decide. A credential need is a request: Gateway never issues. Refusals answer 422 with the rule, among them allocation_not_your_engagement, allocation_entry_not_on_engagement, allocation_not_requestable, offering_not_offered, allocation_cap_engagement, allocation_cap_person and allocation_engagement_closed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engaged-allocations/request` (operation `engagedAllocations.request`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  request(
+    body: EngagedAllocationRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EngagedAllocation>> {
+    return this.client.request<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.request"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Share an approved pool to people on the roster
+   *
+   * Gives shares of an approved pool to people accepted on the roster through `app.split_engaged_allocation`, moving holds with them (422 allocation_not_pool, allocation_split_exceeds, allocation_cap_person, allocation_entry_not_accepted). Each person is sent allocation.assigned. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engaged-allocations/{allocation_id}/split` (operation `engagedAllocations.split`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  split(
+    allocationId: string,
+    body: EngagedAllocationSplit,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EngagedAllocationSplitResult>> {
+    return this.client.request<EngagedAllocationSplitResult>(
+      $OPERATIONS["engagedAllocations.split"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Give a share back to its pool
+   *
+   * Gives part or all of a person's share back to its pool through `app.unsplit_engaged_allocation`, never what was issued (422 allocation_issued). A share given back whole is Withdrawn. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engaged-allocations/{allocation_id}/unsplit` (operation `engagedAllocations.unsplit`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  unsplit(
+    allocationId: string,
+    body: EngagedAllocationUnsplit,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EngagedAllocationUnsplitResult>> {
+    return this.client.request<EngagedAllocationUnsplitResult>(
+      $OPERATIONS["engagedAllocations.unsplit"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Withdraw a request or a share
+   *
+   * Withdraws a Requested allocation, or an Approved one nothing of which was issued (422 allocation_issued), through `app.withdraw_engaged_allocation`: by the party side, or by the person on the roster for a request they made. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engaged-allocations/{allocation_id}/withdraw` (operation `engagedAllocations.withdraw`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  withdraw(
+    allocationId: string,
+    body: EngagedAllocationWithdraw,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EngagedAllocation>> {
+    return this.client.request<EngagedAllocation>(
+      $OPERATIONS["engagedAllocations.withdraw"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `requestableItems`, in the Gateway module.
+ *
+ * External-party resources: marketplace, saved searches, profile shares, availability, messages, tax and payout details (Section 4.4).
+ */
+export class RequestableItemsResource extends $Resource {
+  /**
+   * List requestable item rows
+   *
+   * What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /requestable-items` (operation `requestableItems.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<RequestableItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<RequestableItem>> {
+    return this.client.requestPage<RequestableItem>(
+      $OPERATIONS["requestableItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List requestable item rows
+   *
+   * What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for. Returns a cursor page of requestable item rows the caller may see. The default order is `engagement_id`, then `item_kind`, then `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /requestable-items` (operation `requestableItems.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<RequestableItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<RequestableItem, void, undefined> {
+    return this.client.paginate<RequestableItem>(
+      $OPERATIONS["requestableItems.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `myParkingPasses`, in the Gateway module.
+ *
+ * External-party resources: marketplace, saved searches, profile shares, availability, messages, tax and payout details (Section 4.4).
+ */
+export class MyParkingPassesResource extends $Resource {
+  /**
+   * List parking pass rows
+   *
+   * The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /my-parking-passes` (operation `myParkingPasses.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  list(params?: $ListParams<ParkingPass>, options?: $RequestOptions): Promise<$Page<ParkingPass>> {
+    return this.client.requestPage<ParkingPass>(
+      $OPERATIONS["myParkingPasses.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List parking pass rows
+   *
+   * The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears. Returns a cursor page of parking pass rows the caller may see. The default order is `credential_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /my-parking-passes` (operation `myParkingPasses.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ParkingPass>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ParkingPass, void, undefined> {
+    return this.client.paginate<ParkingPass>(
+      $OPERATIONS["myParkingPasses.list"],
+      { query: params },
+      options,
+    );
   }
 }
 

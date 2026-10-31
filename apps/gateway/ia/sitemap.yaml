@@ -62,6 +62,7 @@ engagementTabs:
         - engagement.overview
         - engagement.scope
         - engagement.deliverables
+        - engagement.advance
         - engagement.crew
         - engagement.time
         - engagement.invoices
@@ -134,9 +135,21 @@ engagementTabs:
         - engagement.entitlements
         - engagement.asset-approvals
         - engagement.activation-schedule
+        - engagement.advance
         - engagement.crew
         - engagement.proof-of-performance
         - engagement.invoices
+        - engagement.documents
+        - engagement.messages
+    # A person who reaches an engagement only through an Accepted roster entry (R8, ADR 0100): their own
+    # badge, travel, lodging and per diem, never a colleague's.
+    roster-member:
+      tabs:
+        - engagement.overview
+        - engagement.project-details
+        - engagement.credentials
+        - engagement.travel-and-lodging
+        - engagement.per-diem
         - engagement.documents
         - engagement.messages
 nodes:

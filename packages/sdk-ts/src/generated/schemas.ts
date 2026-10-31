@@ -6078,6 +6078,37 @@ export interface AdvanceSection {
    * Length: 1 to 2000.
    */
   readonly prompt: string | null;
+  /**
+   * What the section asks for; Text unless given.
+   */
+  readonly section_kind:
+    | "Text"
+    | "File"
+    | "Schedule Window"
+    | "Item Request"
+    | "Crew Roster"
+    | "Guest List"
+    | "Credential Request";
+  /**
+   * For a Schedule Window section, what the window is.
+   */
+  readonly window_kind:
+    | "Load In"
+    | "Load Out"
+    | "Arrival"
+    | "Soundcheck"
+    | "Activation Setup"
+    | "Activation Strike"
+    | null;
+  /**
+   * Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.
+   * Range: 1 to unbounded.
+   */
+  readonly max_lines: number | null;
+  /**
+   * For an Item Request or Credential Request, true when every line names one person on the roster.
+   */
+  readonly per_person: boolean;
 }
 
 /**
@@ -6104,6 +6135,37 @@ export interface AdvanceSectionCreate {
    * Length: 1 to 2000.
    */
   readonly prompt?: string | null;
+  /**
+   * What the section asks for; Text unless given.
+   */
+  readonly section_kind?:
+    | "Text"
+    | "File"
+    | "Schedule Window"
+    | "Item Request"
+    | "Crew Roster"
+    | "Guest List"
+    | "Credential Request";
+  /**
+   * For a Schedule Window section, what the window is.
+   */
+  readonly window_kind?:
+    | "Load In"
+    | "Load Out"
+    | "Arrival"
+    | "Soundcheck"
+    | "Activation Setup"
+    | "Activation Strike"
+    | null;
+  /**
+   * Most files (1 to 10), windows (1 to 5) or lines (1 to 50) of one answer.
+   * Range: 1 to unbounded.
+   */
+  readonly max_lines?: number | null;
+  /**
+   * For an Item Request or Credential Request, true when every line names one person on the roster.
+   */
+  readonly per_person?: boolean;
 }
 
 /**
@@ -6125,6 +6187,43 @@ export interface AdvanceSectionUpdate {
    * Length: 1 to 2000.
    */
   readonly prompt?: string | null;
+}
+
+/**
+ * The kind and configuration of a section.
+ */
+export interface AdvanceSectionConfigureRequest {
+  /**
+   * Section kind.
+   */
+  readonly section_kind:
+    | "Text"
+    | "File"
+    | "Schedule Window"
+    | "Item Request"
+    | "Crew Roster"
+    | "Guest List"
+    | "Credential Request";
+  /**
+   * Window kind, for a Schedule Window.
+   */
+  readonly window_kind?:
+    | "Load In"
+    | "Load Out"
+    | "Arrival"
+    | "Soundcheck"
+    | "Activation Setup"
+    | "Activation Strike"
+    | null;
+  /**
+   * Most lines or files of one answer.
+   * Range: 1 to 50.
+   */
+  readonly max_lines?: number | null;
+  /**
+   * Every line names a person.
+   */
+  readonly per_person?: boolean;
 }
 
 /**
@@ -6190,6 +6289,16 @@ export interface AdvanceRecipient {
    * Format: `uuid`.
    */
   readonly counterparty_id: string | null;
+  /**
+   * Identifier of the engagement the recipient answers under.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * When the party stops naming people on the passes it requested through this recipient.
+   * Format: `date-time`.
+   */
+  readonly names_due_at: string | null;
 }
 
 /**
@@ -6211,6 +6320,38 @@ export interface AdvanceRecipientCreate {
    * Format: `uuid`.
    */
   readonly counterparty_id?: string | null;
+  /**
+   * Identifier of the engagement the recipient answers under.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string | null;
+  /**
+   * When the party stops naming people on the passes it requested through this recipient.
+   * Format: `date-time`.
+   */
+  readonly names_due_at?: string | null;
+}
+
+/**
+ * The engagement a recipient answers under.
+ */
+export interface AdvanceRecipientBindEngagementRequest {
+  /**
+   * The engagement, or null to clear it.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+}
+
+/**
+ * A recipient's naming deadline.
+ */
+export interface AdvanceRecipientSetNamesDueRequest {
+  /**
+   * The deadline, or null to clear it.
+   * Format: `date-time`.
+   */
+  readonly names_due_at: string | null;
 }
 
 /**
@@ -38716,6 +38857,251 @@ export interface AssetReservationConflict {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface AdvanceSectionChoicePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceSectionChoice>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What an Item Request or Credential Request section offers (R9): an asset class of the org that answers for an offering (radios, carts), or a credential category of the packet's project. Exactly one of the two is set. Choices are added and removed only while the packet is a draft (advance_packet_sections_fixed, 422).
+ */
+export interface AdvanceSectionChoice {
+  /**
+   * Identifier of the advance section choice.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the section the choice belongs to.
+   * Format: `uuid`.
+   */
+  readonly advance_section_id: string;
+  /**
+   * Identifier of the asset class an Item Request offers.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string | null;
+  /**
+   * Identifier of the credential category a Credential Request offers.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id: string | null;
+}
+
+/**
+ * Fields accepted when creating a AdvanceSectionChoice.
+ */
+export interface AdvanceSectionChoiceCreate {
+  /**
+   * Identifier of the section the choice belongs to.
+   * Format: `uuid`.
+   */
+  readonly advance_section_id: string;
+  /**
+   * Identifier of the asset class an Item Request offers.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * Identifier of the credential category a Credential Request offers.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AdvanceSubmissionLinePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceSubmissionLine>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A line of a typed advance answer (R9): a window of a Schedule Window section, or an asset class or credential category with a quantity, optionally for one person on the engagement's roster and for a window. Written with the answer in Gateway; never changes.
+ */
+export interface AdvanceSubmissionLine {
+  /**
+   * Identifier of the advance submission line.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the answer the line belongs to.
+   * Format: `uuid`.
+   */
+  readonly advance_submission_id: string;
+  /**
+   * Order in the answer, 1 to 50.
+   * Range: 1 to unbounded.
+   */
+  readonly line_number: number;
+  /**
+   * Identifier of the asset class asked for.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string | null;
+  /**
+   * Identifier of the credential category asked for.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id: string | null;
+  /**
+   * Identifier of the roster entry of the person the line is for.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * How many, 1 to 10000.
+   * Range: 1 to unbounded.
+   */
+  readonly quantity: number | null;
+  /**
+   * When it is needed, as a Postgres tstzrange literal.
+   */
+  readonly needed_window: string | null;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly window_zone: string | null;
+  /**
+   * Note on the line.
+   * Length: 1 to 500.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AdvanceSubmissionFilePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceSubmissionFile>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A file of a File answer (R9): a document uploaded to the party-uploads bucket under the recipient and section and registered, attached to one answer. Written with the answer in Gateway; never changes.
+ */
+export interface AdvanceSubmissionFile {
+  /**
+   * Identifier of the advance submission file.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the answer the file belongs to.
+   * Format: `uuid`.
+   */
+  readonly advance_submission_id: string;
+  /**
+   * Identifier of the document of the uploaded file.
+   * Format: `uuid`.
+   */
+  readonly document_id: string;
+  /**
+   * Order in the answer, 1 to 10.
+   * Range: 1 to unbounded.
+   */
+  readonly position: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface GuestListEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -40498,6 +40884,379 @@ export interface AiUsage {
    * Range: 0 to unbounded.
    */
   readonly output_tokens: number | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface EngagedAllocationPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<EngagedAllocation>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What an engagement is allocated, as the engaged party reads it (R8, ADR 0104): the party's pool and each person's share on its roster for the party side, and a person's own rows on their roster entries. The status is computed by the database and Gateway never confirms possession. No price, order number, vendor or other people's asset tags.
+ */
+export interface EngagedAllocation {
+  /**
+   * Identifier of the allocation.
+   * Format: `uuid`.
+   */
+  readonly allocation_id: string;
+  /**
+   * Identifier of the engagement it is held under: the pool's own or the roster entry's.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Identifier of the roster entry of the person who holds it; null for the pool.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * Name of the person who holds it; null for the pool.
+   */
+  readonly person_name: string | null;
+  /**
+   * What the allocation gives.
+   */
+  readonly kind:
+    "Credential" | "Parking Pass" | "Asset" | "Catering" | "Lodging" | "Travel" | "Per Diem";
+  /**
+   * Category, class, catering or block name; null for Travel and Per Diem.
+   */
+  readonly item_name: string | null;
+  /**
+   * Quantity allocated; a pool goes down as it is shared out.
+   */
+  readonly quantity: number;
+  /**
+   * Stored state.
+   */
+  readonly allocation_state: "Requested" | "Approved" | "Declined" | "Withdrawn";
+  /**
+   * The computed status.
+   */
+  readonly display_status:
+    | "Requested"
+    | "Approved"
+    | "Reserved"
+    | "Awaiting Order"
+    | "On Order"
+    | "Confirmed"
+    | "Received"
+    | "Partly Issued"
+    | "Issued"
+    | "Returned"
+    | "Revoked"
+    | "Declined"
+    | "Withdrawn";
+  /**
+   * Quantity held for it.
+   */
+  readonly reserved_quantity: number;
+  /**
+   * Quantity handed over.
+   */
+  readonly issued_quantity: number;
+  /**
+   * Quantity handed back.
+   */
+  readonly returned_quantity: number;
+  /**
+   * Identifier of the pool a share was split from.
+   * Format: `uuid`.
+   */
+  readonly parent_allocation_id: string | null;
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly needed_time_zone: string;
+  /**
+   * True when the caller asked for it.
+   */
+  readonly requested_by_me: boolean;
+  /**
+   * Why production declined it.
+   */
+  readonly decline_reason: string | null;
+}
+
+/**
+ * One request: one holder and one item.
+ */
+export interface EngagedAllocationRequest {
+  /**
+   * Identifier of the engagement the caller answers for.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Identifier of the roster entry of one person; left out for the pool.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id?: string;
+  /**
+   * What is asked for.
+   */
+  readonly item_kind:
+    "credential_category" | "asset_class" | "fulfillment" | "accommodation_block" | "service";
+  /**
+   * Identifier of the category, class, fulfillment or block; left out for a service.
+   * Format: `uuid`.
+   */
+  readonly item_id?: string;
+  /**
+   * Travel or Per Diem, for a service.
+   */
+  readonly service_kind?: "Travel" | "Per Diem";
+  /**
+   * Quantity.
+   */
+  readonly quantity: number;
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * What it is for.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string;
+}
+
+/**
+ * The shares written.
+ */
+export interface EngagedAllocationSplitResult {
+  /**
+   * The shares, in the order given.
+   */
+  readonly allocation_ids: ReadonlyArray<string>;
+}
+
+/**
+ * Shares of an approved pool for its people.
+ */
+export interface EngagedAllocationSplit {
+  readonly parts: ReadonlyArray<EngagedAllocationSplitPart>;
+}
+
+/**
+ * One person's share.
+ */
+export interface EngagedAllocationSplitPart {
+  /**
+   * Identifier of the roster entry on the pool's engagement.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Quantity for the person.
+   */
+  readonly quantity: number;
+}
+
+/**
+ * What went back.
+ */
+export interface EngagedAllocationUnsplitResult {
+  /**
+   * Quantity given back to the pool.
+   */
+  readonly quantity: number;
+}
+
+/**
+ * A share given back to its pool.
+ */
+export interface EngagedAllocationUnsplit {
+  /**
+   * How much goes back; all of it when left out.
+   */
+  readonly quantity?: number;
+}
+
+/**
+ * Withdrawing a request or a share.
+ */
+export interface EngagedAllocationWithdraw {
+  /**
+   * Why it is withdrawn.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface RequestableItemPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RequestableItem>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What the party side may ask for on an engagement it answers for (R8, owner decision 7): the project's Access badges, and its Parking passes, the org's radio and cart classes, Catering, accommodation blocks, Travel and Per Diem only while the offering is Provided, with the caps and what is already asked for.
+ */
+export interface RequestableItem {
+  /**
+   * Identifier of the engagement it may be asked for on.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * The item_kind of the request action.
+   */
+  readonly item_kind:
+    "credential_category" | "asset_class" | "fulfillment" | "accommodation_block" | "service";
+  /**
+   * Identifier of the category, class, fulfillment or block; null for a service.
+   * Format: `uuid`.
+   */
+  readonly item_id: string | null;
+  /**
+   * Its name; Travel or Per Diem for a service.
+   */
+  readonly name: string;
+  /**
+   * Offering it draws on; null for an Access badge.
+   */
+  readonly offering:
+    | "Travel"
+    | "Lodging"
+    | "Catering"
+    | "Parking"
+    | "Uniforms"
+    | "Per Diem"
+    | "Radios"
+    | "Carts"
+    | "Guest List"
+    | null;
+  /**
+   * Cap for the engagement.
+   */
+  readonly cap_per_engagement: number | null;
+  /**
+   * Cap for one person.
+   */
+  readonly cap_per_person: number | null;
+  /**
+   * Already requested or approved under the engagement and its roster.
+   */
+  readonly requested_quantity: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ParkingPassPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ParkingPass>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears.
+ */
+export interface ParkingPass {
+  /**
+   * Identifier of the pass.
+   * Format: `uuid`.
+   */
+  readonly credential_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Number printed on the pass.
+   */
+  readonly credential_number: string | null;
+  /**
+   * Parking category.
+   */
+  readonly category_name: string;
+  /**
+   * Valid from.
+   * Format: `date-time`.
+   */
+  readonly valid_from: string | null;
+  /**
+   * Valid until.
+   * Format: `date-time`.
+   */
+  readonly valid_to: string | null;
+  /**
+   * When it was revoked.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Zone codes.
+   */
+  readonly zone_codes: ReadonlyArray<string>;
+  /**
+   * Zone names, in the order of zone_codes.
+   */
+  readonly zone_names: ReadonlyArray<string>;
+  /**
+   * Make of the vehicle.
+   */
+  readonly vehicle_make: string | null;
+  /**
+   * Model of the vehicle.
+   */
+  readonly vehicle_model: string | null;
+  /**
+   * Colour of the vehicle.
+   */
+  readonly vehicle_color: string | null;
+  /**
+   * Identifier of the the caller, the pass holder.
+   * Format: `uuid`.
+   */
+  readonly holder_person_id: string;
 }
 
 /**

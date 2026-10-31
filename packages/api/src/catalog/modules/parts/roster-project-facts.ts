@@ -97,12 +97,10 @@ const RosterEntry = defineResource({
       str("What the reviewer asked to change, while Returned.", "Add the arrival."),
     ),
     replaces_entry_id: orNull(fields.ref("withdrawn entry this one replaces")),
-    share_categories: z
-      .array(z.string())
-      .meta({
-        description: "Work details categories the person shares on this entry.",
-        example: ["Uniform Sizes"],
-      }),
+    share_categories: z.array(z.string()).meta({
+      description: "Work details categories the person shares on this entry.",
+      example: ["Uniform Sizes"],
+    }),
   },
 });
 

@@ -70,12 +70,17 @@ describe("roster manager", () => {
   ) => visibleEngagementTabs(sitemap, nav, roleType, scopes, manager ? ["roster-manager"] : []);
   const after = (list: string[], tab: string) => list[list.indexOf(tab) + 1];
 
-  it("places Crew after Advance, Deliverables, Onboarding or the activation schedule, for managers only", () => {
+  it("places Crew after Advance or Onboarding, for managers only", () => {
     expect(after(tabs("vendor", true), "engagement.advance")).toBe("engagement.crew");
     expect(after(tabs("artist", true), "engagement.advance")).toBe("engagement.crew");
-    expect(after(tabs("contractor", true), "engagement.deliverables")).toBe("engagement.crew");
+    // R9: contractors and sponsors answer an Advance tab before their Crew tab.
+    expect(after(tabs("contractor", true), "engagement.deliverables")).toBe("engagement.advance");
+    expect(after(tabs("contractor", true), "engagement.advance")).toBe("engagement.crew");
     expect(after(tabs("staff", true), "engagement.onboarding")).toBe("engagement.crew");
-    expect(after(tabs("sponsor", true), "engagement.activation-schedule")).toBe("engagement.crew");
+    expect(after(tabs("sponsor", true), "engagement.activation-schedule")).toBe(
+      "engagement.advance",
+    );
+    expect(after(tabs("sponsor", true), "engagement.advance")).toBe("engagement.crew");
     for (const roleType of ["vendor", "artist", "contractor", "staff", "sponsor"] as const) {
       expect(tabs(roleType, false)).not.toContain("engagement.crew");
     }

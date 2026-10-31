@@ -675,7 +675,13 @@ export const handlers = defineHandlers("Opportunities", {
     if (error !== null) throw error;
     return ok(
       toEngagement(
-        await readOne<EngagementRow>(db, "engagements", ENGAGEMENT_COLUMNS, params.id, "engagement"),
+        await readOne<EngagementRow>(
+          db,
+          "engagements",
+          ENGAGEMENT_COLUMNS,
+          params.id,
+          "engagement",
+        ),
       ),
     );
   },

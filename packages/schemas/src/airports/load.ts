@@ -84,12 +84,15 @@ export function selectAirports(text: string): Airport[] {
   for (const row of rows) {
     const code = (row[iata] ?? "").trim();
     const kind = (row[type] ?? "").trim();
-    if (!KEPT_TYPES.has(kind) || (row[scheduled] ?? "").trim() !== "yes" || !IATA.test(code)) continue;
+    if (!KEPT_TYPES.has(kind) || (row[scheduled] ?? "").trim() !== "yes" || !IATA.test(code))
+      continue;
     const airportName = (row[name] ?? "").trim();
     const countryCode = (row[country] ?? "").trim();
     const town = (row[municipality] ?? "").trim();
-    if (airportName.length < 1 || airportName.length > 200) throw new Error(`${code}: the name must be 1 to 200 characters`);
-    if (!COUNTRY.test(countryCode)) throw new Error(`${code}: the country must be two capital letters`);
+    if (airportName.length < 1 || airportName.length > 200)
+      throw new Error(`${code}: the name must be 1 to 200 characters`);
+    if (!COUNTRY.test(countryCode))
+      throw new Error(`${code}: the country must be two capital letters`);
     const large = kind === "large_airport";
     const existing = chosen.get(code);
     if (existing && (existing.large || !large)) continue;
@@ -103,7 +106,9 @@ export function selectAirports(text: string): Airport[] {
       large,
     });
   }
-  return [...chosen.values()].map((c) => c.airport).sort((a, b) => a.iataCode.localeCompare(b.iataCode));
+  return [...chosen.values()]
+    .map((c) => c.airport)
+    .sort((a, b) => a.iataCode.localeCompare(b.iataCode));
 }
 
 /** Reads and selects the committed snapshot. */

@@ -29,6 +29,20 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "guest_entry_stamped",
   "sod_guest_requester",
   "sod_allocation_requester",
+  // R9: typed sections, their choices, recipient engagements, dock slots from answers and the naming deadline
+  // (migrations 2710 to 2716).
+  "advance_section_choices_missing",
+  "advance_section_choice_kind",
+  "advance_section_choice_project",
+  "advance_section_choice_fixed",
+  "advance_section_kind_choices",
+  "advance_recipient_engagement",
+  "advance_line_not_accepted",
+  "advance_line_not_dock",
+  "advance_line_booked",
+  "advance_dock_zone",
+  "dock_slot_overlap",
+  "credential_names_closed",
   // R2: a rider belongs to a live Artist engagement of its own project (migration 2611).
   "rider_engagement_artist",
   "same_project",

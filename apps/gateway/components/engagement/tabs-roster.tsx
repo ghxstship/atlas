@@ -1,4 +1,5 @@
 import { listAccountMembers, listMyAccounts } from "@xos/data/gateway";
+import { listEngagementAllocations, listRequestableItems } from "@xos/data/gateway-allocations";
 import {
   listAccountTalent,
   listEngagementAssignments,
@@ -29,6 +30,7 @@ import {
 } from "./roster-forms";
 import { RosterFactsButton } from "@/components/roster/roster-facts-button";
 import { chipState } from "@/lib/roster-facts-steps";
+import { CrewAllocations, EntryItems } from "./crew-allocations";
 import { RosterProfileButton } from "./roster-profile";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
@@ -50,16 +52,22 @@ const ConfirmButton = dynamic(() =>
  * Project details opens a drawer that reads the values once, logged. A names lock set by the producing org (G-142)
  * shows as a banner; after it passes, Add, Invite and Submit of new names are closed, and Returned entries stay
  * editable and resubmittable.
+ *
+ * R8 adds what the party asks for and shares out: the pool, each person's items with their computed status,
+ * Request item, and Assign from pool for several people at once (crew-allocations.tsx).
  */
 export async function CrewTab({ view, t, locale }: TabProps) {
   const { engagement } = view;
-  const [roster, talent, roles, factStatus] = await Promise.all([
+  const [roster, talent, roles, factStatus, allocations, requestable] = await Promise.all([
     listEngagementRoster(view.ctx.db, engagement.id),
     listAccountTalent(view.ctx.db, engagement.accountId),
     listRoleOptions(view.ctx.db, engagement.roleCode),
     listRosterFactStatus(view.ctx.db, engagement.id),
+    listEngagementAllocations(view.ctx.db, engagement.id),
+    listRequestableItems(view.ctx.db, engagement.id),
   ]);
-  if (!roster.ok || !talent.ok || !roles.ok || !factStatus.ok) return <RegionError />;
+  if (!roster.ok || !talent.ok || !roles.ok || !factStatus.ok || !allocations.ok || !requestable.ok)
+    return <RegionError />;
   const statusOf = new Map(factStatus.data.map((s) => [s.rosterEntryId, s]));
   const locked = rosterLocked(engagement.rosterLocksAt);
   const lockDate = engagement.rosterLocksAt
@@ -231,26 +239,46 @@ export async function CrewTab({ view, t, locale }: TabProps) {
                   ) : null}
                 </span>
               ),
-              detail: editable ? (
-                <details>
-                  <summary className="cursor-pointer text-text-13 text-text-link">
-                    {t("gateway.engagement.crew.edit")}
-                  </summary>
-                  <EditRosterEntryForm
+              detail: (
+                <>
+                  <EntryItems
+                    allocations={allocations.data}
                     rosterEntryId={e.id}
-                    roles={roleOptions}
-                    timeZone={timeZone}
-                    roleCode={e.roleCode}
-                    startsAt={local(e.arrivalStartsAt)}
-                    endsAt={local(e.arrivalEndsAt)}
-                    entryTimeZone={e.arrivalTimeZone}
+                    t={t}
+                    locale={locale}
                   />
-                </details>
-              ) : undefined,
+                  {editable ? (
+                    <details>
+                      <summary className="cursor-pointer text-text-13 text-text-link">
+                        {t("gateway.engagement.crew.edit")}
+                      </summary>
+                      <EditRosterEntryForm
+                        rosterEntryId={e.id}
+                        roles={roleOptions}
+                        timeZone={timeZone}
+                        roleCode={e.roleCode}
+                        startsAt={local(e.arrivalStartsAt)}
+                        endsAt={local(e.arrivalEndsAt)}
+                        entryTimeZone={e.arrivalTimeZone}
+                      />
+                    </details>
+                  ) : null}
+                </>
+              ),
             };
           })}
         />
       )}
+      <CrewAllocations
+        engagementId={engagement.id}
+        timeZone={timeZone}
+        orgName={engagement.orgName}
+        entries={entries}
+        allocations={allocations.data}
+        requestable={requestable.data}
+        t={t}
+        locale={locale}
+      />
       <Section id="crew-add" title={t("gateway.engagement.crew.addTitle")}>
         {locked ? (
           <p className="m-0 text-text-14 text-text-secondary">{lockedSentence}</p>
