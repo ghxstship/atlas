@@ -2,6 +2,7 @@ import type { XosClient } from "./client.ts";
 import { advanceAnswerLines, type AdvanceAnswerLine } from "./gateway-operations.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Gateway's `api_public` functions, callable without a session: the org brand for a host or slug
@@ -828,4 +829,17 @@ export async function submitAdvanceRoster(
   const row = firstOf(result.data, (r) => r.submitted !== null);
   if (isRefusal(row)) return ok(row);
   return ok({ refused: false, submitted: row.submitted as number });
+}
+
+/**
+ * Stops a guest's emails from the org that sent them (B8, api_public.unsubscribe_guest_email, 2975). Needs a POST:
+ * the RPC refuses a read-only call. Returns the org's name, or null for an unknown token, which changes nothing.
+ */
+export async function unsubscribeGuestEmail(
+  db: XosClient,
+  token: string,
+): Promise<Result<string | null>> {
+  const { data, error } = await untyped(db).rpc("unsubscribe_guest_email", { p_token: token });
+  if (error) return fail(toDataError(error));
+  return ok(typeof data === "string" ? data : null);
 }

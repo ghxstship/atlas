@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { unsubscribeGuestEmail } from "@xos/data/gateway";
 import { PARAM_TYPES } from "@xos/ia";
 import { createAnonSupabase } from "@/lib/supabase/server";
 
@@ -21,9 +22,6 @@ export async function unsubscribeGuestAction(
 ): Promise<UnsubscribeResult> {
   const token = z.string().regex(PARAM_TYPES.token).safeParse(form.get("token"));
   if (!token.success) return { done: true, orgName: null };
-  const { data, error } = await createAnonSupabase().rpc("unsubscribe_guest_email", {
-    p_token: token.data,
-  });
-  if (error) return { failed: true };
-  return { done: true, orgName: typeof data === "string" ? data : null };
+  const result = await unsubscribeGuestEmail(createAnonSupabase(), token.data);
+  return result.ok ? { done: true, orgName: result.data } : { failed: true };
 }

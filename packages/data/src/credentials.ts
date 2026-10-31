@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Credentials repository (Section 4.2 Credentials, Section 7.4, invariant 21): credential
@@ -801,7 +802,7 @@ export async function listAccessScans(
   db: XosClient,
   filter: ScanFilter,
 ): Promise<Result<AccessScan[]>> {
-  let query = db.from("access_scans").select(SCAN_COLUMNS).eq("org_id", filter.orgId);
+  let query = untyped(db).from("access_scans").select(SCAN_COLUMNS).eq("org_id", filter.orgId);
   if (filter.projectId) query = query.eq("credential.category.project_id", filter.projectId);
   if (filter.credentialId) query = query.eq("credential_id", filter.credentialId);
   if (filter.result) query = query.eq("result", filter.result);
@@ -903,7 +904,7 @@ export async function recordScan(
   db: XosClient,
   input: RecordScanInput,
 ): Promise<Result<ScanDecision>> {
-  const { data, error } = await db.rpc("record_scan", {
+  const { data, error } = await untyped(db).rpc("record_scan", {
     p_zone_id: input.zoneId,
     ...(input.credentialId ? { p_credential_id: input.credentialId } : {}),
     ...(input.credentialNumber ? { p_credential_number: input.credentialNumber } : {}),
@@ -937,7 +938,7 @@ export async function overrideScan(
   db: XosClient,
   input: OverrideScanInput,
 ): Promise<Result<ScanDecision & { overriddenScanId: string }>> {
-  const { data, error } = await db.rpc("override_access_scan", {
+  const { data, error } = await untyped(db).rpc("override_access_scan", {
     p_scan_id: input.scanId,
     p_reason: input.reason,
     ...(input.id ? { p_id: input.id } : {}),
@@ -964,7 +965,7 @@ export async function listCategoryRequirements(
   db: XosClient,
   categoryId: string,
 ): Promise<Result<CategoryRequirement[]>> {
-  const { data, error } = await db
+  const { data, error } = await untyped(db)
     .from("credential_category_requirements")
     .select(
       "id, credential_category_id, training_course_id, certification_id, course:training_courses(title), certification:certifications(name)",
@@ -1001,7 +1002,7 @@ export async function addCategoryRequirement(
     readonly certificationId?: string;
   },
 ): Promise<Result<{ id: string }>> {
-  const { data, error } = await db
+  const { data, error } = await untyped(db)
     .from("credential_category_requirements")
     .insert({
       credential_category_id: input.categoryId,
@@ -1016,7 +1017,7 @@ export async function addCategoryRequirement(
 
 /** Removes a requirement; credentials already issued are untouched. */
 export async function removeCategoryRequirement(db: XosClient, id: string): Promise<Result<null>> {
-  const { error } = await db
+  const { error } = await untyped(db)
     .from("credential_category_requirements")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id);
@@ -1054,7 +1055,7 @@ export async function credentialIssueCheck(
     readonly validTo?: string | null;
   },
 ): Promise<Result<IssueCheck[]>> {
-  const { data, error } = await db.rpc("credential_issue_check", {
+  const { data, error } = await untyped(db).rpc("credential_issue_check", {
     p_category_id: input.categoryId,
     p_holder_person_id: input.holderPersonId,
     ...(input.validFrom ? { p_valid_from: input.validFrom } : {}),
@@ -1113,7 +1114,7 @@ export async function credentialReviews(
   credentialIds: readonly string[],
 ): Promise<Result<Map<string, CredentialReview>>> {
   if (credentialIds.length === 0) return ok(new Map());
-  const { data, error } = await db
+  const { data, error } = await untyped(db)
     .from("credential_review")
     .select(
       "credential_id, holder_source, other_badges_on_project, same_name_on_project, duplicate_live, missing_requirements, booked_elsewhere",
@@ -1160,7 +1161,7 @@ export async function credentialBookingsElsewhere(
   db: XosClient,
   credentialId: string,
 ): Promise<Result<BookingElsewhere[]>> {
-  const { data, error } = await db.rpc("credential_bookings_elsewhere", {
+  const { data, error } = await untyped(db).rpc("credential_bookings_elsewhere", {
     p_credential_id: credentialId,
   });
   if (error) return fail(toDataError(error));
@@ -1197,7 +1198,7 @@ export async function zoneCountsLive(
   db: XosClient,
   projectId: string,
 ): Promise<Result<ZoneCount[]>> {
-  const { data, error } = await db
+  const { data, error } = await untyped(db)
     .from("zone_counts_live")
     .select("zone_id, credential_category_id, engagement_id, inside, last_entry_at")
     .eq("project_id", projectId);

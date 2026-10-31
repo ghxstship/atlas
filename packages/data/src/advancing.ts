@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Advancing repository (Section 4.2): advance packets, their sections and party-bound recipients,
@@ -2130,12 +2131,35 @@ export async function listProjectScopes(
   return ok(data.map((n) => ({ id: n.id, code: n.scope_code, name: n.name })));
 }
 
+/** A guest list row as listGuests reads it; the pass columns (2974) are newer than the generated types. */
+interface GuestRow {
+  id: string;
+  project_id: string;
+  scope_node_id: string | null;
+  person_id: string | null;
+  counterparty_id: string | null;
+  engagement_id: string | null;
+  guest_name: string;
+  plus_ones: number;
+  note: string | null;
+  entry_state: GuestState;
+  decided_at: string | null;
+  checked_in_at: string | null;
+  created_at: string;
+  created_by: string | null;
+  pass_category_id: string | null;
+  table_label: string | null;
+  host_person_id: string | null;
+  guest_email: string | null;
+  pass_code: string | null;
+}
+
 /** The guest list of the org or one project, oldest request first, optionally in one state. */
 export async function listGuests(
   db: XosClient,
   filter: { readonly orgId: string; readonly projectId?: string; readonly state?: GuestState },
 ): Promise<Result<GuestEntry[]>> {
-  let query = db
+  let query = untyped(db)
     .from("guest_list_entries")
     .select(
       "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by, pass_category_id, table_label, host_person_id, guest_email, pass_code",
@@ -2144,8 +2168,9 @@ export async function listGuests(
     .is("deleted_at", null);
   if (filter.projectId !== undefined) query = query.eq("project_id", filter.projectId);
   if (filter.state !== undefined) query = query.eq("entry_state", filter.state);
-  const { data, error } = await query.order("created_at");
+  const { data: raw, error } = await query.order("created_at");
   if (error) return fail(toDataError(error));
+  const data = (raw ?? []) as GuestRow[];
   const names = await partyNames(
     db,
     data.flatMap((g) => (g.person_id ? [g.person_id] : [])),
@@ -2296,7 +2321,7 @@ export async function updateGuestPass(
   if ((tableLabel !== null && tableLabel.length > 40) || guestEmail === undefined) {
     return fail({ kind: "invalid", message: "guest_pass" });
   }
-  const { data, error } = await db
+  const { data, error } = await untyped(db)
     .from("guest_list_entries")
     .update({
       pass_category_id: input.passCategoryId,
@@ -2308,7 +2333,7 @@ export async function updateGuestPass(
     .is("deleted_at", null)
     .select("id");
   if (error) return fail(toDataError(error));
-  return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+  return (data ?? []).length === 0 ? fail(NOT_FOUND) : ok(null);
 }
 
 export type GuestEmailKind = "Invitation" | "Pass" | "Message";
@@ -2342,7 +2367,7 @@ export async function queueGuestEmails(
     readonly locale: "en-US" | "es-US";
   },
 ): Promise<Result<{ sendId: string }>> {
-  const { data, error } = await db.rpc("queue_guest_emails", {
+  const { data, error } = await untyped(db).rpc("queue_guest_emails", {
     p_project_id: input.projectId,
     p_entry_ids: [...input.guestIds],
     p_kind: input.kind,
@@ -2359,7 +2384,7 @@ export async function guestEmailSendSummary(
   db: XosClient,
   sendId: string,
 ): Promise<Result<GuestEmailSummary>> {
-  const { data, error } = await db.rpc("guest_email_send_summary", { p_send_id: sendId });
+  const { data, error } = await untyped(db).rpc("guest_email_send_summary", { p_send_id: sendId });
   if (error) return fail(toDataError(error));
   const r = (data as Record<string, number>[] | null)?.[0];
   if (!r) return fail(NOT_FOUND);
