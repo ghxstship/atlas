@@ -199,6 +199,7 @@ export const clientSitemap: Sitemap = {
         ["weather", "page"],
         ["guest-check-in", "page"],
         ["lost-and-found", "page"],
+        ["muster", "page"],
       ],
     ],
     [
@@ -542,6 +543,7 @@ export const listNodes: ReadonlySet<string> = new Set([
   "site-ops.weather",
   "site-ops.guest-check-in",
   "site-ops.lost-and-found",
+  "site-ops.muster",
   "people.directory",
   "people.roles",
   "people.requisitions",

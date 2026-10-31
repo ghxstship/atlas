@@ -44,6 +44,6 @@ export function atlasRecordPath(
     case "radio-handout":
       return `${o}/advancing/allocations?project=${encodeURIComponent(record.projectKey ?? "")}&kind=Asset`;
     case "guest-pass":
-      return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/advancing?section=guests&peek=${id}`;
+      return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/advancing?peek=${id}&section=guests`;
   }
 }

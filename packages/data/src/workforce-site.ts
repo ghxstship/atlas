@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { personNames } from "./person-names.ts";
 import type { Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 import {
@@ -249,6 +250,8 @@ export interface WeatherReading {
   readonly value: number;
   readonly observedAt: string;
   readonly recordedBy: string | null;
+  /** Manual for a reading on site, NWS for one the official feed recorded (B8, 2976). */
+  readonly source: "Manual" | "NWS";
 }
 
 export interface WeatherAlert {
@@ -296,7 +299,9 @@ export async function getWeatherBoard(
     rows(
       untyped(db)
         .from("weather_readings")
-        .select(`id, hazard, reading_value, observed_at, recorder:memberships(${MEMBER_EMBED})`)
+        .select(
+          `id, hazard, reading_value, observed_at, source, recorder:memberships(${MEMBER_EMBED})`,
+        )
         .eq("project_id", projectId)
         .order("observed_at", { ascending: false })
         .limit(50),
@@ -306,6 +311,7 @@ export async function getWeatherBoard(
         value: num(r["reading_value"]),
         observedAt: str(r["observed_at"]),
         recordedBy: memberName(r["recorder"]),
+        source: r["source"] === "NWS" ? ("NWS" as const) : ("Manual" as const),
       }),
     ),
     rows(
@@ -480,8 +486,27 @@ export interface DoorGuest {
   readonly checkedInAt: string | null;
   readonly plusOnesAdmitted: number | null;
   readonly door: string | null;
+  /** The guest's pass (B8, 2974): the code the door scans, the pass type, the table and the host. */
+  readonly passCode: string | null;
+  readonly passCategoryCode: string | null;
+  readonly passCategoryName: string | null;
+  readonly tableLabel: string | null;
+  readonly hostPersonId: string | null;
 }
 
+/** The guest whose pass the door scanned (XOSGP1:<code>), or none: a pass not on tonight's list. */
+export function guestByPassCode(
+  guests: readonly DoorGuest[],
+  passCode: string,
+): DoorGuest | undefined {
+  const code = passCode.trim().toUpperCase();
+  return guests.find((g) => g.passCode === code);
+}
+
+/**
+ * The project's door list (app.door_guest_list): approved and checked-in guests, filtered by name, or by the exact
+ * pass code (B8).
+ */
 export async function listDoorGuests(
   db: XosClient,
   projectId: string,
@@ -500,6 +525,11 @@ export async function listDoorGuests(
       checkedInAt: strOrNull(r["checked_in_at"]),
       plusOnesAdmitted: numOrNull(r["plus_ones_admitted"]),
       door: strOrNull(r["door"]),
+      passCode: strOrNull(r["pass_code"]),
+      passCategoryCode: strOrNull(r["pass_category_code"]),
+      passCategoryName: strOrNull(r["pass_category_name"]),
+      tableLabel: strOrNull(r["table_label"]),
+      hostPersonId: strOrNull(r["host_person_id"]),
     }),
   );
 }
@@ -689,4 +719,381 @@ export async function disposeLostItem(
   reason: string,
 ): Promise<Result<{ id: string }>> {
   return callId(db, "dispose_lost_item", { p_item_id: itemId, p_reason: reason });
+}
+
+// Official weather feed, warnings, forecast and holds (B8, migrations 2976 and 2977) ------------------------------
+
+export interface WeatherFeedStatus {
+  /** The official feed covers the venue: it has a location in the US. */
+  readonly supported: boolean;
+  /** The feed, while it is on. */
+  readonly feedId: string | null;
+  readonly lastSuccessAt: string | null;
+  readonly lastFailureAt: string | null;
+  readonly lastError: string | null;
+  readonly failuresSinceSuccess: number;
+}
+
+export type WeatherWarningSeverity = "Extreme" | "Severe" | "Moderate" | "Minor" | "Unknown";
+
+/** An official alert, in English as the US National Weather Service issued it. */
+export interface WeatherWarning {
+  readonly id: string;
+  readonly event: string;
+  readonly severity: WeatherWarningSeverity;
+  readonly headline: string | null;
+  readonly description: string | null;
+  readonly instruction: string | null;
+  readonly onset: string | null;
+  readonly endsAt: string | null;
+  readonly expiresAt: string | null;
+}
+
+export interface WeatherForecastPeriod {
+  readonly startsAt: string;
+  readonly temperatureF: number | null;
+  readonly windSpeedMph: number | null;
+  readonly precipitationPercent: number | null;
+  readonly shortForecast: string | null;
+}
+
+export interface WeatherHold {
+  readonly id: string;
+  readonly hazard: WeatherHazard | null;
+  readonly message: string;
+  readonly calledAt: string;
+  readonly clearedAt: string | null;
+  readonly allClearMessage: string | null;
+}
+
+export type WeatherMessageKind = "Hold" | "All Clear";
+
+export interface WeatherFeedBoard {
+  readonly status: WeatherFeedStatus;
+  /** Active warnings, newest first: not ended. */
+  readonly warnings: readonly WeatherWarning[];
+  /** The next 12 forecast hours. */
+  readonly forecast: readonly WeatherForecastPeriod[];
+  /** The open hold, if one is open. */
+  readonly openHold: WeatherHold | null;
+  /** The project's hold and all-clear texts; the page prefills its catalog default without one. */
+  readonly templates: Readonly<Partial<Record<WeatherMessageKind, { id: string; body: string }>>>;
+}
+
+/** True when a warning should make Call hold the primary action: a Severe or Extreme alert. */
+export function isSevereWarning(warning: Pick<WeatherWarning, "severity">): boolean {
+  return warning.severity === "Severe" || warning.severity === "Extreme";
+}
+
+/** The official feed's status, active warnings, next 12 hours, open hold and templates of a project. */
+export async function getWeatherFeedBoard(
+  db: XosClient,
+  projectId: string,
+  now: Date = new Date(),
+): Promise<Result<WeatherFeedBoard>> {
+  const [status, warnings, forecast, holds, templates] = await Promise.all([
+    callRows(db, "weather_feed_status", { p_project_id: projectId }, (r) => ({
+      supported: r["supported"] === true,
+      feedId: strOrNull(r["feed_id"]),
+      lastSuccessAt: strOrNull(r["last_success_at"]),
+      lastFailureAt: strOrNull(r["last_failure_at"]),
+      lastError: strOrNull(r["last_error"]),
+      failuresSinceSuccess: numOrNull(r["failures_since_success"]) ?? 0,
+    })),
+    rows(
+      untyped(db)
+        .from("weather_warnings")
+        .select(
+          "id, event, severity, headline, description, instruction, onset, ends_at, expires_at",
+        )
+        .eq("project_id", projectId)
+        .is("ended_at", null)
+        .order("sent_at", { ascending: false })
+        .limit(20),
+      (r): WeatherWarning => ({
+        id: str(r["id"]),
+        event: str(r["event"]),
+        severity: str(r["severity"]) as WeatherWarningSeverity,
+        headline: strOrNull(r["headline"]),
+        description: strOrNull(r["description"]),
+        instruction: strOrNull(r["instruction"]),
+        onset: strOrNull(r["onset"]),
+        endsAt: strOrNull(r["ends_at"]),
+        expiresAt: strOrNull(r["expires_at"]),
+      }),
+    ),
+    rows(
+      untyped(db)
+        .from("weather_forecast_periods")
+        .select("starts_at, temperature_f, wind_speed_mph, precipitation_percent, short_forecast")
+        .eq("project_id", projectId)
+        .gte("ends_at", now.toISOString())
+        .order("starts_at")
+        .limit(12),
+      (r): WeatherForecastPeriod => ({
+        startsAt: str(r["starts_at"]),
+        temperatureF: numOrNull(r["temperature_f"]),
+        windSpeedMph: numOrNull(r["wind_speed_mph"]),
+        precipitationPercent: numOrNull(r["precipitation_percent"]),
+        shortForecast: strOrNull(r["short_forecast"]),
+      }),
+    ),
+    rows(
+      untyped(db)
+        .from("weather_holds")
+        .select("id, hazard, message, called_at, cleared_at, all_clear_message")
+        .eq("project_id", projectId)
+        .is("cleared_at", null)
+        .limit(1),
+      (r): WeatherHold => ({
+        id: str(r["id"]),
+        hazard: strOrNull(r["hazard"]) as WeatherHazard | null,
+        message: str(r["message"]),
+        calledAt: str(r["called_at"]),
+        clearedAt: strOrNull(r["cleared_at"]),
+        allClearMessage: strOrNull(r["all_clear_message"]),
+      }),
+    ),
+    rows(
+      untyped(db)
+        .from("weather_message_templates")
+        .select("id, message_kind, body")
+        .eq("project_id", projectId)
+        .is("deleted_at", null),
+      (r) => ({
+        id: str(r["id"]),
+        kind: str(r["message_kind"]) as WeatherMessageKind,
+        body: str(r["body"]),
+      }),
+    ),
+  ]);
+  if (!status.ok) return status;
+  if (!warnings.ok) return warnings;
+  if (!forecast.ok) return forecast;
+  if (!holds.ok) return holds;
+  if (!templates.ok) return templates;
+  const byKind: Partial<Record<WeatherMessageKind, { id: string; body: string }>> = {};
+  for (const tpl of templates.data) byKind[tpl.kind] = { id: tpl.id, body: tpl.body };
+  return {
+    ok: true,
+    data: {
+      status: status.data[0] ?? {
+        supported: false,
+        feedId: null,
+        lastSuccessAt: null,
+        lastFailureAt: null,
+        lastError: null,
+        failuresSinceSuccess: 0,
+      },
+      warnings: warnings.data,
+      forecast: forecast.data,
+      openHold: holds.data[0] ?? null,
+      templates: byKind,
+    },
+  };
+}
+
+/** Turns the official feed on (safety.emergency_code.write); a venue outside the US refuses weather_feed_unsupported. */
+export async function turnOnWeatherFeed(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<{ id: string }>> {
+  return single(
+    untyped(db).from("weather_feeds").insert({ project_id: projectId }).select("id").single(),
+    (r) => ({ id: str(r["id"]) }),
+  );
+}
+
+/** Turns the official feed off: its row is deleted, so the worker stops polling. */
+export async function turnOffWeatherFeed(db: XosClient, feedId: string): Promise<Result<null>> {
+  const result = await rows(
+    untyped(db)
+      .from("weather_feeds")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", feedId)
+      .is("deleted_at", null)
+      .select("id"),
+    (r) => str(r["id"]),
+  );
+  if (!result.ok) return result;
+  return result.data.length === 0
+    ? { ok: false, error: { kind: "not-found" } }
+    : { ok: true, data: null };
+}
+
+/**
+ * Calls a weather hold (app.call_weather_hold, safety.incident.dispatch): notifies the alert-role people, the
+ * dispatchers and everyone present in the project's zones. Refuses weather_hold_open and weather_hold_message. Atlas
+ * sends no device time, so a hold called here is never refused as late.
+ */
+export async function callWeatherHold(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly message: string;
+    readonly hazard?: WeatherHazard | null;
+    readonly weatherAlertId?: string | null;
+    readonly weatherWarningId?: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  return callId(
+    db,
+    "call_weather_hold",
+    args({
+      p_project_id: input.projectId,
+      p_message: input.message,
+      p_hazard: input.hazard ?? undefined,
+      p_weather_alert_id: input.weatherAlertId ?? undefined,
+      p_weather_warning_id: input.weatherWarningId ?? undefined,
+    }),
+  );
+}
+
+/** Gives the all-clear on an open hold (app.give_weather_all_clear); refuses weather_hold_closed. */
+export async function giveWeatherAllClear(
+  db: XosClient,
+  holdId: string,
+  message: string,
+): Promise<Result<{ id: string }>> {
+  return callId(db, "give_weather_all_clear", args({ p_hold_id: holdId, p_message: message }));
+}
+
+/** Saves the project's hold or all-clear text (safety.emergency_code.write), replacing the one it had. */
+export async function saveWeatherTemplate(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly kind: WeatherMessageKind;
+    readonly body: string;
+    readonly id?: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const body = input.body.trim();
+  if (body.length === 0 || body.length > 1000)
+    return { ok: false, error: { kind: "invalid", message: "body" } };
+  if (input.id) {
+    return single(
+      untyped(db)
+        .from("weather_message_templates")
+        .update({ body })
+        .eq("id", input.id)
+        .select("id")
+        .single(),
+      (r) => ({ id: str(r["id"]) }),
+    );
+  }
+  return single(
+    untyped(db)
+      .from("weather_message_templates")
+      .insert({ project_id: input.projectId, message_kind: input.kind, body })
+      .select("id")
+      .single(),
+    (r) => ({ id: str(r["id"]) }),
+  );
+}
+
+// The muster list (B8, migration 2971) ------------------------------------------------------------------------------
+
+export type MusterSource = "Scan" | "Clock In" | "Guest Check In";
+
+/** One person in a zone now, or a guest checked in at a door in the last 24 hours (app.muster_list). */
+export interface MusterRow {
+  /** The person present; null for a guest. */
+  readonly personId: string | null;
+  /** The person's or the guest's name. */
+  readonly name: string | null;
+  readonly guestName: string | null;
+  readonly plusOnes: number | null;
+  readonly zoneId: string | null;
+  readonly credentialCategoryId: string | null;
+  readonly engagementId: string | null;
+  readonly enteredAt: string;
+  readonly source: MusterSource;
+  readonly door: string | null;
+}
+
+/**
+ * The muster list of a project, optionally one zone, read as the caller: scan rows need the project's scan log, clock-in
+ * rows its time entries, guest rows both the guest list and the door check-ins. People's names come from
+ * app.person_names, as the scan log's do.
+ */
+export async function listMuster(
+  db: XosClient,
+  input: { readonly projectId: string; readonly zoneId?: string | null },
+): Promise<Result<MusterRow[]>> {
+  let query = untyped(db)
+    .from("muster_list")
+    .select(
+      "person_id, guest_name, plus_ones, zone_id, credential_category_id, engagement_id, entered_at, source, door",
+    )
+    .eq("project_id", input.projectId);
+  if (input.zoneId) query = query.eq("zone_id", input.zoneId);
+  const result = await rows(query.order("entered_at", { ascending: false }).limit(5000), (r) => ({
+    personId: strOrNull(r["person_id"]),
+    name: null as string | null,
+    guestName: strOrNull(r["guest_name"]),
+    plusOnes: numOrNull(r["plus_ones"]),
+    zoneId: strOrNull(r["zone_id"]),
+    credentialCategoryId: strOrNull(r["credential_category_id"]),
+    engagementId: strOrNull(r["engagement_id"]),
+    enteredAt: str(r["entered_at"]),
+    source: str(r["source"]) as MusterSource,
+    door: strOrNull(r["door"]),
+  }));
+  if (!result.ok) return result;
+  const names = await personNames(
+    db,
+    result.data.map((r) => r.personId),
+  );
+  return {
+    ok: true,
+    data: result.data.map((r) => ({
+      ...r,
+      name: r.personId ? (names.get(r.personId) ?? null) : r.guestName,
+    })),
+  };
+}
+
+/** Muster rows grouped by zone, in the order of the zones given, then the door check-ins (zone null) last. */
+export function musterByZone(
+  rowsIn: readonly MusterRow[],
+  zoneOrder: readonly string[],
+): { readonly zoneId: string | null; readonly rows: readonly MusterRow[] }[] {
+  const groups = new Map<string | null, MusterRow[]>();
+  for (const r of rowsIn) groups.set(r.zoneId, [...(groups.get(r.zoneId) ?? []), r]);
+  const rank = (id: string | null) =>
+    id === null
+      ? Number.MAX_SAFE_INTEGER
+      : zoneOrder.indexOf(id) === -1
+        ? zoneOrder.length
+        : zoneOrder.indexOf(id);
+  return [...groups]
+    .sort(([a], [b]) => rank(a) - rank(b))
+    .map(([zoneId, list]) => ({
+      zoneId,
+      rows: [...list].sort((x, y) => (x.name ?? "").localeCompare(y.name ?? "")),
+    }));
+}
+
+/**
+ * Whether the viewer may see a project's muster list: the scan log (credentials.scan_log.read) for scan rows, time
+ * entries (crew.time_entry.read) for clock-in rows. With neither the page shows its permission state.
+ */
+export async function musterAccess(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<{ readonly scans: boolean; readonly clockIns: boolean }>> {
+  const result = await call<string[] | null>(db, "my_capabilities_on_project", {
+    p_project_id: projectId,
+    p_capabilities: ["credentials.scan_log.read", "crew.time_entry.read"],
+  });
+  if (!result.ok) return result;
+  const held = new Set(result.data ?? []);
+  return {
+    ok: true,
+    data: {
+      scans: held.has("credentials.scan_log.read"),
+      clockIns: held.has("crew.time_entry.read"),
+    },
+  };
 }

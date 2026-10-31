@@ -3,12 +3,15 @@ import {
   credentialStatus,
   getCredentialCategory,
   getIssuedCredential,
+  insideNow,
   listAccessGrid,
   listAccessLevels,
   listAccessScans,
   listCredentialCategories,
   listIssuedCredentials,
   listProjectZones,
+  refusalReasonKey,
+  SCAN_DIRECTIONS,
   type AccessGridEntry,
   type AccessScan,
   type CredentialCategory,
@@ -20,6 +23,7 @@ import {
 import { badgePhotos, badgePhotoThumbnail } from "@xos/data/credential-photos";
 import { printSizesFor } from "@xos/data/documents/model";
 import type { Route } from "next";
+import dynamic from "next/dynamic";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import {
@@ -54,6 +58,7 @@ import {
   createCategoryAction,
   grantZoneAccessAction,
   issueCredentialAction,
+  overrideScanAction,
   recordScanAction,
   removeCredentialPhotoAction,
   requestCredentialPhotosAction,
@@ -72,6 +77,9 @@ import { CollectionPage } from "@/components/platform/collection-page";
 import { env } from "@/lib/env";
 import { gatewayUrl } from "@/lib/gateway-url";
 import { BadgePrint, PHOTO_TONE } from "./badge-print";
+
+// The scan log's Inside now section refreshes in the browser; it loads with that page only (bundle budget).
+const InsideNow = dynamic(() => import("./inside-now").then((m) => m.InsideNow));
 
 /**
  * The Credentials module (Section 4.2: categories, issuance, the access grid and scans), one
@@ -907,20 +915,59 @@ function ScanRows({
           key={s.id}
           className="flex flex-wrap items-center justify-between gap-8 py-6 text-text-13"
         >
-          <span>{joined(s.zoneCode, dateTime(format, s.scannedAt))}</span>
-          <ResultChip page={page} result={s.result} />
+          <span>
+            {joined(
+              s.zoneCode,
+              page.t(`credentials.scans.directions.${s.direction}`),
+              dateTime(format, s.scannedAt),
+            )}
+          </span>
+          <ResultChip page={page} scan={s} />
         </li>
       ))}
     </ul>
   );
 }
 
-function ResultChip({ page, result }: { page: ModulePage; result: AccessScan["result"] }) {
+/**
+ * A scan's outcome: Granted, Denied with the database's reason in the viewer's language (a denial from before B8 has
+ * none), or Overridden with who let the person in and why.
+ */
+function ResultChip({ page, scan }: { page: ModulePage; scan: AccessScan }) {
+  const t = page.t;
+  if (scan.overrideOfScanId) {
+    return (
+      <span className="inline-flex flex-col gap-2">
+        <ToneChip tone="warning">{t("credentials.scans.overridden")}</ToneChip>
+        <span className="text-text-12 text-text-secondary">
+          {t("credentials.scans.overriddenBy", {
+            name: scan.createdByName ?? t("credentials.common.unnamed"),
+            reason: scan.overrideReason ?? "",
+          })}
+        </span>
+      </span>
+    );
+  }
+  if (scan.result === "Granted") {
+    return <ToneChip tone="success">{t("credentials.scans.granted")}</ToneChip>;
+  }
   return (
-    <ToneChip tone={result === "Granted" ? "success" : "danger"}>
-      {page.t(result === "Granted" ? "credentials.scans.granted" : "credentials.scans.denied")}
+    <ToneChip tone="danger">
+      {scan.refusalReason
+        ? t("credentials.scans.deniedBecause", {
+            reason: t(`credentials.scans.reasons.${refusalReasonKey(scan.refusalReason)}`),
+          })
+        : t("credentials.scans.noReason")}
     </ToneChip>
   );
+}
+
+/** How long a denial can be overridden (app.override_access_scan, 2970). */
+const OVERRIDE_WINDOW_MS = 15 * 60_000;
+
+/** Whether a denial is still young enough to override, at the time the page is read. */
+function overridable(scannedAt: string): boolean {
+  return new Date().getTime() - Date.parse(scannedAt) < OVERRIDE_WINDOW_MS;
 }
 
 // Access grid ------------------------------------------------------------------------------------
@@ -1227,11 +1274,15 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
   const resultFilter = param(page.search, "result");
   const scanResult =
     resultFilter === "Granted" || resultFilter === "Denied" ? resultFilter : undefined;
+  const directionFilter = param(page.search, "direction");
+  const scanDirection =
+    directionFilter === "In" || directionFilter === "Out" ? directionFilter : undefined;
   const scans = unwrap(
     await listAccessScans(page.ctx.viewer.db, {
       orgId: page.ctx.org.id,
       ...(page.project ? { projectId: page.project.id } : {}),
       ...(scanResult ? { result: scanResult } : {}),
+      ...(scanDirection ? { direction: scanDirection } : {}),
     }),
     "scans",
   );
@@ -1245,6 +1296,32 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
         )
       : [];
   const timeZone = page.project?.timeZone;
+  const inside =
+    page.project && can(page, "credentials.scan_log.read")
+      ? unwrap(
+          await insideNow(page.ctx.viewer.db, {
+            orgId: page.ctx.org.id,
+            projectId: page.project.id,
+            venueId: page.project.venueId,
+          }),
+          "insideNow",
+        )
+      : null;
+  // Denied In scans a supervisor may still let in: under 15 minutes old and not overridden yet (2970).
+  const overridden = new Set(
+    scans.flatMap((s) => (s.overrideOfScanId ? [s.overrideOfScanId] : [])),
+  );
+  const recentDenials =
+    page.project && can(page, "credentials.credential.issue")
+      ? scans.filter(
+          (s) =>
+            s.result === "Denied" &&
+            s.direction === "In" &&
+            s.refusalReason !== "Revoked" &&
+            !overridden.has(s.id) &&
+            overridable(s.scannedAt),
+        )
+      : [];
 
   const columns: Column<AccessScan>[] = [
     {
@@ -1252,6 +1329,11 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
       label: t("credentials.scans.when"),
       primary: true,
       render: (s) => dateTime(format, s.scannedAt, timeZone),
+    },
+    {
+      key: "direction",
+      label: t("credentials.scans.direction"),
+      render: (s) => t(`credentials.scans.directions.${s.direction}`),
     },
     {
       key: "number",
@@ -1274,7 +1356,7 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
       key: "result",
       label: t("credentials.scans.result"),
       primary: true,
-      render: (s) => <ResultChip page={page} result={s.result} />,
+      render: (s) => <ResultChip page={page} scan={s} />,
     },
   ];
 
@@ -1305,8 +1387,28 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
               { value: "Denied", label: t("credentials.scans.denied") },
             ],
           },
+          {
+            name: "direction",
+            label: t("credentials.scans.direction"),
+            value: scanDirection ?? "",
+            options: [
+              { value: "", label: t("credentials.scans.allDirections") },
+              ...SCAN_DIRECTIONS.map((d) => ({
+                value: d,
+                label: t(`credentials.scans.directions.${d}`),
+              })),
+            ],
+          },
         ]}
       />
+      {inside && page.project ? (
+        <InsideNow
+          org={page.ctx.org.slug}
+          projectKey={page.project.key}
+          initial={{ zones: inside, at: new Date().toISOString() }}
+          timeZone={page.project.timeZone}
+        />
+      ) : null}
       {canScan && page.project && zones.length > 0 ? (
         <RecordSection id="scan-desk" title={t("credentials.scans.deskHeading")}>
           <p className="m-0 text-text-13 text-text-secondary">{t("credentials.scans.deskHelp")}</p>
@@ -1328,6 +1430,15 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
               }))}
               required
             />
+            <SelectField
+              id="scan-direction"
+              name="direction"
+              label={t("credentials.scans.directionLabel")}
+              options={SCAN_DIRECTIONS.map((d) => ({
+                value: d,
+                label: t(`credentials.scans.directions.${d}`),
+              }))}
+            />
             <TextField
               id="scan-number"
               name="credentialNumber"
@@ -1337,6 +1448,45 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
               maxLength={40}
             />
           </ActionForm>
+        </RecordSection>
+      ) : null}
+      {recentDenials.length > 0 ? (
+        <RecordSection id="recent-denials" title={t("credentials.scans.recentDenials")}>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("credentials.scans.recentDenialsHelp")}
+          </p>
+          <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
+            {recentDenials.map((s) => (
+              <li key={s.id} className="flex flex-col gap-8 py-8">
+                <p className="m-0 text-text-13">
+                  {joined(
+                    s.holderName ?? t("credentials.common.unnamed"),
+                    s.credentialNumber,
+                    s.zoneCode,
+                    dateTime(format, s.scannedAt, timeZone),
+                  )}{" "}
+                  <ResultChip page={page} scan={s} />
+                </p>
+                <ActionForm
+                  action={overrideScanAction}
+                  hidden={{ org: page.ctx.org.slug, scanId: s.id }}
+                  submitLabel={t("credentials.scans.overrideSubmit")}
+                  successKey="credentials.scans.overrideDone"
+                  variant="secondary"
+                  layout="inline"
+                >
+                  <TextField
+                    id={`override-${s.id}`}
+                    name="reason"
+                    label={t("credentials.scans.overrideReason")}
+                    help={t("credentials.scans.overrideReasonHelp")}
+                    required
+                    maxLength={300}
+                  />
+                </ActionForm>
+              </li>
+            ))}
+          </ul>
         </RecordSection>
       ) : null}
       <ScanIntakeQueue page={page} />
@@ -1357,7 +1507,7 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
             href: `/${page.ctx.org.slug}/credentials/issued?project=${s.projectKey}&peek=${s.credentialId}` as Route,
             title: `${s.holderName ?? t("credentials.common.unnamed")} · ${s.zoneCode}`,
             meta: `${s.credentialNumber} · ${dateTime(format, s.scannedAt, timeZone)}`,
-            trailing: <ResultChip page={page} result={s.result} />,
+            trailing: <ResultChip page={page} scan={s} />,
           }))}
         />
       ) : (

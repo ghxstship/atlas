@@ -856,6 +856,13 @@ export const sitemap: Sitemap = {
               route: "/{org}/site-ops/lost-and-found",
               list: { views: ["table", "list", "gallery"], default: "table" },
             },
+            {
+              id: "site-ops.muster",
+              kind: "page",
+              label: "nav.atlas.pages.siteOps.muster",
+              route: "/{org}/site-ops/muster",
+              list: { views: ["table", "list"], default: "table" },
+            },
           ],
         },
       ],

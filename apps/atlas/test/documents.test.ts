@@ -36,8 +36,10 @@ describe("generated document links (Section 11.9)", () => {
       projectKey: "NWF26",
     });
     expect(path.startsWith("/acme/")).toBe(true);
-    const [route] = path.slice("/acme/".length).split("?");
-    expect(existsSync(`${app}${route}/page.tsx`), route).toBe(true);
+    const [route = ""] = path.slice("/acme/".length).split("?");
+    // A project tab's page sits under p/[projectKey] (the guest pass opens the project's guest list).
+    const folder = route.replace(/^p\/[^/]+\//, "p/[projectKey]/");
+    expect(existsSync(`${app}${folder}/page.tsx`), route).toBe(true);
     expect(path).toMatch(/\?(peek|project)=/);
   });
 

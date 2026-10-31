@@ -182,6 +182,23 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "survey.opened": { title: "Load-In Pulse", anonymous: "true" },
   "training.assigned": { title: "Rigging Basics for Crew", due_on: "2026-10-27" },
   "weather.alert": { level: "Monitor", hazard: "Wind", reading: "24" },
+  // B8: the official feed's warnings (2976), holds and the all-clear (2977), and a host's guest arriving (2974).
+  "weather.warning": {
+    event: "Severe Thunderstorm Warning",
+    severity: "Severe",
+    headline: "Severe Thunderstorm Warning until 9:45 PM EDT",
+    ends_at: "2027-06-04T01:45:00Z",
+  },
+  "weather.hold": { message: "Lightning within 8 miles: stop work and shelter.", hazard: "Lightning" },
+  "weather.all_clear": { message: "All clear: resume work.", hazard: "Lightning" },
+  "guest.arrived": {
+    guest_name: "Sasha Bell",
+    plus_ones_admitted: "1",
+    door: "North Gate",
+    has_door: "yes",
+    table_label: "Table 4",
+    has_table: "yes",
+  },
   // A79's org lifecycle kinds (1350 to 1355), as their notify calls store them (dates as epoch milliseconds).
   "billing.trial_ending": { days: "3", plan: "pro", ends_at: "1795000000000" },
   "billing.trial_ended": { plan: "pro" },

@@ -115,6 +115,7 @@ grant select on private.weather_feed_runs to service_role;
 
 create function app.weather_feed_status(p_project_id uuid)
 returns table (
+  supported boolean,
   feed_id uuid,
   last_success_at timestamptz,
   last_failure_at timestamptz,
@@ -133,11 +134,8 @@ begin
   if not private.can_on_project(p_project_id, 'safety.incident.read') then
     raise exception using errcode = '42501', message = 'the weather feed needs safety.incident.read on the project';
   end if;
-  if v_feed is null then
-    return;
-  end if;
   return query
-    select v_feed,
+    select private.weather_feed_supported(p_project_id), v_feed,
       (select max(r.ran_at) from private.weather_feed_runs r where r.weather_feed_id = v_feed and r.outcome = 'Succeeded'),
       (select r.ran_at from private.weather_feed_runs r where r.weather_feed_id = v_feed and r.outcome = 'Failed' order by r.ran_at desc limit 1),
       (select r.error from private.weather_feed_runs r where r.weather_feed_id = v_feed and r.outcome = 'Failed' order by r.ran_at desc limit 1),
@@ -147,7 +145,7 @@ begin
                                    where s.weather_feed_id = v_feed and s.outcome = 'Succeeded'), '-infinity'::timestamptz));
 end;
 $$;
-comment on function app.weather_feed_status(uuid) is 'A project''s weather feed for the Weather page (safety.incident.read): its id, when it last succeeded, its last failure and reason, and how many runs failed since the last success. No row while the feed is off.';
+comment on function app.weather_feed_status(uuid) is 'A project''s weather feed for the Weather page (safety.incident.read), always one row: whether the official feed covers the venue (a location in the US), the feed''s id (NULL while it is off), when it last succeeded, its last failure and reason, and how many runs failed since the last success.';
 revoke all on function app.weather_feed_status(uuid) from public, anon;
 grant execute on function app.weather_feed_status(uuid) to authenticated, service_role;
 

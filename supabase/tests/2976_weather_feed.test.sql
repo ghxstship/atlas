@@ -122,6 +122,7 @@ select app.record_weather_feed_failure(pg_temp.id('feed'), 'XOS_WEATHER_USER_AGE
 select pg_temp.as_user('gina');
 select is((select last_error || ':' || failures_since_success from app.weather_feed_status(pg_temp.id('prj_a'))), 'XOS_WEATHER_USER_AGENT is not set:1',
   'the status shows the failure and how many since the last success');
+select is((select supported from app.weather_feed_status(pg_temp.id('prj_a'))), true, 'and that the official feed covers the venue');
 select pg_temp.as_user('xavier');
 select throws_ok($$select * from app.weather_feed_status((select id from world where key = 'prj_a'))$$, '42501', null, 'another org cannot read the status');
 select is((select count(*)::int from app.weather_warnings), 0, 'nor the warnings');

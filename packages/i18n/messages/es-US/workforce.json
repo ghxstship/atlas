@@ -724,7 +724,9 @@
       "temperature": "{value} °F",
       "wind": "{value} mph",
       "precipitation": "{value} % de lluvia",
-      "empty": "Aún no hay pronóstico."
+      "empty": "Aún no hay pronóstico.",
+      "rain": "Lluvia",
+      "summary": "Pronóstico"
     },
     "holds": {
       "call": "Suspender",

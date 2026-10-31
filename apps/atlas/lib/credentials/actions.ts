@@ -4,15 +4,20 @@ import {
   archiveCredentialCategory,
   createCredentialCategory,
   grantZoneAccess,
+  insideNow,
   issueCredential,
   listAccessGrid,
+  operationsProjectByKey,
+  overrideScan,
   recordScan,
+  refusalReasonKey,
   revokeCredential,
   updateCredentialCategory,
   updateCredentialWindow,
   updateZoneAccess,
   withdrawZoneAccess,
   CATEGORY_CODE,
+  type InsideZone,
 } from "@xos/data/credentials";
 import {
   countOutcomes,
@@ -339,21 +344,68 @@ export async function dismissScanIntakeAction(
 export async function recordScanAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const parsed = z
-    .object({ zoneId: z.uuid(), credentialNumber: z.string().trim().min(1).max(40) })
-    .safeParse({ zoneId: form.get("zoneId"), credentialNumber: form.get("credentialNumber") });
+    .object({
+      zoneId: z.uuid(),
+      credentialNumber: z.string().trim().min(1).max(40),
+      direction: z.enum(["In", "Out"]).default("In"),
+    })
+    .safeParse({
+      zoneId: form.get("zoneId"),
+      credentialNumber: form.get("credentialNumber"),
+      direction: form.get("direction") ?? undefined,
+    });
   if (!parsed.success) return { error: "scanInput" };
   const result = await recordScan(ctx.viewer.db, parsed.data);
   if (!result.ok) return failed(result.error);
   revalidatePath(`/${ctx.org.slug}`, "layout");
+  const t = await getTranslate();
+  // An Out scan is never refused (2970); a denial names the database's reason in the viewer's language.
+  const reason = result.data.refusalReason;
   return {
     ok: true,
     result: {
       number: result.data.credentialNumber,
       holder: result.data.holderName ?? "none",
       zone: result.data.zoneCode,
-      decision: result.data.result,
+      decision: parsed.data.direction === "Out" ? "Out" : result.data.result,
+      reason: reason ? t(`credentials.scans.reasons.${refusalReasonKey(reason)}`) : "none",
     },
   };
+}
+
+/**
+ * A supervisor lets in someone the gate denied (app.override_access_scan, 2970): a new Granted In row tied to the
+ * denied scan, with the reason. The database checks the capability, the holder and the 15 minutes.
+ */
+export async function overrideScanAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({ scanId: z.uuid(), reason: z.string().trim().min(1).max(300) })
+    .safeParse({ scanId: form.get("scanId"), reason: form.get("reason") });
+  if (!parsed.success) return { error: "rules.scan_override_reason" };
+  const result = await overrideScan(ctx.viewer.db, parsed.data);
+  if (!result.ok) return failed(result.error);
+  return done(ctx.org.slug, {
+    number: result.data.credentialNumber,
+    zone: result.data.zoneCode,
+  });
+}
+
+/** The scan log's Inside now section, read again every 30 seconds while it is not paused. */
+export async function loadInsideNow(
+  org: string,
+  projectKey: string,
+): Promise<{ readonly zones: readonly InsideZone[]; readonly at: string } | null> {
+  const ctx = await getOrgContext(org);
+  if (!ctx) return null;
+  const project = await operationsProjectByKey(ctx.viewer.db, ctx.org.id, projectKey);
+  if (!project.ok) return null;
+  const zones = await insideNow(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    projectId: project.data.id,
+    venueId: project.data.venueId,
+  });
+  return zones.ok ? { zones: zones.data, at: new Date().toISOString() } : null;
 }
 
 // Badge photos (P5) --------------------------------------------------------------------------------

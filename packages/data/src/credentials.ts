@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import { fillPersonNames } from "./person-names.ts";
+import { fillPersonNames, personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -1223,6 +1223,104 @@ export function zoneTotals(counts: readonly ZoneCount[]): Map<string, number> {
   const totals = new Map<string, number>();
   for (const c of counts) totals.set(c.zoneId, (totals.get(c.zoneId) ?? 0) + c.inside);
   return totals;
+}
+
+/** One part of a zone's total: a category or a team, and how many of the zone's people it holds. */
+export interface InsidePart {
+  readonly id: string | null;
+  readonly label: string | null;
+  readonly inside: number;
+}
+
+/** A zone with people scanned into it now, for the scan log's Inside now section (B8, G-145). */
+export interface InsideZone {
+  readonly zoneId: string;
+  readonly code: string;
+  readonly name: string;
+  readonly total: number;
+  readonly lastEntryAt: string | null;
+  readonly byCategory: readonly InsidePart[];
+  /** By engagement (the team): the engaged company, or the person for a person's engagement; null for none. */
+  readonly byTeam: readonly InsidePart[];
+}
+
+function parts(
+  counts: readonly ZoneCount[],
+  key: (c: ZoneCount) => string | null,
+  labels: ReadonlyMap<string, string>,
+): InsidePart[] {
+  const sums = new Map<string | null, number>();
+  for (const c of counts) sums.set(key(c), (sums.get(key(c)) ?? 0) + c.inside);
+  return [...sums]
+    .map(([id, inside]) => ({ id, label: id === null ? null : (labels.get(id) ?? null), inside }))
+    .sort((a, b) => b.inside - a.inside || (a.label ?? "").localeCompare(b.label ?? ""));
+}
+
+/**
+ * The project's zones with people inside now, by code, with the total, the category split and the team split of each
+ * (app.zone_counts_live, 2971). Read as the caller: someone without the scan log of the project sees no zone.
+ */
+export async function insideNow(
+  db: XosClient,
+  input: { readonly orgId: string; readonly projectId: string; readonly venueId: string | null },
+): Promise<Result<InsideZone[]>> {
+  const counts = await zoneCountsLive(db, input.projectId);
+  if (!counts.ok) return counts;
+  if (counts.data.length === 0) return ok([]);
+  const [zones, categories] = await Promise.all([
+    listProjectZones(db, input.orgId, input.venueId),
+    listCredentialCategories(db, { orgId: input.orgId, projectId: input.projectId }),
+  ]);
+  if (!zones.ok) return zones;
+  if (!categories.ok) return categories;
+  const engagementIds = [
+    ...new Set(counts.data.flatMap((c) => (c.engagementId ? [c.engagementId] : []))),
+  ];
+  const teams = new Map<string, string>();
+  if (engagementIds.length > 0) {
+    const { data, error } = await untyped(db)
+      .from("engagements")
+      .select("id, person_id, counterparty:counterparties(name)")
+      .in("id", engagementIds);
+    if (error) return fail(toDataError(error));
+    const rows = (data ?? []) as unknown as {
+      id: string;
+      person_id: string | null;
+      counterparty: { name: string | null } | null;
+    }[];
+    const names = await personNames(
+      db,
+      rows.map((r) => r.person_id),
+    );
+    for (const r of rows) {
+      const label = r.counterparty?.name ?? (r.person_id ? names.get(r.person_id) : undefined);
+      if (label) teams.set(r.id, label);
+    }
+  }
+  const categoryLabels = new Map(categories.data.map((c) => [c.id, `${c.code} · ${c.name}`]));
+  const byZone = new Map<string, ZoneCount[]>();
+  for (const c of counts.data) byZone.set(c.zoneId, [...(byZone.get(c.zoneId) ?? []), c]);
+  const zoneById = new Map(zones.data.map((z) => [z.id, z]));
+  return ok(
+    [...byZone]
+      .map(([zoneId, rows]): InsideZone => {
+        const zone = zoneById.get(zoneId);
+        return {
+          zoneId,
+          code: zone?.code ?? "",
+          name: zone?.name ?? "",
+          total: rows.reduce((n, r) => n + r.inside, 0),
+          lastEntryAt: rows.reduce<string | null>(
+            (latest, r) =>
+              r.lastEntryAt && (!latest || r.lastEntryAt > latest) ? r.lastEntryAt : latest,
+            null,
+          ),
+          byCategory: parts(rows, (r) => r.credentialCategoryId, categoryLabels),
+          byTeam: parts(rows, (r) => r.engagementId, teams),
+        };
+      })
+      .sort((a, b) => a.code.localeCompare(b.code)),
+  );
 }
 
 // Capabilities ---------------------------------------------------------------------------------

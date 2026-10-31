@@ -51,6 +51,7 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "reports.labor",
   "reports.measurement",
   "reports.purchase-order-exposure",
+  "site-ops.muster",
   "site-ops.weather",
   "trash",
 ]);

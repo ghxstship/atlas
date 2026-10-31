@@ -628,6 +628,11 @@ nodes:
             label: nav.atlas.pages.siteOps.lostAndFound
             route: "/{org}/site-ops/lost-and-found"
             list: { views: [table, list, gallery], default: table }
+          - id: site-ops.muster
+            kind: page
+            label: nav.atlas.pages.siteOps.muster
+            route: "/{org}/site-ops/muster"
+            list: { views: [table, list], default: table }
   - id: group.people
     kind: group
     label: nav.atlas.groups.people

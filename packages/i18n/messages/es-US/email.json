@@ -185,11 +185,11 @@
         "body": "El Servicio Meteorológico Nacional emitió una alerta {severity}: {headline}. Sigue el plan de emergencia."
       },
       "hold": {
-        "subject": "Suspensión por clima",
+        "subject": "Suspensión por clima: detenga el trabajo",
         "body": "{message}"
       },
       "all_clear": {
-        "subject": "Fin de la suspensión por clima",
+        "subject": "Fin de la suspensión: puede volver al trabajo",
         "body": "{message}"
       }
     },

@@ -185,11 +185,11 @@
         "body": "The National Weather Service issued a {severity} alert: {headline}. Follow the emergency plan."
       },
       "hold": {
-        "subject": "Weather hold called",
+        "subject": "Weather hold: stop work now",
         "body": "{message}"
       },
       "all_clear": {
-        "subject": "Weather all-clear",
+        "subject": "All clear: the weather hold is over",
         "body": "{message}"
       }
     },
