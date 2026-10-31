@@ -26053,6 +26053,11 @@
             "type": "boolean",
             "description": "Whether the work can be done remotely.",
             "example": false
+          },
+          "hide_client_until_booked": {
+            "type": "boolean",
+            "description": "Whether the client and event stay hidden from crew until they are booked.",
+            "example": false
           }
         },
         "required": [
@@ -26082,7 +26087,8 @@
           "currency_code",
           "deadline_at",
           "minimum_age",
-          "is_remote"
+          "is_remote",
+          "hide_client_until_booked"
         ],
         "description": "An opportunity published from an approved requisition. Without posted compensation it shows Rate on Request, never zero."
       },
@@ -26205,6 +26211,11 @@
             "type": "boolean",
             "description": "Whether the work can be done remotely.",
             "example": false
+          },
+          "hide_client_until_booked": {
+            "type": "boolean",
+            "description": "Whether the client and event stay hidden from crew until they are booked.",
+            "example": false
           }
         },
         "required": ["project_id", "title", "role_type"],
@@ -26308,6 +26319,11 @@
           "is_remote": {
             "type": "boolean",
             "description": "Whether the work can be done remotely.",
+            "example": false
+          },
+          "hide_client_until_booked": {
+            "type": "boolean",
+            "description": "Whether the client and event stay hidden from crew until they are booked.",
             "example": false
           }
         },
@@ -29605,6 +29621,11 @@
             "minimum": 0,
             "description": "Number of open positions.",
             "example": 4
+          },
+          "client_hidden": {
+            "type": "boolean",
+            "description": "True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.",
+            "example": false
           }
         },
         "required": [
@@ -29632,7 +29653,8 @@
           "deadline_at",
           "minimum_age",
           "opportunity_state",
-          "position_count"
+          "position_count",
+          "client_hidden"
         ],
         "description": "A marketplace view of an opportunity the caller may see. Internal columns never appear. Unposted compensation reads Rate on Request."
       },
@@ -104891,7 +104913,8 @@
                       "currency_code": "USD",
                       "deadline_at": "2026-10-08T14:30:00Z",
                       "minimum_age": 18,
-                      "is_remote": false
+                      "is_remote": false,
+                      "hide_client_until_booked": false
                     }
                   ],
                   "next_cursor": null
@@ -104938,7 +104961,8 @@
                 "currency_code": "USD",
                 "deadline_at": "2026-10-08T14:30:00Z",
                 "minimum_age": 18,
-                "is_remote": false
+                "is_remote": false,
+                "hide_client_until_booked": false
               },
               "schema": { "$ref": "#/components/schemas/OpportunityCreate" }
             }
@@ -104982,7 +105006,8 @@
                   "currency_code": "USD",
                   "deadline_at": "2026-10-08T14:30:00Z",
                   "minimum_age": 18,
-                  "is_remote": false
+                  "is_remote": false,
+                  "hide_client_until_booked": false
                 },
                 "schema": { "$ref": "#/components/schemas/Opportunity" }
               }
@@ -105058,7 +105083,8 @@
                   "currency_code": "USD",
                   "deadline_at": "2026-10-08T14:30:00Z",
                   "minimum_age": 18,
-                  "is_remote": false
+                  "is_remote": false,
+                  "hide_client_until_booked": false
                 },
                 "schema": { "$ref": "#/components/schemas/Opportunity" }
               }
@@ -105117,7 +105143,8 @@
                 "currency_code": "USD",
                 "deadline_at": "2026-10-08T14:30:00Z",
                 "minimum_age": 18,
-                "is_remote": false
+                "is_remote": false,
+                "hide_client_until_booked": false
               },
               "schema": { "$ref": "#/components/schemas/OpportunityUpdate" }
             }
@@ -105161,7 +105188,8 @@
                   "currency_code": "USD",
                   "deadline_at": "2026-10-08T14:30:00Z",
                   "minimum_age": 18,
-                  "is_remote": false
+                  "is_remote": false,
+                  "hide_client_until_booked": false
                 },
                 "schema": { "$ref": "#/components/schemas/Opportunity" }
               }
@@ -105282,7 +105310,8 @@
                   "currency_code": "USD",
                   "deadline_at": "2026-10-08T14:30:00Z",
                   "minimum_age": 18,
-                  "is_remote": false
+                  "is_remote": false,
+                  "hide_client_until_booked": false
                 },
                 "schema": { "$ref": "#/components/schemas/Opportunity" }
               }
@@ -110063,7 +110092,8 @@
                       "deadline_at": "2026-10-08T14:30:00Z",
                       "minimum_age": 18,
                       "opportunity_state": "Published",
-                      "position_count": 4
+                      "position_count": 4,
+                      "client_hidden": false
                     }
                   ],
                   "next_cursor": null

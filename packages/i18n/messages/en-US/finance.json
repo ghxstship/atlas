@@ -481,7 +481,11 @@
     },
     "xyzCategory": "From the category",
     "xyzDeclare": "Disciplines need a declared tag.",
-    "xyzFromCategory": "The category's tag is {tag}; choose another only to declare a different one."
+    "xyzFromCategory": "The category's tag is {tag}; choose another only to declare a different one.",
+    "lineFields": "Line fields",
+    "lineFieldsSentence": "Tags and other fields your organization adds to budget lines in Settings, Custom fields. Choose a line, then edit its fields.",
+    "lineFieldsLine": "Line",
+    "filteredLines": "Showing {shown} of {total} lines. Budget figures above cover every line."
   },
   "expenses": {
     "create": "New expense",

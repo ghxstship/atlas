@@ -1184,6 +1184,10 @@
       "removed": "Removed {title}.",
       "undo": "Undo",
       "failed": "That did not go through. Reload the page and try again."
+    },
+    "clientHidden": {
+      "tag": "Client confidential",
+      "notice": "The client and event are shared once you're booked."
     }
   },
   "home": {

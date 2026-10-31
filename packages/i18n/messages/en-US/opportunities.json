@@ -114,14 +114,17 @@
     "validDays": "Valid for days",
     "visibility": "Visibility",
     "when": "When",
-    "isRemote": "The work can be done remotely"
+    "isRemote": "The work can be done remotely",
+    "hideClientUntilBooked": "Hide client and event until booked"
   },
   "fieldErrors": {
     "required": "Fill in this field to continue.",
     "invalid": "Check this value: it is not in the expected format.",
     "dneReason": "Give the reason for Do Not Engage; it stays internal.",
     "dneReview": "Set a review date for Do Not Engage.",
-    "payNeedsRate": "Choose Hourly, Day, Flat or Milestone to post a pay range."
+    "payNeedsRate": "Choose Hourly, Day, Flat or Milestone to post a pay range.",
+    "hiddenClientNamed": "While the client and event are hidden, remove the project, client and venue names from the title and description.",
+    "hiddenClientPublished": "This listing already showed its client and event. Hide them on a new posting while it is a draft."
   },
   "errors": {
     "notFound": "This record is gone or you can no longer see it. Reload the page.",
@@ -185,7 +188,9 @@
       "insureds_none_required": "The organization requires no additional insureds for this project. Add them under Vendors, Insurance certificates, Required insureds.",
       "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization.",
       "question_template_not_found": "That question template was deleted or is not available to you. Choose another template.",
-      "question_template_not_draft": "A question template applies only to a Draft posting. Add questions one at a time instead."
+      "question_template_not_draft": "A question template applies only to a Draft posting. Add questions one at a time instead.",
+      "opportunity_hidden_client_named": "While the client and event are hidden, the title and description cannot name the project, its client or the venue. Remove the name, or show the client and event.",
+      "opportunity_hidden_client_published": "This listing already showed its client and event, so they can no longer be hidden. Post a new opportunity to hide them."
     },
     "insuredsMissing": "Recorded as failed. No current certificate names: {rule}. Ask the vendor for an updated certificate.",
     "questionsNotApplied": "The draft is saved, but the template's questions were not added. Open the draft and add them there."
@@ -241,7 +246,12 @@
     "questionTemplate": "Question template",
     "questionTemplateHelp": "Its questions are copied into the draft, where you can change or remove them.",
     "noQuestionTemplate": "No template",
-    "questionTemplateOption": "{name} ({count, plural, one {# question} other {# questions}})"
+    "questionTemplateOption": "{name} ({count, plural, one {# question} other {# questions}})",
+    "hideClientHelp": "Crew see your organization, the city, the dates and the pay. The venue stays hidden, and the title and description cannot name the project, its client or the venue.",
+    "hideClientLocked": "The client and event can be hidden only before a posting is published. Turning this off stays available.",
+    "clientHidden": "Client hidden until booked",
+    "clientHiddenTitle": "Client and event",
+    "clientHiddenSave": "Save"
   },
   "pipeline": {
     "title": "Pipeline",
@@ -706,6 +716,7 @@
     "new": "New question template",
     "create": "Create template",
     "created": "Template created. Add its questions next.",
-    "nameHelp": "A Title Case name, for example Crew Call Basics."
+    "nameHelp": "A Title Case name, for example Crew Call Basics.",
+    "hideClientHelp": "New postings start with the client and event hidden from crew until they are booked. Each posting can still change it before it is published."
   }
 }

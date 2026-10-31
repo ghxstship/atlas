@@ -140,6 +140,8 @@ export interface OpportunitySummary {
   readonly deadlineAt: string | null;
   readonly state: OpportunityState;
   readonly requisitionId: string | null;
+  /** The client and event stay hidden from crew until they are booked (2870). */
+  readonly hideClientUntilBooked: boolean;
   readonly positionCount: number;
   readonly applicationCount: number;
   readonly updatedAt: string;
@@ -205,6 +207,11 @@ export interface OpportunityInput {
   readonly minimumAge?: number | null;
   /** Remote work follows the pay transparency rules that cover remote roles (1125). */
   readonly isRemote?: boolean;
+  /**
+   * Crew see the org, the city, the dates and the pay until they are booked; the venue stays hidden and the title and
+   * description cannot name the project, its client or the venue (2870). Turned on only before publishing.
+   */
+  readonly hideClientUntilBooked?: boolean;
 }
 
 export type OpportunityPatch = Partial<Omit<OpportunityInput, "projectId" | "roleType">>;
@@ -512,7 +519,7 @@ export async function jobTitles(
 // Postings ---------------------------------------------------------------------------------------------------------------
 
 const OPPORTUNITY_COLUMNS =
-  "id, project_id, title, role_type, role_code, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, starts_on, ends_on, deadline_at, opportunity_state, requisition_id, updated_at, description, scope_node_id, venue_id, jurisdiction_id, minimum_age, project:projects(project_key, name), positions:opportunity_positions(id, label, call_at, ends_at, deleted_at), applications(id, deleted_at)";
+  "id, project_id, title, role_type, role_code, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, starts_on, ends_on, deadline_at, opportunity_state, requisition_id, hide_client_until_booked, updated_at, description, scope_node_id, venue_id, jurisdiction_id, minimum_age, project:projects(project_key, name), positions:opportunity_positions(id, label, call_at, ends_at, deleted_at), applications(id, deleted_at)";
 
 interface OpportunityRow {
   id: string;
@@ -530,6 +537,7 @@ interface OpportunityRow {
   deadline_at: string | null;
   opportunity_state: OpportunityState;
   requisition_id: string | null;
+  hide_client_until_booked: boolean;
   updated_at: string;
   description: string | null;
   scope_node_id: string | null;
@@ -568,6 +576,7 @@ function toSummary(r: OpportunityRow): OpportunitySummary {
     deadlineAt: r.deadline_at,
     state: r.opportunity_state,
     requisitionId: r.requisition_id,
+    hideClientUntilBooked: r.hide_client_until_booked,
     positionCount: (r.positions ?? []).filter((p) => p.deleted_at === null).length,
     applicationCount: (r.applications ?? []).filter((a) => a.deleted_at === null).length,
     updatedAt: r.updated_at,
@@ -679,6 +688,7 @@ function opportunityColumns(input: OpportunityPatch) {
     ["deadlineAt", "deadline_at"],
     ["minimumAge", "minimum_age"],
     ["isRemote", "is_remote"],
+    ["hideClientUntilBooked", "hide_client_until_booked"],
   ];
   for (const [key, column] of map) if (input[key] !== undefined) row[column] = input[key];
   return row;

@@ -49,6 +49,14 @@ function world(context = {}) {
           venue_latitude: null,
           venue_longitude: null,
         },
+        {
+          // The client and event are hidden until booking (2871): no venue name, a rounded point.
+          ...sample("MarketplaceListing", { id: id(8005), title: "Confidential Audio Crew" }),
+          venue_name: null,
+          client_hidden: true,
+          venue_latitude: 25.8,
+          venue_longitude: -80.2,
+        },
       ],
       saved_searches: [seed("SavedSearch", id(8101), { person_id: ME })],
       opportunity_alerts: [seed("OpportunityAlert", id(8102))],
@@ -156,7 +164,7 @@ describe("marketplace search", () => {
     const page = (await expectContract(await success(all), "marketplace.search")) as {
       data: Row[];
     };
-    expect(page.data.map((r) => r["id"]).sort()).toEqual([id(8001), id(8003), id(8004)]);
+    expect(page.data.map((r) => r["id"]).sort()).toEqual([id(8001), id(8003), id(8004), id(8005)]);
     expect(page.data.every((r) => r["distance_km"] === null)).toBe(true);
     expect(page.data.some((r) => "venue_latitude" in r)).toBe(false);
     const found = await http.get("/marketplace/opportunities?q=stage");
@@ -185,12 +193,28 @@ describe("marketplace search", () => {
     const close = (await expectContract(await success(near), "marketplace.search")) as {
       data: Row[];
     };
-    expect(close.data.map((r) => r["id"])).toEqual([id(8001)]);
+    expect(close.data.map((r) => r["id"]).sort()).toEqual([id(8001), id(8005)]);
     const wide = await http.get("/marketplace/opportunities?near=25.77,-80.19&radius_km=400");
     const both = (await expectContract(await success(wide), "marketplace.search")) as {
       data: Row[];
     };
-    expect(both.data.map((r) => r["id"]).sort()).toEqual([id(8001), id(8003)]);
+    expect(both.data.map((r) => r["id"]).sort()).toEqual([id(8001), id(8003), id(8005)]);
+  });
+
+  it("returns client_hidden, with no venue name and whole kilometers on a hidden listing", async () => {
+    const { http } = world();
+    const res = await http.get("/marketplace/opportunities?near=25.77,-80.19");
+    const page = (await expectContract(await success(res), "marketplace.search")) as {
+      data: Row[];
+    };
+    const byId = new Map(page.data.map((r) => [r["id"], r]));
+    const hidden = byId.get(id(8005));
+    expect(hidden).toMatchObject({ client_hidden: true, venue_name: null });
+    expect(Number.isInteger(hidden?.["distance_km"])).toBe(true);
+    expect(hidden?.["distance_km"]).toBeGreaterThan(2);
+    expect(hidden?.["distance_km"]).toBeLessThan(5);
+    expect(byId.get(id(8001))).toMatchObject({ client_hidden: false });
+    expect(page.data.every((r) => typeof r["client_hidden"] === "boolean")).toBe(true);
   });
 
   it("refuses a radius without a location and a location out of range", async () => {

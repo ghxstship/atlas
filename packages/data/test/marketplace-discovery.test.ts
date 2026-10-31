@@ -56,6 +56,7 @@ const ranked = {
   certifications_met: 0,
   is_saved: false,
   is_passed: false,
+  client_hidden: false,
 };
 
 describe("ranked marketplace search (A89, 1460)", () => {
@@ -113,6 +114,34 @@ describe("ranked marketplace search (A89, 1460)", () => {
       recommendation: { score: 85, skills: 25, certifications: 30, location: 20, availability: 10 },
     });
     expect((await searchMarketplace(db)).ok).toBe(false);
+  });
+
+  it("maps a hidden client's listing (2871): no venue name, the rounded point, whole kilometers", async () => {
+    const { db } = fakeClient({
+      "rpc:search_marketplace": [
+        okResponse([
+          {
+            ...ranked,
+            venue_name: null,
+            venue_latitude: 25.8,
+            venue_longitude: -80.2,
+            distance_km: "3",
+            client_hidden: true,
+          },
+          { ...ranked, id: "0192f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f62", client_hidden: null },
+        ]),
+      ],
+    });
+    const result = await searchMarketplace(db);
+    expect(result.ok && result.data[0]).toMatchObject({
+      clientHidden: true,
+      venueName: null,
+      venueLocality: "Miami",
+      venueLatitude: 25.8,
+      venueLongitude: -80.2,
+      distanceKm: 3,
+    });
+    expect(result.ok && result.data[1]?.clientHidden).toBe(false);
   });
 
   it("asks for the best match with no filters by default", async () => {

@@ -4562,6 +4562,7 @@ export interface Components {
     minimum_age: number | null;
     opportunity_state: Components["OpportunityState"];
     position_count: number;
+    client_hidden: boolean;
   };
   MarketplaceListingPage: {
     data: Array<Components["MarketplaceListing"]>;
@@ -5010,6 +5011,7 @@ export interface Components {
     deadline_at: string | null;
     minimum_age: number | null;
     is_remote: boolean;
+    hide_client_until_booked: boolean;
   };
   OpportunityAlert: {
     id: string;
@@ -5042,6 +5044,7 @@ export interface Components {
     deadline_at?: string | null;
     minimum_age?: number | null;
     is_remote?: boolean;
+    hide_client_until_booked?: boolean;
   };
   OpportunityPage: { data: Array<Components["Opportunity"]>; next_cursor: string | null };
   OpportunityPosition: {
@@ -5153,6 +5156,7 @@ export interface Components {
     deadline_at?: string | null;
     minimum_age?: number | null;
     is_remote?: boolean;
+    hide_client_until_booked?: boolean;
   };
   OpportunityVisibility: "Invited" | "Pool" | "Network" | "Public";
   OrgBranding: {

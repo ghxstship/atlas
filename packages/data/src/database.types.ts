@@ -1891,6 +1891,7 @@ export type Database = {
       opportunities: {
         Row: {
           cat_urid: string | null;
+          client_hidden: boolean | null;
           currency_code: string | null;
           deadline_at: string | null;
           description: string | null;
@@ -29115,6 +29116,7 @@ export type Database = {
           deleted_at: string | null;
           description: string | null;
           ends_on: string | null;
+          hide_client_until_booked: boolean;
           id: string;
           is_remote: boolean;
           jurisdiction_id: string | null;
@@ -29146,6 +29148,7 @@ export type Database = {
           deleted_at?: string | null;
           description?: string | null;
           ends_on?: string | null;
+          hide_client_until_booked?: boolean;
           id?: string;
           is_remote?: boolean;
           jurisdiction_id?: string | null;
@@ -29176,6 +29179,7 @@ export type Database = {
           deleted_at?: string | null;
           description?: string | null;
           ends_on?: string | null;
+          hide_client_until_booked?: boolean;
           id?: string;
           is_remote?: boolean;
           jurisdiction_id?: string | null;
@@ -29378,6 +29382,7 @@ export type Database = {
           created_by: string | null;
           currency_code: string | null;
           deleted_at: string | null;
+          hide_client_until_booked: boolean;
           id: string;
           org_id: string;
           rate_type: Database["app"]["Enums"]["rate_type"] | null;
@@ -29393,6 +29398,7 @@ export type Database = {
           created_by?: string | null;
           currency_code?: string | null;
           deleted_at?: string | null;
+          hide_client_until_booked?: boolean;
           id?: string;
           org_id: string;
           rate_type?: Database["app"]["Enums"]["rate_type"] | null;
@@ -29407,6 +29413,7 @@ export type Database = {
           created_by?: string | null;
           currency_code?: string | null;
           deleted_at?: string | null;
+          hide_client_until_booked?: boolean;
           id?: string;
           org_id?: string;
           rate_type?: Database["app"]["Enums"]["rate_type"] | null;
@@ -65944,6 +65951,7 @@ export type Database = {
           certification_points: number;
           certifications_met: number;
           certifications_required: number;
+          client_hidden: boolean;
           currency_code: string;
           deadline_at: string;
           description: string;

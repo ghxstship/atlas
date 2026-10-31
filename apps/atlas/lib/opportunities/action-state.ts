@@ -70,7 +70,18 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "transition_reason_required",
   "question_template_not_found",
   "question_template_not_draft",
+  "opportunity_hidden_client_named",
+  "opportunity_hidden_client_published",
 ]);
+
+/** Refusals that point at fields, with each field's key under `opportunities.fieldErrors` (2870). */
+const RULE_FIELDS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  opportunity_hidden_client_named: {
+    title: "hiddenClientNamed",
+    description: "hiddenClientNamed",
+  },
+  opportunity_hidden_client_published: { hideClientUntilBooked: "hiddenClientPublished" },
+};
 
 /** A repository error as the state a form shows. */
 export function errorState(
@@ -81,8 +92,9 @@ export function errorState(
   switch (error.kind) {
     case "refusal": {
       const key = error.rule.replace(/-/g, "_");
+      const fields = RULE_FIELDS[error.rule];
       return KNOWN_RULES.has(error.rule)
-        ? { ...base, error: `refusal.${key}` }
+        ? { ...base, error: `refusal.${key}`, ...(fields ? { fieldErrors: fields } : {}) }
         : { ...base, error: "refusal.generic", rule: error.rule };
     }
     case "not-found":

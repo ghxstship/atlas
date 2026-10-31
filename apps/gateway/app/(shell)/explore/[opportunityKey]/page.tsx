@@ -106,6 +106,7 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
         action={
           <>
             <Tag>{t(enumLabelKey("externalRoleType", o.roleType))}</Tag>
+            {o.clientHidden ? <Tag>{t("gateway.explore.clientHidden.tag")}</Tag> : null}
             {saved ? (
               <ActionButton
                 action={unsaveOpportunityAction.bind(null, saved.id)}
@@ -125,6 +126,9 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
 
       <div className="grid grid-cols-[minmax(0,1fr)_var(--layout-property-column)] gap-24 max-lg:grid-cols-[minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-24">
+          {o.clientHidden ? (
+            <InlineAlert tone="info">{t("gateway.explore.clientHidden.notice")}</InlineAlert>
+          ) : null}
           {o.description ? (
             <Section title={t("gateway.explore.detail.about")}>
               <p className="m-0 whitespace-pre-line text-text-14">{o.description}</p>
@@ -275,8 +279,14 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
                   value:
                     formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate"),
                 },
-                ...(o.venueName
-                  ? [{ label: t("gateway.explore.detail.place"), value: o.venueName }]
+                // A hidden client's listing names only its city until the caller is booked (2871).
+                ...((o.venueName ?? (o.clientHidden ? o.venueLocality : null))
+                  ? [
+                      {
+                        label: t("gateway.explore.detail.place"),
+                        value: o.venueName ?? o.venueLocality ?? "",
+                      },
+                    ]
                   : []),
                 { label: t("gateway.explore.detail.positions"), value: String(o.positionCount) },
                 ...(o.deadlineAt
