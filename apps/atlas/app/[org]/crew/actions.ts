@@ -6,6 +6,7 @@ import {
   acceptSwap,
   assignRosterShift,
   getShift,
+  saveRosterShift,
   unassignRosterShift,
   verifyRosterTraining,
   addPerDiems,
@@ -129,7 +130,7 @@ function shiftTimes(form: FormData, t: Translate) {
 
 /**
  * The worker a shift form names (R12): a member, an agency slot or a person on the agency's roster. The roster
- * person is placed after the shift names their engagement's slot, through app.assign_roster_shift.
+ * person is placed in the same transaction that writes their engagement's slot, through app.save_roster_shift.
  */
 function workerOf(form: FormData) {
   return decodeWorker(text(form, "membershipId"));
@@ -144,18 +145,26 @@ export async function createShiftAction(_: State, form: FormData): Promise<State
   const worker = workerOf(form);
   if (!worker) return invalid(t, { membershipId: "crew.errors.worker" });
   const role = text(form, "roleCode");
-  const result = await createShift(db, {
+  const shift = {
     orgId: ctx.org.id,
     projectId: project.data,
     roleCode: role === "" ? null : role,
     startsAt: times.startsAt,
     endsAt: times.endsAt,
     timeZone: times.zone,
-    membershipId: worker.kind === "member" ? worker.membershipId : null,
-    engagementId: worker.kind === "agency" || worker.kind === "staff" ? worker.engagementId : null,
-  });
-  if (!result.ok || worker.kind !== "staff") return done(ctx.org.slug, result, t);
-  return done(ctx.org.slug, await assignRosterShift(db, result.data.id, worker.rosterEntryId), t);
+  };
+  // Agency staff are placed in the same transaction that writes their slot, so a refusal leaves no slot behind.
+  if (worker.kind === "staff")
+    return done(ctx.org.slug, await saveRosterShift(db, { ...shift, worker }), t);
+  return done(
+    ctx.org.slug,
+    await createShift(db, {
+      ...shift,
+      membershipId: worker.kind === "member" ? worker.membershipId : null,
+      engagementId: worker.kind === "agency" ? worker.engagementId : null,
+    }),
+    t,
+  );
 }
 
 export async function updateShiftAction(_: State, form: FormData): Promise<State> {
@@ -181,22 +190,21 @@ export async function updateShiftAction(_: State, form: FormData): Promise<State
     timeZone: times.zone,
   };
   if (worker === null) return done(ctx.org.slug, await updateShift(db, id.data, times_), t);
-  if (worker.kind === "staff") {
-    // Another of the agency's people takes the shift: the slot moves between its entries (app.assign_roster_shift).
-    const moved = await updateShift(db, id.data, times_);
-    if (!moved.ok) return failed(t, moved.error);
-    if (held === null) {
-      const slot = await updateShift(db, id.data, {
-        membershipId: null,
-        engagementId: worker.engagementId,
-      });
-      if (!slot.ok) return failed(t, slot.error);
-    }
-    return done(ctx.org.slug, await assignRosterShift(db, id.data, worker.rosterEntryId), t);
-  }
-  if (held !== null) {
-    const off = await unassignRosterShift(db, id.data, t("crew.agency.unassignReason"));
-    if (!off.ok) return failed(t, off.error);
+  if (worker.kind === "staff" || held !== null) {
+    // Onto, between or off the agency's roster: the times, the slot and the placement save together
+    // (app.save_roster_shift), so a refused placement leaves the shift and its person as they were.
+    return done(
+      ctx.org.slug,
+      await saveRosterShift(db, {
+        ...times_,
+        shiftId: id.data,
+        orgId: ctx.org.id,
+        projectId: current.data.projectId,
+        worker,
+        reason: t("crew.agency.unassignReason"),
+      }),
+      t,
+    );
   }
   return done(
     ctx.org.slug,

@@ -6,12 +6,13 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type DragEvent } from "react";
-import type { ShiftCandidate } from "@xos/data/crew";
 import {
+  assignRosterDropAction,
   assignShiftAction,
   rankCandidatesAction,
   type CandidatesResult,
 } from "@/app/[org]/crew/scheduling-actions";
+import { candidateKey, type BoardCandidate } from "@/lib/crew/board-candidates";
 import { FillMeter } from "./fill-meter";
 
 export interface BoardShift {
@@ -29,7 +30,10 @@ export interface ClaimedShift extends BoardShift {
 /**
  * The schedule's drag board (A132, ADR 0063, Section 11.11 crew fill): the week's open shifts on one side and the
  * org's members ranked for the chosen shift on the other (app.rank_shift_candidates: free of an overlapping shift,
- * then stated availability, then the role worked before, then the fewest hours that week). A planner drags a person
+ * then stated availability, then the role worked before, then the fewest hours that week), with the accepted people
+ * of the agencies' rosters on the project ranked among them (R12, app.rank_roster_candidates; their availability is
+ * what they share with the org, else not stated). Dropping one of them makes the shift their agency's slot and places
+ * them in one step (app.assign_open_shift_to_roster), so a refusal such as training still due leaves it open. A planner drags a person
  * onto any open shift, or, from the keyboard, chooses a shift and presses Assign on a person. A person dropped on a
  * shift other than the chosen one is checked against that shift's ranking first: one who is on an overlapping shift
  * is not assigned, and the shift is chosen so the planner sees the warning and decides. Shifts with claims waiting
@@ -53,7 +57,7 @@ export function SchedulingBoard(props: {
   const [busy, setBusy] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const [over, setOver] = useState<string | null>(null);
-  const dragged = useRef<ShiftCandidate | null>(null);
+  const dragged = useRef<BoardCandidate | null>(null);
 
   // Shifts assigned here leave the board and count as filled at once; the server's lists win as soon as the
   // schedule rereads (live updates, ADR 0044), since a shift it no longer lists as open is no longer pending.
@@ -80,13 +84,16 @@ export function SchedulingBoard(props: {
   const percentOf = (n: number) => (total === 0 ? 0 : Math.round((n / total) * 100));
   const meterText = t("fill.value", { filled, total, percent: percentOf(filled) });
   const shiftLabel = (id: string) => open.find((s) => s.id === id)?.label ?? "";
-  const nameOf = (c: ShiftCandidate) => c.name ?? t("unnamed");
+  const nameOf = (c: BoardCandidate) => c.name ?? t("unnamed");
 
-  const assign = async (shiftId: string, person: ShiftCandidate) => {
+  const assign = async (shiftId: string, person: BoardCandidate) => {
     if (busy) return;
     setBusy(true);
     const label = shiftLabel(shiftId);
-    const outcome = await assignShiftAction(props.org, shiftId, person.membershipId);
+    const outcome =
+      person.kind === "staff"
+        ? await assignRosterDropAction(props.org, shiftId, person.rosterEntryId)
+        : await assignShiftAction(props.org, shiftId, person.membershipId);
     setBusy(false);
     if (!outcome.ok) {
       setAnnouncement(t("assignFailed", { name: nameOf(person), error: outcome.error ?? "" }));
@@ -109,7 +116,7 @@ export function SchedulingBoard(props: {
 
   // A drop on a shift other than the chosen one: rank that shift first, so a double booking is warned of before it
   // is made (Section 11.11), not found on the schedule after.
-  const dropOn = async (shiftId: string, person: ShiftCandidate) => {
+  const dropOn = async (shiftId: string, person: BoardCandidate) => {
     if (busy) return;
     if (shiftId === selected) return assign(shiftId, person);
     setBusy(true);
@@ -122,7 +129,7 @@ export function SchedulingBoard(props: {
       setAnnouncement(t("assignFailed", { name: nameOf(person), error: target.error }));
       return;
     }
-    const there = target.candidates.find((c) => c.membershipId === person.membershipId);
+    const there = target.candidates.find((c) => candidateKey(c) === candidateKey(person));
     if (!there || there.conflict) {
       setChosen(shiftId);
       setAnnouncement(
@@ -235,23 +242,27 @@ export function SchedulingBoard(props: {
               >
                 {candidates.map((c) => (
                   <li
-                    key={c.membershipId}
+                    key={candidateKey(c)}
                     draggable={!busy}
                     onDragStart={(event) => {
                       dragged.current = c;
                       event.dataTransfer.effectAllowed = "move";
-                      event.dataTransfer.setData("text/plain", c.membershipId);
+                      event.dataTransfer.setData("text/plain", candidateKey(c));
                     }}
                     onDragEnd={() => {
                       dragged.current = null;
                       setOver(null);
                     }}
                     data-testid="board-candidate"
+                    data-kind={c.kind}
                     className="flex cursor-grab flex-wrap items-center justify-between gap-8 rounded-control border border-border-subtle px-8 py-6"
                   >
                     <span className="flex flex-col gap-2">
                       <span className="text-text-13 font-medium">{nameOf(c)}</span>
                       <span className="flex flex-wrap gap-x-8 text-text-12 text-text-secondary">
+                        {c.kind === "staff" ? (
+                          <span>{t("agencyStaff", { account: c.accountName ?? t("agency") })}</span>
+                        ) : null}
                         <span
                           className={
                             c.availability === "Available"
@@ -263,8 +274,11 @@ export function SchedulingBoard(props: {
                         >
                           {t(`availability.${c.availability}`)}
                         </span>
-                        {c.overdue ? (
+                        {c.kind === "member" && c.overdue ? (
                           <span className="text-warning-text">{t("overdue")}</span>
+                        ) : null}
+                        {c.kind === "staff" && c.trainingDue > 0 ? (
+                          <span className="text-warning-text">{t("trainingDue")}</span>
                         ) : null}
                         {c.conflict ? (
                           <span className="text-danger-text">{t("conflict")}</span>

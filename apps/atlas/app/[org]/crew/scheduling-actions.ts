@@ -4,20 +4,22 @@ import type { DataError } from "@xos/data";
 import {
   addAvailabilityPeriod,
   assignOpenShift,
+  assignOpenShiftToRoster,
   createShiftTemplate,
   createShiftsFromTemplate,
   daysBetween,
   ensureMemberAvailabilityCalendar,
+  rankRosterCandidates,
   rankShiftCandidates,
   removeAvailabilityPeriod,
   trashShiftTemplate,
   type AvailabilityKind,
-  type ShiftCandidate,
 } from "@xos/data/crew";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import type { CrewActionState } from "@/lib/crew/action-state";
+import { mergeCandidates, type BoardCandidate } from "@/lib/crew/board-candidates";
 import { errorMessage } from "@/lib/crew/errors";
 import { zonedToIso } from "@/lib/crew/time";
 import { getOrgContext } from "@/lib/shell/context";
@@ -98,10 +100,10 @@ export async function createShiftsFromTemplateAction(_: State, form: FormData): 
 // The drag list --------------------------------------------------------------------------------------------
 
 export type CandidatesResult =
-  | { readonly ok: true; readonly candidates: readonly ShiftCandidate[] }
+  | { readonly ok: true; readonly candidates: readonly BoardCandidate[] }
   | { readonly ok: false; readonly error: string };
 
-/** The org's members ranked for one shift, for the schedule's drag list. */
+/** The org's members and the agencies' accepted roster people ranked for one shift, for the schedule's drag list. */
 export async function rankCandidatesAction(
   org: string,
   shiftId: string,
@@ -109,13 +111,14 @@ export async function rankCandidatesAction(
 ): Promise<CandidatesResult> {
   const { db, t } = await context(org);
   if (!uuid.safeParse(shiftId).success) return { ok: false, error: t("crew.errors.notFound") };
-  const ranked = await rankShiftCandidates(
-    db,
-    shiftId,
-    isoDate.safeParse(weekStart).success ? weekStart : undefined,
-  );
-  if (!ranked.ok) return { ok: false, error: errorMessage(t, ranked.error) };
-  return { ok: true, candidates: ranked.data };
+  const week = isoDate.safeParse(weekStart).success ? weekStart : undefined;
+  const [members, staff] = await Promise.all([
+    rankShiftCandidates(db, shiftId, week),
+    rankRosterCandidates(db, shiftId, week),
+  ]);
+  if (!members.ok) return { ok: false, error: errorMessage(t, members.error) };
+  if (!staff.ok) return { ok: false, error: errorMessage(t, staff.error) };
+  return { ok: true, candidates: mergeCandidates(members.data, staff.data) };
 }
 
 /**
@@ -133,6 +136,25 @@ export async function assignShiftAction(
     return { error: t("crew.errors.notFound") };
   }
   const result = await assignOpenShift(db, shiftId, membershipId);
+  if (!result.ok) return failed(t, result.error);
+  refresh(ctx.org.slug);
+  return { ok: true };
+}
+
+/**
+ * Puts a person of an agency's roster on an open shift from the drag list (R12): the shift becomes their agency's
+ * slot and they are placed on it in one step (app.assign_open_shift_to_roster), so a refusal leaves it open.
+ */
+export async function assignRosterDropAction(
+  org: string,
+  shiftId: string,
+  rosterEntryId: string,
+): Promise<State> {
+  const { ctx, db, t } = await context(org);
+  if (!uuid.safeParse(shiftId).success || !uuid.safeParse(rosterEntryId).success) {
+    return { error: t("crew.errors.notFound") };
+  }
+  const result = await assignOpenShiftToRoster(db, shiftId, rosterEntryId);
   if (!result.ok) return failed(t, result.error);
   refresh(ctx.org.slug);
   return { ok: true };

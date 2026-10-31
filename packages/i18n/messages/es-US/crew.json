@@ -641,7 +641,7 @@
     "ranked": "Equipo ordenado",
     "rankedFor": "Ordenado para {shift}",
     "loading": "Ordenando al equipo para este turno.",
-    "noCandidates": "Ningún otro miembro de la organización puede tomar este turno.",
+    "noCandidates": "Nadie más de la organización ni del equipo de una agencia puede tomar este turno.",
     "unnamed": "Miembro sin nombre",
     "availability": {
       "Available": "Disponible",
@@ -667,6 +667,9 @@
     "overdue": "Disponibilidad atrasada",
     "conflict": "En otro turno a esa hora",
     "workedRole": "Ya trabajó este puesto",
+    "agencyStaff": "Personal de agencia, {account}",
+    "agency": "agencia",
+    "trainingDue": "Capacitación pendiente",
     "weekHours": "{hours} h esta semana",
     "assign": "Asignar",
     "assignTo": "Asignar a {name} a {shift}",

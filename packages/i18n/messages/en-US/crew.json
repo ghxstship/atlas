@@ -641,7 +641,7 @@
     "ranked": "Ranked crew",
     "rankedFor": "Ranked for {shift}",
     "loading": "Ranking crew for this shift.",
-    "noCandidates": "No other member of the organization can take this shift.",
+    "noCandidates": "Nobody else in the organization or on an agency's roster can take this shift.",
     "unnamed": "Unnamed member",
     "availability": {
       "Available": "Available",
@@ -667,6 +667,9 @@
     "overdue": "Availability overdue",
     "conflict": "On another shift then",
     "workedRole": "Worked this role",
+    "agencyStaff": "Agency staff, {account}",
+    "agency": "agency",
+    "trainingDue": "Training due",
     "weekHours": "{hours} h this week",
     "assign": "Assign",
     "assignTo": "Assign {name} to {shift}",
