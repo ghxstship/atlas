@@ -142,10 +142,25 @@ export function summarizeMutation(
         const zone = text(a["p_zone_id"]) ? ctx.zoneName(String(a["p_zone_id"])) : null;
         const at = text(a["p_device_scanned_at"]);
         const time = at ? ctx.time(at) : ctx.time(m.queuedAt);
+        if (a["p_direction"] === "Out") {
+          return zone
+            ? { key: "accessExitZone", values: { zone, time } }
+            : { key: "accessExit", values: { time } };
+        }
         return zone
           ? { key: "accessScanZone", values: { zone, time } }
           : { key: "accessScan", values: { time } };
       }
+      case "override_access_scan":
+      case "app.override_access_scan": {
+        // B8 (2970): a supervisor lets in someone the gate denied; the reason is shown as typed.
+        const reason = text(a["p_reason"]);
+        return reason ? { key: "accessOverride", values: { reason } } : generic(m, ctx);
+      }
+      case "app.call_weather_hold":
+        return { key: "weatherHold", values: {} };
+      case "app.give_weather_all_clear":
+        return { key: "weatherAllClear", values: {} };
       case "app.apply_asset_scan": {
         const code = text(a["p_code"]) ?? "";
         return {

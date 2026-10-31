@@ -277,7 +277,12 @@
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
       "expenseReceipt": "Gasto: {description}, {day}",
-      "proofPhoto": "Foto de comprobación de cumplimiento, {time}"
+      "proofPhoto": "Foto de comprobación de cumplimiento, {time}",
+      "accessExit": "Escaneo de salida a las {time}",
+      "accessExitZone": "Escaneo de salida en {zone}, {time}",
+      "accessOverride": "Anular un escaneo denegado: {reason}",
+      "weatherHold": "Suspender por clima",
+      "weatherAllClear": "Dar fin a la suspensión por clima"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
     "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."

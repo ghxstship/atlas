@@ -277,7 +277,12 @@
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}.",
       "expenseReceipt": "Expense: {description}, {day}",
-      "proofPhoto": "Proof of performance photo, {time}"
+      "proofPhoto": "Proof of performance photo, {time}",
+      "accessExit": "Exit scan at {time}",
+      "accessExitZone": "Exit scan at {zone}, {time}",
+      "accessOverride": "Override a denied scan: {reason}",
+      "weatherHold": "Call a weather hold",
+      "weatherAllClear": "Give the weather all-clear"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
     "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
