@@ -163,7 +163,9 @@
       "profile_documents": "your documents",
       "roster_entries": "roster entries",
       "advance_allocations": "items assigned to you",
-      "parking_passes": "parking passes"
+      "parking_passes": "parking passes",
+      "my_transfers": "Drives",
+      "local_contacts": "Local contacts"
     }
   },
   "queue": {
@@ -1011,5 +1013,28 @@
   "systemBanner": {
     "details": "Details",
     "dismiss": "Dismiss"
+  },
+  "drives": {
+    "empty": "No drives today or ahead. Transfers you are assigned to drive show here.",
+    "route": "{from} to {to}",
+    "window": "Pickup {pickup}, drop-off {dropoff}",
+    "vehicle": "{label}, {seats} seats",
+    "passengers": "Passengers: {names}",
+    "primary": "{name} (primary)",
+    "noPassengers": "No passengers yet",
+    "meets": "Meets {flight}, lands {time}",
+    "landingUnknown": "landing time not known",
+    "status": {
+      "unassigned": "Unassigned",
+      "assigned": "Assigned",
+      "underway": "Underway",
+      "done": "Done"
+    },
+    "noTransportContact": "No transport contact with a phone for this day.",
+    "call": "Call {name}"
+  },
+  "localContacts": {
+    "title": "Local contacts",
+    "call": "Tap to call"
   }
 }

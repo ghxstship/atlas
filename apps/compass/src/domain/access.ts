@@ -310,6 +310,8 @@ export const NATIVE_MORE: ReadonlySet<string> = new Set([
   "proof-of-performance",
   // R5: project facts on the person's own roster entries, online only.
   "project-details",
+  // B5: the transfers the person drives, read-only from the device.
+  "drives",
 ]);
 
 /** More entries hidden from a person who works the project only on a party's roster (R8). */

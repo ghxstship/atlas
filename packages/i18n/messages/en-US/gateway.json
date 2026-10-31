@@ -784,6 +784,26 @@
       "projectDetails": "Update your project details",
       "party": "Engaged as",
       "documentsEmpty": "Your documents and certifications appear here once you add them to your profile."
+    },
+    "ground": {
+      "title": "Ground transport",
+      "pickup": "Pickup {time}",
+      "dropoff": "Drop-off {time}",
+      "driver": "Driver {name}",
+      "vehicle": "{label}, {type}",
+      "meets": "Meets {flight}, lands {time}",
+      "passengers": "Passengers: {names}"
+    },
+    "localContacts": {
+      "title": "Local contacts",
+      "day": "For {day}",
+      "everyDay": "Every day",
+      "line": "{role}: {name}"
+    },
+    "rooms": {
+      "title": "Your rooms",
+      "window": "{in} to {out}",
+      "set": "For {set}"
     }
   },
   "enums": {
@@ -1172,6 +1192,38 @@
     "sponsorAssetSource": {
       "orgSupplied": "Supplied by the organization",
       "sponsorSupplied": "Supplied by you"
+    },
+    "vehicleType": {
+      "sedan": "Sedan",
+      "suv": "SUV",
+      "van": "Van",
+      "sprinter": "Sprinter",
+      "minibus": "Minibus",
+      "coach": "Coach",
+      "other": "Other"
+    },
+    "transferStatus": {
+      "unassigned": "Unassigned",
+      "assigned": "Assigned",
+      "underway": "Underway",
+      "done": "Done"
+    },
+    "localContactRole": {
+      "promoter": "Promoter",
+      "venue": "Venue",
+      "production": "Production",
+      "security": "Security",
+      "transport": "Transport",
+      "hospitality": "Hospitality",
+      "medical": "Medical",
+      "other": "Other"
+    },
+    "spaceBookingPurpose": {
+      "greenRoom": "Green room",
+      "dressingRoom": "Dressing room",
+      "productionOffice": "Production office",
+      "hospitalitySuite": "Hospitality suite",
+      "other": "Other"
     }
   },
   "explore": {

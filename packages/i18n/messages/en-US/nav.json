@@ -482,7 +482,8 @@
       "offlineQueue": "Offline Queue",
       "profile": "Profile and Certifications",
       "settings": "Settings",
-      "projectDetails": "Project Details"
+      "projectDetails": "Project Details",
+      "drives": "Drives"
     },
     "reference": {
       "emergencyCodes": "Emergency Codes",

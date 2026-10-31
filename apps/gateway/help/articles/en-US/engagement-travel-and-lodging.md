@@ -20,4 +20,12 @@ Your hotel or room block, with the check-in and check-out dates and the guest na
 
 Other travel the organization arranged, with its time and supplier.
 
+## Ground transport
+
+Your pickups and other runs by car or van: where and when you are picked up, the drop-off, the driver and vehicle, the flight it meets, and who rides with you. If you drive, every passenger is listed.
+
+## Local contacts
+
+The contacts the production shares for the project, today's first, with a number to call and an email.
+
 This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. If you need travel or a room, message the organization. Check-ins also show in Upcoming.

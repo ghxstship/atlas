@@ -247,6 +247,29 @@ const INTERNAL_SOURCES: readonly Source[] = [
     personColumn: "submitter_person_id",
     map: (r) => (r["deleted_at"] ? {} : { ...r, amount_minor: Number(r["amount_minor"]) }),
   },
+  // B5: the person's transfers (driver, passenger or a passenger's principal) and the project's local contacts, members'
+  // work phones read live, for Drives and Today.
+  {
+    table: "my_transfers",
+    schema: "api_external",
+    relation: "my_transfers",
+    select:
+      "id,project_id,project_name,transfer_key,my_role,pickup_place,pickup_at,pickup_time_zone,dropoff_place,dropoff_at,dropoff_time_zone,vehicle_label,vehicle_type,seats,driver_name,passenger_count,passenger_names,primary_passenger_name,meets_service_identifier,meets_arrives_at,status",
+    projectColumn: "project_id",
+  },
+  {
+    table: "local_contacts",
+    schema: "app",
+    relation: "project_local_contacts",
+    select:
+      "id,project_id,day,contact_role,contact_title,source,display_name,organization_name,phone,email,audience,member_active",
+    projectColumn: "project_id",
+    // A row is keyed per project it is listed for, since a venue contact is listed on each project at the venue.
+    map: (r) => ({
+      ...r,
+      id: r["member_active"] === false ? null : `${String(r["id"])}:${String(r["project_id"])}`,
+    }),
+  },
 ];
 
 const EXTERNAL_SOURCES: readonly Source[] = [
@@ -564,6 +587,24 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     select: "id,engagement_id,sponsor_entitlement_id,project_id,media_uri,captured_at,created_at",
     projectColumn: "project_id",
     audiences: ["sponsor"],
+  },
+  // B5: the person's transfers and the project's Shared local contacts (a member's with no phone or email).
+  {
+    table: "my_transfers",
+    schema: "api_external",
+    relation: "my_transfers",
+    select:
+      "id,project_id,project_name,transfer_key,my_role,pickup_place,pickup_at,pickup_time_zone,dropoff_place,dropoff_at,dropoff_time_zone,vehicle_label,vehicle_type,seats,driver_name,passenger_count,passenger_names,primary_passenger_name,meets_service_identifier,meets_arrives_at,status",
+    projectColumn: "project_id",
+  },
+  {
+    table: "local_contacts",
+    schema: "api_external",
+    relation: "local_contacts",
+    select:
+      "id,project_id,day,contact_role,contact_title,display_name,organization_name,phone,email,source",
+    projectColumn: "project_id",
+    map: (r) => ({ ...r, id: `${String(r["id"])}:${String(r["project_id"])}` }),
   },
 ];
 

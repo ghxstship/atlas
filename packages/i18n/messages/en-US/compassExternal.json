@@ -115,5 +115,11 @@
     "departs": "Departs",
     "empty": "No travel or lodging booked for you on this project yet.",
     "title": "Travel"
+  },
+  "ground": {
+    "title": "Ground transport",
+    "pickup": "Pickup",
+    "driver": "Driver {name}",
+    "meets": "Meets {flight}"
   }
 }

@@ -784,6 +784,26 @@
       "projectDetails": "Actualiza tus datos del proyecto",
       "party": "Contratado como",
       "documentsEmpty": "Tus documentos y certificaciones aparecen aquí cuando los agregas a tu perfil."
+    },
+    "ground": {
+      "title": "Transporte terrestre",
+      "pickup": "Recogida {time}",
+      "dropoff": "Llegada {time}",
+      "driver": "Conductor {name}",
+      "vehicle": "{label}, {type}",
+      "meets": "Recibe el vuelo {flight}, aterriza {time}",
+      "passengers": "Pasajeros: {names}"
+    },
+    "localContacts": {
+      "title": "Contactos locales",
+      "day": "Para el {day}",
+      "everyDay": "Todos los días",
+      "line": "{role}: {name}"
+    },
+    "rooms": {
+      "title": "Tus salas",
+      "window": "{in} a {out}",
+      "set": "Para {set}"
     }
   },
   "enums": {
@@ -1172,6 +1192,38 @@
     "sponsorAssetSource": {
       "orgSupplied": "Enviado por la organización",
       "sponsorSupplied": "Enviado por ti"
+    },
+    "vehicleType": {
+      "sedan": "Sedán",
+      "suv": "SUV",
+      "van": "Van",
+      "sprinter": "Sprinter",
+      "minibus": "Minibús",
+      "coach": "Autobús",
+      "other": "Otro"
+    },
+    "transferStatus": {
+      "unassigned": "Sin asignar",
+      "assigned": "Asignado",
+      "underway": "En curso",
+      "done": "Terminado"
+    },
+    "localContactRole": {
+      "promoter": "Promotor",
+      "venue": "Recinto",
+      "production": "Producción",
+      "security": "Seguridad",
+      "transport": "Transporte",
+      "hospitality": "Hospitalidad",
+      "medical": "Atención médica",
+      "other": "Otro"
+    },
+    "spaceBookingPurpose": {
+      "greenRoom": "Sala de espera",
+      "dressingRoom": "Camerino",
+      "productionOffice": "Oficina de producción",
+      "hospitalitySuite": "Suite de hospitalidad",
+      "other": "Otro"
     }
   },
   "explore": {

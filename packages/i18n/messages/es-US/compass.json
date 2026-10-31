@@ -163,7 +163,9 @@
       "profile_documents": "tus documentos",
       "roster_entries": "entradas de lista",
       "advance_allocations": "artículos asignados a ti",
-      "parking_passes": "pases de estacionamiento"
+      "parking_passes": "pases de estacionamiento",
+      "my_transfers": "Traslados que conduzco",
+      "local_contacts": "Contactos locales"
     }
   },
   "queue": {
@@ -1011,5 +1013,28 @@
   "systemBanner": {
     "details": "Detalles",
     "dismiss": "Ocultar"
+  },
+  "drives": {
+    "empty": "No tienes traslados hoy ni próximos. Aquí aparecen los traslados que te asignan conducir.",
+    "route": "{from} a {to}",
+    "window": "Recogida {pickup}, llegada {dropoff}",
+    "vehicle": "{label}, {seats} asientos",
+    "passengers": "Pasajeros: {names}",
+    "primary": "{name} (principal)",
+    "noPassengers": "Todavía sin pasajeros",
+    "meets": "Recibe el vuelo {flight}, aterriza {time}",
+    "landingUnknown": "hora de aterrizaje desconocida",
+    "status": {
+      "unassigned": "Sin asignar",
+      "assigned": "Asignado",
+      "underway": "En curso",
+      "done": "Terminado"
+    },
+    "noTransportContact": "No hay un contacto de transporte con teléfono para este día.",
+    "call": "Llamar a {name}"
+  },
+  "localContacts": {
+    "title": "Contactos locales",
+    "call": "Toca para llamar"
   }
 }

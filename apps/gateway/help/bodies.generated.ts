@@ -954,6 +954,15 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
+            v: "Ground transport lists the pickups and runs that carry you or the people you answer for, with the driver, vehicle and times.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
             v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Ask for what you need in the ",
           },
           { t: "link", v: "Advance", href: "help:engagement-advance" },
@@ -1683,6 +1692,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Your rooms" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The green room or dressing room booked for you, with its in and out times and the set it serves. Each day sheet also lists that day's local contacts.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1925,6 +1944,26 @@ export const HELP_BODIES: HelpBodies = {
         t: "p",
         c: [
           { t: "text", v: "Other travel the organization arranged, with its time and supplier." },
+        ],
+      },
+      { t: "h2", v: "Ground transport" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Your pickups and other runs by car or van: where and when you are picked up, the drop-off, the driver and vehicle, the flight it meets, and who rides with you. If you drive, every passenger is listed.",
+          },
+        ],
+      },
+      { t: "h2", v: "Local contacts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The contacts the production shares for the project, today's first, with a number to call and an email.",
+          },
         ],
       },
       {
@@ -4583,6 +4622,15 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
+            v: "Transporte terrestre muestra las recogidas y los recorridos que te llevan a ti o a las personas por las que respondes, con el conductor, el vehículo y los horarios.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Pide lo que necesites en la ",
           },
           { t: "link", v: "Coordinación previa", href: "help:engagement-advance" },
@@ -5330,6 +5378,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Tus salas" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La sala de espera o el camerino reservado para ti, con su hora de entrada y salida y la presentación que atiende. Cada hoja del día también muestra los contactos locales de ese día.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -5572,6 +5630,26 @@ export const HELP_BODIES: HelpBodies = {
         t: "p",
         c: [
           { t: "text", v: "Otros viajes que organizó la organización, con su hora y proveedor." },
+        ],
+      },
+      { t: "h2", v: "Transporte terrestre" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Tus recogidas y otros recorridos en auto o van: dónde y cuándo te recogen, el destino, el conductor y el vehículo, el vuelo que recibe y quién viaja contigo. Si conduces, aparecen todos los pasajeros.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contactos locales" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los contactos que la producción comparte para el proyecto, primero los de hoy, con un número para llamar y un correo.",
+          },
         ],
       },
       {

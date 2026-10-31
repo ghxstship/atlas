@@ -316,9 +316,56 @@ function travelAndLodging(input: PageInput): ExternalSection[] {
           : []),
       ],
     }));
+  // Ground transport (B5): the person's transfers on the project, as driver, passenger or for the people they answer for.
+  const ground = onProject(input, "my_transfers")
+    .sort(byKey("pickup_at"))
+    .map((r): ExternalItem => {
+      const pickup = str(r, "pickup_at");
+      const names = Array.isArray(r["passenger_names"])
+        ? (r["passenger_names"] as unknown[]).filter((n): n is string => typeof n === "string")
+        : [];
+      const meets = str(r, "meets_service_identifier");
+      return {
+        id: r.id,
+        icon: "truck",
+        title: [str(r, "pickup_place"), str(r, "dropoff_place")].filter(Boolean).join(" → "),
+        facts: [
+          ...(pickup
+            ? [
+                { kind: "label", key: "compassExternal.ground.pickup" } as const,
+                { kind: "instant", at: pickup, zone: str(r, "pickup_time_zone") } as const,
+              ]
+            : []),
+          ...(str(r, "driver_name")
+            ? [
+                {
+                  kind: "label",
+                  key: "compassExternal.ground.driver",
+                  values: { name: str(r, "driver_name") ?? "" },
+                } as const,
+              ]
+            : []),
+          ...(str(r, "vehicle_label")
+            ? [{ kind: "text", text: str(r, "vehicle_label") ?? "" } as const]
+            : []),
+          ...(meets
+            ? [
+                {
+                  kind: "label",
+                  key: "compassExternal.ground.meets",
+                  values: { flight: meets },
+                } as const,
+              ]
+            : []),
+          ...(names.length > 0 ? [{ kind: "text", text: names.join(", ") } as const] : []),
+        ],
+        tag: stateTag("transferStatus", str(r, "status"), {}),
+      };
+    });
   return [
     ...section("travel", "compassExternal.travel.title", travel),
     ...section("lodging", "compassExternal.lodging.title", lodging),
+    ...section("ground", "compassExternal.ground.title", ground),
   ];
 }
 
@@ -951,7 +998,7 @@ export const EXTERNAL_PAGES: Readonly<Record<ExternalPageId, ExternalPage>> = {
   "travel-and-lodging": {
     id: "travel-and-lodging",
     audiences: CREW,
-    tables: ["travel_segments", "lodging"],
+    tables: ["travel_segments", "lodging", "my_transfers"],
     gatewayTab: "travel-and-lodging",
     icon: "plane",
     emptyKey: "compassExternal.travel.empty",

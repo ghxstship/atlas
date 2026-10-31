@@ -471,6 +471,54 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "drives",
+        title: "Drives",
+        summary:
+          "The transfers you drive today and in the days ahead, with a one-tap call to transport.",
+        kind: "workflow",
+        nodes: ["drives"],
+        order: 1,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Drives" },
+                {
+                  t: "text",
+                  v: " lists the transfers you are assigned to drive, today and ahead, grouped by day on the project's calendar.",
+                },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "Each shows the pickup and drop-off, each time in its own zone, the vehicle and its seats, the passengers with the primary passenger marked, and the flight it meets with its landing time.",
+                },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "The status reads Assigned, Underway or Done from the clock, and Unassigned while the transfer has no vehicle.",
+                },
+              ],
+              [
+                { t: "strong", v: "Call" },
+                { t: "text", v: " opens your phone on the day's transport contacts." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Drives read offline once downloaded and cannot be changed from the phone; the desk changes them in Atlas. You are told when you are assigned a new transfer.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "elsewhere",
         title: "Finishing in Gateway",
         summary:
@@ -3619,6 +3667,54 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Si inicias sesión con Apple, Compass muestra otra vez la hoja de Apple para dejar de usar tu Cuenta de Apple. Si no puede, tu cuenta se elimina de todos modos, y Compass te indica que la quites de Iniciar sesión con Apple en la configuración de tu Cuenta de Apple.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "drives",
+        title: "Traslados que conduzco",
+        summary:
+          "Los traslados que conduces hoy y en los próximos días, con llamada en un toque al transporte.",
+        kind: "workflow",
+        nodes: ["drives"],
+        order: 1,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Traslados que conduzco" },
+                {
+                  t: "text",
+                  v: " muestra los traslados que te asignan conducir, hoy y próximos, agrupados por día en el calendario del proyecto.",
+                },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "Cada uno muestra la recogida y el destino, cada hora en su propia zona, el vehículo y sus asientos, los pasajeros con el principal marcado y el vuelo que recibe con su hora de aterrizaje.",
+                },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "El estado indica Asignado, En curso o Terminado según la hora, y Sin asignar mientras el traslado no tiene vehículo.",
+                },
+              ],
+              [
+                { t: "strong", v: "Llamar" },
+                { t: "text", v: " abre el teléfono con los contactos de transporte del día." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los traslados se leen sin conexión una vez descargados y no se pueden cambiar desde el teléfono; el equipo los cambia en Atlas. Se te avisa cuando te asignan un traslado nuevo.",
               },
             ],
           },

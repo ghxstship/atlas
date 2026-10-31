@@ -266,6 +266,21 @@ export const TABLE_RULES: readonly TableRule[] = [
     table: "parking_passes",
     anyOf: [{ column: "holder_person_id", key: "personIds", restOnly: true }],
   },
+  // Drives and local contacts (B5): api_external.my_transfers for every audience, and the project's local contacts
+  // (app.project_local_contacts inside the org, api_external.local_contacts outside it), by project. Both are views,
+  // which PowerSync does not replicate, so the REST downloader serves them.
+  ...["my_transfers", "local_contacts"].map((table): TableRule => ({
+    table,
+    anyOf: [
+      { ...internalProject, restOnly: true },
+      {
+        column: "project_id",
+        key: "engagedProjectIds",
+        audiences: OPERATIONAL_EXTERNAL,
+        restOnly: true,
+      },
+    ],
+  })),
   // The canon codes: the swatch of every org's codes, and the list an org that holds no codes shows.
   { table: "canon_emergency_codes", anyOf: [], global: true },
   { table: "incident_severities", anyOf: [], global: true },

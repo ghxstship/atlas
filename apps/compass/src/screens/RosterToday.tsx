@@ -21,6 +21,7 @@ import {
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { Button, Card, EmptyState, ListRow, Text } from "../ui";
 import { formatDay, formatTime } from "./common";
+import { TodayContacts } from "./TodayContacts";
 
 const R = "compass.today.roster";
 
@@ -139,6 +140,7 @@ export function RosterToday(): ReactElement {
       <Card testID="roster-contact" title={t(`${R}.contactTitle`)}>
         <ListRow icon="user-round" title={lead} subtitle={t(`${R}.contactSentence`)} />
       </Card>
+      <TodayContacts testID="roster-local-contacts" projectId={projectId} today={todayIn(zone)} />
       <Button
         testID="roster-project-details"
         label={t(`${R}.projectDetails`)}

@@ -115,5 +115,11 @@
     "departs": "Sale",
     "empty": "Todavía no hay viajes ni alojamiento reservados para ti en este proyecto.",
     "title": "Viaje"
+  },
+  "ground": {
+    "title": "Transporte terrestre",
+    "pickup": "Recogida",
+    "driver": "Conductor {name}",
+    "meets": "Recibe el vuelo {flight}"
   }
 }
