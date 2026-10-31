@@ -68,7 +68,11 @@
     "guest_entry_stamped": "Las horas de decisión y de llegada se registran automáticamente.",
     "sod_guest_requester": "Tú solicitaste este invitado, así que otra persona debe aprobarlo o rechazarlo.",
     "rider_engagement_artist": "Un rider puede ser de un artista contratado como persona cuya contratación sigue abierta. Elige otro artista o una organización.",
-    "same_project": "Ese artista está contratado en otro proyecto. Elige un artista del proyecto de este rider."
+    "same_project": "Ese artista está contratado en otro proyecto. Elige un artista del proyecto de este rider.",
+    "sod_roster_reviewer": "Una persona distinta de quien agregó o envió una entrada la revisa.",
+    "roster_entry_not_submitted": "Solo se revisa una entrada enviada. Recarga para ver su estado actual.",
+    "roster_review_reason": "Indica qué cambiar, en 1 a 500 caracteres.",
+    "roster_review_outcome": "Acepta o devuelve la entrada."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
@@ -409,5 +413,42 @@
       "edit": "Editar a {name}",
       "remove": "Quitar a {name}"
     }
+  },
+  "crew": {
+    "sentence": "Las personas que cada parte incluye en sus contrataciones. Acepta o devuelve cada entrada enviada.",
+    "empty": "Ninguna parte ha incluido a nadie en una lista todavía.",
+    "columns": {
+      "person": "Persona",
+      "party": "Parte",
+      "role": "Puesto",
+      "arrival": "Llegada",
+      "state": "Estado de la entrada",
+      "response": "Respuesta",
+      "shared": "Perfil compartido"
+    },
+    "responses": {
+      "pending": "Sin respuesta",
+      "accepted": "Aceptada",
+      "declined": "Rechazada"
+    },
+    "states": {
+      "draft": "Borrador",
+      "submitted": "Enviada",
+      "accepted": "Aceptada",
+      "returned": "Devuelta",
+      "withdrawn": "Retirada"
+    },
+    "invited": "Invitada: {email}",
+    "self": "Persona contratada",
+    "shared": "{n, plural, =0 {Ninguna} one {# categoría} other {# categorías}}",
+    "accept": "Aceptar",
+    "return": "Devolver",
+    "returnTitle": "Devolver a {name}",
+    "returnReason": "Qué debe cambiar",
+    "returnSubmit": "Devolver entrada",
+    "cancel": "Cancelar",
+    "profileTitle": "Perfil compartido",
+    "profileNone": "No hay datos de trabajo compartidos que puedas leer.",
+    "noArrival": "Sin definir"
   }
 }
