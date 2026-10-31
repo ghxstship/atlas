@@ -335,7 +335,7 @@ export function Timeline({
                 {r.critical ? ` (${t("timeline.critical")})` : ""}
                 {editable && r.locked ? ` (${t("timeline.locked")})` : ""}
               </td>
-              <td>{r.state}</td>
+              <td>{t(`recordStates.${r.state === "in-review" ? "inReview" : r.state}`)}</td>
               <td>{dayLabel(r.start)}</td>
               <td>{dayLabel(r.end)}</td>
               <td>{r.dependsOn !== undefined ? (rows[r.dependsOn]?.key ?? "") : ""}</td>
@@ -358,7 +358,9 @@ export function Timeline({
             >
               <StateIcon state={r.state} />
               <span className="font-mono text-text-12 text-text-secondary">{r.key}</span>
-              <span className="truncate">{r.title}</span>
+              <span className="truncate" title={r.title}>
+                {r.title}
+              </span>
             </div>
           ))}
         </div>

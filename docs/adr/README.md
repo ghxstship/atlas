@@ -96,6 +96,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0118](0118-route-view-transitions-and-region-boundaries.md)        | Route View Transitions and Region Boundaries                                     | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
+| [0122](0122-pseudo-locale-checks-on-every-route.md)                 | Pseudo-Locale Checks on Every Route                                              | Accepted |
 | [0123](0123-database-enums-have-one-home-in-code.md)                | Database Enums Have One Home in Code                                             | Accepted |
 | [0130](0130-live-share-links-and-display-screens.md)                | Live Share Links to Saved Views and Run-of-Show Display Screens                  | Accepted |
 

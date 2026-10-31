@@ -68,12 +68,20 @@ interface Doc {
 
 export const DOCUMENT_FILE = join(APP_DIR, "..", "..", "packages", "api", "openapi", "v1.json");
 
+/** A rule a value must meet, kept as data so each locale words it (components/operation.tsx). */
+export type Constraint =
+  | { readonly kind: "pattern"; readonly pattern: string }
+  | { readonly kind: "length"; readonly min: number; readonly max: number | null }
+  | { readonly kind: "range"; readonly min: number | null; readonly max: number | null }
+  | { readonly kind: "oneOf"; readonly values: readonly string[] };
+
 export interface FieldRow {
   readonly name: string;
+  /** The type in TypeScript-like notation (`Project[]`, `string (uuid)`), shown as code. */
   readonly type: string;
   readonly required: boolean;
   readonly description: string;
-  readonly constraints: string;
+  readonly constraints: readonly Constraint[];
 }
 
 export interface Shape {
@@ -173,7 +181,10 @@ class Builder {
       s.type === undefined ? ["object"] : Array.isArray(s.type) ? s.type : [s.type as string];
     return types
       .map((t) => {
-        if (t === "array") return `array of ${s.items ? this.typeLabel(s.items) : "values"}`;
+        if (t === "array") {
+          const item = s.items ? this.typeLabel(s.items) : "unknown";
+          return / [|&] /.test(item) ? `(${item})[]` : `${item}[]`;
+        }
         if (t === "string" && s.format) return `string (${s.format})`;
         if (t === "integer" && s.format === "int64") return "integer (int64)";
         return t;
@@ -181,18 +192,21 @@ class Builder {
       .join(" | ");
   }
 
-  constraints(s: Schema): string {
+  constraints(s: Schema): Constraint[] {
     const r = this.resolve(s);
-    const parts: string[] = [];
-    if (typeof r["pattern"] === "string") parts.push(`pattern ${r["pattern"]}`);
+    const parts: Constraint[] = [];
+    const num = (v: unknown) => (typeof v === "number" ? v : null);
+    if (typeof r["pattern"] === "string") parts.push({ kind: "pattern", pattern: r["pattern"] });
     if (typeof r["minLength"] === "number" || typeof r["maxLength"] === "number") {
-      parts.push(`length ${r["minLength"] ?? 0} to ${r["maxLength"] ?? "any"}`);
+      parts.push({ kind: "length", min: num(r["minLength"]) ?? 0, max: num(r["maxLength"]) });
     }
     if (typeof r["minimum"] === "number" || typeof r["maximum"] === "number") {
-      parts.push(`range ${r["minimum"] ?? "any"} to ${r["maximum"] ?? "any"}`);
+      parts.push({ kind: "range", min: num(r["minimum"]), max: num(r["maximum"]) });
     }
-    if (r.enum && s.$ref) parts.push(`one of ${r.enum.map((v) => JSON.stringify(v)).join(", ")}`);
-    return parts.join("; ");
+    if (r.enum && s.$ref) {
+      parts.push({ kind: "oneOf", values: r.enum.map((v) => JSON.stringify(v)) });
+    }
+    return parts;
   }
 
   shape(name: string): Shape {
@@ -327,7 +341,7 @@ export function loadReference(file: string = DOCUMENT_FILE): Reference {
         type: p.schema ? b.typeLabel(p.schema) : "string",
         required: p.required === true,
         description: p.description ?? "",
-        constraints: p.schema ? b.constraints(p.schema) : "",
+        constraints: p.schema ? b.constraints(p.schema) : [],
       });
       const order = [...path.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
       const pathParams = params

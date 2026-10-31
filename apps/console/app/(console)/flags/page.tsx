@@ -60,7 +60,7 @@ export default async function FlagsPage() {
                   submitLabel={flag.killSwitch ? t("flags.killOff") : t("flags.killOn")}
                   successLabel={t("flags.saved")}
                   variant={flag.killSwitch ? "secondary" : "danger"}
-                  label={`${t("flags.killSwitch")} ${flag.flagKey}`}
+                  label={t("flags.killSwitchFor", { flag: flag.flagKey })}
                 >
                   <ReasonField t={t} id={`kill-${flag.flagKey}`} />
                 </ActionForm>

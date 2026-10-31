@@ -7,7 +7,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
-import type { Locale } from "./i18n.ts";
+import { contentLocale, type Locale } from "./i18n.ts";
 import type { Block } from "./markdown.ts";
 import { parseDocument } from "./markdown.ts";
 
@@ -93,8 +93,9 @@ function cached<T>(key: string, load: () => T): T {
 }
 
 export function guides(locale: Locale): Guide[] {
-  return cached(`guides:${locale}`, () =>
-    readPages<Guide>(join(GUIDES_DIR, locale), (meta, file) => {
+  const source = contentLocale(locale);
+  return cached(`guides:${source}`, () =>
+    readPages<Guide>(join(GUIDES_DIR, source), (meta, file) => {
       const section = requireString(meta, "section", file);
       if (!(GUIDE_SECTIONS as readonly string[]).includes(section))
         throw new Error(`${file}: unknown section ${section}.`);
@@ -104,8 +105,9 @@ export function guides(locale: Locale): Guide[] {
 }
 
 export function helpArticles(locale: Locale, shell: HelpShell = "atlas"): HelpArticle[] {
-  return cached(`help:${shell}:${locale}`, () =>
-    readPages<HelpArticle>(join(HELP_DIRS[shell], "articles", locale), (meta, file) => ({
+  const source = contentLocale(locale);
+  return cached(`help:${shell}:${source}`, () =>
+    readPages<HelpArticle>(join(HELP_DIRS[shell], "articles", source), (meta, file) => ({
       kind: requireString(meta, "kind", file) as HelpArticle["kind"],
     })),
   );

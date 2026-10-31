@@ -362,7 +362,7 @@ export default async function TenantPage({ params }: PageProps<"/tenants/[orgId]
                       hidden={{ orgId: d.org.id, flagKey: flag.flagKey }}
                       submitLabel={t("tenant.setFlag")}
                       successLabel={t("tenant.flagSaved")}
-                      label={`${t("tenant.setFlag")} ${flag.flagKey}`}
+                      label={t("tenant.setFlagFor", { flag: flag.flagKey })}
                     >
                       <OnOffField t={t} id={`flag-${flag.flagKey}-enabled`} />
                       <ExpiryField t={t} id={`flag-${flag.flagKey}-days`} />
@@ -375,7 +375,7 @@ export default async function TenantPage({ params }: PageProps<"/tenants/[orgId]
                         submitLabel={t("tenant.clearFlag")}
                         successLabel={t("tenant.flagCleared")}
                         variant="secondary"
-                        label={`${t("tenant.clearFlag")} ${flag.flagKey}`}
+                        label={t("tenant.clearFlagFor", { flag: flag.flagKey })}
                       >
                         <ReasonField t={t} id={`flag-${flag.flagKey}-clear`} maxLength={300} />
                       </ActionForm>
