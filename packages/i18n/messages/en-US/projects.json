@@ -381,6 +381,79 @@
         "notFound": "You can no longer change this rule. Reload the page.",
         "unexpected": "The rule did not save. Try again."
       }
+    },
+    "approvalRules": {
+      "title": "Approval rules",
+      "description": "Who approves a pass, a dock booking or an equipment request on this project before it takes effect. A pass scans Denied until every step approves it.",
+      "empty": "No approval rules yet. Passes, dock bookings and equipment requests take effect as soon as they are made.",
+      "meta": "{subject} · {filter}",
+      "filterGone": "A filter you can't see",
+      "approverGone": "An approver you can't see",
+      "subjects": {
+        "Pass": "Passes",
+        "Delivery": "Dock bookings",
+        "Equipment": "Equipment requests"
+      },
+      "approverKinds": {
+        "role": "Role: {name}",
+        "member": "Member: {name}",
+        "engagement": "{role}: {name}"
+      },
+      "fields": {
+        "subject": "Applies to",
+        "subjectHelp": "Equipment rules stay Drafts until equipment requests come from advances.",
+        "filter": {
+          "Pass": "Credential category",
+          "Delivery": "Dock",
+          "Equipment": "Asset class"
+        },
+        "filterHelp": "A rule for one category, dock or class wins over a rule for all of them.",
+        "every": {
+          "Pass": "Every credential category",
+          "Delivery": "Every dock",
+          "Equipment": "Every asset class"
+        },
+        "name": "Name",
+        "description": "Description (optional)"
+      },
+      "create": {
+        "title": "Add an approval rule",
+        "label": "Add an approval rule",
+        "submit": "Add rule",
+        "done": "Rule added as a Draft. Add its steps, then activate it."
+      },
+      "steps": {
+        "label": "Steps",
+        "none": "No steps yet. Add at least one before activating the rule.",
+        "stepName": "Step {order}: {name}",
+        "fromEmail": "Decides from email",
+        "addLabel": "Add a step",
+        "add": "Add step",
+        "added": "Step added.",
+        "name": "Step name",
+        "approver": "Approver",
+        "approverHelp": "A role, a member, or someone engaged on this project.",
+        "signedOut": "Let them decide from email without signing in",
+        "signedOutHelp": "They need an XOS account, any Gateway account, but do not sign in: when they press the email's link, a 6-digit code is emailed to them to confirm. Members of your org always sign in.",
+        "remove": "Remove",
+        "removeNamed": "Remove the step {name}"
+      },
+      "transition": {
+        "Active": "Activate",
+        "Retired": "Retire",
+        "ActiveNamed": "Activate {name}",
+        "RetiredNamed": "Retire {name}",
+        "ActiveDone": "Rule activated. New matches wait on its steps.",
+        "RetiredDone": "Rule retired. Approvals already open keep their steps.",
+        "reasons": {
+          "Active": "Activated in Project Settings",
+          "Retired": "Retired in Project Settings"
+        }
+      },
+      "delete": {
+        "label": "Delete {name}",
+        "submit": "Delete"
+      }
     }
   },
   "collab": {

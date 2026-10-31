@@ -381,6 +381,79 @@
         "notFound": "Ya no puedes cambiar esta regla. Vuelve a cargar la página.",
         "unexpected": "La regla no se guardó. Inténtalo de nuevo."
       }
+    },
+    "approvalRules": {
+      "title": "Reglas de aprobación",
+      "description": "Quién aprueba un pase, una reserva de muelle o una solicitud de equipo de este proyecto antes de que surta efecto. Un pase se escanea como Denegado hasta que todos los pasos lo aprueben.",
+      "empty": "Aún no hay reglas de aprobación. Los pases, las reservas de muelle y las solicitudes de equipo surten efecto en cuanto se crean.",
+      "meta": "{subject} · {filter}",
+      "filterGone": "Un filtro que usted no puede ver",
+      "approverGone": "Un aprobador que usted no puede ver",
+      "subjects": {
+        "Pass": "Pases",
+        "Delivery": "Reservas de muelle",
+        "Equipment": "Solicitudes de equipo"
+      },
+      "approverKinds": {
+        "role": "Rol: {name}",
+        "member": "Miembro: {name}",
+        "engagement": "{role}: {name}"
+      },
+      "fields": {
+        "subject": "Se aplica a",
+        "subjectHelp": "Las reglas de equipo quedan en Borrador hasta que las solicitudes de equipo vengan de los avances.",
+        "filter": {
+          "Pass": "Categoría de credencial",
+          "Delivery": "Muelle",
+          "Equipment": "Clase de activo"
+        },
+        "filterHelp": "Una regla para una categoría, un muelle o una clase prevalece sobre una regla para todos.",
+        "every": {
+          "Pass": "Todas las categorías de credencial",
+          "Delivery": "Todos los muelles",
+          "Equipment": "Todas las clases de activo"
+        },
+        "name": "Nombre",
+        "description": "Descripción (opcional)"
+      },
+      "create": {
+        "title": "Agregar una regla de aprobación",
+        "label": "Agregar una regla de aprobación",
+        "submit": "Agregar regla",
+        "done": "Regla agregada como Borrador. Agregue sus pasos y luego actívela."
+      },
+      "steps": {
+        "label": "Pasos",
+        "none": "Aún no hay pasos. Agregue al menos uno antes de activar la regla.",
+        "stepName": "Paso {order}: {name}",
+        "fromEmail": "Decide desde el correo",
+        "addLabel": "Agregar un paso",
+        "add": "Agregar paso",
+        "added": "Paso agregado.",
+        "name": "Nombre del paso",
+        "approver": "Aprobador",
+        "approverHelp": "Un rol, un miembro o alguien contratado en este proyecto.",
+        "signedOut": "Permitir que decida desde el correo sin iniciar sesión",
+        "signedOutHelp": "Necesita una cuenta de XOS, cualquier cuenta de Gateway, pero no inicia sesión: cuando presiona el enlace del correo, se le envía por correo un código de 6 dígitos para confirmar. Los miembros de su organización siempre inician sesión.",
+        "remove": "Quitar",
+        "removeNamed": "Quitar el paso {name}"
+      },
+      "transition": {
+        "Active": "Activar",
+        "Retired": "Retirar",
+        "ActiveNamed": "Activar {name}",
+        "RetiredNamed": "Retirar {name}",
+        "ActiveDone": "Regla activada. Las nuevas coincidencias esperan sus pasos.",
+        "RetiredDone": "Regla retirada. Las aprobaciones ya abiertas conservan sus pasos.",
+        "reasons": {
+          "Active": "Activada en la configuración del proyecto",
+          "Retired": "Retirada en la configuración del proyecto"
+        }
+      },
+      "delete": {
+        "label": "Eliminar {name}",
+        "submit": "Eliminar"
+      }
     }
   },
   "collab": {

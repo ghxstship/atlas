@@ -9,15 +9,26 @@ import {
 } from "@/app/[org]/approvals/actions";
 import { ActionForm, useWorkflowT } from "./kit";
 
+/** Which approval a form decides: a spend approval, or a pass, dock booking or equipment approval (P9). */
+export type ApprovalKind = "spend" | "subject";
+
 /** Approve, or reject with a reason, the step an approval waits on. */
-export function DecisionForm({ org, id }: { org: string; id: string }) {
+export function DecisionForm({
+  org,
+  id,
+  kind = "spend",
+}: {
+  org: string;
+  id: string;
+  kind?: ApprovalKind;
+}) {
   const t = useWorkflowT();
   const fieldId = useId();
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
   return (
     <ActionForm
       action={decideApprovalAction}
-      hidden={{ org, id, decision }}
+      hidden={{ org, id, decision, kind }}
       label={t("approvals.decide.label")}
       submitLabel={
         decision === "approve" ? t("approvals.decide.approve") : t("approvals.decide.reject")
@@ -64,7 +75,15 @@ export function DecisionForm({ org, id }: { org: string; id: string }) {
 }
 
 /** Withdraw an approval in review, or an approved one the document has not used. */
-export function CancelForm({ org, id }: { org: string; id: string }) {
+export function CancelForm({
+  org,
+  id,
+  kind = "spend",
+}: {
+  org: string;
+  id: string;
+  kind?: ApprovalKind;
+}) {
   const t = useWorkflowT();
   const [open, setOpen] = useState(false);
   if (!open) {
@@ -77,7 +96,7 @@ export function CancelForm({ org, id }: { org: string; id: string }) {
   return (
     <ActionForm
       action={cancelApprovalAction}
-      hidden={{ org, id }}
+      hidden={{ org, id, kind }}
       label={t("approvals.cancel.label")}
       submitLabel={t("approvals.cancel.submit")}
       submitVariant="danger"

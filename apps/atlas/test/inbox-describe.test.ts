@@ -57,6 +57,15 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },
+  // P9: the reminder sweep and Remind approvers (2862), and the access code of a signed-out link (2861).
+  "approval.reminder": {
+    title: "Pass CR-000123 for Jane Doe",
+    actorName: "Demo Productions",
+    waitingSince: "2026-10-28T09:00:00Z",
+    reminderNumber: "2",
+    reminderLimit: "3",
+  },
+  "approval.link_code": { title: "Pass CR-000123 for Jane Doe", orgName: "Demo Productions" },
   // Notifications about a record carry its key (1600).
   "assignment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
   // A91's automation kinds (1481), as app.send_automation_notice, the failure notice and the pause store them; a
@@ -335,6 +344,26 @@ describe("Inbox item copy", () => {
     expect(inboxTarget("demo", { subjectTable: "app.import_jobs", kind: "import.finished" })).toBe(
       "/demo/import",
     );
+  });
+
+  it("says how long an approval has waited and which reminder it is (P9, 2862)", () => {
+    const out = describeInboxItem(
+      item("approval.reminder", ARGS["approval.reminder"] ?? {}),
+      copyFor("en-US"),
+      { org: "demo", orgName: "Demo Productions", actorName: null },
+    );
+    expect(out.summary).toBe("Reminder: Pass CR-000123 for Jane Doe is waiting on you");
+    expect(out.detail).toContain("This is reminder 2 of 3.");
+    expect(
+      inboxTarget("demo", { subjectTable: "subject_approvals", kind: "approval.reminder" }),
+    ).toBe("/demo/approvals");
+    // Without when it began to wait, the reminder reads as its label and title.
+    const bare = describeInboxItem(
+      item("approval.reminder", { title: "Radios x4", reminderNumber: "1", reminderLimit: "3" }),
+      copyFor("en-US"),
+      { org: "demo", orgName: "Demo Productions", actorName: null },
+    );
+    expect(bare.detail).toBe("Radios x4");
   });
 
   it("links each item to where it opens", () => {

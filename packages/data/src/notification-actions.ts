@@ -189,10 +189,7 @@ export async function readSignedOutApprovalLink(
 }
 
 /** Email me a code: queues the code to the link's recipient; refusals come back typed with their rule. */
-export async function requestApprovalLinkCode(
-  db: XosClient,
-  token: string,
-): Promise<Result<null>> {
+export async function requestApprovalLinkCode(db: XosClient, token: string): Promise<Result<null>> {
   if (!isActionToken(token))
     return fail({
       kind: "refusal",
@@ -237,7 +234,8 @@ export function toSignedOutCheck(row: Raw | undefined): SignedOutCheck {
   const left = row?.["attempts_left"];
   return {
     outcome: OUTCOMES.includes(outcome) ? outcome : "notification_action_invalid",
-    attemptsLeft: typeof left === "number" ? left : left == null ? null : Number(left),
+    attemptsLeft:
+      typeof left === "number" ? left : left === null || left === undefined ? null : Number(left),
   };
 }
 
@@ -255,7 +253,12 @@ export async function previewSignedOutApprovalLink(
   input: { readonly token: string; readonly code: string },
 ): Promise<Result<SignedOutPreview>> {
   if (!isActionToken(input.token))
-    return ok({ outcome: "notification_action_invalid", attemptsLeft: null, title: null, stepName: null });
+    return ok({
+      outcome: "notification_action_invalid",
+      attemptsLeft: null,
+      title: null,
+      stepName: null,
+    });
   const result = await publicRows(db, "preview_approval_link", {
     p_token: input.token,
     p_access_code: ACCESS_CODE.test(input.code.trim()) ? input.code.trim() : "",

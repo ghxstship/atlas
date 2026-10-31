@@ -46,6 +46,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "opportunity.matched": ["count", "searchName"],
   // An offer that waits on the applicant (A127, 2200).
   "offer.sent": ["orgName"],
+  // P9 (2862): how long an approval has waited, and which reminder of the org's limit this is.
+  "approval.reminder": ["waitingSince", "reminderNumber", "reminderLimit"],
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],
@@ -59,6 +61,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
 const TARGETS: Readonly<Record<string, string>> = {
   approval_instances: "approvals",
+  // P9 (2860): a pass, dock booking or equipment approval opens in Approvals, where it is decided.
+  subject_approvals: "approvals",
   timesheets: "crew/timesheets",
   "app.feed_posts": "knowledge/feed",
   "app.surveys": "knowledge/feed",
@@ -146,7 +150,18 @@ function values(
   const startsAt = date(a["startsAt"]);
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
-  for (const key of ["days", "count", "written", "refused", "skipped"]) {
+  const waitingSince = date(a["waitingSince"]);
+  if (waitingSince) out["waitingSince"] = waitingSince;
+  else if (item.kind === "approval.reminder") return null;
+  for (const key of [
+    "days",
+    "count",
+    "written",
+    "refused",
+    "skipped",
+    "reminderNumber",
+    "reminderLimit",
+  ]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }
   return out;
