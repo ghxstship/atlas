@@ -1,0 +1,47 @@
+{
+  "limits": {
+    "active_projects": "Active projects",
+    "seats": "Seats",
+    "field_members": "Field seats"
+  },
+  "counts": {
+    "projects": "{count, plural, one {# project} other {# projects}}",
+    "seats": "{count, plural, one {# seat} other {# seats}}",
+    "fieldSeats": "{count, plural, one {# field seat} other {# field seats}}"
+  },
+  "banners": {
+    "project": "This project is read-only: the {plan} plan allows {limit, plural, one {# active project} other {# active projects}}, and the organization has more. You can still read everything in it, and nothing is deleted.",
+    "projects": "{count, plural, one {# project is} other {# projects are}} read-only: the {plan} plan allows {limit, plural, one {# active project} other {# active projects}}. Nothing is deleted.",
+    "seats": "{count, plural, one {# member's seat is} other {# members' seats are}} read-only: the {plan} plan includes {limit, plural, one {# seat} other {# seats}}. Those members can still read everything.",
+    "fieldSeats": "{count, plural, one {# field seat is} other {# field seats are}} read-only: the {plan} plan includes Compass for {limit, plural, one {# field member} other {# field members}}.",
+    "summary": "The organization is over the {plan} plan's limits, so {items} {count, plural, one {is} other {are}} read-only. Nothing is deleted.",
+    "ownSeat": "Your seat is read-only: the {plan} plan includes {limit, plural, one {# seat} other {# seats}}, and more members hold one. You can still read everything.",
+    "ownFieldSeat": "Your field seat is read-only: the {plan} plan includes Compass for {limit, plural, one {# field member} other {# field members}}, and the organization has more. You can still read everything.",
+    "ownerAction": "Choose what stays writable, or upgrade",
+    "askOwner": "An Owner can choose what stays writable, archive a project or end a membership, or upgrade the plan."
+  },
+  "panel": {
+    "title": "What stays writable",
+    "description": "Ending a trial or moving to a smaller plan deletes nothing. When the organization has more than the {plan} plan allows, what is past a limit becomes read-only: Owners keep their seats, then what you choose here stays writable, then the oldest. Archiving a project, ending a membership or upgrading makes things writable again at once.",
+    "usage": "{inUse, number} of {limit, number}",
+    "unlimited": "Unlimited on the {plan} plan.",
+    "within": "Within the limit: everything is writable.",
+    "over": "{count, plural, one {# is} other {# are}} read-only.",
+    "room": "Keep up to {room, plural, one {# writable} other {# writable}}. Without a choice, the oldest stay writable.",
+    "noRoom": "Owners hold every seat the plan includes, so no other member keeps one. Upgrade or buy extra seats to make room.",
+    "owner": "Owner, always writable",
+    "readOnly": "Read-only",
+    "writable": "Writable",
+    "save": "Keep these writable",
+    "saved": "Saved. {count, plural, =0 {Nothing is read-only now.} one {# stays read-only.} other {# stay read-only.}}",
+    "unnamed": "Unnamed member",
+    "ownerOnly": "Only an Owner chooses what stays writable."
+  },
+  "errors": {
+    "plan_limit_choice_too_many": "Choose no more than the plan leaves room for.",
+    "plan_limit_choice_unknown": "One of those is no longer counted by this limit. Refresh the page and choose again.",
+    "plan_limit_choice_limit": "Choose what stays writable for active projects, seats or field seats.",
+    "denied": "Only an Owner chooses what stays writable.",
+    "unexpected": "Something went wrong. Try again in a moment."
+  }
+}

@@ -132,6 +132,7 @@
     "agreement_token_validity": "Un enlace de firma es válido de 1 a 90 días.",
     "credential_self_issue": "Nadie registra su propio certificado. Pida a otro verificador que lo registre.",
     "certification_holder_immutable": "Un registro de certificado conserva su titular, verificador y código. Quítelo y regístrelo de nuevo.",
+    "certification_holder_verifier_only": "Solo puede cambiar su consentimiento para la verificación pública. Pida a un verificador que corrija las fechas o restaure el registro.",
     "swap_not_allowed": "Este proyecto no permite cambios de turno. Pide a tu supervisor que cubra el turno.",
     "swap_needs_approval": "Un supervisor aprueba los cambios en este proyecto. Espera su decisión.",
     "shift_claim_waiting": "Ya reclamaste este turno. Un supervisor decide.",

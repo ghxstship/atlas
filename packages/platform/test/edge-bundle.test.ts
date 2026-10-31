@@ -35,6 +35,7 @@ const CORE_ONLY: readonly string[] = [
   "email-unsubscribe",
   "file-download",
   "fx-rates-ecb",
+  "weather-feed",
 ];
 
 /**
@@ -53,6 +54,12 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "export-render": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "pdfkit"] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "fx-rates-ecb": { boot: [], lazy: [] },
+  // B8 (ADR 0147): the guest list email worker; React Email, Resend and, for a Pass email, the guest-pass renderer
+  // with pdfkit load only when an email is sent.
+  "guest-email": {
+    boot: ["intl-messageformat", "zod"],
+    lazy: ["@react-email/components", "pdfkit", "react/jsx-runtime", "resend"],
+  },
   "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -78,6 +85,8 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   },
   "upload-scan": { boot: ["@supabase/supabase-js"], lazy: [] },
   "wallet-pass": { boot: [], lazy: [] },
+  // B8 (ADR 0147): the NWS weather feed is plain fetch to api.weather.gov and PostgREST, no package.
+  "weather-feed": { boot: [], lazy: [] },
   "webhook-dispatch": { boot: [], lazy: [] },
 };
 
@@ -98,6 +107,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
+  // B8 (ADR 0147): new. The shared email and notification store chunks it reaches at boot, as subprocessor-notices
+  // does, came to 119.8 KB on 2026-10-31; about 10 percent of headroom.
+  "guest-email": 132,
   "import-run": 120,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
@@ -105,19 +117,35 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
-  "notification-dispatch": 180,
+  // R5 (2650): the two project facts and names lock kinds in both locales took it to 181.6 KB on 2026-10-28.
+  // R7 (2698): the four allocation kinds (decided, assigned, issued, withdrawn) in both locales took it to 186.9 KB
+  // on 2026-10-30; the same 2 percent of headroom R5 left. B8 (2979): P5's badge photo kind (merged with it) and B8's
+  // guest.arrived, weather.warning, weather.hold and weather.all_clear in both locales took it to 193.3 KB on
+  // 2026-10-31; about 2 percent of headroom again.
+  "notification-dispatch": 197,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
-  // which the org export reaches at boot; 211.5 KB on 2026-10-25.
-  "org-lifecycle": 215,
+  // which the org export reaches at boot; 211.5 KB on 2026-10-25. R7: the radio hand-out's document copy in both
+  // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30. B8: P5's card
+  // renderer chunk (merged with it), the B8 kinds and the guest_message email copy took it to 225.1 KB on 2026-10-31;
+  // about 2 percent of headroom.
+  "org-lifecycle": 230,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 145,
+  // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
+  // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent. R7 (2698): the four
+  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom. B8 (2979): P5's
+  // badge photo kind and B8's four kinds in both locales took it to 154.6 KB on 2026-10-31; about 2 percent again.
+  "sms-webhook": 158,
   "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // B8: the guest_message template's copy in both locales and the four B8 kinds in the shared email chunks took it to
+  // 118.4 KB on 2026-10-31 (113.6 before); about 2 percent of headroom.
+  "subprocessor-notices": 121,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
   "wallet-pass": 120,
+  // B8 (ADR 0147): new, core only.
+  "weather-feed": 64,
   "webhook-dispatch": 70,
 };
 

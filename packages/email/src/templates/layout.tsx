@@ -36,6 +36,10 @@ export interface LayoutProps {
   readonly heading: string;
   readonly transactional: boolean;
   readonly action?: { readonly label: string; readonly url: string };
+  /** Why the recipient gets the email, when it is not a member's notification (a guest email, B8). */
+  readonly why?: string;
+  /** Label of the preferences link, when it is not the notification preferences page. */
+  readonly preferencesLabel?: string;
   readonly children: ReactNode;
 }
 
@@ -100,6 +104,8 @@ export function Layout({
   heading,
   transactional,
   action,
+  why,
+  preferencesLabel,
   children,
 }: LayoutProps) {
   return (
@@ -124,16 +130,17 @@ export function Layout({
           <Hr style={styles.rule} />
           <footer>
             <Text style={styles.footer}>
-              {transactional
-                ? t("common.whyTransactional")
-                : t("common.whyNotification", { orgName: sender.orgName })}
+              {why ??
+                (transactional
+                  ? t("common.whyTransactional")
+                  : t("common.whyNotification", { orgName: sender.orgName }))}
             </Text>
             <Text style={styles.footer}>
               {t("common.sentBy", { orgName: sender.orgName, postalAddress: sender.postalAddress })}
             </Text>
             <Text style={styles.footer}>
               <Link href={sender.preferencesUrl} style={styles.link}>
-                {t("common.managePreferences")}
+                {preferencesLabel ?? t("common.managePreferences")}
               </Link>
               {!transactional && sender.unsubscribeUrl !== undefined && (
                 <>

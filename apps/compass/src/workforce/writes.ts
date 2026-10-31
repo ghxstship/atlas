@@ -1,7 +1,9 @@
 /**
  * Workforce Suite writes from Compass (Section 4.9). The sixteen RPCs A29 allowlisted in
- * private.sync_rpcs (0807; each SECURITY DEFINER with its own capability check, 0935) queue offline and
- * replay once through app.apply_sync_mutation, keyed by the mutation id. Everything else (starting a
+ * private.sync_rpcs (0807; each SECURITY DEFINER with its own capability check, 0935), and B8's weather hold and
+ * all-clear (2977), queue offline and replay once through app.apply_sync_mutation, keyed by the mutation id. The hold
+ * RPCs also carry the mutation id as p_id (a replay returns the stored hold) and the device time, so a hold made
+ * offline more than 10 minutes before it reaches the server is refused rather than sent late. Everything else (starting a
  * direct message, grading a quiz, opening a help desk request) needs the server's answer at once and
  * goes online through A29's repositories.
  */
@@ -25,7 +27,15 @@ export const WORKFORCE_SYNC_RPCS = [
   "record_weather_reading",
   "check_in_guest",
   "log_lost_item",
+  "call_weather_hold",
+  "give_weather_all_clear",
 ] as const;
+
+/** The queued RPCs that take the mutation id as p_id and the device time as p_device_at (2977). */
+const STAMPED: ReadonlySet<WorkforceSyncRpc> = new Set([
+  "call_weather_hold",
+  "give_weather_all_clear",
+]);
 
 export type WorkforceSyncRpc = (typeof WORKFORCE_SYNC_RPCS)[number];
 
@@ -47,6 +57,8 @@ const TABLE: Readonly<Record<WorkforceSyncRpc, string>> = {
   record_weather_reading: "weather_readings",
   check_in_guest: "guest_check_ins",
   log_lost_item: "lost_found_items",
+  call_weather_hold: "weather_holds",
+  give_weather_all_clear: "weather_holds",
 };
 
 /** Arguments with undefined values dropped, as the repositories send them. */
@@ -61,12 +73,15 @@ export function workforceWrite(
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
 ): MutationInput {
+  const rowId = newId(nowMs);
   return {
     op: "rpc",
     target: `app.${rpc}`,
     table: TABLE[rpc],
-    rowId: newId(nowMs),
-    payload: compact(args),
+    rowId,
+    payload: STAMPED.has(rpc)
+      ? { ...compact(args), p_id: rowId, p_device_at: new Date(nowMs).toISOString() }
+      : compact(args),
     policy: "append",
     optimistic: null,
   };

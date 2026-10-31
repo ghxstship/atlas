@@ -1,0 +1,16 @@
+{
+  "@context": ["https://geojson.org/geojson-ld/geojson-context.jsonld"],
+  "id": "https://api.weather.gov/points/25.7654,-80.1235",
+  "type": "Feature",
+  "geometry": { "type": "Point", "coordinates": [-80.1235, 25.7654] },
+  "properties": {
+    "@id": "https://api.weather.gov/points/25.7654,-80.1235",
+    "gridId": "MFL",
+    "gridX": 110,
+    "gridY": 50,
+    "forecast": "https://api.weather.gov/gridpoints/MFL/110,50/forecast",
+    "forecastHourly": "https://api.weather.gov/gridpoints/MFL/110,50/forecast/hourly",
+    "observationStations": "https://api.weather.gov/gridpoints/MFL/110,50/stations",
+    "timeZone": "America/New_York"
+  }
+}

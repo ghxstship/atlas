@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
-import { fillPersonNames } from "./person-names.ts";
+import { fillPersonNames, personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Credentials repository (Section 4.2 Credentials, Section 7.4, invariant 21): credential
@@ -141,21 +142,26 @@ export interface CredentialCategory {
   readonly projectKey: string;
   readonly code: string;
   readonly name: string;
+  /** Access for a badge, Parking for a parking pass (R7, 2691). */
+  readonly kind: CredentialCategoryKind;
   /** Credentials of this category that are not revoked. */
   readonly activeCount: number;
 }
+
+export type CredentialCategoryKind = "Access" | "Parking";
 
 interface CategoryRow {
   id: string;
   project_id: string;
   code: string;
   name: string;
+  category_kind: CredentialCategoryKind | null;
   project: { project_key: string } | null;
   credentials: { revoked_at: string | null; deleted_at: string | null }[] | null;
 }
 
 const CATEGORY_COLUMNS =
-  "id, project_id, code, name, project:projects!credential_categories_project_id_fkey(project_key), credentials(revoked_at, deleted_at)";
+  "id, project_id, code, name, category_kind, project:projects!credential_categories_project_id_fkey(project_key), credentials(revoked_at, deleted_at)";
 
 function toCategory(row: CategoryRow): CredentialCategory {
   return {
@@ -164,6 +170,7 @@ function toCategory(row: CategoryRow): CredentialCategory {
     projectKey: row.project?.project_key ?? "",
     code: row.code,
     name: row.name,
+    kind: row.category_kind === "Parking" ? "Parking" : "Access",
     activeCount: (row.credentials ?? []).filter((c) => c.revoked_at === null && !c.deleted_at)
       .length,
   };
@@ -206,6 +213,8 @@ export async function getCredentialCategory(
 export interface CategoryInput {
   readonly code: string;
   readonly name: string;
+  /** Left out, a new category is Access and an edit keeps the kind. */
+  readonly kind?: CredentialCategoryKind | undefined;
 }
 
 /** Category codes are capitals, digits and hyphens, at most 16 characters (migration 0352). */
@@ -222,6 +231,7 @@ export async function createCredentialCategory(
       project_id: input.projectId,
       code: input.code.trim().toUpperCase(),
       name: input.name.trim(),
+      ...(input.kind ? { category_kind: input.kind } : {}),
     })
     .select("id")
     .single();
@@ -236,7 +246,11 @@ export async function updateCredentialCategory(
 ): Promise<Result<null>> {
   const { data, error } = await db
     .from("credential_categories")
-    .update({ code: input.code.trim().toUpperCase(), name: input.name.trim() })
+    .update({
+      code: input.code.trim().toUpperCase(),
+      name: input.name.trim(),
+      ...(input.kind ? { category_kind: input.kind } : {}),
+    })
     .eq("id", id)
     .is("deleted_at", null)
     .select("id");
@@ -429,6 +443,22 @@ export async function getIssuedCredential(
   if (!data) return fail({ kind: "not-found" });
   const [credential] = await namedHolders(db, [toCredential(data as unknown as CredentialRow)]);
   return ok(credential as IssuedCredential);
+}
+
+/** Credentials by id, as the caller reads them, for a batch of badges (P5). Order follows credential number. */
+export async function getIssuedCredentials(
+  db: XosClient,
+  ids: readonly string[],
+): Promise<Result<IssuedCredential[]>> {
+  if (ids.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("credentials")
+    .select(CREDENTIAL_COLUMNS)
+    .in("id", [...ids])
+    .is("deleted_at", null)
+    .order("credential_number");
+  if (error) return fail(toDataError(error));
+  return ok(await namedHolders(db, (data as unknown as CredentialRow[]).map(toCredential)));
 }
 
 /** A credential by its printed number, for scanning a badge whose id is not on the device. */
@@ -674,6 +704,18 @@ export async function withdrawZoneAccess(db: XosClient, id: string): Promise<Res
 
 export type ScanResult = "Granted" | "Denied";
 
+/** In or Out (B8, migration 2970). Exit is never refused. */
+export type ScanDirection = "In" | "Out";
+
+export const SCAN_DIRECTIONS: readonly ScanDirection[] = ["In", "Out"];
+
+/** Why the database denied an In scan (2970), in Compass's decideGate order. Denials before 2970 carry none. */
+export type ScanRefusalReason =
+  "Revoked" | "Not Yet Valid" | "Expired" | "No Zone Access" | "Outside Window";
+
+/** The catalog key of a refusal reason: credentials.scans.reasons.{key}. */
+export const refusalReasonKey = (reason: ScanRefusalReason) => reason.replace(/ /g, "");
+
 export interface AccessScan {
   readonly id: string;
   readonly credentialId: string;
@@ -686,6 +728,14 @@ export interface AccessScan {
   readonly zoneName: string;
   readonly scannedAt: string;
   readonly result: ScanResult;
+  readonly direction: ScanDirection;
+  readonly refusalReason: ScanRefusalReason | null;
+  /** The Denied In scan this Granted In row overrides; set only by app.override_access_scan. */
+  readonly overrideOfScanId: string | null;
+  readonly overrideReason: string | null;
+  /** Who recorded the scan; for an override, who let the person in. */
+  readonly createdBy: string | null;
+  readonly createdByName: string | null;
 }
 
 interface ScanRow {
@@ -694,6 +744,13 @@ interface ScanRow {
   zone_id: string;
   scanned_at: string;
   result: ScanResult;
+  direction: ScanDirection;
+  refusal_reason: ScanRefusalReason | null;
+  override_of_scan_id: string | null;
+  override_reason: string | null;
+  created_by: string | null;
+  /** Filled by fillPersonNames for override rows; the scan log selects no embed for it. */
+  recorder?: { full_name: string | null } | null;
   zone: { code: string; name: string } | null;
   credential: {
     credential_number: string;
@@ -704,7 +761,7 @@ interface ScanRow {
 }
 
 const SCAN_COLUMNS = [
-  "id, credential_id, zone_id, scanned_at, result, zone:zones(code, name)",
+  "id, credential_id, zone_id, scanned_at, result, direction, refusal_reason, override_of_scan_id, override_reason, created_by, zone:zones(code, name)",
   "credential:credentials!inner(credential_number, holder_person_id, holder:people!credentials_holder_person_id_fkey(full_name), category:credential_categories!inner(code, project_id, project:projects!credential_categories_project_id_fkey(project_key)))",
 ].join(", ");
 
@@ -721,6 +778,12 @@ function toScan(row: ScanRow): AccessScan {
     zoneName: row.zone?.name ?? "",
     scannedAt: row.scanned_at,
     result: row.result,
+    direction: row.direction ?? "In",
+    refusalReason: row.refusal_reason ?? null,
+    overrideOfScanId: row.override_of_scan_id ?? null,
+    overrideReason: row.override_reason ?? null,
+    createdBy: row.created_by ?? null,
+    createdByName: row.recorder?.full_name ?? null,
   };
 }
 
@@ -729,6 +792,7 @@ export interface ScanFilter {
   readonly projectId?: string;
   readonly credentialId?: string;
   readonly result?: ScanResult;
+  readonly direction?: ScanDirection;
   /** At most this many scans, newest first. */
   readonly limit?: number;
 }
@@ -738,10 +802,11 @@ export async function listAccessScans(
   db: XosClient,
   filter: ScanFilter,
 ): Promise<Result<AccessScan[]>> {
-  let query = db.from("access_scans").select(SCAN_COLUMNS).eq("org_id", filter.orgId);
+  let query = untyped(db).from("access_scans").select(SCAN_COLUMNS).eq("org_id", filter.orgId);
   if (filter.projectId) query = query.eq("credential.category.project_id", filter.projectId);
   if (filter.credentialId) query = query.eq("credential_id", filter.credentialId);
   if (filter.result) query = query.eq("result", filter.result);
+  if (filter.direction) query = query.eq("direction", filter.direction);
   const { data, error } = await query
     .order("scanned_at", { ascending: false })
     .limit(filter.limit ?? 500);
@@ -755,7 +820,14 @@ export async function listAccessScans(
     (r, full_name) =>
       r.credential ? { ...r, credential: { ...r.credential, holder: { full_name } } } : r,
   );
-  return ok(named.map(toScan));
+  const recorded = await fillPersonNames(
+    db,
+    named,
+    (r) => (r.override_of_scan_id ? r.created_by : null),
+    (r) => r.recorder?.full_name,
+    (r, full_name) => ({ ...r, recorder: { full_name } }),
+  );
+  return ok(recorded.map(toScan));
 }
 
 export interface RecordScanInput {
@@ -769,6 +841,8 @@ export interface RecordScanInput {
   readonly deviceAt?: string;
   /** What the device decided offline; the database decides again and its result stands. */
   readonly offlineResult?: ScanResult;
+  /** In unless stated (2970); an Out scan is never refused. */
+  readonly direction?: ScanDirection;
 }
 
 export interface ScanDecision {
@@ -783,6 +857,8 @@ export interface ScanDecision {
   readonly result: ScanResult;
   /** True when this call replayed a scan already stored under the same client id. */
   readonly replayed: boolean;
+  readonly direction: ScanDirection;
+  readonly refusalReason: ScanRefusalReason | null;
 }
 
 interface ScanDecisionRow {
@@ -796,6 +872,26 @@ interface ScanDecisionRow {
   scanned_at: string;
   result: ScanResult;
   replayed: boolean;
+  direction: ScanDirection | null;
+  refusal_reason: ScanRefusalReason | null;
+  overridden_scan_id?: string | null;
+}
+
+function toDecision(row: ScanDecisionRow): ScanDecision {
+  return {
+    id: row.id,
+    credentialId: row.credential_id,
+    credentialNumber: row.credential_number,
+    holderName: row.holder_name,
+    categoryCode: row.category_code ?? "",
+    zoneId: row.zone_id,
+    zoneCode: row.zone_code,
+    scannedAt: row.scanned_at,
+    result: row.result,
+    replayed: row.replayed,
+    direction: row.direction ?? "In",
+    refusalReason: row.refusal_reason ?? null,
+  };
 }
 
 /**
@@ -808,29 +904,423 @@ export async function recordScan(
   db: XosClient,
   input: RecordScanInput,
 ): Promise<Result<ScanDecision>> {
-  const { data, error } = await db.rpc("record_scan", {
+  const { data, error } = await untyped(db).rpc("record_scan", {
     p_zone_id: input.zoneId,
     ...(input.credentialId ? { p_credential_id: input.credentialId } : {}),
     ...(input.credentialNumber ? { p_credential_number: input.credentialNumber } : {}),
     ...(input.id ? { p_id: input.id } : {}),
     ...(input.deviceAt ? { p_device_scanned_at: input.deviceAt } : {}),
     ...(input.offlineResult ? { p_offline_result: input.offlineResult } : {}),
+    ...(input.direction ? { p_direction: input.direction } : {}),
   });
   if (error) return fail(toDataError(error));
   const row = (data as ScanDecisionRow[] | null)?.[0];
   if (!row) return fail({ kind: "not-found" });
-  return ok({
-    id: row.id,
-    credentialId: row.credential_id,
-    credentialNumber: row.credential_number,
-    holderName: row.holder_name,
-    categoryCode: row.category_code ?? "",
-    zoneId: row.zone_id,
-    zoneCode: row.zone_code,
-    scannedAt: row.scanned_at,
-    result: row.result,
-    replayed: row.replayed,
+  return ok(toDecision(row));
+}
+
+export interface OverrideScanInput {
+  /** The denied In scan, by its id (Compass's client id of the denied record_scan). */
+  readonly scanId: string;
+  /** Why the supervisor lets the person in, 1 to 300 characters. */
+  readonly reason: string;
+  /** A client UUIDv7 that becomes the override row's id, so a queued replay returns it. */
+  readonly id?: string;
+}
+
+/**
+ * Lets in someone the gate denied (app.override_access_scan, 2970; ADR 0147 decision 1): a new Granted In row tied to
+ * the denied scan, for a holder of credentials.credential.issue who is not the badge's holder, within 15 minutes and
+ * once. Refusals: scan_not_denied, scan_override_revoked, scan_override_stale, scan_override_taken,
+ * scan_override_self, scan_override_reason, scan_id_taken.
+ */
+export async function overrideScan(
+  db: XosClient,
+  input: OverrideScanInput,
+): Promise<Result<ScanDecision & { overriddenScanId: string }>> {
+  const { data, error } = await untyped(db).rpc("override_access_scan", {
+    p_scan_id: input.scanId,
+    p_reason: input.reason,
+    ...(input.id ? { p_id: input.id } : {}),
   });
+  if (error) return fail(toDataError(error));
+  const row = (data as ScanDecisionRow[] | null)?.[0];
+  if (!row) return fail({ kind: "not-found" });
+  return ok({ ...toDecision(row), overriddenScanId: row.overridden_scan_id ?? input.scanId });
+}
+
+// Accreditation checks (B8, migrations 2972 and 2973) ---------------------------------------------
+
+/** A training course or a certification a category requires before it is issued (G-148, ADR 0147 decision 4). */
+export interface CategoryRequirement {
+  readonly id: string;
+  readonly categoryId: string;
+  readonly trainingCourseId: string | null;
+  readonly certificationId: string | null;
+  readonly title: string;
+}
+
+/** The live requirements of a category, read through row level security (credentials.credential.read). */
+export async function listCategoryRequirements(
+  db: XosClient,
+  categoryId: string,
+): Promise<Result<CategoryRequirement[]>> {
+  const { data, error } = await untyped(db)
+    .from("credential_category_requirements")
+    .select(
+      "id, credential_category_id, training_course_id, certification_id, course:training_courses(title), certification:certifications(name)",
+    )
+    .eq("credential_category_id", categoryId)
+    .is("deleted_at", null)
+    .order("created_at");
+  if (error) return fail(toDataError(error));
+  const rows = data as unknown as {
+    id: string;
+    credential_category_id: string;
+    training_course_id: string | null;
+    certification_id: string | null;
+    course: { title: string } | null;
+    certification: { name: string } | null;
+  }[];
+  return ok(
+    rows.map((r) => ({
+      id: r.id,
+      categoryId: r.credential_category_id,
+      trainingCourseId: r.training_course_id,
+      certificationId: r.certification_id,
+      title: r.course?.title ?? r.certification?.name ?? "",
+    })),
+  );
+}
+
+/** Requires a course or a certification before the category is issued (credentials.category.write). */
+export async function addCategoryRequirement(
+  db: XosClient,
+  input: {
+    readonly categoryId: string;
+    readonly trainingCourseId?: string;
+    readonly certificationId?: string;
+  },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await untyped(db)
+    .from("credential_category_requirements")
+    .insert({
+      credential_category_id: input.categoryId,
+      training_course_id: input.trainingCourseId ?? null,
+      certification_id: input.certificationId ?? null,
+    })
+    .select("id")
+    .single();
+  if (error) return fail(toDataError(error));
+  return ok({ id: data.id });
+}
+
+/** Removes a requirement; credentials already issued are untouched. */
+export async function removeCategoryRequirement(db: XosClient, id: string): Promise<Result<null>> {
+  const { error } = await untyped(db)
+    .from("credential_category_requirements")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+export type IssueCheckCode =
+  | "training_missing"
+  | "training_expires_first"
+  | "duplicate"
+  | "other_badge_on_project"
+  | "same_name_on_project"
+  | "booked_elsewhere";
+
+/** One line of what the issue form shows before Issue (app.credential_issue_check). */
+export interface IssueCheck {
+  readonly code: IssueCheckCode;
+  /** True for an unmet requirement and a duplicate: Issue stays disabled. */
+  readonly blocking: boolean;
+  readonly requirementId: string | null;
+  readonly title: string | null;
+  readonly otherCredentialId: string | null;
+  /** The other project, only when the caller can read it; else "another production". */
+  readonly projectId: string | null;
+  readonly projectKey: string | null;
+}
+
+export async function credentialIssueCheck(
+  db: XosClient,
+  input: {
+    readonly categoryId: string;
+    readonly holderPersonId: string;
+    readonly validFrom?: string | null;
+    readonly validTo?: string | null;
+  },
+): Promise<Result<IssueCheck[]>> {
+  const { data, error } = await untyped(db).rpc("credential_issue_check", {
+    p_category_id: input.categoryId,
+    p_holder_person_id: input.holderPersonId,
+    ...(input.validFrom ? { p_valid_from: input.validFrom } : {}),
+    ...(input.validTo ? { p_valid_to: input.validTo } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as {
+    check_code: IssueCheckCode;
+    blocking: boolean;
+    requirement_id: string | null;
+    title: string | null;
+    other_credential_id: string | null;
+    project_id: string | null;
+    project_key: string | null;
+  }[];
+  return ok(
+    rows.map((r) => ({
+      code: r.check_code,
+      blocking: r.blocking,
+      requirementId: r.requirement_id,
+      title: r.title,
+      otherCredentialId: r.other_credential_id,
+      projectId: r.project_id,
+      projectKey: r.project_key,
+    })),
+  );
+}
+
+export type HolderSource = "Allocation" | "Engagement" | "Member" | "Direct";
+
+/** The accreditation checks of one credential (app.credential_review, 2973), as the Issued page's chips show them. */
+export interface CredentialReview {
+  readonly credentialId: string;
+  readonly holderSource: HolderSource;
+  readonly otherBadgesOnProject: number;
+  readonly sameNameOnProject: number;
+  readonly duplicateLive: boolean;
+  readonly missingRequirements: number;
+  readonly bookedElsewhere: boolean;
+}
+
+/** True when any check flags the credential: the Issued page's "Needs attention" filter. */
+export function needsAttention(review: CredentialReview): boolean {
+  return (
+    review.duplicateLive ||
+    review.missingRequirements > 0 ||
+    review.otherBadgesOnProject > 0 ||
+    review.sameNameOnProject > 0 ||
+    review.bookedElsewhere
+  );
+}
+
+/** The review rows of the listed credentials (at most 500, a page's worth), in one call. */
+export async function credentialReviews(
+  db: XosClient,
+  credentialIds: readonly string[],
+): Promise<Result<Map<string, CredentialReview>>> {
+  if (credentialIds.length === 0) return ok(new Map());
+  const { data, error } = await untyped(db).rpc("credential_review", {
+    p_credential_ids: [...credentialIds].slice(0, 500),
+  });
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as {
+    credential_id: string;
+    holder_source: HolderSource;
+    other_badges_on_project: number;
+    same_name_on_project: number;
+    duplicate_live: boolean;
+    missing_requirements: number;
+    booked_elsewhere: boolean;
+  }[];
+  return ok(
+    new Map(
+      rows.map((r) => [
+        r.credential_id,
+        {
+          credentialId: r.credential_id,
+          holderSource: r.holder_source,
+          otherBadgesOnProject: r.other_badges_on_project,
+          sameNameOnProject: r.same_name_on_project,
+          duplicateLive: r.duplicate_live,
+          missingRequirements: r.missing_requirements,
+          bookedElsewhere: r.booked_elsewhere,
+        },
+      ]),
+    ),
+  );
+}
+
+export interface BookingElsewhere {
+  readonly projectId: string | null;
+  readonly projectKey: string | null;
+  readonly kind: "Credential" | "Engagement";
+  readonly startsAt: string | null;
+  readonly endsAt: string | null;
+}
+
+/** Where else in the org the holder is booked during the credential's window (app.credential_bookings_elsewhere). */
+export async function credentialBookingsElsewhere(
+  db: XosClient,
+  credentialId: string,
+): Promise<Result<BookingElsewhere[]>> {
+  const { data, error } = await untyped(db).rpc("credential_bookings_elsewhere", {
+    p_credential_id: credentialId,
+  });
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as {
+    project_id: string | null;
+    project_key: string | null;
+    kind: "Credential" | "Engagement";
+    starts_at: string | null;
+    ends_at: string | null;
+  }[];
+  return ok(
+    rows.map((r) => ({
+      projectId: r.project_id,
+      projectKey: r.project_key,
+      kind: r.kind,
+      startsAt: r.starts_at,
+      endsAt: r.ends_at,
+    })),
+  );
+}
+
+// Live counts (B8, migration 2971) ---------------------------------------------------------------
+
+/** People scanned into a zone now, by category and engagement (app.zone_counts_live); the rows of a zone sum to its total. */
+export interface ZoneCount {
+  readonly zoneId: string;
+  readonly credentialCategoryId: string | null;
+  readonly engagementId: string | null;
+  readonly inside: number;
+  readonly lastEntryAt: string | null;
+}
+
+export async function zoneCountsLive(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ZoneCount[]>> {
+  const { data, error } = await untyped(db)
+    .from("zone_counts_live")
+    .select("zone_id, credential_category_id, engagement_id, inside, last_entry_at")
+    .eq("project_id", projectId);
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as {
+    zone_id: string;
+    credential_category_id: string | null;
+    engagement_id: string | null;
+    inside: number;
+    last_entry_at: string | null;
+  }[];
+  return ok(
+    rows.map((r) => ({
+      zoneId: r.zone_id,
+      credentialCategoryId: r.credential_category_id,
+      engagementId: r.engagement_id,
+      inside: r.inside,
+      lastEntryAt: r.last_entry_at,
+    })),
+  );
+}
+
+/** Zone totals from the live counts, for the Inside now section and Compass's gate screen. */
+export function zoneTotals(counts: readonly ZoneCount[]): Map<string, number> {
+  const totals = new Map<string, number>();
+  for (const c of counts) totals.set(c.zoneId, (totals.get(c.zoneId) ?? 0) + c.inside);
+  return totals;
+}
+
+/** One part of a zone's total: a category or a team, and how many of the zone's people it holds. */
+export interface InsidePart {
+  readonly id: string | null;
+  readonly label: string | null;
+  readonly inside: number;
+}
+
+/** A zone with people scanned into it now, for the scan log's Inside now section (B8, G-145). */
+export interface InsideZone {
+  readonly zoneId: string;
+  readonly code: string;
+  readonly name: string;
+  readonly total: number;
+  readonly lastEntryAt: string | null;
+  readonly byCategory: readonly InsidePart[];
+  /** By engagement (the team): the engaged company, or the person for a person's engagement; null for none. */
+  readonly byTeam: readonly InsidePart[];
+}
+
+function parts(
+  counts: readonly ZoneCount[],
+  key: (c: ZoneCount) => string | null,
+  labels: ReadonlyMap<string, string>,
+): InsidePart[] {
+  const sums = new Map<string | null, number>();
+  for (const c of counts) sums.set(key(c), (sums.get(key(c)) ?? 0) + c.inside);
+  return [...sums]
+    .map(([id, inside]) => ({ id, label: id === null ? null : (labels.get(id) ?? null), inside }))
+    .sort((a, b) => b.inside - a.inside || (a.label ?? "").localeCompare(b.label ?? ""));
+}
+
+/**
+ * The project's zones with people inside now, by code, with the total, the category split and the team split of each
+ * (app.zone_counts_live, 2971). Read as the caller: someone without the scan log of the project sees no zone.
+ */
+export async function insideNow(
+  db: XosClient,
+  input: { readonly orgId: string; readonly projectId: string; readonly venueId: string | null },
+): Promise<Result<InsideZone[]>> {
+  const counts = await zoneCountsLive(db, input.projectId);
+  if (!counts.ok) return counts;
+  if (counts.data.length === 0) return ok([]);
+  const [zones, categories] = await Promise.all([
+    listProjectZones(db, input.orgId, input.venueId),
+    listCredentialCategories(db, { orgId: input.orgId, projectId: input.projectId }),
+  ]);
+  if (!zones.ok) return zones;
+  if (!categories.ok) return categories;
+  const engagementIds = [
+    ...new Set(counts.data.flatMap((c) => (c.engagementId ? [c.engagementId] : []))),
+  ];
+  const teams = new Map<string, string>();
+  if (engagementIds.length > 0) {
+    const { data, error } = await untyped(db)
+      .from("engagements")
+      .select("id, person_id, counterparty:counterparties(name)")
+      .in("id", engagementIds);
+    if (error) return fail(toDataError(error));
+    const rows = (data ?? []) as unknown as {
+      id: string;
+      person_id: string | null;
+      counterparty: { name: string | null } | null;
+    }[];
+    const names = await personNames(
+      db,
+      rows.map((r) => r.person_id),
+    );
+    for (const r of rows) {
+      const label = r.counterparty?.name ?? (r.person_id ? names.get(r.person_id) : undefined);
+      if (label) teams.set(r.id, label);
+    }
+  }
+  const categoryLabels = new Map(categories.data.map((c) => [c.id, `${c.code} · ${c.name}`]));
+  const byZone = new Map<string, ZoneCount[]>();
+  for (const c of counts.data) byZone.set(c.zoneId, [...(byZone.get(c.zoneId) ?? []), c]);
+  const zoneById = new Map(zones.data.map((z) => [z.id, z]));
+  return ok(
+    [...byZone]
+      .map(([zoneId, rows]): InsideZone => {
+        const zone = zoneById.get(zoneId);
+        return {
+          zoneId,
+          code: zone?.code ?? "",
+          name: zone?.name ?? "",
+          total: rows.reduce((n, r) => n + r.inside, 0),
+          lastEntryAt: rows.reduce<string | null>(
+            (latest, r) =>
+              r.lastEntryAt && (!latest || r.lastEntryAt > latest) ? r.lastEntryAt : latest,
+            null,
+          ),
+          byCategory: parts(rows, (r) => r.credentialCategoryId, categoryLabels),
+          byTeam: parts(rows, (r) => r.engagementId, teams),
+        };
+      })
+      .sort((a, b) => a.code.localeCompare(b.code)),
+  );
 }
 
 // Capabilities ---------------------------------------------------------------------------------

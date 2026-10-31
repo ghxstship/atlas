@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 import { certifiedPayrollModel } from "../src/certified-payroll.ts";
 import { buildDeletionCertificateModel } from "../src/documents/deletion-certificate.ts";
 import { buildDocumentModel, sharedImageModel, watermarkText } from "../src/documents/generate.ts";
-import { DOCUMENT_KINDS, PAPERS } from "../src/documents/model.ts";
-import { renderDocumentPdf } from "../src/documents/render.ts";
+import { DOCUMENT_KINDS, PAPERS, type PrintSize } from "../src/documents/model.ts";
+import { renderDocumentPdf, renderDocumentsPdf } from "../src/documents/render.ts";
 import { osha300Model, osha300aModel, osha301Model } from "../src/osha.ts";
 import {
   CASES,
@@ -17,11 +17,14 @@ import {
   TOTALS,
 } from "../test/documents/compliance-fixtures.ts";
 import {
+  BADGE_V2,
   BRAND,
   DELETION_CERTIFICATE,
   FIXTURES,
   LOGO_PNG,
   NOW,
+  PHOTO_JPEG,
+  PHOTO_PNG,
 } from "../test/documents/fixtures.ts";
 
 /**
@@ -29,8 +32,11 @@ import {
  * en-US and es-US, and validates each file against PDF/UA-1 with veraPDF in its pinned Docker image
  * (ADR 0031). It also renders the Section 8.6 watermarked copies (a Confidential document and a
  * shared image), so the watermark keeps the files compliant, and the Section 14.5 compliance forms
- * (OSHA Forms 300, 300A and 301 and the WH-347, ADR 0041). Exits 1 when any file is not compliant
- * or veraPDF cannot run.
+ * (OSHA Forms 300, 300A and 301 and the WH-347, ADR 0041), and the P5 credential badges: CR80 and A6 cards
+ * with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter
+ * (8 files per locale), and the B8 guest pass on A6 and CR80 cards (the per-kind loop renders it on Letter and A4).
+ * The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM. Exits 1 when any file is not compliant or
+ * veraPDF cannot run.
  *
  *   pnpm --filter @xos/data documents:verapdf [--keep]
  */
@@ -65,6 +71,61 @@ for (const locale of LOCALES) {
       writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
       files.push(name);
     }
+  }
+  // P5 badges: the card layout, the portrait and the gate code, and the batch file.
+  const badge = (paper: PrintSize, photo: Uint8Array | null, number = BADGE_V2.credential.number) =>
+    buildDocumentModel(
+      "credential-badge",
+      {
+        ...BADGE_V2,
+        credential: { ...BADGE_V2.credential, number },
+        photo: photo ? { bytes: photo, source: "Badge" } : null,
+      },
+      {
+        locale,
+        messages,
+        brand: BRAND,
+        recordUrl: "https://atlas.example.test/northwind/documents/credential-badge",
+        now: NOW,
+        paper,
+      },
+    );
+  for (const [name, model, paper] of [
+    [`credential-badge-photo.${locale}.cr80.pdf`, badge("cr80", PHOTO_JPEG), "cr80"],
+    [`credential-badge-no-photo.${locale}.cr80.pdf`, badge("cr80", null), "cr80"],
+    [`credential-badge-photo.${locale}.a6.pdf`, badge("a6", PHOTO_PNG), "a6"],
+    [`credential-badge-no-photo.${locale}.a6.pdf`, badge("a6", null), "a6"],
+    [`credential-badge-v2-photo.${locale}.letter.pdf`, badge("letter", PHOTO_JPEG), "letter"],
+    [`credential-badge-v2-photo.${locale}.a4.pdf`, badge("a4", PHOTO_JPEG), "a4"],
+  ] as const) {
+    writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
+    files.push(name);
+  }
+  for (const paper of ["cr80", "letter"] as const) {
+    const name = `credential-badges-batch.${locale}.${paper}.pdf`;
+    const batch = ["CR-000041", "CR-000042", "CR-000043"].map((n, i) =>
+      badge(paper, i === 1 ? null : PHOTO_JPEG, n),
+    );
+    writeFileSync(
+      join(dir, name),
+      await renderDocumentsPdf(batch, { paper, title: `Credential badges (3)`, lang: locale }),
+      { mode: 0o644 },
+    );
+    files.push(name);
+  }
+  // B8 guest passes on the two cards: the card layout without a portrait, the door code centred.
+  for (const paper of ["a6", "cr80"] as const) {
+    const name = `guest-pass.${locale}.${paper}.pdf`;
+    const model = buildDocumentModel("guest-pass", FIXTURES["guest-pass"], {
+      locale,
+      messages,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/northwind/documents/guest-pass",
+      now: NOW,
+      paper,
+    });
+    writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
+    files.push(name);
   }
   // The platform's deletion certificate (A79, Section 14.7) goes through the same renderer and gate.
   const certificate = buildDeletionCertificateModel(DELETION_CERTIFICATE, {

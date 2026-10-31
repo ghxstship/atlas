@@ -62,6 +62,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA (Section 11.9, ADR 0031).",
+  "/{org}/documents/badges":
+    "Route handler: up to 100 credential badges in one streamed PDF/UA file, on Letter, A4, A6 or CR80 (P5, ADR 0031 amendment).",
   "/{org}/deletion-certificates/{id}":
     "Route handler: a deletion certificate PDF for the former Owner it was issued to (A79, Section 14.7).",
   "/{org}/forms/{form}/{id}":
@@ -72,6 +74,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: opens a share link and sends the file, watermarked when Confidential (Section 8.6).",
   "/files/{version}":
     "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
+  "/files/party/{version}":
+    "Route handler: a file a party uploaded to party-uploads (an advance answer's or a supplied sponsor asset's), for a reader app.party_file_object admits, served under the caller's session behind the scan gate (R9).",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",

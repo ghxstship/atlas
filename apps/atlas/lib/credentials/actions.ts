@@ -1,27 +1,46 @@
 "use server";
 
 import {
+  addCategoryRequirement,
   archiveCredentialCategory,
   createCredentialCategory,
+  credentialIssueCheck,
   grantZoneAccess,
+  insideNow,
   issueCredential,
   listAccessGrid,
+  operationsProjectByKey,
+  overrideScan,
   recordScan,
+  refusalReasonKey,
+  removeCategoryRequirement,
   revokeCredential,
   updateCredentialCategory,
   updateCredentialWindow,
   updateZoneAccess,
   withdrawZoneAccess,
   CATEGORY_CODE,
+  type InsideZone,
+  type IssueCheck,
 } from "@xos/data/credentials";
+import {
+  countOutcomes,
+  credentialPhotoStates,
+  removeCredentialPhoto,
+  removeCredentialPhotoObjects,
+  requestCredentialPhotos,
+} from "@xos/data/credential-photos";
 import { resolveProjectPerson } from "@xos/data/project-people";
 import { resolveScanIntake } from "@xos/data/scan-intake";
+import type { Route } from "next";
 import { revalidatePath } from "next/cache";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 import { failed, type ActionState } from "@/lib/operations/state";
 import { localToInstant } from "@/lib/operations/time";
+import { getTranslate } from "@/lib/shell/translate";
+import { formatAsked, outcomeSummary } from "./photo-outcomes";
 
 /**
  * Credentials actions (Section 4.2). Each resolves the viewer's org context again (404 when it is
@@ -58,6 +77,8 @@ const Category = z.object({
     .transform((c) => c.toUpperCase())
     .pipe(z.string().regex(CATEGORY_CODE)),
   name: z.string().trim().min(1).max(100),
+  // R7: a parking pass is a category of kind Parking.
+  kind: z.enum(["Access", "Parking"]).optional(),
 });
 
 export async function createCategoryAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -66,6 +87,7 @@ export async function createCategoryAction(_: ActionState, form: FormData): Prom
     projectId: form.get("projectId"),
     code: form.get("code"),
     name: form.get("name"),
+    kind: form.get("kind") ?? undefined,
   });
   if (!parsed.success) return { error: "categoryInput" };
   const result = await createCredentialCategory(ctx.viewer.db, {
@@ -82,6 +104,7 @@ export async function updateCategoryAction(_: ActionState, form: FormData): Prom
     id: form.get("id"),
     code: form.get("code"),
     name: form.get("name"),
+    kind: form.get("kind") ?? undefined,
   });
   if (!parsed.success) return { error: "categoryInput" };
   const result = await updateCredentialCategory(ctx.viewer.db, parsed.data.id, parsed.data);
@@ -325,19 +348,198 @@ export async function dismissScanIntakeAction(
 export async function recordScanAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const parsed = z
-    .object({ zoneId: z.uuid(), credentialNumber: z.string().trim().min(1).max(40) })
-    .safeParse({ zoneId: form.get("zoneId"), credentialNumber: form.get("credentialNumber") });
+    .object({
+      zoneId: z.uuid(),
+      credentialNumber: z.string().trim().min(1).max(40),
+      direction: z.enum(["In", "Out"]).default("In"),
+    })
+    .safeParse({
+      zoneId: form.get("zoneId"),
+      credentialNumber: form.get("credentialNumber"),
+      direction: form.get("direction") ?? undefined,
+    });
   if (!parsed.success) return { error: "scanInput" };
   const result = await recordScan(ctx.viewer.db, parsed.data);
   if (!result.ok) return failed(result.error);
   revalidatePath(`/${ctx.org.slug}`, "layout");
+  const t = await getTranslate();
+  // An Out scan is never refused (2970); a denial names the database's reason in the viewer's language.
+  const reason = result.data.refusalReason;
   return {
     ok: true,
     result: {
       number: result.data.credentialNumber,
       holder: result.data.holderName ?? "none",
       zone: result.data.zoneCode,
-      decision: result.data.result,
+      decision: parsed.data.direction === "Out" ? "Out" : result.data.result,
+      reason: reason ? t(`credentials.scans.reasons.${refusalReasonKey(reason)}`) : "none",
     },
   };
+}
+
+/**
+ * A supervisor lets in someone the gate denied (app.override_access_scan, 2970): a new Granted In row tied to the
+ * denied scan, with the reason. The database checks the capability, the holder and the 15 minutes.
+ */
+export async function overrideScanAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({ scanId: z.uuid(), reason: z.string().trim().min(1).max(300) })
+    .safeParse({ scanId: form.get("scanId"), reason: form.get("reason") });
+  if (!parsed.success) return { error: "rules.scan_override_reason" };
+  const result = await overrideScan(ctx.viewer.db, parsed.data);
+  if (!result.ok) return failed(result.error);
+  return done(ctx.org.slug, {
+    number: result.data.credentialNumber,
+    zone: result.data.zoneCode,
+  });
+}
+
+/** The scan log's Inside now section, read again every 30 seconds while it is not paused. */
+export async function loadInsideNow(
+  org: string,
+  projectKey: string,
+): Promise<{ readonly zones: readonly InsideZone[]; readonly at: string } | null> {
+  const ctx = await getOrgContext(org);
+  if (!ctx) return null;
+  const project = await operationsProjectByKey(ctx.viewer.db, ctx.org.id, projectKey);
+  if (!project.ok) return null;
+  const zones = await insideNow(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    projectId: project.data.id,
+    venueId: project.data.venueId,
+  });
+  return zones.ok ? { zones: zones.data, at: new Date().toISOString() } : null;
+}
+
+// Badge photos (P5) --------------------------------------------------------------------------------
+
+/** Asks one credential's holder for a badge photo, from the credential record. */
+export async function requestCredentialPhotosAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const id = z.uuid().safeParse(form.get("id"));
+  if (!id.success) return { error: "notFound" };
+  const result = await requestCredentialPhotos(ctx.viewer.db, [id.data]);
+  if (!result.ok) return failed(result.error);
+  revalidatePath(`/${ctx.org.slug}`, "layout");
+  const t = await getTranslate();
+  return { ok: true, result: { summary: outcomeSummary(t, countOutcomes(result.data)) } };
+}
+
+/**
+ * The print panel's "Request missing photos": asks the holders of the checked badges whose photo is Missing or
+ * Requested, then returns to the panel with a count per outcome (counts only, never a name, in the URL).
+ */
+export async function requestMissingPhotosAction(form: FormData): Promise<void> {
+  const ctx = await contextFor(form);
+  const ids = z.array(z.uuid()).min(1).max(100).safeParse(form.getAll("id"));
+  const back = z
+    .string()
+    .regex(/^\/[^/]/)
+    .safeParse(form.get("back"));
+  const target = new URL(
+    back.success ? back.data : `/${ctx.org.slug}/credentials/issued`,
+    "http://x",
+  );
+  target.searchParams.set("print", "1");
+  if (ids.success) {
+    const states = await credentialPhotoStates(ctx.viewer.db, ids.data);
+    const wanted = ids.data.filter((id) => {
+      const state = states.ok ? states.data.get(id) : undefined;
+      return state === "Missing" || state === "Requested";
+    });
+    const result = wanted.length > 0 ? await requestCredentialPhotos(ctx.viewer.db, wanted) : null;
+    const counts = result?.ok ? countOutcomes(result.data) : {};
+    target.searchParams.set("asked", formatAsked(counts));
+    revalidatePath(`/${ctx.org.slug}`, "layout");
+  }
+  redirect(`${target.pathname}${target.search}` as Route);
+}
+
+/**
+ * An issuer removes the holder's badge photo, then deletes the objects the database hands back (none when the scanner
+ * already deleted it). A photo still being scanned, or one the scan could not clear, is refused by rule and stays.
+ */
+export async function removeCredentialPhotoAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const person = z.uuid().safeParse(form.get("personId"));
+  if (!person.success) return { error: "notFound" };
+  if (form.get("confirm") !== "on") return { error: "confirmRemovePhoto" };
+  const removed = await removeCredentialPhoto(ctx.viewer.db, ctx.org.id, person.data);
+  if (!removed.ok) return failed(removed.error);
+  const gone = await removeCredentialPhotoObjects(ctx.viewer.db, removed.data);
+  if (!gone.ok) return failed(gone.error);
+  return done(ctx.org.slug);
+}
+
+// Required before issue and the issue checks (B8, 2972 and 2973) ---------------------------------------------------
+
+/** Adds a course (course:<id>) or a certification (certification:<id>) a category requires before issue. */
+export async function addRequirementAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const categoryId = z.uuid().safeParse(form.get("categoryId"));
+  const raw = String(form.get("requirement") ?? "");
+  const [kind, id] = raw.split(":");
+  if (
+    !categoryId.success ||
+    !z.uuid().safeParse(id).success ||
+    (kind !== "course" && kind !== "certification")
+  ) {
+    return { error: "requirementInput" };
+  }
+  const result = await addCategoryRequirement(ctx.viewer.db, {
+    categoryId: categoryId.data,
+    ...(kind === "course" ? { trainingCourseId: id as string } : { certificationId: id as string }),
+  });
+  if (!result.ok) return failed(result.error);
+  return done(ctx.org.slug);
+}
+
+export async function removeRequirementAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const id = z.uuid().safeParse(form.get("id"));
+  if (!id.success) return { error: "notFound" };
+  const result = await removeCategoryRequirement(ctx.viewer.db, id.data);
+  if (!result.ok) return failed(result.error);
+  return done(ctx.org.slug);
+}
+
+/**
+ * What the issue form shows before Issue (app.credential_issue_check): read again whenever the category, the holder or
+ * the window changes. The window is typed in the project's time zone. Nothing is shown until both are chosen.
+ */
+export async function loadIssueChecks(input: {
+  readonly org: string;
+  readonly timeZone: string;
+  readonly categoryId: string;
+  readonly holderPersonId: string;
+  readonly validFrom: string;
+  readonly validTo: string;
+}): Promise<readonly IssueCheck[]> {
+  const ctx = await getOrgContext(input.org);
+  if (!ctx) return [];
+  if (
+    !z.uuid().safeParse(input.categoryId).success ||
+    !z.uuid().safeParse(input.holderPersonId).success
+  ) {
+    return [];
+  }
+  const zone = TimeZone.safeParse(input.timeZone);
+  if (!zone.success) return [];
+  const result = await credentialIssueCheck(ctx.viewer.db, {
+    categoryId: input.categoryId,
+    holderPersonId: input.holderPersonId,
+    validFrom: localToInstant(input.validFrom, zone.data),
+    validTo: localToInstant(input.validTo, zone.data),
+  });
+  return result.ok ? result.data : [];
 }

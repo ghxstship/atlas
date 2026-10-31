@@ -85,6 +85,10 @@
       "session_signed_out": {
         "subject": "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
         "body": "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones."
+      },
+      "work_details_moved": {
+        "subject": "Las tallas de uniforme y las preferencias de viaje pasaron a cada proyecto",
+        "body": "{moved, select, uniform {Tus tallas de uniforme se quitaron} travel {Tus preferencias de asiento, comida y aeropuerto de origen se quitaron} other {Tus tallas de uniforme y tus preferencias de viaje se quitaron}} de tu perfil. Ahora las producciones te las piden en cada proyecto en cuya lista estás, y las guardan solo para ese proyecto. Tus demás datos de trabajo no cambiaron."
       }
     },
     "report": {
@@ -175,6 +179,18 @@
       "alert": {
         "subject": "Alerta de clima: {level}",
         "body": "Una lectura de {hazard} de {reading} alcanzó el umbral de {level}. Sigue el plan de emergencia."
+      },
+      "warning": {
+        "subject": "Aviso oficial: {event}",
+        "body": "El Servicio Meteorológico Nacional emitió una alerta {severity}: {headline}. Sigue el plan de emergencia."
+      },
+      "hold": {
+        "subject": "Suspensión por clima: detenga el trabajo",
+        "body": "{message}"
+      },
+      "all_clear": {
+        "subject": "Fin de la suspensión: puede volver al trabajo",
+        "body": "{message}"
       }
     },
     "access": {
@@ -294,6 +310,60 @@
         "subject": "{subject, select, comment {Se eliminó tu comentario} message {Se eliminó tu mensaje} other {Se eliminó tu publicación}}",
         "body": "Los moderadores de tu organización eliminaron tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
       }
+    },
+    "credential_photo": {
+      "requested": {
+        "subject": "{orgName} te pide tu foto de credencial",
+        "body": "{actorName}, de {orgName}, pidió una foto para imprimir en tu credencial. Agrégala en Gateway, en Perfil, Fotos de credencial."
+      }
+    },
+    "roster_entry": {
+      "invited": {
+        "subject": "Estás en el equipo de {partyName} para {projectName}",
+        "body": "Abre el Inicio de Gateway para aceptar o rechazar."
+      },
+      "returned": {
+        "subject": "Devolvieron a {personName} en la lista de {projectName}",
+        "body": "Motivo: {reason}"
+      },
+      "declined": {
+        "subject": "{personName} rechazó la lista de {projectName}",
+        "body": "Agrega a otra persona o retira la entrada."
+      },
+      "project_facts_entered": {
+        "subject": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "body": "{actorName} los ingresó para {projectName}. Revísalos y corrige lo que esté mal."
+      }
+    },
+    "engagement": {
+      "roster_lock_changed": {
+        "subject": "Cambió el cierre de nombres de {projectName}",
+        "body": "Abre la lista del equipo para ver cuándo se cierran los nombres. Después, pide a la organización productora que cambie la lista."
+      }
+    },
+    "allocation": {
+      "decided": {
+        "subject": "Tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName} fue {decision, select, approved {aprobada} declined {rechazada} other {decidida}}",
+        "body": "{decision, select, declined {Motivo: {reason}} other {{quantity} para {personName}, a través de {partyName}.}}"
+      },
+      "assigned": {
+        "subject": "Recibiste {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{partyName} te pasó {quantity}."
+      },
+      "issued": {
+        "subject": "Te entregaron tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "Ahora está a tu nombre. Devuélvelo cuando termine el trabajo."
+      },
+      "withdrawn": {
+        "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
+      }
+    },
+    "guest": {
+      "arrived": {
+        "subject": "Llegó {guest_name}",
+        "body": "Tu invitado {guest_name} se registró{has_door, select, yes { en {door}} other {}} con {plus_ones_admitted, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}}.{has_table, select, yes { Mesa: {table_label}.} other {}}"
+      }
     }
   },
   "notification": {
@@ -359,5 +429,23 @@
   "deletionCertificate": {
     "subject": "Certificado de eliminación de {org}",
     "body": "Los datos de {org} se eliminaron de XOS el {date}, según el ciclo de vida de la organización.\n\nSe adjunta su certificado de eliminación. Su id es {id}. También puede descargarlo desde Atlas mientras tenga una cuenta.\n\nLas copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario."
+  },
+  "party_invitation": {
+    "accountSubject": "{inviterName} te invita a {accountName} en XOS",
+    "rosterSubject": "{inviterName} te invita al equipo de {partyName} para {projectName}",
+    "how": "Inicia sesión en Gateway con este correo y acepta en el Inicio antes del {expiresAt, date, long}. La empresa verá tu perfil y los datos del proyecto. ¿No lo esperabas? Ignóralo.",
+    "action": "Iniciar sesión en Gateway"
+  },
+  "guest_message": {
+    "invitationSubject": "{orgName} te invita a {projectName}",
+    "passSubject": "Tu pase para {projectName}",
+    "heading": "{projectName}",
+    "greeting": "Hola, {name}:",
+    "invitation": "{orgName} te agregó a la lista de invitados de {projectName}.",
+    "pass": "Adjuntamos tu pase para {projectName}. Muéstralo en la puerta{plusOnes, plural, =0 {} one {; admite # invitado más} other {; admite # invitados más}}.",
+    "show": "Función: {showName}.",
+    "showOn": "Función: {showName}, {showDate, date, long}.",
+    "why": "Recibes este correo porque estás en la lista de invitados de {orgName}.",
+    "preferences": "Dejar de recibir correos de esta organización"
   }
 }

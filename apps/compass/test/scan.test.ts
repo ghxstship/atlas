@@ -1,6 +1,9 @@
+import { badgeScanPayload } from "@xos/data/documents/templates";
 import { describe, expect, it } from "vitest";
 import {
   buildAccessScan,
+  buildScanOverride,
+  canOverride,
   assetScanAction,
   effectiveAssetState,
   buildAssetScan,
@@ -112,6 +115,14 @@ describe("classifying scans", () => {
       kind: "credential",
       credentialNumber: "CR-000123",
     });
+    expect(classify("XOSGP1:GP-ABCDEFGHIJ", "qr")).toEqual({
+      kind: "guest-pass",
+      passCode: "GP-ABCDEFGHIJ",
+    });
+    expect(classify("XOSGP1:GP-ABCDEFGHI1", "qr")).toEqual({
+      kind: "code",
+      value: "XOSGP1:GP-ABCDEFGHI1",
+    });
     expect(classify("XOSCR1:CR-000124", "qr")).toEqual({
       kind: "credential",
       credentialNumber: "CR-000124",
@@ -138,6 +149,15 @@ describe("classifying scans", () => {
     expect(ndefText(payload)).toBe("AUD-0042");
     expect(ndefText([])).toBeNull();
     expect(ndefText([0x02, 0x65, 0x6e])).toBeNull();
+  });
+});
+
+describe("printed badges (P5)", () => {
+  it("reads the gate code of a printed badge as the credential", () => {
+    expect(classify(badgeScanPayload("CR-000042"), "qr")).toEqual({
+      kind: "credential",
+      credentialNumber: "CR-000042",
+    });
   });
 });
 
@@ -237,9 +257,48 @@ describe("gate decisions", () => {
       p_id: "s1",
       p_device_scanned_at: "2026-10-14T18:00:00.000Z",
       p_offline_result: "Granted",
+      p_direction: "In",
     });
     expect(m.optimistic).toMatchObject({ id: "s1", offline_result: "Granted" });
     expect(typeof buildAccessScan(cred(), "z", decision, "", now).rowId).toBe("string");
+  });
+
+  it("sends an Out scan as Granted with its device time, whatever the device decided (B8)", () => {
+    const denied = decideGate("CR-000001", "nowhere", [cred()], grid, now);
+    const m = buildAccessScan(
+      cred(),
+      "nowhere",
+      denied,
+      "2026-10-14T18:00:00.000Z",
+      now,
+      () => "s2",
+      "Out",
+    );
+    expect(m.payload).toMatchObject({
+      p_direction: "Out",
+      p_offline_result: "Granted",
+      p_device_scanned_at: "2026-10-14T18:00:00.000Z",
+    });
+  });
+
+  it("queues an override by the denied scan's client id, and offers it only with the issue capability (B8)", () => {
+    const denied = decideGate("CR-000001", "nowhere", [cred()], grid, now);
+    const m = buildScanOverride("s2", "  Escorted by the stage manager ", now, () => "o1");
+    expect(m).toMatchObject({ op: "rpc", target: "override_access_scan", rowId: "o1" });
+    expect(m.payload).toEqual({
+      p_scan_id: "s2",
+      p_reason: "Escorted by the stage manager",
+      p_id: "o1",
+    });
+    expect(canOverride(denied, new Set(["credentials.credential.issue"]))).toBe(true);
+    expect(canOverride(denied, new Set(["credentials.scan.write"]))).toBe(false);
+    expect(canOverride(denied, null)).toBe(false);
+    expect(
+      canOverride(
+        decideGate("CR-999999", "nowhere", [cred()], grid, now),
+        new Set(["credentials.credential.issue"]),
+      ),
+    ).toBe(false);
   });
 });
 

@@ -54,6 +54,8 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   // A99's account notices (1560, 1561), as private.notify_account stores them.
   "account.recovery_code_used": { remaining: "9" },
   "account.session_signed_out": { count: "2" },
+  // R6a's one-time move (2664), as private.move_profile_work_details stores it.
+  "account.work_details_moved": { moved: "both" },
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },
@@ -79,6 +81,11 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "billing.payment_failed": { days: "3" },
   "billing.read_only": {},
   "comment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
+  // P5: app.request_credential_photos (2822) names the org and the Gateway page the item opens.
+  "credential_photo.requested": {
+    orgName: "Demo Productions",
+    gatewayPath: "/profile/badge-photos",
+  },
   "event.invited": { title: "Show Day Safety Briefing", startsAt: "2026-10-21T09:00:00+00:00" },
   "export.ready": { title: "Records export" },
   "help_request.assigned": { title: "Dock tablet will not sign in", team: "Site IT Desk" },
@@ -100,11 +107,101 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "occupancy.threshold": { title: "Main Gate", percent: "90", count: "450", permitted_load: "500" },
   "recognition.received": { title: "Re-rigged the stage left truss in record time." },
   "report.delivered": { title: "Weekly labor" },
+  // R4: the crew roster (2642), as private.roster_notification_args stores them.
+  "roster_entry.invited": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+  },
+  "roster_entry.returned": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    reason: "Add the arrival window.",
+  },
+  "roster_entry.declined": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+  },
+  // R5: project facts entered for the person (2655) and an engagement's names lock (2656).
+  "roster_entry.project_facts_entered": {
+    kind: "travel",
+    actorName: "Riley Chen",
+    companyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+  },
+  "engagement.roster_lock_changed": {
+    projectName: "Northwind Summer Series",
+    locksAt: "2027-03-01T17:00:00Z",
+  },
+  // R7: advance allocations (2693, 2694), as private.allocation_notification_args stores them.
+  "allocation.decided": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "asset",
+    itemName: "Two-way radios",
+    quantity: "2",
+    decision: "approved",
+  },
+  "allocation.assigned": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "asset",
+    itemName: "Two-way radios",
+    quantity: "2",
+  },
+  "allocation.issued": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "asset",
+    itemName: "Two-way radios",
+    quantity: "2",
+  },
+  "allocation.withdrawn": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "asset",
+    itemName: "Two-way radios",
+    quantity: "2",
+    cause: "engagement_ended",
+  },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
   "survey.opened": { title: "Load-In Pulse", anonymous: "true" },
   "training.assigned": { title: "Rigging Basics for Crew", due_on: "2026-10-27" },
   "weather.alert": { level: "Monitor", hazard: "Wind", reading: "24" },
+  // B8: the official feed's warnings (2976), holds and the all-clear (2977), and a host's guest arriving (2974).
+  "weather.warning": {
+    event: "Severe Thunderstorm Warning",
+    severity: "Severe",
+    headline: "Severe Thunderstorm Warning until 9:45 PM EDT",
+    ends_at: "2027-06-04T01:45:00Z",
+  },
+  "weather.hold": {
+    message: "Lightning within 8 miles: stop work and shelter.",
+    hazard: "Lightning",
+  },
+  "weather.all_clear": { message: "All clear: resume work.", hazard: "Lightning" },
+  "guest.arrived": {
+    guest_name: "Sasha Bell",
+    plus_ones_admitted: "1",
+    door: "North Gate",
+    has_door: "yes",
+    table_label: "Table 4",
+    has_table: "yes",
+  },
   // A79's org lifecycle kinds (1350 to 1355), as their notify calls store them (dates as epoch milliseconds).
   "billing.trial_ending": { days: "3", plan: "pro", ends_at: "1795000000000" },
   "billing.trial_ended": { plan: "pro" },

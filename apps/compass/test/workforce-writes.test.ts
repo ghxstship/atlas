@@ -20,8 +20,28 @@ const ORG = "0192f1e2-7c3a-7b4d-9e8f-000000000001";
 const PERSON = "0192f1e2-7c3a-7b4d-9e8f-000000000002";
 
 describe("workforce writes", () => {
-  it("queues the sixteen allowlisted RPCs through apply_sync_mutation", () => {
-    expect(WORKFORCE_SYNC_RPCS).toHaveLength(16);
+  it("stamps a weather hold with its id and the device time, so a late replay is refused (B8)", () => {
+    const m = workforceWrite(
+      "call_weather_hold",
+      { p_project_id: "prj", p_message: "Stop work.", p_hazard: undefined },
+      Date.parse("2027-06-04T20:00:00Z"),
+      () => "h1",
+    );
+    expect(m).toMatchObject({
+      target: "app.call_weather_hold",
+      table: "weather_holds",
+      rowId: "h1",
+    });
+    expect(m.payload).toEqual({
+      p_project_id: "prj",
+      p_message: "Stop work.",
+      p_id: "h1",
+      p_device_at: "2027-06-04T20:00:00.000Z",
+    });
+  });
+
+  it("queues the sixteen allowlisted RPCs and the two weather hold RPCs through apply_sync_mutation", () => {
+    expect(WORKFORCE_SYNC_RPCS).toHaveLength(18);
     const m = workforceWrite(
       "acknowledge_feed_post",
       { p_post_id: "p1", p_extra: undefined },

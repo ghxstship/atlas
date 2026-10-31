@@ -123,6 +123,11 @@ export function summarizeMutation(
             }
           : generic(m, ctx);
       }
+      case "app.record_proof_of_performance_photo": {
+        // A sponsor's proof photo (A140): when it was taken, never the photo's path.
+        const at = text(a["p_captured_at"]);
+        return { key: "proofPhoto", values: { time: ctx.time(at ?? m.queuedAt) } };
+      }
       case "app.add_incident_party": {
         const description = text(a["p_description"]);
         return description ? { key: "incidentParty", values: { description } } : generic(m, ctx);
@@ -137,10 +142,25 @@ export function summarizeMutation(
         const zone = text(a["p_zone_id"]) ? ctx.zoneName(String(a["p_zone_id"])) : null;
         const at = text(a["p_device_scanned_at"]);
         const time = at ? ctx.time(at) : ctx.time(m.queuedAt);
+        if (a["p_direction"] === "Out") {
+          return zone
+            ? { key: "accessExitZone", values: { zone, time } }
+            : { key: "accessExit", values: { time } };
+        }
         return zone
           ? { key: "accessScanZone", values: { zone, time } }
           : { key: "accessScan", values: { time } };
       }
+      case "override_access_scan":
+      case "app.override_access_scan": {
+        // B8 (2970): a supervisor lets in someone the gate denied; the reason is shown as typed.
+        const reason = text(a["p_reason"]);
+        return reason ? { key: "accessOverride", values: { reason } } : generic(m, ctx);
+      }
+      case "app.call_weather_hold":
+        return { key: "weatherHold", values: {} };
+      case "app.give_weather_all_clear":
+        return { key: "weatherAllClear", values: {} };
       case "app.apply_asset_scan": {
         const code = text(a["p_code"]) ?? "";
         return {
@@ -203,6 +223,23 @@ const TECHNICAL =
  * sentence. A permission refusal (42501) and any raw database wording get a plain sentence instead (on
  * the simulator the queue printed 'new row violates row-level security policy for table "inspections"').
  */
+/**
+ * Refusals of B8's queued gate overrides and weather holds (2970, 2977) that Compass words itself, in the device's
+ * language: the server may decide Granted where the device decided Denied, and a hold made offline too long ago is
+ * refused rather than sent late.
+ */
+const RULE_KEYS: Readonly<Record<string, string>> = {
+  scan_not_denied: "refusedScanNotDenied",
+  scan_override_revoked: "refusedScanOverrideRevoked",
+  scan_override_stale: "refusedScanOverrideStale",
+  scan_override_taken: "refusedScanOverrideTaken",
+  scan_override_self: "refusedScanOverrideSelf",
+  weather_hold_open: "refusedWeatherHoldOpen",
+  weather_hold_closed: "refusedWeatherHoldClosed",
+  weather_hold_stale: "refusedWeatherHoldStale",
+  weather_hold_id_taken: "refusedWeatherHoldIdTaken",
+};
+
 export function refusalReason(error: {
   readonly code: string;
   readonly message: string;
@@ -210,6 +247,9 @@ export function refusalReason(error: {
   if (error.code === "42501" || /row-level security|permission denied/i.test(error.message)) {
     return { key: "refusedPermission", values: {} };
   }
+  const rule = /^([a-z][a-z0-9_]*):\s+/.exec(error.message)?.[1];
+  const ruleKey = rule ? RULE_KEYS[rule] : undefined;
+  if (ruleKey) return { key: ruleKey, values: {} };
   const sentence = error.message.replace(/^[a-z][a-z0-9_]*:\s+/, "").trim();
   if (!sentence || TECHNICAL.test(sentence)) return { key: "refusedTechnical", values: {} };
   return { key: "refusedReason", values: { reason: sentence } };

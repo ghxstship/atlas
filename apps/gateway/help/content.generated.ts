@@ -156,6 +156,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "engagement-crew",
+        title: "Crew",
+        summary: "Put your people on an engagement, submit the roster and see who accepted.",
+        kind: "page",
+        nodes: ["engagement.crew"],
+        order: 1,
+      },
+      {
         slug: "engagement-deliverables",
         title: "Deliverables",
         summary: "What you owe from your scope, with due dates and fees, and submitting each one.",
@@ -262,6 +270,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "Your shifts grouped by the position each one fills.",
         kind: "page",
         nodes: ["engagement.positions"],
+        order: 1,
+      },
+      {
+        slug: "engagement-project-details",
+        title: "Project details",
+        summary: "The travel, uniform sizes and vehicle a project asks of you.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
         order: 1,
       },
       {
@@ -512,6 +528,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "profile-badge-photos",
+        title: "Badge photos",
+        summary:
+          "Give each organization you hold a credential with a photo for your badge, choose your profile photo instead, or take it back.",
+        kind: "page",
+        nodes: ["profile.badge-photos"],
+        order: 2,
+      },
+      {
         slug: "profile",
         title: "Your profile",
         summary:
@@ -637,7 +662,8 @@ export const HELP_CONTENT: HelpIndex = {
       {
         slug: "settings-work-details",
         title: "Work details",
-        summary: "Where the facts about how you work come from.",
+        summary:
+          "Your emergency contacts, dietary and accessibility needs, loyalty programs and passport, and who sees them.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,
@@ -825,6 +851,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "engagement-crew",
+        title: "Equipo",
+        summary: "Incluye a tu gente en una contratación, envía la lista y ve quién aceptó.",
+        kind: "page",
+        nodes: ["engagement.crew"],
+        order: 1,
+      },
+      {
         slug: "engagement-deliverables",
         title: "Entregables",
         summary:
@@ -935,6 +969,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "Tus turnos agrupados por el puesto que cubre cada uno.",
         kind: "page",
         nodes: ["engagement.positions"],
+        order: 1,
+      },
+      {
+        slug: "engagement-project-details",
+        title: "Datos del proyecto",
+        summary: "El viaje, las tallas de uniforme y el vehículo que un proyecto te pide.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
         order: 1,
       },
       {
@@ -1188,6 +1230,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "profile-badge-photos",
+        title: "Fotos de credencial",
+        summary:
+          "Da a cada organización con la que tienes una credencial una foto para tu credencial, elige tu foto de perfil o retírala.",
+        kind: "page",
+        nodes: ["profile.badge-photos"],
+        order: 2,
+      },
+      {
         slug: "profile",
         title: "Tu perfil",
         summary:
@@ -1318,7 +1369,8 @@ export const HELP_CONTENT: HelpIndex = {
       {
         slug: "settings-work-details",
         title: "Datos laborales",
-        summary: "De dónde vienen los datos sobre cómo trabajas.",
+        summary:
+          "Tus contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y pasaporte, y quién los ve.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,

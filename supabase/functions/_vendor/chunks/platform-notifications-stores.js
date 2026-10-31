@@ -223,6 +223,42 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "weather.warning",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.warning.subject",
+      body: "kinds.weather.warning.body",
+    },
+  },
+  {
+    kind: "weather.hold",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.hold.subject",
+      body: "kinds.weather.hold.body",
+    },
+  },
+  {
+    kind: "weather.all_clear",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.all_clear.subject",
+      body: "kinds.weather.all_clear.body",
+    },
+  },
+  {
     kind: "account.security_changed",
     category: "account",
     emailTemplate: "notification",
@@ -256,6 +292,18 @@ var NOTIFICATION_KINDS = [
     copy: {
       subject: "kinds.account.session_signed_out.subject",
       body: "kinds.account.session_signed_out.body",
+    },
+  },
+  {
+    kind: "account.work_details_moved",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.work_details_moved.subject",
+      body: "kinds.account.work_details_moved.body",
     },
   },
   {
@@ -643,6 +691,30 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "credential_photo.requested",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.credential_photo.requested.subject",
+      body: "kinds.credential_photo.requested.body",
+    },
+  },
+  {
+    kind: "guest.arrived",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.guest.arrived.subject",
+      body: "kinds.guest.arrived.body",
+    },
+  },
+  {
     kind: "opportunity.matched",
     category: "opportunities",
     emailTemplate: "notification",
@@ -688,6 +760,114 @@ var NOTIFICATION_KINDS = [
     copy: {
       subject: "kinds.document.expiring.subject",
       body: "kinds.document.expiring.body",
+    },
+  },
+  {
+    kind: "roster_entry.invited",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.invited.subject",
+      body: "kinds.roster_entry.invited.body",
+    },
+  },
+  {
+    kind: "roster_entry.returned",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.returned.subject",
+      body: "kinds.roster_entry.returned.body",
+    },
+  },
+  {
+    kind: "roster_entry.declined",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.declined.subject",
+      body: "kinds.roster_entry.declined.body",
+    },
+  },
+  {
+    kind: "roster_entry.project_facts_entered",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.project_facts_entered.subject",
+      body: "kinds.roster_entry.project_facts_entered.body",
+    },
+  },
+  {
+    kind: "engagement.roster_lock_changed",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.engagement.roster_lock_changed.subject",
+      body: "kinds.engagement.roster_lock_changed.body",
+    },
+  },
+  {
+    kind: "allocation.decided",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.decided.subject",
+      body: "kinds.allocation.decided.body",
+    },
+  },
+  {
+    kind: "allocation.assigned",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.assigned.subject",
+      body: "kinds.allocation.assigned.body",
+    },
+  },
+  {
+    kind: "allocation.issued",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.issued.subject",
+      body: "kinds.allocation.issued.body",
+    },
+  },
+  {
+    kind: "allocation.withdrawn",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.withdrawn.subject",
+      body: "kinds.allocation.withdrawn.body",
     },
   },
 ];
@@ -744,7 +924,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1639_notification_kind_seed.sql"
+"supabase/migrations/2979_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

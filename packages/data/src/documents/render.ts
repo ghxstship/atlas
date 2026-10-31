@@ -1,8 +1,9 @@
-import type { DocumentBlock, DocumentColumn, DocumentModel, Paper } from "./model.ts";
+import type { DocumentBlock, DocumentColumn, DocumentModel, PrintSize } from "./model.ts";
+import { isCardPaper } from "./model.ts";
+import { qrMatrix } from "./qr.ts";
 
 /** Page orientation: portrait by default; wide forms such as the WH-347 and OSHA 300 print landscape. */
 export type Orientation = "portrait" | "landscape";
-import { qrMatrix } from "./qr.ts";
 
 /**
  * Renders a document model to tagged PDF/UA-1 with pdfkit 0.20.2 (ADR 0031): a structure tree in
@@ -12,24 +13,40 @@ import { qrMatrix } from "./qr.ts";
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- pdfkit's types omit the tagging internals used here. */
-type Doc = any;
-type StructElement = any;
+export type Doc = any;
+export type StructElement = any;
 
 const MARGIN = 54;
 const FOOTER = 28;
 const GAP = 10;
 const BODY = 9.5;
 const SMALL = 8;
-const TEXT = "black";
-const MUTED = "dimgray";
-const RULE = "silver";
+export const TEXT = "black";
+export const MUTED = "dimgray";
+export const RULE = "silver";
 const QR_SIZE = 72;
+/** The badge portrait and gate code on Letter and A4 (P5). */
+const PORTRAIT_WIDTH = 90;
+const PORTRAIT_HEIGHT = 112;
+const SCAN_SIZE = 108;
 
-const SIZES: Record<Paper, "LETTER" | "A4"> = { letter: "LETTER", a4: "A4" };
+/**
+ * Page sizes in points. A6 is pdfkit's 297.64 by 419.53; CR80 is the ID-1 card, 53.98 by 85.60 mm, portrait
+ * (P5). The card sizes are for the credential badge and the guest pass only (printSizesFor).
+ */
+export const SIZES: Record<PrintSize, string | [number, number]> = {
+  letter: "LETTER",
+  a4: "A4",
+  a6: "A6",
+  cr80: [153.01, 242.65],
+};
+
+/** The most documents one batch PDF holds (P5: a print run of credential badges). */
+export const MAX_BATCH = 100;
 
 let fontCache: { regular: Buffer; semibold: Buffer } | null = null;
 
-async function fonts(): Promise<{ regular: Buffer; semibold: Buffer }> {
+export async function fonts(): Promise<{ regular: Buffer; semibold: Buffer }> {
   if (!fontCache) {
     const { INTER_REGULAR_HEX, INTER_SEMIBOLD_HEX } = await import("./fonts.generated.ts");
     const [regular, semibold] = await Promise.all([
@@ -130,35 +147,76 @@ export function printable(text: string, has: (codePoint: number) => boolean): st
   return out;
 }
 
-export async function renderDocumentPdf(
-  model: DocumentModel,
-  options: { readonly paper: Paper; readonly orientation?: Orientation },
-): Promise<Uint8Array> {
+interface PdfSetup {
+  readonly paper: PrintSize;
+  readonly orientation: Orientation;
+  readonly margins: { top: number; left: number; right: number; bottom: number };
+  readonly lang: string;
+  readonly title: string;
+  readonly author: string;
+  readonly subject: string;
+  readonly keywords?: string;
+  readonly createdAt: string;
+}
+
+/**
+ * A tagged PDF/UA-1 document with the embedded fonts registered (ADR 0031). Pages stay buffered until the caller
+ * flushes them, so footers can be drawn once a document's page count is known.
+ */
+async function openPdf(setup: PdfSetup): Promise<Doc> {
   const [{ default: PDFDocument }, font] = await Promise.all([import("pdfkit"), fonts()]);
+  // pdfkit's types lag the library: they omit the PDF/UA subset and a font given as bytes.
+  const pdfOptions: Record<string, unknown> = {
+    size: SIZES[setup.paper],
+    layout: setup.orientation,
+    margins: setup.margins,
+    pdfVersion: "1.7",
+    subset: "PDF/UA",
+    tagged: true,
+    lang: setup.lang,
+    displayTitle: true,
+    bufferPages: true,
+    font: font.regular,
+    info: {
+      Title: setup.title,
+      Author: setup.author,
+      Subject: setup.subject,
+      ...(setup.keywords ? { Keywords: setup.keywords } : {}),
+      Creator: "XOS",
+      Producer: "XOS",
+      CreationDate: new Date(setup.createdAt),
+    },
+  };
+  const doc: Doc = new PDFDocument(pdfOptions as never);
+  // pdfkit writes a CIDSet for any subset numbered 1, meant for PDF/A-1, so PDF/UA (also part 1)
+  // gets one too. Its CIDSet lists only the glyphs drawn, not the composite glyph parts fontkit adds
+  // to the subset, which veraPDF refuses (7.21.4.2-2). The CIDSet is optional in PDF/UA, so the part
+  // number is held as text: the XMP still says pdfuaid:part 1 and no CIDSet is written.
+  doc.subset = "1";
+  // pdfkit 0.20.2 writes the title, author and subject into the XMP packet without XML escaping, so a name
+  // holding "&" or "<" (a legal entity such as "R&D Rentals LLC") breaks the metadata and with it PDF/UA
+  // (dc:title, the pdfuaid schema). The Info dictionary is written before the XMP and keeps the plain text;
+  // only the XMP gets the escaped text (A79).
+  const addInfo = doc._addInfo.bind(doc);
+  doc._addInfo = () => {
+    const plain = { ...doc.info };
+    for (const key of ["Title", "Author", "Subject", "Creator", "Producer"]) {
+      if (typeof doc.info[key] === "string") doc.info[key] = xmlText(doc.info[key]);
+    }
+    try {
+      addInfo();
+    } finally {
+      doc.info = plain;
+    }
+  };
+  doc.registerFont("regular", font.regular);
+  doc.registerFont("semibold", font.semibold);
+  return doc;
+}
+
+/** Every chunk pdfkit writes, joined once the document ends. */
+function collect(doc: Doc): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
-    // pdfkit's types lag the library: they omit the PDF/UA subset and a font given as bytes.
-    const pdfOptions: Record<string, unknown> = {
-      size: SIZES[options.paper],
-      layout: options.orientation ?? "portrait",
-      margins: { top: MARGIN, left: MARGIN, right: MARGIN, bottom: MARGIN + FOOTER },
-      pdfVersion: "1.7",
-      subset: "PDF/UA",
-      tagged: true,
-      lang: model.lang,
-      displayTitle: true,
-      bufferPages: true,
-      font: font.regular,
-      info: {
-        Title: model.title,
-        Author: model.brand.legalEntity ?? model.brand.name,
-        Subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
-        ...(model.watermark ? { Keywords: model.watermark.text } : {}),
-        Creator: "XOS",
-        Producer: "XOS",
-        CreationDate: new Date(model.facts.generatedAtIso),
-      },
-    };
-    const doc: Doc = new PDFDocument(pdfOptions as never);
     const chunks: Uint8Array[] = [];
     doc.on("data", (chunk: Uint8Array) => chunks.push(chunk));
     doc.on("error", reject);
@@ -171,65 +229,168 @@ export async function renderDocumentPdf(
       }
       resolve(out);
     });
-    // pdfkit writes a CIDSet for any subset numbered 1, meant for PDF/A-1, so PDF/UA (also part 1)
-    // gets one too. Its CIDSet lists only the glyphs drawn, not the composite glyph parts fontkit adds
-    // to the subset, which veraPDF refuses (7.21.4.2-2). The CIDSet is optional in PDF/UA, so the part
-    // number is held as text: the XMP still says pdfuaid:part 1 and no CIDSet is written.
-    doc.subset = "1";
-    // pdfkit 0.20.2 writes the title, author and subject into the XMP packet without XML escaping, so a name
-    // holding "&" or "<" (a legal entity such as "R&D Rentals LLC") breaks the metadata and with it PDF/UA
-    // (dc:title, the pdfuaid schema). The Info dictionary is written before the XMP and keeps the plain text;
-    // only the XMP gets the escaped text (A79).
-    const addInfo = doc._addInfo.bind(doc);
-    doc._addInfo = () => {
-      const plain = { ...doc.info };
-      for (const key of ["Title", "Author", "Subject", "Creator", "Producer"]) {
-        if (typeof doc.info[key] === "string") doc.info[key] = xmlText(doc.info[key]);
-      }
-      try {
-        addInfo();
-      } finally {
-        doc.info = plain;
-      }
-    };
-    try {
-      doc.registerFont("regular", font.regular);
-      doc.registerFont("semibold", font.semibold);
-      new Renderer(doc, model).render();
-      doc.end();
-    } catch (error) {
-      reject(error instanceof Error ? error : new Error(String(error)));
-    }
   });
 }
 
-class Renderer {
-  private readonly root: StructElement;
-  private readonly glyphs = new Map<number, boolean>();
-  private readonly doc: Doc;
-  private readonly model: DocumentModel;
+/** Page margins: cards keep a narrow edge and print no footer; Letter and A4 leave room for the footer. */
+function marginsFor(paper: PrintSize) {
+  if (paper === "cr80") return { top: 8, left: 8, right: 8, bottom: 8 };
+  if (paper === "a6") return { top: 18, left: 18, right: 18, bottom: 18 };
+  return { top: MARGIN, left: MARGIN, right: MARGIN, bottom: MARGIN + FOOTER };
+}
 
-  constructor(doc: Doc, model: DocumentModel) {
+/** Card papers print only the credential badge and the guest pass; the routes check isPrintSizeFor first. */
+function assertPrintable(model: DocumentModel, paper: PrintSize): void {
+  if (isCardPaper(paper) && model.kind !== "credential-badge" && model.kind !== "guest-pass") {
+    throw new Error(`A ${model.kind} prints on Letter or A4, not ${paper}.`);
+  }
+}
+
+/** Draws one model under a parent structure element, starting on the current page. */
+async function drawModel(
+  doc: Doc,
+  parent: StructElement,
+  model: DocumentModel,
+  paper: PrintSize,
+): Promise<void> {
+  if (isCardPaper(paper)) {
+    const { CardRenderer } = await import("./render-card.ts");
+    new CardRenderer(doc, model, parent, paper).render();
+  } else {
+    new Renderer(doc, model, parent).render();
+  }
+}
+
+export async function renderDocumentPdf(
+  model: DocumentModel,
+  options: { readonly paper: PrintSize; readonly orientation?: Orientation },
+): Promise<Uint8Array> {
+  assertPrintable(model, options.paper);
+  const doc = await openPdf({
+    paper: options.paper,
+    orientation: options.orientation ?? "portrait",
+    margins: marginsFor(options.paper),
+    lang: model.lang,
+    title: model.title,
+    author: model.brand.legalEntity ?? model.brand.name,
+    subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
+    ...(model.watermark ? { keywords: model.watermark.text } : {}),
+    createdAt: model.facts.generatedAtIso,
+  });
+  const done = collect(doc);
+  try {
+    const root = doc.struct("Document");
+    doc.addStructure(root);
+    await drawModel(doc, root, model, options.paper);
+    root.end();
+    doc.end();
+  } catch (error) {
+    throw error instanceof Error ? error : new Error(String(error));
+  }
+  return done;
+}
+
+export interface BatchOptions {
+  readonly paper: PrintSize;
+  /** The PDF title, for example "Credential badges (24)". */
+  readonly title: string;
+  /** The shared language of every model. */
+  readonly lang: string;
+}
+
+/**
+ * Several documents in one tagged PDF/UA-1 file (P5 batch printing): one Document structure root, each document a
+ * Sect starting on a new page, with its own header, facts and page numbers. Each document's pages are written out
+ * as soon as it is drawn, so the stream never holds the whole batch (a 100-badge run with photos is tens of MB).
+ */
+export function streamDocumentsPdf(
+  models: readonly DocumentModel[],
+  options: BatchOptions,
+): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    start: async (controller) => {
+      try {
+        if (models.length < 1 || models.length > MAX_BATCH) {
+          throw new Error(`A batch holds 1 to ${MAX_BATCH} documents.`);
+        }
+        for (const model of models) assertPrintable(model, options.paper);
+        const first = models[0] as DocumentModel;
+        const doc = await openPdf({
+          paper: options.paper,
+          orientation: "portrait",
+          margins: marginsFor(options.paper),
+          lang: options.lang,
+          title: options.title,
+          author: first.brand.legalEntity ?? first.brand.name,
+          subject: options.title,
+          createdAt: first.facts.generatedAtIso,
+        });
+        doc.on("data", (chunk: Uint8Array) => controller.enqueue(new Uint8Array(chunk)));
+        doc.on("error", (error: unknown) => controller.error(error));
+        const ended = new Promise<void>((resolve) => doc.on("end", resolve));
+        const root = doc.struct("Document");
+        doc.addStructure(root);
+        for (const [i, model] of models.entries()) {
+          if (i > 0) doc.addPage();
+          const section = doc.struct("Sect");
+          root.add(section);
+          await drawModel(doc, section, model, options.paper);
+          section.end();
+          doc.flushPages();
+        }
+        root.end();
+        doc.end();
+        await ended;
+        controller.close();
+      } catch (error) {
+        controller.error(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+  });
+}
+
+/** The batch PDF as one buffer, for tests and the veraPDF check. */
+export async function renderDocumentsPdf(
+  models: readonly DocumentModel[],
+  options: BatchOptions,
+): Promise<Uint8Array> {
+  return new Uint8Array(await new Response(streamDocumentsPdf(models, options)).arrayBuffer());
+}
+
+/**
+ * Drawing shared by the page and card layouts: text the embedded font can draw, tagged text elements, artifacts,
+ * and the two Figures every badge carries, the portrait and the scan code (P5).
+ */
+export class TaggedWriter {
+  protected readonly root: StructElement;
+  private readonly glyphs = new Map<number, boolean>();
+  protected readonly doc: Doc;
+  protected readonly model: DocumentModel;
+  /** The index of the page this model starts on, so its footers number its own pages in a batch. */
+  protected readonly firstPage: number;
+
+  constructor(doc: Doc, model: DocumentModel, parent: StructElement) {
     this.doc = doc;
     this.model = model;
-    this.root = doc.struct("Document");
-    doc.addStructure(this.root);
+    this.root = parent;
+    const range = doc.bufferedPageRange();
+    this.firstPage = range.start + range.count - 1;
   }
 
-  private get left(): number {
+  protected get left(): number {
     return this.doc.page.margins.left;
   }
 
-  private get width(): number {
+  protected get width(): number {
     return this.doc.page.width - this.doc.page.margins.left - this.doc.page.margins.right;
   }
 
-  private get bottom(): number {
+  protected get bottom(): number {
     return this.doc.page.height - this.doc.page.margins.bottom;
   }
 
   /** Text safe to draw with the embedded font. */
-  private safe(text: string): string {
+  protected safe(text: string): string {
     const font = this.doc._font?.font;
     return printable(text, (cp) => {
       let known = this.glyphs.get(cp);
@@ -241,20 +402,12 @@ class Renderer {
     });
   }
 
-  private style(weight: "regular" | "semibold", size: number, color = TEXT): void {
+  protected style(weight: "regular" | "semibold", size: number, color = TEXT): void {
     this.doc.font(weight).fontSize(size).fillColor(color);
   }
 
-  private ensure(height: number): void {
-    if (this.doc.y + height > this.bottom) {
-      this.doc.addPage();
-      this.doc.x = this.left;
-      this.doc.y = this.doc.page.margins.top;
-    }
-  }
-
   /** One tagged text element (P, H1, H2, Caption) added to a parent. */
-  private text(
+  protected text(
     parent: StructElement,
     type: string,
     text: string,
@@ -271,16 +424,93 @@ class Renderer {
     );
   }
 
-  private artifact(draw: () => void, type: "Layout" | "Pagination" = "Layout"): void {
+  protected artifact(draw: () => void, type: "Layout" | "Pagination" = "Layout"): void {
     this.doc.markContent("Artifact", { type });
     draw();
     this.doc.endMarkedContent();
   }
 
+  /** A QR code as vector squares inside a tagged Figure; the space around it is the quiet zone. */
+  protected qr(payload: string, x: number, y: number, size: number, alt: string): void {
+    const { doc } = this;
+    const matrix = qrMatrix(payload);
+    const cell = size / matrix.length;
+    this.root.add(
+      doc.struct("Figure", { alt: this.safe(alt) }, () => {
+        doc.save();
+        matrix.forEach((row, r) =>
+          row.forEach((dark, c) => {
+            if (dark) doc.rect(x + c * cell, y + r * cell, cell, cell);
+          }),
+        );
+        doc.fillColor(TEXT).fill();
+        doc.restore();
+      }),
+    );
+  }
+
+  /**
+   * The holder's portrait in a fixed frame: the image fitted and centered, never cropped, as a Figure with its
+   * alternative text. A missing photo, or one pdfkit cannot embed, draws a ruled frame as an artifact and the
+   * placeholder text inside it.
+   */
+  protected portrait(
+    block: Extract<DocumentBlock, { kind: "portrait" }>,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    placeholderSize: number,
+  ): void {
+    const { doc } = this;
+    if (block.bytes && isEmbeddableImage(block.bytes)) {
+      const buffer = Buffer.from(block.bytes);
+      let opened: { width: number; height: number } | null;
+      try {
+        opened = doc.openImage(buffer) as { width: number; height: number };
+      } catch {
+        // A file with an image signature that pdfkit cannot read prints the placeholder.
+        opened = null;
+      }
+      if (opened && opened.width > 0 && opened.height > 0) {
+        const scale = Math.min(width / opened.width, height / opened.height);
+        const w = opened.width * scale;
+        const h = opened.height * scale;
+        this.root.add(
+          doc.struct("Figure", { alt: this.safe(block.alt) }, () => {
+            doc.image(buffer, x + (width - w) / 2, y + (height - h) / 2, { width: w, height: h });
+          }),
+        );
+        return;
+      }
+    }
+    this.artifact(() => {
+      doc.rect(x, y, width, height).lineWidth(0.6).strokeColor(RULE).stroke();
+    });
+    this.style("regular", placeholderSize, MUTED);
+    const pad = Math.max(3, width * 0.08);
+    const textHeight = doc.heightOfString(this.safe(block.placeholder), { width: width - pad * 2 });
+    this.text(this.root, "P", block.placeholder, {
+      x: x + pad,
+      y: y + Math.max(pad, (height - textHeight) / 2),
+      width: width - pad * 2,
+      align: "center",
+    });
+  }
+}
+
+class Renderer extends TaggedWriter {
+  private ensure(height: number): void {
+    if (this.doc.y + height > this.bottom) {
+      this.doc.addPage();
+      this.doc.x = this.left;
+      this.doc.y = this.doc.page.margins.top;
+    }
+  }
+
   render(): void {
     this.header();
     for (const block of this.model.blocks) this.block(block);
-    this.root.end();
     this.footers();
   }
 
@@ -363,20 +593,7 @@ class Renderer {
     }
     const factsBottom = doc.y;
 
-    const qrX = this.left + this.width - QR_SIZE;
-    const matrix = qrMatrix(facts.recordUrl);
-    const cell = QR_SIZE / matrix.length;
-    const qr = doc.struct("Figure", { alt: this.safe(facts.labels.qrAlt) }, () => {
-      doc.save();
-      matrix.forEach((row, r) =>
-        row.forEach((dark, c) => {
-          if (dark) doc.rect(qrX + c * cell, top + r * cell, cell, cell);
-        }),
-      );
-      doc.fillColor(TEXT).fill();
-      doc.restore();
-    });
-    this.root.add(qr);
+    this.qr(facts.recordUrl, this.left + this.width - QR_SIZE, top, QR_SIZE, facts.labels.qrAlt);
 
     const headerBottom = Math.max(titleBottom, factsBottom, top + QR_SIZE) + GAP;
     const accent = /^#[0-9a-f]{6}$/i.test(model.brand.accentHex ?? "")
@@ -407,6 +624,26 @@ class Renderer {
       }
       case "image": {
         this.image(block.bytes, block.alt);
+        return;
+      }
+      case "portrait": {
+        this.ensure(PORTRAIT_HEIGHT + GAP);
+        const y = doc.y;
+        this.portrait(block, this.left, y, PORTRAIT_WIDTH, PORTRAIT_HEIGHT, SMALL);
+        doc.x = this.left;
+        doc.y = y + PORTRAIT_HEIGHT + GAP;
+        return;
+      }
+      case "scan-code": {
+        this.style("regular", SMALL, MUTED);
+        const captionHeight = doc.heightOfString(this.safe(block.caption), { width: this.width });
+        this.ensure(SCAN_SIZE + captionHeight + GAP * 2);
+        const y = doc.y;
+        this.qr(block.payload, this.left, y, SCAN_SIZE, block.alt);
+        this.style("regular", SMALL, MUTED);
+        this.text(this.root, "P", block.caption, { y: y + SCAN_SIZE + 4 });
+        doc.x = this.left;
+        doc.y += GAP;
         return;
       }
       case "paragraph": {
@@ -610,7 +847,8 @@ class Renderer {
   private footers(): void {
     const { doc, model } = this;
     const range = doc.bufferedPageRange();
-    for (let i = range.start; i < range.start + range.count; i += 1) {
+    const end = range.start + range.count;
+    for (let i = this.firstPage; i < end; i += 1) {
       doc.switchToPage(i);
       const y = doc.page.height - MARGIN - SMALL;
       const bottomMargin = doc.page.margins.bottom;
@@ -622,7 +860,7 @@ class Renderer {
           lineBreak: false,
         });
         doc.text(
-          this.safe(model.facts.labels.page(i - range.start + 1, range.count)),
+          this.safe(model.facts.labels.page(i - this.firstPage + 1, end - this.firstPage)),
           this.left + this.width / 2,
           y,
           { width: this.width / 2, align: "right", lineBreak: false },

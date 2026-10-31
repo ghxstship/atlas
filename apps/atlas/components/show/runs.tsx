@@ -20,6 +20,7 @@ import {
   Timeline,
 } from "@xos/ui";
 import type { Route } from "next";
+import Link from "next/link";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -481,6 +482,7 @@ export function RunBody({
   canCall,
   setTimes = [],
   artists = [],
+  importHref = null,
   children,
 }: {
   org: string;
@@ -494,6 +496,8 @@ export function RunBody({
   setTimes?: readonly CueEngagement[];
   /** The run's project's Artist engagements a cue can be set for. */
   artists?: readonly { value: string; label: string }[];
+  /** The import wizard preselected on this running order (P3); null when the viewer cannot import cues here. */
+  importHref?: string | null;
   children?: ReactNode;
 }) {
   const t = useCopy("show");
@@ -621,9 +625,16 @@ export function RunBody({
       ) : null}
 
       <section aria-labelledby={`cues-${runOfShow.id}`} className="flex flex-col gap-8">
-        <h3 id={`cues-${runOfShow.id}`} className="m-0 text-label-13 font-semibold">
-          {t("cues.title")}
-        </h3>
+        <div className="flex flex-wrap items-baseline justify-between gap-8">
+          <h3 id={`cues-${runOfShow.id}`} className="m-0 text-label-13 font-semibold">
+            {t("cues.title")}
+          </h3>
+          {importHref ? (
+            <Link href={importHref as Route} className="text-text-13 text-accent-text underline">
+              {t("importCues")}
+            </Link>
+          ) : null}
+        </div>
         <ActionErrorAlert error={cueAction.error} />
         {cues.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">

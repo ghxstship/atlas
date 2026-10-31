@@ -115,6 +115,8 @@ export type ScanCode =
       readonly batch?: string;
     }
   | { readonly kind: "credential"; readonly credentialNumber: string }
+  /** A guest pass (B8, 2974): XOSGP1:<pass code>, found in the door list by the code. */
+  | { readonly kind: "guest-pass"; readonly passCode: string }
   | { readonly kind: "lot"; readonly lotId: string }
   | { readonly kind: "code"; readonly value: string }
   | { readonly kind: "invalid"; readonly reason: "checksum" | "empty" | "unsupported" };
@@ -122,6 +124,8 @@ export type ScanCode =
 /** Credential QR: the printed number (CR-000123) or the wallet form XOSCR1:<number>. */
 const CREDENTIAL = /^(?:XOSCR1:)?(CR-\d{6,})$/;
 const LOT = /^LOT:([0-9a-f-]{36})$/i;
+/** Guest pass QR (B8, the guest-pass document): XOSGP1:GP- and 10 base32 characters. */
+const GUEST_PASS = /^XOSGP1:(GP-[A-Z2-7]{10})$/;
 
 export function classify(raw: string, symbology: Symbology | null): ScanCode {
   const value = raw.trim();
@@ -129,6 +133,8 @@ export function classify(raw: string, symbology: Symbology | null): ScanCode {
   if (symbology === null) return { kind: "invalid", reason: "unsupported" };
   const credential = CREDENTIAL.exec(value);
   if (credential?.[1]) return { kind: "credential", credentialNumber: credential[1] };
+  const pass = GUEST_PASS.exec(value);
+  if (pass?.[1]) return { kind: "guest-pass", passCode: pass[1] };
   const lot = LOT.exec(value);
   if (lot?.[1]) return { kind: "lot", lotId: lot[1].toLowerCase() };
   if (
@@ -238,6 +244,9 @@ export function decideGate(
     : { result: "Denied", reason: "outside-window", credential };
 }
 
+/** In or Out at a gate (B8, 2970). Exit is never refused, so an Out scan skips decideGate. */
+export type ScanDirection = "In" | "Out";
+
 export function buildAccessScan(
   credential: CredentialRow,
   zoneId: string,
@@ -245,16 +254,20 @@ export function buildAccessScan(
   deviceAt: string,
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
+  direction: ScanDirection = "In",
 ): MutationInput {
   const id = newId(nowMs);
+  // An Out scan is always Granted; the device still sends its time, which 0470's guard needs with an offline result.
+  const offlineResult = direction === "Out" ? "Granted" : decision.result;
   const row = {
     id,
     credential_id: credential.id,
     zone_id: zoneId,
     device_scanned_at: deviceAt,
-    offline_result: decision.result,
+    offline_result: offlineResult,
+    direction,
   };
-  // app.record_scan (A14): the database decides the result; p_id makes a replay return the first answer.
+  // app.record_scan (A14, 2970): the database decides the result; p_id makes a replay return the first answer.
   return {
     op: "rpc",
     target: "record_scan",
@@ -265,11 +278,53 @@ export function buildAccessScan(
       p_credential_id: credential.id,
       p_id: id,
       p_device_scanned_at: deviceAt,
-      p_offline_result: decision.result,
+      p_offline_result: offlineResult,
+      p_direction: direction,
     },
     policy: "append",
     optimistic: row,
   };
+}
+
+/**
+ * A supervisor's override of a denial the device saw (app.override_access_scan, 2970), queued after the denied
+ * record_scan so it replays in order, by the denied scan's client id. Offered only after a device Denied that is not
+ * revoked, to a person whose cached capabilities hold credentials.credential.issue; the server checks again.
+ */
+export function buildScanOverride(
+  deniedScanId: string,
+  reason: string,
+  nowMs: number,
+  newId: (ms: number) => string = uuidv7,
+): MutationInput {
+  const id = newId(nowMs);
+  return {
+    op: "rpc",
+    target: "override_access_scan",
+    table: "access_scans",
+    rowId: id,
+    payload: { p_scan_id: deniedScanId, p_reason: reason.trim(), p_id: id },
+    policy: "append",
+    optimistic: {
+      id,
+      override_of_scan_id: deniedScanId,
+      override_reason: reason.trim(),
+      direction: "In",
+    },
+  };
+}
+
+/** True when the device may offer Override: a denial other than revoked or unknown, and the issue capability. */
+export function canOverride(
+  decision: GateDecision,
+  capabilities: ReadonlySet<string> | null,
+): boolean {
+  return (
+    decision.result === "Denied" &&
+    decision.reason !== "revoked" &&
+    decision.reason !== "unknown" &&
+    capabilities?.has("credentials.credential.issue") === true
+  );
 }
 
 // Continuous mode ------------------------------------------------------------------------------------------
@@ -604,4 +659,163 @@ export function custodyAllowed(
 export function gateScanTitle(verdict: string, detail: string | null | undefined): string {
   const named = detail?.trim();
   return named ? `${verdict} · ${named}` : verdict;
+}
+
+// Receiving against an order (R7a) -------------------------------------------------------------------------
+
+/** An open line of an Approved or Sent order, as the Receive against an order sheet lists it. */
+export interface ReceivableLine {
+  readonly poLineId: string;
+  readonly lineNumber: number;
+  readonly description: string;
+  /** Ordered less received (app.po_line_supply); the sheet never offers more. */
+  readonly open: number;
+  /** The ordered element has an asset class: scanned codes become the units' asset tags. */
+  readonly serialized: boolean;
+}
+
+export interface ReceivableOrder {
+  readonly purchaseOrderId: string;
+  readonly poNumber: number;
+  readonly vendorName: string | null;
+  readonly lines: readonly ReceivableLine[];
+}
+
+/** What the sheet has counted so far: tags per serialized line, quantities for the rest. */
+export interface ReceiveSheet {
+  readonly order: ReceivableOrder;
+  /** The serialized line scanned codes go to. */
+  readonly activeLineId: string | null;
+  readonly tags: Readonly<Record<string, readonly string[]>>;
+  readonly quantities: Readonly<Record<string, number>>;
+}
+
+/** The orders the sheet offers, from REST rows read online under RLS: open lines only, orders with one or more. */
+export function receivableOrders(
+  orders: readonly {
+    id: string;
+    po_number: number;
+    po_state: string;
+    vendor_name: string | null;
+  }[],
+  lines: readonly {
+    id: string;
+    purchase_order_id: string;
+    line_number: number;
+    description: string;
+    element_id: string | null;
+  }[],
+  supply: readonly { po_line_id: string; quantity_ordered: number; quantity_received: number }[],
+  classElements: readonly string[],
+): ReceivableOrder[] {
+  const progress = new Map(supply.map((s) => [s.po_line_id, s]));
+  const stocked = new Set(classElements);
+  return orders
+    .filter((o) => o.po_state === "Approved" || o.po_state === "Sent")
+    .map((o) => ({
+      purchaseOrderId: o.id,
+      poNumber: o.po_number,
+      vendorName: o.vendor_name,
+      lines: lines
+        .filter((l) => l.purchase_order_id === o.id)
+        .map((l) => {
+          const s = progress.get(l.id);
+          return {
+            poLineId: l.id,
+            lineNumber: l.line_number,
+            description: l.description,
+            open: s ? Math.max(0, s.quantity_ordered - s.quantity_received) : 0,
+            serialized: l.element_id !== null && stocked.has(l.element_id),
+          };
+        })
+        .filter((l) => l.open > 0)
+        .sort((a, b) => a.lineNumber - b.lineNumber),
+    }))
+    .filter((o) => o.lines.length > 0)
+    .sort((a, b) => a.poNumber - b.poNumber);
+}
+
+export function startReceiveSheet(order: ReceivableOrder): ReceiveSheet {
+  return {
+    order,
+    activeLineId: order.lines.find((l) => l.serialized)?.poLineId ?? null,
+    tags: {},
+    quantities: {},
+  };
+}
+
+/**
+ * A scanned code fills the tag list of the chosen serialized line: once per code, never past the line's open
+ * quantity. Returns the same sheet when the code is a repeat, no serialized line is chosen or the line is full.
+ */
+export function addScannedTag(sheet: ReceiveSheet, raw: string): ReceiveSheet {
+  const line = sheet.order.lines.find((l) => l.poLineId === sheet.activeLineId);
+  const tag = raw.trim().toUpperCase();
+  if (!line?.serialized || tag === "") return sheet;
+  const taken = Object.values(sheet.tags).some((tags) => tags.includes(tag));
+  const current = sheet.tags[line.poLineId] ?? [];
+  if (taken || current.length >= line.open) return sheet;
+  return { ...sheet, tags: { ...sheet.tags, [line.poLineId]: [...current, tag] } };
+}
+
+export function removeScannedTag(sheet: ReceiveSheet, poLineId: string, tag: string): ReceiveSheet {
+  const current = sheet.tags[poLineId] ?? [];
+  return { ...sheet, tags: { ...sheet.tags, [poLineId]: current.filter((t) => t !== tag) } };
+}
+
+/** A stepper sets the quantity of a line that is not serialized, between 0 and its open quantity. */
+export function setReceiveQuantity(
+  sheet: ReceiveSheet,
+  poLineId: string,
+  quantity: number,
+): ReceiveSheet {
+  const line = sheet.order.lines.find((l) => l.poLineId === poLineId);
+  if (!line || line.serialized) return sheet;
+  const next = Math.min(Math.max(0, Math.round(quantity)), line.open);
+  return { ...sheet, quantities: { ...sheet.quantities, [poLineId]: next } };
+}
+
+/** The lines the sheet would receive: tags of serialized lines, quantities of the rest; empty lines left out. */
+export function receiveSheetLines(
+  sheet: ReceiveSheet,
+): { po_line_id: string; quantity: number; asset_tags?: string[] }[] {
+  return sheet.order.lines.flatMap((l) => {
+    if (l.serialized) {
+      const tags = [...(sheet.tags[l.poLineId] ?? [])];
+      return tags.length > 0
+        ? [{ po_line_id: l.poLineId, quantity: tags.length, asset_tags: tags }]
+        : [];
+    }
+    const quantity = sheet.quantities[l.poLineId] ?? 0;
+    return quantity > 0 ? [{ po_line_id: l.poLineId, quantity }] : [];
+  });
+}
+
+/**
+ * Queues the sheet as one receipt event for app.receive_goods (R7a 2681), replayed through
+ * app.apply_sync_mutation: the mutation id is the event id, so a replay after a reconnect answers duplicate and
+ * records nothing twice. Null when the sheet counted nothing.
+ */
+export function buildOrderReceipt(
+  sheet: ReceiveSheet,
+  note: string | null,
+  nowMs: number,
+  newId: (ms: number) => string = uuidv7,
+): MutationInput | null {
+  const lines = receiveSheetLines(sheet);
+  if (lines.length === 0) return null;
+  const id = newId(nowMs);
+  return {
+    op: "rpc",
+    target: "app.receive_goods",
+    table: "goods_receipts",
+    rowId: id,
+    payload: {
+      p_event_id: id,
+      p_purchase_order_id: sheet.order.purchaseOrderId,
+      p_lines: lines,
+      p_note: note?.trim() ? note.trim() : null,
+    },
+    policy: "append",
+  };
 }

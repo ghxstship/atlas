@@ -8,6 +8,7 @@ import {
   moveGuestAction,
   removeGuestAction,
   updateGuestAction,
+  updateGuestPassAction,
 } from "./guest-actions";
 import { useCopy } from "./use-copy";
 
@@ -24,6 +25,16 @@ export interface GuestItem {
   readonly plusOnes: number;
   readonly note: string | null;
   readonly scopeNodeId: string | null;
+  readonly passCategoryId: string | null;
+  readonly tableLabel: string | null;
+  readonly hostPersonId: string | null;
+  readonly guestEmail: string | null;
+}
+
+/** The choices of a guest's pass (B8, 2974): the project's Access categories and the project people who may host. */
+export interface PassChoices {
+  readonly passTypes: readonly ScopeChoice[];
+  readonly hosts: readonly ScopeChoice[];
 }
 
 /** Posts in a transition so a refused submit keeps its input; `onDone` runs after a success. */
@@ -49,6 +60,61 @@ function ErrorLine({ state }: { state: AdvancingState }) {
       {t(state.error)}
     </InlineAlert>
   ) : null;
+}
+
+/** The pass fields: pass type, table, host and the guest's email, where their pass and messages go. */
+function PassFields({
+  id,
+  state,
+  choices,
+  guest,
+}: {
+  id: string;
+  state: AdvancingState;
+  choices: PassChoices;
+  guest?: GuestItem;
+}) {
+  const t = useCopy("advancing.guests.pass");
+  return (
+    <>
+      <Select
+        id={`${id}-pass-type`}
+        name="passCategoryId"
+        label={t("type")}
+        help={t("typeHelp")}
+        value={guest?.passCategoryId ?? ""}
+        options={[{ value: "", label: t("noType") }, ...choices.passTypes]}
+      />
+      <Input
+        id={`${id}-table`}
+        name="tableLabel"
+        maxLength={40}
+        width={200}
+        label={t("table")}
+        help={t("tableHelp")}
+        defaultValue={guest?.tableLabel ?? ""}
+      />
+      <Select
+        id={`${id}-host`}
+        name="hostPersonId"
+        label={t("host")}
+        help={t("hostHelp")}
+        value={guest?.hostPersonId ?? ""}
+        options={[{ value: "", label: t("noHost") }, ...choices.hosts]}
+      />
+      <Input
+        id={`${id}-email`}
+        name="guestEmail"
+        type="email"
+        maxLength={320}
+        width="100%"
+        label={t("email")}
+        help={t("emailHelp")}
+        defaultValue={guest?.guestEmail ?? ""}
+        error={state.fieldErrors?.["guestEmail"] ? t("emailError") : ""}
+      />
+    </>
+  );
 }
 
 function GuestFields({
@@ -112,11 +178,13 @@ export function AddGuestDialog({
   org,
   projectId,
   scopes,
+  choices,
   canApprove,
 }: {
   org: string;
   projectId: string;
   scopes: readonly ScopeChoice[];
+  choices: PassChoices;
   canApprove: boolean;
 }) {
   const t = useCopy("advancing.guests.form");
@@ -151,6 +219,7 @@ export function AddGuestDialog({
         <input type="hidden" name="projectId" value={projectId} />
         <ErrorLine state={state} />
         <GuestFields id={formId} state={state} scopes={scopes} />
+        <PassFields id={formId} state={state} choices={choices} />
         {canApprove ? (
           <Checkbox id={`${formId}-approve`} name="approve" value="true" label={t("approveNow")} />
         ) : null}
@@ -192,6 +261,7 @@ export function GuestActions({
   guest,
   state,
   scopes,
+  choices,
   canEdit,
   canReview,
 }: {
@@ -199,15 +269,38 @@ export function GuestActions({
   guest: GuestItem;
   state: "Requested" | "Approved" | "Declined" | "Checked In";
   scopes: readonly ScopeChoice[];
+  choices: PassChoices;
   canEdit: boolean;
   canReview: boolean;
 }) {
   const t = useCopy("advancing.guests.actions");
   const common = useCopy("advancing.common");
+  const passCopy = useCopy("advancing.guests.pass");
   const [editing, setEditing] = useState(false);
+  const [editingPass, setEditingPass] = useState(false);
   const id = useId();
   const update = useSubmit(updateGuestAction, () => setEditing(false));
+  const updatePass = useSubmit(updateGuestPassAction, () => setEditingPass(false));
   const remove = useSubmit(removeGuestAction);
+  if (editingPass) {
+    // A decided guest keeps its name and plus-ones; the production still sets its pass until check-in (2974).
+    return (
+      <form onSubmit={updatePass.onSubmit} className="flex basis-full flex-col gap-8" noValidate>
+        <input type="hidden" name="org" value={org} />
+        <input type="hidden" name="guestId" value={guest.id} />
+        <ErrorLine state={updatePass.state} />
+        <PassFields id={id} state={updatePass.state} choices={choices} guest={guest} />
+        <div className="flex gap-8">
+          <Button type="submit" size="sm" variant="primary" loading={updatePass.pending}>
+            {common("save")}
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setEditingPass(false)}>
+            {common("cancel")}
+          </Button>
+        </div>
+      </form>
+    );
+  }
   if (editing) {
     return (
       <form onSubmit={update.onSubmit} className="flex basis-full flex-col gap-8" noValidate>
@@ -258,6 +351,11 @@ export function GuestActions({
       {canEdit && state === "Requested" ? (
         <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(true)}>
           {t("edit", { name: guest.guestName })}
+        </Button>
+      ) : null}
+      {canEdit && state !== "Checked In" ? (
+        <Button type="button" size="sm" variant="ghost" onClick={() => setEditingPass(true)}>
+          {passCopy("edit", { name: guest.guestName })}
         </Button>
       ) : null}
       {canEdit && state !== "Checked In" ? (

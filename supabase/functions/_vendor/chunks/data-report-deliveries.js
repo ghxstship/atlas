@@ -9,17 +9,7 @@ import {
   watermarked,
 } from "./data-report-files.js";
 import { fail, ok, toDataError } from "./data-result.js";
-//#region ../data/src/untyped.ts
-/**
- * The client without generated row types, for two cases only: the record kind extension tables,
- * whose name is computed from the kind (record_build for Build), and tables and RPCs added in
- * migrations newer than the generated database types. Callers map every row into a declared
- * interface at the boundary, so nothing untyped leaves the repository.
- */
-function untyped(db) {
-  return db;
-}
-//#endregion
+import { untyped } from "./data-person-names.js";
 //#region ../data/src/finance.ts
 /** Sum of amounts where any blank makes the total blank (Section 3.7), with the blank count. */
 function nullAwareSum(amounts) {

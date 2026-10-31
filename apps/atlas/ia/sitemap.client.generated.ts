@@ -124,6 +124,8 @@ export const clientSitemap: Sitemap = {
         ["submissions", "page"],
         ["riders", "page"],
         ["reconciliation", "page"],
+        ["crew", "page"],
+        ["allocations", "page"],
       ],
     ],
     [
@@ -197,6 +199,7 @@ export const clientSitemap: Sitemap = {
         ["weather", "page"],
         ["guest-check-in", "page"],
         ["lost-and-found", "page"],
+        ["muster", "page"],
       ],
     ],
     [
@@ -507,6 +510,8 @@ export const listNodes: ReadonlySet<string> = new Set([
   "advancing.submissions",
   "advancing.riders",
   "advancing.reconciliation",
+  "advancing.crew",
+  "advancing.allocations",
   "places.venues",
   "places.spaces-and-zones",
   "places.capability-documents",
@@ -538,6 +543,7 @@ export const listNodes: ReadonlySet<string> = new Set([
   "site-ops.weather",
   "site-ops.guest-check-in",
   "site-ops.lost-and-found",
+  "site-ops.muster",
   "people.directory",
   "people.roles",
   "people.requisitions",

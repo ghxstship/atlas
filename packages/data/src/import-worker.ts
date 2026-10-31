@@ -1,8 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  cuePosition,
   dataRows,
+  durationSeconds,
   headers,
   parseCsv,
+  plannedAt,
   playbookFieldMap,
   proposeTarget,
   sheetLayout,
@@ -42,6 +45,10 @@ import {
  * database queues detection on the Clean verdict, and every step checks again before reading.
  * When validation or a commit finishes, the person who started or committed the import is sent import.finished
  * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
+ * Cues and guest list entries (P3, 2800 to 2802) import into the running order or project the import names: every
+ * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
+ * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
+ * the uploader's mapping preview.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 
@@ -73,6 +80,36 @@ export interface ImportJobRecord {
   readonly sheetName?: string | null;
   /** The Google Sheets link of a Google Sheets import. */
   readonly sourceUrl?: string | null;
+  /** The project a guest list import writes into (P3). */
+  readonly projectId?: string | null;
+  /** The running order a cue import writes into (P3). */
+  readonly runOfShowId?: string | null;
+}
+
+/** Where a cue or guest list import writes (P3): its running order or its project. */
+export interface ImportDestination {
+  readonly runOfShow?: RunOfShowContext;
+  readonly project?: { readonly id: string };
+}
+
+/** What validating a cue needs from its running order. */
+export interface RunOfShowContext {
+  readonly id: string;
+  readonly projectId: string;
+  /** YYYY-MM-DD. */
+  readonly showDate: string;
+  /** The project's IANA time zone, which times typed for the show are read in. */
+  readonly timeZone: string;
+  /** The venue whose spaces a cue may name: the show's scope node venue, else the project's. */
+  readonly venueId: string | null;
+}
+
+/** One sample cell of a detected column, for the uploader's mapping preview (2801). */
+export interface ColumnSample {
+  readonly columnId: string;
+  /** Data row the cell comes from, 1 to 3. */
+  readonly index: number;
+  readonly value: string;
 }
 
 /** One detected sheet of a workbook, with the target proposed for it. */
@@ -114,11 +151,14 @@ export interface ImportStore {
   ): Promise<{ name: string; required: boolean; strongKey: boolean }[]>;
   profileMapping(profileId: string): Promise<Map<string, string>>;
   setStatus(jobId: string, status: string): Promise<void>;
+  /** Records the detected columns; returns their ids in column order. */
   insertColumns(
     jobId: string,
     sheet: string,
     columns: { header: string; suggested: string | null; source?: SuggestionSource | null }[],
-  ): Promise<void>;
+  ): Promise<string[]>;
+  /** Records the sample cells of the detected columns (app.record_import_column_samples, P3). */
+  recordColumnSamples(jobId: string, samples: readonly ColumnSample[]): Promise<void>;
   /** Records every sheet detection found (A83). */
   insertSheets(jobId: string, sheets: readonly DetectedSheet[]): Promise<void>;
   /** Records the sheet the import reads, once (A83). */
@@ -180,6 +220,26 @@ export interface TargetLookups {
   ): Promise<string | null>;
   create(orgId: string, targetCode: string, values: Row): Promise<string>;
   update(targetCode: string, id: string, values: Row): Promise<Row>;
+  /** A live running order with what validating its cues needs, or null (P3). */
+  runOfShow(id: string): Promise<RunOfShowContext | null>;
+  /** A live space of the venue by id or name, case-insensitively; null for none, two or no venue (P3, C12). */
+  spaceId(venueId: string | null, idOrName: string): Promise<string | null>;
+  /** A live scope node (show) of the project by scope code or name; null for none or two (P3, C12). */
+  scopeNodeId(projectId: string, codeOrName: string): Promise<string | null>;
+  /** A live counterparty of the org by its organization's name, trimmed and case-insensitive; null for none or two (C8). */
+  counterpartyIdByName(orgId: string, name: string): Promise<string | null>;
+  /**
+   * The existing row of a cue or guest list import's destination matching its strong keys exactly
+   * (app.import_strong_key_match, C9); the destination comes from the import, never from the sheet.
+   */
+  destinationKeyMatch(
+    importJobId: string,
+    keys: Readonly<Record<string, string>>,
+  ): Promise<string | null>;
+  /** The position after the highest live cue of the running order (1 when it has none). */
+  nextCuePosition(runOfShowId: string): Promise<number>;
+  /** True when the cue was already called; an import never rewrites a called cue (C11). */
+  cueCalled(id: string): Promise<boolean>;
 }
 
 export interface ImportJobResult {
@@ -296,7 +356,26 @@ export interface Validated {
   readonly matchAddress: string | null;
 }
 
-/** Checks one row against its target; cell issues name the column and an issue code from the catalogs. */
+/** The longest text each cue and guest field holds (the column checks of 0350, 1180 and 0431). */
+const MAX_LENGTH: Readonly<Record<string, number>> = {
+  label: 200,
+  segment: 200,
+  description: 2000,
+  guest_name: 200,
+  note: 500,
+  table_label: 40,
+};
+
+/** A guest email as the guest list stores it (2974): trimmed, lowercased, the 1382 pattern, at most 320 characters. */
+export function importGuestEmail(value: string): string | null {
+  const email = value.trim().toLowerCase();
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : null;
+}
+
+/**
+ * Checks one row against its target; cell issues name the column and an issue code from the catalogs. A cue or guest
+ * list row is checked inside its destination (P3): the running order's show date, time zone and venue, or the project.
+ */
 export async function validateRow(
   orgId: string,
   targetCode: string,
@@ -304,6 +383,7 @@ export async function validateRow(
   columns: readonly MappedColumn[],
   row: DataRow,
   lookups: TargetLookups,
+  destination: ImportDestination = {},
 ): Promise<Validated> {
   const issues: CellIssue[] = [];
   const raw: Record<string, { value: string; column: number }> = {};
@@ -330,6 +410,13 @@ export async function validateRow(
     if (out === null || out === false || out === undefined)
       issues.push({ columnIndex: columnOf(field), issue });
     else values[column] = out === true ? v : out;
+  };
+  const bounded = (field: string) => {
+    const v = text(field).trim();
+    if (!v) return;
+    if (v.length > (MAX_LENGTH[field] ?? 200))
+      issues.push({ columnIndex: columnOf(field), issue: "too_long" });
+    else values[field] = v;
   };
 
   switch (targetCode) {
@@ -380,20 +467,67 @@ export async function validateRow(
       await set("asset_class_id", (v) => lookups.assetClassId(orgId, v), "unknown_asset_class");
       await set("home_venue_id", (v) => lookups.venueId(orgId, v), "unknown_venue");
       break;
+    case "cues": {
+      const run = destination.runOfShow;
+      for (const f of ["label", "segment", "description"]) bounded(f);
+      await set("position", (v) => cuePosition(v), "invalid_position");
+      await set(
+        "planned_at",
+        (v) => (run ? plannedAt(v, run.showDate, run.timeZone) : null),
+        "invalid_time",
+      );
+      await set(
+        "duration",
+        (v) => {
+          const seconds = durationSeconds(v);
+          return seconds === null ? null : `${seconds} seconds`;
+        },
+        "invalid_duration",
+      );
+      await set("space_id", (v) => lookups.spaceId(run?.venueId ?? null, v), "unknown_space");
+      break;
+    }
+    case "guest_list_entries": {
+      const projectId = destination.project?.id ?? null;
+      for (const f of ["guest_name", "note", "table_label"]) bounded(f);
+      await set("guest_email", importGuestEmail, "invalid_email");
+      await set(
+        "plus_ones",
+        (v) => {
+          const n = v.trim();
+          return /^\d{1,2}$/.test(n) && Number(n) <= 20 ? Number(n) : null;
+        },
+        "invalid_plus_ones",
+      );
+      await set(
+        "scope_node_id",
+        (v) => (projectId ? lookups.scopeNodeId(projectId, v) : null),
+        "unknown_show",
+      );
+      await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
+      break;
+    }
     default:
       issues.push({ columnIndex: 0, issue: "target_not_importable" });
   }
-  const strongKeys: Record<string, string> = {};
-  for (const f of fields) if (f.strongKey && text(f.name)) strongKeys[f.name] = text(f.name);
+  const strongKeys: Record<string, string> = destinationStrongKeys(targetCode, values) ?? {};
+  if (!DESTINATION_TARGETS.has(targetCode)) {
+    for (const f of fields) if (f.strongKey && text(f.name)) strongKeys[f.name] = text(f.name);
+  }
   if (targetCode === "vendor_products" && typeof values["vendor_id"] === "string")
     strongKeys["vendor_id"] = values["vendor_id"];
-  const fuzzy = targetCode === "venues" || targetCode === "counterparties";
+  const fuzzy =
+    targetCode === "venues" ||
+    targetCode === "counterparties" ||
+    targetCode === "guest_list_entries";
+  const nameField = targetCode === "guest_list_entries" ? "guest_name" : "name";
+  const matchName = fuzzy ? text(nameField).trim() : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
     issues,
     values,
     strongKeys,
-    matchName: fuzzy && text("name") ? text("name") : null,
+    matchName: matchName || null,
     matchAddress:
       targetCode === "venues"
         ? [text("street_address"), text("locality"), text("postal_code")]
@@ -401,6 +535,109 @@ export async function validateRow(
             .join(" ") || null
         : null,
   };
+}
+
+/** Targets whose imports name a running order or a project (P3). */
+const DESTINATION_TARGETS: ReadonlySet<string> = new Set(["cues", "guest_list_entries"]);
+
+/**
+ * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
+ * label and planned time; a guest's trimmed, lower-case name and show. A missing time or show is left out, which
+ * app.import_strong_key_match reads as NULL. Null for other targets.
+ */
+function destinationStrongKeys(targetCode: string, values: Row): Record<string, string> | null {
+  const str = (key: string) => (typeof values[key] === "string" ? (values[key] as string) : null);
+  if (targetCode === "cues") {
+    if (typeof values["position"] === "number") return { position: String(values["position"]) };
+    const label = str("label");
+    if (label === null) return {};
+    const at = str("planned_at");
+    return at === null ? { label } : { label, planned_at: at };
+  }
+  if (targetCode === "guest_list_entries") {
+    const name = str("guest_name");
+    if (name === null) return {};
+    const show = str("scope_node_id");
+    const guest_name = name.trim().toLowerCase();
+    return show === null ? { guest_name } : { guest_name, scope_node_id: show };
+  }
+  return null;
+}
+
+/** The column whose cell a duplicate-in-file issue points at. */
+const DUPLICATE_COLUMN_FIELD: Readonly<Record<string, string>> = {
+  position: "position",
+  label: "label",
+  guest_name: "guest_name",
+};
+
+/**
+ * Marks every row whose strong key repeats an earlier row of the file Invalid with duplicate_in_file (C10): a cue's
+ * position, or its label and time without one; a guest's name and show. Run over the whole sheet, in validation and
+ * again at commit, so two rows never update the same cue or guest. Other targets are returned as they are.
+ */
+export function markInFileDuplicates(
+  targetCode: string,
+  columns: readonly MappedColumn[],
+  checked: readonly Validated[],
+): Validated[] {
+  if (!DESTINATION_TARGETS.has(targetCode)) return [...checked];
+  const seen = new Set<string>();
+  return checked.map((v) => {
+    const keys = Object.entries(v.strongKeys);
+    if (keys.length === 0) return v;
+    const key = JSON.stringify(keys.sort(([a], [b]) => a.localeCompare(b)));
+    if (!seen.has(key)) {
+      seen.add(key);
+      return v;
+    }
+    const field = DUPLICATE_COLUMN_FIELD[keys[0]?.[0] ?? ""] ?? "";
+    const columnIndex = columns.find((c) => c.fieldName === field)?.index ?? 0;
+    return {
+      ...v,
+      state: "Invalid" as const,
+      issues: [...v.issues, { columnIndex, issue: "duplicate_in_file" }],
+    };
+  });
+}
+
+/** The running order or project a cue or guest list import writes into; empty for an org-wide target. */
+async function destinationOf(store: ImportStore, job: ImportJobRecord): Promise<ImportDestination> {
+  if (job.targetCode === "cues" && job.runOfShowId) {
+    const run = await store.lookups.runOfShow(job.runOfShowId);
+    if (run === null) throw new Error(`The running order of import ${job.id} no longer exists.`);
+    return { runOfShow: run };
+  }
+  if (job.targetCode === "guest_list_entries" && job.projectId) {
+    return { project: { id: job.projectId } };
+  }
+  return {};
+}
+
+/** Every data row of a sheet checked against the target, with repeats within the file marked. */
+async function checkSheet(
+  store: ImportStore,
+  job: ImportJobRecord,
+  rows: readonly DataRow[],
+  fields: readonly { name: string; required: boolean; strongKey: boolean }[],
+  columns: readonly MappedColumn[],
+  destination: ImportDestination,
+): Promise<Validated[]> {
+  const checked: Validated[] = [];
+  for (const row of rows) {
+    checked.push(
+      await validateRow(
+        job.orgId,
+        job.targetCode,
+        fields,
+        columns,
+        row,
+        store.lookups,
+        destination,
+      ),
+    );
+  }
+  return markInFileDuplicates(job.targetCode, columns, checked);
 }
 
 // The jobs ---------------------------------------------------------------------------------------------------
@@ -482,7 +719,7 @@ async function detect(store: ImportStore, jobId: string): Promise<StepNote> {
     );
     await store.setSheet(job.id, sheet.name.slice(0, 200) || "Sheet 1");
   }
-  await store.insertColumns(
+  const columnIds = await store.insertColumns(
     job.id,
     sheet.name,
     heads.map((header, i) => ({
@@ -491,7 +728,25 @@ async function detect(store: ImportStore, jobId: string): Promise<StepNote> {
       source: suggested[i]?.source ?? null,
     })),
   );
+  await store.recordColumnSamples(job.id, columnSamples(columnIds, dataRows(sheet)));
   await store.setStatus(job.id, "Mapped");
+}
+
+/**
+ * The first three data rows' cells under each column, aligned by row (2801): a blank cell is kept as empty text so
+ * every column shows the same rows. Cells are cut to 200 characters.
+ */
+export function columnSamples(
+  columnIds: readonly string[],
+  rows: readonly DataRow[],
+): ColumnSample[] {
+  return rows.slice(0, 3).flatMap((row, r) =>
+    columnIds.map((columnId, c) => ({
+      columnId,
+      index: r + 1,
+      value: (row.cells[c] ?? "").slice(0, 200),
+    })),
+  );
 }
 
 /** What the worker entry points pass: fetch for the Google Sheets reader, and Atlas's address for review links. */
@@ -583,33 +838,36 @@ async function validate(
   const sheet = await readUpload(store, job);
   const fields = await store.targetFields(job.targetCode);
   const columns = await store.mappedColumns(job.id);
-  for (const row of dataRows(sheet)) {
-    const checked = await validateRow(
-      job.orgId,
-      job.targetCode,
-      fields,
-      columns,
-      row,
-      store.lookups,
-    );
+  const rows = dataRows(sheet);
+  const checked = await checkSheet(
+    store,
+    job,
+    rows,
+    fields,
+    columns,
+    await destinationOf(store, job),
+  );
+  for (const [i, row] of rows.entries()) {
+    const result = checked[i];
+    if (!result) continue;
+    // The exact match comes first: a row that matches on its strong keys is an update and never goes to merge review.
+    const match =
+      result.state === "Valid" && Object.keys(result.strongKeys).length > 0
+        ? DESTINATION_TARGETS.has(job.targetCode)
+          ? await store.lookups.destinationKeyMatch(job.id, result.strongKeys)
+          : await store.lookups.strongKeyMatch(job.orgId, job.targetCode, result.strongKeys)
+        : null;
     const rowId = await store.recordRow({
       jobId: job.id,
       sheet: sheet.name,
       rowNumber: row.rowNumber,
-      state: checked.state,
-      reason: checked.state === "Invalid" ? checked.issues.map((i) => i.issue).join(", ") : null,
-      matchName: checked.state === "Valid" ? checked.matchName : null,
-      matchAddress: checked.state === "Valid" ? checked.matchAddress : null,
+      state: result.state,
+      reason: result.state === "Invalid" ? result.issues.map((x) => x.issue).join(", ") : null,
+      matchName: result.state === "Valid" && match === null ? result.matchName : null,
+      matchAddress: result.state === "Valid" && match === null ? result.matchAddress : null,
     });
-    if (checked.issues.length > 0) await store.recordCellIssues(rowId, checked.issues);
-    if (checked.state === "Valid" && Object.keys(checked.strongKeys).length > 0) {
-      const match = await store.lookups.strongKeyMatch(
-        job.orgId,
-        job.targetCode,
-        checked.strongKeys,
-      );
-      if (match) await store.recordMatch(rowId, match);
-    }
+    if (result.issues.length > 0) await store.recordCellIssues(rowId, result.issues);
+    if (match) await store.recordMatch(rowId, match);
   }
   await store.setStatus(job.id, "Validated");
   return notifyFinished(store, job, null, options);
@@ -626,21 +884,31 @@ async function commit(
   const sheet = await readUpload(store, job);
   const fields = await store.targetFields(job.targetCode);
   const columns = await store.mappedColumns(job.id);
-  const byNumber = new Map(dataRows(sheet).map((r) => [r.rowNumber, r]));
-  for (const valid of await store.validRows(job.id)) {
-    const row = byNumber.get(valid.rowNumber);
-    if (!row) {
+  const rows = dataRows(sheet);
+  const checkedRows = await checkSheet(
+    store,
+    job,
+    rows,
+    fields,
+    columns,
+    await destinationOf(store, job),
+  );
+  const byNumber = new Map(rows.map((r, i) => [r.rowNumber, checkedRows[i]]));
+  const valids = await store.validRows(job.id);
+  // Numbered cues and updates are written first; unnumbered new cues are then appended in sheet order, so an
+  // appended cue never takes a position a later numbered row needs (C10).
+  const appended = (v: ValidRow) =>
+    job.targetCode === "cues" &&
+    v.mergeInto === null &&
+    v.matchedId === null &&
+    typeof byNumber.get(v.rowNumber)?.values["position"] !== "number";
+  const ordered = [...valids.filter((v) => !appended(v)), ...valids.filter(appended)];
+  for (const valid of ordered) {
+    const checked = byNumber.get(valid.rowNumber);
+    if (!checked) {
       await store.refuseRow(valid.id, "The row is no longer in the uploaded file.");
       continue;
     }
-    const checked = await validateRow(
-      job.orgId,
-      job.targetCode,
-      fields,
-      columns,
-      row,
-      store.lookups,
-    );
     if (checked.state !== "Valid") {
       await store.refuseRow(valid.id, checked.issues.map((i) => i.issue).join(", "));
       continue;
@@ -648,8 +916,10 @@ async function commit(
     try {
       const target = valid.mergeInto?.id ?? valid.matchedId;
       if (target) {
-        const changes = { ...checked.values };
-        if (job.targetCode === "counterparties") delete changes["name"];
+        const changes = updateChanges(job.targetCode, checked.values);
+        if (job.targetCode === "cues" && (await store.lookups.cueCalled(target))) {
+          throw new ImportWriteError("This cue was already called");
+        }
         const before = await store.lookups.update(job.targetCode, target, changes);
         await store.commitWrite({
           rowId: valid.id,
@@ -659,7 +929,8 @@ async function commit(
           before,
         });
       } else {
-        const id = await store.lookups.create(job.orgId, job.targetCode, checked.values);
+        const values = await createValues(store, job, checked.values);
+        const id = await store.lookups.create(job.orgId, job.targetCode, values);
         await store.commitWrite({
           rowId: valid.id,
           batchId,
@@ -675,6 +946,38 @@ async function commit(
   }
   await store.finishBatch(batchId);
   return notifyFinished(store, job, batchId, options);
+}
+
+/**
+ * What an update or merge may change (C11): a counterparty keeps its name; a cue keeps its running order and position;
+ * a guest keeps its project, name and show, so a merge never moves a guest to another night.
+ */
+function updateChanges(targetCode: string, values: Row): Row {
+  const kept: Readonly<Record<string, readonly string[]>> = {
+    counterparties: ["name"],
+    cues: ["run_of_show_id", "project_id", "position"],
+    guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+  };
+  const keep = kept[targetCode] ?? [];
+  return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
+}
+
+/**
+ * What a create writes (C11): a cue goes into the import's running order (the database stamps its project), at its
+ * own position or appended after the highest; a guest goes into the import's project as Requested only.
+ */
+async function createValues(store: ImportStore, job: ImportJobRecord, values: Row): Promise<Row> {
+  if (job.targetCode === "cues" && job.runOfShowId) {
+    const position =
+      typeof values["position"] === "number"
+        ? values["position"]
+        : await store.lookups.nextCuePosition(job.runOfShowId);
+    return { ...values, run_of_show_id: job.runOfShowId, position };
+  }
+  if (job.targetCode === "guest_list_entries" && job.projectId) {
+    return { ...values, project_id: job.projectId, entry_state: "Requested" };
+  }
+  return values;
 }
 
 /** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
@@ -764,7 +1067,23 @@ const TABLES: Readonly<Record<string, string>> = {
   counterparties: "counterparties",
   vendor_products: "vendor_products",
   asset_units: "asset_units",
+  cues: "cues",
+  guest_list_entries: "guest_list_entries",
 };
+
+/** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
+const nameKey = (v: string) => v.trim().toLowerCase();
+
+/** The one id whose name matches, or null for none or more than one. */
+function onlyMatch(rows: readonly Row[], name: string, ...keys: string[]): string | null {
+  const wanted = nameKey(name);
+  const hits = rows.filter((r) =>
+    keys.some((k) => typeof r[k] === "string" && nameKey(r[k] as string) === wanted),
+  );
+  return hits.length === 1 && typeof hits[0]?.["id"] === "string"
+    ? (hits[0]["id"] as string)
+    : null;
+}
 
 function text(row: Row | null | undefined, key: string): string {
   const v = row?.[key];
@@ -912,6 +1231,91 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       if (error) throw new ImportWriteError(error.message);
       return text((data as Row[])[0], "id");
     },
+    async runOfShow(id) {
+      const row = await one(
+        app
+          .from("run_of_show")
+          .select(
+            "id, project_id, show_date, scope_nodes (venue_id), projects!inner (time_zone, venue_id)",
+          )
+          .eq("id", id)
+          .is("deleted_at", null),
+        "run_of_show",
+      );
+      if (!row) return null;
+      const node = row["scope_nodes"] as Row | null;
+      const project = row["projects"] as Row | null;
+      const venue = (r: Row | null) => (typeof r?.["venue_id"] === "string" ? r["venue_id"] : null);
+      return {
+        id: text(row, "id"),
+        projectId: text(row, "project_id"),
+        showDate: text(row, "show_date"),
+        timeZone: text(project, "time_zone"),
+        venueId: venue(node) ?? venue(project),
+      };
+    },
+    async spaceId(venueId, idOrName) {
+      if (venueId === null) return null;
+      const { data, error } = await app
+        .from("spaces")
+        .select("id, name")
+        .eq("venue_id", venueId)
+        .is("deleted_at", null);
+      if (error) throw new Error(`spaces: ${error.message}`);
+      const spaces = (data as Row[] | null) ?? [];
+      const id = idOrName.trim().toLowerCase();
+      if (UUID.test(id)) return spaces.some((r) => r["id"] === id) ? id : null;
+      return onlyMatch(spaces, idOrName, "name");
+    },
+    async scopeNodeId(projectId, codeOrName) {
+      const { data, error } = await app
+        .from("scope_nodes")
+        .select("id, scope_code, name")
+        .eq("project_id", projectId)
+        .is("deleted_at", null);
+      if (error) throw new Error(`scope_nodes: ${error.message}`);
+      const nodes = (data as Row[] | null) ?? [];
+      return onlyMatch(nodes, codeOrName, "scope_code") ?? onlyMatch(nodes, codeOrName, "name");
+    },
+    async counterpartyIdByName(orgId, name) {
+      // The computed app.counterparty_name reads private.my_org_ids(), empty under the service role, so the name
+      // is read from the organization itself (C8).
+      const { data, error } = await app
+        .from("counterparties")
+        .select("id, organizations!counterparties_organization_id_fkey!inner (name)")
+        .eq("org_id", orgId)
+        .is("deleted_at", null);
+      if (error) throw new Error(`counterparties: ${error.message}`);
+      const rows = ((data as Row[] | null) ?? []).map((r) => ({
+        id: r["id"],
+        name: (r["organizations"] as Row | null)?.["name"],
+      }));
+      return onlyMatch(rows, name, "name");
+    },
+    async destinationKeyMatch(importJobId, keys) {
+      const id = await call("import_strong_key_match", {
+        p_import_job_id: importJobId,
+        p_keys: keys,
+      });
+      return typeof id === "string" ? id : null;
+    },
+    async nextCuePosition(runOfShowId) {
+      const row = await one(
+        app
+          .from("cues")
+          .select("position")
+          .eq("run_of_show_id", runOfShowId)
+          .is("deleted_at", null)
+          .order("position", { ascending: false })
+          .limit(1),
+        "cues",
+      );
+      return typeof row?.["position"] === "number" ? row["position"] + 1 : 1;
+    },
+    async cueCalled(id) {
+      const row = await one(app.from("cues").select("called_at").eq("id", id), "cues");
+      return typeof row?.["called_at"] === "string";
+    },
     async update(targetCode, id, values) {
       const table = TABLES[targetCode];
       if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -951,7 +1355,7 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -970,6 +1374,8 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             profileId: optional("import_mapping_profile_id"),
             sheetName: optional("sheet_name"),
             sourceUrl: optional("source_url"),
+            projectId: optional("project_id"),
+            runOfShowId: optional("run_of_show_id"),
           }
         : null;
     },
@@ -1125,9 +1531,10 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       );
     },
     async insertColumns(jobId, sheet, columns) {
-      if (columns.length === 0) return;
-      await exec(
-        app.from("import_job_columns").insert(
+      if (columns.length === 0) return [];
+      const { data, error } = await app
+        .from("import_job_columns")
+        .insert(
           columns.map((c, i) => ({
             import_job_id: jobId,
             sheet_name: sheet,
@@ -1136,9 +1543,23 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             suggested_field_name: c.suggested,
             suggestion_source: c.suggested === null ? null : (c.source ?? null),
           })),
-        ),
-        "import_job_columns",
-      );
+        )
+        .select("id, column_index");
+      if (error) throw new Error(`import_job_columns: ${error.message}`);
+      return ((data as Row[] | null) ?? [])
+        .sort((a, b) => Number(a["column_index"]) - Number(b["column_index"]))
+        .map((c) => text(c, "id"));
+    },
+    async recordColumnSamples(jobId, samples) {
+      if (samples.length === 0) return;
+      await call("record_import_column_samples", {
+        p_import_job_id: jobId,
+        p_samples: samples.map((x) => ({
+          import_job_column_id: x.columnId,
+          sample_index: x.index,
+          sample_value: x.value,
+        })),
+      });
     },
     async mappedColumns(jobId) {
       const { data, error } = await app

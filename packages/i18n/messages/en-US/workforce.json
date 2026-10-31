@@ -689,7 +689,67 @@
     "time": "Time",
     "by": "Recorded by",
     "alerts": "Alerts",
-    "cleared": "Cleared"
+    "cleared": "Cleared",
+    "readingSource": {
+      "Manual": "Recorded on site",
+      "NWS": "National Weather Service"
+    },
+    "feed": {
+      "title": "Official feed",
+      "what": "Readings, warnings and the forecast from the US National Weather Service for this project's venue, every 10 minutes from three days before the project starts to the day after it ends.",
+      "turnOn": "Turn on the official feed",
+      "turnOff": "Turn off the official feed",
+      "unsupported": "The official feed covers US venues with a location.",
+      "lastUpdate": "Last updated {time}",
+      "lastFailure": "Last attempt failed {time}: {error}",
+      "failuresSince": "{count, plural, one {# failed attempt since the last update} other {# failed attempts since the last update}}",
+      "never": "No update yet."
+    },
+    "warnings": {
+      "title": "Active warnings",
+      "empty": "No official warnings are active.",
+      "until": "Until {time}",
+      "issuedBy": "Issued by the National Weather Service, in English",
+      "severities": {
+        "Extreme": "Extreme",
+        "Severe": "Severe",
+        "Moderate": "Moderate",
+        "Minor": "Minor",
+        "Unknown": "Unknown"
+      },
+      "more": "Details"
+    },
+    "forecast": {
+      "title": "Next 12 hours",
+      "temperature": "{value}°F",
+      "wind": "{value} mph",
+      "precipitation": "{value}% rain",
+      "empty": "No forecast yet.",
+      "rain": "Rain",
+      "summary": "Forecast"
+    },
+    "holds": {
+      "call": "Call hold",
+      "callTitle": "Call a weather hold",
+      "callBody": "Everyone in the alert roles, the dispatchers and everyone inside the project's zones hears this at once.",
+      "message": "Message",
+      "messageHelp": "1 to 1,000 characters.",
+      "callSubmit": "Send hold",
+      "open": "Weather hold since {time}",
+      "allClear": "All clear",
+      "allClearTitle": "Give the all-clear",
+      "allClearSubmit": "Send all-clear",
+      "sent": "Sent to everyone"
+    },
+    "templates": {
+      "title": "Hold and all-clear messages",
+      "hold": "Hold message",
+      "allClear": "All-clear message",
+      "save": "Save messages",
+      "defaultHold": "Weather hold: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultHoldHazard": "Weather hold for {hazard}: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultAllClear": "All clear: the weather hold is over. Return to work when your lead says so."
+    }
   },
   "guests": {
     "title": "Guest Check-In",
@@ -717,7 +777,12 @@
     "admittedLine": "Admitted with {plusOnes, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}} at {door}.",
     "checkedInCount": "Checked in of {expected}",
     "peopleIn": "People in",
-    "emptyAction": "Open the guest list"
+    "emptyAction": "Open the guest list",
+    "passType": "Pass type",
+    "table": "Table",
+    "host": "Host",
+    "passCode": "Pass code",
+    "search": "Name or pass code"
   },
   "lostFound": {
     "title": "Lost and Found",
@@ -839,7 +904,13 @@
     "block_self": "You cannot block yourself.",
     "content_moderation_own": "Another moderator decides reports about your own post, comment or message.",
     "content_moderation_nothing_open": "Every report about this was already decided.",
-    "content_moderation_authority": "Reviewing reported content needs permission to manage communication."
+    "content_moderation_authority": "Reviewing reported content needs permission to manage communication.",
+    "weather_feed_unsupported": "The official feed covers US venues with a location. Locate the venue first.",
+    "weather_hold_open": "A weather hold is already open on this project. Give the all-clear first.",
+    "weather_hold_closed": "This weather hold already has its all-clear.",
+    "weather_hold_message": "Write a message of 1 to 1,000 characters.",
+    "weather_hold_stale": "This was made more than 10 minutes ago and was not sent. Check the weather and send it again.",
+    "weather_hold_id_taken": "Someone else already sent this. Reload to see the hold."
   },
   "settingsPanels": {
     "groupsTitle": "Group spaces",
@@ -1132,7 +1203,26 @@
       },
       "alertLine": "{hazard}: {level} · {time}",
       "readingLine": "{value} {unit} · {time}",
-      "thresholdLine": "{level} at {value} {unit} ({source})"
+      "thresholdLine": "{level} at {value} {unit} ({source})",
+      "holdSince": "Weather hold since {time}",
+      "warnings": "Official warnings",
+      "noWarnings": "No official warnings.",
+      "issuedBy": "Issued by the National Weather Service, in English",
+      "severities": {
+        "extreme": "Extreme",
+        "severe": "Severe",
+        "moderate": "Moderate",
+        "minor": "Minor",
+        "unknown": "Unknown"
+      },
+      "callHold": "Call hold",
+      "allClear": "All clear",
+      "message": "Message",
+      "messageHelp": "1 to 1,000 characters. Everyone in the alert roles, the dispatchers and everyone inside the project's zones hears it.",
+      "send": "Send",
+      "defaultHold": "Weather hold: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultHoldHazard": "Weather hold for {hazard}: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultAllClear": "All clear: the weather hold is over. Return to work when your lead says so."
     },
     "door": {
       "title": "Guest Check-In",
@@ -1148,7 +1238,14 @@
       "more": "One more",
       "fewer": "One fewer",
       "admitted": "In with {plusOnes} plus-ones · {time}",
-      "admittedAt": "In with {plusOnes} plus-ones at {door} · {time}"
+      "admittedAt": "In with {plusOnes} plus-ones at {door} · {time}",
+      "pass": "Guest pass",
+      "passHelp": "Scan the pass, or type the code printed on it, such as GP-ABCDEFGHIJ.",
+      "checkPass": "Find the guest",
+      "passNotListed": "This pass is not on tonight's list.",
+      "passOffline": "Connect to check passes.",
+      "passType": "Pass: {name}",
+      "table": "Table {table}"
     },
     "lostFound": {
       "title": "Lost and Found",
@@ -1243,5 +1340,29 @@
     "statement": "Statement of reasons",
     "statementHelp": "Sent to the people who reported it and, when you remove it, to its author.",
     "submit": "Record Decision"
+  },
+  "muster": {
+    "title": "Muster list",
+    "what": "Everyone placed in a zone now by an entry scan or a geofenced clock-in, and guests checked in at doors in the last 24 hours. It shows only the people you may see; someone whose newer scan you cannot see may show in their last zone you can.",
+    "noAccess": "The muster list needs the scan log or time entries of the project.",
+    "empty": "Nobody is inside a zone of this project.",
+    "project": "Project",
+    "zone": "Zone",
+    "allZones": "All zones",
+    "noZone": "Checked in at a door",
+    "name": "Name",
+    "since": "Since",
+    "source": "Source",
+    "sources": {
+      "Scan": "Entry scan",
+      "ClockIn": "Clock-in",
+      "GuestCheckIn": "Guest check-in"
+    },
+    "category": "Category",
+    "party": "Party",
+    "door": "Door",
+    "guestAt": "Checked in at {door}",
+    "zoneCount": "{count, plural, one {# person} other {# people}}",
+    "print": "Print"
   }
 }

@@ -2,11 +2,14 @@
  * Account deletion (SIM-004, journey 38; App Store guideline 5.1.1(v)): the signed-in person deletes their
  * own account from Compass or Gateway. Shared by both apps so the contract is called one way.
  *
- * The flow: read the preview (blockers, and what is kept and why), confirm with the sign-in email, remove the
- * person's own profile media while they can still reach it, then call app.delete_my_account. A refusal
+ * The flow: read the preview (blockers, and what is kept and why), confirm with the sign-in email, withdraw the
+ * person's badge photos and remove their objects (P5, 2822) and remove their own profile media while they can still
+ * reach it, then call app.delete_my_account. A refusal
  * (legal hold, on shift, sole owner, wrong email) deletes nothing and comes back as a typed refusal.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { XosClient } from "./client.ts";
+import { removeCredentialPhotoObjects, withdrawMyCredentialPhotos } from "./credential-photos.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { UPLOAD_STAGING_BUCKET, stagedUploadName } from "./staged-uploads.ts";
 
@@ -140,7 +143,21 @@ async function removeFolder(
 }
 
 /**
- * Deletes the signed-in person's account: checks the preview, removes their profile media, then calls
+ * Withdraws every badge photo of the signed-in person, in every org, with its consent, and deletes every object of
+ * theirs in credential-photos (P5). Fails when any object stays behind, so account deletion stops before
+ * app.delete_my_account rather than leave a face photo with no owner. Returns how many objects it removed.
+ */
+export async function removeMyCredentialPhotos(client: SupabaseClient): Promise<Result<number>> {
+  const withdrawn = await withdrawMyCredentialPhotos(client as unknown as XosClient, null);
+  if (!withdrawn.ok) return withdrawn;
+  return removeCredentialPhotoObjects(
+    client as unknown as XosClient,
+    withdrawn.data.map((p) => p.photoPath),
+  );
+}
+
+/**
+ * Deletes the signed-in person's account: checks the preview, removes their badge photos and profile media, then calls
  * app.delete_my_account with the typed email. Blockers come back as the database's refusal before anything
  * is removed.
  */
@@ -154,6 +171,8 @@ export async function deleteMyAccount(
     preview.data.blockers.length === 0 &&
     confirmEmail.trim().toLowerCase() === preview.data.email
   ) {
+    const photos = await removeMyCredentialPhotos(client);
+    if (!photos.ok) return photos;
     const media = await removeProfileMedia(client, preview.data.personId);
     if (!media.ok) return media;
   }

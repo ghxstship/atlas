@@ -93,6 +93,10 @@ const weatherThresholds = tableResource("weatherThresholds");
 const weatherAlertRoles = tableResource("weatherAlertRoles");
 const weatherReadings = tableResource("weatherReadings", { verbs: ["list", "get"] });
 const weatherAlerts = tableResource("weatherAlerts");
+// B8 (2976, 2977): the official feed, its warnings, and holds, which only the hold functions write.
+const weatherFeeds = tableResource("weatherFeeds");
+const weatherWarnings = tableResource("weatherWarnings");
+const weatherHolds = tableResource("weatherHolds", { verbs: ["list", "get"] });
 const guestCheckIns = tableResource("guestCheckIns", { verbs: ["list", "get"] });
 const lostFoundItems = tableResource("lostFoundItems", { verbs: ["list", "get", "update"] });
 const lostFoundClaims = tableResource("lostFoundClaims");
@@ -128,6 +132,9 @@ export const handlers = defineHandlers("Workforce", {
   ...handlersFor("Workforce", weatherAlertRoles),
   ...handlersFor("Workforce", weatherReadings),
   ...handlersFor("Workforce", weatherAlerts),
+  ...handlersFor("Workforce", weatherFeeds),
+  ...handlersFor("Workforce", weatherWarnings),
+  ...handlersFor("Workforce", weatherHolds),
   ...handlersFor("Workforce", guestCheckIns),
   ...handlersFor("Workforce", lostFoundItems),
   ...handlersFor("Workforce", lostFoundClaims),
@@ -547,6 +554,25 @@ export const handlers = defineHandlers("Workforce", {
       p_observed_at: body.observed_at,
     });
     return created((await back(weatherReadings, context, id)) as never);
+  },
+  // Atlas and the API send no device time: a hold called here is never late (app.call_weather_hold, 2977).
+  "weatherHolds.create": async ({ body }, context) => {
+    const id = await call(context, "call_weather_hold", {
+      p_project_id: body.project_id,
+      p_message: body.message,
+      p_hazard: body.hazard ?? undefined,
+      p_weather_alert_id: body.weather_alert_id ?? undefined,
+      p_weather_warning_id: body.weather_warning_id ?? undefined,
+    });
+    return created((await back(weatherHolds, context, id)) as never);
+  },
+  "weatherHolds.allClear": async ({ params, body }, context) => {
+    await weatherHolds.read(context, params.id, ["id"]);
+    await call(context, "give_weather_all_clear", {
+      p_hold_id: params.id,
+      p_message: body.message,
+    });
+    return ok((await weatherHolds.read(context, params.id)) as never);
   },
   "guestCheckIns.create": async ({ body }, context) => {
     const id = await call(context, "check_in_guest", {

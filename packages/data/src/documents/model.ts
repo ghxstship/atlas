@@ -5,7 +5,7 @@
  * renderer writes follows the same order as the page.
  */
 
-/** The twelve Section 11.9 documents. */
+/** The twelve Section 11.9 documents, the radio hand-out (R7) and the guest pass (B8), per the ADR 0031 amendments. */
 export const DOCUMENT_KINDS = [
   "purchase-order",
   "invoice",
@@ -19,6 +19,8 @@ export const DOCUMENT_KINDS = [
   "incident-report",
   "final-cost-report",
   "agreement-certificate",
+  "radio-handout",
+  "guest-pass",
 ] as const;
 
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -56,7 +58,7 @@ export type DataClassification = "Public" | "Internal" | "Confidential" | "Restr
 /**
  * The classification of each generated document: the highest classification among the registered
  * columns its template prints (private.column_classifications). Section 8.6 puts the viewer email
- * and time on Confidential and Restricted PDFs. The twelve record documents print only Internal
+ * and time on Confidential and Restricted PDFs. The thirteen record documents print only Internal
  * columns; the WH-347 prints Restricted pay rates; the OSHA forms print Confidential health data.
  */
 export const DOCUMENT_CLASSIFICATION: Readonly<
@@ -74,6 +76,8 @@ export const DOCUMENT_CLASSIFICATION: Readonly<
   "incident-report": "Internal",
   "final-cost-report": "Internal",
   "agreement-certificate": "Internal",
+  "radio-handout": "Internal",
+  "guest-pass": "Internal",
   "deletion-certificate": "Internal",
   "certified-payroll": "Restricted",
   "osha-300": "Confidential",
@@ -96,6 +100,41 @@ export function isPaper(value: string): value is Paper {
   return (PAPERS as readonly string[]).includes(value);
 }
 
+/**
+ * Card sizes, for the credential badge (P5) and the guest pass (B8), per the ADR 0031 amendments: A6 (105 by 148 mm)
+ * and the ID-1 card CR80 (53.98 by 85.60 mm), both portrait. Paper and isPaper keep meaning Letter or A4, so
+ * compliance forms and Gateway still accept only those.
+ */
+export type CardPaper = "a6" | "cr80";
+
+export const CARD_PAPERS: readonly CardPaper[] = ["a6", "cr80"];
+
+/** Every size a document can print on. */
+export type PrintSize = Paper | CardPaper;
+
+export function isCardPaper(value: string): value is CardPaper {
+  return (CARD_PAPERS as readonly string[]).includes(value);
+}
+
+const BADGE_SIZES: readonly PrintSize[] = ["letter", "a4", "a6", "cr80"];
+
+/** The guest pass prints on the badge sizes, A6 first: it is a card handed to a guest or attached to their email. */
+const GUEST_PASS_SIZES: readonly PrintSize[] = ["a6", "cr80", "letter", "a4"];
+
+/**
+ * The sizes a kind prints on, the default first: the credential badge also prints on A6 and CR80 cards, the guest
+ * pass on the same sizes with A6 as its default, every other kind on Letter and A4.
+ */
+export function printSizesFor(kind: string): readonly PrintSize[] {
+  if (kind === "credential-badge") return BADGE_SIZES;
+  if (kind === "guest-pass") return GUEST_PASS_SIZES;
+  return PAPERS;
+}
+
+export function isPrintSizeFor(kind: string, value: string): value is PrintSize {
+  return (printSizesFor(kind) as readonly string[]).includes(value);
+}
+
 /** A label and its value, read as a row header and its cell. */
 export interface DocumentField {
   readonly label: string;
@@ -115,6 +154,23 @@ export type DocumentBlock =
   /** A PNG or JPEG image, read as a Figure with its alternative text, fitted to the page. */
   | { readonly kind: "image"; readonly bytes: Uint8Array; readonly alt: string }
   | { readonly kind: "paragraph"; readonly text: string; readonly size?: "body" | "large" }
+  /**
+   * A holder's portrait (the credential badge, P5): a PNG or JPEG fitted into a fixed frame, never cropped, as a
+   * Figure with its alternative text; with no photo, a ruled frame and the placeholder text.
+   */
+  | {
+      readonly kind: "portrait";
+      readonly bytes: Uint8Array | null;
+      readonly alt: string;
+      readonly placeholder: string;
+    }
+  /** A code a scanner reads (the badge's gate code), drawn as a QR Figure with its alternative text and a caption. */
+  | {
+      readonly kind: "scan-code";
+      readonly payload: string;
+      readonly alt: string;
+      readonly caption: string;
+    }
   | { readonly kind: "fields"; readonly caption: string; readonly fields: readonly DocumentField[] }
   | {
       readonly kind: "table";

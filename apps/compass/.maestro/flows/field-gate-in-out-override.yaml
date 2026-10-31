@@ -1,0 +1,47 @@
+appId: pro.ghxstship.compass
+# B8 (RRR-232, G-145): In and Out at a gate, and a supervisor's override of a denial.
+# Named after its file: config.yaml orders flows by name.
+name: field-gate-in-out-override
+---
+# Run as the Demo Producer, who issues credentials on NWS and so may override (cached once online). BADGE is the
+# Demo Field Lead's CREW badge number from seed 0217 (CR-...), for example from the Atlas Issued page. Backstage opens
+# to that category 12 hours after the start of the seeded day, so before then an In scan there is denied as outside
+# the access window, which is the denial this flow overrides.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: producer@example.com
+- tapOn:
+    id: "tab-scan"
+- tapOn:
+    id: "scan-mode-credential"
+- tapOn: "Main Gate"
+- assertVisible:
+    id: "scan-direction"
+# Out is never refused, and it skips the device's decision.
+- tapOn: "Out"
+- tapOn:
+    id: "scan-manual"
+- inputText: "${BADGE}"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: ".*Exit recorded.*"
+# The direction stays chosen for this zone for the session; Backstage starts on In.
+- tapOn: "Backstage"
+- tapOn: "In"
+- tapOn:
+    id: "scan-manual"
+- inputText: "${BADGE}"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: ".*Access denied.*"
+- tapOn:
+    id: "scan-override"
+- tapOn:
+    id: "scan-override-reason"
+- inputText: "Escorted by the production office."
+- tapOn:
+    id: "scan-override-submit"
+- assertVisible: ".*Override recorded.*"
+- assertNotVisible:
+    id: "scan-override"

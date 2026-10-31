@@ -69,3 +69,47 @@ Before this ADR, only report runs rendered PDFs, untagged, with pdfkit 0.20.2 (A
 - Gate 19 needs the CI job that runs `documents:verapdf` (the YAML is in the A49 report for the orchestrator).
 - Gateway does not offer the signed agreement certificate: Gateway signing runs on a token page without a session, and the signer's certificate is downloaded from Atlas by the org. Day sheets, call sheets, BEOs, inspections, incidents and the final cost report are offered in Atlas only, because Gateway's tabs do not list them as records.
 - A tenant logo stored as SVG prints as the brand name until a PNG or JPEG logo is uploaded.
+
+## Amendment (2026-10-30, R7, RRR-187): the radio hand-out
+
+- **A thirteenth record document.** `radio-handout` is added beyond Section 11.9's twelve.
+  - It is keyed by the project id, so it is served at `/{org}/documents/radio-handout/{projectId}`.
+  - Its loader reads `app.radio_handout`, as the caller and for a project of the org.
+  - It lists one row per radio allocation, sorted by party and then person: the person, the party, the radio, the
+    tags issued, the channels and the status, plus blank Signature and Returned columns for the hand-out table.
+- **Classification and version.** It prints names, asset tags and channel numbers, so it is Internal. It is computed
+  live, so like the final cost report it renders with the version in force at generation time.
+- **Delivery.** It is offered in Atlas only, from the allocations page. Its QR code opens that page filtered to the
+  project's assets.
+- **veraPDF.** The gate now renders thirteen templates. With the two papers and two locales that is 52 record files
+  (48 before).
+
+## Amendment (P5, G-144): card sizes, the badge photo and batch printing
+
+The owner approved the competitor parity audit on 2026-10-28; gap G-144 asks for printable photo badges. These decisions extend the pipeline for the credential badge only.
+
+1. **Card papers, for the badge only.** `PrintSize` adds A6 (297.64 by 419.53 pt) and CR80, the ID-1 card (153.01 by 242.65 pt, portrait), to Letter and A4. `printSizesFor("credential-badge")` is all four; every other kind keeps `PAPERS`, and `Paper` and `isPaper` still mean Letter or A4, so compliance forms and Gateway accept only those. The Atlas document route parses `?paper=` with `isPrintSizeFor`: a card size on any other kind prints on Letter, and Gateway documents stay Letter and A4. `renderDocumentPdf` refuses a card paper for any other kind.
+2. **The card layout** (`render-card.ts`) is one tagged PDF/UA-1 page: brand logo `Figure` or name, a row with the portrait `Figure` and the scan code `Figure`, the holder's name as `H1` (12 pt shrinking to 9 pt on CR80, 18 to 12 on A6, wrapping past three lines rather than truncating), compact paragraphs for the category, number and validity window, on A6 a fields `Table` with row headers, and a facts line (record key, template version, generation time). The border and accent rule are artifacts. The template builds the blocks in card order when the context's paper is a card; the layout places blocks by kind and never reads a label.
+3. **One QR on a card.** On A6 and CR80 the only QR is the badge's gate code, `XOSCR1:<credential number>`, the wallet pass form (ADR 0049) that Compass reads as the credential. Two codes on a 54 mm card send gate staff to the wrong one, so the record link QR of decision 2 is left out on card papers only. Letter and A4 keep the header with the record link QR, as Section 11.9 requires; badge version 2 adds the gate code in the body there too.
+4. **Template versions are chosen by paper.** A version may name the papers it prints on (`papers`, Letter and A4 when absent). `templateFor(versions, issuedAt, paper)` considers only those versions, takes the latest whose `effectiveFrom` is not after the issue time, or the earliest of them. Credential badge version 2 (portrait, name, gate code, fields, scan note) takes effect at `BADGE_V2_FROM = 2027-02-01T00:00:00Z`, a fixed instant after the planned release that ships it (4.2b), so a credential issued on production before that release keeps version 1 on Letter and A4 (decision 3). A6 and CR80 never existed under version 1, so every credential renders version 2 there. Atlas dates a badge by the credential's creation; Gateway's `api_external.credentials` view exposes no creation time, so Gateway dates it by the start of its validity window. A credential created before `BADGE_V2_FROM` whose window starts after it therefore downloads as version 2 on Letter and A4 in Gateway and version 1 in Atlas. Both carry the same credential details, and only version 2 adds the photo and the gate code; exposing the creation time on that view (an additive API change) would close the difference and is left to a later package.
+5. **The badge photo.** The badge prints, in resolution order computed at read time (`app.credential_photo_states`, 2822): the org's badge photo for the holder once its object scanned Clean; else the holder's profile photo when the caller may see the photo section of the profile, no block stands between them (ADR 0033 decision 57), and it is a JPEG or PNG of at most 2 MiB; else the placeholder "No photo on file". The holder gives the badge photo in Gateway (Profile, Badge photos), from an upload they crop by hand or their own profile photo, with a `credential_photo` consent record, and withdraws it there; an issuer may ask for one (`credential_photo.requested`) or remove it. There is no capture at a desk. The photo is Internal, like the badge it prints on (no Section 8.6 watermark), and no machine learning reads it.
+6. **Batch printing.** `GET /{org}/documents/badges?id=…&paper=…` prints 1 to 100 credentials in one file: one `Document` root, a `Sect` per badge starting on a new page, each with its own facts and page numbers. Credentials the viewer cannot read, of another org (ADR 0003), revoked or expired are left out and counted in `X-Badges-Skipped`. A run of 100 badges with photos is larger than Vercel's 4.5 MB buffered function response, so the route streams the PDF: each badge's pages are written as soon as it is drawn. If streaming is found not to lift the cap on the deployed functions, the batch maximum is lowered until the worst case fits, and this amendment and the print panel notice record the new cap.
+7. **veraPDF** also renders, per locale, CR80 and A6 badges with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter (16 more files); the per-kind loop keeps the version 1 badge, issued before `BADGE_V2_FROM`.
+
+## Amendment (B8, RRR-232, G-68 and G-71): the guest pass
+
+ADR 0147 decision 6 gives guests passes, not credentials. These decisions extend the pipeline for the guest pass only.
+
+1. **A new kind, `guest-pass`.** It is keyed by the guest list entry, so it is served at
+   `/{org}/documents/guest-pass/{id}` through the existing `[kind]/[id]` route. Its loader reads the entry as the
+   caller (`advancing.packet.read` through row level security) and answers not found unless the guest is Approved or
+   Checked In, so a Requested or Declined guest has no pass.
+2. **Card papers, as the badge.** `printSizesFor("guest-pass")` is the badge's four sizes with A6 as the default; the
+   guest-email worker attaches the A6 pass. The card layout (`render-card.ts`) places its blocks by kind: the guest's
+   name as the heading, the scan code `XOSGP1:<pass code>` as the only QR, and compact paragraphs for the pass type,
+   the show and its date in the project's time zone, "Admits {n} more" when plus-ones are over 0, and the table.
+   There is no portrait.
+3. **Classification and version.** It prints a name, a pass code and a table, so it is Internal. Version 1 takes
+   effect at a fixed instant no earlier than the planned release of the package that ships it, as P5's
+   `BADGE_V2_FROM`; the record key in its facts line is the pass code.
+4. **veraPDF** renders the guest pass on A6 and CR80 in en-US and es-US (four more files).

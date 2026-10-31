@@ -69,6 +69,11 @@ describe("banner status", () => {
             ownership_transfer_id: "tr-1",
             ownership_offered_by: "Alice Moreno",
             ownership_expires_at: "2026-10-27T00:00:00Z",
+            over_limit_plan: "access",
+            read_only_projects: 2,
+            read_only_seats: 1,
+            read_only_field_seats: 0,
+            own_seat_read_only: "seats",
           },
         ]),
       ],
@@ -91,6 +96,8 @@ describe("banner status", () => {
           offeredBy: "Alice Moreno",
           expiresAt: "2026-10-27T00:00:00Z",
         },
+        overLimit: { planCode: "access", projects: 2, seats: 1, fieldSeats: 0 },
+        ownSeatReadOnly: "seats",
       },
     });
     expect(calls[0]?.steps[0]).toEqual(["args", [{ p_org_id: "org-1" }]]);
@@ -99,6 +106,12 @@ describe("banner status", () => {
       billingState: null,
     });
     expect(toBannerStatus(undefined).trialPlan).toBeNull();
+    expect(toBannerStatus({ over_limit_plan: null, own_seat_read_only: "projects" })).toMatchObject(
+      {
+        overLimit: null,
+        ownSeatReadOnly: null,
+      },
+    );
   });
 
   it("counts dunning days and the read-only day", () => {

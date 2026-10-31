@@ -69,6 +69,8 @@ export interface RestDbOptions {
   readonly url: string;
   /** The service role key, sent as the apikey and the bearer token, as supabase-js sends it. */
   readonly serviceKey: string;
+  /** The schema the calls run in (the Content-Profile and Accept-Profile headers); app when left out. */
+  readonly schema?: string;
   readonly fetch?: (url: string, init: RequestInit) => Promise<Response>;
 }
 
@@ -81,6 +83,7 @@ export function restDb(options: RestDbOptions): PlatformDb {
   const base = `${options.url.replace(/\/+$/, "")}/rest/v1`;
   const send = options.fetch ?? ((url: string, init: RequestInit) => fetch(url, init));
   const auth = { apikey: options.serviceKey, Authorization: `Bearer ${options.serviceKey}` };
+  const schema = options.schema ?? "app";
 
   async function call(operation: string, url: string, init: RequestInit): Promise<unknown> {
     const response = await send(url, init);
@@ -106,7 +109,7 @@ export function restDb(options: RestDbOptions): PlatformDb {
     rpc(fn, args) {
       return call(fn, `${base}/rpc/${encodeURIComponent(fn)}`, {
         method: "POST",
-        headers: { ...auth, "Content-Type": "application/json", "Content-Profile": "app" },
+        headers: { ...auth, "Content-Type": "application/json", "Content-Profile": schema },
         body: JSON.stringify(args),
       });
     },
@@ -116,7 +119,7 @@ export function restDb(options: RestDbOptions): PlatformDb {
       query.set("limit", "1");
       const data = await call(table, `${base}/${encodeURIComponent(table)}?${query.toString()}`, {
         method: "GET",
-        headers: { ...auth, "Accept-Profile": "app" },
+        headers: { ...auth, "Accept-Profile": schema },
       });
       return rows(data)[0] ?? null;
     },

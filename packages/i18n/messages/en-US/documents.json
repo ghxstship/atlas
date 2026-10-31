@@ -1,7 +1,9 @@
 {
   "actions": {
     "download": "Download PDF",
-    "downloadA4": "PDF (A4)"
+    "downloadA4": "PDF (A4)",
+    "size": "Paper size",
+    "downloadSize": "Download PDF"
   },
   "kinds": {
     "purchase-order": "Purchase order",
@@ -16,7 +18,8 @@
     "incident-report": "Incident report",
     "final-cost-report": "Final cost report",
     "agreement-certificate": "Signature certificate",
-    "deletion-certificate": "Deletion certificate"
+    "deletion-certificate": "Deletion certificate",
+    "radio-handout": "Radio hand-out"
   },
   "facts": {
     "recordKey": "Record key",
@@ -157,7 +160,14 @@
       "active": "Active",
       "expired": "Expired",
       "revoked": "Revoked"
-    }
+    },
+    "photoAlt": "Photo of {name}, the credential holder",
+    "noPhoto": "No photo on file",
+    "scanAlt": "Entry code for credential {number}",
+    "scanCaption": "Scan at entry",
+    "scanNoteV2": "Scan the entry code to check this credential. A scan decides access at the time of the scan, so a printed badge never outlives a revocation. The code in the header opens the record.",
+    "window": "Valid {from} to {to}",
+    "batchTitle": "Credential badges ({count})"
   },
   "inspectionReport": {
     "title": "Inspection report: {template}",
@@ -452,5 +462,52 @@
       "wages": "All workers on the project have been paid the full weekly wages earned, and no rebates or deductions have been or will be made either directly or indirectly, other than permissible deductions as defined in 29 CFR part 3.",
       "warning": "The willful falsification of any of the above statements may subject the contractor or subcontractor to civil or criminal prosecution (see section 1001 of title 18 and section 3729 of title 31 of the United States Code), as well as debarment from future federal and federally-assisted contracts."
     }
+  },
+  "paper": {
+    "letter": "US Letter",
+    "a4": "A4",
+    "a6": "A6",
+    "cr80": "CR80 card"
+  },
+  "radioHandout": {
+    "title": "Radio hand-out",
+    "subtitle": "{project} · {date}",
+    "person": "Person",
+    "party": "Party",
+    "radio": "Radio",
+    "tags": "Tags issued",
+    "channels": "Channels",
+    "status": "Status",
+    "signature": "Signature",
+    "returned": "Returned",
+    "empty": "No radios are allocated on this project yet.",
+    "footer": "Sign when you take a radio and when you hand it back.",
+    "statuses": {
+      "Requested": "Requested",
+      "Approved": "Approved",
+      "Reserved": "Reserved",
+      "AwaitingOrder": "Awaiting order",
+      "OnOrder": "On order",
+      "Confirmed": "Confirmed",
+      "Received": "Received",
+      "PartlyIssued": "Partly issued",
+      "Issued": "Issued",
+      "Returned": "Returned",
+      "Revoked": "Revoked",
+      "Declined": "Declined",
+      "Withdrawn": "Withdrawn"
+    }
+  },
+  "guestPass": {
+    "title": "Guest pass: {name}",
+    "guest": "Guest",
+    "passType": "{name} ({code})",
+    "showOn": "{show}, {date}",
+    "admitsOne": "Admits 1 more",
+    "admitsOther": "Admits {count} more",
+    "table": "Table: {table}",
+    "scanAlt": "Door code for guest pass {code}",
+    "scanCaption": "Scan at the door",
+    "scanNote": "Show this pass at the door. A scan finds the guest on tonight's list, so a pass for a guest who was removed lets nobody in."
   }
 }

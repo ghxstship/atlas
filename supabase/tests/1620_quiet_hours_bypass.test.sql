@@ -44,8 +44,9 @@ select pg_temp.as_platform();
 select set_eq($$select kind, starts_within from private.notification_quiet_hours_bypass$$,
   $$values ('shift.assigned', interval '12 hours'), ('shift.changed', interval '12 hours'), ('incident.reported', null::interval),
     ('occupancy.threshold', null::interval), ('weather.alert', null::interval), ('account.security_changed', null::interval),
-    ('account.recovery_code_used', null::interval), ('access.break_glass_started', null::interval)$$,
-  'the bypass list adds a new shift, security changes and emergency access, and stays short');
+    ('account.recovery_code_used', null::interval), ('access.break_glass_started', null::interval),
+    ('weather.warning', null::interval), ('weather.hold', null::interval), ('weather.all_clear', null::interval)$$,
+  'the bypass list adds a new shift, security changes and emergency access, and the B8 weather warning, hold and all-clear, and stays short');
 
 -- 1. A new shift within 12 hours goes at once, like a shift change ---------------------------------------------------------
 select pg_temp.notify('shift.assigned', jsonb_build_object('title', 'Load in', 'startsAt', now() + interval '3 hours')) as v_soon \gset

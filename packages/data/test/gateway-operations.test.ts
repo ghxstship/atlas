@@ -39,6 +39,10 @@ import {
   toDisplayKey,
   unsaveOpportunity,
   uploadOnboardingFile,
+  advanceAnswerLines,
+  partyUploadObjectName,
+  submitTypedAdvanceAnswer,
+  uploadPartyFile,
 } from "../src/gateway.ts";
 import { errorResponse, okResponse } from "./fake-client.ts";
 import { gatewayClient } from "./gateway-client.ts";
@@ -593,5 +597,126 @@ describe("advance sections", () => {
     expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: "Returned" })).toBe(true);
     expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: null })).toBe(false);
     expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: "Accepted" })).toBe(false);
+  });
+});
+
+describe("party uploads and typed answers (R9)", () => {
+  it("names advance and sponsor objects under their folders", () => {
+    expect(
+      partyUploadObjectName({
+        orgId: "o",
+        target: { kind: "advance", recipientId: "r", sectionId: "s" },
+        fileName: "Stage plot (rev B).pdf",
+      }),
+    ).toMatch(/^o\/advance\/r\/s\/[a-z0-9]+-Stage-plot-rev-B-.pdf$/);
+    expect(
+      partyUploadObjectName({
+        orgId: "o",
+        target: { kind: "sponsor-asset", entitlementId: "e" },
+        fileName: "***",
+      }),
+    ).toMatch(/^o\/sponsor-asset\/e\/[a-z0-9]+-upload$/);
+  });
+
+  it("uploads to party-uploads, then registers", async () => {
+    const fake = gatewayClient({
+      "rpc:register_party_upload": [
+        okResponse("doc1"),
+        errorResponse("XR001", "party_upload_checksum: Hex.", "party_upload_checksum"),
+      ],
+    });
+    const buckets: string[] = [];
+    const uploads: { error: { message: string } | null }[] = [
+      { error: null },
+      { error: null },
+      { error: { message: "too big" } },
+    ];
+    (fake.db as unknown as Record<string, unknown>)["storage"] = {
+      from: (bucket: string) => {
+        buckets.push(bucket);
+        return { upload: async () => uploads.shift() };
+      },
+    };
+    const input = {
+      objectName: "o/advance/r/s/f.pdf",
+      title: "Stage plot",
+      body: new Blob(["x"]),
+      contentType: "application/pdf",
+      checksumSha256: "a".repeat(64),
+    };
+    expect(await uploadPartyFile(fake.db, input)).toEqual({
+      ok: true,
+      data: { documentId: "doc1" },
+    });
+    expect(buckets[0]).toBe("party-uploads");
+    expect(fake.calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_object_name: "o/advance/r/s/f.pdf",
+          p_title: "Stage plot",
+          p_checksum_sha256: "a".repeat(64),
+        },
+      ],
+    ]);
+    const refused = await uploadPartyFile(fake.db, input);
+    expect(!refused.ok && refused.error.kind).toBe("refusal");
+    expect(await uploadPartyFile(fake.db, input)).toEqual({
+      ok: false,
+      error: { kind: "unexpected", message: "too big" },
+    });
+  });
+
+  it("sends lines in the shape app.submit_advance_answer takes", async () => {
+    expect(
+      advanceAnswerLines([
+        { assetClassId: "c1", quantity: 6, rosterEntryId: null, note: "  FOH  " },
+        {
+          neededFrom: "2027-06-01T08:00:00Z",
+          neededTo: "2027-06-01T10:00:00Z",
+          windowZone: "America/New_York",
+        },
+      ]),
+    ).toEqual([
+      { asset_class_id: "c1", quantity: 6, note: "FOH" },
+      {
+        needed_window_start: "2027-06-01T08:00:00Z",
+        needed_window_end: "2027-06-01T10:00:00Z",
+        window_zone: "America/New_York",
+      },
+    ]);
+    const fake = gatewayClient({
+      "rpc:submit_advance_answer": [
+        okResponse("a1"),
+        errorResponse("XR001", "advance_line_limit: Give 1 to 2 lines.", "advance_line_limit"),
+      ],
+    });
+    const input = {
+      recipientId: "r1",
+      sectionId: "s1",
+      note: " Revision B ",
+      lines: [{ credentialCategoryId: "k1", quantity: 4 }],
+      documentIds: [],
+    };
+    expect(await submitTypedAdvanceAnswer(fake.db, input)).toEqual({
+      ok: true,
+      data: { id: "a1" },
+    });
+    expect(fake.calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_recipient_id: "r1",
+          p_section_id: "s1",
+          p_note: "Revision B",
+          p_lines: [{ credential_category_id: "k1", quantity: 4 }],
+          p_document_ids: [],
+        },
+      ],
+    ]);
+    const refused = await submitTypedAdvanceAnswer(fake.db, input);
+    expect(!refused.ok && refused.error.kind === "refusal" && refused.error.rule).toBe(
+      "advance_line_limit",
+    );
   });
 });

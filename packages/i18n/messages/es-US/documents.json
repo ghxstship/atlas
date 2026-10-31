@@ -1,7 +1,9 @@
 {
   "actions": {
     "download": "Descargar PDF",
-    "downloadA4": "PDF (A4)"
+    "downloadA4": "PDF (A4)",
+    "size": "Tamaño de papel",
+    "downloadSize": "Descargar PDF"
   },
   "kinds": {
     "purchase-order": "Orden de compra",
@@ -16,7 +18,8 @@
     "incident-report": "Informe de incidente",
     "final-cost-report": "Informe de costo final",
     "agreement-certificate": "Certificado de firma",
-    "deletion-certificate": "Certificado de eliminación"
+    "deletion-certificate": "Certificado de eliminación",
+    "radio-handout": "Hoja de radios"
   },
   "facts": {
     "recordKey": "Clave del registro",
@@ -157,7 +160,14 @@
       "active": "Activa",
       "expired": "Vencida",
       "revoked": "Revocada"
-    }
+    },
+    "photoAlt": "Foto de {name}, titular de la credencial",
+    "noPhoto": "No hay foto registrada",
+    "scanAlt": "Código de acceso de la credencial {number}",
+    "scanCaption": "Escanear en el acceso",
+    "scanNoteV2": "Escanee el código de acceso para verificar esta credencial. El escaneo decide el acceso en el momento en que se hace, así que una credencial impresa nunca sobrevive a una revocación. El código del encabezado abre el registro.",
+    "window": "Válida del {from} al {to}",
+    "batchTitle": "Credenciales ({count})"
   },
   "inspectionReport": {
     "title": "Informe de inspección: {template}",
@@ -452,5 +462,52 @@
       "wages": "A todos los trabajadores del proyecto se les pagó el salario semanal completo ganado, y no se hicieron ni se harán reembolsos ni deducciones, directa o indirectamente, salvo las deducciones permitidas según 29 CFR parte 3.",
       "warning": "La falsificación intencional de cualquiera de las declaraciones anteriores puede exponer al contratista o subcontratista a un proceso civil o penal (consulta la sección 1001 del título 18 y la sección 3729 del título 31 del Código de los Estados Unidos), así como a la inhabilitación para futuros contratos federales y con asistencia federal."
     }
+  },
+  "paper": {
+    "letter": "Carta (EE. UU.)",
+    "a4": "A4",
+    "a6": "A6",
+    "cr80": "Tarjeta CR80"
+  },
+  "radioHandout": {
+    "title": "Hoja de radios",
+    "subtitle": "{project} · {date}",
+    "person": "Persona",
+    "party": "Parte",
+    "radio": "Radio",
+    "tags": "Etiquetas entregadas",
+    "channels": "Canales",
+    "status": "Estado",
+    "signature": "Firma",
+    "returned": "Devuelta",
+    "empty": "Aún no hay radios asignadas en este proyecto.",
+    "footer": "Firma al recibir una radio y al devolverla.",
+    "statuses": {
+      "Requested": "Solicitada",
+      "Approved": "Aprobada",
+      "Reserved": "Reservada",
+      "AwaitingOrder": "Pendiente de pedido",
+      "OnOrder": "Pedida",
+      "Confirmed": "Confirmada",
+      "Received": "Recibida",
+      "PartlyIssued": "Entregada en parte",
+      "Issued": "Entregada",
+      "Returned": "Devuelta",
+      "Revoked": "Revocada",
+      "Declined": "Rechazada",
+      "Withdrawn": "Retirada"
+    }
+  },
+  "guestPass": {
+    "title": "Pase de invitado: {name}",
+    "guest": "Invitado",
+    "passType": "{name} ({code})",
+    "showOn": "{show}, {date}",
+    "admitsOne": "Admite 1 persona más",
+    "admitsOther": "Admite {count} personas más",
+    "table": "Mesa: {table}",
+    "scanAlt": "Código de puerta del pase de invitado {code}",
+    "scanCaption": "Escanear en la puerta",
+    "scanNote": "Muestre este pase en la puerta. Al escanearlo se busca al invitado en la lista de esta noche, así que el pase de un invitado retirado no deja entrar a nadie."
   }
 }

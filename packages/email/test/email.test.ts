@@ -4,6 +4,8 @@ import { locales } from "@xos/i18n";
 import {
   EmailSendError,
   GuardedTransport,
+  MAX_ATTACHMENT_BYTES,
+  MailpitTransport,
   RecipientRefusedError,
   RecordingTransport,
   ResendTransport,
@@ -86,6 +88,23 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     summary: "Adds Example Mail Inc. (United States) to receive inbound email for project inboxes.",
     effectiveOn: new Date("2026-12-01T12:00:00Z"),
     listUrl: "https://atlas.xos.test/legal/subprocessors",
+  },
+  party_invitation: {
+    kind: "roster",
+    inviterName: "Victor Osei",
+    accountName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    partyName: "Bayside Audio",
+    expiresAt: new Date("2027-06-01T12:00:00Z"),
+    signInUrl: "https://gateway.xos.test/auth/sign-in",
+  },
+  guest_message: {
+    kind: "Pass",
+    guestName: "Sasha Bell",
+    projectName: "Northwind Summer Series",
+    showName: "Opening Night",
+    showDate: new Date("2027-06-02T23:00:00Z"),
+    plusOnes: 2,
   },
 };
 
@@ -459,5 +478,105 @@ describe("sendEmail", () => {
     });
     expect(transport.sent[0]?.headers).toEqual({});
     expect(transport.sent[0]?.idempotencyKey).toBeUndefined();
+  });
+});
+
+describe("attachments (B8)", () => {
+  const pass = {
+    filename: "guest-pass.pdf",
+    content: new Uint8Array([37, 80, 68, 70]),
+    contentType: "application/pdf",
+  };
+
+  it("keep the files on a recorded send, through the recipient guard", async () => {
+    const recording = new RecordingTransport();
+    const guarded = new GuardedTransport(recording, {
+      allowed: ["northwind.test"],
+      deliverToAny: false,
+    });
+    await sendEmail({
+      transport: guarded,
+      template: "guest_message",
+      props: samples.guest_message,
+      locale: "en-US",
+      sender,
+      recipientName: "Sasha Bell",
+      from: "Northwind Live <guests@northwind.test>",
+      to: "sasha@northwind.test",
+      attachments: [pass],
+      tags: [{ name: "org_id", value: "org-a" }],
+      idempotencyKey: "guest-email-1",
+    });
+    const sent = recording.sent[0];
+    expect(sent?.attachments).toEqual([pass]);
+    expect(sent?.subject).toBe("Your pass for Northwind Summer Series");
+    expect(sent?.headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
+    expect(sent?.tags).toContainEqual({ name: "org_id", value: "org-a" });
+    expect(sent?.idempotencyKey).toBe("guest-email-1");
+    expect(sent?.text).toContain("100 Harbor Way, Miami, FL 33132");
+    expect(sent?.text).toContain("guest list");
+  });
+
+  it("go to Resend as base64", async () => {
+    const { client, calls } = fakeResend({ data: { id: "re_msg_2" }, error: null, headers: null });
+    await new ResendTransport(client).send({ ...message, attachments: [pass] });
+    expect(calls[0]?.payload).toMatchObject({
+      attachments: [
+        { filename: "guest-pass.pdf", content: "JVBERg==", contentType: "application/pdf" },
+      ],
+    });
+  });
+
+  it("go to Mailpit as base64", async () => {
+    const bodies: unknown[] = [];
+    const fakeFetch = (async (_url: string, init?: RequestInit) => {
+      bodies.push(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify({ ID: "m1" }), { status: 200 });
+    }) as typeof fetch;
+    await new MailpitTransport("http://127.0.0.1:61314", fakeFetch).send({
+      ...message,
+      attachments: [pass],
+    });
+    expect(bodies[0]).toMatchObject({
+      Attachments: [
+        { Content: "JVBERg==", Filename: "guest-pass.pdf", ContentType: "application/pdf" },
+      ],
+    });
+  });
+
+  it("are capped at 10 MB together before any transport runs", async () => {
+    const recording = new RecordingTransport();
+    const big = { ...pass, content: new Uint8Array(MAX_ATTACHMENT_BYTES + 1) };
+    await expect(
+      sendEmail({
+        transport: recording,
+        template: "guest_message",
+        props: samples.guest_message,
+        locale: "en-US",
+        sender,
+        recipientName: "Sasha Bell",
+        from: "guests@northwind.test",
+        to: "sasha@northwind.test",
+        attachments: [big],
+      }),
+    ).rejects.toMatchObject({ code: "attachment_size" });
+    expect(recording.sent).toHaveLength(0);
+  });
+
+  it("render the guest message in Spanish, with the guest's own subject for a Message", async () => {
+    const rendered = await renderEmail(
+      "guest_message",
+      {
+        ...samples.guest_message,
+        kind: "Message",
+        subject: "Puertas a las 7",
+        body: "Las puertas abren a las 7.",
+      },
+      { locale: "es-US", sender, recipientName: "Sasha Bell" },
+    );
+    expect(rendered.subject).toBe("Puertas a las 7");
+    expect(rendered.text).toContain("Las puertas abren a las 7.");
+    expect(rendered.text).toContain("lista de invitados de Northwind Live");
+    expect(rendered.transactional).toBe(false);
   });
 });

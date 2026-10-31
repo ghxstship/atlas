@@ -1,6 +1,9 @@
 "use client";
 
+import { parsePasted } from "@xos/data/import-parse";
 import type {
+  ColumnSample,
+  ImportDestinationKind,
   ImportDetail,
   ImportStatus,
   ImportSummary,
@@ -25,6 +28,7 @@ import {
   commitImportAction,
   confirmMappingAction,
   createImportAction,
+  createPastedImportAction,
   createSheetsImportAction,
   decideReviewAction,
   importSheetAction,
@@ -52,16 +56,90 @@ function stepOf(status: ImportStatus, confirmed: boolean): number {
   }
 }
 
+// Destinations (P3) ----------------------------------------------------------------------------------------
+
+/** The running orders or projects a destination target may import into, as the page listed them. */
+export interface TargetDestinations {
+  readonly kind: ImportDestinationKind;
+  readonly options: readonly { id: string; label: string }[];
+}
+
+/** The form field that carries a destination: the action reads runOfShow or project. */
+const destinationField = (kind: ImportDestinationKind) =>
+  kind === "run_of_show_id" ? "runOfShow" : "project";
+
+/** The hidden destination field of a target, or nothing for an org-wide target. */
+function destinationHidden(
+  destinations: Readonly<Record<string, TargetDestinations>>,
+  target: string,
+  picked: string | undefined,
+): Record<string, string> {
+  const dest = destinations[target];
+  const id = picked ?? dest?.options[0]?.id;
+  return dest && id ? { [destinationField(dest.kind)]: id } : {};
+}
+
+/** The destination Select of a target with one: Running order for cues, Project for guest list entries. */
+function DestinationSelect({
+  destinations,
+  target,
+  value,
+  onChange,
+  label,
+}: {
+  destinations: Readonly<Record<string, TargetDestinations>>;
+  target: string;
+  value: string | undefined;
+  onChange: (id: string) => void;
+  label?: string;
+}) {
+  const t = usePlatformT();
+  const dest = destinations[target];
+  if (!dest) return null;
+  return (
+    <Select
+      label={
+        label ??
+        t(
+          dest.kind === "run_of_show_id"
+            ? "imports.new.destinationRun"
+            : "imports.new.destinationProject",
+        )
+      }
+      help={t("imports.new.destinationHelp")}
+      value={value ?? dest.options[0]?.id ?? ""}
+      options={dest.options.map((o) => ({ value: o.id, label: o.label }))}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
+}
+
+/** How many pasted rows the live preview shows. */
+const PASTE_PREVIEW_ROWS = 5;
+
+/** The pasted rows the preview shows: the header row and the first rows with text. */
+function pastedPreview(text: string): string[][] {
+  return parsePasted(text)
+    .filter((r) => r.some((c) => c.trim() !== ""))
+    .slice(0, PASTE_PREVIEW_ROWS + 1);
+}
+
 // List and upload -------------------------------------------------------------------------------------------
 
 export function ImportList({
   org,
   targets,
+  destinations = {},
+  initial,
   googleSheets = false,
   imports,
 }: {
   org: string;
   targets: readonly string[];
+  /** Per destination target, the running orders or projects the viewer may import into (P3). */
+  destinations?: Readonly<Record<string, TargetDestinations>>;
+  /** The target and destination a link preselects (?target=, ?runOfShow= or ?project=). */
+  initial?: { target: string; destination: string | null } | undefined;
   /** The imports.google_sheets flag: offer a Google Sheets link next to a file (A83). */
   googleSheets?: boolean;
   imports: readonly (ImportSummary & { when: string })[];
@@ -69,11 +147,39 @@ export function ImportList({
   const t = usePlatformT();
   const router = useRouter();
   const pathname = usePathname();
-  const [target, setTarget] = useState(targets[0] ?? "");
-  const [source, setSource] = useState<"file" | "sheets">("file");
+  const [target, setTarget] = useState(initial?.target ?? targets[0] ?? "");
+  const [source, setSource] = useState<"file" | "paste" | "sheets">("file");
+  const [picked, setPicked] = useState<Record<string, string>>(() => {
+    const start = initial?.destination;
+    const known = initial && destinations[initial.target]?.options.some((o) => o.id === start);
+    return initial && start && known ? { [initial.target]: start } : {};
+  });
+  const [pasted, setPasted] = useState("");
+  const preview = pastedPreview(pasted);
   const open = (state: PlatformActionState) => {
     if (state.id) router.push(`${pathname}?import=${state.id}` as Route);
   };
+  const hidden = { org, target, ...destinationHidden(destinations, target, picked[target]) };
+  const choose = (
+    <>
+      <Select
+        label={t("imports.new.target")}
+        help={t("imports.new.targetHelp")}
+        value={target}
+        options={targets.map((code) => ({
+          value: code,
+          label: t(`imports.targets.${code}`),
+        }))}
+        onChange={(e) => setTarget(e.target.value)}
+      />
+      <DestinationSelect
+        destinations={destinations}
+        target={target}
+        value={picked[target]}
+        onChange={(id) => setPicked((prev) => ({ ...prev, [target]: id }))}
+      />
+    </>
+  );
   return (
     <div className="flex flex-col gap-24">
       <section aria-labelledby="new-import" className="flex max-w-layout-form flex-col gap-12">
@@ -81,37 +187,77 @@ export function ImportList({
           {t("imports.new.title")}
         </h2>
         <p className="m-0 text-text-13 text-text-secondary">{t("imports.new.intro")}</p>
-        {targets.length > 0 && googleSheets ? (
+        {targets.length > 0 ? (
           <SegmentedControl
             label={t("imports.new.source")}
             value={source}
             options={[
               { value: "file", label: t("imports.new.sourceFile") },
-              { value: "sheets", label: t("imports.new.sourceSheets") },
+              { value: "paste", label: t("imports.new.sourcePaste") },
+              ...(googleSheets ? [{ value: "sheets", label: t("imports.new.sourceSheets") }] : []),
             ]}
-            onChange={(value) => setSource(value === "sheets" ? "sheets" : "file")}
+            onChange={(value) =>
+              setSource(value === "sheets" ? "sheets" : value === "paste" ? "paste" : "file")
+            }
           />
         ) : null}
         {targets.length === 0 ? (
           <InlineAlert tone="info">{t("imports.new.noTargets")}</InlineAlert>
+        ) : source === "paste" ? (
+          <ActionForm
+            action={createPastedImportAction}
+            hidden={hidden}
+            label={t("imports.new.sourcePaste")}
+            submitLabel={t("imports.paste.submit")}
+            disabled={preview.length < 2}
+            onDone={open}
+          >
+            {choose}
+            <Textarea
+              id="import-paste"
+              name="text"
+              label={t("imports.paste.label")}
+              help={t("imports.paste.help")}
+              required
+              rows={8}
+              width="100%"
+              value={pasted}
+              onChange={(e) => setPasted(e.target.value)}
+            />
+            {preview.length < 2 ? (
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("imports.paste.previewEmpty")}
+              </p>
+            ) : (
+              // The pasted cells are data, not copy; the caption still comes from the catalog.
+              <div data-pseudo-exempt>
+                <DataTable
+                  caption={t("imports.paste.preview", { count: preview.length - 1 })}
+                  label={t("imports.paste.preview", { count: preview.length - 1 })}
+                  height="auto"
+                  columns={(preview[0] ?? []).map((header, i) => ({
+                    key: `c${i}`,
+                    label: header || t("imports.map.untitled", { index: i + 1 }),
+                  }))}
+                  rows={preview.slice(1).map((row, r) => ({
+                    id: `r${r}`,
+                    ...Object.fromEntries(
+                      (preview[0] ?? []).map((_h, i) => [`c${i}`, row[i] ?? ""]),
+                    ),
+                  }))}
+                />
+              </div>
+            )}
+          </ActionForm>
         ) : source === "sheets" && googleSheets ? (
           <ActionForm
             action={createSheetsImportAction}
-            hidden={{ org, target }}
+            hidden={hidden}
             label={t("imports.new.sourceSheets")}
             submitLabel={t("imports.new.linkSubmit")}
             onDone={open}
           >
-            <Select
-              label={t("imports.new.target")}
-              help={t("imports.new.targetHelp")}
-              value={target}
-              options={targets.map((code) => ({
-                value: code,
-                label: t(`imports.targets.${code}`),
-              }))}
-              onChange={(e) => setTarget(e.target.value)}
-            />
+            {choose}
             <Input
               id="import-link"
               name="link"
@@ -128,21 +274,12 @@ export function ImportList({
         ) : (
           <ActionForm
             action={createImportAction}
-            hidden={{ org, target }}
+            hidden={hidden}
             label={t("imports.new.title")}
             submitLabel={t("imports.new.submit")}
             onDone={open}
           >
-            <Select
-              label={t("imports.new.target")}
-              help={t("imports.new.targetHelp")}
-              value={target}
-              options={targets.map((code) => ({
-                value: code,
-                label: t(`imports.targets.${code}`),
-              }))}
-              onChange={(e) => setTarget(e.target.value)}
-            />
+            {choose}
             <div className="flex flex-col gap-4">
               <label htmlFor="import-file" className="text-text-13 font-medium">
                 {t("imports.new.file")}
@@ -211,6 +348,8 @@ export function ImportWizard({
   detail,
   fields,
   targets = [],
+  destinations = {},
+  samples = [],
   aiMapping = false,
   committedAt,
 }: {
@@ -219,6 +358,10 @@ export function ImportWizard({
   fields: readonly ImportTargetField[];
   /** Targets the viewer may import into, for importing another sheet of the workbook. */
   targets?: readonly string[];
+  /** Per destination target, the running orders or projects the viewer may import into (P3). */
+  destinations?: Readonly<Record<string, TargetDestinations>>;
+  /** The uploader's sample cells per column, while the mapping is open (P3). */
+  samples?: readonly ColumnSample[];
   /** The imports.ai_mapping flag: offer Aurora's suggestions on the mapping step. */
   aiMapping?: boolean;
   committedAt: string | null;
@@ -243,6 +386,11 @@ export function ImportWizard({
             file: detail.filename,
             target: t(`imports.targets.${detail.targetCode}`),
           })}
+          {detail.destinationLabel ? (
+            <span className="block">
+              {t("imports.destinationLine", { destination: detail.destinationLabel })}
+            </span>
+          ) : null}
           {detail.sheetName && detail.sheets.length > 1 ? (
             <span className="block">{t("imports.sheetLine", { sheet: detail.sheetName })}</span>
           ) : null}
@@ -264,10 +412,16 @@ export function ImportWizard({
       ) : null}
 
       {detail.sheets.length > 1 ? (
-        <SheetsSection org={org} detail={detail} targets={targets} />
+        <SheetsSection org={org} detail={detail} targets={targets} destinations={destinations} />
       ) : null}
       {detail.status === "Mapped" && !confirmed ? (
-        <MappingStep org={org} detail={detail} fields={fields} aiMapping={aiMapping} />
+        <MappingStep
+          org={org}
+          detail={detail}
+          fields={fields}
+          samples={samples}
+          aiMapping={aiMapping}
+        />
       ) : null}
       {detail.status === "Validated" ? <ReviewStep org={org} detail={detail} /> : null}
       {detail.status === "Committed" || detail.status === "Undone" ? (
@@ -316,13 +470,14 @@ function SheetsSection({
   org,
   detail,
   targets,
+  destinations,
 }: {
   org: string;
   detail: ImportDetail;
   targets: readonly string[];
+  destinations: Readonly<Record<string, TargetDestinations>>;
 }) {
   const t = usePlatformT();
-  const router = useRouter();
   const ready = !["Uploaded", "Detected", "Failed", "Canceled"].includes(detail.status);
   return (
     <section aria-labelledby="import-sheets" className="flex flex-col gap-12">
@@ -368,27 +523,12 @@ function SheetsSection({
                   {t("imports.sheets.open")}
                 </Link>
               ) : ready && sheet.dataRowCount > 0 && choices.length > 0 ? (
-                <ActionForm
-                  action={importSheetAction}
-                  hidden={{ org, sheet: sheet.id }}
-                  label={t("imports.sheets.importLabel", { sheet: sheet.name })}
-                  submitLabel={t("imports.sheets.importIt")}
-                  submitVariant="secondary"
-                  inline
-                  onDone={(state: PlatformActionState) => {
-                    if (state.id) router.push(`/${org}/import?import=${state.id}` as Route);
-                  }}
-                >
-                  <Select
-                    name="target"
-                    label={t("imports.sheets.target", { sheet: sheet.name })}
-                    value={choices[0] ?? ""}
-                    options={choices.map((code) => ({
-                      value: code,
-                      label: t(`imports.targets.${code}`),
-                    }))}
-                  />
-                </ActionForm>
+                <SheetImportForm
+                  org={org}
+                  sheet={sheet}
+                  choices={choices}
+                  destinations={destinations}
+                />
               ) : null}
             </li>
           );
@@ -398,15 +538,70 @@ function SheetsSection({
   );
 }
 
+/** Imports another sheet into a chosen target, asking for the running order or project when the target needs one. */
+function SheetImportForm({
+  org,
+  sheet,
+  choices,
+  destinations,
+}: {
+  org: string;
+  sheet: ImportDetail["sheets"][number];
+  choices: readonly string[];
+  destinations: Readonly<Record<string, TargetDestinations>>;
+}) {
+  const t = usePlatformT();
+  const router = useRouter();
+  const [target, setTarget] = useState(choices[0] ?? "");
+  const [picked, setPicked] = useState<Record<string, string>>({});
+  return (
+    <ActionForm
+      action={importSheetAction}
+      hidden={{
+        org,
+        sheet: sheet.id,
+        target,
+        ...destinationHidden(destinations, target, picked[target]),
+      }}
+      label={t("imports.sheets.importLabel", { sheet: sheet.name })}
+      submitLabel={t("imports.sheets.importIt")}
+      submitVariant="secondary"
+      inline
+      onDone={(state: PlatformActionState) => {
+        if (state.id) router.push(`/${org}/import?import=${state.id}` as Route);
+      }}
+    >
+      <Select
+        label={t("imports.sheets.target", { sheet: sheet.name })}
+        value={target}
+        options={choices.map((code) => ({
+          value: code,
+          label: t(`imports.targets.${code}`),
+        }))}
+        onChange={(e) => setTarget(e.target.value)}
+      />
+      <DestinationSelect
+        destinations={destinations}
+        target={target}
+        value={picked[target]}
+        onChange={(id) => setPicked((prev) => ({ ...prev, [target]: id }))}
+        label={t("imports.sheets.destination", { sheet: sheet.name })}
+      />
+    </ActionForm>
+  );
+}
+
 function MappingStep({
   org,
   detail,
   fields,
+  samples,
   aiMapping,
 }: {
   org: string;
   detail: ImportDetail;
   fields: readonly ImportTargetField[];
+  samples: readonly ColumnSample[];
   aiMapping: boolean;
 }) {
   const t = usePlatformT();
@@ -429,6 +624,11 @@ function MappingStep({
   };
   const chosen = new Set(Object.values(choice).filter(Boolean));
   const missing = fields.filter((f) => f.required && !chosen.has(f.name));
+  const sampleOf = (columnId: string, index: number) =>
+    samples.find((x) => x.columnId === columnId && x.index === index)?.value ?? "";
+  const sampleRows = [...new Set(samples.map((x) => x.index))].sort((a, b) => a - b);
+  // The preview lays the sample rows out by the current choices, one column per mapped field.
+  const previewColumns = detail.columns.filter((c) => choice[c.id]);
   const hidden = Object.fromEntries([
     ["org", org],
     ["import", detail.id],
@@ -495,9 +695,48 @@ function MappingStep({
                       : t("imports.map.suggested")}
                   </span>
                 ) : null}
+                {sampleRows.some((n) => sampleOf(c.id, n) !== "") ? (
+                  <p className="m-0 w-full text-text-12 text-text-secondary">
+                    <span>{t("imports.map.samples")}</span>{" "}
+                    {/* Cells of the uploaded spreadsheet: data, not copy. */}
+                    <span data-pseudo-exempt>
+                      {sampleRows
+                        .map((n) => sampleOf(c.id, n))
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>
+          {sampleRows.length > 0 && previewColumns.length > 0 ? (
+            <section aria-labelledby="map-preview" className="flex flex-col gap-8">
+              <h3 id="map-preview" className="m-0 text-text-13 font-semibold">
+                {t("imports.map.preview")}
+              </h3>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("imports.map.previewIntro")}
+              </p>
+              <DataTable
+                caption={t("imports.map.preview")}
+                label={t("imports.map.preview")}
+                height="auto"
+                columns={[
+                  { key: "row", label: t("imports.issues.row") },
+                  ...previewColumns.map((c) => ({
+                    key: c.id,
+                    label: t(`imports.fields.${choice[c.id] ?? ""}`),
+                  })),
+                ]}
+                rows={sampleRows.map((n) => ({
+                  id: `sample-${n}`,
+                  row: t("imports.map.previewRow", { row: n }),
+                  ...Object.fromEntries(previewColumns.map((c) => [c.id, sampleOf(c.id, n)])),
+                }))}
+              />
+            </section>
+          ) : null}
           {missing.length > 0 ? (
             <p role="status" className="m-0 text-text-13 text-danger-text">
               {t("imports.map.missing", {

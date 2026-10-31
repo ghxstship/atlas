@@ -21,12 +21,17 @@ import {
   myModuleCapabilities,
   operationsProjectByKey,
   operationsProjects,
+  credentialIssueCheck,
+  needsAttention,
+  overrideScan,
   recordScan,
+  refusalReasonKey,
   revokeCredential,
   updateCredentialCategory,
   updateCredentialWindow,
   updateZoneAccess,
   withdrawZoneAccess,
+  zoneTotals,
 } from "../src/credentials.ts";
 import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client.ts";
 
@@ -478,6 +483,8 @@ describe("scans", () => {
       scanned_at: "2026-10-14T12:00:00Z",
       result: "Denied",
       replayed: true,
+      direction: "In",
+      refusal_reason: "Outside Window",
     };
     const { db, calls } = client({
       "rpc:record_scan": [
@@ -510,6 +517,8 @@ describe("scans", () => {
         scannedAt: "2026-10-14T12:00:00Z",
         result: "Denied",
         replayed: true,
+        direction: "In",
+        refusalReason: "Outside Window",
       },
     });
     expect(calls[0]?.steps[0]).toEqual([
@@ -553,5 +562,138 @@ describe("module capabilities", () => {
     const none = await myModuleCapabilities(db, "j1");
     expect(none.ok && none.data.size).toBe(0);
     expect((await myModuleCapabilities(db, "j1")).ok).toBe(false);
+  });
+});
+
+describe("gate scans and accreditation (B8)", () => {
+  const overrideRow = {
+    id: "s10",
+    credential_id: "c1",
+    credential_number: "CR-000001",
+    holder_name: "Frank Adeyemi",
+    category_code: "CREW",
+    zone_id: "z1",
+    zone_code: "FOH",
+    scanned_at: "2026-10-14T12:00:00Z",
+    result: "Granted",
+    replayed: false,
+    direction: "In",
+    refusal_reason: null,
+    overridden_scan_id: "s9",
+  };
+
+  it("sends an Out scan with its direction", async () => {
+    const { db, calls } = client({
+      "rpc:record_scan": [okResponse([{ ...overrideRow, direction: "Out" }])],
+    });
+    const result = await recordScan(db, { zoneId: "z1", credentialId: "c1", direction: "Out" });
+    expect(result.ok && result.data.direction).toBe("Out");
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_zone_id: "z1", p_credential_id: "c1", p_direction: "Out" }],
+    ]);
+  });
+
+  it("overrides a denied scan by its client id and maps the refusals", async () => {
+    const { db, calls } = client({
+      "rpc:override_access_scan": [
+        okResponse([overrideRow]),
+        errorResponse(
+          "XR001",
+          "scan_override_stale: A denial is overridden within 15 minutes.",
+          "scan_override_stale",
+        ),
+      ],
+    });
+    const result = await overrideScan(db, {
+      scanId: "s9",
+      reason: "Escorted by the stage manager",
+      id: "o1",
+    });
+    expect(result.ok && result.data.overriddenScanId).toBe("s9");
+    expect(result.ok && result.data.result).toBe("Granted");
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_scan_id: "s9", p_reason: "Escorted by the stage manager", p_id: "o1" }],
+    ]);
+    const stale = await overrideScan(db, { scanId: "s9", reason: "Late" });
+    expect(!stale.ok && stale.error.kind === "refusal" && stale.error.rule).toBe(
+      "scan_override_stale",
+    );
+  });
+
+  it("lists the issue checks with what blocks", async () => {
+    const { db } = client({
+      "rpc:credential_issue_check": [
+        okResponse([
+          {
+            check_code: "training_missing",
+            blocking: true,
+            requirement_id: "r1",
+            title: "Rigging Safety",
+            other_credential_id: null,
+            project_id: null,
+            project_key: null,
+          },
+          {
+            check_code: "booked_elsewhere",
+            blocking: false,
+            requirement_id: null,
+            title: null,
+            other_credential_id: null,
+            project_id: null,
+            project_key: null,
+          },
+        ]),
+      ],
+    });
+    const checks = await credentialIssueCheck(db, { categoryId: "k1", holderPersonId: "p2" });
+    expect(checks.ok && checks.data.filter((c) => c.blocking).map((c) => c.code)).toEqual([
+      "training_missing",
+    ]);
+    expect(checks.ok && checks.data[1]?.projectKey).toBeNull();
+  });
+
+  it("flags a credential that needs attention and totals zones", () => {
+    const quiet = {
+      credentialId: "c1",
+      holderSource: "Member" as const,
+      otherBadgesOnProject: 0,
+      sameNameOnProject: 0,
+      duplicateLive: false,
+      missingRequirements: 0,
+      bookedElsewhere: false,
+    };
+    expect(needsAttention(quiet)).toBe(false);
+    expect(needsAttention({ ...quiet, bookedElsewhere: true })).toBe(true);
+    expect(needsAttention({ ...quiet, missingRequirements: 1 })).toBe(true);
+    const totals = zoneTotals([
+      {
+        zoneId: "z1",
+        credentialCategoryId: "k1",
+        engagementId: null,
+        inside: 3,
+        lastEntryAt: null,
+      },
+      {
+        zoneId: "z1",
+        credentialCategoryId: "k2",
+        engagementId: "e1",
+        inside: 2,
+        lastEntryAt: null,
+      },
+      {
+        zoneId: "z2",
+        credentialCategoryId: "k1",
+        engagementId: null,
+        inside: 1,
+        lastEntryAt: null,
+      },
+    ]);
+    expect([...totals]).toEqual([
+      ["z1", 5],
+      ["z2", 1],
+    ]);
+    expect(refusalReasonKey("No Zone Access")).toBe("NoZoneAccess");
   });
 });

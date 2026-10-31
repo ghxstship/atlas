@@ -348,8 +348,21 @@ from .resources import (
     EarnedMediaItemsResource,
     ProjectMeasurementSummaryResource,
     CueCallsResource,
+    RosterEntriesResource,
+    AdvanceAllocationsResource,
+    AssetReservationConflictsResource,
+    AdvanceSectionChoicesResource,
+    AdvanceSubmissionLinesResource,
+    AdvanceSubmissionFilesResource,
     GuestListEntriesResource,
+    GuestEmailSendsResource,
+    AssetUnitHireResource,
+    AssetReservationsResource,
+    CredentialCategoryRequirementsResource,
     Form1099NecResource,
+    GoodsReturnsResource,
+    ReturnLinesResource,
+    PoLineHireWarningsResource,
     InsuranceCertificateInsuredsResource,
     RequiredAdditionalInsuredsResource,
     CanonStdEmergencyProtocolsResource,
@@ -359,6 +372,9 @@ from .resources import (
     AiSuggestionsResource,
     AiRequestsResource,
     AiUsageResource,
+    EngagedAllocationsResource,
+    RequestableItemsResource,
+    MyParkingPassesResource,
     WorkDetailsResource,
     EmergencyContactsResource,
     LoyaltyProgramsResource,
@@ -419,6 +435,9 @@ from .resources import (
     WeatherAlertRolesResource,
     WeatherReadingsResource,
     WeatherAlertsResource,
+    WeatherFeedsResource,
+    WeatherWarningsResource,
+    WeatherHoldsResource,
     GuestCheckInsResource,
     LostFoundItemsResource,
     LostFoundClaimsResource,
@@ -778,8 +797,21 @@ class XosClient(XosClientCore):
     earned_media_items: EarnedMediaItemsResource
     project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
+    roster_entries: RosterEntriesResource
+    advance_allocations: AdvanceAllocationsResource
+    asset_reservation_conflicts: AssetReservationConflictsResource
+    advance_section_choices: AdvanceSectionChoicesResource
+    advance_submission_lines: AdvanceSubmissionLinesResource
+    advance_submission_files: AdvanceSubmissionFilesResource
     guest_list_entries: GuestListEntriesResource
+    guest_email_sends: GuestEmailSendsResource
+    asset_unit_hire: AssetUnitHireResource
+    asset_reservations: AssetReservationsResource
+    credential_category_requirements: CredentialCategoryRequirementsResource
     form1099_nec: Form1099NecResource
+    goods_returns: GoodsReturnsResource
+    return_lines: ReturnLinesResource
+    po_line_hire_warnings: PoLineHireWarningsResource
     insurance_certificate_insureds: InsuranceCertificateInsuredsResource
     required_additional_insureds: RequiredAdditionalInsuredsResource
     canon_std_emergency_protocols: CanonStdEmergencyProtocolsResource
@@ -789,6 +821,9 @@ class XosClient(XosClientCore):
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
     ai_usage: AiUsageResource
+    engaged_allocations: EngagedAllocationsResource
+    requestable_items: RequestableItemsResource
+    my_parking_passes: MyParkingPassesResource
     work_details: WorkDetailsResource
     emergency_contacts: EmergencyContactsResource
     loyalty_programs: LoyaltyProgramsResource
@@ -849,6 +884,9 @@ class XosClient(XosClientCore):
     weather_alert_roles: WeatherAlertRolesResource
     weather_readings: WeatherReadingsResource
     weather_alerts: WeatherAlertsResource
+    weather_feeds: WeatherFeedsResource
+    weather_warnings: WeatherWarningsResource
+    weather_holds: WeatherHoldsResource
     guest_check_ins: GuestCheckInsResource
     lost_found_items: LostFoundItemsResource
     lost_found_claims: LostFoundClaimsResource
@@ -1196,8 +1234,21 @@ class XosClient(XosClientCore):
         self.earned_media_items = EarnedMediaItemsResource(self)
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
+        self.roster_entries = RosterEntriesResource(self)
+        self.advance_allocations = AdvanceAllocationsResource(self)
+        self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
+        self.advance_section_choices = AdvanceSectionChoicesResource(self)
+        self.advance_submission_lines = AdvanceSubmissionLinesResource(self)
+        self.advance_submission_files = AdvanceSubmissionFilesResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.guest_email_sends = GuestEmailSendsResource(self)
+        self.asset_unit_hire = AssetUnitHireResource(self)
+        self.asset_reservations = AssetReservationsResource(self)
+        self.credential_category_requirements = CredentialCategoryRequirementsResource(self)
         self.form1099_nec = Form1099NecResource(self)
+        self.goods_returns = GoodsReturnsResource(self)
+        self.return_lines = ReturnLinesResource(self)
+        self.po_line_hire_warnings = PoLineHireWarningsResource(self)
         self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
         self.required_additional_insureds = RequiredAdditionalInsuredsResource(self)
         self.canon_std_emergency_protocols = CanonStdEmergencyProtocolsResource(self)
@@ -1207,6 +1258,9 @@ class XosClient(XosClientCore):
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
         self.ai_usage = AiUsageResource(self)
+        self.engaged_allocations = EngagedAllocationsResource(self)
+        self.requestable_items = RequestableItemsResource(self)
+        self.my_parking_passes = MyParkingPassesResource(self)
         self.work_details = WorkDetailsResource(self)
         self.emergency_contacts = EmergencyContactsResource(self)
         self.loyalty_programs = LoyaltyProgramsResource(self)
@@ -1267,6 +1321,9 @@ class XosClient(XosClientCore):
         self.weather_alert_roles = WeatherAlertRolesResource(self)
         self.weather_readings = WeatherReadingsResource(self)
         self.weather_alerts = WeatherAlertsResource(self)
+        self.weather_feeds = WeatherFeedsResource(self)
+        self.weather_warnings = WeatherWarningsResource(self)
+        self.weather_holds = WeatherHoldsResource(self)
         self.guest_check_ins = GuestCheckInsResource(self)
         self.lost_found_items = LostFoundItemsResource(self)
         self.lost_found_claims = LostFoundClaimsResource(self)

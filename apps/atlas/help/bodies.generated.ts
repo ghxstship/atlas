@@ -66,12 +66,51 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
+      { t: "h2", v: "Allocations" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Allocations say what each party and person is given for a production: badges, parking passes, radios and carts, catering, rooms, trips and per diems. A coordinator requests one for a party's pool or for one person; a reviewer who did not request it approves or declines it. Approving equipment holds it from class stock, a lot or the order it arrives on, and the dialog shows how many are available for those dates and how much of the allowance remains. Split a party's pool to its people, then issue each item: issuing confirms the person has it. The status reads held, ordered, received, issued and returned from the rows that record them. Holds that no longer fit what can supply them show in a banner. Radio allocations take channels, and Print radio hand-out gives the sheet people sign.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
           { t: "text", v: "Related: " },
           { t: "link", v: "Venues, spaces and site plans", href: "help:places" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Guest passes and guest emails" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each guest can have a pass type (an Access category of the project, such as GUEST or VIP), a table, a host from the project's people, and an email address. When a guest is approved they get a pass code; Print pass and Download pass give their A6 pass with the code the door scans. Guests have passes, not credentials.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Email guests sends the guests you choose an invitation, their pass as a PDF, or a message with a subject and text, in English or Spanish. Guests without an email, and, for a pass, guests not yet approved, are skipped, and addresses that asked your organization to stop are not emailed. Every guest email comes from your organization, with an unsubscribe link and the postal address. Each send lists what happened to every guest.",
+          },
         ],
       },
     ],
@@ -254,6 +293,73 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Every scan at a zone is logged with the result: allowed or denied, and why. Scans made offline in Compass are checked again by the server when the device reconnects, and both answers are kept.",
+          },
+        ],
+      },
+      { t: "h2", v: "Scan direction and overrides" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each scan is In or Out. Choose the direction at the scan desk, or on the gate in Compass, where it stays chosen for each zone. An Out scan is never refused, and it ends the person's time in the zone.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A denied In scan shows why: the badge is revoked, not valid yet or expired, has no access to the zone, or the scan was outside the access window. Denials recorded before this change show only that they were denied.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Someone who can issue credentials on the project, and who is not the badge holder, can let a denied person in within 15 minutes, with a reason. The log keeps the denial and adds an Overridden entry with who let them in and why. A revoked badge is never let in.",
+          },
+        ],
+      },
+      { t: "h2", v: "Inside now" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The scan log shows, for the chosen project, how many people each zone holds now: those scanned In in the last 24 hours who have not scanned Out, split by category and by team. It updates every 30 seconds. Use Pause updates to stop it.",
+          },
+        ],
+      },
+      { t: "h2", v: "Required before issue" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A category can require a training course or a certification. Add them in the category's Required before issue. Issuing that category to someone who does not hold each one now is refused. Members meet a course by passing it; anyone meets a certification once a verifier records it, which is how a pass desk records an in-person induction. A certification's holder can change only their consent to public verification, never its dates.",
+          },
+        ],
+      },
+      { t: "h2", v: "Checks on the Issued page" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The issue form lists what blocks a badge before you issue it: missing training, or a live badge of the same category for an overlapping window. Revoke the earlier badge first. Parking passes are exempt, because one person may hold passes for several vehicles. It also warns when the person holds another badge on the project, someone else on the project has the same name, or they are booked on another production at the same time.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Issued shows each badge's source and the same checks as chips. Choose Needs attention to see only flagged badges.",
           },
         ],
       },
@@ -751,6 +857,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "You can undo the whole batch for 7 days." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Instead of a file you can paste rows copied from Excel, Google Sheets or Shoflo, header row first. A preview shows the first rows as they will be read. While you map the columns, each one shows its first values, and a preview lays the first rows out by your choices.",
+          },
+        ],
+      },
+      { t: "h2", v: "Import a rundown" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a running order and choose Import cues, or choose Run of show cues on the import page and pick the running order. The rows become cues of that running order only.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "A cue number such as 12, Q12 or CUE-07 sets the cue's position. Fractions such as 12.5 are refused.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Rows without a cue number are added after the highest cue, in the order of the sheet, once the numbered rows are in.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Times such as 19:30 or 7:30 PM are read on the show date, in the project's time zone. Durations are minutes, m:ss or h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importing the same rundown again updates the cues it matches, by cue number or, without one, by cue and time. It never adds them twice, and it never changes a cue that was already called.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Two rows with the same cue number in one sheet are refused as repeats.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Import a guest list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a project's guest list and choose Import guests, or choose Guest list on the import page and pick the project.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Every imported guest is added as Requested. An import never approves, declines or checks in a guest.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "A guest already on the list under the same name for the same show is updated instead of added. A similar name, or the same name for another show, waits for you to decide: merge into the guest on the list, or keep them separate. Nothing merges on its own.",
+            },
+          ],
+          [{ t: "text", v: "A merge keeps the guest's name and show." }],
+          [
+            {
+              t: "text",
+              v: "Neither the person who uploaded the list nor the person who committed it may approve or decline those guests. Another reviewer decides them.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Undo removes the cues and guests the batch added and restores the ones it changed, for 7 days. A cue called or a guest decided or checked in after the import is kept, and the batch says why.",
+          },
+        ],
+      },
       { t: "h2", v: "Trash" },
       {
         t: "p",
@@ -2013,6 +2216,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Official feed" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "For a venue with a location in the US, turn on the official feed. Every 10 minutes from three days before the project to the day after it ends, it records wind and heat readings from the nearest National Weather Service station, stores the active warnings for the venue's location and the next hours of the forecast. Its readings meet your thresholds as on-site readings do, but a reading from the feed never lowers or clears an alert someone recorded on site. A new Severe or Extreme warning reaches the people in the alert roles and the dispatchers once, even in quiet hours. Warnings are shown in English, as the National Weather Service issues them. Lightning stays a reading you record.",
+          },
+        ],
+      },
+      { t: "h3", v: "Weather hold and all-clear" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A dispatcher can call a weather hold. The message comes from your hold text, with the hazard, and you can change it before you send it. It reaches the people in the alert roles, the dispatchers and everyone inside the project's zones at once. Call hold leads while an alert is at Restrict or Evacuate or a Severe or Extreme warning is active. Give the all-clear when it is over; it reaches the same people as they are then. Set the hold and all-clear texts under the thresholds. A hold called in Compass while offline is refused if it reaches the server more than 10 minutes later.",
+          },
+        ],
+      },
       { t: "h2", v: "Guest check-in" },
       {
         t: "p",
@@ -2023,6 +2246,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest's pass shows a code the door can scan, or type: the door list finds the guest by it, with their pass type, table and host. A pass that is not on the list says so. When a guest checks in, their host hears that they arrived.",
+          },
+        ],
+      },
       { t: "h2", v: "Lost and found" },
       {
         t: "p",
@@ -2030,6 +2262,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Log each item someone hands in, with its category. Describe it well enough to check a claim, record each claim, and record the return when the item goes back to its owner.",
+          },
+        ],
+      },
+      { t: "h2", v: "Muster list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The muster list shows everyone placed in a zone now, by an entry scan or a clock-in inside a zone's geofence, and the guests checked in at doors in the last 24 hours. Rows are grouped by zone with the count of each. Filter by project and zone, print it with the headings on every page, or export it. It shows only the people you may see: someone whose newer scan you cannot see may show in the last zone you can. It needs the scan log or the time entries of the project.",
           },
         ],
       },
@@ -2275,6 +2517,45 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Asignaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
+          },
+        ],
+      },
+      { t: "h2", v: "Pases de invitado y correos a invitados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada invitado puede tener un tipo de pase (una categoría de acceso del proyecto, como GUEST o VIP), una mesa, un anfitrión entre las personas del proyecto y una dirección de correo. Cuando se aprueba un invitado, recibe un código de pase; Imprimir pase y Descargar pase dan su pase A6 con el código que se escanea a la entrada. Los invitados tienen pases, no credenciales.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Enviar correo a invitados manda a los invitados que elija una invitación, su pase en PDF o un mensaje con asunto y texto, en inglés o en español. Se omiten los invitados sin correo y, para un pase, los que aún no están aprobados, y no se envía a las direcciones que pidieron a su organización que deje de escribirles. Cada correo a invitados sale de su organización, con un enlace para darse de baja y la dirección postal. Cada envío muestra qué pasó con cada invitado.",
+          },
+        ],
+      },
     ],
     assets: [
       { t: "h2", v: "Clases, unidades y lotes" },
@@ -2459,6 +2740,73 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Cada escaneo en una zona se registra con su resultado: permitido o denegado, y por qué. Los escaneos hechos sin conexión en Compass se vuelven a verificar en el servidor cuando el dispositivo se reconecta, y se conservan ambas respuestas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Dirección del escaneo y autorizaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada escaneo es de entrada o de salida. Elija la dirección en el puesto de escaneo, o en el acceso en Compass, donde queda elegida para cada zona. Un escaneo de salida nunca se rechaza y termina el tiempo de la persona en la zona.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un escaneo de entrada denegado muestra el motivo: la credencial está revocada, aún no es válida o venció, no tiene acceso a la zona, o el escaneo fue fuera del horario de acceso. Las denegaciones registradas antes de este cambio solo indican que se denegaron.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Quien puede emitir credenciales en el proyecto, y no es el titular de la credencial, puede dejar pasar a una persona denegada en un plazo de 15 minutos, con un motivo. El registro conserva la denegación y agrega una entrada Autorizada con quién la dejó pasar y por qué. Nunca se deja pasar una credencial revocada.",
+          },
+        ],
+      },
+      { t: "h2", v: "Dentro ahora" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El registro de escaneos muestra, para el proyecto elegido, cuántas personas hay ahora en cada zona: las que escanearon la entrada en las últimas 24 horas y no escanearon la salida, por categoría y por equipo. Se actualiza cada 30 segundos. Use Pausar actualizaciones para detenerlo.",
+          },
+        ],
+      },
+      { t: "h2", v: "Requisitos antes de emitir" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una categoría puede exigir un curso de capacitación o una certificación. Agréguelos en Requisitos antes de emitir de la categoría. Emitir esa categoría a alguien que no tenga cada uno ahora se rechaza. Los miembros cumplen un curso al aprobarlo; cualquier persona cumple una certificación cuando un verificador la registra, que es como un puesto de pases registra una inducción presencial. El titular de una certificación solo puede cambiar su consentimiento para la verificación pública, nunca sus fechas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Revisiones en la página Emitidas" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El formulario de emisión muestra lo que bloquea una credencial antes de emitirla: capacitación pendiente, o una credencial vigente de la misma categoría para un periodo que se superpone. Revoque primero la anterior. Los pases de estacionamiento quedan exentos, porque una persona puede tener pases para varios vehículos. También avisa cuando la persona tiene otra credencial en el proyecto, otra persona del proyecto tiene el mismo nombre, o está reservada en otra producción al mismo tiempo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Emitidas muestra el origen de cada credencial y las mismas revisiones como etiquetas. Elija Requiere atención para ver solo las marcadas.",
           },
         ],
       },
@@ -2973,6 +3321,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "Puede deshacer el lote completo durante 7 días." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En lugar de un archivo puede pegar filas copiadas de Excel, Google Sheets o Shoflo, con la fila de encabezados primero. Una vista previa muestra las primeras filas tal como se leerán. Mientras asocia las columnas, cada una muestra sus primeros valores y una vista previa ordena las primeras filas según sus opciones.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar una escaleta" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra una escaleta y elija Importar cues, o elija Cues de la escaleta en la página de importación y seleccione la escaleta. Las filas se convierten en cues de esa escaleta solamente.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Un número de cue como 12, Q12 o CUE-07 fija la posición del cue. Las fracciones como 12.5 se rechazan.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las filas sin número de cue se agregan después del cue más alto, en el orden de la hoja, una vez que entran las filas numeradas.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las horas como 19:30 o 7:30 PM se leen en la fecha del show, en la zona horaria del proyecto. Las duraciones van en minutos, m:ss o h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importar la misma escaleta otra vez actualiza los cues que coinciden, por número de cue o, sin él, por cue y hora. Nunca los agrega dos veces y nunca cambia un cue que ya se dio.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Dos filas con el mismo número de cue en una hoja se rechazan como repetidas.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Importar una lista de invitados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra la lista de invitados de un proyecto y elija Importar invitados, o elija Lista de invitados en la página de importación y seleccione el proyecto.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Cada invitado importado se agrega como Solicitado. Una importación nunca aprueba, rechaza ni registra la llegada de un invitado.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Un invitado que ya está en la lista con el mismo nombre para el mismo show se actualiza en lugar de agregarse. Un nombre parecido, o el mismo nombre para otro show, espera su decisión: combinarlo con el invitado de la lista o mantenerlos separados. Nada se combina solo.",
+            },
+          ],
+          [{ t: "text", v: "Una combinación conserva el nombre y el show del invitado." }],
+          [
+            {
+              t: "text",
+              v: "Ni la persona que subió la lista ni la persona que la confirmó pueden aprobar o rechazar esos invitados. Los decide otro revisor.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Deshacer quita los cues e invitados que agregó el lote y restaura los que cambió, durante 7 días. Un cue dado, o un invitado decidido o registrado después de la importación, se conserva, y el lote indica por qué.",
+          },
+        ],
+      },
       { t: "h2", v: "Papelera" },
       {
         t: "p",
@@ -4190,6 +4635,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h3", v: "Servicio oficial" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Para una sede con ubicación en EE. UU., active el servicio oficial. Cada 10 minutos, desde tres días antes del proyecto hasta el día después de que termina, registra lecturas de viento y calor de la estación más cercana del Servicio Meteorológico Nacional, guarda los avisos vigentes para la ubicación de la sede y las próximas horas del pronóstico. Sus lecturas se comparan con sus umbrales como las lecturas en el sitio, pero una lectura del servicio nunca baja ni cierra un aviso que alguien registró en el sitio. Un aviso nuevo Grave o Extremo llega una vez a las personas de los roles de alerta y a los despachadores, incluso en horas de silencio. Los avisos se muestran en inglés, como los emite el Servicio Meteorológico Nacional. Los rayos siguen siendo una lectura que usted registra.",
+          },
+        ],
+      },
+      { t: "h3", v: "Suspensión por clima y fin de la suspensión" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un despachador puede suspender por clima. El mensaje viene de su texto de suspensión, con el peligro, y puede cambiarlo antes de enviarlo. Llega a la vez a las personas de los roles de alerta, a los despachadores y a todos los que están dentro de las zonas del proyecto. Suspender por clima es la acción principal mientras un aviso está en Restringir o Evacuar o hay un aviso Grave o Extremo vigente. Dé el fin de la suspensión cuando pase; llega a las mismas personas en ese momento. Configure los textos de suspensión y de fin debajo de los umbrales. Una suspensión hecha en Compass sin conexión se rechaza si llega al servidor más de 10 minutos después.",
+          },
+        ],
+      },
       { t: "h2", v: "Entrada de invitados" },
       {
         t: "p",
@@ -4200,6 +4665,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El pase de un invitado muestra un código que la puerta puede escanear o escribir: la lista de la puerta encuentra al invitado con él, con su tipo de pase, su mesa y su anfitrión. Un pase que no está en la lista lo indica. Cuando un invitado entra, su anfitrión recibe un aviso.",
+          },
+        ],
+      },
       { t: "h2", v: "Objetos perdidos" },
       {
         t: "p",
@@ -4207,6 +4681,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Registre cada objeto que alguien entrega, con su categoría. Descríbalo lo suficiente para verificar un reclamo, registre cada reclamo y registre la devolución cuando el objeto vuelve a su dueño.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista de evacuación" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La lista de evacuación muestra a todos los que están ahora en una zona, por un escaneo de entrada o un fichaje dentro de la geocerca de una zona, y a los invitados que entraron por las puertas en las últimas 24 horas. Las filas se agrupan por zona con el total de cada una. Filtre por proyecto y zona, imprímala con los encabezados en cada página o expórtela. Solo muestra a las personas que usted puede ver: alguien cuyo escaneo más reciente no puede ver puede aparecer en la última zona que sí puede ver. Requiere el registro de escaneos o los registros de horas del proyecto.",
           },
         ],
       },

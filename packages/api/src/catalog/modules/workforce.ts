@@ -1037,16 +1037,133 @@ const WeatherReading = defineResource({
   name: "WeatherReading",
   table: "app.weather_readings",
   description: "A weather reading on site, in the hazard's unit.",
-  serverSet: ["recorded_by_membership_id", ...AUDIT_SET],
+  serverSet: ["recorded_by_membership_id", "source", ...AUDIT_SET],
   fields: {
     project_id: fields.ref("project"),
     hazard: label(["Wind", "Lightning", "Heat"], "Hazard."),
     reading_value: z.number().min(0).max(200).meta({ description: "Reading.", example: 33 }),
     observed_at: fields.instant("When it was observed."),
     recorded_by_membership_id: orNull(fields.ref("member who recorded it")),
+    source: label(
+      ["Manual", "NWS"],
+      "Manual for a reading on site, NWS for one the official feed recorded (B8, 2976).",
+    ),
     ...AUDIT,
   },
 });
+
+/** app.weather_feeds (2976, B8): a project's official US National Weather Service feed. */
+const WeatherFeed = defineResource({
+  name: "WeatherFeed",
+  table: "app.weather_feeds",
+  description:
+    "A project's official weather feed (gap G-150): on while it exists, off once deleted. Only for a venue with a location in the US (weather_feed_unsupported, 422). The worker polls every 10 minutes during the project's window.",
+  immutable: ["project_id"],
+  serverSet: [
+    "provider",
+    "nws_forecast_hourly_url",
+    "nws_station_id",
+    "points_checked_at",
+    ...AUDIT_SET,
+  ],
+  fields: {
+    project_id: fields.ref("project"),
+    provider: label(["NWS"], "The US National Weather Service."),
+    nws_forecast_hourly_url: orNull(
+      fields.text(
+        "Hourly forecast URL the worker cached.",
+        "https://api.weather.gov/gridpoints/MFL/110,50/forecast/hourly",
+        300,
+      ),
+    ),
+    nws_station_id: orNull(fields.code("Observation station the worker cached.", "KMIA")),
+    points_checked_at: orNull(fields.instant("When the worker last looked the venue up.")),
+    ...AUDIT,
+  },
+});
+
+/** app.weather_warnings (2976, B8): official alerts the feed stored. */
+const WeatherWarning = defineResource({
+  name: "WeatherWarning",
+  table: "app.weather_warnings",
+  description:
+    "An official alert the US National Weather Service issued for the venue's location, in English as issued. A new Severe or Extreme alert notifies the alert-role people and the dispatchers once (weather.warning).",
+  serverSet: [
+    "project_id",
+    "provider",
+    "provider_alert_id",
+    "event",
+    "severity",
+    "certainty",
+    "urgency",
+    "headline",
+    "description",
+    "instruction",
+    "onset",
+    "expires_at",
+    "ends_at",
+    "sent_at",
+    "ended_at",
+    ...AUDIT_SET,
+  ],
+  fields: {
+    project_id: fields.ref("project"),
+    provider: label(["NWS"], "The US National Weather Service."),
+    provider_alert_id: fields.text("The provider's alert id.", "urn:oid:2.49.0.1.840.0.abc", 300),
+    event: fields.text("Event name.", "Severe Thunderstorm Warning", 200),
+    severity: label(["Extreme", "Severe", "Moderate", "Minor", "Unknown"], "Severity."),
+    certainty: orNull(fields.text("Certainty.", "Observed", 40)),
+    urgency: orNull(fields.text("Urgency.", "Immediate", 40)),
+    headline: orNull(fields.text("Headline.", "Severe Thunderstorm Warning until 9:45 PM", 300)),
+    description: orNull(
+      fields.text("Description.", "At 9:02 PM, a severe thunderstorm was located...", 4000),
+    ),
+    instruction: orNull(fields.text("What to do.", "Move to an interior room.", 2000)),
+    onset: orNull(fields.instant("When the hazard begins.")),
+    expires_at: orNull(fields.instant("When this message expires.")),
+    ends_at: orNull(fields.instant("When the hazard ends.")),
+    sent_at: orNull(fields.instant("When the provider sent it.")),
+    ended_at: orNull(fields.instant("When it was cancelled or left the active list.")),
+    ...AUDIT,
+  },
+});
+
+/** app.weather_holds (2977, B8): a dispatcher's weather hold and its all-clear. */
+const WeatherHold = defineResource({
+  name: "WeatherHold",
+  table: "app.weather_holds",
+  description:
+    "A weather hold a dispatcher called to stop work, and the all-clear that ended it (gap G-150). At most one is open per project. Calling one notifies the alert-role people, the dispatchers and everyone present in the project's zones (weather.hold); the all-clear notifies the same people as they are then (weather.all_clear).",
+  serverSet: ["called_at", "cleared_at", "cleared_by", "all_clear_message", ...AUDIT_SET],
+  immutable: ["project_id", "hazard", "weather_alert_id", "weather_warning_id", "message"],
+  fields: {
+    project_id: fields.ref("project"),
+    hazard: orNull(label(["Wind", "Lightning", "Heat"], "Hazard the hold is for.")),
+    weather_alert_id: orNull(fields.ref("weather alert that prompted it")),
+    weather_warning_id: orNull(fields.ref("official warning that prompted it")),
+    message: fields.text(
+      "The hold message sent.",
+      "Lightning within 8 miles: stop work and shelter.",
+      1000,
+    ),
+    called_at: fields.instant("When the hold was called."),
+    cleared_at: orNull(fields.instant("When the all-clear was given.")),
+    cleared_by: orNull(fields.ref("person who gave the all-clear")),
+    all_clear_message: orNull(
+      fields.text("The all-clear message sent.", "All clear: resume work.", 1000),
+    ),
+    ...AUDIT,
+  },
+});
+
+const allClearBody = z
+  .object({
+    message: z.string().min(1).max(1000).meta({
+      description: "The all-clear message, 1 to 1,000 characters.",
+      example: "All clear: resume work.",
+    }),
+  })
+  .meta({ id: "WeatherAllClearRequest", description: "The all-clear that ends a weather hold." });
 
 const WeatherAlert = defineResource({
   name: "WeatherAlert",
@@ -1105,6 +1222,12 @@ const DoorGuest = z
       .nullable()
       .meta({ description: "Plus-ones admitted.", example: 2 }),
     door: fields.text("Door.", "Gate A").nullable(),
+    // B8 (2974): the guest's pass.
+    pass_code: fields.code("Pass code the door scans.", "GP-ABCDEFGHIJ").nullable(),
+    pass_category_code: fields.code("Pass type code.", "VIP").nullable(),
+    pass_category_name: fields.text("Pass type.", "VIP Guest").nullable(),
+    table_label: fields.text("Table or seat.", "Table 4").nullable(),
+    host_person_id: fields.uuid("Project person hosting the guest.").nullable(),
   })
   .meta({ id: "DoorGuest", description: "A guest on the door list." });
 
@@ -1728,6 +1851,26 @@ export const additions = defineAdditions("Workforce", {
       verbs: ["list", "get"],
       order: { by: ["issued_at"], numeric: false, descending: true },
     }),
+    resource("Workforce", "/weather-feeds", WeatherFeed, {
+      verbs: ["list", "get", "create", "delete"],
+    }),
+    resource("Workforce", "/weather-warnings", WeatherWarning, {
+      verbs: ["list", "get"],
+      order: { by: ["sent_at"], numeric: false, descending: true },
+    }),
+    resource("Workforce", "/weather-holds", WeatherHold, {
+      verbs: ["list", "get", "create"],
+      order: { by: ["called_at"], numeric: false, descending: true },
+      actions: [
+        itemAction("allClear", {
+          summary: "Give the all-clear",
+          description:
+            "Ends an open weather hold and notifies the same people as they are now (weather.all_clear). Needs safety.incident.dispatch; refuses weather_hold_closed and weather_hold_message (422).",
+          body: allClearBody,
+          rpc: "app.give_weather_all_clear",
+        }),
+      ],
+    }),
     resource("Workforce", "/guest-check-ins", GuestCheckIn, {
       verbs: ["list", "get", "create"],
       actions: [
@@ -1894,6 +2037,13 @@ export const additions = defineAdditions("Workforce", {
     weatherAlertRoles: { read: "safety.incident.read", write: "safety.emergency_code.write" },
     weatherReadings: { read: "safety.incident.read", write: "safety.incident.write" },
     weatherAlerts: { read: "safety.incident.read" },
+    weatherFeeds: { read: "safety.incident.read", write: "safety.emergency_code.write" },
+    weatherWarnings: { read: "safety.incident.read" },
+    weatherHolds: {
+      read: "safety.incident.read",
+      write: "safety.incident.dispatch",
+      actions: { allClear: "safety.incident.dispatch" },
+    },
     guestCheckIns: { read: "credentials.scan.write", write: "credentials.scan.write" },
     lostFoundItems: {
       read: "safety.incident.read",

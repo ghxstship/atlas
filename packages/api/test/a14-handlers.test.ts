@@ -140,7 +140,13 @@ describe("Credentials contract", () => {
     const rCredentialCategories = await crud({
       path: "/credential-categories",
       table: "credential_categories",
-      row: { ...audit(1), project_id: id(100), code: "ALL-ACCESS", name: "All Access" },
+      row: {
+        ...audit(1),
+        project_id: id(100),
+        code: "ALL-ACCESS",
+        name: "All Access",
+        category_kind: "Access",
+      },
       create: { project_id: id(100), code: "ALL-ACCESS", name: "All Access" },
       update: { name: "All Areas" },
       remove: true,
@@ -250,6 +256,10 @@ describe("Credentials contract", () => {
       project_id: id(100),
       device_scanned_at: "2026-10-15T11:59:00.000Z",
       offline_result: "Granted",
+      direction: "In",
+      refusal_reason: "Outside Window",
+      override_of_scan_id: null,
+      override_reason: null,
     };
     const decision = {
       id: id(4),
@@ -295,6 +305,96 @@ describe("Credentials contract", () => {
     expect(unknown.status).toBe(422);
     await expectContract(unknown, "accessScans.create");
     expect((await api.request(`/access-scans/${id(999)}`)).status).toBe(404);
+  });
+
+  it("records an Out scan and overrides a denied one with a new Granted In row (B8)", async () => {
+    const denied = {
+      ...audit(4),
+      zone_id: id(300),
+      credential_id: id(2),
+      scanned_at: T,
+      result: "Denied",
+      project_id: id(100),
+      device_scanned_at: null,
+      offline_result: null,
+      direction: "In",
+      refusal_reason: "Outside Window",
+      override_of_scan_id: null,
+      override_reason: null,
+    };
+    const override = {
+      ...denied,
+      id: id(5),
+      result: "Granted",
+      refusal_reason: null,
+      override_of_scan_id: id(4),
+      override_reason: "Reprint pending",
+    };
+    const decision = {
+      id: id(5),
+      credential_id: id(2),
+      credential_number: "CR-000001",
+      holder_name: "Demo Field Lead",
+      category_code: "CREW",
+      zone_id: id(300),
+      zone_code: "LAWN",
+      scanned_at: T,
+      result: "Granted",
+      replayed: false,
+      direction: "In",
+      refusal_reason: null,
+      overridden_scan_id: id(4),
+    };
+    const { api, calls } = app({
+      "from:access_scans": [
+        ok({ ...denied, direction: "Out", result: "Granted", refusal_reason: null }),
+        ok(denied),
+        ok(override),
+        ok(denied),
+      ],
+      "rpc:record_scan": [ok([{ ...decision, id: id(4), direction: "Out" }])],
+      "rpc:override_access_scan": [ok([decision]), refusal("scan_override_revoked")],
+    });
+    const out = await api.request(
+      "/access-scans",
+      post({ zone_id: id(300), credential_id: id(2), direction: "Out" }),
+    );
+    expect(out.status).toBe(201);
+    await expectContract(out, "accessScans.create");
+    expect(calls.find((c) => c.target === "rpc:record_scan")?.steps[0]?.[1]).toEqual([
+      { p_zone_id: id(300), p_credential_id: id(2), p_direction: "Out" },
+    ]);
+    const made = await api.request(
+      `/access-scans/${id(4)}/override`,
+      post({ reason: "Reprint pending" }),
+    );
+    expect(made.status).toBe(201);
+    await expectContract(made, "accessScans.override");
+    expect(calls.find((c) => c.target === "rpc:override_access_scan")?.steps[0]?.[1]).toEqual([
+      { p_scan_id: id(4), p_reason: "Reprint pending" },
+    ]);
+    const revoked = await api.request(`/access-scans/${id(4)}/override`, post({ reason: "x" }));
+    expect(revoked.status).toBe(422);
+    await expectContract(revoked, "accessScans.override");
+  });
+
+  it("serves the training a category requires (B8)", async () => {
+    const r = await crud({
+      path: "/credential-category-requirements",
+      table: "credential_category_requirements",
+      row: {
+        ...audit(7),
+        credential_category_id: id(1),
+        training_course_id: id(8),
+        certification_id: null,
+      },
+      create: { credential_category_id: id(1), training_course_id: id(8) },
+      remove: true,
+    });
+    await expectContract(r.list, "credentialCategoryRequirements.list");
+    await expectContract(r.get, "credentialCategoryRequirements.get");
+    await expectContract(r.made, "credentialCategoryRequirements.create");
+    await expectContract(r.removed, "credentialCategoryRequirements.delete");
   });
 
   it("serves certifications and holders", async () => {

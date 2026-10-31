@@ -1,23 +1,37 @@
 import {
   CREDENTIAL_STATUSES,
+  credentialBookingsElsewhere,
+  credentialReviews,
   credentialStatus,
   getCredentialCategory,
   getIssuedCredential,
+  insideNow,
   listAccessGrid,
   listAccessLevels,
   listAccessScans,
+  listCategoryRequirements,
   listCredentialCategories,
   listIssuedCredentials,
   listProjectZones,
+  needsAttention,
+  refusalReasonKey,
+  SCAN_DIRECTIONS,
   type AccessGridEntry,
   type AccessScan,
+  type CategoryRequirement,
   type CredentialCategory,
+  type CredentialReview,
   type CredentialStatus,
   type IssuedCredential,
   type OperationsProject,
   type Zone,
 } from "@xos/data/credentials";
+import { badgePhotos, badgePhotoThumbnail } from "@xos/data/credential-photos";
+import { listCertifications } from "@xos/data/people";
+import { listTrainingCourses } from "@xos/data/workforce-training";
+import { printSizesFor } from "@xos/data/documents/model";
 import type { Route } from "next";
+import dynamic from "next/dynamic";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import {
@@ -48,11 +62,16 @@ import { RecordCollab } from "@/components/operations/record-collab";
 import { projectPeople, projectPersonLabel } from "@/lib/people/project-people";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
+  addRequirementAction,
   archiveCategoryAction,
   createCategoryAction,
   grantZoneAccessAction,
   issueCredentialAction,
+  overrideScanAction,
   recordScanAction,
+  removeCredentialPhotoAction,
+  removeRequirementAction,
+  requestCredentialPhotosAction,
   revokeCredentialAction,
   updateCategoryAction,
   updateWindowAction,
@@ -65,6 +84,14 @@ import { AccessMatrixEditor, CredentialBadge } from "./client";
 import { ScanIntakeQueue } from "./scan-intake";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { CollectionPage } from "@/components/platform/collection-page";
+import { env } from "@/lib/env";
+import { gatewayUrl } from "@/lib/gateway-url";
+import { BadgePrint, PHOTO_TONE } from "./badge-print";
+
+// The scan log's Inside now section refreshes in the browser; it loads with that page only (bundle budget).
+const InsideNow = dynamic(() => import("./inside-now").then((m) => m.InsideNow));
+// The issue form's checks read again as the form changes; they load with the form only.
+const IssueChecks = dynamic(() => import("./issue-checks").then((m) => m.IssueChecks));
 
 /**
  * The Credentials module (Section 4.2: categories, issuance, the access grid and scans), one
@@ -168,6 +195,16 @@ export async function CategoriesSection({ page }: { page: ModulePage }) {
                 required
                 maxLength={100}
               />
+              <SelectField
+                id="category-kind"
+                name="kind"
+                label={t("credentials.categories.categoryKind")}
+                help={t("credentials.categories.categoryKindHelp")}
+                options={[
+                  { value: "Access", label: t("credentials.categories.categoryKinds.access") },
+                  { value: "Parking", label: t("credentials.categories.categoryKinds.parking") },
+                ]}
+              />
             </ActionForm>
           </RecordSection>
         ) : (
@@ -269,6 +306,7 @@ async function CategoryRecord({
           {t("credentials.categories.issuedSummary", { count: c.activeCount })}
         </p>
       </RecordSection>
+      <RequirementsSection page={page} categoryId={c.id} canWrite={canWrite} />
       {canWrite ? (
         <>
           <RecordSection id="category-edit" title={t("credentials.common.edit")}>
@@ -294,6 +332,17 @@ async function CategoryRecord({
                 required
                 maxLength={100}
               />
+              <SelectField
+                id="edit-category-kind"
+                name="kind"
+                label={t("credentials.categories.categoryKind")}
+                help={t("credentials.categories.categoryKindHelp")}
+                defaultValue={c.kind}
+                options={[
+                  { value: "Access", label: t("credentials.categories.categoryKinds.access") },
+                  { value: "Parking", label: t("credentials.categories.categoryKinds.parking") },
+                ]}
+              />
             </ActionForm>
           </RecordSection>
           <RecordSection id="category-archive" title={t("credentials.categories.archiveHeading")}>
@@ -312,6 +361,125 @@ async function CategoryRecord({
       ) : null}
       <RecordCollab page={page} table="app.credential_categories" id={c.id} canChange={canWrite} />
     </RecordChrome>
+  );
+}
+
+/**
+ * The category's Required before issue (B8, 2972): the courses and certifications a person must hold before it is
+ * issued to them, from the org's Published courses and its certifications. Issuing to someone who does not meet one
+ * is refused (credential_training_incomplete).
+ */
+async function RequirementsSection({
+  page,
+  categoryId,
+  canWrite,
+}: {
+  page: ModulePage;
+  categoryId: string;
+  canWrite: boolean;
+}) {
+  const t = page.t;
+  const db = page.ctx.viewer.db;
+  const [requirements, courses, certifications] = await Promise.all([
+    listCategoryRequirements(db, categoryId),
+    canWrite ? listTrainingCourses(db, page.ctx.org.id) : Promise.resolve(null),
+    canWrite ? listCertifications(db, page.ctx.org.id) : Promise.resolve(null),
+  ]);
+  const list: readonly CategoryRequirement[] = requirements.ok ? requirements.data : [];
+  const taken = new Set(list.flatMap((r) => [r.trainingCourseId, r.certificationId]));
+  const options = [
+    ...(courses?.ok ? courses.data : [])
+      .filter((c) => c.state === "Published" && !taken.has(c.id))
+      .map((c) => ({
+        value: `course:${c.id}`,
+        label: `${t("credentials.requirements.course")}: ${c.title}`,
+      })),
+    ...(certifications?.ok ? certifications.data : [])
+      .filter((c) => !taken.has(c.id))
+      .map((c) => ({
+        value: `certification:${c.id}`,
+        label: `${t("credentials.requirements.certification")}: ${c.name}`,
+      })),
+  ];
+  return (
+    <RecordSection id="category-requirements" title={t("credentials.requirements.title")}>
+      <p className="m-0 text-text-13 text-text-secondary">{t("credentials.requirements.what")}</p>
+      {list.length === 0 ? (
+        <p className="m-0 text-text-13">{t("credentials.requirements.empty")}</p>
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
+          {list.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center justify-between gap-8">
+              <span>
+                {t(
+                  r.trainingCourseId
+                    ? "credentials.requirements.course"
+                    : "credentials.requirements.certification",
+                )}
+                : {r.title}
+              </span>
+              {canWrite ? (
+                <ActionForm
+                  action={removeRequirementAction}
+                  hidden={{ org: page.ctx.org.slug, id: r.id }}
+                  submitLabel={t("credentials.requirements.remove")}
+                  variant="ghost"
+                  layout="inline"
+                />
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+      {canWrite && options.length > 0 ? (
+        <ActionForm
+          action={addRequirementAction}
+          hidden={{ org: page.ctx.org.slug, categoryId }}
+          submitLabel={t("credentials.requirements.add")}
+          variant="secondary"
+          layout="inline"
+        >
+          <SelectField
+            id={`requirement-${categoryId}`}
+            name="requirement"
+            label={t("credentials.requirements.kind")}
+            options={options}
+            required
+          />
+        </ActionForm>
+      ) : null}
+    </RecordSection>
+  );
+}
+
+/** The chips of a credential's accreditation checks (B8, 2973), and none when nothing needs attention. */
+function CheckChips({ page, review }: { page: ModulePage; review: CredentialReview | undefined }) {
+  if (!review) return null;
+  const t = page.t;
+  const chips: { key: string; tone: "danger" | "warning"; label: string }[] = [];
+  if (review.duplicateLive)
+    chips.push({ key: "dup", tone: "danger", label: t("credentials.checks.chips.duplicate") });
+  if (review.missingRequirements > 0)
+    chips.push({ key: "train", tone: "danger", label: t("credentials.checks.chips.training") });
+  if (review.otherBadgesOnProject > 0)
+    chips.push({ key: "other", tone: "warning", label: t("credentials.checks.chips.otherBadge") });
+  if (review.sameNameOnProject > 0)
+    chips.push({ key: "name", tone: "warning", label: t("credentials.checks.chips.sameName") });
+  if (review.bookedElsewhere)
+    chips.push({
+      key: "booked",
+      tone: "warning",
+      label: t("credentials.checks.chips.bookedElsewhere"),
+    });
+  if (chips.length === 0) return null;
+  return (
+    <span className="inline-flex flex-wrap gap-4">
+      {chips.map((c) => (
+        <ToneChip key={c.key} tone={c.tone}>
+          {c.label}
+        </ToneChip>
+      ))}
+    </span>
   );
 }
 
@@ -336,12 +504,28 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
     }),
   ]);
   const now = new Date();
-  const issued = unwrap(all, "issued credentials").filter(
+  const attention = param(page.search, "attention") === "1";
+  const listed = unwrap(all, "issued credentials").filter(
     (c) => !statusFilter || credentialStatus(c, now) === statusFilter,
   );
+  // The accreditation checks of the listed credentials, in one call (2973); the page still lists without them.
+  const reviewResult = await credentialReviews(
+    page.ctx.viewer.db,
+    listed.map((c) => c.id),
+  );
+  const reviews: ReadonlyMap<string, CredentialReview> = reviewResult.ok
+    ? reviewResult.data
+    : new Map();
+  const issued = attention
+    ? listed.filter((c) => {
+        const r = reviews.get(c.id);
+        return r !== undefined && needsAttention(r);
+      })
+    : listed;
   const categoryList = unwrap(categories, "credential categories");
   const peekId = param(page.search, "peek");
   const creating = param(page.search, "create") === "1";
+  const printing = param(page.search, "print") === "1";
   const canIssue = can(page, "credentials.credential.issue");
   const title = t("nav.atlas.pages.credentials.issued");
   const peekHref = (c: IssuedCredential) =>
@@ -372,6 +556,19 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
       render: (c) => (c.validTo ? dateTime(format, c.validTo) : t("credentials.issued.openEnded")),
     },
     { key: "status", label: t("credentials.issued.statusLabel"), primary: true, render: status },
+    {
+      key: "source",
+      label: t("credentials.sources.title"),
+      render: (c) => {
+        const r = reviews.get(c.id);
+        return r ? t(`credentials.sources.${r.holderSource}`) : "";
+      },
+    },
+    {
+      key: "checks",
+      label: t("credentials.checks.title"),
+      render: (c) => <CheckChips page={page} review={reviews.get(c.id)} />,
+    },
   ];
 
   let body: ReactNode;
@@ -380,7 +577,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
       <EmptyStateLink
         icon="IdCard"
         sentence={t(
-          statusFilter || categoryFilter
+          statusFilter || categoryFilter || attention
             ? "credentials.issued.emptyFiltered"
             : "credentials.issued.empty",
         )}
@@ -444,14 +641,28 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
           views={views}
           view={view}
           action={
-            canIssue ? (
-              <ButtonLink
-                href={sectionHref(page, { create: "1", peek: undefined, section })}
-                variant="primary"
-              >
-                {t("credentials.issued.new")}
-              </ButtonLink>
-            ) : undefined
+            <span className="inline-flex flex-wrap items-center gap-8">
+              {issued.length > 0 ? (
+                <ButtonLink
+                  href={sectionHref(page, {
+                    print: "1",
+                    peek: undefined,
+                    create: undefined,
+                    section,
+                  })}
+                >
+                  {t("credentials.print.action")}
+                </ButtonLink>
+              ) : null}
+              {canIssue ? (
+                <ButtonLink
+                  href={sectionHref(page, { create: "1", peek: undefined, section })}
+                  variant="primary"
+                >
+                  {t("credentials.issued.new")}
+                </ButtonLink>
+              ) : null}
+            </span>
           }
         />
       }
@@ -472,6 +683,15 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
               })),
             ],
           },
+          {
+            name: "attention",
+            label: t("credentials.checks.needsAttention"),
+            value: attention ? "1" : "",
+            options: [
+              { value: "", label: t("credentials.checks.anyCheck") },
+              { value: "1", label: t("credentials.checks.needsAttention") },
+            ],
+          },
         ]}
       />
       {creating && canIssue ? (
@@ -481,6 +701,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
           chooseProjectNotice(page, section)
         )
       ) : null}
+      {printing ? <BadgePrint page={page} credentials={issued} section={section} /> : null}
       {body}
       {peekId ? <CredentialRecord page={page} id={peekId} section={section} /> : null}
     </CollectionPage>
@@ -511,7 +732,18 @@ async function IssueForm({
   }
   // Members and the people engaged on the project (R1); a badge under an engagement names its person.
   const me = page.ctx.viewer.person?.id;
-  const holders = (await projectPeople(page.ctx, project.id)).filter((p) => p.personId !== me);
+  const [people, requirementLists] = await Promise.all([
+    projectPeople(page.ctx, project.id),
+    Promise.all(categories.map((c) => listCategoryRequirements(page.ctx.viewer.db, c.id))),
+  ]);
+  const holders = people.filter((p) => p.personId !== me);
+  // Each requirement's link in the checks: its course on Training, or Certifications.
+  const requirementHrefs: Record<string, string> = {};
+  for (const r of requirementLists.flatMap((l) => (l.ok ? l.data : []))) {
+    requirementHrefs[r.id] = r.trainingCourseId
+      ? `/${page.ctx.org.slug}/knowledge/training?peek=${r.trainingCourseId}`
+      : `/${page.ctx.org.slug}/people/certifications?peek=${r.certificationId}`;
+  }
   return (
     <RecordSection id="issue-credential" title={t("credentials.issued.new")}>
       <ActionForm
@@ -554,6 +786,11 @@ async function IssueForm({
           label={t("credentials.issued.validTo")}
           help={t("credentials.issued.validToHelp")}
         />
+        <IssueChecks
+          org={page.ctx.org.slug}
+          timeZone={project.timeZone}
+          requirementHrefs={requirementHrefs}
+        />
       </ActionForm>
     </RecordSection>
   );
@@ -576,11 +813,12 @@ async function CredentialRecord({
   const c = result.data;
   const project = page.projects.find((p) => p.id === c.projectId);
   const timeZone = project?.timeZone ?? "UTC";
-  const [scans, grid] = await Promise.all([
+  const [scans, grid, bookings] = await Promise.all([
     listAccessScans(page.ctx.viewer.db, { orgId: page.ctx.org.id, credentialId: c.id, limit: 20 }),
     project
       ? listAccessGrid(page.ctx.viewer.db, page.ctx.org.id, project.id)
       : Promise.resolve(null),
+    credentialBookingsElsewhere(page.ctx.viewer.db, c.id),
   ]);
   const status = credentialStatus(c);
   const zones = grid?.ok
@@ -655,8 +893,14 @@ async function CredentialRecord({
             c.validTo ? dateTime(format, c.validTo, timeZone) : t("credentials.issued.openEnded")
           }
         />
-        <DocumentActions org={page.ctx.org.slug} kind="credential-badge" id={c.id} />
+        <DocumentActions
+          org={page.ctx.org.slug}
+          kind="credential-badge"
+          id={c.id}
+          sizes={printSizesFor("credential-badge")}
+        />
       </RecordSection>
+      <BadgePhotoSection page={page} credential={c} timeZone={timeZone} />
       {canEdit ? (
         <RecordSection id="credential-window" title={t("credentials.issued.windowHeading")}>
           <ActionForm
@@ -702,6 +946,22 @@ async function CredentialRecord({
           </ActionForm>
         </RecordSection>
       ) : null}
+      {bookings.ok && bookings.data.length > 0 ? (
+        <RecordSection id="credential-bookings" title={t("credentials.checks.bookingsTitle")}>
+          <ul className="m-0 flex list-none flex-col gap-4 p-0 text-text-13">
+            {bookings.data.map((b, i) => (
+              <li key={`${b.projectId ?? "other"}-${b.kind}-${i}`}>
+                {joined(
+                  b.projectKey ?? t("credentials.checks.anotherProduction"),
+                  t(`credentials.checks.bookingKinds.${b.kind}`),
+                  b.startsAt ? dateTime(format, b.startsAt, timeZone) : null,
+                  b.endsAt ? dateTime(format, b.endsAt, timeZone) : null,
+                )}
+              </li>
+            ))}
+          </ul>
+        </RecordSection>
+      ) : null}
       <RecordSection id="credential-scans" title={t("credentials.issued.recentScans")}>
         {scans.ok && scans.data.length > 0 ? (
           <ScanRows page={page} scans={scans.data} format={format} />
@@ -721,6 +981,126 @@ async function CredentialRecord({
   );
 }
 
+/**
+ * The badge photo of a credential (P5): the photo its badge prints and where it came from, with a thumbnail, and
+ * for issuers a request to the holder, the Gateway link to send them, and removal once the photo's scan finished (an
+ * issuer cannot delete an object before it scans Clean, 2821). A revoked or expired credential prints no photo, so it
+ * shows only that.
+ */
+async function BadgePhotoSection({
+  page,
+  credential: c,
+  timeZone,
+}: {
+  page: ModulePage;
+  credential: IssuedCredential;
+  timeZone: string;
+}) {
+  const t = page.t;
+  const format = await getFormatter();
+  const rows = await badgePhotos(page.ctx.viewer.db, [c.id]);
+  const row = rows.ok ? rows.data[0] : undefined;
+  const name = c.holderName ?? t("credentials.common.unnamed");
+  if (!row) {
+    return (
+      <RecordSection id="credential-photo" title={t("credentials.photo.heading")}>
+        <p className="m-0 text-text-13 text-text-secondary">{t("credentials.photo.notLive")}</p>
+      </RecordSection>
+    );
+  }
+  const thumbnail = await badgePhotoThumbnail(page.ctx.viewer.db, row);
+  const canIssue = can(page, "credentials.credential.issue");
+  const link = env().GATEWAY_SITE_URL ? gatewayUrl("/profile/badge-photos") : null;
+  const when = row.providedAt
+    ? t("credentials.photo.providedOn", { date: dateTime(format, row.providedAt, timeZone) })
+    : row.requestedAt
+      ? t("credentials.photo.requestedOn", { date: dateTime(format, row.requestedAt, timeZone) })
+      : null;
+  return (
+    <RecordSection id="credential-photo" title={t("credentials.photo.heading")}>
+      <div className="flex flex-wrap items-start gap-12">
+        {thumbnail ? (
+          // A 60-second signed link (or a public profile photo); next/image would cache it past its expiry.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumbnail}
+            alt={t("credentials.photo.thumbnailAlt", { name })}
+            width={72}
+            height={96}
+            className="h-96 w-72 rounded-md border border-border object-contain"
+          />
+        ) : null}
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <span className="inline-flex items-center gap-8 text-text-13">
+            <span className="text-text-secondary">{t("credentials.photo.stateLabel")}</span>
+            <ToneChip tone={PHOTO_TONE[row.state]}>
+              {t(`credentials.photo.states.${row.state}`)}
+            </ToneChip>
+          </span>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t(`credentials.photo.stateHelp.${row.state}`)}
+            {when ? ` ${when}.` : null}
+          </p>
+        </div>
+      </div>
+      {canIssue ? (
+        <div className="flex flex-col gap-12">
+          {row.state !== "Provided" && row.state !== "Scanning" ? (
+            <ActionForm
+              action={requestCredentialPhotosAction}
+              hidden={{ org: page.ctx.org.slug, id: c.id }}
+              submitLabel={t("credentials.photo.request")}
+              successKey="credentials.photo.requestDone"
+              variant="secondary"
+              layout="inline"
+            />
+          ) : null}
+          {link ? (
+            <div className="flex w-full max-w-full flex-col gap-4">
+              <label
+                htmlFor="credential-photo-link"
+                className="text-text-12 font-medium text-text-secondary"
+              >
+                {t("credentials.photo.copyLink")}
+              </label>
+              <input
+                id="credential-photo-link"
+                type="text"
+                readOnly
+                value={link}
+                aria-describedby="credential-photo-link-help"
+                className="h-control-md w-full rounded-control border border-border-control bg-bg-surface px-8 font-mono text-text-13"
+              />
+              <span id="credential-photo-link-help" className="text-text-12 text-text-secondary">
+                {t("credentials.photo.copyLinkHelp")}
+              </span>
+            </div>
+          ) : null}
+          {row.state === "Scanning" ? (
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("credentials.photo.removeAfterScan")}
+            </p>
+          ) : null}
+          {row.source && (row.state === "Provided" || row.state === "Refused") ? (
+            <ActionForm
+              action={removeCredentialPhotoAction}
+              hidden={{ org: page.ctx.org.slug, personId: c.holderPersonId }}
+              submitLabel={t("credentials.photo.remove")}
+              successKey="credentials.photo.removed"
+              variant="danger"
+            >
+              <label className="flex items-center gap-8 text-text-13">
+                <input type="checkbox" name="confirm" required className="size-16" />
+                {t("credentials.photo.removeConfirm", { name })}
+              </label>
+            </ActionForm>
+          ) : null}
+        </div>
+      ) : null}
+    </RecordSection>
+  );
+}
+
 function ScanRows({
   page,
   scans,
@@ -737,20 +1117,59 @@ function ScanRows({
           key={s.id}
           className="flex flex-wrap items-center justify-between gap-8 py-6 text-text-13"
         >
-          <span>{joined(s.zoneCode, dateTime(format, s.scannedAt))}</span>
-          <ResultChip page={page} result={s.result} />
+          <span>
+            {joined(
+              s.zoneCode,
+              page.t(`credentials.scans.directions.${s.direction}`),
+              dateTime(format, s.scannedAt),
+            )}
+          </span>
+          <ResultChip page={page} scan={s} />
         </li>
       ))}
     </ul>
   );
 }
 
-function ResultChip({ page, result }: { page: ModulePage; result: AccessScan["result"] }) {
+/**
+ * A scan's outcome: Granted, Denied with the database's reason in the viewer's language (a denial from before B8 has
+ * none), or Overridden with who let the person in and why.
+ */
+function ResultChip({ page, scan }: { page: ModulePage; scan: AccessScan }) {
+  const t = page.t;
+  if (scan.overrideOfScanId) {
+    return (
+      <span className="inline-flex flex-col gap-2">
+        <ToneChip tone="warning">{t("credentials.scans.overridden")}</ToneChip>
+        <span className="text-text-12 text-text-secondary">
+          {t("credentials.scans.overriddenBy", {
+            name: scan.createdByName ?? t("credentials.common.unnamed"),
+            reason: scan.overrideReason ?? "",
+          })}
+        </span>
+      </span>
+    );
+  }
+  if (scan.result === "Granted") {
+    return <ToneChip tone="success">{t("credentials.scans.granted")}</ToneChip>;
+  }
   return (
-    <ToneChip tone={result === "Granted" ? "success" : "danger"}>
-      {page.t(result === "Granted" ? "credentials.scans.granted" : "credentials.scans.denied")}
+    <ToneChip tone="danger">
+      {scan.refusalReason
+        ? t("credentials.scans.deniedBecause", {
+            reason: t(`credentials.scans.reasons.${refusalReasonKey(scan.refusalReason)}`),
+          })
+        : t("credentials.scans.noReason")}
     </ToneChip>
   );
+}
+
+/** How long a denial can be overridden (app.override_access_scan, 2970). */
+const OVERRIDE_WINDOW_MS = 15 * 60_000;
+
+/** Whether a denial is still young enough to override, at the time the page is read. */
+function overridable(scannedAt: string): boolean {
+  return new Date().getTime() - Date.parse(scannedAt) < OVERRIDE_WINDOW_MS;
 }
 
 // Access grid ------------------------------------------------------------------------------------
@@ -1057,11 +1476,15 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
   const resultFilter = param(page.search, "result");
   const scanResult =
     resultFilter === "Granted" || resultFilter === "Denied" ? resultFilter : undefined;
+  const directionFilter = param(page.search, "direction");
+  const scanDirection =
+    directionFilter === "In" || directionFilter === "Out" ? directionFilter : undefined;
   const scans = unwrap(
     await listAccessScans(page.ctx.viewer.db, {
       orgId: page.ctx.org.id,
       ...(page.project ? { projectId: page.project.id } : {}),
       ...(scanResult ? { result: scanResult } : {}),
+      ...(scanDirection ? { direction: scanDirection } : {}),
     }),
     "scans",
   );
@@ -1075,6 +1498,32 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
         )
       : [];
   const timeZone = page.project?.timeZone;
+  const inside =
+    page.project && can(page, "credentials.scan_log.read")
+      ? unwrap(
+          await insideNow(page.ctx.viewer.db, {
+            orgId: page.ctx.org.id,
+            projectId: page.project.id,
+            venueId: page.project.venueId,
+          }),
+          "insideNow",
+        )
+      : null;
+  // Denied In scans a supervisor may still let in: under 15 minutes old and not overridden yet (2970).
+  const overridden = new Set(
+    scans.flatMap((s) => (s.overrideOfScanId ? [s.overrideOfScanId] : [])),
+  );
+  const recentDenials =
+    page.project && can(page, "credentials.credential.issue")
+      ? scans.filter(
+          (s) =>
+            s.result === "Denied" &&
+            s.direction === "In" &&
+            s.refusalReason !== "Revoked" &&
+            !overridden.has(s.id) &&
+            overridable(s.scannedAt),
+        )
+      : [];
 
   const columns: Column<AccessScan>[] = [
     {
@@ -1082,6 +1531,11 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
       label: t("credentials.scans.when"),
       primary: true,
       render: (s) => dateTime(format, s.scannedAt, timeZone),
+    },
+    {
+      key: "direction",
+      label: t("credentials.scans.direction"),
+      render: (s) => t(`credentials.scans.directions.${s.direction}`),
     },
     {
       key: "number",
@@ -1104,7 +1558,7 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
       key: "result",
       label: t("credentials.scans.result"),
       primary: true,
-      render: (s) => <ResultChip page={page} result={s.result} />,
+      render: (s) => <ResultChip page={page} scan={s} />,
     },
   ];
 
@@ -1135,8 +1589,28 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
               { value: "Denied", label: t("credentials.scans.denied") },
             ],
           },
+          {
+            name: "direction",
+            label: t("credentials.scans.direction"),
+            value: scanDirection ?? "",
+            options: [
+              { value: "", label: t("credentials.scans.allDirections") },
+              ...SCAN_DIRECTIONS.map((d) => ({
+                value: d,
+                label: t(`credentials.scans.directions.${d}`),
+              })),
+            ],
+          },
         ]}
       />
+      {inside && page.project ? (
+        <InsideNow
+          org={page.ctx.org.slug}
+          projectKey={page.project.key}
+          initial={{ zones: inside, at: new Date().toISOString() }}
+          timeZone={page.project.timeZone}
+        />
+      ) : null}
       {canScan && page.project && zones.length > 0 ? (
         <RecordSection id="scan-desk" title={t("credentials.scans.deskHeading")}>
           <p className="m-0 text-text-13 text-text-secondary">{t("credentials.scans.deskHelp")}</p>
@@ -1158,6 +1632,15 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
               }))}
               required
             />
+            <SelectField
+              id="scan-direction"
+              name="direction"
+              label={t("credentials.scans.directionLabel")}
+              options={SCAN_DIRECTIONS.map((d) => ({
+                value: d,
+                label: t(`credentials.scans.directions.${d}`),
+              }))}
+            />
             <TextField
               id="scan-number"
               name="credentialNumber"
@@ -1167,6 +1650,45 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
               maxLength={40}
             />
           </ActionForm>
+        </RecordSection>
+      ) : null}
+      {recentDenials.length > 0 ? (
+        <RecordSection id="recent-denials" title={t("credentials.scans.recentDenials")}>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("credentials.scans.recentDenialsHelp")}
+          </p>
+          <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
+            {recentDenials.map((s) => (
+              <li key={s.id} className="flex flex-col gap-8 py-8">
+                <p className="m-0 text-text-13">
+                  {joined(
+                    s.holderName ?? t("credentials.common.unnamed"),
+                    s.credentialNumber,
+                    s.zoneCode,
+                    dateTime(format, s.scannedAt, timeZone),
+                  )}{" "}
+                  <ResultChip page={page} scan={s} />
+                </p>
+                <ActionForm
+                  action={overrideScanAction}
+                  hidden={{ org: page.ctx.org.slug, scanId: s.id }}
+                  submitLabel={t("credentials.scans.overrideSubmit")}
+                  successKey="credentials.scans.overrideDone"
+                  variant="secondary"
+                  layout="inline"
+                >
+                  <TextField
+                    id={`override-${s.id}`}
+                    name="reason"
+                    label={t("credentials.scans.overrideReason")}
+                    help={t("credentials.scans.overrideReasonHelp")}
+                    required
+                    maxLength={300}
+                  />
+                </ActionForm>
+              </li>
+            ))}
+          </ul>
         </RecordSection>
       ) : null}
       <ScanIntakeQueue page={page} />
@@ -1187,7 +1709,7 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
             href: `/${page.ctx.org.slug}/credentials/issued?project=${s.projectKey}&peek=${s.credentialId}` as Route,
             title: `${s.holderName ?? t("credentials.common.unnamed")} · ${s.zoneCode}`,
             meta: `${s.credentialNumber} · ${dateTime(format, s.scannedAt, timeZone)}`,
-            trailing: <ResultChip page={page} result={s.result} />,
+            trailing: <ResultChip page={page} scan={s} />,
           }))}
         />
       ) : (

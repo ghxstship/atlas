@@ -4,12 +4,14 @@
  * frozen contract" in packages/api/README.md.
  *
  * A14 (RRR-26): credential categories, issued credentials, the access grid, scans, certifications
- * and certification holders, against migrations 0352, 0470 and 0985.
+ * and certification holders, against migrations 0352, 0470 and 0985. B8 (RRR-232, 2970 and 2972): a scan's
+ * direction, the database's refusal reason and the supervisor override, and the training a category requires.
  */
 import { z } from "@hono/zod-openapi";
-import { fields } from "@xos/schemas";
+import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, setOrder } from "../correct.ts";
+import { itemAction, resource } from "../define.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -17,8 +19,93 @@ const scanResult = z
   .enum(["Granted", "Denied"])
   .meta({ description: "The database's decision for the scan.", example: "Granted" });
 
+const scanDirection = z
+  .enum(["In", "Out"])
+  .meta({ description: "In at the zone, or Out. An Out scan is never refused.", example: "In" });
+
+const refusalReason = z
+  .enum(["Revoked", "Not Yet Valid", "Expired", "No Zone Access", "Outside Window"])
+  .meta({
+    description:
+      "Why the database denied an In scan, the first check that failed; null for a granted scan and for denials recorded before B8.",
+    example: "Outside Window",
+  });
+
+/** app.credential_category_requirements (2972, B8): what a category requires before it is issued. */
+const CredentialCategoryRequirement = defineResource({
+  name: "CredentialCategoryRequirement",
+  table: "app.credential_category_requirements",
+  description:
+    "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422).",
+  immutable: ["credential_category_id", "training_course_id", "certification_id"],
+  serverSet: ["created_by", "updated_by"],
+  fields: {
+    credential_category_id: fields.ref("credential category"),
+    training_course_id: orNull(fields.ref("training course the holder must have passed")),
+    certification_id: orNull(fields.ref("certification the holder must hold")),
+    created_by: orNull(fields.uuid("Person who added the requirement.")),
+    updated_by: orNull(fields.uuid("Person who last changed the requirement.")),
+  },
+});
+
+const overrideBody = z
+  .object({
+    reason: z.string().min(1).max(300).meta({
+      description: "Why the supervisor lets the holder in, 1 to 300 characters.",
+      example: "Badge reprint pending; confirmed with the production office.",
+    }),
+    id: fields.uuid("Client id of the override scan, for an offline replay.").optional(),
+  })
+  .meta({
+    id: "AccessScanOverrideRequest",
+    description: "A supervisor override of a denied scan.",
+  });
+
 export const additions = defineAdditions("Credentials", {
+  resources: [
+    resource("Credentials", "/credential-category-requirements", CredentialCategoryRequirement, {
+      verbs: ["list", "get", "create", "delete"],
+    }),
+  ],
+  actions: {
+    accessScans: [
+      itemAction("override", {
+        summary: "Override a denied scan",
+        description:
+          "Lets the holder of a Denied In scan less than 15 minutes old in: records a new Granted In row tied to it, with the reason. Needs credentials.credential.issue on the project. Refuses scan_not_denied, scan_override_revoked (a revoked badge is never let in), scan_override_stale, scan_override_taken, scan_override_self (the holder) and scan_override_reason (422).",
+        body: overrideBody,
+        status: 201,
+        rpc: "app.override_access_scan",
+      }),
+    ],
+  },
+  capabilities: {
+    credentialCategoryRequirements: {
+      read: "credentials.credential.read",
+      write: "credentials.category.write",
+    },
+    accessScans: { actions: { override: "credentials.credential.issue" } },
+  },
   corrections: [
+    {
+      id: "credential-category-kind",
+      since: SINCE,
+      resources: ["credentialCategories"],
+      change: "Adds the optional `category_kind`, Access or Parking (Access by default).",
+      reason:
+        "app.credential_categories.category_kind (2691, R7) makes a parking pass a credential category of kind Parking, tied to parking zones through the access grid; allocations read the kind (Credential or Parking Pass).",
+      apply: editShape({
+        add: {
+          category_kind: {
+            schema: z.enum(["Access", "Parking"]).meta({
+              description: "Access badge or parking pass.",
+              example: "Parking",
+            }),
+            create: "optional",
+          },
+        },
+      }),
+    },
     {
       id: "credential-category-project-and-code",
       since: SINCE,
@@ -124,6 +211,29 @@ export const additions = defineAdditions("Credentials", {
           },
         },
         serverSet: ["scanned_at"],
+      }),
+    },
+    {
+      id: "access-scan-direction-and-override",
+      since: SINCE,
+      resources: ["accessScans"],
+      change:
+        "Adds `direction` (In or Out, optional on create, In by default), the database's `refusal_reason`, and `override_of_scan_id` and `override_reason`, which the `override` action sets.",
+      reason:
+        "app.access_scans gains direction and refusal_reason, set by private.decide_access_scan, and override columns written only by app.override_access_scan (2970, B8): an override is a new Granted In row tied to the denied scan, so the log stays append-only. Adding them back is additive.",
+      apply: editShape({
+        add: {
+          direction: { schema: scanDirection, create: "optional" },
+          refusal_reason: { schema: orNull(refusalReason) },
+          override_of_scan_id: {
+            schema: orNull(fields.ref("denied In scan this row overrides")),
+          },
+          override_reason: {
+            schema: orNull(
+              fields.text("Why the supervisor let the holder in.", "Reprint pending", 300),
+            ),
+          },
+        },
       }),
     },
     {

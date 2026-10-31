@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Advancing repository (Section 4.2): advance packets, their sections and party-bound recipients,
@@ -304,16 +305,94 @@ export async function listPackets(
   );
 }
 
-export interface AdvanceSection {
+/** What a section asks for (app.advance_section_kind, R9). */
+export const ADVANCE_SECTION_KINDS = [
+  "Text",
+  "File",
+  "Schedule Window",
+  "Item Request",
+  "Crew Roster",
+  "Guest List",
+  "Credential Request",
+] as const;
+export type AdvanceSectionKind = (typeof ADVANCE_SECTION_KINDS)[number];
+
+/** What a Schedule Window section asks the time of (app.advance_window_kind, R9). */
+export const ADVANCE_WINDOW_KINDS = [
+  "Load In",
+  "Load Out",
+  "Arrival",
+  "Soundcheck",
+  "Activation Setup",
+  "Activation Strike",
+] as const;
+export type AdvanceWindowKind = (typeof ADVANCE_WINDOW_KINDS)[number];
+
+/** The most lines each kind lets an answer hold, as advance_sections_kind_fields checks it. */
+export const SECTION_LINE_LIMITS: Readonly<Partial<Record<AdvanceSectionKind, number>>> = {
+  File: 10,
+  "Schedule Window": 5,
+  "Item Request": 50,
+  "Credential Request": 50,
+};
+
+/** How a section is configured beyond its title and prompt (R9). */
+export interface SectionConfig {
+  readonly kind: AdvanceSectionKind;
+  readonly windowKind: AdvanceWindowKind | null;
+  readonly maxLines: number | null;
+  readonly perPerson: boolean;
+}
+
+/** An asset class an Item Request offers, or a credential category a Credential Request offers. */
+export interface SectionChoice {
+  readonly id: string;
+  readonly assetClassId: string | null;
+  readonly credentialCategoryId: string | null;
+  readonly name: string;
+}
+
+export interface AdvanceSection extends SectionConfig {
   readonly id: string;
   readonly position: number;
   readonly title: string;
   readonly prompt: string | null;
+  readonly choices: readonly SectionChoice[];
 }
 
 export interface AdvanceRecipient {
   readonly id: string;
   readonly party: AdvanceParty;
+  /** Engagement the recipient answers under (R9); null for token recipients and venues. */
+  readonly engagementId: string | null;
+  /** When the party stops naming people on the passes it requested (G-141); null without one. */
+  readonly namesDueAt: string | null;
+  /** True once namesDueAt has passed, as of the read. */
+  readonly namesClosed: boolean;
+}
+
+/** The section configuration a kind allows, or null when the input does not fit the kind. */
+export function sectionConfig(input: {
+  readonly kind: AdvanceSectionKind;
+  readonly windowKind?: AdvanceWindowKind | null;
+  readonly maxLines?: number | null;
+  readonly perPerson?: boolean;
+}): SectionConfig | null {
+  const limit = SECTION_LINE_LIMITS[input.kind];
+  if (limit === undefined)
+    return { kind: input.kind, windowKind: null, maxLines: null, perPerson: false };
+  const maxLines = input.maxLines ?? null;
+  if (maxLines === null || !Number.isInteger(maxLines) || maxLines < 1 || maxLines > limit)
+    return null;
+  if (input.kind === "Schedule Window") {
+    if (!input.windowKind) return null;
+    return { kind: input.kind, windowKind: input.windowKind, maxLines, perPerson: false };
+  }
+  const perPerson =
+    input.kind === "Item Request" || input.kind === "Credential Request"
+      ? input.perPerson === true
+      : false;
+  return { kind: input.kind, windowKind: null, maxLines, perPerson };
 }
 
 export interface AdvanceSubmission {
@@ -328,6 +407,8 @@ export interface AdvanceSubmission {
   readonly returnReason: string | null;
   /** True when the recipient answered through a Gateway advance link. */
   readonly viaLink: boolean;
+  /** The recipient's note on a typed answer (R9). */
+  readonly note: string | null;
   /** True for the newest submission of its section and recipient pair. */
   readonly latest: boolean;
 }
@@ -343,6 +424,7 @@ interface SubmissionRow {
   review_outcome: ReviewOutcome | null;
   return_reason: string | null;
   advance_recipient_token_id: string | null;
+  note: string | null;
 }
 
 /** Live submissions to the given sections, newest first. */
@@ -354,7 +436,7 @@ async function fetchSubmissions(
   const { data, error } = await db
     .from("advance_submissions")
     .select(
-      "id, advance_section_id, advance_recipient_id, body, submitted_at, reviewed_at, reviewed_by, review_outcome, return_reason, advance_recipient_token_id",
+      "id, advance_section_id, advance_recipient_id, body, submitted_at, reviewed_at, reviewed_by, review_outcome, return_reason, advance_recipient_token_id, note",
     )
     .in("advance_section_id", sectionIds)
     .is("deleted_at", null)
@@ -372,8 +454,38 @@ async function fetchSubmissions(
       reviewOutcome: s.review_outcome,
       returnReason: s.return_reason,
       viaLink: s.advance_recipient_token_id !== null,
+      note: s.note,
     })),
   );
+}
+
+/** Live choices of the given sections, by section, each named by its class or category. */
+async function sectionChoices(
+  db: XosClient,
+  sectionIds: readonly string[],
+): Promise<Result<Map<string, SectionChoice[]>>> {
+  const bySection = new Map<string, SectionChoice[]>();
+  if (sectionIds.length === 0) return ok(bySection);
+  const { data, error } = await db
+    .from("advance_section_choices")
+    .select(
+      "id, advance_section_id, asset_class_id, credential_category_id, asset_class:asset_classes(name), category:credential_categories(name)",
+    )
+    .in("advance_section_id", [...sectionIds])
+    .is("deleted_at", null)
+    .order("created_at");
+  if (error) return fail(toDataError(error));
+  for (const c of data) {
+    const list = bySection.get(c.advance_section_id) ?? [];
+    list.push({
+      id: c.id,
+      assetClassId: c.asset_class_id,
+      credentialCategoryId: c.credential_category_id,
+      name: c.asset_class?.name ?? c.category?.name ?? "",
+    });
+    bySection.set(c.advance_section_id, list);
+  }
+  return ok(bySection);
 }
 
 export interface PacketDetail extends PacketSummary {
@@ -399,19 +511,24 @@ export async function getPacket(
   const [sections, recipients] = await Promise.all([
     db
       .from("advance_sections")
-      .select("id, position, title, prompt")
+      .select("id, position, title, prompt, section_kind, window_kind, max_lines, per_person")
       .eq("advance_packet_id", packetId)
       .is("deleted_at", null)
       .order("position"),
     db
       .from("advance_recipients")
-      .select("id, person_id, counterparty_id")
+      .select("id, person_id, counterparty_id, engagement_id, names_due_at")
       .eq("advance_packet_id", packetId)
       .is("deleted_at", null)
       .order("created_at"),
   ]);
   if (sections.error) return fail(toDataError(sections.error));
   if (recipients.error) return fail(toDataError(recipients.error));
+  const choices = await sectionChoices(
+    db,
+    sections.data.map((s) => s.id),
+  );
+  if (!choices.ok) return fail(choices.error);
   const names = await partyNames(
     db,
     recipients.data.flatMap((r) => (r.person_id ? [r.person_id] : [])),
@@ -428,6 +545,9 @@ export async function getPacket(
   const submissions = rows.map((s) => ({ ...s, latest: latest.has(s.id) }));
   const recipientList = recipients.data.map((r): AdvanceRecipient => ({
     id: r.id,
+    engagementId: r.engagement_id,
+    namesDueAt: r.names_due_at,
+    namesClosed: r.names_due_at !== null && new Date(r.names_due_at).getTime() <= now.getTime(),
     party: r.person_id
       ? {
           kind: "person",
@@ -448,6 +568,11 @@ export async function getPacket(
       position: s.position,
       title: s.title,
       prompt: s.prompt,
+      kind: s.section_kind,
+      windowKind: s.window_kind,
+      maxLines: s.max_lines,
+      perPerson: s.per_person,
+      choices: choices.data.get(s.id) ?? [],
     }))
     .sort(byPosition);
   const progress = packetProgress(
@@ -662,10 +787,18 @@ export async function addSection(
     readonly packetId: string;
     readonly title: string;
     readonly prompt: string | null;
+    /** The kind and its configuration (R9); Text when left out. */
+    readonly config?: SectionConfig;
   },
 ): Promise<Result<{ id: string }>> {
   const title = cleanTitle(input.title);
   if (title === null) return fail({ kind: "invalid", message: "title" });
+  const config = input.config ?? {
+    kind: "Text",
+    windowKind: null,
+    maxLines: null,
+    perPerson: false,
+  };
   const { data: last, error: readError } = await db
     .from("advance_sections")
     .select("position")
@@ -684,11 +817,114 @@ export async function addSection(
       position,
       title,
       prompt,
+      section_kind: config.kind,
+      window_kind: config.windowKind,
+      max_lines: config.maxLines,
+      per_person: config.perPerson,
     })
     .select("id")
     .single();
   if (error) return fail(toDataError(error));
   return ok({ id: data.id });
+}
+
+/** Changes a draft section's kind and configuration (fixed once the packet is sent). */
+export async function configureSection(
+  db: XosClient,
+  sectionId: string,
+  config: SectionConfig,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("advance_sections")
+    .update({
+      section_kind: config.kind,
+      window_kind: config.windowKind,
+      max_lines: config.maxLines,
+      per_person: config.perPerson,
+    })
+    .eq("id", sectionId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/** Offers an asset class (Item Request) or a credential category (Credential Request) in a section. */
+export async function addSectionChoice(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly sectionId: string;
+    readonly target: { readonly kind: "asset_class" | "credential_category"; readonly id: string };
+  },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db
+    .from("advance_section_choices")
+    .insert({
+      org_id: input.orgId,
+      advance_section_id: input.sectionId,
+      asset_class_id: input.target.kind === "asset_class" ? input.target.id : null,
+      credential_category_id: input.target.kind === "credential_category" ? input.target.id : null,
+    })
+    .select("id")
+    .single();
+  if (error) return fail(toDataError(error));
+  return ok({ id: data.id });
+}
+
+/** Removes a choice from a draft section (soft delete). */
+export async function removeSectionChoice(
+  db: XosClient,
+  choiceId: string,
+  now: Date = new Date(),
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("advance_section_choices")
+    .update({ deleted_at: now.toISOString() })
+    .eq("id", choiceId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/** What a project's sections can offer: asset classes that answer for an offering, and credential categories. */
+export interface SectionChoiceOptions {
+  readonly assetClasses: readonly { id: string; name: string; offering: string }[];
+  readonly credentialCategories: readonly { id: string; name: string; kind: string }[];
+}
+
+export async function listSectionChoiceOptions(
+  db: XosClient,
+  input: { readonly orgId: string; readonly projectId: string },
+): Promise<Result<SectionChoiceOptions>> {
+  const [classes, categories] = await Promise.all([
+    db
+      .from("asset_classes")
+      .select("id, name, offering")
+      .eq("org_id", input.orgId)
+      .not("offering", "is", null)
+      .is("deleted_at", null)
+      .order("name"),
+    db
+      .from("credential_categories")
+      .select("id, name, category_kind")
+      .eq("project_id", input.projectId)
+      .is("deleted_at", null)
+      .order("name"),
+  ]);
+  if (classes.error) return fail(toDataError(classes.error));
+  if (categories.error) return fail(toDataError(categories.error));
+  return ok({
+    assetClasses: classes.data.flatMap((c) =>
+      c.offering ? [{ id: c.id, name: c.name, offering: c.offering }] : [],
+    ),
+    credentialCategories: categories.data.map((k) => ({
+      id: k.id,
+      name: k.name,
+      kind: k.category_kind,
+    })),
+  });
 }
 
 /** Changes a section's title or prompt. */
@@ -772,6 +1008,10 @@ export async function addRecipient(
     readonly orgId: string;
     readonly packetId: string;
     readonly party: { readonly kind: "person" | "counterparty"; readonly id: string };
+    /** The engagement the recipient answers under (R9). */
+    readonly engagementId?: string | null;
+    /** When the party stops naming people on requested passes (G-141); needs an engagement. */
+    readonly namesDueAt?: string | null;
   },
 ): Promise<Result<{ id: string }>> {
   const column = input.party.kind === "person" ? "person_id" : "counterparty_id";
@@ -792,11 +1032,86 @@ export async function addRecipient(
       advance_packet_id: input.packetId,
       person_id: input.party.kind === "person" ? input.party.id : null,
       counterparty_id: input.party.kind === "counterparty" ? input.party.id : null,
+      engagement_id: input.engagementId ?? null,
+      names_due_at: input.engagementId ? (input.namesDueAt ?? null) : null,
     })
     .select("id")
     .single();
   if (error) return fail(toDataError(error));
   return ok({ id: data.id });
+}
+
+/** Links a draft recipient to the engagement it answers under (fixed once the packet is sent). */
+export async function bindRecipientEngagement(
+  db: XosClient,
+  recipientId: string,
+  engagementId: string | null,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("advance_recipients")
+    .update({ engagement_id: engagementId })
+    .eq("id", recipientId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/**
+ * Sets or clears a recipient's naming deadline (G-141, migration 2716). It stays editable after
+ * the packet is sent; a recipient without an engagement takes none.
+ */
+export async function setRecipientNamesDue(
+  db: XosClient,
+  recipientId: string,
+  namesDueAt: string | null,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("advance_recipients")
+    .update({ names_due_at: namesDueAt })
+    .eq("id", recipientId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/** Live engagements of a project with their party, for linking recipients. */
+export interface ProjectEngagement {
+  readonly id: string;
+  readonly personId: string | null;
+  readonly counterpartyId: string | null;
+  readonly roleType: string;
+  readonly name: string | null;
+}
+
+export async function listProjectEngagements(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ProjectEngagement[]>> {
+  const { data, error } = await db
+    .from("engagements")
+    .select("id, person_id, counterparty_id, role_type, engagement_state")
+    .eq("project_id", projectId)
+    .is("deleted_at", null)
+    .not("engagement_state", "in", "(Complete,Canceled)")
+    .order("created_at");
+  if (error) return fail(toDataError(error));
+  const names = await partyNames(
+    db,
+    data.flatMap((e) => (e.person_id ? [e.person_id] : [])),
+    data.flatMap((e) => (e.counterparty_id ? [e.counterparty_id] : [])),
+  );
+  if (!names.ok) return fail(names.error);
+  return ok(
+    data.map((e) => ({
+      id: e.id,
+      personId: e.person_id,
+      counterpartyId: e.counterparty_id,
+      roleType: e.role_type,
+      name: names.data.get(e.counterparty_id ?? "") ?? names.data.get(e.person_id ?? "") ?? null,
+    })),
+  );
 }
 
 /** Removes a recipient (soft delete); their answers stay on record. */
@@ -825,6 +1140,9 @@ export interface SubmissionListItem extends AdvanceSubmission {
   readonly projectId: string;
   readonly sectionTitle: string;
   readonly sectionPrompt: string | null;
+  /** The section's kind and window kind (R9). */
+  readonly sectionKind: AdvanceSectionKind;
+  readonly windowKind: AdvanceWindowKind | null;
   readonly recipient: AdvanceParty;
 }
 
@@ -850,7 +1168,7 @@ export async function listSubmissions(
   const [sections, recipients] = await Promise.all([
     db
       .from("advance_sections")
-      .select("id, advance_packet_id, title, prompt")
+      .select("id, advance_packet_id, title, prompt, section_kind, window_kind")
       .in("advance_packet_id", packetIds)
       .is("deleted_at", null),
     db
@@ -892,6 +1210,8 @@ export async function listSubmissions(
         projectId: packet.project_id,
         sectionTitle: section.title,
         sectionPrompt: section.prompt,
+        sectionKind: section.section_kind,
+        windowKind: section.window_kind,
         recipient: {
           kind: recipient.person_id ? "person" : "counterparty",
           id: partyId,
@@ -988,6 +1308,224 @@ export async function reviewSubmission(
     return refuse("advance_submission_reviewed", "This answer was already reviewed.");
   }
   return ok({ reviewedAt });
+}
+
+// Typed answer details (R9, migrations 2711 and 2712) ------------------------------------------------
+
+/** One line of a typed answer as a reviewer reads it. */
+export interface AnswerLine {
+  readonly id: string;
+  readonly submissionId: string;
+  readonly lineNumber: number;
+  /** The class or category name; null on a window line. */
+  readonly itemName: string | null;
+  readonly quantity: number | null;
+  readonly rosterEntryId: string | null;
+  readonly personName: string | null;
+  readonly neededFrom: string | null;
+  readonly neededTo: string | null;
+  readonly windowZone: string | null;
+  readonly note: string | null;
+  readonly allocationId: string | null;
+  /** The allocation's computed stage (app.advance_allocation_status), e.g. Requested or Reserved. */
+  readonly allocationStatus: string | null;
+  /** Named people on a credential pool line: the live Requested or Approved shares split from it (G-141). */
+  readonly namedQuantity: number | null;
+  /** The pool's quantity now, for "Named n of q" (G-141). */
+  readonly poolQuantity: number | null;
+  /** The dock slot booked from a Load In or Load Out window. */
+  readonly dockSlotId: string | null;
+}
+
+/** One file of a File answer, with the version Atlas serves at /files/party/<version>. */
+export interface AnswerFile {
+  readonly id: string;
+  readonly submissionId: string;
+  readonly position: number;
+  readonly title: string;
+  readonly versionId: string | null;
+}
+
+/** The parsed bounds of a Postgres tstzrange literal such as ["2027-06-01 08:00:00+00","…"). */
+export function windowBounds(range: string | null): { from: string | null; to: string | null } {
+  if (!range) return { from: null, to: null };
+  const match = /^[[(]"?([^",]*)"?,"?([^")]*)"?[)\]]$/.exec(range);
+  if (!match) return { from: null, to: null };
+  // Postgres writes "2027-06-01 08:00:00+00"; Date wants a T and a full offset.
+  const iso = (v: string | undefined) =>
+    v ? new Date(v.replace(" ", "T").replace(/([+-]\d\d)$/, "$1:00")).toISOString() : null;
+  return { from: iso(match[1]), to: iso(match[2]) };
+}
+
+/** Lines and files of the given answers, in order, with each line's allocation stage. */
+export async function listAnswerDetails(
+  db: XosClient,
+  submissionIds: readonly string[],
+): Promise<Result<{ lines: AnswerLine[]; files: AnswerFile[] }>> {
+  if (submissionIds.length === 0) return ok({ lines: [], files: [] });
+  const ids = [...new Set(submissionIds)];
+  const [lines, files] = await Promise.all([
+    db
+      .from("advance_submission_lines")
+      .select(
+        "id, advance_submission_id, line_number, asset_class_id, credential_category_id, roster_entry_id, quantity, needed_window, window_zone, note, asset_class:asset_classes(name), category:credential_categories(name)",
+      )
+      .in("advance_submission_id", ids)
+      .order("line_number"),
+    db
+      .from("advance_submission_files")
+      .select(
+        "id, advance_submission_id, position, document:documents(title, versions:document_versions(id, version_number))",
+      )
+      .in("advance_submission_id", ids)
+      .order("position"),
+  ]);
+  if (lines.error) return fail(toDataError(lines.error));
+  if (files.error) return fail(toDataError(files.error));
+  const lineIds = lines.data.map((l) => l.id);
+  const entryIds = lines.data.flatMap((l) => (l.roster_entry_id ? [l.roster_entry_id] : []));
+  const [allocations, slots, entries] = await Promise.all([
+    lineIds.length === 0
+      ? Promise.resolve({ data: [], error: null })
+      : db
+          .from("advance_allocations")
+          .select("id, advance_submission_line_id, quantity")
+          .in("advance_submission_line_id", lineIds),
+    lineIds.length === 0
+      ? Promise.resolve({ data: [], error: null })
+      : db
+          .from("dock_slots")
+          .select("id, advance_submission_line_id")
+          .in("advance_submission_line_id", lineIds)
+          .is("deleted_at", null),
+    entryIds.length === 0
+      ? Promise.resolve({ data: [], error: null })
+      : db
+          .from("engagement_roster_entries")
+          .select("id, person_id, is_self, engagement:engagements(person_id)")
+          .in("id", entryIds),
+  ]);
+  if (allocations.error) return fail(toDataError(allocations.error));
+  if (slots.error) return fail(toDataError(slots.error));
+  if (entries.error) return fail(toDataError(entries.error));
+  const allocationIds = allocations.data.map((a) => a.id);
+  const [status, shares] = await Promise.all([
+    allocationIds.length === 0
+      ? Promise.resolve({ data: [], error: null })
+      : db
+          .from("advance_allocation_status")
+          .select("allocation_id, display_status")
+          .in("allocation_id", allocationIds),
+    allocationIds.length === 0
+      ? Promise.resolve({ data: [], error: null })
+      : db
+          .from("advance_allocations")
+          .select("parent_allocation_id, quantity")
+          .in("parent_allocation_id", allocationIds)
+          .in("allocation_state", ["Requested", "Approved"])
+          .is("deleted_at", null),
+  ]);
+  if (status.error) return fail(toDataError(status.error));
+  if (shares.error) return fail(toDataError(shares.error));
+  const personByEntry = new Map(
+    entries.data.map((e) => [
+      e.id,
+      e.person_id ?? (e.is_self ? (e.engagement?.person_id ?? null) : null),
+    ]),
+  );
+  const names = await partyNames(
+    db,
+    [...personByEntry.values()].flatMap((p) => (p ? [p] : [])),
+    [],
+  );
+  if (!names.ok) return fail(names.error);
+  const allocationByLine = new Map(
+    allocations.data.map((a) => [a.advance_submission_line_id ?? "", a]),
+  );
+  const statusById = new Map(status.data.map((r) => [r.allocation_id ?? "", r.display_status]));
+  const named = new Map<string, number>();
+  for (const share of shares.data) {
+    const key = share.parent_allocation_id ?? "";
+    named.set(key, (named.get(key) ?? 0) + Number(share.quantity));
+  }
+  const slotByLine = new Map(slots.data.map((d) => [d.advance_submission_line_id ?? "", d.id]));
+  return ok({
+    lines: lines.data.map((l): AnswerLine => {
+      const window = windowBounds(l.needed_window as string | null);
+      const allocation = allocationByLine.get(l.id);
+      const person = l.roster_entry_id ? (personByEntry.get(l.roster_entry_id) ?? null) : null;
+      const isPool =
+        allocation !== undefined && l.credential_category_id !== null && l.roster_entry_id === null;
+      return {
+        id: l.id,
+        submissionId: l.advance_submission_id,
+        lineNumber: l.line_number,
+        itemName: l.asset_class?.name ?? l.category?.name ?? null,
+        quantity: l.quantity,
+        rosterEntryId: l.roster_entry_id,
+        personName: person ? (names.data.get(person) ?? null) : null,
+        neededFrom: window.from,
+        neededTo: window.to,
+        windowZone: l.window_zone,
+        note: l.note,
+        allocationId: allocation?.id ?? null,
+        allocationStatus: allocation ? (statusById.get(allocation.id) ?? null) : null,
+        namedQuantity: isPool ? (named.get(allocation.id) ?? 0) : null,
+        poolQuantity: isPool ? Number(allocation.quantity) + (named.get(allocation.id) ?? 0) : null,
+        dockSlotId: slotByLine.get(l.id) ?? null,
+      };
+    }),
+    files: files.data.map((f): AnswerFile => {
+      const versions = [...(f.document?.versions ?? [])].sort(
+        (a, b) => b.version_number - a.version_number,
+      );
+      return {
+        id: f.id,
+        submissionId: f.advance_submission_id,
+        position: f.position,
+        title: f.document?.title ?? "",
+        versionId: versions[0]?.id ?? null,
+      };
+    }),
+  });
+}
+
+/**
+ * Books an Accepted Load In or Load Out window as a dock slot of the recipient's engagement
+ * (app.book_dock_slot_from_answer); needs logistics.dock_slot.write.
+ */
+export async function bookDockSlotFromAnswer(
+  db: XosClient,
+  input: { readonly lineId: string; readonly zoneId: string },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db.rpc("book_dock_slot_from_answer", {
+    p_line_id: input.lineId,
+    p_zone_id: input.zoneId,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data });
+}
+
+/** Zones of the project's venue, for booking a dock slot. */
+export async function listProjectZones(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<{ id: string; code: string; name: string }[]>> {
+  const { data: project, error } = await db
+    .from("projects")
+    .select("venue_id")
+    .eq("id", projectId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!project?.venue_id) return ok([]);
+  const zones = await db
+    .from("zones")
+    .select("id, code, name")
+    .eq("venue_id", project.venue_id)
+    .is("deleted_at", null)
+    .order("code");
+  if (zones.error) return fail(toDataError(zones.error));
+  return ok(zones.data);
 }
 
 // Riders --------------------------------------------------------------------------------------------
@@ -1561,6 +2099,14 @@ export interface GuestEntry {
   readonly checkedInAt: string | null;
   readonly createdAt: string;
   readonly createdBy: string | null;
+  /** The pass (B8, 2974): an Access category of the project, set by the production. */
+  readonly passCategoryId: string | null;
+  readonly tableLabel: string | null;
+  readonly hostPersonId: string | null;
+  /** Confidential; where the guest's pass and messages go. */
+  readonly guestEmail: string | null;
+  /** Stamped by the database on approval; printed as XOSGP1:<code>. */
+  readonly passCode: string | null;
 }
 
 /** A show or other scope node a guest can attend. */
@@ -1585,22 +2131,46 @@ export async function listProjectScopes(
   return ok(data.map((n) => ({ id: n.id, code: n.scope_code, name: n.name })));
 }
 
+/** A guest list row as listGuests reads it; the pass columns (2974) are newer than the generated types. */
+interface GuestRow {
+  id: string;
+  project_id: string;
+  scope_node_id: string | null;
+  person_id: string | null;
+  counterparty_id: string | null;
+  engagement_id: string | null;
+  guest_name: string;
+  plus_ones: number;
+  note: string | null;
+  entry_state: GuestState;
+  decided_at: string | null;
+  checked_in_at: string | null;
+  created_at: string;
+  created_by: string | null;
+  pass_category_id: string | null;
+  table_label: string | null;
+  host_person_id: string | null;
+  guest_email: string | null;
+  pass_code: string | null;
+}
+
 /** The guest list of the org or one project, oldest request first, optionally in one state. */
 export async function listGuests(
   db: XosClient,
   filter: { readonly orgId: string; readonly projectId?: string; readonly state?: GuestState },
 ): Promise<Result<GuestEntry[]>> {
-  let query = db
+  let query = untyped(db)
     .from("guest_list_entries")
     .select(
-      "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by",
+      "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by, pass_category_id, table_label, host_person_id, guest_email, pass_code",
     )
     .eq("org_id", filter.orgId)
     .is("deleted_at", null);
   if (filter.projectId !== undefined) query = query.eq("project_id", filter.projectId);
   if (filter.state !== undefined) query = query.eq("entry_state", filter.state);
-  const { data, error } = await query.order("created_at");
+  const { data: raw, error } = await query.order("created_at");
   if (error) return fail(toDataError(error));
+  const data = (raw ?? []) as GuestRow[];
   const names = await partyNames(
     db,
     data.flatMap((g) => (g.person_id ? [g.person_id] : [])),
@@ -1641,6 +2211,11 @@ export async function listGuests(
       checkedInAt: g.checked_in_at,
       createdAt: g.created_at,
       createdBy: g.created_by,
+      passCategoryId: g.pass_category_id,
+      tableLabel: g.table_label,
+      hostPersonId: g.host_person_id,
+      guestEmail: g.guest_email,
+      passCode: g.pass_code,
     })),
   );
 }
@@ -1672,11 +2247,15 @@ export async function addGuest(
     readonly orgId: string;
     readonly projectId: string;
     readonly approve?: boolean;
+    /** The pass fields (B8, 2974), set by the production with the guest. */
+    readonly pass?: GuestPassInput;
   },
 ): Promise<Result<{ id: string }>> {
   const guest = cleanGuest(input);
   if (guest === null) return fail({ kind: "invalid", message: "guest" });
-  const { data, error } = await db
+  const pass = input.pass ? cleanGuestPass(input.pass) : null;
+  if (pass === undefined) return fail({ kind: "invalid", message: "guest_pass" });
+  const { data, error } = await untyped(db)
     .from("guest_list_entries")
     .insert({
       org_id: input.orgId,
@@ -1686,11 +2265,19 @@ export async function addGuest(
       plus_ones: guest.plusOnes,
       note: guest.note,
       entry_state: input.approve === true ? "Approved" : "Requested",
+      ...(pass
+        ? {
+            pass_category_id: pass.passCategoryId,
+            table_label: pass.tableLabel,
+            host_person_id: pass.hostPersonId,
+            guest_email: pass.guestEmail,
+          }
+        : {}),
     })
     .select("id")
     .single();
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({ id: (data as { id: string }).id });
 }
 
 /** Changes a requested guest; a decided guest keeps its guest (0431 guard). */
@@ -1714,6 +2301,287 @@ export async function updateGuest(
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/** A guest's pass fields (B8, 2974), set by the production in any state but Checked In. */
+export interface GuestPassInput {
+  readonly passCategoryId: string | null;
+  readonly tableLabel: string | null;
+  readonly hostPersonId: string | null;
+  readonly guestEmail: string | null;
+}
+
+/** The pattern and length app.guest_list_entries_guest_email checks (1382's address rule). */
+export function cleanGuestEmail(value: string | null | undefined): string | null | undefined {
+  const email = (value ?? "").trim().toLowerCase();
+  if (email === "") return null;
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : undefined;
+}
+
+/**
+ * Sets a guest's pass type, table, host and email. The database checks the pass type is an Access category of the
+ * project (guest_pass_category), the host a project person (guest_host_not_on_project), and keeps them once the
+ * guest is checked in (guest_entry_checked_in).
+ */
+/** The pass fields trimmed and checked, or undefined when one is out of range. */
+function cleanGuestPass(input: GuestPassInput): GuestPassInput | undefined {
+  const tableLabel = input.tableLabel?.trim() ? input.tableLabel.trim() : null;
+  const guestEmail = cleanGuestEmail(input.guestEmail);
+  if ((tableLabel !== null && tableLabel.length > 40) || guestEmail === undefined) return undefined;
+  return {
+    passCategoryId: input.passCategoryId,
+    tableLabel,
+    hostPersonId: input.hostPersonId,
+    guestEmail,
+  };
+}
+
+export async function updateGuestPass(
+  db: XosClient,
+  guestId: string,
+  input: GuestPassInput,
+): Promise<Result<null>> {
+  const pass = cleanGuestPass(input);
+  if (pass === undefined) return fail({ kind: "invalid", message: "guest_pass" });
+  const { data, error } = await untyped(db)
+    .from("guest_list_entries")
+    .update({
+      pass_category_id: pass.passCategoryId,
+      table_label: pass.tableLabel,
+      host_person_id: pass.hostPersonId,
+      guest_email: pass.guestEmail,
+    })
+    .eq("id", guestId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return (data ?? []).length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+/** What a guest pass prints (B8, the guest-pass document): an Approved or Checked In guest with a pass code. */
+export interface GuestPass {
+  readonly id: string;
+  readonly projectId: string;
+  readonly guestName: string;
+  readonly plusOnes: number;
+  readonly state: "Approved" | "Checked In";
+  readonly passCode: string;
+  readonly passCategoryCode: string | null;
+  readonly passCategoryName: string | null;
+  readonly tableLabel: string | null;
+  /** The show the guest attends (the entry's scope node), or null for the whole project. */
+  readonly showName: string | null;
+  /** The project's first day (YYYY-MM-DD), printed as the show's date. */
+  readonly showDay: string | null;
+  /** When the guest was approved: the pass's issue time, which picks its template version. */
+  readonly decidedAt: string;
+}
+
+/**
+ * A guest's pass, read as the caller (advancing.packet.read on the project, through row level security). A guest who
+ * is not Approved or Checked In, or has no pass code yet, answers not found, so a Requested guest has no pass.
+ */
+export async function getGuestPass(db: XosClient, guestId: string): Promise<Result<GuestPass>> {
+  const { data: raw, error } = await untyped(db)
+    .from("guest_list_entries")
+    .select(
+      "id, project_id, scope_node_id, guest_name, plus_ones, entry_state, pass_code, pass_category_id, table_label, decided_at",
+    )
+    .eq("id", guestId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  const g = raw as {
+    id: string;
+    project_id: string;
+    scope_node_id: string | null;
+    guest_name: string;
+    plus_ones: number;
+    entry_state: GuestState;
+    pass_code: string | null;
+    pass_category_id: string | null;
+    table_label: string | null;
+    decided_at: string | null;
+  } | null;
+  if (
+    !g ||
+    g.pass_code === null ||
+    g.decided_at === null ||
+    (g.entry_state !== "Approved" && g.entry_state !== "Checked In")
+  ) {
+    return fail(NOT_FOUND);
+  }
+  const [category, scope, project] = await Promise.all([
+    g.pass_category_id
+      ? db
+          .from("credential_categories")
+          .select("code, name")
+          .eq("id", g.pass_category_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    g.scope_node_id
+      ? db.from("scope_nodes").select("name").eq("id", g.scope_node_id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    db.from("projects").select("starts_on").eq("id", g.project_id).maybeSingle(),
+  ]);
+  for (const r of [category, scope, project]) if (r.error) return fail(toDataError(r.error));
+  return ok({
+    id: g.id,
+    projectId: g.project_id,
+    guestName: g.guest_name,
+    plusOnes: g.plus_ones,
+    state: g.entry_state,
+    passCode: g.pass_code,
+    passCategoryCode: category.data?.code ?? null,
+    passCategoryName: category.data?.name ?? null,
+    tableLabel: g.table_label,
+    showName: scope.data?.name ?? null,
+    showDay: project.data?.starts_on ?? null,
+    decidedAt: g.decided_at,
+  });
+}
+
+export type GuestEmailKind = "Invitation" | "Pass" | "Message";
+export type GuestEmailState = "Queued" | "Sending" | "Sent" | "Failed" | "Suppressed" | "Skipped";
+
+export interface GuestEmailSummary {
+  readonly queued: number;
+  readonly sending: number;
+  readonly sent: number;
+  readonly failed: number;
+  readonly suppressed: number;
+  readonly skipped: number;
+  readonly skippedNoEmail: number;
+  readonly skippedNotLive: number;
+  readonly skippedNoPass: number;
+}
+
+/**
+ * Queues an email to the selected guests (app.queue_guest_emails, 2975; advancing.rider.write). Refusals:
+ * guest_email_batch (1 to 500), guest_email_rate (2,000 a day per org), guest_email_message. Returns the send id;
+ * the counts come from guestEmailSendSummary.
+ */
+export async function queueGuestEmails(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly guestIds: readonly string[];
+    readonly kind: GuestEmailKind;
+    readonly subject?: string | null;
+    readonly body?: string | null;
+    readonly locale: "en-US" | "es-US";
+  },
+): Promise<Result<{ sendId: string }>> {
+  const { data, error } = await untyped(db).rpc("queue_guest_emails", {
+    p_project_id: input.projectId,
+    p_entry_ids: [...input.guestIds],
+    p_kind: input.kind,
+    ...(input.subject ? { p_subject: input.subject } : {}),
+    ...(input.body ? { p_body: input.body } : {}),
+    p_locale: input.locale,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ sendId: String(data) });
+}
+
+/** A send's rows counted by state and skip reason (app.guest_email_send_summary). */
+export async function guestEmailSendSummary(
+  db: XosClient,
+  sendId: string,
+): Promise<Result<GuestEmailSummary>> {
+  const { data, error } = await untyped(db).rpc("guest_email_send_summary", { p_send_id: sendId });
+  if (error) return fail(toDataError(error));
+  const r = (data as Record<string, number>[] | null)?.[0];
+  if (!r) return fail(NOT_FOUND);
+  return ok({
+    queued: r["queued"] ?? 0,
+    sending: r["sending"] ?? 0,
+    sent: r["sent"] ?? 0,
+    failed: r["failed"] ?? 0,
+    suppressed: r["suppressed"] ?? 0,
+    skipped: r["skipped"] ?? 0,
+    skippedNoEmail: r["skipped_no_email"] ?? 0,
+    skippedNotLive: r["skipped_not_live"] ?? 0,
+    skippedNoPass: r["skipped_no_pass"] ?? 0,
+  });
+}
+
+export interface GuestEmailRow {
+  readonly guestListEntryId: string;
+  readonly state: GuestEmailState;
+  readonly skipReason: "No Email" | "Not Live" | "No Pass" | null;
+  readonly sentAt: string | null;
+}
+
+export interface GuestEmailSend {
+  readonly id: string;
+  readonly kind: GuestEmailKind;
+  readonly subject: string | null;
+  readonly locale: "en-US" | "es-US";
+  readonly createdAt: string;
+  readonly createdBy: string | null;
+  readonly rows: readonly GuestEmailRow[];
+}
+
+/** A project's guest email sends, newest first, each with its rows' states (advancing.packet.read). */
+export async function listGuestEmailSends(
+  db: XosClient,
+  projectId: string,
+  limit = 20,
+): Promise<Result<GuestEmailSend[]>> {
+  const { data, error } = await untyped(db)
+    .from("guest_email_sends")
+    .select(
+      "id, email_kind, subject, locale, created_at, created_by, guest_emails(guest_list_entry_id, send_state, skip_reason, sent_at)",
+    )
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return fail(toDataError(error));
+  const rows = (data ?? []) as unknown as {
+    id: string;
+    email_kind: GuestEmailKind;
+    subject: string | null;
+    locale: "en-US" | "es-US";
+    created_at: string;
+    created_by: string | null;
+    guest_emails: {
+      guest_list_entry_id: string;
+      send_state: GuestEmailState;
+      skip_reason: GuestEmailRow["skipReason"];
+      sent_at: string | null;
+    }[];
+  }[];
+  return ok(
+    rows.map((r) => ({
+      id: r.id,
+      kind: r.email_kind,
+      subject: r.subject,
+      locale: r.locale,
+      createdAt: r.created_at,
+      createdBy: r.created_by,
+      rows: (r.guest_emails ?? []).map((e) => ({
+        guestListEntryId: e.guest_list_entry_id,
+        state: e.send_state,
+        skipReason: e.skip_reason,
+        sentAt: e.sent_at,
+      })),
+    })),
+  );
+}
+
+/**
+ * Why a guest would get no email of this kind, before it is queued: no address, or, for a Pass, not approved with a
+ * code. The database decides again when it queues (2975) and also suppresses addresses on the org's list.
+ */
+export function guestEmailSkip(
+  guest: Pick<GuestEntry, "guestEmail" | "state" | "passCode">,
+  kind: GuestEmailKind,
+): "No Email" | "Not Live" | "No Pass" | null {
+  if (guest.state === "Declined") return "Not Live";
+  if (!guest.guestEmail) return "No Email";
+  if (kind === "Pass" && (guest.state === "Requested" || guest.passCode === null)) return "No Pass";
+  return null;
 }
 
 async function moveGuest(

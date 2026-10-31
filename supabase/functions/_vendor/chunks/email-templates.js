@@ -125,7 +125,18 @@ function Paragraph({ children }) {
  * a main landmark, an optional single call to action, and a footer naming the sender, its postal
  * address, why the email was sent and, for non-transactional email, how to unsubscribe.
  */
-function Layout({ locale, t, sender, preview, heading, transactional, action, children }) {
+function Layout({
+  locale,
+  t,
+  sender,
+  preview,
+  heading,
+  transactional,
+  action,
+  why,
+  preferencesLabel,
+  children,
+}) {
   return /* @__PURE__ */ jsxs(Html, {
     lang: locale,
     dir: "ltr",
@@ -160,9 +171,11 @@ function Layout({ locale, t, sender, preview, heading, transactional, action, ch
               children: [
                 /* @__PURE__ */ jsx(Text, {
                   style: styles.footer,
-                  children: transactional
-                    ? t("common.whyTransactional")
-                    : t("common.whyNotification", { orgName: sender.orgName }),
+                  children:
+                    why ??
+                    (transactional
+                      ? t("common.whyTransactional")
+                      : t("common.whyNotification", { orgName: sender.orgName })),
                 }),
                 /* @__PURE__ */ jsx(Text, {
                   style: styles.footer,
@@ -177,7 +190,7 @@ function Layout({ locale, t, sender, preview, heading, transactional, action, ch
                     /* @__PURE__ */ jsx(Link, {
                       href: sender.preferencesUrl,
                       style: styles.link,
-                      children: t("common.managePreferences"),
+                      children: preferencesLabel ?? t("common.managePreferences"),
                     }),
                     !transactional &&
                       sender.unsubscribeUrl !== void 0 &&
@@ -485,6 +498,40 @@ var templates = {
       };
     },
   },
+  party_invitation: {
+    transactional: true,
+    compose: (p, ctx) => {
+      const subject =
+        p.kind === "account"
+          ? ctx.t("party_invitation.accountSubject", {
+              inviterName: p.inviterName,
+              accountName: p.accountName,
+            })
+          : ctx.t("party_invitation.rosterSubject", {
+              inviterName: p.inviterName,
+              partyName: p.partyName,
+              projectName: p.projectName,
+            });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsx(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: subject,
+          transactional: true,
+          action: {
+            label: ctx.t("party_invitation.action"),
+            url: p.signInUrl,
+          },
+          children: /* @__PURE__ */ jsx(Paragraph, {
+            children: ctx.t("party_invitation.how", { expiresAt: p.expiresAt }),
+          }),
+        }),
+      };
+    },
+  },
   subprocessor_notice: {
     transactional: false,
     compose: ({ listVersion, summary, effectiveOn, listUrl }, ctx) => {
@@ -508,6 +555,68 @@ var templates = {
             }),
             /* @__PURE__ */ jsx(Paragraph, { children: summary }),
             /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_notice.objection") }),
+          ],
+        }),
+      };
+    },
+  },
+  guest_message: {
+    transactional: false,
+    compose: (p, ctx) => {
+      const orgName = ctx.sender.orgName;
+      const subject =
+        p.kind === "Message" && p.subject !== void 0
+          ? p.subject
+          : ctx.t(
+              p.kind === "Pass" ? "guest_message.passSubject" : "guest_message.invitationSubject",
+              {
+                orgName,
+                projectName: p.projectName,
+              },
+            );
+      const show =
+        p.showName === void 0
+          ? null
+          : p.showDate === void 0
+            ? ctx.t("guest_message.show", { showName: p.showName })
+            : ctx.t("guest_message.showOn", {
+                showName: p.showName,
+                showDate: p.showDate,
+              });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading:
+            p.kind === "Message"
+              ? subject
+              : ctx.t("guest_message.heading", { projectName: p.projectName }),
+          transactional: false,
+          why: ctx.t("guest_message.why", { orgName }),
+          preferencesLabel: ctx.t("guest_message.preferences"),
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t("guest_message.greeting", { name: p.guestName }),
+            }),
+            p.kind === "Invitation" &&
+              /* @__PURE__ */ jsx(Paragraph, {
+                children: ctx.t("guest_message.invitation", {
+                  orgName,
+                  projectName: p.projectName,
+                }),
+              }),
+            p.kind === "Pass" &&
+              /* @__PURE__ */ jsx(Paragraph, {
+                children: ctx.t("guest_message.pass", {
+                  projectName: p.projectName,
+                  plusOnes: p.plusOnes,
+                }),
+              }),
+            show !== null && /* @__PURE__ */ jsx(Paragraph, { children: show }),
+            p.body !== void 0 && /* @__PURE__ */ jsx(Paragraph, { children: p.body }),
           ],
         }),
       };

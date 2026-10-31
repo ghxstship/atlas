@@ -3,6 +3,9 @@
  * Pure functions: a CSV reader (RFC 4180, quoted fields, CRLF or LF), header row detection and a
  * header-to-field suggestion from header similarity. The .xlsx reader lives in import-worker.ts so
  * its library loads only in the worker.
+ * P3 (RRR-217) adds pasted rows (tab- or comma-separated, read in the browser for the live preview and
+ * written back as CSV for upload) and the cell readers of a rundown: cue numbers, times on the show date
+ * and durations. The import page loads this module; the shell and the show pages never do.
  */
 
 export interface Sheet {
@@ -13,6 +16,14 @@ export interface Sheet {
 
 /** Reads CSV text into rows of cells; a leading byte order mark is dropped. */
 export function parseCsv(text: string): string[][] {
+  return parseDelimited(text, ",");
+}
+
+/**
+ * Reads delimited text into rows of cells (RFC 4180 with any one-character delimiter): quoted cells may hold the
+ * delimiter, doubled quotes and line breaks. A leading byte order mark is dropped.
+ */
+export function parseDelimited(text: string, delimiter: string): string[][] {
   const input = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   const rows: string[][] = [];
   let row: string[] = [];
@@ -35,7 +46,7 @@ export function parseCsv(text: string): string[][] {
     }
     if (ch === '"' && cell === "") {
       quoted = true;
-    } else if (ch === ",") {
+    } else if (ch === delimiter) {
       row.push(cell);
       cell = "";
     } else if (ch === "\n" || ch === "\r") {
@@ -53,6 +64,112 @@ export function parseCsv(text: string): string[][] {
     rows.push(row);
   }
   return rows;
+}
+
+/**
+ * Reads rows pasted from Excel, Google Sheets or a rundown tool: tab-separated when the first line with text has a
+ * tab (what spreadsheets put on the clipboard), otherwise CSV.
+ */
+export function parsePasted(text: string): string[][] {
+  const first = text.split(/\r\n|\n|\r/).find((line) => line.trim() !== "") ?? "";
+  return parseDelimited(text, first.includes("\t") ? "\t" : ",");
+}
+
+/** Writes rows as CSV (RFC 4180): a cell with a comma, a quote or a line break is quoted, quotes doubled. */
+export function rowsToCsv(rows: readonly (readonly string[])[]): string {
+  const cell = (c: string) => (/[",\r\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c);
+  return rows.map((r) => r.map(cell).join(",")).join("\r\n");
+}
+
+// Rundown cells (P3) ---------------------------------------------------------------------------------------------
+
+/** A cue number as a positive whole number: '12', 'Q12', 'CUE-07' or 'Cue 7'. Null for '12.5', 0 or anything else. */
+export function cuePosition(text: string): number | null {
+  const m = /^(?:(?:q|cue)[\s#-]*|#\s*)?(\d{1,9})$/i.exec(text.trim());
+  if (!m) return null;
+  const n = Number(m[1]);
+  return n > 0 ? n : null;
+}
+
+/** Offset of an IANA zone from UTC at an instant, in milliseconds. */
+function zoneOffset(instant: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(instant));
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+  return (
+    Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second")) -
+    instant
+  );
+}
+
+const ISO_WITH_OFFSET =
+  /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})$/i;
+
+/**
+ * A planned time as an ISO instant: 'HH:MM[:SS]' or 'h:mm AM/PM' on the running order's show date (YYYY-MM-DD) in
+ * the project's time zone, or an ISO 8601 date and time with an offset as written. Null when the text is none of
+ * these. A wall-clock time that a clock change skips lands an hour later, as the zone reads it.
+ */
+export function plannedAt(text: string, showDate: string, timeZone: string): string | null {
+  const v = text.trim();
+  if (ISO_WITH_OFFSET.test(v)) {
+    const at = Date.parse(v.replace(" ", "T").replace(/([+-]\d{2})(\d{2})$/, "$1:$2"));
+    return Number.isNaN(at) ? null : new Date(at).toISOString();
+  }
+  const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(showDate);
+  if (!date) return null;
+  let hour: number;
+  let minute: number;
+  let second: number;
+  const h24 = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(v);
+  const h12 = /^(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?\s*([ap])\.?\s*m\.?$/i.exec(v);
+  if (h24) {
+    [hour, minute, second] = [Number(h24[1]), Number(h24[2]), Number(h24[3] ?? 0)];
+    if (hour > 23) return null;
+  } else if (h12) {
+    [hour, minute, second] = [Number(h12[1]), Number(h12[2] ?? 0), Number(h12[3] ?? 0)];
+    if (hour < 1 || hour > 12) return null;
+    hour = (hour % 12) + (h12[4]?.toLowerCase() === "p" ? 12 : 0);
+  } else {
+    return null;
+  }
+  if (minute > 59 || second > 59) return null;
+  const [y, mo, d] = [Number(date[1]), Number(date[2]), Number(date[3])];
+  const wall = Date.UTC(y, mo - 1, d, hour, minute, second);
+  if (new Date(wall).getUTCDate() !== d) return null;
+  try {
+    let instant = wall - zoneOffset(wall, timeZone);
+    instant = wall - zoneOffset(instant, timeZone);
+    return new Date(instant).toISOString();
+  } catch (error) {
+    if (error instanceof RangeError) return null; // Not an IANA zone.
+    throw error;
+  }
+}
+
+/** The largest cue duration, one day, as Atlas's cue form allows. */
+export const MAX_CUE_DURATION_SECONDS = 86_400;
+
+/** A duration in seconds from minutes ('90', '2.5'), 'm:ss' or 'h:mm:ss'; null outside 0 to one day or unreadable. */
+export function durationSeconds(text: string): number | null {
+  const v = text.trim();
+  let seconds: number;
+  if (/^\d+(?:\.\d+)?$/.test(v)) {
+    seconds = Math.round(Number(v) * 60);
+  } else {
+    const m = /^(?:(\d+):)?(\d{1,3}):(\d{2})$/.exec(v);
+    if (!m || Number(m[3]) > 59 || (m[1] !== undefined && Number(m[2]) > 59)) return null;
+    seconds = Number(m[1] ?? 0) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+  }
+  return seconds <= MAX_CUE_DURATION_SECONDS ? seconds : null;
 }
 
 const isBlank = (row: readonly string[]) => row.every((c) => c.trim() === "");
@@ -117,7 +234,30 @@ export const FIELD_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   asset_tag: ["tag", "assettag", "barcode"],
   asset_class_id: ["assetclass", "class", "category"],
   home_venue_id: ["homevenue", "venue", "location"],
+  // Rundowns (P3). A header that is only '#' means the cue number; normalize() drops it, so similarField checks it.
+  position: ["cue", "cueno", "cuenumber", "cueid", "number", "no"],
+  label: ["scene", "title", "cuename", "item"],
+  segment: ["act", "section", "segment", "block"],
+  planned_at: ["time", "start", "starttime", "at"],
+  duration: ["length", "duration", "mins", "durationmin", "runtime"],
+  space_id: ["location", "space", "room", "stage"],
+  // Guest lists (P3).
+  guest_name: ["guest", "name", "fullname", "guestname", "attendee"],
+  plus_ones: ["plus", "plusones", "plus1", "extra"],
+  note: ["notes", "comment", "access"],
+  scope_node_id: ["show", "night", "scope"],
+  counterparty_id: ["list", "company", "onlistof", "sponsor", "client"],
 };
+
+/** The target field a header names by its own name or a synonym; a header of only '#' is the cue number. */
+function similarField(header: string, fields: readonly string[]): string | undefined {
+  const n = normalize(header);
+  if (header.trim() === "#") return fields.includes("position") ? "position" : undefined;
+  return (
+    fields.find((f) => normalize(f) === n) ??
+    fields.find((f) => (FIELD_SYNONYMS[f] ?? []).includes(n))
+  );
+}
 
 /**
  * Suggests a field for each header: a saved profile's mapping first, then an exact field name, then a
@@ -131,11 +271,9 @@ export function suggestMapping(
   const used = new Set<string>();
   return headerTexts.map((header) => {
     const fromProfile = profile.get(header.toLowerCase());
-    const n = normalize(header);
     const pick =
       (fromProfile && fields.includes(fromProfile) ? fromProfile : undefined) ??
-      fields.find((f) => normalize(f) === n) ??
-      fields.find((f) => (FIELD_SYNONYMS[f] ?? []).includes(n));
+      similarField(header, fields);
     if (!pick || used.has(pick)) return null;
     used.add(pick);
     return pick;
@@ -190,6 +328,8 @@ export const IMPORT_TARGET_TABLES: Readonly<Record<string, string>> = {
   counterparties: "app.counterparties",
   vendor_products: "app.vendor_products",
   asset_units: "app.asset_units",
+  cues: "app.cues",
+  guest_list_entries: "app.guest_list_entries",
 };
 
 /** Playbook targets that land in an import field of another table: a counterparty's name is its organization's. */
@@ -197,13 +337,17 @@ const PLAYBOOK_ALIASES: Readonly<Record<string, Readonly<Record<string, string>>
   counterparties: { "app.organizations.name": "name" },
 };
 
-/** Playbook entities whose sheet is imported into a target: Asset Inventory into asset units, Vendor Directory into counterparties. */
+/**
+ * Playbook entities whose sheet is imported into a target: Asset Inventory into asset units, Vendor Directory into
+ * counterparties, Run of Show into cues (S4.6.2-02).
+ */
 const PLAYBOOK_ENTITY_TARGETS: Readonly<Record<string, string>> = {
   "app.asset_units": "asset_units",
   "app.vendors": "counterparties",
   "app.counterparties": "counterparties",
   "app.venues": "venues",
   "app.vendor_products": "vendor_products",
+  "app.cues": "cues",
 };
 
 /**
@@ -259,9 +403,7 @@ export function suggestWithSources(
   return headerTexts.map((header) => {
     const n = normalize(header);
     const fromProfile = profile.get(header.toLowerCase());
-    const similar =
-      fields.find((f) => normalize(f) === n) ??
-      fields.find((f) => (FIELD_SYNONYMS[f] ?? []).includes(n));
+    const similar = similarField(header, fields);
     const candidates: [string | undefined, SuggestionSource][] = [
       [fromProfile && fields.includes(fromProfile) ? fromProfile : undefined, "Profile"],
       [playbook.get(n), "Playbook"],

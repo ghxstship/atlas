@@ -7,7 +7,7 @@ import {
 import { commercialClient, errorResponse, okResponse } from "./commercial-fake.ts";
 
 describe("party notifications", () => {
-  it("lists the latest notifications with display arguments only", async () => {
+  it("lists the latest notifications with display arguments only, and their subject", async () => {
     const { db, calls } = commercialClient({
       "from:notifications": [
         okResponse([
@@ -18,6 +18,18 @@ describe("party notifications", () => {
             read_at: null,
             archived_at: null,
             message_args: { title: "DSS-1", count: 2, nested: { no: true } },
+            subject_table: null,
+            subject_id: null,
+          },
+          {
+            id: "n2",
+            kind: "roster_entry.project_facts_entered",
+            created_at: "2027-06-05T10:00:00Z",
+            read_at: "2027-06-05T11:00:00Z",
+            archived_at: null,
+            message_args: { kind: "vehicle" },
+            subject_table: "engagement_roster_entries",
+            subject_id: "r1",
           },
         ]),
         errorResponse("08006", "down"),
@@ -33,6 +45,15 @@ describe("party notifications", () => {
           createdAt: "2027-06-06T10:00:00Z",
           read: false,
           args: { title: "DSS-1", count: "2" },
+          subject: null,
+        },
+        {
+          id: "n2",
+          kind: "roster_entry.project_facts_entered",
+          createdAt: "2027-06-05T10:00:00Z",
+          read: true,
+          args: { kind: "vehicle" },
+          subject: { table: "engagement_roster_entries", id: "r1" },
         },
       ],
     });
