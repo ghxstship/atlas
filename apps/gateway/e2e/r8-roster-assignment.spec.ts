@@ -26,8 +26,13 @@ function projectKey(): string {
   return `R${letters}`;
 }
 
-async function count(text: string, params: unknown[]): Promise<number> {
-  const [row] = await sql<{ n: number }>(text, params);
+/** The rows of api_external.advance_allocations a person reads on a roster entry, signed in under RLS. */
+async function externalRowsOn(person: string, entry: string | undefined): Promise<number> {
+  const [row] = await asPerson<{ n: number }>(
+    person,
+    "select count(*)::int as n from api_external.advance_allocations where roster_entry_id = $1",
+    [entry],
+  );
   return row?.n ?? 0;
 }
 
@@ -295,12 +300,9 @@ test("roster assignment: request for the pool, approve, assign in bulk with undo
     await kaiPage.goto(`${engagementPath}/overview`);
     await expect(kaiPage.getByRole("list", { name: "Assigned to you" })).toContainText("Issued");
     await kai.close();
-    expect(
-      await count(
-        "select count(*)::int as n from api_external.advance_allocations where roster_entry_id = $1",
-        [entries[moId]],
-      ),
-    ).toBe(0);
+    // Through the Gateway API's view, Kai reads his own share and none of Mo's.
+    expect(await externalRowsOn(kaiId, entries[kaiId])).toBeGreaterThan(0);
+    expect(await externalRowsOn(kaiId, entries[moId])).toBe(0);
   } finally {
     for (const statement of [
       `update app.asset_custody set deleted_at = now() where project_id = $1 and deleted_at is null`,

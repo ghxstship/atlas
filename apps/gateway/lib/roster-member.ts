@@ -91,7 +91,7 @@ export function localDay(iso: string, timeZone: string): string {
   }).format(new Date(iso));
 }
 
-/** The person's own rows, live or decided, newest need first; withdrawn rows drop out. */
+/** The person's own rows, live or decided, earliest need first; withdrawn rows drop out. */
 export function assignedToYou(
   allocations: readonly EngagedAllocation[],
   rosterEntryIds: readonly string[],
