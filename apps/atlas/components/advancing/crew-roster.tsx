@@ -1,9 +1,17 @@
 import {
   listProjectRoster,
+  listRosterLocks,
   ROSTER_ENTRY_STATES,
+  rosterLocked,
   type RosterEntry,
   type RosterEntryState,
 } from "@xos/data/roster";
+import {
+  listRosterFactStatus,
+  rosterFactChip,
+  type RosterFactChip,
+  type RosterFactStatus,
+} from "@xos/data/roster-facts";
 import Link from "next/link";
 import type { Route } from "next";
 import dynamic from "next/dynamic";
@@ -28,6 +36,36 @@ import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 const RosterProfilePeek = dynamic(() =>
   import("./roster-profile-peek").then((m) => m.RosterProfilePeek),
 );
+// Project facts (R5) are read and logged the same way, when the peek opens.
+const RosterProjectFactsPeek = dynamic(() =>
+  import("./roster-project-facts").then((m) => m.RosterProjectFactsPeek),
+);
+// The names lock dialog (R5, G-142) loads with its first open, so the page carries none of its code.
+const RosterLockDialog = dynamic(() =>
+  import("./roster-lock-dialog").then((m) => m.RosterLockDialog),
+);
+
+const FACT_KINDS = ["travel", "uniform", "vehicle"] as const;
+const CHIP_STATE: Record<RosterFactChip, "complete" | "proposed" | "deferred"> = {
+  onFile: "complete",
+  missing: "proposed",
+  notOffered: "deferred",
+};
+
+/** A lock instant as a datetime-local value on the project's calendar. */
+function localIn(iso: string | null, timeZone: string): string {
+  if (!iso) return "";
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+    .format(new Date(iso))
+    .replace(" ", "T");
+}
 
 const VIEWS = ["list", "table"] as const;
 
@@ -39,6 +77,10 @@ const key = (v: string) => v.toLowerCase();
  * each submitted entry, one by one or in bulk with one reason through app.bulk_update_roster_entries;
  * the peek shows the person's shared profile, read and logged when it opens. The list follows changes
  * live (engagement_roster_entries, filtered to the org).
+ *
+ * R5 adds Travel, Uniform and Vehicle chips per entry from app.roster_project_fact_status (presence only, so the list
+ * reads no value and logs nothing), the project facts in the peek (read and logged when it opens), and each party's
+ * names lock in its header with Set names lock for writers.
  */
 export async function CrewRoster({
   actx,
@@ -61,6 +103,33 @@ export async function CrewRoster({
   });
   if (!roster.ok) throw new Error(`Cannot list the roster: ${JSON.stringify(roster.error)}`);
   const rows = visibleRosterRows(roster.data, stateFilter);
+  const engagementIds = [...new Set(roster.data.map((e) => e.engagementId))];
+  const [locks, statuses] = await Promise.all([
+    listRosterLocks(ctx.viewer.db, engagementIds),
+    Promise.all(engagementIds.map((id) => listRosterFactStatus(ctx.viewer.db, id))),
+  ]);
+  if (!locks.ok) throw new Error(`Cannot read the names locks: ${JSON.stringify(locks.error)}`);
+  const statusOf = new Map<string, RosterFactStatus>();
+  for (const result of statuses) {
+    if (!result.ok) throw new Error(`Cannot read fact status: ${JSON.stringify(result.error)}`);
+    for (const status of result.data) statusOf.set(status.rosterEntryId, status);
+  }
+  const chipLabel = (e: RosterEntry, kind: (typeof FACT_KINDS)[number]) => {
+    const status = statusOf.get(e.id);
+    return status ? t(`advancing.crew.factChips.${rosterFactChip(status, kind)}`) : "";
+  };
+  const lockLabel = (engagementId: string) => {
+    const lock = locks.data[engagementId];
+    if (!lock?.locksAt) return t("advancing.crew.lock.none");
+    const date = format.dateTime(new Date(lock.locksAt), {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: lock.timeZone,
+    });
+    return rosterLocked(lock.locksAt)
+      ? t("advancing.crew.lock.lockedOn", { date })
+      : t("advancing.crew.lock.locksOn", { date });
+  };
   const view = pickView(search, VIEWS, "list");
   const stateLabel = (s: RosterEntryState) => t(`advancing.crew.states.${key(s)}`);
   const responseLabel = (e: RosterEntry) => t(`advancing.crew.responses.${key(e.personResponse)}`);
@@ -113,6 +182,7 @@ export async function CrewRoster({
             { key: "state", label: t("advancing.crew.columns.state") },
             { key: "response", label: t("advancing.crew.columns.response") },
             { key: "shared", label: t("advancing.crew.columns.shared") },
+            ...FACT_KINDS.map((k) => ({ key: k, label: t(`advancing.crew.factColumns.${k}`) })),
           ]}
           // Each row goes through the single review: a submitted entry, never by its creator or submitter.
           bulk={crewBulkConfig(ctx.org.slug, can.review, {
@@ -130,12 +200,36 @@ export async function CrewRoster({
             state: stateLabel(e.entryState),
             response: responseLabel(e),
             shared: shared(e),
+            travel: chipLabel(e, "travel"),
+            uniform: chipLabel(e, "uniform"),
+            vehicle: chipLabel(e, "vehicle"),
           }))}
         />
       ) : (
         groupByParty(rows).map(({ party, rows: partyRows }) => (
           <section key={party} aria-label={party} className="flex flex-col gap-4">
-            <h2 className="m-0 text-label-14 font-semibold">{party}</h2>
+            <div className="flex flex-wrap items-center gap-8">
+              <h2 className="m-0 text-label-14 font-semibold">{party}</h2>
+              {[...new Set(partyRows.map((e) => e.engagementId))].map((engagementId) => (
+                <span key={engagementId} className="flex flex-wrap items-center gap-4">
+                  <span className="text-text-12 text-text-secondary">
+                    {lockLabel(engagementId)}
+                  </span>
+                  {can.write ? (
+                    <RosterLockDialog
+                      org={ctx.org.slug}
+                      engagementId={engagementId}
+                      party={party}
+                      locksAtLocal={localIn(
+                        locks.data[engagementId]?.locksAt ?? null,
+                        locks.data[engagementId]?.timeZone ?? "UTC",
+                      )}
+                      timeZone={locks.data[engagementId]?.timeZone ?? "UTC"}
+                    />
+                  ) : null}
+                </span>
+              ))}
+            </div>
             <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0">
               {partyRows.map((e) => (
                 <li
@@ -160,6 +254,21 @@ export async function CrewRoster({
                         .join(" · ")}
                     </span>
                     {e.isSelf ? <Tag tone="neutral">{t("advancing.crew.self")}</Tag> : null}
+                    {statusOf.has(e.id)
+                      ? FACT_KINDS.map((k) => {
+                          const status = statusOf.get(e.id);
+                          if (!status) return null;
+                          const chip = rosterFactChip(status, k);
+                          return (
+                            <StateChip
+                              key={k}
+                              compact
+                              state={CHIP_STATE[chip]}
+                              label={`${t(`advancing.crew.factColumns.${k}`)}: ${t(`advancing.crew.factChips.${chip}`)}`}
+                            />
+                          );
+                        })
+                      : null}
                   </div>
                   {can.review && e.entryState === "Submitted" ? (
                     <RosterReviewActions org={ctx.org.slug} id={e.id} name={name(e)} />
@@ -190,6 +299,13 @@ export async function CrewRoster({
               <RosterReviewActions org={ctx.org.slug} id={peek.id} name={name(peek)} />
             ) : null}
             {peek.personId ? <RosterProfilePeek org={ctx.org.slug} id={peek.id} /> : null}
+            {peek.personId && statusOf.has(peek.id) ? (
+              <RosterProjectFactsPeek
+                org={ctx.org.slug}
+                id={peek.id}
+                party={peek.partyName ?? ""}
+              />
+            ) : null}
           </PeekPanel>
         ) : null,
       )}

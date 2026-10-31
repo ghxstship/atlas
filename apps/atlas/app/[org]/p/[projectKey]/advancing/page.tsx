@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { AllocationsCollection } from "@/components/advancing/allocations";
 import { advancingProjectTab } from "@/components/advancing/context";
 import { CrewRoster } from "@/components/advancing/crew-roster";
 import { PacketsCollection } from "@/components/advancing/packets";
@@ -8,13 +9,25 @@ import { RidersCollection } from "@/components/advancing/riders";
 import { GuestList } from "@/components/advancing/guests";
 import { flatSearch } from "@/components/advancing/shared";
 import { SubmissionsSplit } from "@/components/advancing/submissions";
+import { TravelParty } from "@/components/advancing/travel-party";
 import { getTranslate } from "@/lib/shell/translate";
 
-const SECTIONS = ["packets", "submissions", "riders", "reconciliation", "guests", "crew"] as const;
+const SECTIONS = [
+  "packets",
+  "submissions",
+  "riders",
+  "reconciliation",
+  "guests",
+  "crew",
+  "allocations",
+  "travel-party",
+] as const;
 
 /**
  * The project's Advancing tab (Section 4.5.4): packets, submissions, riders and reconciliation of
- * this project, using the same components as the org-level pages with the project fixed.
+ * this project, using the same components as the org-level pages with the project fixed. Travel party (R5) is a
+ * project section only: it reads one project's roster travel, logged, and has no org-level page. Its table and the
+ * hospitality forms it opens load on demand.
  */
 export default async function ProjectAdvancingPage({
   params,
@@ -28,7 +41,11 @@ export default async function ProjectAdvancingPage({
   const path = `/${routeParams.org}/p/${routeParams.projectKey}/advancing`;
   const sectionHref = (s: string) => `${path}?section=${s}`;
   const sectionLabel = (s: string) =>
-    s === "guests" ? t("advancing.guests.title") : t(`nav.atlas.pages.advancing.${s}`);
+    s === "guests"
+      ? t("advancing.guests.title")
+      : s === "travel-party"
+        ? t("advancing.travelParty.title")
+        : t(`nav.atlas.pages.advancing.${s}`);
   const title = sectionLabel(section);
   return (
     <div className="flex flex-col gap-16 min-w-0">
@@ -50,7 +67,11 @@ export default async function ProjectAdvancingPage({
           ))}
         </ul>
       </nav>
-      {section === "crew" ? (
+      {section === "travel-party" ? (
+        <TravelParty actx={actx} project={actx.project} path={path} search={search} title={title} />
+      ) : section === "allocations" ? (
+        <AllocationsCollection actx={actx} path={path} search={search} title={title} />
+      ) : section === "crew" ? (
         <CrewRoster actx={actx} path={path} search={search} title={title} />
       ) : section === "guests" ? (
         <GuestList actx={actx} project={actx.project} path={path} search={search} title={title} />

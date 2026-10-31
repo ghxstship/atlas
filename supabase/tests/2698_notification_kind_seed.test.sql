@@ -1,4 +1,4 @@
--- 2649_notification_kind_seed.test.sql
+-- 2698_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -130,6 +130,10 @@ select set_eq(
   ('account.session_signed_out', 'Email', 'account', 'notification'),
   ('account.session_signed_out', 'SMS', 'account', null::text),
   ('account.session_signed_out', 'Push', 'account', null::text),
+  ('account.work_details_moved', 'In App', 'account', null::text),
+  ('account.work_details_moved', 'Email', 'account', 'notification'),
+  ('account.work_details_moved', 'SMS', 'account', null::text),
+  ('account.work_details_moved', 'Push', 'account', null::text),
   ('billing.payment_failed', 'In App', 'account', null::text),
   ('billing.payment_failed', 'Email', 'account', 'notification'),
   ('billing.payment_failed', 'SMS', 'account', null::text),
@@ -282,7 +286,31 @@ select set_eq(
   ('roster_entry.declined', 'In App', 'assignments', null::text),
   ('roster_entry.declined', 'Email', 'assignments', 'notification'),
   ('roster_entry.declined', 'SMS', 'assignments', null::text),
-  ('roster_entry.declined', 'Push', 'assignments', null::text)$$,
+  ('roster_entry.declined', 'Push', 'assignments', null::text),
+  ('roster_entry.project_facts_entered', 'In App', 'assignments', null::text),
+  ('roster_entry.project_facts_entered', 'Email', 'assignments', 'notification'),
+  ('roster_entry.project_facts_entered', 'SMS', 'assignments', null::text),
+  ('roster_entry.project_facts_entered', 'Push', 'assignments', null::text),
+  ('engagement.roster_lock_changed', 'In App', 'assignments', null::text),
+  ('engagement.roster_lock_changed', 'Email', 'assignments', 'notification'),
+  ('engagement.roster_lock_changed', 'SMS', 'assignments', null::text),
+  ('engagement.roster_lock_changed', 'Push', 'assignments', null::text),
+  ('allocation.decided', 'In App', 'approvals', null::text),
+  ('allocation.decided', 'Email', 'approvals', 'notification'),
+  ('allocation.decided', 'SMS', 'approvals', null::text),
+  ('allocation.decided', 'Push', 'approvals', null::text),
+  ('allocation.assigned', 'In App', 'assignments', null::text),
+  ('allocation.assigned', 'Email', 'assignments', 'notification'),
+  ('allocation.assigned', 'SMS', 'assignments', null::text),
+  ('allocation.assigned', 'Push', 'assignments', null::text),
+  ('allocation.issued', 'In App', 'assignments', null::text),
+  ('allocation.issued', 'Email', 'assignments', 'notification'),
+  ('allocation.issued', 'SMS', 'assignments', null::text),
+  ('allocation.issued', 'Push', 'assignments', null::text),
+  ('allocation.withdrawn', 'In App', 'assignments', null::text),
+  ('allocation.withdrawn', 'Email', 'assignments', 'notification'),
+  ('allocation.withdrawn', 'SMS', 'assignments', null::text),
+  ('allocation.withdrawn', 'Push', 'assignments', null::text)$$,
   'notification kinds by channel match notification-kinds.yaml');
 
 select set_eq(

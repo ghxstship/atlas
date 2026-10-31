@@ -60,7 +60,9 @@
     "loading": "Cargando vistas guardadas",
     "empty": "Todavía no hay vistas guardadas",
     "default": "{name} (predeterminada)",
+    "builtIn": "Vistas integradas",
     "save": "Guardar la vista actual",
+    "saveCopy": "Guardar una copia de {name}",
     "update": "Actualizar {name} para que coincida",
     "setDefault": "Abrir {name} de forma predeterminada",
     "clearDefault": "Dejar de abrir {name} de forma predeterminada",
@@ -503,7 +505,16 @@
       "worked_minutes": "Minutos trabajados",
       "worker_classification": "Clasificación",
       "xyz": "XYZ",
-      "zone_id": "Zona"
+      "zone_id": "Zona",
+      "item_name": "Artículo",
+      "display_status": "Estado",
+      "allocation_state": "Decisión",
+      "origin": "Origen",
+      "needed_time_zone": "Zona horaria",
+      "reserved_quantity": "Reservado",
+      "issued_quantity": "Entregado",
+      "returned_quantity": "Devuelto",
+      "decline_reason": "Motivo del rechazo"
     }
   }
 }

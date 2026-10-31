@@ -273,6 +273,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "engagement-project-details",
+        title: "Project details",
+        summary: "The travel, uniform sizes and vehicle a project asks of you.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
+        order: 1,
+      },
+      {
         slug: "engagement-proof-of-performance",
         title: "Proof of performance",
         summary: "The evidence that your sponsorship entitlements were delivered.",
@@ -645,7 +653,8 @@ export const HELP_CONTENT: HelpIndex = {
       {
         slug: "settings-work-details",
         title: "Work details",
-        summary: "Where the facts about how you work come from.",
+        summary:
+          "Your emergency contacts, dietary and accessibility needs, loyalty programs and passport, and who sees them.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,
@@ -951,6 +960,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "Tus turnos agrupados por el puesto que cubre cada uno.",
         kind: "page",
         nodes: ["engagement.positions"],
+        order: 1,
+      },
+      {
+        slug: "engagement-project-details",
+        title: "Datos del proyecto",
+        summary: "El viaje, las tallas de uniforme y el vehículo que un proyecto te pide.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
         order: 1,
       },
       {
@@ -1334,7 +1351,8 @@ export const HELP_CONTENT: HelpIndex = {
       {
         slug: "settings-work-details",
         title: "Datos laborales",
-        summary: "De dónde vienen los datos sobre cómo trabajas.",
+        summary:
+          "Tus contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y pasaporte, y quién los ve.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,

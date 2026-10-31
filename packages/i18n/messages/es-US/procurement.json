@@ -84,7 +84,17 @@
     "unitBasisHelp": "Un alias de unidad del canon, como ea, day o m.",
     "extended": "Importe",
     "received": "Recibido",
-    "addRow": "Agregar otra línea"
+    "addRow": "Agregar otra línea",
+    "acquisition": {
+      "label": "Adquisición",
+      "purchase": "Compra",
+      "rental": "Alquiler"
+    },
+    "hire": {
+      "from": "Alquiler desde",
+      "to": "Alquiler hasta",
+      "zone": "Horas en {zone}"
+    }
   },
   "rfqs": {
     "title": "Solicitudes de cotización",
@@ -185,7 +195,17 @@
     "noneForOrder": "Aún no se ha recibido nada de esta orden.",
     "line": "{date}, recibido por {who}",
     "recordTitle": "Recepción del {when}",
-    "back": "Volver a las recepciones de mercancía"
+    "back": "Volver a las recepciones de mercancía",
+    "assetTags": {
+      "label": "Etiquetas de activo",
+      "help": "Una etiqueta por unidad recibida, una por línea. Cada unidad ingresa como Recibida."
+    },
+    "intoStock": {
+      "label": "Ingresar al inventario en",
+      "help": "Suma la cantidad al lote de este lugar.",
+      "none": "Sin inventario"
+    },
+    "unitsReceived": "Unidades recibidas"
   },
   "matching": {
     "title": "Conciliación de facturas",
@@ -329,7 +349,32 @@
     "cross_org_reference": "Ese elemento pertenece a otra organización.",
     "rfq_response_lines_required": "Agregue al menos una línea cotizada a la respuesta.",
     "sod_document_creator": "Separación de funciones: su organización no permite que quien creó este documento lo apruebe.",
-    "sod_receiver_po_approver": "Separación de funciones: su organización no permite que quien aprobó esta orden de compra reciba su mercancía. Pida a otra persona que la reciba."
+    "sod_receiver_po_approver": "Separación de funciones: su organización no permite que quien aprobó esta orden de compra reciba su mercancía. Pida a otra persona que la reciba.",
+    "receipt_event_required": "Esta recepción no tiene identificador de evento. Vuelva a abrir el formulario e inténtelo de nuevo.",
+    "receipt_event_reused": "Esta recepción ya se registró en otra orden de compra.",
+    "receipt_lines_required": "Reciba al menos una línea.",
+    "receipt_no_asset_class": "Este artículo no tiene clase de activo, así que no puede ingresar al inventario. Agregue la clase primero.",
+    "receipt_tags_count": "Indique una etiqueta de activo por cada unidad recibida.",
+    "receipt_tag_taken": "Una de esas etiquetas de activo ya está en uso.",
+    "receipt_line_target_ambiguous": "Ingrese una línea con etiquetas de activo o al inventario de un lugar, no ambas cosas.",
+    "return_event_required": "Esta devolución no tiene identificador de evento. Vuelva a abrir el diálogo e inténtelo de nuevo.",
+    "return_event_reused": "Esta devolución ya se registró en otra orden de compra.",
+    "return_lines_required": "Devuelva al menos una línea.",
+    "return_quantity_required": "Devuelva una cantidad mayor que cero en cada línea.",
+    "return_line_order": "Esa línea de recepción no pertenece a esta orden de compra.",
+    "return_exceeds_receipt": "Las devoluciones no pueden superar lo que ingresó la línea de recepción.",
+    "return_off_hire_not_rental": "El fin del alquiler solo se aplica a bienes alquilados en una línea de alquiler.",
+    "return_line_target_ambiguous": "Devuelva unidades o una cantidad del inventario, no ambas cosas.",
+    "return_units_count": "Elija una unidad por cada unidad devuelta.",
+    "return_unit_repeated": "Elija cada unidad una sola vez.",
+    "return_unit_not_from_receipt": "Esa unidad no llegó con esta línea de recepción.",
+    "return_unit_state": "Solo una unidad Disponible, Dañada o En mantenimiento puede devolverse.",
+    "return_unit_in_custody": "Registre la entrada de la unidad antes de devolverla al proveedor.",
+    "return_venue_required": "Esta línea ingresó al inventario. Elija el lugar desde el que se devuelve.",
+    "return_line_not_stocked": "Esta línea nunca ingresó al inventario, así que se devuelve sin un lugar.",
+    "asset_lot_insufficient": "No hay suficiente de este artículo en ese lugar.",
+    "goods_return_immutable": "Una devolución conserva su orden de compra, quien la hizo y su motivo.",
+    "hire_period_order": "El alquiler debe terminar después de empezar."
   },
   "kit": {
     "views": "Vista",
@@ -411,7 +456,8 @@
       "sopCode": "Use SOP- y de tres a cinco dígitos, por ejemplo SOP-007.",
       "lineFormat": "Revisa el formato: una entrada por línea, como indica la ayuda debajo del campo.",
       "quizCorrect": "Escribe el número de la opción correcta, del 1 a la cantidad de opciones.",
-      "httpsUrl": "Escribe una dirección web que empiece con https://."
+      "httpsUrl": "Escribe una dirección web que empiece con https://.",
+      "hireOrder": "El alquiler debe terminar después de empezar."
     },
     "loadError": {
       "title": "No se pudo cargar",
@@ -446,5 +492,45 @@
       "moved": "{from} a {to}",
       "someone": "Alguien"
     }
+  },
+  "hireWarnings": {
+    "title": "Revise el período de alquiler",
+    "column": "Avisos de alquiler",
+    "filter": "Avisos de alquiler",
+    "showAll": "Todas las órdenes",
+    "deliveryAfterLoadIn": "Entrega después del montaje: el alquiler empieza después de que abre el sitio.",
+    "returnBeforeLoadOut": "Devolución antes del desmontaje: el alquiler termina antes de que cierre el sitio.",
+    "hireBeyondSiteWindow": "Alquiler fuera del período del sitio: empieza más de un día antes o termina más de un día después.",
+    "deliveryDocksFull": "Muelles llenos en la entrega: todos los muelles están reservados cuando empieza el alquiler.",
+    "returnDocksFull": "Muelles llenos en la devolución: todos los muelles están reservados cuando termina el alquiler."
+  },
+  "supply": {
+    "title": "Suministro",
+    "ordered": "Pedido",
+    "acknowledged": "Confirmada",
+    "received": "Recibido",
+    "returned": "Devuelto",
+    "status": "Estado",
+    "offHireDue": "Devolución pendiente",
+    "yes": "Sí",
+    "no": "Todavía no"
+  },
+  "returns": {
+    "what": "la devolución",
+    "open": "Devolver al proveedor",
+    "title": "Devolver al proveedor en {order}",
+    "reason": "Motivo",
+    "reasons": {
+      "offHire": "Fin del alquiler",
+      "defective": "Defectuoso",
+      "wrongItem": "Artículo equivocado",
+      "overDelivery": "Entrega en exceso"
+    },
+    "quantity": "Cantidad devuelta",
+    "returnable": "Aún se pueden devolver {count}",
+    "fromStock": "Sacar del inventario en",
+    "receivedVenue": "El lugar al que ingresó",
+    "note": "Estado o transportista",
+    "record": "Registrar devolución"
   }
 }
