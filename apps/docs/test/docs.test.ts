@@ -109,6 +109,23 @@ describe("markdown", () => {
     expect(() => parseBody("```\nopen")).toThrow(/not closed/);
   });
 
+  it("skips a help article's generated-list markers", () => {
+    expect(
+      parseBody("Intro\n<!-- shortcuts atlas go -->\n- **G H**: Go to Home\n<!-- /shortcuts -->"),
+    ).toEqual([
+      { t: "p", c: [{ t: "text", v: "Intro" }] },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+        ],
+      },
+    ]);
+  });
+
   it("reads frontmatter and slugifies accented headings", () => {
     expect(parseDocument("---\ntitle: T\norder: 2\n---\nBody").meta).toEqual({
       title: "T",

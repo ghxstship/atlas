@@ -193,13 +193,18 @@ export function PeekPanel({
     <Drawer
       open
       title={title}
+      shortcutScope="record"
       onOpenChange={(open) => {
         if (!open) router.replace(href({ peek: null, full: null }));
       }}
       {...(full
         ? {
             footer: (
-              <Button variant="primary" onClick={() => router.push(href({ full: "1" }))}>
+              <Button
+                variant="primary"
+                data-shortcut="record.open"
+                onClick={() => router.push(href({ full: "1" }))}
+              >
                 {t("openFull")}
               </Button>
             ),

@@ -24,7 +24,14 @@ export type DialogProps = ReferenceDialogProps &
     description?: ReactNode;
   };
 
-export type DrawerProps = ReferenceDrawerProps & OverlayControl;
+export type DrawerProps = ReferenceDrawerProps &
+  OverlayControl & {
+    /**
+     * Makes the drawer a region for the shell's shortcuts of that scope (data-shortcut-scope,
+     * lib/shortcut-targets.ts), as a record's side peek is for `record`.
+     */
+    shortcutScope?: "record" | "view";
+  };
 
 export type SidePeekProps = ReferenceSidePeekProps &
   OverlayControl & {

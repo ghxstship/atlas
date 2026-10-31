@@ -99,9 +99,21 @@ export function effectiveBindings(
   return out;
 }
 
-/** Whether two scopes can both be active at once: the same scope, or either one global. */
+/**
+ * The scope whose keys the design system's lists own (RecordList, RecordRow, DataTable). A list can
+ * sit in any region (a collection's rows, a record's related items, the Inbox), and the list takes its
+ * keys before the shell sees them, so no other scope may bind them.
+ */
+const LIST_SCOPE = "list";
+
+/**
+ * Whether two scopes can both be active at once: the same scope, either one global, or either one
+ * the list scope, which every region may hold.
+ */
 export function scopesMeet(a: string, b: string): boolean {
-  return a === b || a === GLOBAL_SCOPE || b === GLOBAL_SCOPE;
+  return (
+    a === b || a === GLOBAL_SCOPE || b === GLOBAL_SCOPE || a === LIST_SCOPE || b === LIST_SCOPE
+  );
 }
 
 /**

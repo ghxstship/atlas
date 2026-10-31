@@ -11,6 +11,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./preferences": "./src/lib/preferences.ts",
+    "./shortcut-targets": "./src/lib/shortcut-targets.ts",
     "./undo": "./src/lib/undo-stack.ts",
     "./quick-add": "./src/Editing/quickAddCore.ts",
     "./pwa": "./src/pwa/index.ts",

@@ -1,5 +1,6 @@
 import { listMyEngagements } from "@xos/data/gateway";
 import { isTimeZone } from "@xos/data/calendar";
+import { SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import { cookies, headers } from "next/headers";
 import { scheduleViewFrom } from "@/lib/format";
 import { negotiatedLocale } from "@/i18n/request";
@@ -11,6 +12,7 @@ import { SystemBanners } from "@/components/shell/system-banners";
 import { selectableLocales } from "@/i18n/negotiate";
 import { docsSiteUrl, env } from "@/lib/env";
 import { buildNav } from "@/lib/shell/nav-model";
+import { buildGatewayKeys } from "@/lib/shell/shell-keys";
 import { requireContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
@@ -54,6 +56,17 @@ export default async function ShellLayout({ children }: { children: ReactNode })
   const orgs = new Map<string, string>();
   if (engagements.ok) for (const e of engagements.data) orgs.set(e.orgId, e.orgName);
   const brandName = ctx.brand.kind === "org" ? ctx.brand.org.name : t("shell.gateway.name");
+  // Keyboard shortcuts open only what the person's navigation offers (G then a letter, Section 11.2).
+  const keys = buildGatewayKeys(
+    SHORTCUT_REGISTRY,
+    new Map(
+      [...nav.primary, ...nav.avatar].flatMap((l) => (l.href ? [[l.id, l.href] as const] : [])),
+    ),
+    new Set([
+      "account",
+      ...(nav.avatar.some((a) => a.action === "switch-org") ? ["switch-org"] : []),
+    ]),
+  );
   return (
     <GatewayFrame
       brandName={brandName}
@@ -85,6 +98,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
       storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
       viewerTimeZone={schedule.viewerZone}
       docsUrl={ctx.brand.kind === "org" ? null : docsSiteUrl(env())}
+      keys={keys}
     >
       <ReporterUser personId={ctx.personId} />
       <ReacceptancePrompt db={ctx.db} />
