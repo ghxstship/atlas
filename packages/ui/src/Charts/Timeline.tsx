@@ -15,7 +15,10 @@ import { useFormat, useT } from "../lib/context.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Button } from "../Button/Button.tsx";
+import { Icon } from "../Icon/Icon.tsx";
+import { Tag } from "../Chips/Tag.tsx";
 import { type TimelineChange, type TimelineProps } from "./Charts.types.ts";
+import { categoryText, TL_CATEGORY } from "./categories.ts";
 import { planChange, sameMoves, sameRows, withMoves, type TimelinePlan } from "./timeline-plan.ts";
 
 const TL_BAR: Record<string, string> = {
@@ -70,6 +73,10 @@ export function dayAtPointer(
  * With `onDayDrop`, the day grid accepts a dragged record (MIME type application/x-xos-record) and
  * reports the day under the pointer, mirrored in right-to-left layouts (P8, the schedule's
  * Unscheduled list). The page offers a keyboard path of its own beside it.
+ *
+ * Day-type tags (`days[].tags`, B4) draw as a band under the dates and are named with every day the table and the
+ * announcements read; row `segments` draw inside their row and are named in its table cell. Each carries text and an
+ * icon besides its colour. With `anchorDay`, the table gains an Offset column read against the anchor.
  */
 export function Timeline({
   label,
@@ -84,6 +91,7 @@ export function Timeline({
   preview = null,
   awaitPreview = false,
   onDayDrop,
+  anchorDay,
 }: TimelineProps): ReactElement {
   const t = useT();
   const format = useFormat();
@@ -112,7 +120,23 @@ export function Timeline({
 
   const dayLabel = (i: number) => {
     const d = days[i];
-    return d ? (d.label ?? `${d.dow} ${d.date}`) : "";
+    if (!d) return "";
+    const name = d.label ?? `${d.dow} ${d.date}`;
+    const tags = categoryText(d.tags);
+    return tags ? t("timeline.dayWithTypes", { day: name, types: tags }) : name;
+  };
+  const tagged = days.some((d) => (d.tags?.length ?? 0) > 0);
+  const offsetText = (start: number) => {
+    if (anchorDay === undefined) return "";
+    const n = start - anchorDay;
+    if (n === 0) return t("timeline.offsetOn");
+    const key = n < 0 ? "timeline.offsetBefore" : "timeline.offsetAfter";
+    return Math.abs(n) === 1 ? t(`${key}One`) : t(key, { n: Math.abs(n) });
+  };
+  const offsetShort = (start: number) => {
+    if (anchorDay === undefined) return "";
+    const n = start - anchorDay;
+    return n === 0 ? "D0" : n < 0 ? `D\u2212${-n}` : `D+${n}`;
   };
   const spans = useMemo(
     () =>
@@ -343,6 +367,7 @@ export function Timeline({
               "timeline.start",
               "timeline.end",
               "timeline.dependsOn",
+              ...(anchorDay !== undefined ? ["timeline.offset"] : []),
             ].map((k) => (
               <th key={k} scope="col">
                 {t(k)}
@@ -359,11 +384,29 @@ export function Timeline({
                 {r.milestone ? ` (${t("timeline.milestone")})` : ""}
                 {r.critical ? ` (${t("timeline.critical")})` : ""}
                 {editable && r.locked ? ` (${t("timeline.locked")})` : ""}
+                {r.segments?.length
+                  ? ` (${r.segments
+                      .map((s) =>
+                        t("timeline.segment", {
+                          label: s.label,
+                          start: dayLabel(s.start),
+                          end: dayLabel(s.end),
+                        }),
+                      )
+                      .join("; ")})`
+                  : ""}
+                {r.badge ? ` (${r.badge.label})` : ""}
               </td>
               <td>{r.state}</td>
               <td>{dayLabel(r.start)}</td>
               <td>{dayLabel(r.end)}</td>
               <td>{r.dependsOn !== undefined ? (rows[r.dependsOn]?.key ?? "") : ""}</td>
+              {anchorDay !== undefined ? (
+                <td>
+                  <abbr title={offsetText(r.start)}>{offsetShort(r.start)}</abbr>
+                  <span className="sr-only"> {offsetText(r.start)}</span>
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>
@@ -376,6 +419,11 @@ export function Timeline({
           <div className="flex items-center h-(--ui-shell-head) px-12 font-semibold border-b border-border-subtle">
             {label}
           </div>
+          {tagged ? (
+            <div className="flex items-center h-(--space-20) px-12 text-text-11 text-text-secondary border-b border-border-subtle">
+              {t("timeline.dayTypes")}
+            </div>
+          ) : null}
           {rows.map((r) => (
             <div
               key={r.key}
@@ -384,6 +432,11 @@ export function Timeline({
               <StateIcon state={r.state} />
               <span className="font-mono text-text-12 text-text-secondary">{r.key}</span>
               <span className="truncate">{r.title}</span>
+              {r.badge ? (
+                <span className="ms-auto flex-none">
+                  <Tag tone={r.badge.tone ?? "neutral"}>{r.badge.label}</Tag>
+                </span>
+              ) : null}
             </div>
           ))}
         </div>
@@ -440,6 +493,33 @@ export function Timeline({
                   </div>
                 ))}
               </div>
+              {tagged ? (
+                <div
+                  className="flex h-(--space-20) border-b border-border-subtle"
+                  style={{ inlineSize: width }}
+                >
+                  {days.map((d, i) => (
+                    <div
+                      key={i}
+                      style={{ inlineSize: dayWidth }}
+                      title={categoryText(d.tags)}
+                      className="flex flex-none items-center justify-center gap-1 overflow-hidden"
+                    >
+                      {(d.tags ?? []).slice(0, 2).map((tag) => (
+                        <span
+                          key={tag.label}
+                          className={cx(
+                            "inline-flex size-(--space-16) items-center justify-center rounded-mark text-viz-ink forced-colors:border",
+                            TL_CATEGORY[tag.category],
+                          )}
+                        >
+                          {tag.icon ? <Icon name={tag.icon} size={12} /> : tag.label.slice(0, 1)}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <div className="relative" style={{ inlineSize: width, blockSize: height }}>
                 {days.map((d, i) =>
                   d.weekend ? (
@@ -456,6 +536,21 @@ export function Timeline({
                   const isMoved = moved(i);
                   return (
                     <div key={r.key}>
+                      {(r.segments ?? []).map((seg) => (
+                        <div
+                          key={`${seg.label}-${seg.start}`}
+                          title={seg.label}
+                          className={cx(
+                            "absolute flex h-(--space-6) items-center rounded-pill opacity-70 forced-colors:border",
+                            TL_CATEGORY[seg.category],
+                          )}
+                          style={{
+                            insetInlineStart: seg.start * dayWidth,
+                            inlineSize: (seg.end - seg.start + 1) * dayWidth,
+                            insetBlockStart: top + 30,
+                          }}
+                        />
+                      ))}
                       {r.baselineStart !== undefined && r.baselineEnd !== undefined ? (
                         <div
                           className="absolute h-(--space-4) rounded-pill bg-text-tertiary opacity-60"

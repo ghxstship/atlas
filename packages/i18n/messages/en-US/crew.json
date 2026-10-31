@@ -771,7 +771,9 @@
           "Unstated": "Not stated"
         }
       }
-    }
+    },
+    "laneAssigned": "{name} is on {shift}.",
+    "laneConflict": "{name} is on another shift during {shift}, so they were not assigned. Choose the shift on the board to see the ranking, then press Assign to put them on it anyway."
   },
   "perDiems": {
     "title": "Per diems",
@@ -891,5 +893,21 @@
         }
       }
     }
+  },
+  "lanes": {
+    "label": "Lanes",
+    "people": "People",
+    "vendors": "Vendors",
+    "zones": "Zones",
+    "vendor": "Vendor or contractor",
+    "zone": "Zone",
+    "dayTypes": "Day types",
+    "dayTypesOn": "Day types on {day}",
+    "more": "+{n} more",
+    "noVendors": "No vendor or contractor is engaged on these projects this week.",
+    "noZones": "The venues of these projects have no zones yet.",
+    "engaged": "Engaged this day",
+    "dockSlot": "Dock {label}, {project}",
+    "workOrder": "Work order {label}, {project}"
   }
 }

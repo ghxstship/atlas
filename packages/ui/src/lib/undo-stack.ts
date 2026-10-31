@@ -20,6 +20,8 @@ export interface UndoAction {
   readonly redo?: () => Promise<UndoResult>;
   /** False when the caller shows its own Undo toast; the shell shows one otherwise. */
   readonly toast?: boolean;
+  /** The toast button's label when undoing is not a plain undo, such as "Move back" (B4); Undo by default. */
+  readonly actionLabel?: string;
 }
 
 export interface UndoEntry extends UndoAction {

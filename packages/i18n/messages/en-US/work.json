@@ -263,7 +263,8 @@
     "board": "Board",
     "calendar": "Calendar",
     "timeline": "Timeline",
-    "site-plan": "Site plan"
+    "site-plan": "Site plan",
+    "heatmap": "Heatmap"
   },
   "columns": {
     "key": "Key",
@@ -333,7 +334,8 @@
     "none": "None",
     "notSet": "Not set",
     "unpriced": "Unpriced",
-    "gate": "Gate {gate} · {name}"
+    "gate": "Gate {gate} · {name}",
+    "tbcEstimate": "TBC · est. {time}"
   },
   "fields": {
     "title": "Title",
@@ -356,7 +358,8 @@
     "timeZone": "Time zone",
     "zoneNote": "Times are in {zone}.",
     "replanReason": "Replan reason",
-    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why."
+    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why.",
+    "startTbc": "Start time to be confirmed"
   },
   "record": {
     "properties": "Record properties",
@@ -646,7 +649,34 @@
       "shift_empty": "Select at least one record to shift.",
       "shift_too_large": "This shift moves more than 500 records with their successors. Shift fewer at a time.",
       "place_dated": "This record already has dates; drag its bar instead.",
-      "cue_called": "A called cue keeps its time. Clear it from the selection."
+      "cue_called": "A called cue keeps its time. Clear it from the selection.",
+      "cue_move_called": "A called cue keeps its place. Move an uncalled cue instead.",
+      "cue_move_before_called": "Cues move only after the last called cue. Choose a later place.",
+      "cue_standby_called": "That cue was already called, so it cannot go on standby. Choose an uncalled cue.",
+      "cue_standby_capability": "You cannot put cues on standby on this project. Ask the stage manager to do it.",
+      "cue_shift_range": "Nudge the plan by up to an hour earlier or later.",
+      "cue_call_kind": "Calls go to Audio, Lighting, Video, Special Effects or Stage. Choose one of those departments.",
+      "project_day_split_limit": "A day splits into at most four parts. Change or remove one first.",
+      "project_day_scope_kind": "A day serves a show of the project. Choose a show, or leave it for the whole project.",
+      "project_day_time_zone": "This show's venue sets the time zone. Leave the time zone empty.",
+      "project_day_project_immutable": "A day stays in its project. Add the day to the other project instead.",
+      "grid_empty": "Type at least one row before saving.",
+      "grid_too_large": "A grid saves at most 200 rows at a time. Save in parts.",
+      "grid_incomplete": "Someone added or removed a cue. Reload the running order and edit it again.",
+      "grid_kind": "Choose a record kind for the new row.",
+      "bulk_stale": "Someone changed this row after you loaded it. Reload to see the change.",
+      "day_template_title": "A record item's title follows its kind's grammar.",
+      "day_template_too_large": "A day template holds at most 500 items. Remove some first.",
+      "day_template_item_window": "An item is more than a day from this day or lasts longer than a day, so a day template cannot hold it.",
+      "day_template_run_ambiguous": "This day has more than one running order. Choose the one to use.",
+      "day_template_run_unknown": "Choose a running order of this project.",
+      "day_template_unknown": "Choose a day template of this organization.",
+      "anchor_unset": "Set the project's anchor day before moving it.",
+      "anchor_set": "This project already has an anchor day. Reload the page and use Move anchor to change it.",
+      "anchor_too_large": "This move would move more than 2000 records. Move the plan in parts.",
+      "anchor_show_started": "A cue of this project has been called, so its shows have started and stay on their dates.",
+      "anchor_sheet_collision": "A published sheet already covers the day an unpublished one would move to.",
+      "anchor_pinned_pushed": "This move would push a record that is pinned to its dates."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",
@@ -658,7 +688,8 @@
       "scopeProject": "That scope belongs to another project.",
       "project": "Name the project with ~ and a scope, for example ~NWS-E01."
     },
-    "shiftMinutes": "Enter whole minutes other than 0, up to seven days either way."
+    "shiftMinutes": "Enter whole minutes other than 0, up to seven days either way.",
+    "cueCall": "Each department's call can be up to 2000 characters. Shorten it and save again."
   },
   "grammar": {
     "Approval": "A noun phrase naming what is approved, for example Rigging Plan Sign-Off.",

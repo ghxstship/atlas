@@ -271,7 +271,7 @@
     },
     "shortcutsEnabled": {
       "label": "Atajos de teclado",
-      "help": "Atajos de una tecla como J, K y ? en el escritorio."
+      "help": "Atajos de una tecla de carácter como J, K y ? en el escritorio. Las teclas de función F13 a F20, como las de un Stream Deck, siempre funcionan."
     },
     "messageTranslation": {
       "label": "Traducir mensajes del chat",
@@ -360,6 +360,18 @@
     "advancingAllowanceOverflow": {
       "label": "Solicitudes por encima de la asignación permitida",
       "help": "Rechazar no admite una solicitud por encima del límite de una oferta. Revisar la admite como solicitada; aprobarla, o asignar por encima del límite, requiere entonces un motivo que se guarda con la asignación."
+    },
+    "workloadDayHours": {
+      "label": "Jornada de carga de trabajo (horas)",
+      "help": "En Programación, Carga de trabajo, la jornada de una persona se marca como excedida por encima de estas horas de turnos y tareas estimadas. Cambia lo que muestra la vista y no guarda nada."
+    },
+    "changeoverMinutes": {
+      "label": "Cambio mínimo entre actuaciones (minutos)",
+      "help": "En Programación, Conflictos, un intervalo entre dos actuaciones de menos minutos que este es una advertencia; las actuaciones que se superponen siempre son un conflicto."
+    },
+    "travelBufferMinutes": {
+      "label": "Margen de viaje (minutos)",
+      "help": "En Programación, Conflictos, un vuelo o traslado que llega a menos de estos minutos de la primera llamada de una persona, o sale tan pronto después de la última, es una advertencia; si llega después de la llamada o sale antes de que termine, es un conflicto."
     }
   },
   "choices": {
@@ -818,7 +830,7 @@
     "resetOne": "{action} vuelve a usar sus teclas predeterminadas.",
     "resetAll": "Restablecer todos los atajos",
     "resetAllDone": "Todos los atajos vuelven a usar sus teclas predeterminadas.",
-    "singleKeysOff": "Los atajos de una sola tecla están desactivados, así que los atajos sin Ctrl, Cmd o Alt no hacen nada. Activa Atajos de teclado arriba para usarlos.",
+    "singleKeysOff": "Los atajos de una sola tecla están desactivados, así que las teclas de carácter sin Ctrl, Cmd o Alt no hacen nada. Las teclas de función F13 a F20 siguen funcionando. Activa Atajos de teclado arriba para usarlos.",
     "fixed": "Esc, Intro y las teclas de lista J, K y X pertenecen a todas las listas y diálogos, así que no cambian. La Ayuda muestra todos los atajos.",
     "problems": {
       "conflict": "{keys} ya hace {action}. Cambia primero ese atajo o elige otras teclas.",

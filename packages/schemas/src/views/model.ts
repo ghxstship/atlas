@@ -6,7 +6,7 @@
 export const SHELLS = ["atlas", "gateway", "compass"] as const;
 export type Shell = (typeof SHELLS)[number];
 
-/** The app.view_type labels a saved view stores (migrations 0540 and 0640). */
+/** The app.view_type labels a saved view stores (migrations 0540, 0640 and 2935). */
 export const SAVED_VIEW_TYPES = [
   "List",
   "Board",
@@ -24,6 +24,7 @@ export const SAVED_VIEW_TYPES = [
   "Chart",
   "Feed",
   "Inbox",
+  "Heatmap",
 ] as const;
 export type SavedViewType = (typeof SAVED_VIEW_TYPES)[number];
 

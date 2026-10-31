@@ -9,7 +9,7 @@ import { ActionErrorAlert, useCopy } from "@/components/work/action-ui";
 import { rescheduleRecordAction } from "./actions";
 import { createPreviewer, previewOf, shiftsOf } from "./reschedule-preview";
 import { ScheduleBacklog, type BacklogItem } from "./schedule-backlog";
-import { timelineView } from "./timeline-view";
+import { timelineView, type TimelineExtras } from "./timeline-view";
 
 /** Quiet time after the last arrow key or pointer step before the server previews the change. */
 const PREVIEW_DELAY_MS = 250;
@@ -30,16 +30,19 @@ export function RescheduleTimeline({
   label,
   timeline,
   backlog = [],
+  extras,
 }: {
   org: string;
   label: string;
   timeline: TimelineModel;
   backlog?: readonly BacklogItem[];
+  /** Day-type tags and the anchor day (B4). */
+  extras?: TimelineExtras | undefined;
 }) {
   const format = useFormatter();
   const t = useCopy("schedule");
   const w = useCopy("work");
-  const view = useMemo(() => timelineView(timeline, format), [timeline, format]);
+  const view = useMemo(() => timelineView(timeline, format, extras), [timeline, format, extras]);
   // A preview belongs to the bars it was worked out on; after a refresh it no longer applies.
   const [answer, setAnswer] = useState<{
     bars: TimelineModel["bars"];

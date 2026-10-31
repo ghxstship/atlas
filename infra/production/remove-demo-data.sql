@@ -67,7 +67,7 @@ create temp table demo_email_domains (domain text primary key);
 create temp table demo_seed_tables (table_name text primary key);
 
 -- BEGIN GENERATED SEED MARKERS (infra/production/src/cli.ts generate)
--- Derived from 32 seed files: 250 fixed ids, 3 email domain(s), 242 seeded tables.
+-- Derived from 34 seed files: 254 fixed ids, 3 email domain(s), 246 seeded tables.
 insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000000001'::uuid),
   ('01920000-0000-7000-8000-000000000101'::uuid),
@@ -318,7 +318,11 @@ insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000023320301'::uuid),
   ('01920000-0000-7000-8000-000023320401'::uuid),
   ('01920000-0000-7000-8000-000023320701'::uuid),
-  ('01920000-0000-7000-8000-000023320901'::uuid);
+  ('01920000-0000-7000-8000-000023320901'::uuid),
+  ('01920000-0000-7000-8000-000029300101'::uuid),
+  ('01920000-0000-7000-8000-000029300201'::uuid),
+  ('01920000-0000-7000-8000-000029300202'::uuid),
+  ('01920000-0000-7000-8000-000029300301'::uuid);
 insert into pg_temp.demo_email_domains (domain) values
   ('example.com'),
   ('group.calendar.example.com'),
@@ -373,6 +377,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.credential_categories'),
   ('app.credentials'),
   ('app.crisis_alerts'),
+  ('app.cue_calls'),
   ('app.cues'),
   ('app.custom_object_field_choices'),
   ('app.custom_object_fields'),
@@ -384,6 +389,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.document_versions'),
   ('app.documents'),
   ('app.earning_codes'),
+  ('app.engagement_cues'),
   ('app.engagement_documents'),
   ('app.engagement_messages'),
   ('app.engagement_threads'),
@@ -449,6 +455,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.payment_applications'),
   ('app.payments'),
   ('app.payroll_runs'),
+  ('app.people'),
   ('app.per_diems'),
   ('app.person_certifications'),
   ('app.person_emergency_contacts'),
@@ -464,6 +471,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.portfolio_items'),
   ('app.prequalifications'),
   ('app.profile_section_visibility'),
+  ('app.project_days'),
   ('app.project_members'),
   ('app.projects'),
   ('app.purchase_orders'),

@@ -257,7 +257,7 @@ modules:
         description: Create and edit the run of show and its cues.
       - code: show.cue.call
         class: write
-        description: Call cues live during a show.
+        description: "Call cues live during a show: go, standby and nudging the remaining planned times."
       - code: show.day_sheet.write
         class: write
         description: Create and edit day sheets and call sheets.

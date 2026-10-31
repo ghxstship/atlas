@@ -93,7 +93,8 @@
     "month": "Mes",
     "more": "+{n} más",
     "range": "Rango",
-    "week": "Semana"
+    "week": "Semana",
+    "dayTypes": "Tipos de día"
   },
   "camera": {
     "viewfinder": "Visor de la cámara"
@@ -156,7 +157,8 @@
   },
   "daysheet": {
     "contacts": "Contactos",
-    "now": "Ahora"
+    "now": "Ahora",
+    "dayTypes": "Tipos de día"
   },
   "diff": {
     "after": "Después",
@@ -223,7 +225,10 @@
   "grid": {
     "derived": "Derivado del canon. Edite el registro de origen para cambiarlo.",
     "hint": "Las flechas mueven, Enter edita, Supr borra a Sin precio, pegar desde Excel llena el rango.",
-    "row": "Fila"
+    "row": "Fila",
+    "newRow": "Fila nueva",
+    "hintAppend": "Las flechas y Tab mueven, Intro edita y baja, y escribir en la última fila agrega una fila. Pegar desde una hoja de cálculo llena el rango.",
+    "cellError": "Fila {row}, {column}: {message}"
   },
   "help": {
     "ask": "Haga una pregunta sobre esta página",
@@ -402,7 +407,9 @@
     "go": "Go",
     "label": "Guion del evento",
     "live": "En vivo",
-    "nextIn": "Siguiente cue en"
+    "nextIn": "Siguiente cue en",
+    "standby": "En espera",
+    "skipped": "Omitido"
   },
   "rte": {
     "bold": "Negrita",
@@ -517,7 +524,16 @@
     "record": "Registro",
     "scroll": "{label}, días",
     "start": "Inicio",
-    "state": "Estado"
+    "state": "Estado",
+    "dayTypes": "Tipos de día",
+    "dayWithTypes": "{day} ({types})",
+    "segment": "{label} del {start} al {end}",
+    "offset": "Desfase",
+    "offsetOn": "En el día del ancla",
+    "offsetBefore": "{n} días antes del ancla",
+    "offsetAfter": "{n} días después del ancla",
+    "offsetBeforeOne": "1 día antes del ancla",
+    "offsetAfterOne": "1 día después del ancla"
   },
   "tooltip": {
     "withShortcut": "{label} ({shortcut})"
@@ -566,5 +582,8 @@
       "owner": "Responsable",
       "action": "Acción"
     }
+  },
+  "heatmap": {
+    "cell": "{row}, {column}: {value}"
   }
 }

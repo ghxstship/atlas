@@ -63,7 +63,7 @@ insert into rule_sources values
   ('external_project', 'app.radio_channels', 'id,project_id,channel_number,name,zone_id', 'api_external.radio_channels'),
   ('external_project', 'app.day_sheets', 'id,project_id,day,body', 'api_external.day_sheets'),
   ('external_project', 'app.run_of_show', 'id,project_id,name,show_date', 'api_external.run_of_show'),
-  ('external_project', 'app.cues', 'id,run_of_show_id,position,label,planned_at,duration,called_at,project_id', 'api_external.cues'),
+  ('external_project', 'app.cues', 'id,run_of_show_id,position,label,planned_at,duration,called_at,project_id,start_tbc', 'api_external.cues'),
   ('roster_entry', 'app.asset_custody', 'id,asset_unit_id,custodian_engagement_id>engagement_id,roster_entry_id,project_id,created_at>held_since', 'api_external.asset_custody'),
   ('canon_reference', 'xpms.emergency_code', 'code,label,emergency,swatch,sort_order', null),
   ('canon_reference', 'xpms.std_enumeration', 'record_id,enum_code,enum_label,sort_order,color_code', null),

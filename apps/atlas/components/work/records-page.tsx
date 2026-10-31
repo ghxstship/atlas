@@ -6,6 +6,8 @@ import {
   scheduleWindow,
 } from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
+import { getProjectAnchor } from "@xos/data/anchor";
+import { dayTagsByDate, dayTypeSlug, listProjectDays } from "@xos/data/schedule-days";
 import { todayIn } from "@xos/data/calendar";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
@@ -161,6 +163,53 @@ export async function RecordsPage({
     });
   }
 
+  // Day types on the calendar and the timeline (B4): one project's by name, several prefixed with their keys.
+  let dayTypes:
+    | {
+        date: string;
+        tags: { label: string; category: 1 | 2 | 3 | 4 | 5 | 6 | 7; icon: string }[];
+      }[]
+    | undefined;
+  let anchor: { day: string; label: string } | null = null;
+  // Only the dates the view draws: the month on the calendar, the timeline's first to last day.
+  const drawnDays =
+    view === "calendar"
+      ? { from: month, to: lastOfMonth(month) }
+      : view === "timeline" && timeline && timeline.days.length > 0
+        ? { from: timeline.days[0]?.day ?? today, to: timeline.days.at(-1)?.day ?? today }
+        : null;
+  if (drawnDays) {
+    const ids = projectId ? [projectId] : meta.projects.map((p) => p.id);
+    const days = await listProjectDays(db, { orgId: ctx.org.id, projectIds: ids, ...drawnDays });
+    if (days.ok) {
+      const byDate = dayTagsByDate(
+        days.data,
+        (d) => d.label ?? t(`schedule.days.types.${dayTypeSlug(d.dayType)}`),
+        { prefixKeys: !projectId },
+      );
+      dayTypes = [...byDate].map(([date, v]) => ({
+        date,
+        tags: [
+          ...v.tags.map((tag) => ({ label: tag.label, category: tag.category, icon: tag.icon })),
+          ...(v.more > 0
+            ? [
+                {
+                  label: t("schedule.days.more", { n: v.more }),
+                  category: 7 as const,
+                  icon: "Ellipsis",
+                },
+              ]
+            : []),
+        ],
+      }));
+    }
+    if (project && view === "timeline") {
+      const anchorOn = await getProjectAnchor(db, project.id);
+      if (anchorOn.ok && anchorOn.data)
+        anchor = { day: anchorOn.data, label: t("schedule.anchor.gate") };
+    }
+  }
+
   const peekKey = param(search, "peek");
   let peek: ReactNode = null;
   if (peekKey) {
@@ -243,6 +292,8 @@ export async function RecordsPage({
         canCreate={canCreate}
         bulk={bulk}
         quickAdd={quickAdd}
+        {...(dayTypes ? { dayTypes } : {})}
+        anchor={anchor}
         hideKindFilter={fixedKinds !== undefined && fixedKinds.length <= 1}
         create={
           <CreateRecordDialog
@@ -262,4 +313,10 @@ export async function RecordsPage({
       />
     </CustomFieldList>
   );
+}
+
+/** The last day of the month that `month` (YYYY-MM-01) starts, as YYYY-MM-DD. */
+function lastOfMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number) as [number, number];
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
 }

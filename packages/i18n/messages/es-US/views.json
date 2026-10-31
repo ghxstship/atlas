@@ -16,7 +16,8 @@
     "chart": "Gráfico",
     "feed": "Actividad",
     "inbox": "Bandeja de entrada",
-    "split": "Vista dividida"
+    "split": "Vista dividida",
+    "heatmap": "Mapa de calor"
   },
   "filter": {
     "add": "Agregar filtro",
@@ -514,7 +515,10 @@
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "day_on": "Fecha",
+      "day_type": "Tipo de día",
+      "team_code": "Equipo"
     }
   }
 }

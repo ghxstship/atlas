@@ -233,8 +233,15 @@ describe("loaders read each record as the caller", () => {
       ],
       "from:projects": [project],
       "from:cues": [okResponse([])],
+      "from:cue_calls": [
+        okResponse([{ id: "k1", cue_id: "q1", call_kind: "Lighting", instruction: "LX 14 GO" }]),
+      ],
     });
-    expect((await loadDocumentData(run.db, ORG, "run-of-show", "r1")).ok).toBe(true);
+    const loaded = await loadDocumentData(run.db, ORG, "run-of-show", "r1");
+    // Version 2 lists department calls, so the internal loader reads them with the cues (ADR 0131).
+    expect(loaded.ok && "calls" in loaded.data && loaded.data.calls).toEqual([
+      { id: "k1", cueId: "q1", kind: "Lighting", instruction: "LX 14 GO" },
+    ]);
 
     const beo = fakeClient({
       "from:beos": [

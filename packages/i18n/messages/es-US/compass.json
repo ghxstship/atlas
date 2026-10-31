@@ -163,7 +163,8 @@
       "profile_documents": "tus documentos",
       "roster_entries": "entradas de lista",
       "advance_allocations": "artículos asignados a ti",
-      "parking_passes": "pases de estacionamiento"
+      "parking_passes": "pases de estacionamiento",
+      "cue_calls": "llamadas de departamento"
     }
   },
   "queue": {
@@ -346,7 +347,8 @@
       "todayDescription": "Tus turnos de hoy y el siguiente cue.",
       "nextCueName": "Siguiente cue de Compass",
       "nextCueDescription": "El tiempo que falta para el siguiente cue."
-    }
+    },
+    "cueTbc": "{cue} · Por confirmar"
   },
   "wallet": {
     "holder": "Nombre",
@@ -595,7 +597,24 @@
     "countdownLabel": "{minutes} min {seconds} s para {cue}",
     "countdownLate": "{minutes} min {seconds} s de retraso en {cue}",
     "countdownSoon": "{cue} en {seconds} segundos",
-    "countdownGo": "{cue}: ya"
+    "countdownGo": "{cue}: ya",
+    "tbc": "Por confirmar",
+    "onStandby": "En espera",
+    "department": "Tu departamento",
+    "allDepartments": "Todos",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Iluminación",
+      "video": "Video",
+      "sfx": "Efectos especiales",
+      "stage": "Escenario"
+    },
+    "yourCallNow": "Tu llamada ahora: {cue}",
+    "yourCallNext": "Tu próxima llamada: {cue}",
+    "callLine": "{department} · {instruction}",
+    "noCall": "Sin llamada de {department}",
+    "noCalls": "Sin llamadas de departamento",
+    "countdownTbc": "{cue}: hora por confirmar"
   },
   "kiosk": {
     "title": "Quiosco",

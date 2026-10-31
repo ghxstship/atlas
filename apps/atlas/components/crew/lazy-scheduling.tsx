@@ -22,3 +22,9 @@ export const AvailabilityPollResults = dynamic(() =>
 export const AvailabilityPollDialog = dynamic(() =>
   import("./availability-poll-dialog").then((m) => m.AvailabilityPollDialog),
 );
+
+/**
+ * B4 (G-43): the drop target that takes an open shift from the board onto a person's lane of the schedule. Loaded
+ * with the board, for planners only.
+ */
+export const ShiftDropIsland = dynamic(() => import("./shift-drop").then((m) => m.ShiftDropIsland));

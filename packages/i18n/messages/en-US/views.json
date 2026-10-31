@@ -16,7 +16,8 @@
     "chart": "Chart",
     "feed": "Feed",
     "inbox": "Inbox",
-    "split": "Split view"
+    "split": "Split view",
+    "heatmap": "Heatmap"
   },
   "filter": {
     "add": "Add filter",
@@ -514,7 +515,10 @@
       "reserved_quantity": "Held",
       "issued_quantity": "Issued",
       "returned_quantity": "Returned",
-      "decline_reason": "Decline reason"
+      "decline_reason": "Decline reason",
+      "day_on": "Date",
+      "day_type": "Day type",
+      "team_code": "Team"
     }
   }
 }

@@ -77,6 +77,24 @@ export function formatScheduleTime(
   return formatZonedDateTime(locale, value, zone, parts);
 }
 
+/**
+ * A start time that may be an estimate to be confirmed (G-40, ADR 0131): the schedule time, or, while the start is
+ * TBC, `tbc` applied to it ("TBC · est. 7:30 PM EDT"). Atlas is internal, so it always shows the estimate; sorting
+ * and timeline placement keep using the estimate itself. Null when there is no value.
+ */
+export function formatStartTime(
+  value: string | null,
+  startTbc: boolean,
+  locale: string,
+  eventZone: string | null | undefined,
+  view: ScheduleView,
+  parts: "dateTime" | "time",
+  tbc: (time: string) => string,
+): string | null {
+  const time = formatScheduleTime(value, locale, eventZone, view, parts);
+  return time !== null && startTbc ? tbc(time) : time;
+}
+
 /** The viewer's schedule view from their resolved display preferences and own zone. */
 export function scheduleViewOf(
   preferences: Pick<DisplayPreferences, "timeZoneDisplay">,

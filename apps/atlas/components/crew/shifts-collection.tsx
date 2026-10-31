@@ -70,7 +70,9 @@ import { CrewFrame, resolveView } from "./frame";
 import { ConfirmButton } from "./forms-confirm-button";
 import { type FieldSpec } from "./forms.types";
 import { CrewRecord } from "./record";
-import { ScheduleGrid } from "./schedule-grid";
+import { LANE_MODES, ScheduleGrid, type LaneMode } from "./schedule-grid";
+import { dayTagsByDate, dayTypeSlug, listProjectDays, type DayType } from "@xos/data/schedule-days";
+import { listProjectVenueIds, listVendorLanes, listZoneLanes } from "@xos/data/resource-lanes";
 import { InlineAlert } from "./ui";
 import { FilterSelect } from "./views-filter-select";
 // The table and calendar views and the drawers render only in some states (A24-009).
@@ -784,6 +786,41 @@ export async function ShiftsCollection(props: {
       staffableOpen.map((s) => s.id),
     );
     if (!claimed.ok) throw new Error(`Cannot read the waiting claims: ${claimed.error.kind}`);
+    // B4 (G-43): lanes by person, supplier or zone, and the projects' day types over the week.
+    const lanes: LaneMode = LANE_MODES.find((m) => m === search["lanes"]) ?? "people";
+    const inView = projectFilter ? [projectFilter.id] : projects.map((p) => p.id);
+    const weekEnd = addDays(week, 6);
+    const [projectDays, vendorLanes, zoneLanes] = await Promise.all([
+      listProjectDays(db, { orgId: crew.orgId, projectIds: inView, from: week, to: weekEnd }),
+      lanes === "vendors"
+        ? listVendorLanes(db, { projectIds: inView, from: week, to: weekEnd })
+        : Promise.resolve(null),
+      lanes === "zones"
+        ? listProjectVenueIds(db, inView).then((v) =>
+            v.ok
+              ? listZoneLanes(db, { projectIds: inView, venueIds: v.data, from: week, to: weekEnd })
+              : v,
+          )
+        : Promise.resolve(null),
+    ]);
+    const typed = projectDays.ok
+      ? dayTagsByDate(
+          projectDays.data.filter(
+            (d) => d.dayType === "Load In" || d.dayType === "Show" || d.dayType === "Load Out",
+          ),
+          (d) => d.label ?? t(`schedule.days.types.${dayTypeSlug(d.dayType)}`),
+          {
+            prefixKeys:
+              !projectFilter && new Set(projectDays.data.map((d) => d.projectId)).size > 1,
+          },
+        )
+      : new Map<string, { tags: { label: string; dayType: DayType }[]; more: number }>();
+    const band = new Map(
+      [...typed].map(([date, v]) => [
+        date,
+        { tags: v.tags.map((tag) => ({ label: tag.label, dayType: tag.dayType })), more: v.more },
+      ]),
+    );
     const boardShift = (s: Shift) => ({
       id: s.id,
       label: t("crew.common.pair", { a: roleName(s.roleCode), b: when(s) }),
@@ -818,6 +855,12 @@ export async function ShiftsCollection(props: {
           peekHref={peekHref}
           label={t("crew.shifts.gridLabel")}
           overtimeHours={rules}
+          lanes={lanes}
+          laneHref={(mode) => withParams(base, search, { lanes: mode === "people" ? null : mode })}
+          dayTypes={band}
+          {...(vendorLanes?.ok ? { vendorLanes: vendorLanes.data } : {})}
+          {...(zoneLanes?.ok ? { zoneLanes: zoneLanes.data } : {})}
+          drop={canWrite ? { org: crew.slug } : null}
         />
       </div>
     );

@@ -106,7 +106,7 @@ bucket_definitions:
       - SELECT id, project_id, channel_number, name, zone_id FROM app.radio_channels WHERE project_id = bucket.project_id
       - SELECT id, project_id, day, body FROM app.day_sheets WHERE project_id = bucket.project_id AND bucket.audience IN ('crew', 'staff', 'artist', 'artist-representative', 'client')
       - SELECT id, project_id, name, show_date FROM app.run_of_show WHERE project_id = bucket.project_id AND bucket.audience = 'client'
-      - SELECT id, run_of_show_id, position, label, planned_at, duration, called_at, project_id FROM app.cues WHERE project_id = bucket.project_id AND bucket.audience = 'client'
+      - SELECT id, run_of_show_id, position, label, planned_at, duration, called_at, project_id, start_tbc FROM app.cues WHERE project_id = bucket.project_id AND bucket.audience = 'client'
 
   roster_entry:
     parameters: >-
