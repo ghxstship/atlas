@@ -26,6 +26,11 @@ export interface KitRow {
   readonly id: string;
   /** Display key, for example NWL-PO7 or an item ID. */
   readonly key: string;
+  /**
+   * The row's name in its menu and in bulk refusals when the key does not name it (a document's
+   * key is where it belongs); the key by default.
+   */
+  readonly label?: string;
   readonly title: string;
   readonly state?: KitState;
   /** Board column the row sits in (a state value). */

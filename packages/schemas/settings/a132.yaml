@@ -1,0 +1,43 @@
+# Settings registry: A132 (crew scheduling: availability windows; RRR-194). Section 4.5.6 item 25.
+# Field reference: see a30.yaml. The rule for when members state their availability for the org's schedules and how
+# far ahead (ADR 0063). Members keep their availability on an availability calendar kept for the org (0740, 2251).
+contributor: a132
+settings:
+  # Scheduling --------------------------------------------------------------------------------------------------
+  - key: scheduling.availability_required
+    type: boolean
+    default: false
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.availabilityRequired.label
+    help: settings.fields.availabilityRequired.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2251_member_availability.sql#private.availability_rule
+        test: supabase/tests/2251_member_availability.test.sql
+  - key: scheduling.availability_notice_days
+    type: integer
+    min: 0
+    max: 60
+    default: 7
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.availabilityNoticeDays.label
+    help: settings.fields.availabilityNoticeDays.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2251_member_availability.sql#private.availability_rule
+        test: supabase/tests/2251_member_availability.test.sql
+  - key: scheduling.availability_horizon_days
+    type: integer
+    min: 7
+    max: 180
+    default: 28
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.availabilityHorizonDays.label
+    help: settings.fields.availabilityHorizonDays.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2251_member_availability.sql#private.availability_rule
+        test: supabase/tests/2251_member_availability.test.sql

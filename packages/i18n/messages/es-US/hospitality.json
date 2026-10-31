@@ -147,6 +147,16 @@
       "unitPrice": "Precio unitario",
       "currency": "Moneda",
       "remove": "Quitar {description}"
+    },
+    "rosterCounts": {
+      "title": "Conteos del equipo",
+      "sentence": "Personas asignadas a este catering y lo que compartieron. El número de invitados de arriba sigue siendo tu propia cifra.",
+      "headcount": "Total de personas",
+      "fewerThanFive": "Menos de 5",
+      "allergies": "Alergias",
+      "load": "Mostrar conteos del equipo",
+      "empty": "Aún nadie tiene asignado este catering.",
+      "failed": "No se pudieron leer los conteos del equipo."
     }
   },
   "blocks": {

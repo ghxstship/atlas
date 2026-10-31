@@ -21,6 +21,7 @@ export function Combobox({
   options,
   defaultOpen,
   onChange,
+  onQueryChange,
   id,
 }: ComboboxProps): ReactElement {
   const t = useT();
@@ -61,6 +62,7 @@ export function Combobox({
               }}
               onChange={(e) => {
                 s.setQuery(e.target.value);
+                onQueryChange?.(e.target.value);
                 s.setOpen(true);
                 s.setActive(0);
               }}

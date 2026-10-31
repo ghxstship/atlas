@@ -1,17 +1,22 @@
 import { nextStates } from "@xos/data/commercial-common";
 import {
   getPoAcknowledgment,
+  getPoLineSupply,
+  getProjectTimeZone,
   getPurchaseOrderTotals,
   listCurrencies,
   listGoodsReceipts,
   listPoChangeOrders,
+  listPoLineHireWarnings,
   listPoLines,
   listProjectOptions,
   listPurchaseOrders,
   listSubmittals,
+  type PoLineHireWarning,
   type PoState,
   type PurchaseOrder,
 } from "@xos/data/procurement";
+import dynamic from "next/dynamic";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
 import { getFormatter } from "next-intl/server";
 import {
@@ -20,6 +25,7 @@ import {
   createChangeOrderAction,
   createPoAction,
   decideChangeOrderAction,
+  hireWarningsAction,
   priceChangeOrderAction,
   removePoLineAction,
   transitionPoAction,
@@ -45,6 +51,7 @@ import {
 import { recordStateOf, type KitRow, type ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
+import { purchaseOrderBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   collectionState,
@@ -55,16 +62,22 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { HIRE_WARNING_KEY } from "@/lib/procurement/hire";
 import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
 const STATES: readonly PoState[] = ["Proposed", "Approved", "Sent", "Closed", "Canceled"];
 
+/** The order line form, with its hire window warnings, loads with the record page's edit state (R7a). */
+const PoLineForm = dynamic(() => import("./supply-forms").then((m) => m.PoLineForm));
+
 /**
  * Procurement > Purchase orders (journeys 4, 5 and 30): orders with NULL-aware totals, lines that
  * change only while Proposed, approval under spend authority by someone other than the creator,
- * sending, the vendor's acknowledgment from Gateway, change orders, receipts and submittals.
+ * sending, the vendor's acknowledgment from Gateway, change orders, receipts and submittals. Lines buy or
+ * hire their item; a hire's delivery and return window warnings never block it (R7a, G-99), and the
+ * Supply section reads each line's progress from app.po_line_supply.
  */
 export async function PurchaseOrdersSection({
   ctx,
@@ -79,16 +92,18 @@ export async function PurchaseOrdersSection({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, format, all, projects, vendors, rules, currencies, custom] = await Promise.all([
-    getCopy("procurement"),
-    getFormatter(),
-    listPurchaseOrders(db, ctx.org.id),
-    listProjectOptions(db, ctx.org.id),
-    listVendors(db, ctx.org.id),
-    listTransitionRules<PoState>(db, "purchase_order"),
-    listCurrencies(db),
-    customFieldList(ctx, "app.purchase_orders", search),
-  ]);
+  const [t, format, all, projects, vendors, rules, currencies, custom, warnings] =
+    await Promise.all([
+      getCopy("procurement"),
+      getFormatter(),
+      listPurchaseOrders(db, ctx.org.id),
+      listProjectOptions(db, ctx.org.id),
+      listVendors(db, ctx.org.id),
+      listTransitionRules<PoState>(db, "purchase_order"),
+      listCurrencies(db),
+      customFieldList(ctx, "app.purchase_orders", search),
+      listPoLineHireWarnings(db, ctx.org.id),
+    ]);
   const title = t("orders.title");
   if (!all.ok || !projects.ok || !vendors.ok || !rules.ok || !currencies.ok) {
     return (
@@ -166,7 +181,14 @@ export async function PurchaseOrdersSection({
     );
   }
 
-  const listed = orders.filter((o) => custom.keep(o.id));
+  // The Hire warnings filter (G-99): orders with a rental line whose hire conflicts with the site window.
+  const warningCount = new Map<string, number>();
+  for (const w of warnings.ok ? warnings.data : [])
+    warningCount.set(w.purchaseOrderId, (warningCount.get(w.purchaseOrderId) ?? 0) + 1);
+  const onlyWarnings = search["hire"] === "warnings";
+  const listed = orders.filter(
+    (o) => custom.keep(o.id) && (!onlyWarnings || warningCount.has(o.id)),
+  );
   const rows: KitRow[] = listed.map((o) => ({
     id: o.id,
     key: o.key,
@@ -181,6 +203,7 @@ export async function PurchaseOrdersSection({
       state: { state: recordStateOf(o.state), label: stateLabel(o.state) },
       total: money(o.totals.linesTotalMinor, o.currencyCode),
       unpriced: o.totals.unpricedCount,
+      hireWarnings: warningCount.get(o.id) ?? 0,
     },
   }));
 
@@ -256,8 +279,22 @@ export async function PurchaseOrdersSection({
         { key: "state", label: t("fields.state"), type: "state" },
         { key: "total", label: t("orders.total") },
         { key: "unpriced", label: t("orders.unpricedLines"), type: "number" },
+        { key: "hireWarnings", label: t("hireWarnings.column"), type: "number" },
       ]}
       rows={rows}
+      filters={
+        <KitLink
+          href={
+            onlyWarnings
+              ? withQuery(path, { ...state, baseQuery: dropKey(state.baseQuery, "hire") })
+              : withQuery(path, state, { hire: "warnings" })
+          }
+          size="sm"
+          variant={onlyWarnings ? "primary" : "secondary"}
+        >
+          {t(onlyWarnings ? "hireWarnings.showAll" : "hireWarnings.filter")}
+        </KitLink>
+      }
       customFields={await custom.view(rows.map((r) => r.id))}
       board={STATES.map((s) => ({ value: s, state: recordStateOf(s), label: stateLabel(s) }))}
       actions={
@@ -268,6 +305,7 @@ export async function PurchaseOrdersSection({
         ) : null
       }
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "orders")}
+      bulk={purchaseOrderBulk(ctx.org.slug, ctx.capabilities, t)}
     >
       {drawer}
     </CollectionView>
@@ -296,15 +334,19 @@ async function PurchaseOrderRecord({
   canWrite: boolean;
 }) {
   const db = ctx.viewer.db;
-  const [format, lines, totals, ack, changes, receipts, submittals] = await Promise.all([
-    getFormatter(),
-    listPoLines(db, order.id),
-    getPurchaseOrderTotals(db, order.id),
-    getPoAcknowledgment(db, order.id),
-    listPoChangeOrders(db, order.id),
-    listGoodsReceipts(db, ctx.org.id, order.id),
-    listSubmittals(db, ctx.org.id, { purchaseOrderId: order.id }),
-  ]);
+  const [format, lines, totals, ack, changes, receipts, submittals, supply, warnings, zone] =
+    await Promise.all([
+      getFormatter(),
+      listPoLines(db, order.id),
+      getPurchaseOrderTotals(db, order.id),
+      getPoAcknowledgment(db, order.id),
+      listPoChangeOrders(db, order.id),
+      listGoodsReceipts(db, ctx.org.id, order.id),
+      listSubmittals(db, ctx.org.id, { purchaseOrderId: order.id }),
+      getPoLineSupply(db, order.id),
+      listPoLineHireWarnings(db, ctx.org.id, order.id),
+      getProjectTimeZone(db, order.projectId),
+    ]);
   if (!lines.ok || !totals.ok || !ack.ok || !changes.ok || !receipts.ok || !submittals.ok) {
     return <ErrorPanel what={t("orders.what")} />;
   }
@@ -312,6 +354,17 @@ async function PurchaseOrderRecord({
   const date = (d: string) =>
     format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
   const receivable = order.state === "Approved" || order.state === "Sent";
+  const hireText = (from: string | null, to: string | null) =>
+    from && to
+      ? format.dateTimeRange(new Date(from), new Date(to), {
+          dateStyle: "medium",
+          timeStyle: "short",
+          timeZone: zone,
+        })
+      : "";
+  const lineWarnings = new Map<string, PoLineHireWarning[]>();
+  for (const w of warnings.ok ? warnings.data : [])
+    lineWarnings.set(w.poLineId, [...(lineWarnings.get(w.poLineId) ?? []), w]);
   return (
     <RecordPage
       backHref={backHref}
@@ -347,10 +400,15 @@ async function PurchaseOrderRecord({
               { key: "unit", label: t("lines.unitPrice") },
               { key: "extended", label: t("lines.extended") },
               { key: "received", label: t("lines.received"), type: "number" },
+              { key: "acquisition", label: t("lines.acquisition.label"), wrap: true },
             ]}
             rows={lines.data.map((l) => ({
               n: l.lineNumber,
               description: l.description,
+              acquisition:
+                l.acquisitionKind === "Rental"
+                  ? `${t("lines.acquisition.rental")} · ${hireText(l.hireStartsAt, l.hireEndsAt)}`
+                  : t("lines.acquisition.purchase"),
               quantity: l.quantity,
               unit: money(l.unitPriceMinor, order.currencyCode),
               extended: money(l.extendedMinor, order.currencyCode),
@@ -375,49 +433,53 @@ async function PurchaseOrderRecord({
                 />
               ))}
             </div>
-            <EntityForm
-              id={`po-line-${order.id}`}
+            <PoLineForm
+              org={ctx.org.slug}
+              purchaseOrderId={order.id}
+              projectId={order.projectId}
+              currencyCode={order.currencyCode}
+              timeZone={zone}
               action={addPoLineAction}
-              hidden={{
-                org: ctx.org.slug,
-                purchaseOrderId: order.id,
-                currencyCode: order.currencyCode,
-              }}
-              refusals={REFUSALS}
-              submitLabel={t("orders.addLine")}
-              fields={[
-                {
-                  kind: "text",
-                  name: "description",
-                  label: t("lines.descriptionLabel"),
-                  required: true,
-                },
-                {
-                  kind: "number",
-                  name: "quantity",
-                  label: t("lines.quantity"),
-                  required: true,
-                  defaultValue: "1",
-                },
-                {
-                  kind: "text",
-                  name: "unitBasis",
-                  label: t("lines.unitBasis"),
-                  help: t("lines.unitBasisHelp"),
-                },
-                {
-                  kind: "money",
-                  name: "unitPrice",
-                  label: t("lines.unitPrice"),
-                  unit: order.currencyCode,
-                },
-              ]}
+              warningsAction={hireWarningsAction}
             />
           </>
         ) : order.state === "Proposed" ? null : (
           <p className="m-0 text-text-12 text-text-secondary">{t("orders.linesLocked")}</p>
         )}
       </KitSection>
+
+      {supply.ok && supply.data.length > 0 ? (
+        <KitSection id="po-supply" title={t("supply.title")}>
+          <DataTable
+            caption={t("supply.title")}
+            columns={[
+              { key: "line", label: t("lines.descriptionLabel"), wrap: true },
+              { key: "ordered", label: t("supply.ordered"), type: "number" },
+              { key: "acknowledged", label: t("supply.acknowledged") },
+              { key: "received", label: t("supply.received"), type: "number" },
+              { key: "returned", label: t("supply.returned"), type: "number" },
+              { key: "status", label: t("supply.status"), wrap: true },
+            ]}
+            rows={supply.data.map((row) => {
+              const line = lines.data.find((l) => l.id === row.poLineId);
+              const chips = [
+                ...(row.offHireDue ? [t("supply.offHireDue")] : []),
+                ...(lineWarnings.get(row.poLineId) ?? []).map((w) =>
+                  t(`hireWarnings.${HIRE_WARNING_KEY[w.warning]}`),
+                ),
+              ];
+              return {
+                line: line ? `${line.lineNumber}. ${line.description}` : t("receipts.unknownLine"),
+                ordered: row.quantityOrdered,
+                acknowledged: row.acknowledged ? t("supply.yes") : t("supply.no"),
+                received: row.quantityReceived,
+                returned: row.quantityReturned,
+                status: chips.join(" · "),
+              };
+            })}
+          />
+        </KitSection>
+      ) : null}
 
       <KitSection id="po-changes" title={t("changes.title")}>
         {changes.data.length === 0 ? (
@@ -548,4 +610,11 @@ async function PurchaseOrderRecord({
       <CollabPanels ctx={ctx} table="app.purchase_orders" id={order.id} />
     </RecordPage>
   );
+}
+
+/** A query string without one key, for a filter link that turns itself off. */
+function dropKey(query: string, key: string): string {
+  const q = new URLSearchParams(query);
+  q.delete(key);
+  return q.toString();
 }

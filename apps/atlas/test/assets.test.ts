@@ -64,7 +64,7 @@ describe("assets views", () => {
   });
 
   it("gives every asset state an icon tone", () => {
-    expect(Object.keys(ASSET_STATE_TONE)).toHaveLength(9);
+    expect(Object.keys(ASSET_STATE_TONE)).toHaveLength(10);
     expect(ASSET_STATE_TONE["Damaged"]).toBe("blocked");
     expect(monthOf("2026-10-15")).toBe("2026-10-01");
   });

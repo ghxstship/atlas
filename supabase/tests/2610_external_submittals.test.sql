@@ -60,10 +60,18 @@ select pg_temp.move_engagement('eng_vendor_a', 'Onboarding', 'Active');
 -- Who reads --------------------------------------------------------------------------------------------------------------------
 select is(pg_temp.n('victor', 'select 1 from api_external.submittals'), 2, 'the Account Owner reads the account''s live submittals on the project');
 select is(pg_temp.n('ada', 'select 1 from api_external.submittals'), 2, 'the Account Admin reads them');
-select is(pg_temp.n('mo', 'select 1 from api_external.submittals'), 2, 'an Account Member reads them');
--- R4 turns this on: once private.engagement_area_open checks the Advancing assignment, an Account Member who is not
--- assigned reads none (decision 6), and this line becomes
---   select is(pg_temp.n('mo', 'select 1 from api_external.submittals'), 0, 'an unassigned Account Member reads none');
+-- R4 (2632): an Account Member reaches only the engagements assigned to them (decision 6).
+select is(pg_temp.n('mo', 'select 1 from api_external.submittals'), 0, 'an unassigned Account Member reads none');
+select pg_temp.as_user('mo');
+select app.accept_account_membership((select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v')
+  and m.person_id = pg_temp.id('mo')));
+select pg_temp.as_platform();
+insert into world select 'mo_membership', m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v')
+  and m.person_id = pg_temp.id('mo');
+select pg_temp.as_user('victor');
+select app.assign_engagement_member(pg_temp.id('eng_vendor_a'), pg_temp.id('mo_membership'), 'Member');
+select pg_temp.as_platform();
+select is(pg_temp.n('mo', 'select 1 from api_external.submittals'), 2, 'an Account Member assigned to the engagement reads them');
 select is(pg_temp.n('fiona', 'select 1 from api_external.submittals'), 0, 'Account Finance reads none');
 select is(pg_temp.n('ivy', 'select 1 from api_external.submittals'), 0, 'an unrelated external person reads none');
 select is(pg_temp.n('xavier', 'select 1 from api_external.submittals'), 0, 'another tenant reads none');

@@ -12,6 +12,12 @@ import { fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
 import { rfqSealedResponseCorrections } from "./parts/rfq-sealed-responses.ts";
 import { procurementFieldHomes } from "./parts/playbook-field-homes.ts";
 import { procurementFieldExposure } from "./parts/playbook-field-exposure.ts";
+import {
+  acquisitionKind,
+  poLineHireWindowQuery,
+  procurementSupplyResources,
+  purchaseOrderSupplyActions,
+} from "./parts/supply-bridge.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -30,7 +36,20 @@ const reasonBody = (id: string, what: string) =>
     .meta({ id, description: `Request to ${what}.` });
 
 export const additions = defineAdditions("Procurement", {
-  actions: { purchaseOrders: [fieldHistoryAction("purchase order")] },
+  resources: procurementSupplyResources,
+  actions: {
+    purchaseOrders: [fieldHistoryAction("purchase order"), ...purchaseOrderSupplyActions],
+    poLines: [poLineHireWindowQuery],
+  },
+  capabilities: {
+    purchaseOrders: {
+      actions: { receive: "procurement.receipt.write", returnGoods: "procurement.receipt.write" },
+    },
+    poLines: { actions: { hireWindowWarnings: "procurement.po.read" } },
+    goodsReturns: { read: "procurement.po.read" },
+    returnLines: { read: "procurement.po.read" },
+    poLineHireWarnings: { read: "procurement.po.read" },
+  },
   corrections: [
     {
       id: "rfq-number-and-deadline",
@@ -353,6 +372,34 @@ export const additions = defineAdditions("Procurement", {
           lead_time_days: {
             schema: orNull(fields.int("Days from order to delivery.", 14)),
             create: "optional",
+          },
+        },
+      }),
+    },
+    {
+      id: "po-line-rental",
+      since: SINCE,
+      resources: ["poLines"],
+      change:
+        "Adds `acquisition_kind` (Purchase or Rental, Purchase when omitted) and, for a Rental line, `hire_starts_at` and `hire_ends_at`, both required together and null on a Purchase line.",
+      reason:
+        "app.po_lines (2681, R7a) records whether a line buys or hires its item and the hire as one tstzrange, hire_period, set exactly when the line is a Rental (po_lines_hire_period_kind) with both bounds (po_lines_hire_period_bounded); the API splits the range into its two instants.",
+      apply: editShape({
+        add: {
+          acquisition_kind: {
+            schema: acquisitionKind("Whether the line buys or hires its item."),
+            create: "optional",
+            update: true,
+          },
+          hire_starts_at: {
+            schema: orNull(fields.instant("Rental lines: when the hire starts.")),
+            create: "optional",
+            update: true,
+          },
+          hire_ends_at: {
+            schema: orNull(fields.instant("Rental lines: when the hire ends and off-hire is due.")),
+            create: "optional",
+            update: true,
           },
         },
       }),

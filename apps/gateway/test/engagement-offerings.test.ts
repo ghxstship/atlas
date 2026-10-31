@@ -51,6 +51,7 @@ describe("offering conditions", () => {
     expect(offeringConditions(offered("Travel"))).toEqual([
       "offered-travel-or-lodging",
       "offered-hospitality",
+      "offered-project-facts",
     ]);
     expect(offeringConditions(offered("Lodging"))).toEqual([
       "offered-travel-or-lodging",
@@ -59,7 +60,10 @@ describe("offering conditions", () => {
     expect(offeringConditions(offered("Catering"))).toEqual(["offered-hospitality"]);
     expect(offeringConditions(offered("Per Diem"))).toEqual(["offered-per-diem"]);
     expect(offeringConditions(offered("Guest List"))).toEqual(["offered-guest-list"]);
-    expect(offeringConditions(offered("Parking", "Radios", "Carts", "Uniforms"))).toEqual([]);
+    expect(offeringConditions(offered("Radios", "Carts"))).toEqual([]);
+    // Uniforms and parking ask the person for project facts (R5).
+    expect(offeringConditions(offered("Uniforms"))).toEqual(["offered-project-facts"]);
+    expect(offeringConditions(offered("Parking"))).toEqual(["offered-project-facts"]);
   });
 
   it("counts Reimbursed and Buyout as offered", () => {
@@ -68,7 +72,12 @@ describe("offering conditions", () => {
         { offering: "Per Diem", mode: "Buyout", capPerEngagement: null, capPerPerson: null },
         { offering: "Travel", mode: "Reimbursed", capPerEngagement: null, capPerPerson: 2 },
       ]),
-    ).toEqual(["offered-travel-or-lodging", "offered-per-diem", "offered-hospitality"]);
+    ).toEqual([
+      "offered-travel-or-lodging",
+      "offered-per-diem",
+      "offered-hospitality",
+      "offered-project-facts",
+    ]);
   });
 });
 
@@ -97,6 +106,21 @@ describe("engagement tabs by offering", () => {
       "engagement.documents",
       "engagement.messages",
     ]);
+  });
+
+  it("shows Project details only when travel, uniforms or parking is offered (R5)", () => {
+    expect(tabsOf("crew", notOffered)).not.toContain("engagement.project-details");
+    expect(tabsOf("crew", offered("Lodging", "Catering"))).not.toContain(
+      "engagement.project-details",
+    );
+    for (const kind of ["Travel", "Uniforms", "Parking"] as const) {
+      expect(tabsOf("crew", offered(kind))).toContain("engagement.project-details");
+      expect(tabsOf("staff", offered(kind))).toContain("engagement.project-details");
+      expect(tabsOf("artist", offered(kind))).toContain("engagement.project-details");
+    }
+    expect(tabsOf("artist-representative", offered("Parking"), ["advance"])).toContain(
+      "engagement.project-details",
+    );
   });
 
   it("gates artist Hospitality and Guest list", () => {

@@ -9,7 +9,11 @@ import type {
   TimePickerProps as ReferenceTimePickerProps,
 } from "../types/reference";
 
-export type ComboboxProps = ReferenceComboboxProps & { id?: string };
+export type ComboboxProps = ReferenceComboboxProps & {
+  id?: string;
+  /** Called with each typed query, for a list searched on the server (the options then follow the results). */
+  onQueryChange?: (query: string) => void;
+};
 
 export type MultiSelectProps = ReferenceMultiSelectProps & { id?: string };
 

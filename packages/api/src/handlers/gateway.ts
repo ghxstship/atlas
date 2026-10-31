@@ -26,6 +26,7 @@ import {
   unwrap,
 } from "./support/table.ts";
 import type { Row } from "./support/table.ts";
+import { engagedAllocationHandlers } from "./parts/engaged-allocations.ts";
 
 // Marketplace -------------------------------------------------------------------------------------
 
@@ -214,6 +215,9 @@ const parity = {
     );
     return created((await taxForms.read(context, form.taxFormId)) as never);
   },
+
+  // Allocations from the engaged party's side (R8): see ./parts/engaged-allocations.ts.
+  ...engagedAllocationHandlers,
 } satisfies HandlerSet<"Gateway">;
 
 export const handlers = defineHandlers("Gateway", parity);

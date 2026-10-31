@@ -1,49 +1,49 @@
 import { todayIn } from "@xos/data/calendar";
 import {
   fromDisplayKey,
-  getEngagement,
   listRepresentations,
   representationStanding,
   type Engagement,
   type Representation,
 } from "@xos/data/gateway";
+import type { RosterEngagement } from "@xos/data/gateway-allocations";
 import { listEngagementOfferings, type EngagementOffering } from "@xos/data/offerings";
-import {
-  getNode,
-  isNodeVisible,
-  type Condition,
-  type ExternalRoleType as SitemapRoleType,
-} from "@xos/ia";
+import { getNode, isNodeVisible, type Condition, type EngagementTabSetKey } from "@xos/ia";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { engagementNav, offeringConditions, visibleEngagementTabs } from "./engagement-offerings";
 import type { ScheduleView } from "./format";
 import type { GatewayContext } from "./shell/context";
+import { rosterConditions } from "./roster";
+import { engagementTabSet, resolveEngagement } from "./roster-member";
 import { getScheduleView } from "./time-zone";
 import { requireNode, sitemap } from "./shell/sitemap";
 
 /**
  * The engagement record (Section 4.5.8): the engagement a URL names, how the viewer stands to it
- * (the engaged party, an account member, or an artist's representative within scopes) and the tabs
- * of their role type, all from the sitemap. Anything not open to the viewer answers 404.
+ * (the engaged party, an account member, an artist's representative within scopes, or a person on
+ * the party's roster, R8) and the tabs of their set, all from the sitemap. Anything not open to the
+ * viewer answers 404.
  */
-
-/** Sitemap role type keys for the stored external role types. */
-export function sitemapRoleType(stored: Engagement["roleType"]): SitemapRoleType {
-  return stored.toLowerCase().replace(/\s+/g, "-") as SitemapRoleType;
-}
 
 export interface EngagementView {
   readonly ctx: GatewayContext;
   readonly engagement: Engagement;
-  /** The role type whose tabs render: the engagement's, or artist-representative. */
-  readonly roleType: SitemapRoleType;
+  /**
+   * The tab set that renders: the engagement's role type, artist-representative, or roster-member
+   * when the viewer reaches the engagement only through an Accepted roster entry (R8, ADR 0100).
+   */
+  readonly roleType: EngagementTabSetKey;
+  /** The viewer's roster entry, for a roster member; null otherwise. */
+  readonly rosterEntryId: string | null;
+  /** The entry's arrival and whom to ask, for a roster member; null otherwise. */
+  readonly rosterEngagement: RosterEngagement | null;
   readonly representation: Representation | null;
   /** Representation scopes as sitemap keys (offers, advance, settlement, documents). */
   readonly scopes: readonly string[];
   /** What the producing org offers on the engagement (R3), one row per offering. */
   readonly offerings: readonly EngagementOffering[];
-  /** Sitemap conditions the offerings meet (offeringConditions), on top of the shell's. */
+  /** Sitemap conditions the offerings (offeringConditions) and the roster (rosterConditions, R4) meet, on top of the shell's. */
   readonly conditions: readonly Condition[];
   readonly tabs: readonly string[];
   /** Today on the engagement's project calendar (its time zone, 1390), as `YYYY-MM-DD`; never UTC's date. */
@@ -78,38 +78,46 @@ export const loadEngagementView = cache(async (engagementKey: string): Promise<E
   const ctx = await requireNode("engagement", { engagementKey });
   const id = fromDisplayKey("engagement", engagementKey);
   if (!id) notFound();
-  const [engagement, representations, scheduleView, offerings] = await Promise.all([
-    getEngagement(ctx.db, id),
+  const [reach, representations, scheduleView, offerings] = await Promise.all([
+    resolveEngagement(ctx.db, id),
     listRepresentations(ctx.db),
     getScheduleView(ctx),
     listEngagementOfferings(ctx.db, id),
   ]);
-  if (!engagement.ok) {
-    if (engagement.error.kind === "not-found") notFound();
-    throw new Error(`Engagement ${engagementKey} did not load: ${engagement.error.kind}`);
+  if (!reach.ok) {
+    if (reach.error.kind === "not-found") notFound();
+    throw new Error(`Engagement ${engagementKey} did not load: ${reach.error.kind}`);
   }
+  const engagement: Engagement = reach.data.engagement;
+  const rosterEngagement = reach.data.via === "roster" ? reach.data.engagement : null;
   if (!offerings.ok) {
     throw new Error(
       `Offerings of engagement ${engagementKey} did not load: ${offerings.error.kind}`,
     );
   }
-  if (ctx.brand.kind === "org" && ctx.brand.org.orgId !== engagement.data.orgId) notFound();
-  const today = todayIn(engagement.data.projectTimeZone);
-  const representation = representationFor(
-    engagement.data,
-    ctx.personId,
-    representations.ok ? representations.data : [],
-    today,
-  );
-  const roleType: SitemapRoleType = representation
-    ? "artist-representative"
-    : sitemapRoleType(engagement.data.roleType);
+  if (ctx.brand.kind === "org" && ctx.brand.org.orgId !== engagement.orgId) notFound();
+  const today = todayIn(engagement.projectTimeZone);
+  const representation = rosterEngagement
+    ? null
+    : representationFor(
+        engagement,
+        ctx.personId,
+        representations.ok ? representations.data : [],
+        today,
+      );
+  const roleType = engagementTabSet(reach.data, representation);
   const scopes = representation ? representation.scopes.map((s) => s.toLowerCase()) : [];
-  const conditions = offeringConditions(offerings.data);
+  // A person on the roster manages nothing of it, so the roster conditions are the party's only.
+  const conditions = [
+    ...offeringConditions(offerings.data),
+    ...(rosterEngagement ? [] : rosterConditions(engagement)),
+  ];
   return {
     ctx,
-    engagement: engagement.data,
+    engagement,
     roleType,
+    rosterEntryId: rosterEngagement?.rosterEntryId ?? null,
+    rosterEngagement,
     representation,
     scopes,
     offerings: offerings.data,
@@ -146,5 +154,5 @@ export function hasArea(view: EngagementView, area: string): boolean {
   return view.engagement.areas.includes(area as never);
 }
 
-export { closedArea, isLiveEngagement, type ClosedArea } from "./engagement-state";
+export { closedArea, isLiveEngagement, sitemapRoleType, type ClosedArea } from "./engagement-state";
 export { offeringConditions } from "./engagement-offerings";

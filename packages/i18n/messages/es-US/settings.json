@@ -289,6 +289,18 @@
       "label": "Programa de diversidad de proveedores",
       "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
     },
+    "availabilityRequired": {
+      "label": "Los miembros indican su disponibilidad",
+      "help": "Los miembros indican cuándo pueden trabajar en los próximos días, y su disponibilidad dentro del plazo de aviso queda bloqueada para que los planificadores puedan contar con ella."
+    },
+    "availabilityNoticeDays": {
+      "label": "Aviso de disponibilidad (días)",
+      "help": "Mientras la disponibilidad sea obligatoria, nadie puede cambiar la disponibilidad de un miembro para esta cantidad de días hacia adelante. La disponibilidad sigue siendo del miembro: los planificadores la consultan y reasignan turnos, pero no pueden editarla."
+    },
+    "availabilityHorizonDays": {
+      "label": "Horizonte de disponibilidad (días)",
+      "help": "Cuántos días hacia adelante indican los miembros su disponibilidad. Los planificadores ven quién no la indicó para un turno dentro de este periodo."
+    },
     "offeringsTravel": {
       "label": "Viajes",
       "help": "Vuelos y transporte terrestre para las personas que contratas. Si se ofrece, las pestañas Viajes y alojamiento y Hospitalidad aparecen en sus contrataciones de Gateway."
@@ -332,6 +344,18 @@
     "partnerLayout": {
       "label": "Diseño de la consola de socios",
       "help": "Ensancha o estrecha un mosaico de la consola de socios arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado."
+    },
+    "projectFactsKeepDays": {
+      "label": "Conservar los datos del proyecto (días)",
+      "help": "Cuánto tiempo se conservan los datos de viaje, uniforme y vehículo que las personas ingresan en una entrada de la lista después de que la contratación se completa o cancela. De 30 a 365 días."
+    },
+    "companyMaySubmitProjectFacts": {
+      "label": "Las empresas pueden ingresar datos del proyecto por su personal",
+      "help": "Cuando está activado, la empresa que incluye a alguien en la lista puede ingresar sus datos de viaje, uniforme y vehículo. La persona recibe un aviso y puede corregir lo que no ingresó por su cuenta."
+    },
+    "advancingAllowanceOverflow": {
+      "label": "Solicitudes por encima de la asignación permitida",
+      "help": "Rechazar no admite una solicitud por encima del límite de una oferta. Revisar la admite como solicitada; aprobarla, o asignar por encima del límite, requiere entonces un motivo que se guarda con la asignación."
     }
   },
   "choices": {
@@ -476,6 +500,10 @@
       "provided": "Incluido",
       "reimbursed": "Reembolsado",
       "buyout": "Pago fijo"
+    },
+    "advancing_allowance_overflow": {
+      "refuse": "Rechazar",
+      "review": "Enviar a revisión"
     }
   },
   "brand": {

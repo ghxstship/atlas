@@ -87,6 +87,15 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     effectiveOn: new Date("2026-12-01T12:00:00Z"),
     listUrl: "https://atlas.xos.test/legal/subprocessors",
   },
+  party_invitation: {
+    kind: "roster",
+    inviterName: "Victor Osei",
+    accountName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    partyName: "Bayside Audio",
+    expiresAt: new Date("2027-06-01T12:00:00Z"),
+    signInUrl: "https://gateway.xos.test/auth/sign-in",
+  },
 };
 
 /** Notification kinds seeded in migrations 0520 and 0560, the database side of the catalog. */

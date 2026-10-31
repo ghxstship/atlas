@@ -23,12 +23,14 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
-import { isConditionParam } from "@/lib/views/query";
+import type { FilterField } from "@/components/views/filter-model";
+import { isConditionParam, type FilterPreset } from "@/lib/views/query";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import type { CustomFieldColumns } from "@/components/custom-fields/columns";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
@@ -37,6 +39,7 @@ import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { displayKey, keyedTitle } from "@/lib/assets/views";
+import { builtInViewEntries } from "@/lib/assets/built-in-views";
 
 /** One row of an assets collection, already shaped for every view the page offers. */
 export interface CollectionRow {
@@ -78,6 +81,16 @@ export interface CollectionProps {
   readonly today?: string;
   /** Options of the state filter, when the page has one. */
   readonly filterOptions?: readonly ViewOption[];
+  /**
+   * Fields the Add filter control offers beside the custom fields (A117), which the page's loader applies on
+   * stored values (`f.<key>` conditions).
+   */
+  readonly filterFields?: readonly FilterField[];
+  /**
+   * Built-in views (R7a, G-96): presets of those fields' conditions, listed first in the saved views menu. No one
+   * edits or deletes them; a person saves a copy as their own saved view.
+   */
+  readonly presets?: readonly FilterPreset[];
   /** The one primary action: its label and the dialog it opens (a form using CreateDialogContext). */
   readonly create?: { label: string; dialog: ReactNode } | null;
   /**
@@ -117,6 +130,7 @@ interface Items {
  */
 export function AssetsCollection(props: CollectionProps) {
   const t = useAssetsCopy();
+  const tViews = useTranslations("views");
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
@@ -182,6 +196,31 @@ export function AssetsCollection(props: CollectionProps) {
     };
   });
 
+  // The built-in views (G-96) head the saved views menu; the page works out which is on screen.
+  const builtIn = props.presets
+    ? builtInViewEntries(
+        props.presets,
+        new URLSearchParams(search.toString()),
+        props.view,
+        props.views.map((v) => v.value),
+      )
+    : [];
+  const leading =
+    builtIn.length > 0
+      ? {
+          items: [
+            { heading: tViews("menu.builtIn") },
+            ...builtIn.map((b) => ({
+              label: b.preset.name,
+              icon: "Filter" as const,
+              active: b.active,
+              onSelect: () => router.replace(`${pathname}?${b.query}` as Route, { scroll: false }),
+            })),
+          ],
+          current: builtIn.find((b) => b.active)?.preset.name,
+        }
+      : undefined;
+
   const header = (
     <PageHeader
       title={props.title}
@@ -194,6 +233,8 @@ export function AssetsCollection(props: CollectionProps) {
             options={props.views.map((v) => ({ value: v.value, label: v.label }))}
             onChange={(view) => go({ view })}
             customFields={props.customFields ?? null}
+            {...(props.filterFields ? { fields: props.filterFields } : {})}
+            {...(leading ? { leading } : {})}
           />
         ) : null
       }
