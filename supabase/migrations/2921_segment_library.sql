@@ -75,9 +75,9 @@ create table app.segment_library_cues (
 );
 
 create index segment_library_cues_segment_idx on app.segment_library_cues (segment_library_id);
-create unique index segment_library_cues_position_key on app.segment_library_cues (segment_library_id, position) where deleted_at is null;
 
 call private.install_domain_table('app.segment_library_cues', 'app.segment_library', 'segment_library_id');
+create unique index segment_library_cues_position_key on app.segment_library_cues (segment_library_id, position) where deleted_at is null;
 call private.describe('app.segment_library_cues', 'Cues of a library segment, at most 100, in order. Copied with the segment into running orders.', array[
   'segment_library_id', 'Library segment.',
   'position', 'Order in the segment.',
@@ -100,9 +100,8 @@ create table app.segment_library_cue_calls (
   constraint segment_library_cue_calls_instruction_length check (char_length(btrim(instruction)) between 1 and 2000)
 );
 
-create unique index segment_library_cue_calls_kind_key on app.segment_library_cue_calls (segment_library_cue_id, call_kind) where deleted_at is null;
-
 call private.install_domain_table('app.segment_library_cue_calls', 'app.segment_library_cues', 'segment_library_cue_id');
+create unique index segment_library_cue_calls_kind_key on app.segment_library_cue_calls (segment_library_cue_id, call_kind) where deleted_at is null;
 call private.describe('app.segment_library_cue_calls', 'Department calls of a library cue, one per department, copied into app.cue_calls with the cue.', array[
   'segment_library_cue_id', 'Library cue the call belongs to.',
   'call_kind', 'Department the call is given to.',

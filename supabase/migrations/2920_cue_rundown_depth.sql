@@ -234,9 +234,9 @@ create table app.run_segment_colors (
 );
 
 create index run_segment_colors_run_idx on app.run_segment_colors (run_of_show_id);
-create unique index run_segment_colors_key on app.run_segment_colors (run_of_show_id, lower(btrim(segment))) where deleted_at is null;
 
 call private.install_child_table('app.run_segment_colors', 'app.run_of_show', 'run_of_show_id', 'show.run_of_show.read', 'show.run_of_show.write');
+create unique index run_segment_colors_key on app.run_segment_colors (run_of_show_id, lower(btrim(segment))) where deleted_at is null;
 call private.describe('app.run_segment_colors', 'Colour of a segment of a running order (ADR 0142): one row per segment name, matched to the cues'' segment text ignoring case and outer spaces, so every cue of the segment shows it, a new one included. Set and cleared by app.set_segment_color.', array[
   'run_of_show_id', 'Running order.',
   'segment', 'Segment name, as the cues write it.',
