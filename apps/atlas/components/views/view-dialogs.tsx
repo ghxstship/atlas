@@ -10,7 +10,7 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 
 /** The dialog the view switcher has open. */
 export type ViewDialogState =
-  | { readonly kind: "save" }
+  | { readonly kind: "save"; readonly name?: string }
   | { readonly kind: "share"; readonly view: SavedView }
   | { readonly kind: "delete"; readonly view: SavedView };
 
@@ -34,7 +34,9 @@ export function ViewDialog({
   onDelete: (view: SavedView) => Promise<void>;
 }) {
   const t = useTranslations("views") as unknown as Translate;
-  if (dialog.kind === "save") return <SaveDialog teams={teams} onClose={onClose} onSave={onSave} />;
+  if (dialog.kind === "save") {
+    return <SaveDialog name={dialog.name} teams={teams} onClose={onClose} onSave={onSave} />;
+  }
   if (dialog.kind === "share") {
     return (
       <ShareDialog
@@ -124,17 +126,20 @@ function ShareChoices({
 }
 
 function SaveDialog({
+  name: initial = "",
   teams,
   onClose,
   onSave,
 }: {
+  /** The name it starts with: a built-in view's, when saving a copy of one. */
+  name?: string | undefined;
   teams: readonly Team[];
   onClose: () => void;
   onSave: (name: string, share: Share) => Promise<boolean>;
 }) {
   const t = useTranslations("views.save") as unknown as Translate;
   const formId = useId();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initial);
   const [share, setShare] = useState<Share>({ org: false, teamIds: [] });
   const [missing, setMissing] = useState(false);
   const [busy, setBusy] = useState(false);

@@ -32,6 +32,7 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 export function BulkBar({
   action: actionId,
   rows,
+  values,
   selected,
   open,
   onOpen,
@@ -40,6 +41,8 @@ export function BulkBar({
 }: {
   action: GatewayActionId;
   rows: readonly BulkRowRef[];
+  /** Values the page picked for the action (assign: the pool and the quantity). */
+  values?: Readonly<Record<string, string>>;
   selected: ReadonlySet<string>;
   /** Whether the dialog is open; a row's menu opens it too. */
   open: boolean;
@@ -107,6 +110,7 @@ export function BulkBar({
         <BulkDialog
           action={action}
           ids={ids}
+          {...(values ? { values } : {})}
           skipped={selected.size - ids.length}
           t={t}
           outcomes={outcomes}
@@ -145,6 +149,7 @@ function stringValues(values: Readonly<Record<string, unknown>>): Record<string,
 function BulkDialog({
   action,
   ids,
+  values,
   skipped,
   t,
   outcomes,
@@ -154,6 +159,7 @@ function BulkDialog({
 }: {
   action: GatewayAction;
   ids: readonly string[];
+  values?: Readonly<Record<string, string>>;
   /** Selected rows the action does not fit, left out of it. */
   skipped: number;
   t: Translate;
@@ -171,7 +177,7 @@ function BulkDialog({
     start(async () => {
       const result = await gatewayBulkAction({
         resource: action.resource,
-        rows: actionRows(action, ids).map((r) => ({ id: r.id, set: stringValues(r.set) })),
+        rows: actionRows(action, ids, values).map((r) => ({ id: r.id, set: stringValues(r.set) })),
         preview: asPreview,
       });
       if (!result.ok) {

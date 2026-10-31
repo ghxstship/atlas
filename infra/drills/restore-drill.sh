@@ -80,11 +80,26 @@ done <"$MANIFEST.roles"
 # The fresh image already holds Supabase's own schemas (auth, storage, extensions, vault). Restore
 # replaces them from the archive so the copy matches the source exactly. Any pg_restore error fails
 # the drill and is listed.
+#
+# pg_cron's job table is restored last, in a second pass. The target's pg_cron runs a job as soon as
+# its row exists, and xos_ensure_realtime_channel_policies (2060) would otherwise create the
+# realtime.messages policies between the restored data and pg_restore's own CREATE POLICY, which then
+# fails as "already exists" whenever a minute boundary falls in that window. One transaction would
+# close the window too, but a whole archive needs more locks than max_locks_per_transaction allows.
+TOC="$(mktemp)"
+docker exec -i "$TARGET" pg_restore -l <"$DUMP" >"$TOC"
+grep -v ' TABLE DATA cron job ' "$TOC" >"$TOC.main"
+grep ' TABLE DATA cron job ' "$TOC" >"$TOC.cron" || true
+docker cp "$TOC.main" "$TARGET:/tmp/xos-restore-main.list" >/dev/null
+docker cp "$TOC.cron" "$TARGET:/tmp/xos-restore-cron.list" >/dev/null
 RESTORE_LOG="$(mktemp)"
 set +e
 docker exec -i "$TARGET" pg_restore -U supabase_admin -h localhost -d postgres --clean --if-exists \
-  <"$DUMP" >"$RESTORE_LOG" 2>&1
+  -L /tmp/xos-restore-main.list <"$DUMP" >"$RESTORE_LOG" 2>&1
+docker exec -i "$TARGET" pg_restore -U supabase_admin -h localhost -d postgres --data-only \
+  -L /tmp/xos-restore-cron.list <"$DUMP" >>"$RESTORE_LOG" 2>&1
 set -e
+rm -f "$TOC" "$TOC.main" "$TOC.cron"
 RESTORE_ERRORS="$(grep -c '^pg_restore: error' "$RESTORE_LOG" || true)"
 RESTORED_AT="$(now_epoch)"
 if [[ "$RESTORE_ERRORS" == "0" ]]; then

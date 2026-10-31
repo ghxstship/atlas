@@ -85,6 +85,10 @@
       "session_signed_out": {
         "subject": "{count, plural, one {A session was signed out} other {# sessions were signed out}}",
         "body": "{count, plural, one {A session on your account was signed out} other {# sessions on your account were signed out}} from Settings, Security. If this was not you, change your password and check your sessions."
+      },
+      "work_details_moved": {
+        "subject": "Uniform sizes and travel preferences moved to each project",
+        "body": "{moved, select, uniform {Your uniform sizes were} travel {Your seat, meal and home airport preferences were} other {Your uniform sizes and travel preferences were}} removed from your profile. Productions now ask for them on each project you are rostered on, and keep them only for that project. Your other work details are unchanged."
       }
     },
     "report": {
@@ -294,6 +298,48 @@
         "subject": "{subject, select, comment {Your comment was removed} message {Your message was removed} other {Your post was removed}}",
         "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
       }
+    },
+    "roster_entry": {
+      "invited": {
+        "subject": "You are on the {partyName} crew for {projectName}",
+        "body": "Open Gateway Home to accept or decline."
+      },
+      "returned": {
+        "subject": "{personName} was returned on the {projectName} roster",
+        "body": "Reason: {reason}"
+      },
+      "declined": {
+        "subject": "{personName} declined the {projectName} roster",
+        "body": "Add someone else or withdraw the entry."
+      },
+      "project_facts_entered": {
+        "subject": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}}",
+        "body": "{actorName} entered them for {projectName}. Check them and correct anything that is wrong."
+      }
+    },
+    "engagement": {
+      "roster_lock_changed": {
+        "subject": "The names lock for {projectName} changed",
+        "body": "Open the crew roster to see when names close. After that, ask the producing organization to change the roster."
+      }
+    },
+    "allocation": {
+      "decided": {
+        "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was {decision, select, approved {approved} declined {declined} other {decided}}",
+        "body": "{decision, select, declined {Reason: {reason}} other {{quantity} for {personName}, through {partyName}.}}"
+      },
+      "assigned": {
+        "subject": "You were given {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName}",
+        "body": "{partyName} passed {quantity} on to you."
+      },
+      "issued": {
+        "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was handed over",
+        "body": "It is now in your name. Return it when the job ends."
+      },
+      "withdrawn": {
+        "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was withdrawn",
+        "body": "{cause, select, engagement_ended {The engagement ended.} entry_removed {You are no longer on the roster.} other {{orgName} withdrew it.}}"
+      }
     }
   },
   "notification": {
@@ -359,5 +405,11 @@
   "deletionCertificate": {
     "subject": "Deletion certificate for {org}",
     "body": "The data of {org} was deleted from XOS on {date}, as the organization's lifecycle set out.\n\nYour deletion certificate is attached. Its id is {id}. You can also download it from Atlas while you have an account.\n\nEncrypted backups made before the deletion age out on their own schedule."
+  },
+  "party_invitation": {
+    "accountSubject": "{inviterName} invites you to {accountName} on XOS",
+    "rosterSubject": "{inviterName} invites you onto the {partyName} crew for {projectName}",
+    "how": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. The company then sees your profile and project facts. Not expecting this? Ignore it.",
+    "action": "Sign in to Gateway"
   }
 }
