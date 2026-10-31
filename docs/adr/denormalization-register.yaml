@@ -27,6 +27,13 @@ derived:
     reason: PowerSync project filter, as above
     adr: "0022"
   - objects:
+      - app.communication_marks.org_id
+      - app.communication_marks.project_id
+    source: "`app.shifts.org_id` and `app.shifts.project_id` (the marked row's)"
+    refresh: Stamped by `app.mark_communicated` on insert; the ledger is never updated (2951)
+    reason: The marks' read policy filters by project without a join to the polymorphic subject
+    adr: "0145"
+  - objects:
       - app.credentials.project_id
     source: "`app.credential_categories.project_id`"
     refresh: Stamped by trigger; changing it is refused (0470)

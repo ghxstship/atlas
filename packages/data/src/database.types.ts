@@ -1372,6 +1372,21 @@ export type Database = {
           },
         ];
       };
+      itinerary_changes: {
+        Row: {
+          baseline_at: string | null;
+          change_kind: string | null;
+          changed_at: string | null;
+          changed_fields: string[] | null;
+          engagement_id: string | null;
+          project_id: string | null;
+          subject_id: string | null;
+          subject_kind: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       lodging: {
         Row: {
           block_title: string | null;
@@ -13577,6 +13592,109 @@ export type Database = {
           },
           {
             foreignKeyName: "comments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      communication_marks: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          note: string | null;
+          org_id: string;
+          person_id: string;
+          project_id: string;
+          subject_id: string;
+          subject_table: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          person_id: string;
+          project_id: string;
+          subject_id: string;
+          subject_table: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          person_id?: string;
+          project_id?: string;
+          subject_id?: string;
+          subject_table?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "communication_marks_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "communication_marks_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "communication_marks_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "communication_marks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "communication_marks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "communication_marks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "communication_marks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "communication_marks_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -47923,6 +48041,81 @@ export type Database = {
           },
         ];
       };
+      seen_marks: {
+        Row: {
+          baseline_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          person_id: string;
+          scope_id: string;
+          surface: Database["app"]["Enums"]["seen_surface"];
+          updated_at: string;
+          updated_by: string | null;
+          visit_started_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          baseline_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          person_id: string;
+          scope_id: string;
+          surface: Database["app"]["Enums"]["seen_surface"];
+          updated_at?: string;
+          updated_by?: string | null;
+          visit_started_at: string;
+        };
+        Update: {
+          baseline_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          scope_id?: string;
+          surface?: Database["app"]["Enums"]["seen_surface"];
+          updated_at?: string;
+          updated_by?: string | null;
+          visit_started_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "seen_marks_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "seen_marks_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "seen_marks_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "seen_marks_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       self_billed_deliverables: {
         Row: {
           created_at: string;
@@ -64456,6 +64649,17 @@ export type Database = {
           total_minutes: number;
         }[];
       };
+      changes_since: {
+        Args: { p_since: string; p_subject_ids: string[]; p_subject_table: string };
+        Returns: {
+          actor_name: string;
+          actor_person_id: string;
+          change_kind: string;
+          changed_at: string;
+          fields: string[];
+          subject_id: string;
+        }[];
+      };
       check_in_dock_slot: { Args: { p_dock_slot_id: string }; Returns: string };
       check_in_guest: {
         Args: {
@@ -64786,6 +64990,20 @@ export type Database = {
           p_write_action: Database["app"]["Enums"]["import_write_action"];
         };
         Returns: undefined;
+      };
+      communication_status: {
+        Args: { p_subject_ids: string[]; p_subject_table: string };
+        Returns: {
+          changed_at: string;
+          changed_fields: string[];
+          needs_review: boolean;
+          person_id: string;
+          person_name: string;
+          subject_id: string;
+          told_at: string;
+          told_by_name: string;
+          told_via: string;
+        }[];
       };
       compact_doc: {
         Args: {
@@ -65994,6 +66212,10 @@ export type Database = {
         };
         Returns: string;
       };
+      mark_communicated: {
+        Args: { p_note?: string; p_subject_ids: string[]; p_subject_table: string };
+        Returns: number;
+      };
       mark_conversation_read: {
         Args: { p_conversation_id: string; p_muted?: boolean };
         Returns: string;
@@ -66001,6 +66223,10 @@ export type Database = {
       mark_dispatch_arrived: { Args: { p_dispatch_assignment_id: string }; Returns: string };
       mark_export_expired: { Args: { p_export_job_id: string }; Returns: undefined };
       mark_notifications_read: { Args: { p_before?: string; p_org_id: string }; Returns: number };
+      mark_seen: {
+        Args: { p_scope_id: string; p_surface: Database["app"]["Enums"]["seen_surface"] };
+        Returns: string;
+      };
       mark_thread_read: {
         Args: { p_engagement_thread_id: string; p_party_thread_id: string };
         Returns: string;
@@ -67205,6 +67431,10 @@ export type Database = {
         Args: { p_restored: number; p_subject_id: string; p_subject_table: string };
         Returns: undefined;
       };
+      record_visit: {
+        Args: { p_scope_id: string; p_surface: Database["app"]["Enums"]["seen_surface"] };
+        Returns: string;
+      };
       record_warehouse_delivery_file: {
         Args: {
           p_byte_count: number;
@@ -67845,6 +68075,10 @@ export type Database = {
           sells_extra_seats: boolean;
         }[];
       };
+      seen_baseline: {
+        Args: { p_scope_id: string; p_surface: Database["app"]["Enums"]["seen_surface"] };
+        Returns: string;
+      };
       send_advance_packet: { Args: { p_packet_id: string }; Returns: string };
       send_agreement: {
         Args: { p_agreement_id: string; p_reason: string; p_valid_for?: string };
@@ -68356,6 +68590,21 @@ export type Database = {
         }[];
       };
       test_automation: { Args: { p_automation_id: string; p_event: Json }; Returns: Json };
+      today_changes: {
+        Args: { p_limit?: number; p_org_id: string };
+        Returns: {
+          actor_name: string;
+          actor_person_id: string;
+          change_kind: string;
+          changed_at: string;
+          fields: string[];
+          project_key: string;
+          subject_id: string;
+          subject_key: string;
+          subject_table: string;
+          title: string;
+        }[];
+      };
       touch_my_session: {
         Args: {
           p_client_address: string;
@@ -69291,6 +69540,7 @@ export type Database = {
       schedule_cadence: "Daily" | "Weekly" | "Monthly";
       scope_kind: "Engagement Root" | "Standing Venue" | "Show";
       seat_preference: "Window" | "Aisle" | "No Preference";
+      seen_surface: "Today" | "Itinerary" | "Show Day";
       setting_scope: "Organization" | "Workspace" | "Team" | "Project";
       setting_source: "Personal" | "Project" | "Team" | "Workspace" | "Organization" | "Default";
       setting_value_type: "Text" | "Boolean" | "Integer" | "Choice";
@@ -75953,6 +76203,7 @@ export const Constants = {
       schedule_cadence: ["Daily", "Weekly", "Monthly"],
       scope_kind: ["Engagement Root", "Standing Venue", "Show"],
       seat_preference: ["Window", "Aisle", "No Preference"],
+      seen_surface: ["Today", "Itinerary", "Show Day"],
       setting_scope: ["Organization", "Workspace", "Team", "Project"],
       setting_source: ["Personal", "Project", "Team", "Workspace", "Organization", "Default"],
       setting_value_type: ["Text", "Boolean", "Integer", "Choice"],
