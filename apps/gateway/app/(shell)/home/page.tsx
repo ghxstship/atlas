@@ -16,6 +16,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
+import { HomeSearch } from "@/components/page/home-search";
 import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import { PageTitle, RegionError, Section, pickView, ViewSwitcher } from "@/components/page/page";
 import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/components/ui";
@@ -121,20 +122,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
         }
         action={<ViewSwitcher views={views} current={view} path="/home" query={query} />}
       />
-      <form action="/explore" method="get" role="search" className="flex">
-        <label className="flex min-h-touch-min w-full items-center gap-8 rounded-control border border-border-control bg-bg-surface ps-12 pe-8 focus-within:outline-solid focus-within:outline-stroke-focus focus-within:outline-focus-ring">
-          <span className="text-text-secondary">
-            <Icon name="Search" />
-          </span>
-          <span className="sr-only">{t("gateway.home.searchLabel")}</span>
-          <input
-            name="q"
-            type="search"
-            placeholder={t("gateway.home.searchHint")}
-            className="min-w-0 flex-1 border-0 bg-transparent text-text-14 text-text-primary outline-none placeholder:text-text-tertiary"
-          />
-        </label>
-      </form>
+      <HomeSearch />
 
       {view === "feed" ? (
         <Section title={t("gateway.home.upNext.title")}>

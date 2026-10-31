@@ -2081,7 +2081,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Mod+K" },
           {
             t: "text",
-            v: " or choose Search to go to any page, engagement or opportunity. Press ",
+            v: " or choose Search to go to any page, or to find your documents, messages, engagements, opportunities, actions and settings by their words. Press ",
           },
           { t: "strong", v: "?" },
           {
@@ -2099,7 +2099,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Home starts with a search box: type a role, a skill or an organization to search Explore.",
+            v: "Home starts with a search box. As you type, it lists your own documents, messages, engagements and opportunities, and the actions and settings that match. Choose one to open it, or press Enter to search every opportunity on Explore.",
           },
         ],
       },
@@ -5601,7 +5601,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Mod+K" },
           {
             t: "text",
-            v: " o elige Buscar para ir a cualquier página, contratación u oportunidad. Pulsa ",
+            v: " o elige Buscar para ir a cualquier página, o para encontrar por sus palabras tus documentos, mensajes, contrataciones, oportunidades, acciones y configuración. Pulsa ",
           },
           { t: "strong", v: "?" },
           {
@@ -5619,7 +5619,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Inicio empieza con un cuadro de búsqueda: escribe un rol, una habilidad o una organización para buscar en Explorar.",
+            v: "Inicio empieza con un cuadro de búsqueda. Mientras escribes, muestra tus propios documentos, mensajes, contrataciones y oportunidades, y las acciones y la configuración que coinciden. Elige uno para abrirlo, o pulsa Intro para buscar todas las oportunidades en Explorar.",
           },
         ],
       },

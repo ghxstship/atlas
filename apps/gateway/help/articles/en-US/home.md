@@ -6,7 +6,7 @@ nodes: [home]
 order: 1
 ---
 
-Home starts with a search box: type a role, a skill or an organization to search Explore.
+Home starts with a search box. As you type, it lists your own documents, messages, engagements and opportunities, and the actions and settings that match. Choose one to open it, or press Enter to search every opportunity on Explore.
 
 ## Up next
 

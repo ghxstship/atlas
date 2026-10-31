@@ -21,7 +21,7 @@ test("a crew member finds an opportunity, applies and withdraws", async ({ page 
   const opportunity = await publishCrewOpportunity();
   await signIn(page, "crew@example.com");
 
-  await page.getByRole("searchbox", { name: "Search opportunities" }).fill(opportunity.title);
+  await page.getByRole("searchbox", { name: "Search Gateway" }).fill(opportunity.title);
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/explore\?/);
   await expectAccessible(page);

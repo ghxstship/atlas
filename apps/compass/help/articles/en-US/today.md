@@ -8,6 +8,10 @@ order: 1
 
 Today is the first tab. Pull down to refresh.
 
+## Search
+
+The search box at the top finds your shifts, tasks, records, people, reference such as SOPs, radio channels and emergency codes, and actions such as **Report an incident**. It searches what is already on your phone, so it works offline. Type a code in full, such as an SOP code or a channel number, to put it first. Tap a result to open it.
+
 ## Clock in and out
 
 If you work shifts, the clock card shows where you are against the site boundary. **Clock In** works when you have an accepted shift on the project today, your location is on and you are inside the boundary. On shift, the card shows the time worked with **Start Break**, **End Break** and **Clock Out**. On iPhone the clock also shows on the lock screen.

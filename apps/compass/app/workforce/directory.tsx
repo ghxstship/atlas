@@ -1,20 +1,24 @@
 import { listWorkforceDirectory, startDirectConversation } from "@xos/data/workforce-chat";
 import { DirectoryScreen } from "@xos/workforce-native";
 import * as Linking from "expo-linking";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, type ReactElement } from "react";
 import { frameProps, useT, WorkforceGate } from "../../src/workforce/kit";
 import { directoryLabels } from "../../src/workforce/labels";
 import { actionMessage, useLoad, useWorkforce } from "../../src/workforce/runtime";
 import { InlineAlert } from "../../src/ui";
 
-/** Directory (Atlas people.chat): who is on site, call or message them. */
+/**
+ * Directory (Atlas people.chat): who is on site, call or message them. Opened from Today's search with ?q=, it starts
+ * searched for that name.
+ */
 function Directory(): ReactElement {
   const t = useT();
   const router = useRouter();
+  const { q } = useLocalSearchParams<{ q?: string }>();
   const wf = useWorkforce(t);
   const orgId = wf.orgId;
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(typeof q === "string" ? q : "");
   const [onSiteOnly, setOnSiteOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const loaded = useLoad(

@@ -131,12 +131,25 @@ function engagementProject(input: PageInput, engagementId: string | null): strin
   return input.engagements.find((e) => e.id === engagementId)?.projectId ?? null;
 }
 
-/** Rows of the current project: by their project, or by their engagement's project. */
-function onProject(input: PageInput, table: string): Row[] {
-  return input.rows(table).filter((r) => {
-    const project = str(r, "project_id") ?? engagementProject(input, str(r, "engagement_id"));
-    return input.projectId === null || project === input.projectId;
+/**
+ * Rows of the current project: by their project, or by their engagement's project. Every project when none is chosen.
+ * Today's search (src/domain/searchDocs.ts) reads the same rows, so a result opens a page that lists it.
+ */
+export function rowsOnProject(
+  rows: readonly Row[],
+  projectId: string | null,
+  engagements: readonly EngagementSummary[],
+): Row[] {
+  return rows.filter((r) => {
+    const engagement = str(r, "engagement_id");
+    const project =
+      str(r, "project_id") ?? engagements.find((e) => e.id === engagement)?.projectId ?? null;
+    return projectId === null || project === projectId;
   });
+}
+
+function onProject(input: PageInput, table: string): Row[] {
+  return rowsOnProject(input.rows(table), input.projectId, input.engagements);
 }
 
 const byKey =
