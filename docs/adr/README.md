@@ -87,6 +87,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
 | [0113](0113-opportunity-question-templates-and-defaults.md)         | Opportunity Question Templates and Defaults                                      | Accepted |
 | [0114](0114-stricter-separation-of-duties-options.md)               | Stricter Separation of Duties Options                                            | Proposed |
+| [0115](0115-addresses-and-work-phones-checked-by-country.md)        | Addresses and Work Phones Checked by Country                                     | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
 

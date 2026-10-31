@@ -11,6 +11,7 @@ import {
   networkAccess,
 } from "@xos/data/access-controls";
 import { addCalendarDays } from "@xos/data/calendar";
+import { regionFromLocale } from "@xos/i18n/formats";
 import { listSettingValues } from "@xos/data/settings";
 import { getLocale } from "next-intl/server";
 import { headers } from "next/headers";
@@ -23,12 +24,14 @@ import {
   CancelReviewButton,
   EndBreakGlassButton,
   LegalEntityActions,
+  LegalEntityAddressForm,
   OpenReviewForm,
   RemoveNetworkButton,
   ReviewDecision,
   UnblockButton,
 } from "@/components/settings/access-control-forms";
 import { InlineAlert } from "@/components/ui";
+import { addressFormat, addressLines } from "@/lib/address";
 import { clientIp } from "@/lib/auth/legal";
 import { planHasFeature } from "@/lib/settings/plan";
 import { orgToday } from "@/lib/shell/time-zone";
@@ -122,40 +125,59 @@ async function LegalEntitiesPanel({ ctx }: SettingsPanelProps) {
         <Empty>{t(`${P}.legalEntities.none`)}</Empty>
       ) : (
         <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-          {entities.data.map((e) => (
-            <li key={e.id} className="flex flex-wrap items-start justify-between gap-12 py-12">
-              <div className="flex min-w-0 flex-col gap-4">
-                <span className="flex flex-wrap items-center gap-8 text-label-13 font-medium">
-                  {e.legalName}
-                  {e.isPrimary ? (
-                    <Chip tone="success">{t(`${P}.legalEntities.primary`)}</Chip>
+          {entities.data.map((e) => {
+            const address = addressLines(e.address, e.countryCode, {
+              locale,
+              viewerCountry: regionFromLocale(locale),
+            });
+            return (
+              <li key={e.id} className="flex flex-wrap items-start justify-between gap-12 py-12">
+                <div className="flex min-w-0 flex-col gap-4">
+                  <span className="flex flex-wrap items-center gap-8 text-label-13 font-medium">
+                    {e.legalName}
+                    {e.isPrimary ? (
+                      <Chip tone="success">{t(`${P}.legalEntities.primary`)}</Chip>
+                    ) : null}
+                  </span>
+                  <span className="text-text-12 text-text-secondary">
+                    {t(`${P}.legalEntities.summary`, {
+                      country: e.countryCode,
+                      month: months[e.fiscalYearStartMonth - 1]?.label ?? "",
+                      currency: e.baseCurrency,
+                    })}
+                  </span>
+                  <span className="text-text-12 text-text-secondary">
+                    {e.taxIdentifier !== null
+                      ? t(`${P}.legalEntities.taxShown`, { value: e.taxIdentifier })
+                      : e.taxIdentifierLast4 !== null
+                        ? t(`${P}.legalEntities.taxMasked`, { last4: e.taxIdentifierLast4 })
+                        : t(`${P}.legalEntities.taxNone`)}
+                  </span>
+                  {/* The registered address in the entity country's format (Section 15, A139). */}
+                  <span className="whitespace-pre-line text-text-12 text-text-secondary">
+                    {address ? address.join("\n") : t(`${P}.legalEntities.addressNone`)}
+                  </span>
+                  {canEdit ? (
+                    <LegalEntityAddressForm
+                      org={ctx.org.slug}
+                      id={e.id}
+                      name={e.legalName}
+                      format={addressFormat(e.countryCode)}
+                      values={e.address}
+                    />
                   ) : null}
-                </span>
-                <span className="text-text-12 text-text-secondary">
-                  {t(`${P}.legalEntities.summary`, {
-                    country: e.countryCode,
-                    month: months[e.fiscalYearStartMonth - 1]?.label ?? "",
-                    currency: e.baseCurrency,
-                  })}
-                </span>
-                <span className="text-text-12 text-text-secondary">
-                  {e.taxIdentifier !== null
-                    ? t(`${P}.legalEntities.taxShown`, { value: e.taxIdentifier })
-                    : e.taxIdentifierLast4 !== null
-                      ? t(`${P}.legalEntities.taxMasked`, { last4: e.taxIdentifierLast4 })
-                      : t(`${P}.legalEntities.taxNone`)}
-                </span>
-              </div>
-              {canEdit ? (
-                <LegalEntityActions
-                  org={ctx.org.slug}
-                  id={e.id}
-                  name={e.legalName}
-                  isPrimary={e.isPrimary}
-                />
-              ) : null}
-            </li>
-          ))}
+                </div>
+                {canEdit ? (
+                  <LegalEntityActions
+                    org={ctx.org.slug}
+                    id={e.id}
+                    name={e.legalName}
+                    isPrimary={e.isPrimary}
+                  />
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       )}
       {canEdit ? (

@@ -7,6 +7,7 @@
 import type { SettingDefinition } from "@xos/schemas/settings";
 import type { Row } from "@xos/sync";
 import { useCallback, useState, type ReactElement, type ReactNode } from "react";
+import { formatPhone, regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { useCompass } from "../../runtime/CompassProvider";
@@ -95,9 +96,10 @@ export function RegistrySetting({
   readonly orgName: string;
   readonly check?: CrossCheck | undefined;
 }): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const { personZone } = useCompass();
+  const region = regionFromLocale(i18n.language);
   const write = useQueuedWrite();
   const [sheet, setSheet] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
@@ -106,11 +108,17 @@ export function RegistrySetting({
   const testID = `setting-${def.key}`;
   const label = t(def.label);
   const help = def.help ? t(def.help) : undefined;
-  const shown = setting.value === null ? "" : String(setting.value);
+  // A phone reads in the person's national format and saves back as E.164 (A139).
+  const shown =
+    setting.value === null
+      ? ""
+      : def.input === "phone" && typeof setting.value === "string"
+        ? formatPhone(setting.value, region)
+        : String(setting.value);
   const control = controlOf(def);
 
   const save = (raw: string | boolean) => {
-    const checked = checkSettingValue(def, raw);
+    const checked = checkSettingValue(def, raw, (input) => toE164(input, region));
     if (!checked.ok) {
       setProblem(t(problemKey(checked.problem)));
       return;
@@ -220,7 +228,9 @@ export function RegistrySetting({
             onChangeText={setDraft}
             multiline={control === "multiline"}
             disabled={setting.locked}
-            autoComplete="off"
+            {...(def.input === "phone"
+              ? { keyboard: "phone" as const, autoComplete: "tel" as const }
+              : { autoComplete: "off" as const })}
           />
           {setting.locked ? null : (
             <Button

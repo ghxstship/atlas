@@ -23,6 +23,7 @@ export const TEXT_INPUTS = [
   "currency",
   "date",
   "workspace",
+  "phone",
   // Arranged in place, such as a dashboard's tile spans: settings pages offer only Reset, never a field.
   "layout",
 ] as const;

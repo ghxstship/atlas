@@ -18,6 +18,7 @@ import {
   openAccessReview,
   removeAllowedNetwork,
   removeLegalEntity,
+  setLegalEntityAddress,
   setLegalEntityTaxIdentifier,
   startBreakGlass,
   unblock,
@@ -49,6 +50,10 @@ describe("legal entities", () => {
             fiscal_year_start_month: 1,
             base_currency: "USD",
             is_primary: true,
+            street_address: "548 Market St",
+            locality: "San Francisco",
+            administrative_area: "CA",
+            postal_code: "94104",
           },
         ]),
       ],
@@ -59,6 +64,12 @@ describe("legal entities", () => {
       taxIdentifierMasked: true,
       taxIdentifierLast4: "6789",
       isPrimary: true,
+      address: {
+        streetAddress: "548 Market St",
+        locality: "San Francisco",
+        administrativeArea: "CA",
+        postalCode: "94104",
+      },
     });
     expect(calls[0]?.steps).toContainEqual(["eq", ["org_id", "org"]]);
   });
@@ -86,6 +97,35 @@ describe("legal entities", () => {
     ]);
     const refused = await addLegalEntity(db, { ...input, taxIdentifier: "12" });
     expect(refused.ok === false && refused.error.kind).toBe("refusal");
+  });
+
+  it("records the registered address and surfaces the postal code refusal", async () => {
+    const { db, calls } = fakeClient({
+      "from:org_legal_entities": [okResponse([{ id: "le1" }]), REFUSED("postal_code_invalid")],
+    });
+    const address = {
+      streetAddress: "10 Downing Street",
+      locality: "London",
+      administrativeArea: null,
+      postalCode: "SW1A 2AA",
+    };
+    expect(await setLegalEntityAddress(db, "le1", address)).toEqual({ ok: true, data: "le1" });
+    expect(calls[0]?.steps[0]).toEqual([
+      "update",
+      [
+        {
+          street_address: "10 Downing Street",
+          locality: "London",
+          administrative_area: null,
+          postal_code: "SW1A 2AA",
+        },
+      ],
+    ]);
+    const refused = await setLegalEntityAddress(db, "le1", { ...address, postalCode: "33132" });
+    expect(refused.ok === false && refused.error).toMatchObject({
+      kind: "refusal",
+      rule: "postal_code_invalid",
+    });
   });
 
   it("marks primary, clears a tax identifier and removes, with not-found for a gone row", async () => {

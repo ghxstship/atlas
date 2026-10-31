@@ -86,8 +86,11 @@ export function PersonalSetting(props: PersonalSettingProps) {
                   ? "email"
                   : props.input === "url"
                     ? "url"
-                    : "text"
+                    : props.input === "phone"
+                      ? "tel"
+                      : "text"
           }
+          {...(props.input === "phone" ? { autoComplete: "tel" } : {})}
         />
       )}
       {props.help ? <p className="m-0 text-text-12 text-text-secondary">{props.help}</p> : null}

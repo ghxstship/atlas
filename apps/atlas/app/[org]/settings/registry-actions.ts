@@ -8,6 +8,8 @@ import {
   type SettingScopeKind,
 } from "@xos/data/settings";
 import { networkAccess } from "@xos/data/access-controls";
+import { regionFromLocale, toE164 } from "@xos/i18n/formats";
+import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -89,6 +91,12 @@ export async function saveSettingsAction(
     }
     const value = form.get(`value:${key}`);
     const raw = typeof value === "string" ? value : null;
+    // A phone is stored in E.164 (A139): what the person typed is read in their region, and anything
+    // that is not a phone number is refused before it reaches the database.
+    const typed =
+      def.input === "phone" && raw !== null && raw.trim() !== ""
+        ? toE164(raw, regionFromLocale(await getLocale()))
+        : raw;
     const refuse = (error: string) => {
       errors[key] = error;
       values[key] = raw ?? "";
@@ -110,7 +118,11 @@ export async function saveSettingsAction(
               scopeId: scopeId as string,
             });
     } else {
-      const next = parseSettingValue(def, raw);
+      if (typed === null && raw !== null && raw.trim() !== "") {
+        refuse("phone");
+        continue;
+      }
+      const next = parseSettingValue(def, typed);
       if (!next.ok) {
         refuse(next.error);
         continue;

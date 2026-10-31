@@ -232,8 +232,11 @@ export function SettingsForm(props: SettingsFormProps) {
                   ? "url"
                   : f.def.input === "date"
                     ? "date"
-                    : "text"
+                    : f.def.input === "phone"
+                      ? "tel"
+                      : "text"
           }
+          {...(f.def.input === "phone" ? { autoComplete: "tel" } : {})}
           {...(f.def.min !== null ? { min: f.def.min } : {})}
           {...(f.def.max !== null ? { max: f.def.max } : {})}
           {...(f.def.maxLength !== null ? { maxLength: f.def.maxLength } : {})}
