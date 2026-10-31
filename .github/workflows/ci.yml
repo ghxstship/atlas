@@ -141,18 +141,24 @@ jobs:
   # first visit and typing before hydration is the race they guard against. Gateway's external role
   # journeys also drive Atlas, so its job serves both apps.
   e2e:
-    name: Playwright ${{ matrix.suite }} (${{ matrix.app }}) (gates 6, 8)
+    name: Playwright ${{ matrix.suite }} (${{ matrix.app }}${{ matrix.shard && format(', {0}/{1}', matrix.shard, matrix.shards) || '' }}) (gates 6, 8)
     runs-on: ubuntu-24.04
-    # Atlas runs about 240 journeys, 40 minutes on a laptop and 80 to 95 on a hosted runner (run
-    # 40106184653 was cut off at 90 with 206 passed and none failed).
-    timeout-minutes: 150
+    # Atlas runs about 270 journeys: 88 minutes on one hosted runner (run 41090896687), and run
+    # 41100622916 was cut off at 150. They run in four shards, each with its own stack and server.
+    # A shard is a run of whole spec files (fullyParallel is off), so state a file builds up never
+    # leaves it. Shards split by test count, not time: the one with crawl.spec.ts (12 minutes in one
+    # file) took about 33 minutes of tests on that run and the others 16 to 20.
+    timeout-minutes: ${{ matrix.timeout || 150 }}
     strategy:
       fail-fast: false
       # Journeys (gate 6) and axe on every signed-in page per role (gate 8) run on separate runners;
       # together they pass the time limit of one.
       matrix:
         include:
-          - { app: atlas, suite: journeys }
+          - { app: atlas, suite: journeys, shard: 1, shards: 4, timeout: 90 }
+          - { app: atlas, suite: journeys, shard: 2, shards: 4, timeout: 90 }
+          - { app: atlas, suite: journeys, shard: 3, shards: 4, timeout: 90 }
+          - { app: atlas, suite: journeys, shard: 4, shards: 4, timeout: 90 }
           - { app: atlas, suite: axe }
           - { app: gateway, suite: journeys }
           - { app: gateway, suite: axe }
@@ -217,7 +223,7 @@ jobs:
           echo "E2E_PRODUCTION_BUILD=1" >> "$GITHUB_ENV"
       - name: Journeys
         if: matrix.suite == 'journeys'
-        run: pnpm exec playwright test
+        run: pnpm exec playwright test ${{ matrix.shard && format('--shard={0}/{1}', matrix.shard, matrix.shards) || '' }}
         working-directory: apps/${{ matrix.app }}
       # Gate 8: axe on every signed-in page per role, both themes, desktop and 375 px.
       - name: Axe on every page
@@ -227,7 +233,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: e2e-${{ matrix.app }}-${{ matrix.suite }}
+          name: e2e-${{ matrix.app }}-${{ matrix.suite }}${{ matrix.shard && format('-{0}', matrix.shard) || '' }}
           path: |
             apps/${{ matrix.app }}/node_modules/.cache/playwright
             /tmp/*.log
