@@ -140,7 +140,19 @@
     "reservation_released": "Esta reserva ya se liberó.",
     "reservation_source_class": "El origen es una unidad, un lote o una línea de pedido de la clase de la asignación.",
     "reservation_unit_overlap": "Esa unidad está reservada para otra asignación en esas fechas.",
-    "reservation_unit_unavailable": "Esa unidad está perdida, dada de baja o devuelta."
+    "reservation_unit_unavailable": "Esa unidad está perdida, dada de baja o devuelta.",
+    "advance_section_choices_missing": "Da a cada sección de Solicitud de artículos y de credenciales al menos una opción antes de enviar.",
+    "advance_section_choice_kind": "Esa opción no corresponde a la sección: las clases de activos van en Solicitudes de artículos, las categorías de credenciales en Solicitudes de credenciales, y solo se ofrecen clases que corresponden a una oferta.",
+    "advance_section_choice_project": "Elige una categoría de credenciales del proyecto del paquete.",
+    "advance_section_choice_fixed": "Una opción conserva su sección y su artículo. Quítala y agrega otra.",
+    "advance_section_kind_choices": "Quita las opciones de la sección antes de cambiar su tipo.",
+    "advance_recipient_engagement": "Elige una contratación vigente de la misma parte en este proyecto. Queda fija al enviar el paquete.",
+    "advance_line_not_accepted": "Acepta la respuesta antes de reservar su franja.",
+    "advance_line_not_dock": "Solo una franja de Carga o Descarga se reserva como turno de muelle.",
+    "advance_line_booked": "Esta franja ya tiene un turno de muelle.",
+    "advance_dock_zone": "Elige una zona de muelle vigente.",
+    "dock_slot_overlap": "Otro turno ocupa ese muelle a esa hora. Elige otro muelle o mueve el turno.",
+    "credential_names_closed": "Ya pasó la fecha límite de nombres para la parte; cambia los nombres desde Asignaciones."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
@@ -212,7 +224,49 @@
     "fixedAfterSend": "Este paquete se envió, así que sus secciones son fijas. Aún puedes corregir su redacción.",
     "newName": "Nueva sección",
     "newNameHelp": "Por ejemplo, Llegada, Backline u Hospitalidad.",
-    "add": "Agregar sección"
+    "add": "Agregar sección",
+    "kind": {
+      "label": "Tipo",
+      "help": "Con qué responde el destinatario. Queda fijo al enviar el paquete.",
+      "kinds": {
+        "text": "Texto",
+        "file": "Archivo",
+        "scheduleWindow": "Franja horaria",
+        "itemRequest": "Solicitud de artículos",
+        "crewRoster": "Lista de personal",
+        "guestList": "Lista de invitados",
+        "credentialRequest": "Solicitud de credenciales"
+      },
+      "windowKinds": {
+        "loadIn": "Carga",
+        "loadOut": "Descarga",
+        "arrival": "Llegada",
+        "soundcheck": "Prueba de sonido",
+        "activationSetup": "Montaje de activación",
+        "activationStrike": "Desmontaje de activación"
+      },
+      "windowKind": "Franja",
+      "maxFiles": "Máximo de archivos",
+      "maxWindows": "Máximo de franjas",
+      "maxLines": "Máximo de líneas",
+      "maxHelp": "Hasta {n}.",
+      "perPerson": "Cada línea nombra a una persona de la lista de personal",
+      "perPersonShort": "por persona",
+      "upTo": "hasta {n}",
+      "noClasses": "Ninguna clase de activo corresponde todavía a una oferta. Marca primero la clase de radios o carritos en Activos.",
+      "noCategories": "Este proyecto todavía no tiene categorías de credenciales. Agrégalas primero en Credenciales.",
+      "items": "Artículos ofrecidos",
+      "itemsHelp": "Las clases de activos que el destinatario puede pedir, como radios y carritos.",
+      "categories": "Pases ofrecidos",
+      "categoriesHelp": "Las categorías de credenciales que el destinatario puede pedir.",
+      "removeChoice": "Quitar {name}",
+      "addChoice": "Ofrecer otro",
+      "add": "Agregar",
+      "addFailed": "No se pudo agregar esa opción.",
+      "guestListWarning": "Este paquete pide una lista de invitados a un contratista o patrocinador. Las listas de invitados no forman parte de su avance, así que verán una nota en su lugar.",
+      "choicesError": "Elige al menos un artículo o pase para ofrecer.",
+      "maxError": "Indica cuántas líneas o archivos puede tener una respuesta, dentro del límite."
+    }
   },
   "recipients": {
     "title": "Destinatarios y enlaces",
@@ -224,7 +278,20 @@
     "remove": "Quitar a {name}",
     "none": "Aún no hay destinatarios.",
     "emptyEditable": "Aún no hay destinatarios. Agrega al talento, representante o proveedor que responde este paquete.",
-    "removed": "Destinatario quitado"
+    "removed": "Destinatario quitado",
+    "engagement": "Contratación",
+    "engagementHint": "Responde bajo esta contratación",
+    "engagementLine": "Responde como {role}",
+    "engagementOption": "{name} · {role}",
+    "namesDue": {
+      "label": "Fecha límite de nombres",
+      "help": "En la zona horaria del proyecto, {zone}. Después, solo tu equipo puede cambiar quién tiene los pases.",
+      "due": "Nombres antes del {date}",
+      "closed": "Nombres cerrados",
+      "action": "Fijar fecha límite de nombres",
+      "set": "Guardar fecha límite",
+      "saved": "Guardado."
+    }
   },
   "links": {
     "email": "Correo de {name}",
@@ -255,7 +322,22 @@
     "unsent": "Las respuestas llegan después de enviar el paquete.",
     "none": "Aún no hay respuestas. Los destinatarios responden con su enlace de Gateway.",
     "removedSection": "Sección quitada",
-    "viaLink": "Por enlace de Gateway"
+    "viaLink": "Por enlace de Gateway",
+    "note": "Nota: {note}",
+    "files": "Archivos",
+    "lines": "Líneas de la respuesta",
+    "columns": {
+      "item": "Artículo",
+      "quantity": "Cantidad",
+      "person": "Persona",
+      "window": "Franja",
+      "stage": "Etapa"
+    },
+    "window": "Franja",
+    "named": "{n} de {q} con nombre",
+    "pool": "Todo el equipo",
+    "windowRange": "{from} a {to}",
+    "needDecision": "{n, plural, one {# artículo necesita una decisión} other {# artículos necesitan una decisión}} en Asignaciones: fuentes, capacidad, la asignación permitida o la aceptación de la persona."
   },
   "review": {
     "accept": "Aceptar",
@@ -271,7 +353,8 @@
     "outcomes": {
       "Accepted": "Aceptada",
       "Returned": "Devuelta"
-    }
+    },
+    "typedHelp": "Aceptar aprueba los artículos y pases que pide esta respuesta; devolverla los rechaza con tu motivo."
   },
   "record": {
     "title": "Registrar una respuesta dada por teléfono o correo",
@@ -799,5 +882,13 @@
       "lot": "lote",
       "line": "línea de pedido {line}"
     }
+  },
+  "bookDock": {
+    "title": "Reservar turno de muelle",
+    "zone": "Muelle",
+    "submit": "Reservar turno de muelle",
+    "done": "Turno de muelle reservado.",
+    "noZones": "El recinto del proyecto no tiene zonas para reservar.",
+    "booked": "Turno de muelle reservado"
   }
 }

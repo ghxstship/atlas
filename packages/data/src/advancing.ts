@@ -366,6 +366,8 @@ export interface AdvanceRecipient {
   readonly engagementId: string | null;
   /** When the party stops naming people on the passes it requested (G-141); null without one. */
   readonly namesDueAt: string | null;
+  /** True once namesDueAt has passed, as of the read. */
+  readonly namesClosed: boolean;
 }
 
 /** The section configuration a kind allows, or null when the input does not fit the kind. */
@@ -544,6 +546,7 @@ export async function getPacket(
     id: r.id,
     engagementId: r.engagement_id,
     namesDueAt: r.names_due_at,
+    namesClosed: r.names_due_at !== null && new Date(r.names_due_at).getTime() <= now.getTime(),
     party: r.person_id
       ? {
           kind: "person",
@@ -1136,6 +1139,9 @@ export interface SubmissionListItem extends AdvanceSubmission {
   readonly projectId: string;
   readonly sectionTitle: string;
   readonly sectionPrompt: string | null;
+  /** The section's kind and window kind (R9). */
+  readonly sectionKind: AdvanceSectionKind;
+  readonly windowKind: AdvanceWindowKind | null;
   readonly recipient: AdvanceParty;
 }
 
@@ -1161,7 +1167,7 @@ export async function listSubmissions(
   const [sections, recipients] = await Promise.all([
     db
       .from("advance_sections")
-      .select("id, advance_packet_id, title, prompt")
+      .select("id, advance_packet_id, title, prompt, section_kind, window_kind")
       .in("advance_packet_id", packetIds)
       .is("deleted_at", null),
     db
@@ -1203,6 +1209,8 @@ export async function listSubmissions(
         projectId: packet.project_id,
         sectionTitle: section.title,
         sectionPrompt: section.prompt,
+        sectionKind: section.section_kind,
+        windowKind: section.window_kind,
         recipient: {
           kind: recipient.person_id ? "person" : "counterparty",
           id: partyId,

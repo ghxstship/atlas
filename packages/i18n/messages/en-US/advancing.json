@@ -140,7 +140,19 @@
     "reservation_released": "This hold was already released.",
     "reservation_source_class": "The source is a unit, lot or order line of the allocation's class.",
     "reservation_unit_overlap": "That unit is held for another allocation on those dates.",
-    "reservation_unit_unavailable": "That unit is lost, retired or returned."
+    "reservation_unit_unavailable": "That unit is lost, retired or returned.",
+    "advance_section_choices_missing": "Give every Item Request and Credential Request section at least one choice before sending.",
+    "advance_section_choice_kind": "That choice does not fit the section: asset classes go on Item Requests, credential categories on Credential Requests, and only classes that answer for an offering are offered.",
+    "advance_section_choice_project": "Choose a credential category of the packet's project.",
+    "advance_section_choice_fixed": "A choice keeps its section and item. Remove it and add another.",
+    "advance_section_kind_choices": "Remove the section's choices before changing its kind.",
+    "advance_recipient_engagement": "Choose a live engagement of the same party on this project. It is fixed once the packet is sent.",
+    "advance_line_not_accepted": "Accept the answer before booking its window.",
+    "advance_line_not_dock": "Only a Load In or Load Out window is booked as a dock slot.",
+    "advance_line_booked": "This window already has a dock slot.",
+    "advance_dock_zone": "Choose a live dock zone.",
+    "dock_slot_overlap": "Another slot holds that dock then. Choose another dock or move the slot.",
+    "credential_names_closed": "The naming deadline has passed for the party; change the names from Allocations."
   },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",
@@ -212,7 +224,49 @@
     "fixedAfterSend": "This packet was sent, so its sections are fixed. You can still correct their wording.",
     "newName": "New section",
     "newNameHelp": "For example, Arrival, Backline or Hospitality.",
-    "add": "Add section"
+    "add": "Add section",
+    "kind": {
+      "label": "Kind",
+      "help": "What the recipient answers with. Fixed once the packet is sent.",
+      "kinds": {
+        "text": "Text",
+        "file": "File",
+        "scheduleWindow": "Schedule window",
+        "itemRequest": "Item request",
+        "crewRoster": "Crew roster",
+        "guestList": "Guest list",
+        "credentialRequest": "Credential request"
+      },
+      "windowKinds": {
+        "loadIn": "Load in",
+        "loadOut": "Load out",
+        "arrival": "Arrival",
+        "soundcheck": "Soundcheck",
+        "activationSetup": "Activation setup",
+        "activationStrike": "Activation strike"
+      },
+      "windowKind": "Window",
+      "maxFiles": "Most files",
+      "maxWindows": "Most windows",
+      "maxLines": "Most lines",
+      "maxHelp": "Up to {n}.",
+      "perPerson": "Each line names a person on the crew roster",
+      "perPersonShort": "per person",
+      "upTo": "up to {n}",
+      "noClasses": "No asset class answers for an offering yet. Mark the radio or cart class in Assets first.",
+      "noCategories": "This project has no credential categories yet. Add them in Credentials first.",
+      "items": "Items offered",
+      "itemsHelp": "The asset classes the recipient can ask for, such as radios and carts.",
+      "categories": "Passes offered",
+      "categoriesHelp": "The credential categories the recipient can ask for.",
+      "removeChoice": "Remove {name}",
+      "addChoice": "Offer another",
+      "add": "Add",
+      "addFailed": "That choice could not be added.",
+      "guestListWarning": "This packet asks a contractor or sponsor for a guest list. Guest lists are not part of their advance, so they will see a note instead.",
+      "choicesError": "Choose at least one item or pass to offer.",
+      "maxError": "Set how many lines or files one answer may hold, within the limit."
+    }
   },
   "recipients": {
     "title": "Recipients and links",
@@ -224,7 +278,20 @@
     "remove": "Remove {name}",
     "none": "No recipients yet.",
     "emptyEditable": "No recipients yet. Add the talent, representative or vendor who answers this packet.",
-    "removed": "Removed recipient"
+    "removed": "Removed recipient",
+    "engagement": "Engagement",
+    "engagementHint": "Answers under this engagement",
+    "engagementLine": "Answers as {role}",
+    "engagementOption": "{name} · {role}",
+    "namesDue": {
+      "label": "Names due",
+      "help": "In the project's time zone, {zone}. After it, only your team can change who holds the passes.",
+      "due": "Names due {date}",
+      "closed": "Names closed",
+      "action": "Set names deadline",
+      "set": "Save deadline",
+      "saved": "Saved."
+    }
   },
   "links": {
     "email": "Email for {name}",
@@ -255,7 +322,22 @@
     "unsent": "Answers arrive after the packet is sent.",
     "none": "No answers yet. Recipients answer through their Gateway link.",
     "removedSection": "Removed section",
-    "viaLink": "Through Gateway link"
+    "viaLink": "Through Gateway link",
+    "note": "Note: {note}",
+    "files": "Files",
+    "lines": "Lines of the answer",
+    "columns": {
+      "item": "Item",
+      "quantity": "Quantity",
+      "person": "Person",
+      "window": "Window",
+      "stage": "Stage"
+    },
+    "window": "Window",
+    "named": "Named {n} of {q}",
+    "pool": "Whole team",
+    "windowRange": "{from} to {to}",
+    "needDecision": "{n, plural, one {# item needs a decision} other {# items need a decision}} in Allocations: sources, capacity, the allowance or the person's acceptance."
   },
   "review": {
     "accept": "Accept",
@@ -271,7 +353,8 @@
     "outcomes": {
       "Accepted": "Accepted",
       "Returned": "Returned"
-    }
+    },
+    "typedHelp": "Accepting approves the items and passes this answer asks for; returning declines them with your reason."
   },
   "record": {
     "title": "Record an answer given by phone or email",
@@ -799,5 +882,13 @@
       "lot": "lot",
       "line": "order line {line}"
     }
+  },
+  "bookDock": {
+    "title": "Book dock slot",
+    "zone": "Dock",
+    "submit": "Book dock slot",
+    "done": "Dock slot booked.",
+    "noZones": "The project's venue has no zones to book.",
+    "booked": "Dock slot booked"
   }
 }
