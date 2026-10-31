@@ -98,8 +98,8 @@ select set_eq($$select field_name, required, strong_key from app.import_target_f
   'cue fields: the position is the strong key, the label is required');
 select set_eq($$select field_name, required, strong_key from app.import_target_fields where target_code = 'guest_list_entries'$$,
   $$values ('guest_name', true, true), ('plus_ones', false, false), ('note', false, false), ('scope_node_id', false, false),
-    ('counterparty_id', false, false)$$,
-  'guest fields: no state, decision or check-in field is importable');
+    ('counterparty_id', false, false), ('guest_email', false, false), ('table_label', false, false)$$,
+  'guest fields: no state, decision, check-in or pass field is importable (B8 2974 adds the email and the table)');
 
 -- 2. The destination guard -----------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
