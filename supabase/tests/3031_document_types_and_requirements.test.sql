@@ -1,14 +1,15 @@
 -- pgTAP: document types, requirements and the setup progress view (3031, B14 G-266). A Manager keeps the org's document
 -- types and adopts the Standard Library's once (a second run adds nothing, and names the org already holds are skipped);
 -- a member cannot. A typed project lists one progress row per requirement, satisfied by a live typed document with a
--- version or a field value; a reader without knowledge.document.read on the project sees no rows; deleted document
--- types are left out; a type a requirement names is not deleted; the view keeps select from xos_backup.
+-- version or a field value, by the same rule the gate applies; a reader without knowledge.document.read on the project
+-- sees no rows; deleted document types are left out; a type a requirement names is not deleted; the view keeps select
+-- from xos_backup.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(19);
+select plan(20);
 
 select has_table('app', 'document_types', 'app.document_types exists');
 select has_column('app', 'documents', 'document_type_id', 'documents carry a document type');
@@ -79,6 +80,18 @@ insert into app.custom_field_values (custom_field_definition_id, target_id, valu
   values (pg_temp.id('cfd_capacity'), pg_temp.id('prj_a'), 12000);
 select is((select satisfied from app.project_setup_progress where project_id = pg_temp.id('prj_a') and item_kind = 'Field'),
   true, 'a field value satisfies its row');
+
+-- The view reads the gate's own rule, so the two agree on every Required item.
+select pg_temp.as_platform();
+create temporary table seen (label text, requirement app.document_requirement, satisfied boolean);
+grant select, insert on seen to public;
+select pg_temp.as_user('carol');
+insert into seen select label, requirement, satisfied from app.project_setup_progress where project_id = pg_temp.id('prj_a');
+select pg_temp.as_platform();
+select is((select count(*)::integer from seen s where s.requirement = 'Required'
+           and s.satisfied = exists (select 1 from private.project_setup_unmet(pg_temp.id('prj_a'), 9) u where u.label = s.label)), 0,
+  'the progress view and the gate agree on every Required item');
+select pg_temp.as_user('carol');
 
 -- Deleted document types are left out.
 update app.event_type_document_requirements set deleted_at = now() where document_type_id = pg_temp.id('dt_noise');

@@ -8,9 +8,12 @@
 --   * private.project_bump_windows computes the windows from the live Load In and Load Out days of app.project_days
 --     (2930): bump-in runs from 00:00 of the first Load In day to 00:00 of the day after the last one, bump-out the same
 --     over Load Out days, each day at midnight in its own zone (the venue's, the stored zone, else the project's).
---   * app.project_site_window_warnings lists, without refusing anything, a Load In day after the first show day, a Load
---     Out day before the last one, windows that overlap, a window longer than 60 days and bump days without show
---     dates. A touring project legitimately has load-ins between show days, so B4's day editor is never refused.
+--   * app.project_site_window_warnings lists, without refusing anything, a Load In day after the first Show day at its
+--     venue, a Load Out day before the last one there, load-in and load-out dates that overlap at a venue, more than 60
+--     dates of load-in or load-out and bump days without show dates. Each day is judged at its venue (its own, else its
+--     Show node's) against the Show days there, and against starts_on and ends_on only when the project has no Show day
+--     at that venue, so a tour that loads in at each stop raises nothing; B4's day editor is never refused. The windows
+--     themselves (private.project_bump_windows, private.project_site_window) stay project-wide.
 --   * app.project_site_windows gives the apps both windows and the site window of each project they read.
 --   * private.project_site_window (R7a, 2683) is restated with the bump windows first: its lower bound is the bump-in
 --     start, else the earliest live Build record, else starts_on at 00:00; its upper bound the bump-out end, else the
@@ -115,28 +118,54 @@ revoke select on app.project_site_windows from xos_backup;
 -- Warnings, never refusals ------------------------------------------------------------------------------------------------------------
 
 create view app.project_site_window_warnings with (security_invoker = true) as
+with days as (
+  -- Each live day at its venue: its own, else its Show node's.
+  select d.project_id, d.day_on, d.day_type, coalesce(d.venue_id, n.venue_id) as venue_id
+  from app.project_days d
+  left join app.scope_nodes n on n.id = d.scope_node_id
+  where d.deleted_at is null and d.day_type in ('Load In', 'Show', 'Load Out')
+),
+shows as (
+  select s.project_id, s.venue_id, min(s.day_on) as first_on, max(s.day_on) as last_on
+  from days s where s.day_type = 'Show'
+  group by s.project_id, s.venue_id
+),
+bumps as (
+  select b.project_id, b.venue_id,
+    min(b.day_on) filter (where b.day_type = 'Load In') as in_first, max(b.day_on) filter (where b.day_type = 'Load In') as in_last,
+    min(b.day_on) filter (where b.day_type = 'Load Out') as out_first, max(b.day_on) filter (where b.day_type = 'Load Out') as out_last
+  from days b where b.day_type in ('Load In', 'Load Out')
+  group by b.project_id, b.venue_id
+)
 select x.project_id, x.org_id, x.warning, x.day_on
 from (
+  -- A Load In day after the first Show day at its venue; with no Show day there, after the first show day. The show
+  -- day itself never warns.
   select p.id as project_id, p.org_id, 'project_bump_in_after_show'::text as warning, d.day_on, 1 as ord
   from app.projects p
-  join app.project_days d on d.project_id = p.id and d.deleted_at is null and d.day_type = 'Load In'
-  where p.deleted_at is null and p.starts_on is not null and d.day_on > p.starts_on
+  join days d on d.project_id = p.id and d.day_type = 'Load In'
+  left join shows s on s.project_id = p.id and s.venue_id is not distinct from d.venue_id
+  where p.deleted_at is null and d.day_on > coalesce(s.first_on, p.starts_on)
   union all
   select p.id, p.org_id, 'project_bump_out_before_show', d.day_on, 2
   from app.projects p
-  join app.project_days d on d.project_id = p.id and d.deleted_at is null and d.day_type = 'Load Out'
-  where p.deleted_at is null and p.ends_on is not null and d.day_on < p.ends_on
+  join days d on d.project_id = p.id and d.day_type = 'Load Out'
+  left join shows s on s.project_id = p.id and s.venue_id is not distinct from d.venue_id
+  where p.deleted_at is null and d.day_on < coalesce(s.last_on, p.ends_on)
   union all
+  -- Load-in and load-out dates that overlap at one venue.
   select p.id, p.org_id, 'project_bump_windows_overlap', null::date, 3
   from app.projects p
-  cross join lateral private.project_bump_windows(p.id) w
-  where p.deleted_at is null and w.bump_in && w.bump_out
+  where p.deleted_at is null
+    and exists (select 1 from bumps b
+                where b.project_id = p.id and b.in_first <= b.out_last and b.out_first <= b.in_last)
   union all
+  -- More than 60 dates from the first to the last Load In day, or Load Out day, counted as dates.
   select p.id, p.org_id, 'project_bump_window_length', null::date, 4
   from app.projects p
-  cross join lateral private.project_bump_windows(p.id) w
   where p.deleted_at is null
-    and (upper(w.bump_in) - lower(w.bump_in) > interval '60 days' or upper(w.bump_out) - lower(w.bump_out) > interval '60 days')
+    and exists (select 1 from days d where d.project_id = p.id and d.day_type in ('Load In', 'Load Out')
+                group by d.day_type having max(d.day_on) - min(d.day_on) + 1 > 60)
   union all
   select p.id, p.org_id, 'project_bump_window_dates', null::date, 5
   from app.projects p
@@ -146,7 +175,7 @@ from (
 ) x
 order by x.project_id, x.ord, x.day_on;
 
-call private.describe('app.project_site_window_warnings', 'Bump-in and bump-out checks against the show dates (G-262, ADR 0153 C1), one row per warning; nothing is refused, since a touring project has load-ins between show days. project_bump_in_after_show: a Load In day after the first show day (starts_on); project_bump_out_before_show: a Load Out day before the last show day (ends_on); project_bump_windows_overlap: the bump-in and bump-out windows overlap; project_bump_window_length: a window longer than 60 days; project_bump_window_dates: Load In or Load Out days on a project without both show dates. Computed, never stored; runs as the reader, so the days'' row level security (schedule.timeline.read) applies.', array[
+call private.describe('app.project_site_window_warnings', 'Bump-in and bump-out checks against the show dates (G-262, ADR 0153 C1), one row per warning; nothing is refused, since a touring project has load-ins between show days. Each day is judged at its venue (its own, else its Show node''s) against the Show days of app.project_days at that venue, and against the project''s show dates only when the project has no Show day there. project_bump_in_after_show: a Load In day after the first Show day at its venue (a load-in on that day is fine); project_bump_out_before_show: a Load Out day before the last Show day at its venue; project_bump_windows_overlap: load-in and load-out dates overlap at one venue; project_bump_window_length: more than 60 dates from the project''s first to its last Load In day, or Load Out day; project_bump_window_dates: Load In or Load Out days on a project without both show dates. Computed, never stored; runs as the reader, so the days'' row level security (schedule.timeline.read) applies.', array[
   'project_id', 'Project.',
   'org_id', 'Org.',
   'warning', 'The warning''s code.',

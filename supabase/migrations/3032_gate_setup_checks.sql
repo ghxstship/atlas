@@ -3,8 +3,8 @@
 -- Setup completeness is checked in the database, beside the gate's blocking criteria: a gate of a typed project passes
 -- only once every Required document type and every required field of its event type due by that gate is satisfied.
 --
---   * private.project_setup_unmet lists what is missing by the rules of app.project_setup_progress (3031), without the
---     reader filter, for the gate to read as its definer.
+--   * private.project_setup_unmet lists what is missing by private.project_setup_item_met (3031), the rule
+--     app.project_setup_progress also reads, without the reader filter, for the gate to read as its definer.
 --   * app.pass_gate is restated from 0301, its only definition, unchanged up to the blocking-criteria refusal. Then it
 --     refuses gate_documents_missing, naming the document types, and gate_fields_missing, naming the fields.
 --     Recommended items never block, and a project without an event type passes and refuses exactly as before.
@@ -21,21 +21,14 @@ as $$
   join app.event_type_document_requirements r on r.event_type_id = p.event_type_id and r.deleted_at is null
   join app.document_types dt on dt.id = r.document_type_id and dt.deleted_at is null
   where p.id = p_project_id and r.requirement = 'Required' and r.required_by_gate <= p_gate
-    and not exists (
-      select 1 from app.documents d
-      where d.project_id = p.id and d.document_type_id = r.document_type_id and d.deleted_at is null
-        and exists (select 1 from app.document_versions v where v.document_id = d.id and v.deleted_at is null))
+    and not private.project_setup_item_met(p.id, r.document_type_id, null)
   union all
   select 'Field', d.label, f.required_by_gate
   from app.projects p
   join app.event_type_fields f on f.event_type_id = p.event_type_id and f.deleted_at is null
   join app.custom_field_definitions d on d.id = f.custom_field_definition_id and d.deleted_at is null
   where p.id = p_project_id and f.required_for_type and f.required_by_gate <= p_gate
-    and not exists (
-      select 1 from app.custom_field_values v
-      where v.custom_field_definition_id = d.id and v.target_id = p.id and v.deleted_at is null
-        and private.custom_value_present(d.data_type, v.value_text, v.value_number, v.value_money_minor, v.value_currency,
-          v.value_date, v.value_timestamp, v.value_boolean, v.value_choice_id, v.value_person_id));
+    and not private.project_setup_item_met(p.id, null, d.id);
 $$;
 
 comment on function private.project_setup_unmet(uuid, integer) is 'What the project''s event type requires by a gate and the project lacks (G-266, ADR 0153 D3): each Required document type due at or before the gate with no live project document of the type that has a version, and each field required for the type due at or before the gate with no live value. Document types and fields that are deleted are left out. Read by app.pass_gate; the same rules as app.project_setup_progress without its reader filter.';

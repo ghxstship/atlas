@@ -1,15 +1,15 @@
 -- pgTAP: bump-in and bump-out windows (3033, B14 G-262; ADR 0153 C1). The windows come from the project's Load In and
 -- Load Out days at local midnight and are never stored; the site window takes them before the Build and Strike records
 -- and the show dates, and R7a's hire warnings follow it; the warnings view lists a load-in after the first show day, a
--- load-out before the last, overlapping and over-long windows and bump days without show dates, and refuses nothing; a
--- window across the end of daylight saving keeps local midnights; a reader of neither purchase orders nor the schedule
--- gets no windows.
+-- load-out before the last, overlapping and over-long windows and bump days without show dates, each day judged at its
+-- venue so a two-venue tour raises nothing, and refuses nothing; a window across the end of daylight saving keeps local
+-- midnights; a reader of neither purchase orders nor the schedule gets no windows.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(16);
+select plan(17);
 
 -- Readers have no usage on schema private, so the helpers are read under the reader's claims as the owner.
 create function pg_temp.windows(p_key text, p_project text) returns text
@@ -88,6 +88,25 @@ select is(pg_temp.warnings('prj_a'), 'project_bump_window_length', 'a bump-in lo
 update app.project_days set deleted_at = now() where project_id = pg_temp.id('prj_a') and day_on = '2027-04-01';
 update app.projects set ends_on = null where id = pg_temp.id('prj_a');
 select is(pg_temp.warnings('prj_a'), 'project_bump_window_dates', 'bump days without both show dates are listed');
+
+-- A tour of two venues: each stop loads in before its own show and out after it, so nothing is listed, though the
+-- second load-in falls after the tour's first show day and the first load-out before its last.
+select pg_temp.as_user('alice');
+with x as (insert into app.venues (org_id, name, jurisdiction_id, time_zone)
+  values (pg_temp.id('org_a'), 'Northwind Harbor Hall', 'US-FL-MIAMI-DADE', 'America/New_York') returning id)
+  insert into world select 'venue_t', id from x;
+select pg_temp.as_user('carol');
+with x as (insert into app.projects (org_id, project_key, name, time_zone, starts_on, ends_on)
+  values (pg_temp.id('org_a'), 'NWU', 'Northwind on Tour', 'America/New_York', '2027-07-02', '2027-07-06') returning id)
+  insert into world select 'prj_tour', id from x;
+insert into app.project_days (project_id, day_on, day_type, venue_id) values
+  (pg_temp.id('prj_tour'), '2027-07-01', 'Load In', pg_temp.id('venue_a')),
+  (pg_temp.id('prj_tour'), '2027-07-02', 'Show', pg_temp.id('venue_a')),
+  (pg_temp.id('prj_tour'), '2027-07-03', 'Load Out', pg_temp.id('venue_a')),
+  (pg_temp.id('prj_tour'), '2027-07-05', 'Load In', pg_temp.id('venue_t')),
+  (pg_temp.id('prj_tour'), '2027-07-06', 'Show', pg_temp.id('venue_t')),
+  (pg_temp.id('prj_tour'), '2027-07-07', 'Load Out', pg_temp.id('venue_t'));
+select is(pg_temp.warnings('prj_tour'), '-', 'a two-venue tour that loads in before each venue''s own show raises nothing');
 
 -- Daylight saving ends on 7 November 2027 in New York: the bump-in still runs between local midnights.
 select pg_temp.lay('prj_a2', '2027-11-06', '2027-11-07', 'Load In');

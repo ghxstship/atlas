@@ -218,12 +218,66 @@ comment on function private.custom_value_present(app.custom_data_type, text, num
 revoke all on function private.custom_value_present(app.custom_data_type, text, numeric, bigint, char, date, timestamptz, boolean, uuid, uuid) from public, anon;
 grant execute on function private.custom_value_present(app.custom_data_type, text, numeric, bigint, char, date, timestamptz, boolean, uuid, uuid) to authenticated, service_role;
 
+-- Whether a setup item is met -------------------------------------------------------------------------------------------------------
+-- One rule for the gate and the progress view, so the two always agree (ADR 0153 D3): a document type is met by a live project
+-- document of the type with a version, whoever may read it; a field by a live value. The gate's definer reads it
+-- directly; the view reads it through the reader check, so its Missing never comes from a document the reader cannot
+-- see (a Restricted Site Plan still counts).
+
+create or replace function private.project_setup_item_met(
+  p_project_id uuid,
+  p_document_type_id uuid,
+  p_custom_field_definition_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case
+    when p_document_type_id is not null then exists (
+      select 1 from app.documents d
+      where d.project_id = p_project_id and d.document_type_id = p_document_type_id and d.deleted_at is null
+        and exists (select 1 from app.document_versions v where v.document_id = d.id and v.deleted_at is null))
+    else exists (
+      select 1 from app.custom_field_values v
+      join app.custom_field_definitions d on d.id = v.custom_field_definition_id
+      where v.custom_field_definition_id = p_custom_field_definition_id and v.target_id = p_project_id and v.deleted_at is null
+        and private.custom_value_present(d.data_type, v.value_text, v.value_number, v.value_money_minor, v.value_currency,
+          v.value_date, v.value_timestamp, v.value_boolean, v.value_choice_id, v.value_person_id))
+  end;
+$$;
+
+comment on function private.project_setup_item_met(uuid, uuid, uuid) is 'True when a project meets one setup item of its event type (G-266, ADR 0153 D3): for a document type, a live project document of the type with at least one version, whatever its classification; for a custom field, a live value that holds something (private.custom_value_present). The single rule app.pass_gate (through private.project_setup_unmet) and app.project_setup_progress read.';
+revoke all on function private.project_setup_item_met(uuid, uuid, uuid) from public, anon, authenticated;
+
+create or replace function private.project_setup_item_satisfied(
+  p_project_id uuid,
+  p_document_type_id uuid,
+  p_custom_field_definition_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case when p_project_id in (select private.project_ids_with('knowledge.document.read'))
+    then private.project_setup_item_met(p_project_id, p_document_type_id, p_custom_field_definition_id) end;
+$$;
+
+comment on function private.project_setup_item_satisfied(uuid, uuid, uuid) is 'private.project_setup_item_met for a reader who reads documents on the project (knowledge.document.read); NULL for anyone else. app.project_setup_progress reads it, so its satisfied column matches the gate.';
+revoke all on function private.project_setup_item_satisfied(uuid, uuid, uuid) from public, anon;
+grant execute on function private.project_setup_item_satisfied(uuid, uuid, uuid) to authenticated, service_role;
+
 -- The progress view ------------------------------------------------------------------------------------------------------------------
 
 create view app.project_setup_progress with (security_invoker = true) as
 select p.id as project_id, p.event_type_id, 'Document'::text as item_kind, r.id as requirement_id,
   r.document_type_id, null::uuid as custom_field_definition_id, dt.name as label, r.requirement, r.required_by_gate,
-  r.sort_order, coalesce(dc.documents, 0)::integer as documents_count, coalesce(dc.documents, 0) > 0 as satisfied
+  r.sort_order, coalesce(dc.documents, 0)::integer as documents_count,
+  coalesce(private.project_setup_item_satisfied(p.id, r.document_type_id, null), false) as satisfied
 from app.projects p
 join app.event_type_document_requirements r on r.event_type_id = p.event_type_id and r.deleted_at is null
 join app.document_types dt on dt.id = r.document_type_id and dt.deleted_at is null
@@ -237,17 +291,13 @@ union all
 select p.id, p.event_type_id, 'Field', f.id, null::uuid, f.custom_field_definition_id, d.label,
   (case when f.required_for_type then 'Required' else 'Recommended' end)::app.document_requirement, f.required_by_gate,
   f.sort_order, null::integer,
-  exists (
-    select 1 from app.custom_field_values v
-    where v.custom_field_definition_id = d.id and v.target_id = p.id and v.deleted_at is null
-      and private.custom_value_present(d.data_type, v.value_text, v.value_number, v.value_money_minor, v.value_currency,
-        v.value_date, v.value_timestamp, v.value_boolean, v.value_choice_id, v.value_person_id))
+  coalesce(private.project_setup_item_satisfied(p.id, null, d.id), false)
 from app.projects p
 join app.event_type_fields f on f.event_type_id = p.event_type_id and f.deleted_at is null
 join app.custom_field_definitions d on d.id = f.custom_field_definition_id and d.deleted_at is null
 where p.deleted_at is null and p.id in (select private.project_ids_with('knowledge.document.read'));
 
-call private.describe('app.project_setup_progress', 'Setup completeness of each typed project (G-266, ADR 0153 D3): one row per document requirement and per field of the project''s event type, with whether it is satisfied. A Document row is satisfied by a live project document of its type with at least one version; a Field row by a live value of the field. Requirements whose document type or field is deleted are left out, as app.pass_gate leaves them out. Runs as the reader and lists only projects the reader reads documents on (knowledge.document.read), so a reader who cannot see documents never sees a false Missing.', array[
+call private.describe('app.project_setup_progress', 'Setup completeness of each typed project (G-266, ADR 0153 D3): one row per document requirement and per field of the project''s event type, with whether it is satisfied. A Document row is satisfied by a live project document of its type with at least one version, counted whatever the document''s classification, so the view and app.pass_gate always agree (private.project_setup_item_met); a Field row by a live value of the field. Requirements whose document type or field is deleted are left out, as app.pass_gate leaves them out. Runs as the reader and lists only projects the reader reads documents on (knowledge.document.read), so a reader who cannot see documents never sees a false Missing.', array[
   'project_id', 'Project.',
   'event_type_id', 'Event type of the project.',
   'item_kind', 'Document or Field.',
@@ -259,7 +309,7 @@ call private.describe('app.project_setup_progress', 'Setup completeness of each 
   'required_by_gate', 'Gate the item is needed by.',
   'sort_order', 'Position within its kind.',
   'documents_count', 'For a document: live project documents of the type with at least one version the reader sees; NULL for a field.',
-  'satisfied', 'True when the requirement is met.'
+  'satisfied', 'True when the requirement is met, by the rule app.pass_gate applies; documents_count can be lower when the reader cannot see some of the documents.'
 ]);
 revoke all on app.project_setup_progress from public, anon;
 grant select on app.project_setup_progress to authenticated, service_role;
