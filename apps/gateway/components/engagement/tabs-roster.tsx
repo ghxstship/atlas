@@ -7,6 +7,7 @@ import {
   listRoleOptions,
   rosterLocked,
   type RosterEntry,
+  rosterCopySources,
 } from "@xos/data/roster";
 import { listRosterFactStatus, rosterFactChip } from "@xos/data/roster-facts";
 import dynamic from "next/dynamic";
@@ -19,7 +20,7 @@ import {
   unassignEngagementMemberAction,
   withdrawRosterEntryAction,
 } from "@/lib/actions/roster";
-import { formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import {
@@ -37,6 +38,9 @@ import type { TabProps } from "./tab-context";
 
 // Withdrawing someone is final (their invitation, share and consent end with it), so it is confirmed in a
 // dialog whose code loads on demand.
+/** Reuse a roster from a past event (B14) loads only for a roster manager who has a past roster to reuse. */
+const RosterCopyPanel = dynamic(() => import("./roster-copy").then((m) => m.RosterCopyPanel));
+
 const ConfirmButton = dynamic(() =>
   import("@/components/actions/confirm-button").then((m) => m.ConfirmButton),
 );
@@ -58,14 +62,18 @@ const ConfirmButton = dynamic(() =>
  */
 export async function CrewTab({ view, t, locale }: TabProps) {
   const { engagement } = view;
-  const [roster, talent, roles, factStatus, allocations, requestable] = await Promise.all([
-    listEngagementRoster(view.ctx.db, engagement.id),
-    listAccountTalent(view.ctx.db, engagement.accountId),
-    listRoleOptions(view.ctx.db, engagement.roleCode),
-    listRosterFactStatus(view.ctx.db, engagement.id),
-    listEngagementAllocations(view.ctx.db, engagement.id),
-    listRequestableItems(view.ctx.db, engagement.id),
-  ]);
+  const [roster, talent, roles, factStatus, allocations, requestable, copySources] =
+    await Promise.all([
+      listEngagementRoster(view.ctx.db, engagement.id),
+      listAccountTalent(view.ctx.db, engagement.accountId),
+      listRoleOptions(view.ctx.db, engagement.roleCode),
+      listRosterFactStatus(view.ctx.db, engagement.id),
+      listEngagementAllocations(view.ctx.db, engagement.id),
+      listRequestableItems(view.ctx.db, engagement.id),
+      // B14 (3037): refused (42501) for anyone who does not manage this roster, who then sees no reuse.
+      rosterCopySources(view.ctx.db, engagement.id),
+    ]);
+  const reusable = copySources.ok ? copySources.data.filter((s) => s.entries > 0) : [];
   if (!roster.ok || !talent.ok || !roles.ok || !factStatus.ok || !allocations.ok || !requestable.ok)
     return <RegionError />;
   const statusOf = new Map(factStatus.data.map((s) => [s.rosterEntryId, s]));
@@ -279,6 +287,23 @@ export async function CrewTab({ view, t, locale }: TabProps) {
         t={t}
         locale={locale}
       />
+      {reusable.length > 0 && !locked ? (
+        <RosterCopyPanel
+          engagementId={engagement.id}
+          sources={reusable}
+          format={Object.fromEntries(
+            reusable.map((s) => [
+              s.engagementId,
+              s.startsOn
+                ? t("gateway.engagement.roster.copy.sourceLine", {
+                    project: s.projectName,
+                    date: formatDate(locale, s.startsOn),
+                  })
+                : s.projectName,
+            ]),
+          )}
+        />
+      ) : null}
       <Section id="crew-add" title={t("gateway.engagement.crew.addTitle")}>
         {locked ? (
           <p className="m-0 text-text-14 text-text-secondary">{lockedSentence}</p>

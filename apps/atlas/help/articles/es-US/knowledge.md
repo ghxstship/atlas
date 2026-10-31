@@ -18,3 +18,7 @@ order: 32
 - **Manual**: publique artículos del manual.
 - **Formularios**: cree formularios con lógica condicional, fotos obligatorias y firmas. El personal puede completarlos en Compass, sin conexión, y cada envío se convierte en un registro del tipo correcto.
 - **Capacitación**: cree cursos breves para su personal.
+
+## Tipos de documento
+
+Archive cada documento bajo uno de los **tipos de documento** de su organización, como un plano del sitio o un certificado de seguro. Adminístrelos en **Configuración, Plantillas, Tipos de documento**, donde **Agregar tipos estándar** agrega los tipos de la Biblioteca Estándar de XOS que aún no tiene. En la pestaña Documentos de un proyecto, **Documentos obligatorios** muestra cuántos de los documentos Obligatorios y Recomendados del tipo de evento están archivados; elija **Agregar** junto a uno que falte para crearlo con su tipo ya elegido.

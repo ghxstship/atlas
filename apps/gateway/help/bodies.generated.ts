@@ -768,6 +768,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Reuse a roster from a past event" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If you managed the roster of a past event with the same organization, for the same company or artist, ",
+          },
+          { t: "strong", v: "Reuse a roster from a past event" },
+          {
+            t: "text",
+            v: " adds those people here. Preview first: it lists who is added, which email addresses are invited again and who is skipped and why. People are added as drafts with their arrival moved to the new dates; each person accepts again, and you still submit the roster for the organization's review. Invitations are emailed only when you choose Add to roster.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -1796,6 +1811,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each submittal lists its files, version by version, with the organization's decision: ",
+          },
+          { t: "strong", v: "Approved" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Changes requested" },
+          { t: "text", v: ", with what to change. A new version starts unreviewed." },
         ],
       },
     ],
@@ -4392,6 +4420,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Reutilizar una lista de un evento anterior" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si administró la lista de un evento anterior con la misma organización, para la misma empresa o artista, ",
+          },
+          { t: "strong", v: "Reutilizar una lista de un evento anterior" },
+          {
+            t: "text",
+            v: " agrega aquí a esas personas. Primero vea la vista previa: muestra a quién se agrega, qué direcciones de correo se invitan de nuevo y a quién se omite y por qué. Las personas se agregan como borradores con su llegada movida a las nuevas fechas; cada persona acepta de nuevo y usted todavía envía la lista para que la organización la revise. Las invitaciones se envían por correo solo cuando elige Agregar a la lista.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -5443,6 +5486,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada envío muestra sus archivos, versión por versión, con la decisión de la organización: ",
+          },
+          { t: "strong", v: "Aprobado" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Cambios solicitados" },
+          { t: "text", v: ", con lo que hay que cambiar. Una versión nueva empieza sin revisar." },
         ],
       },
     ],

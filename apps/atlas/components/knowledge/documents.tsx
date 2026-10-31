@@ -1,4 +1,6 @@
+import { listDocumentTypes } from "@xos/data/document-types";
 import { lastChange, listDocuments, type KnowledgeDocument } from "@xos/data/knowledge";
+import { listSetupProgress, summarizeSetup } from "@xos/data/projects";
 import { listProjectOptions } from "@xos/data/procurement";
 import { getFormatter } from "next-intl/server";
 import {
@@ -6,6 +8,7 @@ import {
   createDocumentAction,
   deleteDocumentAction,
   renameDocumentAction,
+  setDocumentTypeAction,
 } from "@/app/[org]/knowledge/actions";
 import { CoEditLauncher } from "@/components/coedit/coedit-launcher";
 import { CollabPanels } from "@/components/collection-kit/collab";
@@ -57,11 +60,13 @@ export async function DocumentsSection({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, format, all, projects] = await Promise.all([
+  const [t, format, all, projects, types, setup] = await Promise.all([
     getCopy("knowledge"),
     getFormatter(),
     listDocuments(db, ctx.org.id),
     listProjectOptions(db, ctx.org.id),
+    listDocumentTypes(db, ctx.org.id),
+    projectId ? listSetupProgress(db, projectId) : Promise.resolve(null),
   ]);
   const title = projectId ? t("documents.projectTitle") : t("documents.title");
   if (!all.ok || !projects.ok) {
@@ -71,7 +76,23 @@ export async function DocumentsSection({
       </CollectionPage>
     );
   }
-  const docs = projectId ? all.data.filter((d) => d.projectId === projectId) : all.data;
+  // B14 (3031): documents filed under the org's document types, filtered by ?docType=<id> (none for untyped).
+  const documentTypes = types.ok ? types.data : [];
+  const typeFilter = typeof search["docType"] === "string" ? search["docType"] : null;
+  const docs = (projectId ? all.data.filter((d) => d.projectId === projectId) : all.data).filter(
+    (d) =>
+      typeFilter === null ||
+      (typeFilter === "none" ? !d.documentTypeId : d.documentTypeId === typeFilter),
+  );
+  const typeName = (d: KnowledgeDocument) => d.documentTypeName ?? t("documentTypes.untyped");
+  const presetType = typeof search["createType"] === "string" ? search["createType"] : "";
+  const required = setup?.ok ? setup.data.filter((i) => i.kind === "Document") : [];
+  const allTypesHref = (() => {
+    const q = new URLSearchParams(state.baseQuery);
+    q.delete("docType");
+    q.delete("createType");
+    return q.size > 0 ? `${path}?${q.toString()}` : path;
+  })();
   const canWrite = canWriteProject ?? ctx.capabilities.has("knowledge.document.write");
   const when = (d: string) =>
     format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
@@ -81,6 +102,7 @@ export async function DocumentsSection({
   const scopeOf = (d: KnowledgeDocument) => d.projectKey ?? t("documents.orgWide");
   const properties = (d: KnowledgeDocument) => [
     { label: t("documents.scope"), value: scopeOf(d) },
+    { label: t("documentTypes.type"), value: typeName(d) },
     { label: t("documents.versions"), value: String(d.versions.length) },
     { label: t("documents.updated"), value: when(lastChange(d)) },
     {
@@ -185,6 +207,25 @@ export async function DocumentsSection({
                 },
               ]}
             />
+            {documentTypes.length > 0 ? (
+              <EntityForm
+                id={`document-type-${selected.id}`}
+                action={setDocumentTypeAction}
+                hidden={{ org: ctx.org.slug, id: selected.id }}
+                refusals={REFUSALS}
+                submitLabel={t("documentTypes.save")}
+                fields={[
+                  {
+                    kind: "select",
+                    name: "documentTypeId",
+                    label: t("documentTypes.type"),
+                    blankLabel: t("documentTypes.untyped"),
+                    defaultValue: selected.documentTypeId ?? "",
+                    options: documentTypes.map((x) => ({ value: x.id, label: x.name })),
+                  },
+                ]}
+              />
+            ) : null}
           </KitSection>
         ) : null}
         {versions(selected, t)}
@@ -219,6 +260,7 @@ export async function DocumentsSection({
     cells: {
       title: d.title,
       scope: scopeOf(d),
+      type: typeName(d),
       versions: d.versions.length,
       updated: when(lastChange(d)),
     },
@@ -237,6 +279,18 @@ export async function DocumentsSection({
           successHref={withQuery(path, state, { peek: "{id}" })}
           fields={[
             { kind: "text", name: "title", label: t("documents.documentTitle"), required: true },
+            ...(documentTypes.length > 0
+              ? [
+                  {
+                    kind: "select" as const,
+                    name: "documentTypeId",
+                    label: t("documentTypes.type"),
+                    blankLabel: t("documentTypes.untyped"),
+                    defaultValue: documentTypes.some((x) => x.id === presetType) ? presetType : "",
+                    options: documentTypes.map((x) => ({ value: x.id, label: x.name })),
+                  },
+                ]
+              : []),
             ...(projectId
               ? []
               : [
@@ -293,7 +347,8 @@ export async function DocumentsSection({
       columns={[
         { key: "title", label: t("documents.documentTitle"), wrap: true },
         { key: "scope", label: t("documents.scope") },
-        { key: "versions", label: t("documents.versions"), type: "number" },
+        ...(documentTypes.length > 0 ? [{ key: "type", label: t("documentTypes.type") }] : []),
+        { key: "versions", label: t("documents.versions"), type: "number" as const },
         { key: "updated", label: t("documents.updated") },
       ]}
       rows={rows}
@@ -305,6 +360,87 @@ export async function DocumentsSection({
         ) : null
       }
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "documents")}
+      filters={
+        documentTypes.length > 0 || required.length > 0 ? (
+          <div className="flex flex-col gap-8">
+            {required.length > 0 ? (
+              <section aria-labelledby="required-documents" className="flex flex-col gap-6">
+                <h2 id="required-documents" className="m-0 text-text-13 font-semibold">
+                  {t("documentTypes.requiredTitle")}
+                </h2>
+                <p className="m-0 text-text-12 text-text-secondary">
+                  {t("documentTypes.requiredSummary", {
+                    requiredMet: summarizeSetup(required).required.met,
+                    requiredTotal: summarizeSetup(required).required.total,
+                    recommendedMet: summarizeSetup(required).recommended.met,
+                    recommendedTotal: summarizeSetup(required).recommended.total,
+                  })}
+                </p>
+                <ul className="m-0 flex list-none flex-wrap gap-6 p-0">
+                  {required.map((r) => (
+                    <li key={r.requirementId} className="flex items-center gap-6 text-text-12">
+                      <span>
+                        {t("documentTypes.requiredLine", {
+                          label: r.label,
+                          state: r.satisfied ? t("documentTypes.met") : t("documentTypes.missing"),
+                          requirement:
+                            r.requirement === "Required"
+                              ? t("documentTypes.required")
+                              : t("documentTypes.recommended"),
+                          gate: r.requiredByGate,
+                        })}
+                      </span>
+                      {!r.satisfied && canWrite && r.documentTypeId ? (
+                        <KitLink
+                          size="sm"
+                          href={withQuery(path, state, {
+                            create: "1",
+                            createType: r.documentTypeId,
+                          })}
+                        >
+                          {t("documentTypes.addMissing", { type: r.label })}
+                        </KitLink>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            {documentTypes.length > 0 ? (
+              <nav
+                aria-label={t("documentTypes.filter")}
+                className="flex flex-wrap items-center gap-6 text-text-12"
+              >
+                <span className="text-text-secondary">{t("documentTypes.filter")}:</span>
+                <KitLink
+                  size="sm"
+                  variant={typeFilter === null ? "primary" : "ghost"}
+                  href={allTypesHref}
+                >
+                  {t("documentTypes.allTypes")}
+                </KitLink>
+                {documentTypes.map((x) => (
+                  <KitLink
+                    key={x.id}
+                    size="sm"
+                    variant={typeFilter === x.id ? "primary" : "ghost"}
+                    href={withQuery(path, state, { docType: x.id })}
+                  >
+                    {x.name}
+                  </KitLink>
+                ))}
+                <KitLink
+                  size="sm"
+                  variant={typeFilter === "none" ? "primary" : "ghost"}
+                  href={withQuery(path, state, { docType: "none" })}
+                >
+                  {t("documentTypes.untyped")}
+                </KitLink>
+              </nav>
+            ) : null}
+          </div>
+        ) : undefined
+      }
     >
       {drawer}
     </CollectionView>

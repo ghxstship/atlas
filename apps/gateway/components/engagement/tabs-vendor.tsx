@@ -250,6 +250,13 @@ export async function SubmittalsTab({ view, t, locale, engagementKey }: TabProps
     : null;
   if (submittals && !submittals.ok) return <RegionError />;
   const rows = submittals?.ok ? submittals.data : [];
+  // B14 (3035): each submittal's files, version by version, with the org's decision and comment, never who decided.
+  const files = await readView(view.ctx.db, "submittal_files", {
+    in: ["submittal_id", rows.flatMap((s) => (s.id ? [s.id] : []))],
+    order: ["version_number", "desc"],
+  });
+  const filesOf = (id: string | null) =>
+    files.ok ? files.data.filter((f) => f.submittal_id === id) : [];
   if (rows.length === 0) {
     return (
       <TabEmpty
@@ -279,9 +286,93 @@ export async function SubmittalsTab({ view, t, locale, engagementKey }: TabProps
               },
             }
           : {}),
-        detail: <SubmittalDetail row={s} t={t} />,
+        detail: (
+          <>
+            <SubmittalDetail row={s} t={t} />
+            <SubmittalFiles files={filesOf(s.id)} t={t} locale={locale} />
+          </>
+        ),
       }))}
     />
+  );
+}
+
+/** A submittal's files: each version, newest first, with Approved or Changes requested and the org's comment. */
+function SubmittalFiles({
+  files,
+  t,
+  locale,
+}: {
+  files: readonly {
+    attachment_id: string | null;
+    title: string | null;
+    version_number: number | null;
+    filename: string | null;
+    uploaded_at: string | null;
+    decision: string | null;
+    review_comment: string | null;
+  }[];
+  t: TabProps["t"];
+  locale: string;
+}) {
+  if (files.length === 0) return null;
+  const titles = [...new Set(files.map((f) => f.attachment_id))];
+  return (
+    <section
+      aria-label={t("gateway.engagement.submittals.files.title")}
+      className="flex flex-col gap-8"
+    >
+      <h3 className="m-0 text-text-13 font-semibold">
+        {t("gateway.engagement.submittals.files.title")}
+      </h3>
+      <ul className="m-0 flex list-none flex-col gap-8 p-0">
+        {titles.map((id) => {
+          const versions = files.filter((f) => f.attachment_id === id);
+          return (
+            <li key={id ?? ""} className="flex flex-col gap-4 text-text-13">
+              <span className="font-medium">{versions[0]?.title ?? ""}</span>
+              <ol className="m-0 flex list-none flex-col gap-4 p-0">
+                {versions.map((v) => (
+                  <li key={`${id}-${v.version_number}`} className="flex flex-col gap-2">
+                    <span className="flex flex-wrap items-center gap-6">
+                      <span>
+                        {t("gateway.engagement.submittals.files.version", {
+                          n: v.version_number ?? 0,
+                        })}
+                      </span>
+                      <span className="text-text-secondary">{v.filename ?? ""}</span>
+                      <Tag
+                        tone={
+                          v.decision === "Approved"
+                            ? "success"
+                            : v.decision === "Changes Requested"
+                              ? "warning"
+                              : "neutral"
+                        }
+                      >
+                        {v.decision === "Approved"
+                          ? t("gateway.engagement.submittals.files.approved")
+                          : v.decision === "Changes Requested"
+                            ? t("gateway.engagement.submittals.files.changesRequested")
+                            : t("gateway.engagement.submittals.files.unreviewed")}
+                      </Tag>
+                      {v.uploaded_at ? (
+                        <span className="text-text-12 text-text-secondary">
+                          {formatDateTime(locale, v.uploaded_at)}
+                        </span>
+                      ) : null}
+                    </span>
+                    {v.review_comment ? (
+                      <span className="text-text-secondary">{v.review_comment}</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

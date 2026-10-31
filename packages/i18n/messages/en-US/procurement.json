@@ -374,7 +374,11 @@
     "return_line_not_stocked": "This line never came into stock, so it goes back without a venue.",
     "asset_lot_insufficient": "Not enough of this item is on hand at that venue.",
     "goods_return_immutable": "A return keeps its purchase order, returner and reason.",
-    "hire_period_order": "The hire must end after it starts."
+    "hire_period_order": "The hire must end after it starts.",
+    "submittal_files_changes_requested": "A file of this submittal needs changes; review its newest version first.",
+    "sod_file_review_uploader": "The person who uploaded a file version cannot review it.",
+    "file_review_not_clean": "Only a file that passed its virus scan is reviewed.",
+    "file_review_note_required": "Say what to change in up to 1,000 characters."
   },
   "kit": {
     "views": "View",
@@ -532,5 +536,24 @@
     "receivedVenue": "The venue it came into",
     "note": "Condition or carrier",
     "record": "Record return"
+  },
+  "fileReview": {
+    "title": "File reviews",
+    "versions": "Versions of {title}",
+    "version": "Version {n}",
+    "approved": "Approved",
+    "changesRequested": "Changes requested",
+    "unreviewed": "Not reviewed",
+    "notClean": "Not scanned clean",
+    "current": "Current",
+    "history": "{count, plural, one {# review} other {# reviews}}",
+    "someone": "Someone",
+    "yourUpload": "You uploaded this version, so someone else reviews it.",
+    "note": "Note",
+    "noteHelp": "Required when you ask for changes. The vendor sees it.",
+    "approve": "Approve",
+    "requestChanges": "Request changes",
+    "historyLine": "{decision}, {reviewer}, {at}",
+    "historyLineNote": "{decision}, {reviewer}, {at}: {note}"
   }
 }

@@ -359,6 +359,7 @@ export function AddItemForm({
             help={t("templates.items.dueOffsetHelp")}
             width="100%"
           />
+          <Checkbox name="requiresReview" label={t("templates.items.requiresReview")} />
         </div>
       )}
     </ActionForm>

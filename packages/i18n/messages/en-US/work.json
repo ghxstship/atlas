@@ -676,7 +676,19 @@
       "anchor_too_large": "This move would move more than 2000 records. Move the plan in parts.",
       "anchor_show_started": "A cue of this project has been called, so its shows have started and stay on their dates.",
       "anchor_sheet_collision": "A published sheet already covers the day an unpublished one would move to.",
-      "anchor_pinned_pushed": "This move would push a record that is pinned to its dates."
+      "anchor_pinned_pushed": "This move would push a record that is pinned to its dates.",
+      "record_review_required": "This record needs an approved review before it is Complete.",
+      "record_review_pending": "The review is still open.",
+      "record_review_changes_requested": "The reviewer asked for changes; ask for another review.",
+      "record_review_flag_locked": "Only someone who may change the project's settings turns off Requires review.",
+      "record_review_kind": "An approval is decided, not reviewed.",
+      "record_review_state": "Start the work before asking for a review.",
+      "record_review_open": "A review of this record is still open; wait for its decision.",
+      "record_review_note_required": "Say what to change when you ask for changes.",
+      "sod_file_review_uploader": "The person who uploaded a file version cannot review it.",
+      "file_review_not_clean": "Only a file that passed its virus scan is reviewed.",
+      "file_review_subject": "Files are reviewed on submittals and records.",
+      "file_review_note_required": "Say what to change in up to 1,000 characters."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",
@@ -806,5 +818,26 @@
     "choose": "Choose a match for {token}",
     "matches": "Matches: {count}",
     "untitled": "Untitled"
+  },
+  "review": {
+    "title": "Review",
+    "requiresReview": "Requires review",
+    "requiresReviewHelp": "When on, the record is Complete only after its latest review is approved.",
+    "flagLocked": "Only someone who may change the project's settings turns this off.",
+    "approved": "Approved",
+    "changesRequested": "Changes requested",
+    "open": "Review open",
+    "latest": "{key}: reviewer {reviewer}, asked by {requester}",
+    "anyApprover": "Any eligible approver",
+    "decidedBy": "Decided by {name}",
+    "none": "No review yet.",
+    "answerNote": "Note",
+    "answerNoteHelp": "Required when you ask for changes; the requester sees it in the record's history.",
+    "approve": "Approve",
+    "requestChanges": "Request changes",
+    "reviewer": "Reviewer",
+    "note": "Note for the reviewer",
+    "request": "Request review",
+    "history": "{count, plural, one {# review} other {# reviews}}"
   }
 }

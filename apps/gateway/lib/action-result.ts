@@ -118,6 +118,8 @@ export const KNOWN_REFUSALS = [
   // P8: an availability poll takes answers until it closes, for its own days only (migration 2853).
   "availability_poll_closed",
   "availability_poll_answer",
+  // B14: reusing a roster from a past event (migration 3037).
+  "roster_copy_source",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

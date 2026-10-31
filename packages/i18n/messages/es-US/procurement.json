@@ -374,7 +374,11 @@
     "return_line_not_stocked": "Esta línea nunca ingresó al inventario, así que se devuelve sin un lugar.",
     "asset_lot_insufficient": "No hay suficiente de este artículo en ese lugar.",
     "goods_return_immutable": "Una devolución conserva su orden de compra, quien la hizo y su motivo.",
-    "hire_period_order": "El alquiler debe terminar después de empezar."
+    "hire_period_order": "El alquiler debe terminar después de empezar.",
+    "submittal_files_changes_requested": "Un archivo de esta presentación necesita cambios; revisa primero su versión más reciente.",
+    "sod_file_review_uploader": "Quien subió una versión de archivo no puede revisarla.",
+    "file_review_not_clean": "Solo se revisa un archivo que pasó su análisis de virus.",
+    "file_review_note_required": "Di qué cambiar en hasta 1,000 caracteres."
   },
   "kit": {
     "views": "Vista",
@@ -532,5 +536,24 @@
     "receivedVenue": "El lugar al que ingresó",
     "note": "Estado o transportista",
     "record": "Registrar devolución"
+  },
+  "fileReview": {
+    "title": "Revisión de archivos",
+    "versions": "Versiones de {title}",
+    "version": "Versión {n}",
+    "approved": "Aprobado",
+    "changesRequested": "Cambios solicitados",
+    "unreviewed": "Sin revisar",
+    "notClean": "Sin análisis limpio",
+    "current": "Actual",
+    "history": "{count, plural, one {# revisión} other {# revisiones}}",
+    "someone": "Alguien",
+    "yourUpload": "Tú subiste esta versión, así que otra persona la revisa.",
+    "note": "Nota",
+    "noteHelp": "Obligatoria cuando pides cambios. El proveedor la ve.",
+    "approve": "Aprobar",
+    "requestChanges": "Pedir cambios",
+    "historyLine": "{decision}, {reviewer}, {at}",
+    "historyLineNote": "{decision}, {reviewer}, {at}: {note}"
   }
 }

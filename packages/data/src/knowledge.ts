@@ -377,7 +377,7 @@ export async function createDocument(
         org_id: orgId,
         title: input.title.trim(),
         project_id: blankToNull(input.projectId),
-        document_type_id: blankToNull(input.documentTypeId ?? null),
+        ...(input.documentTypeId ? { document_type_id: input.documentTypeId } : {}),
       })
       .select("id")
       .single(),

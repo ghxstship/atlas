@@ -132,7 +132,17 @@
     "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first.",
     "holiday_preset_unknown": "Choose the US federal holidays.",
     "holiday_preset_year": "Choose a year from 2021 to 2100.",
-    "holiday_preset_names": "A holiday name is 1 to 100 characters."
+    "holiday_preset_names": "A holiday name is 1 to 100 characters.",
+    "event_type_taken": "An event type with this name already exists.",
+    "document_type_taken": "A document type with this name already exists.",
+    "event_type_in_use": "Archive the event type instead; projects still use it.",
+    "document_type_in_use": "Remove the event types' requirements for this document type first.",
+    "event_type_template_kind": "Choose a live project template.",
+    "event_type_template_type_immutable": "A template rule stays with its event type.",
+    "event_type_field_target": "Choose a live custom field of projects.",
+    "event_type_field_immutable": "A field of a type keeps its type and field; remove it and add another.",
+    "event_type_requirement_document_type": "Choose a live document type.",
+    "event_type_requirement_immutable": "A requirement keeps its type and document type; remove it and add another."
   },
   "partner": {
     "sections": "Partner console sections",

@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import type { DocumentRequirement, EventAudience, EventScale } from "./projects.ts";
+import type { DocumentRequirement, EventAudience, EventScale } from "./setup.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -448,6 +448,11 @@ export interface IntakeInput {
   readonly copyFromProjectId?: string | null;
   readonly copyParts?: readonly ProjectCopyPart[];
   readonly copyOffsetDays?: number | null;
+  readonly jurisdictionId?: string | null;
+  readonly regionCode?: string | null;
+  readonly tierCode?: string | null;
+  readonly currencyCode?: string | null;
+  readonly description?: string | null;
 }
 
 /**
@@ -480,6 +485,11 @@ export async function createProjectFromIntake(
     p_copy_from_project_id: input.copyFromProjectId ?? null,
     p_copy_parts: [...(input.copyParts ?? [])],
     p_copy_offset_days: input.copyOffsetDays ?? null,
+    p_jurisdiction_id: input.jurisdictionId ?? null,
+    p_region_code: input.regionCode ?? null,
+    p_tier_code: input.tierCode ?? null,
+    p_currency_code: input.currencyCode ?? null,
+    p_description: input.description ?? null,
   });
   if (error) return fail(toDataError(error));
   if (typeof data !== "string")

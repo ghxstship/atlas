@@ -106,6 +106,23 @@
     "sop_acknowledge_self": "Solo puede confirmar un procedimiento por usted mismo.",
     "sop_version_managed": "La versión solo sube cuando se publica el procedimiento.",
     "append_only": "Las versiones y confirmaciones no cambian una vez registradas.",
-    "cross_org_reference": "Ese elemento pertenece a otra organización."
+    "cross_org_reference": "Ese elemento pertenece a otra organización.",
+    "document_type_in_use": "Quita primero los requisitos de los tipos de evento para este tipo de documento."
+  },
+  "documentTypes": {
+    "untyped": "Sin tipo",
+    "type": "Tipo",
+    "save": "Guardar tipo",
+    "requiredTitle": "Documentos obligatorios",
+    "requiredSummary": "{requiredMet} de {requiredTotal} obligatorios y {recommendedMet} de {recommendedTotal} recomendados",
+    "met": "archivado",
+    "missing": "falta",
+    "required": "obligatorio",
+    "recommended": "recomendado",
+    "byGate": "para la compuerta {gate}",
+    "addMissing": "Agregar {type}",
+    "filter": "Tipo",
+    "allTypes": "Todos los tipos",
+    "requiredLine": "{label}: {state} ({requirement}, para la compuerta {gate})"
   }
 }

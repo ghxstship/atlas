@@ -1,4 +1,5 @@
 import { listMembers } from "@xos/data";
+import { listEventTypes } from "@xos/data/event-types";
 import { listProjectMembers, PROJECT_ROLE_ORDER } from "@xos/data/projects";
 import { isNodeVisible } from "@xos/ia";
 import { notFound } from "next/navigation";
@@ -30,12 +31,17 @@ export default async function SettingsPage({
   const db = ctx.org.viewer.db;
   const t = await getTranslations("projects");
   const canMembers = ctx.capabilities.has("projects.members.manage");
-  const [options, members, orgMembers, moves] = await Promise.all([
+  const [options, members, orgMembers, moves, types] = await Promise.all([
     projectFormOptions(ctx.org),
     listProjectMembers(db, ctx.project.id),
     canMembers ? listMembers(db, ctx.org.org.id) : Promise.resolve({ ok: true as const, data: [] }),
     loadTransitions(ctx),
+    listEventTypes(db, ctx.org.org.id, { includeArchived: true }),
   ]);
+  // An archived type stays listed only for the project that names it (B14, 3030).
+  const eventTypes = (types.ok ? types.data : [])
+    .filter((e) => e.archivedAt === null || e.id === ctx.project.eventTypeId)
+    .map((e) => ({ value: e.id, label: e.archivedAt ? t("eventTypes.archivedName", { name: e.name }) : e.name }));
   const current = must(members, "project members");
   const onProject = new Set(current.map((m) => m.membershipId));
   const me = ctx.org.viewer.person?.id;
@@ -55,6 +61,7 @@ export default async function SettingsPage({
         canWrite={ctx.capabilities.has("projects.project.write")}
         canMembers={canMembers}
         canArchive={ctx.capabilities.has("projects.project.archive")}
+        eventTypes={eventTypes}
         roles={PROJECT_ROLE_ORDER}
         engagementsHref={
           isNodeVisible(sitemap, "project.engagements", ctx.org.nav)

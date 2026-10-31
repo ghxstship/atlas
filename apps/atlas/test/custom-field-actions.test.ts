@@ -87,4 +87,18 @@ describe("saving custom fields", () => {
     expect((await customFieldsOf(ctx, "app.vendors", undefined)).fieldErrors).toBeNull();
     expect(state.checked).toHaveLength(1);
   });
+
+  it("holds an intake post to the event type's required fields beyond the org's own (B14)", async () => {
+    state.role = "manager";
+    const form = new FormData();
+    form.set("cf.capacity", "  ");
+    const step = await customFieldsOf(
+      { org: { id: "org-1", slug: "acme" }, role: "manager" } as never,
+      "app.projects",
+      form,
+      { requiredKeys: ["capacity"] },
+    );
+    expect(step.fieldErrors).toEqual({ "cf.capacity": "required" });
+    expect(state.checked).toHaveLength(0);
+  });
 });

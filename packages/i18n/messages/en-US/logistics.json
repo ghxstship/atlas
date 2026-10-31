@@ -224,7 +224,10 @@
     },
     "noVendor": "No vendor",
     "endedVendor": "Ended vendor engagement",
-    "linkedVendor": "A vendor engagement is linked"
+    "linkedVendor": "A vendor engagement is linked",
+    "bumpIn": "Bump-in",
+    "bumpOut": "Bump-out",
+    "outsideWindows": "Outside bump-in and bump-out"
   },
   "yard": {
     "title": "Marshalling yard log",

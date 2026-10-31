@@ -103,7 +103,8 @@
       "sponsor_asset_source": "La organización aprueba los recursos que envías. Para cambiar uno que te devolvió, reenvíalo con archivos nuevos.",
       "credential_names_closed": "Ya pasó la fecha límite para asignar nombres a los pases. Contacta a la organización para cambiar quién los tiene.",
       "availability_poll_closed": "Esta encuesta ya cerró. Indique su disponibilidad directamente a la organización.",
-      "availability_poll_answer": "Responda cada día de la encuesta una vez, como Disponible, Provisional o No disponible."
+      "availability_poll_answer": "Responda cada día de la encuesta una vez, como Disponible, Provisional o No disponible.",
+      "roster_copy_source": "Reutiliza una lista de la misma empresa o artista con la misma organización."
     }
   },
   "common": {
@@ -294,7 +295,14 @@
       "noteHelp": "Indica qué envías y dónde están los archivos, en hasta 500 caracteres.",
       "submit": "Enviar",
       "resubmit": "Volver a enviar",
-      "done": "Enviado para revisión."
+      "done": "Enviado para revisión.",
+      "files": {
+        "title": "Archivos",
+        "version": "Versión {n}",
+        "approved": "Aprobado",
+        "changesRequested": "Cambios solicitados",
+        "unreviewed": "Aún sin revisar"
+      }
     },
     "advance": {
       "empty": "Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.",
@@ -413,7 +421,26 @@
     "roster": {
       "empty": "Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.",
       "action": "Configuración de representación",
-      "noEngagements": "Aún no hay contrataciones para este artista."
+      "noEngagements": "Aún no hay contrataciones para este artista.",
+      "copy": {
+        "title": "Reutilizar una lista de un evento anterior",
+        "lead": "Agrega a las personas de un evento anterior de esta organización. Llegan como borradores que cada persona acepta de nuevo; tú todavía envías la lista.",
+        "source": "Evento anterior",
+        "sourceLine": "{project}, {date}",
+        "preview": "Vista previa",
+        "addedPeople": "{n, plural, one {# persona agregada} other {# personas agregadas}}",
+        "invitedAddresses": "{n, plural, one {# dirección invitada de nuevo} other {# direcciones invitadas de nuevo}}",
+        "skippedPeople": "{n, plural, one {# omitida} other {# omitidas}}",
+        "commit": "Agregar a la lista",
+        "added": "Se agregaron como borradores. Revísalos y envía la lista.",
+        "reasons": {
+          "roster_person_is_engaged": "está en esta contratación con su propia entrada",
+          "already_on_roster": "ya está en la lista",
+          "not_in_team": "ya no está en tu equipo; invítalo por correo",
+          "already_invited": "ya está invitado",
+          "window_dropped": "sin llegada: un proyecto no tiene fechas del evento"
+        }
+      }
     },
     "forms": {
       "errors": {

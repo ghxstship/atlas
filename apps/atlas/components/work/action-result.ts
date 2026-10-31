@@ -88,6 +88,19 @@ const EXPLAINED = new Set([
   "anchor_show_started",
   "anchor_sheet_collision",
   "anchor_pinned_pushed",
+  // B14 record reviews and file reviews (migrations 3034 and 3035).
+  "record_review_required",
+  "record_review_pending",
+  "record_review_changes_requested",
+  "record_review_flag_locked",
+  "record_review_kind",
+  "record_review_state",
+  "record_review_open",
+  "record_review_note_required",
+  "sod_file_review_uploader",
+  "file_review_not_clean",
+  "file_review_subject",
+  "file_review_note_required",
 ]);
 
 /** Refusals whose database sentence is the correction the person needs. */

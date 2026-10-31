@@ -15,12 +15,14 @@ import {
   listRecurrences,
   listReplans,
   listScopeNodeRefs,
+  listRecordReviews,
   listStateHistory,
   nextStates,
   replanShift,
   type Assignment,
   type ChecklistItem,
   type ExtensionValues,
+  type RecordReview as Review,
   type RecordSummary,
   type Recurrence,
   type ReplanEntry,
@@ -62,6 +64,9 @@ import {
   type KindField,
 } from "./record-panels";
 import { RelatedRecords, type RecordRelations } from "./related-records";
+import { RecordReview } from "@/components/lazy-ui/record-review";
+import { FileReviewControls } from "@/components/lazy-ui/file-review";
+import { listVersionReviews, type VersionReview } from "@xos/data/attachments";
 
 // Minute retime of a dated record (P8), for people who may change the timeline; loads on demand.
 const AnchorPin = dynamic(() =>
@@ -110,6 +115,11 @@ export interface RecordDetail {
   readonly canRecur: boolean;
   /** How the viewer reads schedule times (me.time_zone_display and their own zone). */
   readonly scheduleView: ScheduleView;
+  /** B14 (3034): the record's reviews, latest first, and whether the viewer may turn Requires review off. */
+  readonly reviews: readonly Review[];
+  readonly canClearReviewFlag: boolean;
+  /** B14 (3035): reviews of the versions of the record's files, newest first. */
+  readonly fileReviews: readonly VersionReview[];
 }
 
 /** The record a display key names, with all it shows, or null when it is not visible. */
@@ -169,6 +179,11 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
     rememberView(ctx, "records", record.id),
   ]);
+  const versionIds = conversation.attachments.flatMap((a) => a.versions.map((v) => v.id));
+  const [reviews, fileReviews] = await Promise.all([
+    record.kind === "Approval" ? Promise.resolve(null) : listRecordReviews(db, record.id),
+    versionIds.length > 0 ? listVersionReviews(db, versionIds) : Promise.resolve(null),
+  ]);
   return {
     record,
     meta,
@@ -195,6 +210,9 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     anchorPinned: pinned.ok ? pinned.data : false,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
     scheduleView: scheduleViewOf(shell.preferences, shell.viewerTimeZone),
+    reviews: reviews?.ok ? reviews.data : [],
+    canClearReviewFlag: caps.has("projects.settings.write"),
+    fileReviews: fileReviews?.ok ? fileReviews.data : [],
   };
 }
 
@@ -372,6 +390,19 @@ export async function RecordBody({
           logsReplans={logsReplans}
         />
       ) : null}
+      {record.kind === "Approval" || record.deletedAt ? null : (
+        <RecordReview
+          org={org}
+          recordId={record.id}
+          state={record.state}
+          requiresReview={record.requiresReview ?? false}
+          reviews={detail.reviews}
+          people={meta.people}
+          me={me}
+          canWrite={detail.canWrite}
+          canClearFlag={detail.canClearReviewFlag}
+        />
+      )}
       <ExtensionForm
         org={org}
         record={record}
@@ -546,6 +577,13 @@ export async function RecordBody({
         names={{ ...names, ...detail.conversation.names }}
         me={me}
         canPost={!record.deletedAt}
+      />
+      <FileReviewControls
+        org={org}
+        attachments={detail.conversation.attachments}
+        reviews={detail.fileReviews}
+        me={me}
+        canReview={detail.canWrite}
       />
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}

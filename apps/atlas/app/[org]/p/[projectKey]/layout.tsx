@@ -73,6 +73,12 @@ export default async function ProjectLayout({
               code={phaseCode(project.phaseCode)}
               name={t(`phases.${phaseCode(project.phaseCode)}`)}
             />
+            {project.eventTypeName ? (
+              <Tag>
+                <span className="sr-only">{t("header.eventType")} </span>
+                {project.eventTypeName}
+              </Tag>
+            ) : null}
             {project.archivedAt ? <Tag tone="warning">{t("header.archived")}</Tag> : null}
           </div>
         </div>

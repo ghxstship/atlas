@@ -103,7 +103,8 @@
       "sponsor_asset_source": "The organization approves the assets you supply. To change one it returned, resubmit it with new files.",
       "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them.",
       "availability_poll_closed": "This poll has closed. Tell the org your availability directly.",
-      "availability_poll_answer": "Answer each day of the poll once, as Available, Tentative or Unavailable."
+      "availability_poll_answer": "Answer each day of the poll once, as Available, Tentative or Unavailable.",
+      "roster_copy_source": "Reuse a roster of the same company or artist with the same organization."
     }
   },
   "common": {
@@ -294,7 +295,14 @@
       "noteHelp": "Say what you are submitting and where the files are, in up to 500 characters.",
       "submit": "Submit",
       "resubmit": "Resubmit",
-      "done": "Sent for review."
+      "done": "Sent for review.",
+      "files": {
+        "title": "Files",
+        "version": "Version {n}",
+        "approved": "Approved",
+        "changesRequested": "Changes requested",
+        "unreviewed": "Not reviewed yet"
+      }
     },
     "advance": {
       "empty": "No advance packet yet. When the organization sends one, answer each section here.",
@@ -413,7 +421,26 @@
     "roster": {
       "empty": "You do not represent any artists yet. Propose a representation from Company settings.",
       "action": "Representation settings",
-      "noEngagements": "No engagements for this artist yet."
+      "noEngagements": "No engagements for this artist yet.",
+      "copy": {
+        "title": "Reuse a roster from a past event",
+        "lead": "Add the people from a past event of this organization. They arrive as drafts each person accepts again; you still submit the roster.",
+        "source": "Past event",
+        "sourceLine": "{project}, {date}",
+        "preview": "Preview",
+        "addedPeople": "{n, plural, one {# person added} other {# people added}}",
+        "invitedAddresses": "{n, plural, one {# address invited again} other {# addresses invited again}}",
+        "skippedPeople": "{n, plural, one {# skipped} other {# skipped}}",
+        "commit": "Add to roster",
+        "added": "Added as drafts. Review them and submit the roster.",
+        "reasons": {
+          "roster_person_is_engaged": "on this engagement through their own entry",
+          "already_on_roster": "already on the roster",
+          "not_in_team": "no longer in your team; invite them by email",
+          "already_invited": "already invited",
+          "window_dropped": "arrival left out: a project has no show dates"
+        }
+      }
     },
     "forms": {
       "errors": {

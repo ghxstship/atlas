@@ -5,6 +5,7 @@ import {
   acceptAccountMembership,
   addRosterEntry,
   assignEngagementMember,
+  copyRosterFromEngagement,
   inviteAccountMember,
   inviteToRoster,
   reissueRosterInvitation,
@@ -16,6 +17,7 @@ import {
   unassignEngagementMember,
   updateRosterEntry,
   withdrawRosterEntry,
+  type RosterCopyItem,
 } from "@xos/data/roster";
 import type { SharedWorkDetails } from "@xos/data/work-details";
 import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
@@ -220,4 +222,29 @@ export async function assignEngagementMemberAction(
 
 export async function unassignEngagementMemberAction(assignmentId: string): Promise<ActionResult> {
   return toAction(await unassignEngagementMember(await createServerSupabase(), assignmentId));
+}
+
+/**
+ * Reuse a roster from a past event (B14, migration 3037): the preview, or with `commit` the copy, of a past
+ * engagement's roster onto this one. Entries arrive as Drafts each person still accepts; nothing is submitted.
+ */
+export async function rosterCopyAction(
+  engagementId: string,
+  sourceEngagementId: string,
+  commit: boolean,
+): Promise<
+  | { readonly ok: true; readonly items: readonly RosterCopyItem[] }
+  | { readonly ok: false; readonly outcome: string }
+> {
+  const ids = z
+    .object({ engagementId: z.uuid(), sourceEngagementId: z.uuid() })
+    .safeParse({ engagementId, sourceEngagementId });
+  if (!ids.success) return { ok: false, outcome: "invalid" };
+  const result = await copyRosterFromEngagement(await createServerSupabase(), {
+    ...ids.data,
+    commit,
+  });
+  return result.ok
+    ? { ok: true, items: result.data }
+    : { ok: false, outcome: outcomeFor(result.error) };
 }

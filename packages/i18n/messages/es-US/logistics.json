@@ -224,7 +224,10 @@
     },
     "noVendor": "Sin proveedor",
     "endedVendor": "Contratación de proveedor terminada",
-    "linkedVendor": "Hay una contratación de proveedor vinculada"
+    "linkedVendor": "Hay una contratación de proveedor vinculada",
+    "bumpIn": "Montaje",
+    "bumpOut": "Desmontaje",
+    "outsideWindows": "Fuera del montaje y el desmontaje"
   },
   "yard": {
     "title": "Registro del patio de maniobras",

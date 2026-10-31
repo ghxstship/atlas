@@ -472,3 +472,13 @@ describe("reviews", () => {
     });
   });
 });
+
+describe("band literals", () => {
+  it("match the generated enums", async () => {
+    const { Constants } = await import("../src/database.types.ts");
+    const { EVENT_AUDIENCES, EVENT_SCALES } = await import("../src/setup.ts");
+    expect([...EVENT_SCALES]).toEqual([...Constants.app.Enums.event_scale]);
+    expect([...EVENT_AUDIENCES]).toEqual([...Constants.app.Enums.event_audience]);
+    expect(["Required", "Recommended"]).toEqual([...Constants.app.Enums.document_requirement]);
+  });
+});

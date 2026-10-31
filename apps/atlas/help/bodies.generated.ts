@@ -498,6 +498,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Required documents and details" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a project has an event type, its gates also check what the type requires. Each Required document type due by the gate needs a project document of that type with at least one version, and each required detail needs a value. Under each gate, ",
+          },
+          { t: "strong", v: "Required documents and details" },
+          {
+            t: "text",
+            v: " lists what is done and what is missing, and the pass button names what is missing. Recommended items show in the list and on the Overview's Setup card, but never stop a gate. A project without an event type passes its gates exactly as before.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1133,6 +1148,29 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
+      { t: "h2", v: "Document types" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "File each document under one of your organization's " },
+          { t: "strong", v: "document types" },
+          { t: "text", v: ", such as a site plan or an insurance certificate. Manage them in " },
+          { t: "strong", v: "Settings, Templates, Document types" },
+          { t: "text", v: ", where " },
+          { t: "strong", v: "Add standard types" },
+          {
+            t: "text",
+            v: " adds the XOS Standard Library's types you do not have yet. On a project's Documents tab, ",
+          },
+          { t: "strong", v: "Required documents" },
+          {
+            t: "text",
+            v: " shows how many of the event type's Required and Recommended documents are on file; choose ",
+          },
+          { t: "strong", v: "Add" },
+          { t: "text", v: " beside a missing one to create it with its type already chosen." },
+        ],
+      },
     ],
     logistics: [
       { t: "h2", v: "Shipments" },
@@ -1557,6 +1595,78 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Project settings hold the name, dates, currency and time zone. Some settings are locked by your organization; the page shows where a locked value comes from.",
+          },
+        ],
+      },
+      { t: "h2", v: "Event types and the staged intake" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Your organization can describe the kinds of event it produces in " },
+          { t: "strong", v: "Settings, Templates, Event types" },
+          {
+            t: "text",
+            v: ": a festival, a gala, a trade show. Each event type picks the template a new project starts from by its scale (Intimate up to 500 people, Small 500 to 2,500, Medium 2,500 to 10,000, Large 10,000 to 50,000, Major over 50,000) and its audience, asks for its own project details at intake, and names the documents a project needs by a gate.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When your organization has event types, " },
+          { t: "strong", v: "New project" },
+          { t: "text", v: " walks through steps: " },
+          { t: "strong", v: "Start" },
+          {
+            t: "text",
+            v: " (the event type, and whether to start from its template, another template, a past project or blank), ",
+          },
+          { t: "strong", v: "Scale and audience" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Basics" },
+          {
+            t: "text",
+            v: " (the key, name, show dates, time zone and venue, with the load-in and load-out days under More fields), ",
+          },
+          { t: "strong", v: "Details" },
+          { t: "text", v: " (the type's fields and its guidance), " },
+          { t: "strong", v: "Copy" },
+          { t: "text", v: " (only when starting from a past project) and " },
+          { t: "strong", v: "Review" },
+          {
+            t: "text",
+            v: ", which names the template that will be applied and what the type requires. Create makes the project in one step; if anything is refused, nothing is created. Without event types, New project stays a single screen.",
+          },
+        ],
+      },
+      { t: "h2", v: "Show days, bump-in and bump-out" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The first and last show days are the project's start and end dates. Load-in and load-out days are project days on the schedule; the days around the show give the ",
+          },
+          { t: "strong", v: "bump-in" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "bump-out" },
+          {
+            t: "text",
+            v: " windows, which the Overview lists, the dock schedule shades and procurement compares hires with. Atlas warns, without refusing, when a load-in falls after the first show day, a load-out before the last, the windows overlap or one is longer than 60 days.",
+          },
+        ],
+      },
+      { t: "h2", v: "Copy from another project" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "In " },
+          { t: "strong", v: "Project settings" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Copy from a project" },
+          {
+            t: "text",
+            v: " copies the plan, pass categories, hotel blocks, budgets and advance forms of a past project into this one, moved by a number of days (filled in from the two first show days). Times keep their local time, also across a daylight saving change. Preview shows every item with what is copied and what is skipped and why; Copy writes exactly that. Shifts, people, engagements, credentials and the answers of the companies you engage are never copied.",
           },
         ],
       },
@@ -2520,6 +2630,40 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Reviews" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Turn on " },
+          { t: "strong", v: "Requires review" },
+          {
+            t: "text",
+            v: " on a record, or on a template's record item, when the work must be checked before it is done. A record that requires review becomes Complete only after its latest review is approved. While the record is Active, choose ",
+          },
+          { t: "strong", v: "Request review" },
+          {
+            t: "text",
+            v: ", pick a reviewer and add a note: the record moves to In Review and the reviewer is notified. The reviewer, or any other approver who may change the project's records, chooses ",
+          },
+          { t: "strong", v: "Approve" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Request changes" },
+          {
+            t: "text",
+            v: " with a note; asking for changes moves the record back to Active with the note in its history. Whoever asked for the review never decides it. Only someone who may change the project's settings turns Requires review off.",
+          },
+        ],
+      },
+      { t: "h2", v: "File reviews" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On a submittal or a record, each version of a file can be approved or sent back with what to change, by someone other than the person who uploaded it. Each version keeps its own history, and a new version starts unreviewed. A submittal cannot be approved while the current version of one of its files has changes requested.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -3116,6 +3260,21 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Pase el puntero o enfoque cualquier chip de compuerta o fase para ver su definición del canon de XOS.",
+          },
+        ],
+      },
+      { t: "h2", v: "Documentos y detalles obligatorios" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando un proyecto tiene un tipo de evento, sus compuertas también revisan lo que el tipo requiere. Cada tipo de documento Obligatorio para la compuerta necesita un documento del proyecto de ese tipo con al menos una versión, y cada detalle obligatorio necesita un valor. Bajo cada compuerta, ",
+          },
+          { t: "strong", v: "Documentos y detalles obligatorios" },
+          {
+            t: "text",
+            v: " muestra lo que está listo y lo que falta, y el botón para pasar nombra lo que falta. Los elementos recomendados aparecen en la lista y en la tarjeta Configuración del Resumen, pero nunca detienen una compuerta. Un proyecto sin tipo de evento pasa sus compuertas igual que antes.",
           },
         ],
       },
@@ -3772,6 +3931,32 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
+      { t: "h2", v: "Tipos de documento" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Archive cada documento bajo uno de los " },
+          { t: "strong", v: "tipos de documento" },
+          {
+            t: "text",
+            v: " de su organización, como un plano del sitio o un certificado de seguro. Adminístrelos en ",
+          },
+          { t: "strong", v: "Configuración, Plantillas, Tipos de documento" },
+          { t: "text", v: ", donde " },
+          { t: "strong", v: "Agregar tipos estándar" },
+          {
+            t: "text",
+            v: " agrega los tipos de la Biblioteca Estándar de XOS que aún no tiene. En la pestaña Documentos de un proyecto, ",
+          },
+          { t: "strong", v: "Documentos obligatorios" },
+          {
+            t: "text",
+            v: " muestra cuántos de los documentos Obligatorios y Recomendados del tipo de evento están archivados; elija ",
+          },
+          { t: "strong", v: "Agregar" },
+          { t: "text", v: " junto a uno que falte para crearlo con su tipo ya elegido." },
+        ],
+      },
     ],
     logistics: [
       { t: "h2", v: "Envíos" },
@@ -4160,6 +4345,78 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Algunas configuraciones del proyecto están bloqueadas por su organización; la página indica de dónde proviene el valor.",
+          },
+        ],
+      },
+      { t: "h2", v: "Tipos de evento y el alta por pasos" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Su organización puede describir los tipos de evento que produce en " },
+          { t: "strong", v: "Configuración, Plantillas, Tipos de evento" },
+          {
+            t: "text",
+            v: ": un festival, una gala, una feria. Cada tipo de evento elige la plantilla con la que empieza un proyecto nuevo según su escala (Íntimo hasta 500 personas, Pequeño de 500 a 2,500, Mediano de 2,500 a 10,000, Grande de 10,000 a 50,000, Masivo más de 50,000) y su público, pide sus propios detalles al crear el proyecto y nombra los documentos que el proyecto necesita para cada compuerta.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Cuando su organización tiene tipos de evento, " },
+          { t: "strong", v: "Nuevo proyecto" },
+          { t: "text", v: " avanza por pasos: " },
+          { t: "strong", v: "Inicio" },
+          {
+            t: "text",
+            v: " (el tipo de evento y si se empieza desde su plantilla, otra plantilla, un proyecto anterior o en blanco), ",
+          },
+          { t: "strong", v: "Escala y público" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Datos básicos" },
+          {
+            t: "text",
+            v: " (la clave, el nombre, las fechas del evento, la zona horaria y el recinto, con los días de montaje y desmontaje en Más campos), ",
+          },
+          { t: "strong", v: "Detalles" },
+          { t: "text", v: " (los campos del tipo y sus indicaciones), " },
+          { t: "strong", v: "Copia" },
+          { t: "text", v: " (solo al empezar desde un proyecto anterior) y " },
+          { t: "strong", v: "Revisión" },
+          {
+            t: "text",
+            v: ", que nombra la plantilla que se aplicará y lo que el tipo requiere. Crear hace el proyecto en un solo paso; si algo se rechaza, no se crea nada. Sin tipos de evento, Nuevo proyecto sigue siendo una sola pantalla.",
+          },
+        ],
+      },
+      { t: "h2", v: "Días del evento, montaje y desmontaje" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El primer y el último día del evento son las fechas de inicio y fin del proyecto. Los días de montaje y desmontaje son días del proyecto en el cronograma; los días alrededor del evento dan los periodos de ",
+          },
+          { t: "strong", v: "montaje" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "desmontaje" },
+          {
+            t: "text",
+            v: ", que el Resumen muestra, el programa del muelle sombrea y compras compara con los alquileres. Atlas avisa, sin rechazar, cuando un montaje cae después del primer día del evento, un desmontaje antes del último, los periodos se traslapan o uno dura más de 60 días.",
+          },
+        ],
+      },
+      { t: "h2", v: "Copiar de otro proyecto" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En " },
+          { t: "strong", v: "Configuración del proyecto" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Copiar de un proyecto" },
+          {
+            t: "text",
+            v: " copia el plan, las categorías de pases, los bloques de hotel, los presupuestos y los formularios de avance de un proyecto anterior a este, movidos un número de días (que se llena con los primeros días de evento de ambos). Las horas conservan su hora local, también al cambiar el horario de verano. La vista previa muestra cada elemento con lo que se copia, lo que se omite y por qué; Copiar escribe exactamente eso. Nunca se copian turnos, personas, contrataciones, credenciales ni las respuestas de las empresas que contrata.",
           },
         ],
       },
@@ -5110,6 +5367,40 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "El trabajo recurrente crea registros según un calendario, como revisiones diarias o informes semanales.",
+          },
+        ],
+      },
+      { t: "h2", v: "Revisiones" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Active " },
+          { t: "strong", v: "Requiere revisión" },
+          {
+            t: "text",
+            v: " en un registro, o en un elemento de registro de una plantilla, cuando el trabajo deba revisarse antes de terminarse. Un registro que requiere revisión queda Completo solo después de aprobarse su última revisión. Mientras el registro está Activo, elija ",
+          },
+          { t: "strong", v: "Pedir revisión" },
+          {
+            t: "text",
+            v: ", escoja a quien revisa y agregue una nota: el registro pasa a En revisión y se avisa a quien revisa. Quien revisa, o cualquier otro aprobador que pueda cambiar los registros del proyecto, elige ",
+          },
+          { t: "strong", v: "Aprobar" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Pedir cambios" },
+          {
+            t: "text",
+            v: " con una nota; pedir cambios regresa el registro a Activo con la nota en su historial. Quien pidió la revisión nunca la decide. Solo quien puede cambiar la configuración del proyecto desactiva Requiere revisión.",
+          },
+        ],
+      },
+      { t: "h2", v: "Revisión de archivos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En una presentación o un registro, cada versión de un archivo puede aprobarse o devolverse con lo que hay que cambiar, por alguien distinto de quien la subió. Cada versión conserva su propio historial y una versión nueva empieza sin revisar. Una presentación no puede aprobarse mientras la versión actual de uno de sus archivos tenga cambios solicitados.",
           },
         ],
       },

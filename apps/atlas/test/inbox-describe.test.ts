@@ -499,6 +499,28 @@ describe("Inbox item copy", () => {
       expect(out.href, kind).toBe(`/demo/r/${args["recordKey"]}`);
     }
   });
+
+  it("describes a record review's request and decision with the record key, in every locale (B14, 3034)", () => {
+    const review = { title: "Rig the follow spots", recordKey: "NWL-12", actorName: "Carol Reyes" };
+    for (const locale of locales) {
+      const requested = describeInboxItem(
+        { ...item("approval.requested", review), subjectTable: "app.records" },
+        copyFor(locale),
+        { org: "demo", orgName: "Demo Productions", actorName: null },
+      );
+      expect(requested.href).toBe("/demo/r/NWL-12");
+      expect(requested.summary).toContain("Rig the follow spots");
+      expect(requested.detail).toContain("Carol Reyes");
+      const decided = describeInboxItem(
+        { ...item("approval.decided", { ...review, decision: "rejected" }), subjectTable: "app.records" },
+        copyFor(locale),
+        { org: "demo", orgName: "Demo Productions", actorName: null },
+      );
+      expect(decided.href).toBe("/demo/r/NWL-12");
+      expect(decided.summary).toContain("Rig the follow spots");
+      expect(`${decided.summary} ${decided.detail}`).not.toMatch(/[{}]|undefined/);
+    }
+  });
 });
 
 describe("Inbox keyboard focus (journey 57)", () => {

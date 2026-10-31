@@ -676,7 +676,19 @@
       "anchor_too_large": "Este cambio movería más de 2000 registros. Mueva el plan por partes.",
       "anchor_show_started": "Ya se llamó un cue de este proyecto, así que sus funciones empezaron y se quedan en sus fechas.",
       "anchor_sheet_collision": "Una hoja publicada ya cubre el día al que se movería una sin publicar.",
-      "anchor_pinned_pushed": "Este cambio empujaría un registro fijado a sus fechas."
+      "anchor_pinned_pushed": "Este cambio empujaría un registro fijado a sus fechas.",
+      "record_review_required": "Este registro necesita una revisión aprobada antes de quedar Completo.",
+      "record_review_pending": "La revisión sigue abierta.",
+      "record_review_changes_requested": "Quien revisó pidió cambios; pide otra revisión.",
+      "record_review_flag_locked": "Solo quien puede cambiar la configuración del proyecto desactiva Requiere revisión.",
+      "record_review_kind": "Una aprobación se decide, no se revisa.",
+      "record_review_state": "Empieza el trabajo antes de pedir una revisión.",
+      "record_review_open": "Una revisión de este registro sigue abierta; espera su decisión.",
+      "record_review_note_required": "Di qué cambiar cuando pidas cambios.",
+      "sod_file_review_uploader": "Quien subió una versión de archivo no puede revisarla.",
+      "file_review_not_clean": "Solo se revisa un archivo que pasó su análisis de virus.",
+      "file_review_subject": "Los archivos se revisan en presentaciones y registros.",
+      "file_review_note_required": "Di qué cambiar en hasta 1,000 caracteres."
     },
     "quickAdd": {
       "capability": "No puedes crear esto aquí.",
@@ -806,5 +818,26 @@
     "choose": "Elegir una coincidencia para {token}",
     "matches": "Coincidencias: {count}",
     "untitled": "Sin título"
+  },
+  "review": {
+    "title": "Revisión",
+    "requiresReview": "Requiere revisión",
+    "requiresReviewHelp": "Si está activado, el registro queda Completo solo después de aprobarse su última revisión.",
+    "flagLocked": "Solo quien puede cambiar la configuración del proyecto lo desactiva.",
+    "approved": "Aprobado",
+    "changesRequested": "Cambios solicitados",
+    "open": "Revisión abierta",
+    "latest": "{key}: revisa {reviewer}, la pidió {requester}",
+    "anyApprover": "Cualquier aprobador elegible",
+    "decidedBy": "Lo decidió {name}",
+    "none": "Aún no hay revisión.",
+    "answerNote": "Nota",
+    "answerNoteHelp": "Obligatoria cuando pides cambios; quien la pidió la ve en el historial del registro.",
+    "approve": "Aprobar",
+    "requestChanges": "Pedir cambios",
+    "reviewer": "Revisor",
+    "note": "Nota para quien revisa",
+    "request": "Pedir revisión",
+    "history": "{count, plural, one {# revisión} other {# revisiones}}"
   }
 }

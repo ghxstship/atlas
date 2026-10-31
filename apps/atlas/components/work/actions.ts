@@ -121,6 +121,8 @@ const patchSchema = z.object({
   endsAt: instant,
   dueAt: instant,
   replanReason: z.string().trim().min(1).max(500).nullable().optional(),
+  // B14 (3034): turning it off needs projects.settings.write (record_review_flag_locked).
+  requiresReview: z.boolean().optional(),
 });
 
 export type RecordPatchInput = z.input<typeof patchSchema>;

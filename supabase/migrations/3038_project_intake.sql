@@ -31,7 +31,12 @@ create or replace function app.create_project_from_intake(
   p_load_out_to date default null,
   p_copy_from_project_id uuid default null,
   p_copy_parts app.project_copy_part[] default '{}',
-  p_copy_offset_days integer default null
+  p_copy_offset_days integer default null,
+  p_jurisdiction_id text default null,
+  p_region_code text default null,
+  p_tier_code text default null,
+  p_currency_code text default null,
+  p_description text default null
 )
 returns uuid
 language plpgsql
@@ -79,18 +84,25 @@ begin
       coalesce(p_without_dates, false));
     select a.project_id into v_project from app.template_applications a where a.id = v_application;
   else
-    v_project := app.create_project(p_org_id, p_project_key, p_name, p_time_zone, null, null, null, p_venue_id, p_starts_on,
-      p_ends_on);
+    v_project := app.create_project(p_org_id, p_project_key, p_name, p_time_zone, p_jurisdiction_id, p_region_code,
+      p_tier_code, p_venue_id, p_starts_on, p_ends_on, p_currency_code, p_description);
   end if;
 
-  -- 3. The type, the bands and the last show day; nothing to set, nothing updated.
+  -- 3. The type, the bands, and over a template's defaults the last show day and the header fields given; nothing to
+  -- set, nothing updated.
   if p_event_type_id is not null or p_event_scale is not null or p_event_audience is not null
-     or (v_template is not null and p_ends_on is not null) then
+     or (v_template is not null and coalesce(p_ends_on::text, p_jurisdiction_id, p_region_code, p_tier_code,
+                                             nullif(btrim(p_currency_code), ''), nullif(btrim(p_description), '')) is not null) then
     update app.projects p set
       event_type_id = p_event_type_id,
       event_scale = p_event_scale,
       event_audience = p_event_audience,
-      ends_on = coalesce(p_ends_on, p.ends_on)
+      ends_on = coalesce(p_ends_on, p.ends_on),
+      jurisdiction_id = coalesce(p_jurisdiction_id, p.jurisdiction_id),
+      region_code = coalesce(p_region_code, p.region_code),
+      tier_code = coalesce(p_tier_code, p.tier_code),
+      currency = coalesce(upper(nullif(btrim(p_currency_code), '')), p.currency),
+      description = coalesce(nullif(btrim(p_description), ''), p.description)
     where p.id = v_project;
     get diagnostics v_count = row_count;
     if v_count = 0 then
@@ -123,6 +135,6 @@ begin
 end;
 $$;
 
-comment on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer) is 'The staged intake wizard''s save (G-250, G-252, G-262; ADR 0153), in one transaction as the caller: creates the project from the event type''s template for the scale and audience (p_template_choice type, app.resolve_event_type_template; blank when none matches), from a template of the org (template) or blank (none; 22023 otherwise) through app.apply_template or app.create_project; sets the event type, bands and the last show day when given (42501 when the caller cannot update the project); saves each date from p_load_in_from to p_load_in_to as a Load In day and each from p_load_out_from to p_load_out_to as a Load Out day through app.save_project_days, which needs schedule.timeline.write on the project (42501; project_bump_window_bounds for a missing or reversed bound, project_bump_window_length beyond 60 days); and, when p_copy_from_project_id is given, copies p_copy_parts from it with app.copy_project_setup. Any refusal leaves no project. Returns the project id.';
-revoke all on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer) from public, anon;
-grant execute on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer) to authenticated, service_role;
+comment on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer, text, text, text, text, text) is 'The staged intake wizard''s save (G-250, G-252, G-262; ADR 0153), in one transaction as the caller: creates the project from the event type''s template for the scale and audience (p_template_choice type, app.resolve_event_type_template; blank when none matches), from a template of the org (template) or blank (none; 22023 otherwise) through app.apply_template or app.create_project; sets the event type, bands and, over a template''s defaults, the last show day, jurisdiction, region, tier, currency and description when given (42501 when the caller cannot update the project); saves each date from p_load_in_from to p_load_in_to as a Load In day and each from p_load_out_from to p_load_out_to as a Load Out day through app.save_project_days, which needs schedule.timeline.write on the project (42501; project_bump_window_bounds for a missing or reversed bound, project_bump_window_length beyond 60 days); and, when p_copy_from_project_id is given, copies p_copy_parts from it with app.copy_project_setup. Any refusal leaves no project. Returns the project id.';
+revoke all on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer, text, text, text, text, text) from public, anon;
+grant execute on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer, text, text, text, text, text) to authenticated, service_role;
