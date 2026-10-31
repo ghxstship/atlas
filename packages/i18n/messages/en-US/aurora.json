@@ -610,7 +610,7 @@
     },
     "governance": {
       "button": "Draft with Aurora",
-      "menu": "Draft with Aurora",
+      "menu": "Document to draft",
       "kinds": {
         "event_plan": "Event plan",
         "event_brief": "Event brief",

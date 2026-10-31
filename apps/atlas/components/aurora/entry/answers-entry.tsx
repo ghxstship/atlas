@@ -2,7 +2,7 @@
 
 import { Button } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useAiFeature } from "@/components/aurora/ai-features";
 import { AiButton, onDemand, useEntryPanel } from "./ai-button";
 import type { InboxSourceProp } from "./intake-entry";
@@ -68,33 +68,49 @@ export interface GovernanceDraftEntryProps {
   readonly projectName: string;
 }
 
-/** "Draft with Aurora" on the project's Documents tab: an event plan, brief, approval pack or waste plan. */
+/**
+ * "Draft with Aurora" on the project's Documents tab: an event plan, brief, approval pack or waste
+ * plan. The button is a disclosure: it shows the four kinds as buttons, and Escape closes the list
+ * and returns focus to it.
+ */
 export function GovernanceDraftEntry(props: GovernanceDraftEntryProps) {
   const t = useTranslations("aurora.entry.governance");
   const on = useAiFeature("drafting");
   const panel = useEntryPanel(governance);
+  const listId = useId();
   const [kind, setKind] = useState<GovernanceKind>("event_plan");
-  const [menu, setMenu] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const toggle = useRef<HTMLDivElement>(null);
   if (!on) return null;
   return (
-    <div className="relative flex flex-wrap items-center gap-8">
+    <div
+      ref={toggle}
+      className="flex flex-wrap items-center gap-8"
+      onKeyDown={(e) => {
+        if (e.key !== "Escape" || !expanded) return;
+        setExpanded(false);
+        toggle.current?.querySelector<HTMLButtonElement>("[data-ai-entry]")?.focus();
+      }}
+    >
       <AiButton
         feature="drafting"
         label={t("button")}
-        onOpen={() => setMenu((m) => !m)}
+        expanded={expanded}
+        controls={listId}
+        onOpen={() => setExpanded((open) => !open)}
         onPreload={panel.preload}
       />
-      {menu ? (
-        <ul role="menu" aria-label={t("menu")} className="m-0 flex list-none flex-wrap gap-4 p-0">
+      {expanded ? (
+        <ul id={listId} aria-label={t("menu")} className="m-0 flex list-none flex-wrap gap-4 p-0">
           {GOVERNANCE_KINDS.map((k) => (
-            <li key={k} role="none">
+            <li key={k}>
               <Button
-                role="menuitem"
+                type="button"
                 size="sm"
                 variant="ghost"
                 onClick={() => {
                   setKind(k);
-                  setMenu(false);
+                  setExpanded(false);
                   panel.show();
                 }}
               >

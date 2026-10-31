@@ -1,4 +1,4 @@
-import { expect as baseExpect, settledGoto, test, type Page } from "./engine-test";
+import { expect as baseExpect, settle, settledGoto, test, type Page } from "./engine-test";
 import { ORG, signIn } from "./operations-support";
 import { ALL, AURORA_URL, SEEDED, setSwitches } from "./b15-support";
 import { expectAccessible } from "./support";
@@ -28,8 +28,17 @@ test.afterAll(async () => {
 
 test("drafting: a waste plan follows its outline and is saved to project documents", async () => {
   await page.goto(`/${ORG}/p/NWS/documents`);
-  await page.getByRole("button", { name: "Draft with Aurora" }).click();
-  await page.getByRole("menuitem", { name: "Waste plan" }).click();
+  await settle(page);
+  // The button discloses the four kinds. A click before hydration is lost (A71, A77), so it is
+  // clicked again only while the list is still closed.
+  const draft = page.getByRole("button", { name: "Draft with Aurora", exact: true });
+  await expect(async () => {
+    if ((await draft.getAttribute("aria-expanded")) !== "true") await draft.click();
+    await expect(draft).toHaveAttribute("aria-expanded", "true", { timeout: 2_000 });
+  }).toPass();
+  const kinds = page.getByRole("list", { name: "Document to draft" });
+  await expect(kinds.getByRole("button")).toHaveCount(4);
+  await kinds.getByRole("button", { name: "Waste plan" }).click();
   const panel = page.getByRole("dialog", { name: "Draft a waste plan with Aurora" });
   await expect(panel.getByRole("heading", { name: "What Aurora receives" })).toBeVisible();
   await expectAccessible(page);

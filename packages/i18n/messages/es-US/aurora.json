@@ -610,7 +610,7 @@
     },
     "governance": {
       "button": "Redactar con Aurora",
-      "menu": "Redactar con Aurora",
+      "menu": "Documento por redactar",
       "kinds": {
         "event_plan": "Plan del evento",
         "event_brief": "Resumen del evento",

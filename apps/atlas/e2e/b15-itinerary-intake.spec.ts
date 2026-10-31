@@ -1,4 +1,4 @@
-import { expect as baseExpect, settledGoto, test, type Page } from "./engine-test";
+import { expect as baseExpect, settle, settledGoto, test, type Page } from "./engine-test";
 import { ORG, signIn } from "./operations-support";
 import { ALL, AURORA_URL, post, projectId, SEEDED, setSwitches, textFile } from "./b15-support";
 import { expectAccessible, uniqueId } from "./support";
@@ -33,7 +33,12 @@ test("extraction: an itinerary becomes travel segments of a Travel fulfillment",
     fulfillment_kind: "Travel",
     title,
   });
-  await page.goto(`/${ORG}/hospitality/fulfillments?peek=${String(fulfillment["id"])}`);
+  // The peek is addressed by the display key, NWS-<fulfillment_number>, not by the id.
+  await page.goto(
+    `/${ORG}/hospitality/fulfillments?peek=NWS-${String(fulfillment["fulfillment_number"])}`,
+  );
+  // A click before hydration is lost (A71, A77).
+  await settle(page);
   await page.getByRole("button", { name: "Import itineraries with Aurora" }).click();
   const panel = page.getByRole("dialog", { name: "Import itineraries with Aurora" });
   await panel
