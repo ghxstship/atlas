@@ -1223,9 +1223,13 @@ export function toSubjectApproval(r: Raw): SubjectApproval {
   };
 }
 
+/** Ids per request of a chip lookup, so the GET stays well inside PostgREST's URL limit. */
+const SUBJECT_ID_CHUNK = 100;
+
 /**
- * Subject approvals the viewer may read, newest first: the org's, or only those of the given passes or dock slots
- * (the credentials pages and the dock schedule show their state as a chip).
+ * Subject approvals the viewer may read, newest first: the org's (the newest 200, as Approvals lists spend
+ * approvals), or every approval of the given passes or dock slots (the credentials pages and the dock schedule show
+ * their state as a chip), asked for 100 ids at a time.
  */
 export async function listSubjectApprovals(
   db: XosClient,
@@ -1236,15 +1240,37 @@ export async function listSubjectApprovals(
   },
 ): Promise<Result<SubjectApproval[]>> {
   if (filter.credentialIds?.length === 0 || filter.dockSlotIds?.length === 0) return ok([]);
-  let query = untyped(db).from("subject_approval_status").select(SUBJECT_APPROVAL_COLUMNS);
-  if (filter.orgId) query = query.eq("org_id", filter.orgId);
-  if (filter.credentialIds) query = query.in("credential_id", [...filter.credentialIds]);
-  if (filter.dockSlotIds) query = query.in("dock_slot_id", [...filter.dockSlotIds]);
-  const result = await rows(
-    query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(200),
+  const ids = filter.credentialIds ?? filter.dockSlotIds;
+  const column = filter.credentialIds ? "credential_id" : "dock_slot_id";
+  const read = (chunk: readonly string[] | null) => {
+    let query = untyped(db).from("subject_approval_status").select(SUBJECT_APPROVAL_COLUMNS);
+    if (filter.orgId) query = query.eq("org_id", filter.orgId);
+    if (chunk) query = query.in(column, [...chunk]);
+    // Approvals of the given subjects come back whole: each subject holds only a few.
+    query = query.order("created_at", { ascending: false }).order("id", { ascending: false });
+    return rows(chunk ? query : query.limit(200));
+  };
+  if (!ids) {
+    const result = await read(null);
+    return result.ok ? ok(result.data.map(toSubjectApproval)) : result;
+  }
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += SUBJECT_ID_CHUNK) {
+    chunks.push(ids.slice(i, i + SUBJECT_ID_CHUNK));
+  }
+  const results = await Promise.all(chunks.map(read));
+  const out: SubjectApproval[] = [];
+  for (const result of results) {
+    if (!result.ok) return result;
+    out.push(...result.data.map(toSubjectApproval));
+  }
+  return ok(
+    out.sort((a, b) =>
+      a.createdAt === b.createdAt
+        ? b.id.localeCompare(a.id)
+        : b.createdAt.localeCompare(a.createdAt),
+    ),
   );
-  if (!result.ok) return result;
-  return ok(result.data.map(toSubjectApproval));
 }
 
 /** The latest approval of each pass or dock slot, keyed by its id; a canceled one counts only when nothing newer is. */

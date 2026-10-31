@@ -9,11 +9,13 @@ import {
 } from "../src/notification-actions.ts";
 import {
   approvalBySubject,
+  listSubjectApprovals,
   toReminderStatus,
   toSubjectApproval,
   type SubjectApproval,
 } from "../src/workflow.ts";
 import type { XosClient } from "../src/client.ts";
+import { fakeClient, okResponse } from "./fake-client.ts";
 
 /**
  * P9 (RRR-223, ADR 0138): the data layer of approval rules, signed-out approval links and reminders maps the database's
@@ -217,6 +219,38 @@ describe("subject approvals and reminder status", () => {
     ]);
     expect(map.get("c1")?.id).toBe("a3");
     expect(map.get("c2")?.state).toBe("Approved");
+  });
+
+  it("asks for the chips of a long list 100 ids at a time, newest first, with no row cap", async () => {
+    const status = (id: string, credential: string, createdAt: string) => ({
+      id,
+      project_id: "p1",
+      approval_rule_id: "r1",
+      rule_name: "All Access passes",
+      subject: "Pass",
+      credential_id: credential,
+      dock_slot_id: null,
+      requested_by: null,
+      created_at: createdAt,
+      approval_state: "Approved",
+      step_count: 1,
+    });
+    const { db, calls } = fakeClient({
+      "from:subject_approval_status": [
+        okResponse([status("a1", "c1", "2027-06-01T10:00:00Z")]),
+        okResponse([status("a2", "c150", "2027-06-03T10:00:00Z")]),
+        okResponse([status("a3", "c249", "2027-06-02T10:00:00Z")]),
+      ],
+    });
+    const ids = Array.from({ length: 250 }, (_, i) => `c${i}`);
+    const result = await listSubjectApprovals(db, { credentialIds: ids });
+    expect(result.ok && result.data.map((a) => a.id)).toEqual(["a2", "a3", "a1"]);
+    expect(calls).toHaveLength(3);
+    const sizes = calls.map(
+      (c) => (c.steps.find(([step]) => step === "in")?.[1][1] as string[]).length,
+    );
+    expect(sizes).toEqual([100, 100, 50]);
+    expect(calls.every((c) => !c.steps.some(([step]) => step === "limit"))).toBe(true);
   });
 
   it("reads the reminder status of a pending approval", () => {
