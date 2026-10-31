@@ -77,7 +77,9 @@ describe("roster manager", () => {
     expect(after(tabs("contractor", true), "engagement.deliverables")).toBe("engagement.advance");
     expect(after(tabs("contractor", true), "engagement.advance")).toBe("engagement.crew");
     expect(after(tabs("staff", true), "engagement.onboarding")).toBe("engagement.crew");
-    expect(after(tabs("sponsor", true), "engagement.activation-schedule")).toBe("engagement.advance");
+    expect(after(tabs("sponsor", true), "engagement.activation-schedule")).toBe(
+      "engagement.advance",
+    );
     expect(after(tabs("sponsor", true), "engagement.advance")).toBe("engagement.crew");
     for (const roleType of ["vendor", "artist", "contractor", "staff", "sponsor"] as const) {
       expect(tabs(roleType, false)).not.toContain("engagement.crew");
