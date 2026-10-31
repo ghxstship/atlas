@@ -204,28 +204,37 @@ grant execute on function app.transition_submittal(uuid, app.review_state, app.r
 -- The vendor's view of its files -----------------------------------------------------------------------------------------------------
 
 create view api_external.submittal_files as
-select s.id as submittal_id, a.id as attachment_id, a.title, v.version_number, v.filename, v.uploaded_at,
-  lr.decision, lr.note as review_comment
+select s.id as submittal_id, a.id as attachment_id, a.title, v.id as version_id, v.version_number, v.filename,
+  v.content_type, v.size_bytes, v.uploaded_at,
+  v.id = (select c.id from app.attachment_versions c
+          where c.attachment_id = a.id and c.deleted_at is null and c.scan_status = 'Clean'
+          order by c.version_number desc limit 1) as is_current,
+  lr.decision as review_decision, lr.note as review_comment, lr.created_at as reviewed_at
 from app.submittals s
 join app.attachments a on a.subject_table = 'app.submittals' and a.subject_id = s.id and a.deleted_at is null
-  and a.classification not in ('Confidential', 'Restricted')
+  and a.classification in ('Public', 'Internal')
 join app.attachment_versions v on v.attachment_id = a.id and v.deleted_at is null and v.scan_status = 'Clean'
 left join lateral (
-  select r.decision, r.note from app.attachment_version_reviews r
+  select r.decision, r.note, r.created_at from app.attachment_version_reviews r
   where r.attachment_version_id = v.id
   order by r.created_at desc, r.id desc limit 1
 ) lr on true
 where s.deleted_at is null and s.submittal_state <> 'Canceled' and private.vendor_side_open(s.project_id, s.vendor_id);
 
-call private.describe('api_external.submittal_files', 'Files of the submittals the org asked of the caller''s vendor account (G-268, ADR 0153 D6), in the scope of api_external.submittals: each Clean version of a live file that is not Confidential or Restricted, with its latest review''s decision and note. Who reviewed never appears, nor the stored object or any download path.', array[
+call private.describe('api_external.submittal_files', 'Files of the submittals the org asked of the caller''s vendor account (G-268, ADR 0153 D6), in the scope of api_external.submittals: each Clean version of a live file classified Public or Internal (1380), never Confidential or Restricted, with its latest review''s decision, comment and time. Who reviewed never appears, nor the stored object or any download path.', array[
   'submittal_id', 'Submittal the file is on.',
   'attachment_id', 'File.',
   'title', 'Display name of the file.',
+  'version_id', 'File version.',
   'version_number', 'Version number within the file.',
   'filename', 'File name of the version as uploaded.',
+  'content_type', 'Media type of the version.',
+  'size_bytes', 'Size of the version in bytes.',
   'uploaded_at', 'When the version was uploaded.',
-  'decision', 'Latest review decision, Approved or Changes Requested; NULL while unreviewed.',
-  'review_comment', 'What the org asked to change, or its comment on approval; meant for the vendor, unlike an internal note.'
+  'is_current', 'True for the newest Clean version of the file, the one the org reviews now.',
+  'review_decision', 'Latest review decision, Approved or Changes Requested; NULL while unreviewed.',
+  'review_comment', 'What the org asked to change, or its comment on approval; shown to the vendor.',
+  'reviewed_at', 'When the latest review was made; NULL while unreviewed.'
 ]);
 revoke all on api_external.submittal_files from public, anon;
 grant select on api_external.submittal_files to authenticated, service_role;

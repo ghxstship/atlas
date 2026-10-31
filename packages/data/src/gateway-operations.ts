@@ -2,6 +2,7 @@ import type { XosClient } from "./client.ts";
 import type { Json } from "./database.types.ts";
 import { external, type ExternalRow, type ExternalView } from "./gateway-external.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Gateway operations (A28b migrations 0760 to 0775, Section 8.7 areas): the party's own rows that
@@ -50,6 +51,67 @@ export async function readView<V extends ExternalView>(
   const { data, error } = await query;
   if (error) return fail(toDataError(error));
   return ok((data ?? []) as ExternalRow<V>[]);
+}
+
+/** One Clean version of a file on a submittal the caller's vendor account was asked for (B14, migration 3035). */
+export interface SubmittalFileVersion {
+  readonly submittalId: string;
+  readonly attachmentId: string;
+  readonly title: string;
+  readonly versionId: string;
+  readonly versionNumber: number;
+  readonly filename: string;
+  readonly contentType: string;
+  readonly sizeBytes: number;
+  readonly uploadedAt: string | null;
+  /** The newest Clean version of the file, the one the org reviews now. */
+  readonly isCurrent: boolean;
+  readonly reviewDecision: "Approved" | "Changes Requested" | null;
+  /** What the org asked to change, or its comment on approval; written for the vendor. */
+  readonly reviewComment: string | null;
+  readonly reviewedAt: string | null;
+}
+
+const text = (v: unknown): string | null => (typeof v === "string" ? v : null);
+
+/**
+ * The files of the given submittals, version by version, newest first, with the org's latest decision
+ * and comment on each (api_external.submittal_files). Who reviewed never appears, nor any download
+ * path; files classified Confidential or Restricted are not listed.
+ */
+export async function listSubmittalFiles(
+  db: XosClient,
+  submittalIds: readonly string[],
+): Promise<Result<SubmittalFileVersion[]>> {
+  if (submittalIds.length === 0) return ok([]);
+  const { data, error } = await untyped(db)
+    .schema("api_external")
+    .from("submittal_files")
+    .select("*")
+    .in("submittal_id", [...submittalIds])
+    .order("version_number", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Record<string, unknown>[]).map((r) => {
+      const decision = r["review_decision"];
+      return {
+        submittalId: text(r["submittal_id"]) ?? "",
+        attachmentId: text(r["attachment_id"]) ?? "",
+        title: text(r["title"]) ?? "",
+        versionId: text(r["version_id"]) ?? "",
+        versionNumber: typeof r["version_number"] === "number" ? r["version_number"] : 0,
+        filename: text(r["filename"]) ?? "",
+        contentType: text(r["content_type"]) ?? "",
+        sizeBytes: typeof r["size_bytes"] === "number" ? r["size_bytes"] : 0,
+        uploadedAt: text(r["uploaded_at"]),
+        isCurrent: r["is_current"] === true,
+        reviewDecision:
+          decision === "Approved" || decision === "Changes Requested" ? decision : null,
+        reviewComment: text(r["review_comment"]),
+        reviewedAt: text(r["reviewed_at"]),
+      };
+    }),
+  );
 }
 
 async function call(

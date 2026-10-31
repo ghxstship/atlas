@@ -3,8 +3,10 @@ import {
   bidTotal,
   listMyApplications,
   listOnboardingItems,
+  listSubmittalFiles,
   onboardingStanding,
   readView,
+  type SubmittalFileVersion,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -251,12 +253,12 @@ export async function SubmittalsTab({ view, t, locale, engagementKey }: TabProps
   if (submittals && !submittals.ok) return <RegionError />;
   const rows = submittals?.ok ? submittals.data : [];
   // B14 (3035): each submittal's files, version by version, with the org's decision and comment, never who decided.
-  const files = await readView(view.ctx.db, "submittal_files", {
-    in: ["submittal_id", rows.flatMap((s) => (s.id ? [s.id] : []))],
-    order: ["version_number", "desc"],
-  });
+  const files = await listSubmittalFiles(
+    view.ctx.db,
+    rows.flatMap((s) => (s.id ? [s.id] : [])),
+  );
   const filesOf = (id: string | null) =>
-    files.ok ? files.data.filter((f) => f.submittal_id === id) : [];
+    files.ok ? files.data.filter((f) => f.submittalId === id) : [];
   if (rows.length === 0) {
     return (
       <TabEmpty
@@ -303,20 +305,12 @@ function SubmittalFiles({
   t,
   locale,
 }: {
-  files: readonly {
-    attachment_id: string | null;
-    title: string | null;
-    version_number: number | null;
-    filename: string | null;
-    uploaded_at: string | null;
-    decision: string | null;
-    review_comment: string | null;
-  }[];
+  files: readonly SubmittalFileVersion[];
   t: TabProps["t"];
   locale: string;
 }) {
   if (files.length === 0) return null;
-  const titles = [...new Set(files.map((f) => f.attachment_id))];
+  const titles = [...new Set(files.map((f) => f.attachmentId))];
   return (
     <section
       aria-label={t("gateway.engagement.submittals.files.title")}
@@ -327,43 +321,55 @@ function SubmittalFiles({
       </h3>
       <ul className="m-0 flex list-none flex-col gap-8 p-0">
         {titles.map((id) => {
-          const versions = files.filter((f) => f.attachment_id === id);
+          const versions = files.filter((f) => f.attachmentId === id);
           return (
-            <li key={id ?? ""} className="flex flex-col gap-4 text-text-13">
+            <li key={id} className="flex flex-col gap-4 text-text-13">
               <span className="font-medium">{versions[0]?.title ?? ""}</span>
               <ol className="m-0 flex list-none flex-col gap-4 p-0">
                 {versions.map((v) => (
-                  <li key={`${id}-${v.version_number}`} className="flex flex-col gap-2">
+                  <li key={v.versionId} className="flex flex-col gap-2">
                     <span className="flex flex-wrap items-center gap-6">
                       <span>
                         {t("gateway.engagement.submittals.files.version", {
-                          n: v.version_number ?? 0,
+                          n: v.versionNumber,
                         })}
                       </span>
-                      <span className="text-text-secondary">{v.filename ?? ""}</span>
+                      <span className="text-text-secondary">{v.filename}</span>
+                      {v.isCurrent ? (
+                        <span className="text-text-12 text-text-secondary">
+                          {t("gateway.engagement.submittals.files.current")}
+                        </span>
+                      ) : null}
                       <Tag
                         tone={
-                          v.decision === "Approved"
+                          v.reviewDecision === "Approved"
                             ? "success"
-                            : v.decision === "Changes Requested"
+                            : v.reviewDecision === "Changes Requested"
                               ? "warning"
                               : "neutral"
                         }
                       >
-                        {v.decision === "Approved"
+                        {v.reviewDecision === "Approved"
                           ? t("gateway.engagement.submittals.files.approved")
-                          : v.decision === "Changes Requested"
+                          : v.reviewDecision === "Changes Requested"
                             ? t("gateway.engagement.submittals.files.changesRequested")
                             : t("gateway.engagement.submittals.files.unreviewed")}
                       </Tag>
-                      {v.uploaded_at ? (
+                      {v.uploadedAt ? (
                         <span className="text-text-12 text-text-secondary">
-                          {formatDateTime(locale, v.uploaded_at)}
+                          {formatDateTime(locale, v.uploadedAt)}
                         </span>
                       ) : null}
                     </span>
-                    {v.review_comment ? (
-                      <span className="text-text-secondary">{v.review_comment}</span>
+                    {v.reviewComment ? (
+                      <span className="text-text-secondary">
+                        {v.reviewedAt
+                          ? t("gateway.engagement.submittals.files.reviewedOn", {
+                              date: formatDateTime(locale, v.reviewedAt),
+                            })
+                          : null}{" "}
+                        {v.reviewComment}
+                      </span>
                     ) : null}
                   </li>
                 ))}

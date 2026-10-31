@@ -307,7 +307,9 @@
         "version": "Version {n}",
         "approved": "Approved",
         "changesRequested": "Changes requested",
-        "unreviewed": "Not reviewed yet"
+        "unreviewed": "Not reviewed yet",
+        "current": "Current version",
+        "reviewedOn": "Reviewed {date}:"
       }
     },
     "advance": {

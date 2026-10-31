@@ -146,7 +146,7 @@ select pg_temp.move_engagement('eng_vendor_a', 'Onboarding', 'Active');
 select is(pg_temp.n('victor', $$select 1 from api_external.submittal_files where submittal_id = '$$ || pg_temp.id('sub2') || $$'$$), 2,
   'the vendor''s Account Owner reads each Clean version of its submittal''s files');
 select is(pg_temp.n('victor', $$select 1 from api_external.submittal_files where submittal_id = '$$ || pg_temp.id('sub2')
-  || $$' and title = 'cut-sheets-a.pdf' and decision = 'Approved' and review_comment = 'Points added.'$$), 1, 'with the latest decision and the comment meant for the vendor');
+  || $$' and title = 'cut-sheets-a.pdf' and review_decision = 'Approved' and review_comment = 'Points added.' and reviewed_at is not null$$), 1, 'with the latest decision and the comment meant for the vendor');
 select hasnt_column('api_external', 'submittal_files', 'reviewer_person_id', 'the reviewer never appears');
 select is(pg_temp.n('xavier', 'select 1 from api_external.submittal_files'), 0, 'another account reads nothing');
 

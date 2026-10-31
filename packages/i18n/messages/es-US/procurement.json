@@ -552,7 +552,7 @@
     "note": "Nota",
     "noteHelp": "Obligatoria cuando pides cambios. El proveedor la ve.",
     "approve": "Aprobar",
-    "requestChanges": "Pedir cambios",
+    "requestChanges": "Solicitar cambios",
     "historyLine": "{decision}, {reviewer}, {at}",
     "historyLineNote": "{decision}, {reviewer}, {at}: {note}"
   }

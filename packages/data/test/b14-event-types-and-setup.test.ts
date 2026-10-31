@@ -16,9 +16,11 @@ import {
 } from "../src/project-copy.ts";
 import { getSiteWindows, summarizeSetup, unmetForGate, type SetupItem } from "../src/projects.ts";
 import { parseTstzRange, rangeOrNull } from "../src/ranges.ts";
+import { listSubmittalFiles } from "../src/gateway-operations.ts";
 import { copyRosterFromEngagement } from "../src/roster.ts";
 import { currentReview, type RecordReview } from "../src/work.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
+import { moduleClient, stepsOf } from "./module-client.ts";
 
 /** B14 (RRR-238): event types, setup completeness, bump windows, copying a past project, reviews and file reviews. */
 
@@ -470,6 +472,54 @@ describe("reviews", () => {
       kind: "refusal",
       rule: "sod_file_review_uploader",
     });
+  });
+});
+
+describe("the vendor's submittal files", () => {
+  it("reads api_external.submittal_files newest version first and keeps only known decisions", async () => {
+    const { db, calls } = moduleClient({
+      "api_external:from:submittal_files": [
+        {
+          data: [
+            {
+              submittal_id: "s1",
+              attachment_id: "a1",
+              title: "cut-sheets.pdf",
+              version_id: "v2",
+              version_number: 2,
+              filename: "cut-sheets-v2.pdf",
+              content_type: "application/pdf",
+              size_bytes: 2048,
+              uploaded_at: "2027-05-02T10:00:00Z",
+              is_current: true,
+              review_decision: "Changes Requested",
+              review_comment: "Add the rigging points.",
+              reviewed_at: "2027-05-03T09:00:00Z",
+            },
+            {
+              submittal_id: "s1",
+              attachment_id: "a1",
+              version_id: "v1",
+              version_number: 1,
+              review_decision: "Maybe",
+            },
+          ],
+          error: null,
+        },
+      ],
+    });
+    const files = await listSubmittalFiles(db, ["s1"]);
+    expect(stepsOf(calls[0], "in")).toEqual([["submittal_id", ["s1"]]]);
+    expect(stepsOf(calls[0], "order")).toEqual([["version_number", { ascending: false }]]);
+    expect(files.ok && files.data[0]).toMatchObject({
+      versionId: "v2",
+      isCurrent: true,
+      reviewDecision: "Changes Requested",
+      reviewComment: "Add the rigging points.",
+      reviewedAt: "2027-05-03T09:00:00Z",
+    });
+    expect(files.ok && files.data[1]).toMatchObject({ isCurrent: false, reviewDecision: null });
+    expect(await listSubmittalFiles(db, [])).toEqual({ ok: true, data: [] });
   });
 });
 
