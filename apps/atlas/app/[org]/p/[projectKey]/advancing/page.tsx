@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { advancingProjectTab } from "@/components/advancing/context";
+import { CrewRoster } from "@/components/advancing/crew-roster";
 import { PacketsCollection } from "@/components/advancing/packets";
 import { ReconciliationCollection } from "@/components/advancing/reconciliation";
 import { RidersCollection } from "@/components/advancing/riders";
@@ -9,7 +10,7 @@ import { flatSearch } from "@/components/advancing/shared";
 import { SubmissionsSplit } from "@/components/advancing/submissions";
 import { getTranslate } from "@/lib/shell/translate";
 
-const SECTIONS = ["packets", "submissions", "riders", "reconciliation", "guests"] as const;
+const SECTIONS = ["packets", "submissions", "riders", "reconciliation", "guests", "crew"] as const;
 
 /**
  * The project's Advancing tab (Section 4.5.4): packets, submissions, riders and reconciliation of
@@ -49,7 +50,9 @@ export default async function ProjectAdvancingPage({
           ))}
         </ul>
       </nav>
-      {section === "guests" ? (
+      {section === "crew" ? (
+        <CrewRoster actx={actx} path={path} search={search} title={title} />
+      ) : section === "guests" ? (
         <GuestList actx={actx} project={actx.project} path={path} search={search} title={title} />
       ) : section === "submissions" ? (
         <SubmissionsSplit
