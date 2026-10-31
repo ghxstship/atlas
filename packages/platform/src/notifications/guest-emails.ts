@@ -27,6 +27,22 @@ export interface ClaimedGuestEmail {
   readonly guestName: string;
   readonly plusOnes: number;
   readonly unsubscribeToken: string;
+  /** What the guest-pass document prints for a Pass email (the claim reads them; null when the guest has none). */
+  readonly pass: GuestPassFacts | null;
+}
+
+/** The facts a guest pass prints, as app.claim_guest_emails returns them (2975). */
+export interface GuestPassFacts {
+  readonly projectId: string;
+  readonly projectKey: string;
+  readonly timeZone: string;
+  readonly passCode: string;
+  readonly passCategoryCode: string | null;
+  readonly passCategoryName: string | null;
+  readonly tableLabel: string | null;
+  readonly showName: string | null;
+  readonly showDay: string | null;
+  readonly decidedAt: string;
 }
 
 export interface GuestEmailStore {
@@ -45,8 +61,11 @@ export interface GuestEmailOptions {
   readonly postalAddress: string;
 }
 
-/** Renders a guest's pass as an A6 PDF, scoped to the row's org. */
-export type RenderGuestPass = (claim: ClaimedGuestEmail) => Promise<Uint8Array>;
+/** Renders a guest's pass as an A6 PDF from the claim's own facts, so it carries only the row's org. */
+export type RenderGuestPass = (
+  claim: ClaimedGuestEmail,
+  pass: GuestPassFacts,
+) => Promise<Uint8Array>;
 
 export interface GuestEmailSummary {
   readonly attempted: number;
@@ -91,12 +110,16 @@ export async function dispatchGuestEmails(
         ).toString(),
         unsubscribeUrl,
       };
+      if (claim.kind === "Pass" && claim.pass === null) {
+        // The claim checks the guest is approved with a code; a row without them is never sent without its pass.
+        throw new Error("A Pass email needs the guest's pass code");
+      }
       const attachments: EmailAttachment[] =
-        claim.kind === "Pass"
+        claim.kind === "Pass" && claim.pass !== null
           ? [
               {
-                filename: "guest-pass.pdf",
-                content: await renderPass(claim),
+                filename: `guest-pass-${claim.pass.passCode}.pdf`,
+                content: await renderPass(claim, claim.pass),
                 contentType: "application/pdf",
               },
             ]
@@ -134,6 +157,10 @@ export async function dispatchGuestEmails(
   return { attempted: claims.length, sent, failed };
 }
 
+function nullableText(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
 function str(value: unknown, what: string): string {
   if (typeof value !== "string" || value.length === 0) throw new Error(`Missing ${what}`);
   return value;
@@ -161,6 +188,21 @@ export function guestEmailStore(db: PlatformDb): GuestEmailStore {
         guestName: str(r["guest_name"], "guest_name"),
         plusOnes: typeof r["plus_ones"] === "number" ? r["plus_ones"] : 0,
         unsubscribeToken: str(r["unsubscribe_token"], "unsubscribe_token"),
+        pass:
+          typeof r["pass_code"] === "string" && typeof r["decided_at"] === "string"
+            ? {
+                projectId: str(r["project_id"], "project_id"),
+                projectKey: typeof r["project_key"] === "string" ? r["project_key"] : "",
+                timeZone: typeof r["time_zone"] === "string" ? r["time_zone"] : "UTC",
+                passCode: r["pass_code"],
+                passCategoryCode: nullableText(r["pass_category_code"]),
+                passCategoryName: nullableText(r["pass_category_name"]),
+                tableLabel: nullableText(r["table_label"]),
+                showName: nullableText(r["show_name"]),
+                showDay: nullableText(r["show_day"]),
+                decidedAt: r["decided_at"],
+              }
+            : null,
       }));
     },
     async finish(id, providerMessageId, error) {

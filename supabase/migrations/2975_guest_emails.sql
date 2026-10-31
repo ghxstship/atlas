@@ -266,7 +266,15 @@ returns table (
   guest_name text,
   plus_ones smallint,
   pass_code text,
-  unsubscribe_token text
+  unsubscribe_token text,
+  project_key text,
+  time_zone text,
+  pass_category_code text,
+  pass_category_name text,
+  table_label text,
+  show_name text,
+  show_day date,
+  decided_at timestamptz
 )
 language plpgsql
 volatile
@@ -303,18 +311,21 @@ begin
       values (extensions.digest(v_token, 'sha256'), v_row.id);
       return query
         select e.id, e.org_id, o.name, s.project_id, p.name, g.id, s.email_kind, s.subject, s.body, s.locale, e.to_email,
-          g.guest_name, g.plus_ones, g.pass_code, v_token
+          g.guest_name, g.plus_ones, g.pass_code, v_token,
+          p.project_key, coalesce(p.time_zone, 'UTC'), k.code, k.name, g.table_label, n.name, p.starts_on, g.decided_at
         from app.guest_emails e
         join app.guest_email_sends s on s.id = e.guest_email_send_id
         join app.guest_list_entries g on g.id = e.guest_list_entry_id
         join app.organizations o on o.id = e.org_id
         join app.projects p on p.id = s.project_id
+        left join app.credential_categories k on k.id = g.pass_category_id
+        left join app.scope_nodes n on n.id = g.scope_node_id
         where e.id = v_row.id;
     end if;
   end loop;
 end;
 $$;
-comment on function app.claim_guest_emails(integer) is 'The guest-email worker''s claim (service role): up to p_limit (at most 100) Queued rows, and Sending rows left more than 10 minutes, oldest first, skipping rows another worker holds. Each is checked again: a guest no longer live or no longer approved with a pass code for a Pass is Skipped, a suppressed address Suppressed, a row out of attempts Failed; the rest move to Sending with a fresh unsubscribe token, whose SHA-256 is stored, and are returned with what the email needs.';
+comment on function app.claim_guest_emails(integer) is 'The guest-email worker''s claim (service role): up to p_limit (at most 100) Queued rows, and Sending rows left more than 10 minutes, oldest first, skipping rows another worker holds. Each is checked again: a guest no longer live or no longer approved with a pass code for a Pass is Skipped, a suppressed address Suppressed, a row out of attempts Failed; the rest move to Sending with a fresh unsubscribe token, whose SHA-256 is stored, and are returned with what the email and, for a Pass, the guest-pass document need (the pass type, table, show and its day, the project key and time zone, and when the guest was approved).';
 revoke all on function app.claim_guest_emails(integer) from public, anon, authenticated;
 grant execute on function app.claim_guest_emails(integer) to service_role;
 

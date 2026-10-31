@@ -54,6 +54,12 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "export-render": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "pdfkit"] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "fx-rates-ecb": { boot: [], lazy: [] },
+  // B8 (ADR 0147): the guest list email worker; React Email, Resend and, for a Pass email, the guest-pass renderer
+  // with pdfkit load only when an email is sent.
+  "guest-email": {
+    boot: ["intl-messageformat", "zod"],
+    lazy: ["@react-email/components", "pdfkit", "react/jsx-runtime", "resend"],
+  },
   "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -101,6 +107,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
+  // B8 (ADR 0147): new. The shared email and notification store chunks it reaches at boot, as subprocessor-notices
+  // does, came to 119.8 KB on 2026-10-31; about 10 percent of headroom.
+  "guest-email": 132,
   "import-run": 120,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
