@@ -2,7 +2,8 @@
 -- member, an engaged external and a roster entry in, each a Supervisor punch created by the supervisor with an open
 -- time entry; a replay answers duplicate and adds nothing, even after the shift is canceled; one refused worker never fails the rest; the agency's lead
 -- punches only its roster; every refusal code is reached; record_punch never writes Supervisor; one audit event per
--- call; the RPC replays offline with one signature; the supervisor never approves that time (sod_supervisor_punch).
+-- call; the RPC replays offline with one signature; the supervisor never approves that time (sod_supervisor_punch) and is
+-- never asked to.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -156,6 +157,14 @@ with t as (insert into app.timesheets (project_id, roster_entry_id, period_start
   insert into world select 'ts_stella', id from t;
 select pg_temp.as_user('stella');
 select app.submit_timesheet(pg_temp.id('ts_stella'));
+select pg_temp.as_platform();
+select is(private.person_capability_reach(pg_temp.id('carol'), pg_temp.id('org_a'), 'crew.timesheet.approve', true), 'organization',
+  'carol approves timesheets org-wide');
+select is((select count(*)::int from app.notifications n where n.subject_id = pg_temp.id('ts_stella') and n.kind = 'approval.requested'
+           and n.recipient_person_id = pg_temp.id('carol')), 0,
+  'yet she is not asked to approve Stella''s timesheet, which she punched: no Inbox item or push she could never act on');
+select ok(exists (select 1 from app.notifications n where n.subject_id = pg_temp.id('ts_stella') and n.kind = 'approval.requested'
+           and n.recipient_person_id = pg_temp.id('alice')), 'another approver is asked');
 select pg_temp.as_user('carol');
 select is(pg_temp.refusal($$select app.decide_timesheet(pg_temp.id('ts_stella'), 'Approved', 'Looks right.')$$), 'sod_supervisor_punch',
   'the supervisor who punched Stella in cannot approve her timesheet');

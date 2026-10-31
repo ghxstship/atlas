@@ -12,7 +12,9 @@
 --     three-argument resolver (2750):
 --       - private.timesheet_approver_person_ids and private.timesheet_approval_requests (1140): an agency staff
 --         member's submitted timesheet asks for approval with their name in the title, and they are never among its
---         approvers (invariant 18).
+--         approvers (invariant 18). Nor is a supervisor who punched the worker in or out on the timesheet's time:
+--         app.decide_timesheet refuses them (sod_supervisor_punch, 2754), so an Inbox item or push asking them to
+--         approve could never be acted on.
 --       - private.apply_web_clock_rules (1321): their own web clock-in follows time.geofence_required and
 --         time.rounding_minutes like everyone else's.
 --       - private.bulk_my_timesheets_row (2160): they submit and recall their own timesheets from Gateway's Money,
@@ -99,10 +101,19 @@ as $$
   where t.id = p_timesheet_id
     and private.person_capability_reach(m.person_id, t.org_id, 'crew.timesheet.approve', true) = 'organization'
     and m.person_id is distinct from t.submitted_by
-    and m.person_id is distinct from private.worker_person_id(t.membership_id, t.engagement_id, t.roster_entry_id);
+    and m.person_id is distinct from private.worker_person_id(t.membership_id, t.engagement_id, t.roster_entry_id)
+    -- The same Supervisor punch test app.decide_timesheet applies (sod_supervisor_punch, 2754).
+    and not exists (
+      select 1 from app.clock_punches c
+      join app.time_entries e on e.id = c.time_entry_id
+      where c.source = 'Supervisor' and c.created_by = m.person_id and e.deleted_at is null
+        and e.project_id = t.project_id
+        and e.membership_id is not distinct from t.membership_id and e.engagement_id is not distinct from t.engagement_id
+        and e.roster_entry_id is not distinct from t.roster_entry_id
+        and e.clock_in >= t.period_start::timestamptz and e.clock_in < (t.period_end + 1)::timestamptz);
 $$;
 
-comment on function private.timesheet_approver_person_ids(uuid) is 'People who may approve a timesheet org-wide now, never its submitter or its worker, member, external or agency staff member (invariant 18), for approval request notifications.';
+comment on function private.timesheet_approver_person_ids(uuid) is 'People who may approve a timesheet org-wide now, for approval request notifications: never its submitter or its worker, member, external or agency staff member (invariant 18), nor a supervisor who punched the worker in or out on the timesheet''s time (sod_supervisor_punch, R12).';
 revoke all on function private.timesheet_approver_person_ids(uuid) from public, anon, authenticated;
 
 create or replace function private.timesheet_approval_requests()
