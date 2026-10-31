@@ -21,4 +21,4 @@ An invoice moves through four steps, each with its date: **Submitted**, **Approv
 
 Submit invoices from an engagement's [Invoices tab](help:engagement-invoices). With self-billing, the organization raises them for you from approved timesheets.
 
-Each step also shows under Updates on Home, and reaches you by email or push as you choose in [Settings, Notifications](help:settings-notifications).
+Each step also shows under For your information on Home, and reaches you by email or push as you choose in [Settings, Notifications](help:settings-notifications).

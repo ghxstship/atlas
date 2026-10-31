@@ -4680,7 +4680,10 @@ export interface Components {
     message_args: Record<string, unknown>;
     archived_at: string | null;
   };
-  NotificationActRequest: { action: "approve" | "reject" | "done"; comment?: string };
+  NotificationActRequest: {
+    action: "approve" | "reject" | "done" | "accept" | "decline" | "reply";
+    comment?: string;
+  };
   NotificationPage: { data: Array<Components["Notification"]>; next_cursor: string | null };
   NotificationPreference: {
     id: string;

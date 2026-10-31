@@ -1,4 +1,10 @@
 export {
+  EMAIL_ACTIONS,
+  isEmailActionName,
+  type EmailAction,
+  type EmailActionName,
+} from "./actions.ts";
+export {
   createTransport,
   emailEnvSchema,
   lazyResendClient,

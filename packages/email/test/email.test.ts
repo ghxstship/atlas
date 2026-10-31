@@ -87,6 +87,7 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     effectiveOn: new Date("2026-12-01T12:00:00Z"),
     listUrl: "https://atlas.xos.test/legal/subprocessors",
   },
+  approval_link_code: { code: "482913", orgName: "Northwind Live", expiresInMinutes: 10 },
 };
 
 /** Notification kinds seeded in migrations 0520 and 0560, the database side of the catalog. */

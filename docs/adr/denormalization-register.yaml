@@ -33,6 +33,12 @@ derived:
     reason: PowerSync project filter, as above
     adr: "0022"
   - objects:
+      - app.subject_approvals.project_id
+    source: "`app.credentials.project_id` or `app.dock_slots.project_id`, whichever subject the approval has"
+    refresh: Stamped by trigger on insert; changing it is refused (2860)
+    reason: Approvals, the reminder status and the dock schedule filter subject approvals by project without a join to their subject
+    adr: "0138"
+  - objects:
       - app.access_grid.project_id
     source: "`app.credential_categories.project_id`"
     refresh: Stamped by trigger; changing it is refused (0470)
@@ -326,6 +332,10 @@ restated:
     parent: app.approval_policies.document_type
     kind: fact
     note: Type of the document submitted, fixed with the instance; the policy's is the type it gates.
+  - column: app.approval_rules.project_id
+    parent: app.credential_categories.project_id
+    kind: own
+    note: The project the rule gates; a Pass rule's category filter must be of the same project (`private.guard_approval_rule`, 2860).
   - column: app.asset_custody.project_id
     parent: app.engagements.project_id
     kind: own
@@ -1200,6 +1210,18 @@ restated:
     parent: app.sponsor_entitlements.due_on
     kind: own
     note: When the asset is needed; the entitlement's date is when it is owed.
+  - column: app.subject_approvals.project_id
+    parent: app.approval_rules.project_id
+    kind: registered
+    note: Copied from the pass or dock slot by `private.copy_parent_project` (derived entry); the rule matched that project.
+  - column: app.subject_approvals.project_id
+    parent: app.credentials.project_id
+    kind: registered
+    note: Copied from the credential by `private.copy_parent_project` (derived entry).
+  - column: app.subject_approvals.project_id
+    parent: app.dock_slots.project_id
+    kind: registered
+    note: Copied from the dock slot by `private.copy_parent_project` (derived entry).
   - column: app.submittals.project_id
     parent: app.purchase_orders.project_id
     kind: own
@@ -1389,6 +1411,22 @@ restated:
     parent: app.share_links.expires_at
     kind: own
     note: When the ticket stops working, two minutes after it was issued.
+  - column: private.notification_action_codes.delivery_id
+    parent: private.notification_action_tokens.delivery_id
+    kind: own
+    note: The approval.link_code email that carried the code; the token's is the approval request's email.
+  - column: private.notification_action_codes.expires_at
+    parent: private.notification_action_tokens.expires_at
+    kind: own
+    note: A code lives 10 minutes; its link lives 7 days.
+  - column: private.notification_action_codes.revoked_at
+    parent: private.notification_action_tokens.revoked_at
+    kind: own
+    note: When a newer code replaced this one; the link's is when a retried email replaced it.
+  - column: private.notification_action_codes.used_at
+    parent: private.notification_action_tokens.used_at
+    kind: own
+    note: When a decision used the code; the link's is when the notification was acted on.
   - column: private.session_devices.user_agent
     parent: auth.sessions.user_agent
     kind: finding

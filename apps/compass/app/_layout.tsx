@@ -13,6 +13,7 @@ import { HelpScreenTracker } from "../src/runtime/help";
 import { initI18n } from "../src/runtime/i18n";
 import { useUpdateGate } from "../src/runtime/minimumVersion";
 import { useActionableNotifications } from "../src/runtime/notifications";
+import { useOfferActions } from "../src/runtime/offer-actions";
 import { SystemBanners } from "../src/runtime/systemBanners";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { DeleteAccount } from "../src/screens/DeleteAccount";
@@ -37,6 +38,12 @@ const EMPTY_BRAND = { orgId: "", name: "", logoLightPath: null, logoDarkPath: nu
 /** Actionable push notifications (journey 57) for the signed-in person; renders nothing. */
 function NotificationActions(): null {
   useActionableNotifications();
+  return null;
+}
+
+/** Accept, Decline and Reply on shift offers, engagement offers and messages (A127); renders nothing. */
+function OfferActions(): null {
+  useOfferActions();
   return null;
 }
 
@@ -131,6 +138,7 @@ function Gatekeeper(): ReactElement {
     <View style={{ flex: 1, backgroundColor: theme.color.bgCanvas }}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
       <NotificationActions />
+      <OfferActions />
       <HelpScreenTracker />
       <SystemBanners client={client} />
       <BiometricLock enabled={settings.biometric}>

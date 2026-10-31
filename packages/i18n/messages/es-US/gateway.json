@@ -37,9 +37,24 @@
       "notification_channel_outside": "Una empresa solo configura Correo electrónico y Push.",
       "supplier_diversity_no_program": "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
       "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "notification_action_used": "Esto ya se resolvió. No hay nada más que hacer.",
+      "notification_action_expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
+      "notification_action_not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+      "notification_action_invalid": "Este enlace no funciona. Abre el elemento desde Inicio.",
+      "notification_action_elsewhere": "Este enlace se abre en Atlas. Usa el botón del correo para abrirlo allí.",
+      "notification_action_reason": "Di por qué lo rechazas.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
       "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
-      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres."
+      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres.",
+      "approval_link_code_too_soon": "Se envió un código hace un momento. Espera un minuto y vuelve a pedirlo; se envían como máximo cinco por hora.",
+      "approval_link_locked": "Demasiados códigos incorrectos. Este enlace está bloqueado; inicia sesión para decidir.",
+      "approval_link_email_off": "Tienes desactivados los correos de aprobación, así que no se puede enviar un código. Inicia sesión para decidir.",
+      "approval_not_in_review": "Esta aprobación ya se decidió o se retiró.",
+      "approval_not_step_approver": "No eres aprobador del paso que espera esta aprobación.",
+      "approval_one_step_per_approver": "Ya decidiste un paso de esta aprobación. El siguiente paso lo decide otra persona.",
+      "approval_subject_beneficiary": "Esta aprobación es para ti, así que la decide otra persona.",
+      "approval_rejection_reason": "Di por qué la rechazas.",
+      "sod_approval_requester": "Tú pediste esta aprobación, así que la decide otra persona."
     }
   },
   "common": {
@@ -218,7 +233,12 @@
     "deliveries": {
       "empty": "Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.",
       "docks": "Turnos de muelle",
-      "shipments": "Envíos"
+      "shipments": "Envíos",
+      "approval": {
+        "waiting": "En espera de aprobación",
+        "approved": "Aprobado",
+        "rejected": "Rechazado"
+      }
     },
     "submittals": {
       "empty": "Aún no se han solicitado entregables técnicos.",
@@ -1091,6 +1111,24 @@
       "rate": "Califica tu trabajo con {org}",
       "rateAction": "Calificar"
     },
+    "fyi": {
+      "title": "Para tu información",
+      "empty": "Nada nuevo. Aquí aparecen las novedades de las organizaciones con las que trabajas.",
+      "done": "Listo",
+      "snooze": "Posponer",
+      "doneLabel": "Marcar {text} como listo",
+      "snoozeLabel": "Posponer {text} un día",
+      "keys": "Selecciona un elemento y presiona E para Listo o H para posponerlo un día. J y K pasan de un elemento a otro.",
+      "new": "Nuevo",
+      "kinds": {
+        "offerSent": "{orgName} te envió una oferta para {title}",
+        "shiftAssigned": "Nuevo turno: {title}",
+        "shiftChanged": "Turno modificado: {title}",
+        "messageReceived": "Mensaje nuevo",
+        "other": "{title}",
+        "untitled": "Novedad"
+      }
+    },
     "recommended": {
       "title": "Recomendadas para ti",
       "all": "Ver todas",
@@ -1098,8 +1136,6 @@
       "emptyAction": "Crear alerta"
     },
     "updates": {
-      "title": "Novedades",
-      "new": "Nuevo",
       "kinds": {
         "invoiceSubmitted": "{orgName} recibió la factura {title}",
         "invoiceApproved": "{orgName} aprobó la factura {title}",
@@ -1716,6 +1752,75 @@
       "done": "Listo: {advance, plural, one {# respuesta de avance} other {# respuestas de avance}} y {documents, plural, one {# documento firmado} other {# documentos firmados}} ya están en tu cuenta.",
       "nothing": "No había envíos pendientes para {email}. Todo lo que completes desde ahora se guarda en esta cuenta.",
       "home": "Ir al inicio"
+    },
+    "actionLink": {
+      "title": "Confirmar desde el correo",
+      "heading": {
+        "approve": "¿Aprobar {title}?",
+        "reject": "¿Rechazar {title}?",
+        "accept": "¿Aceptar {title}?"
+      },
+      "untitled": "este elemento",
+      "org": "De {org}. No pasa nada hasta que confirmes.",
+      "signedInAs": "Sesión iniciada como {email}.",
+      "confirm": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "accept": "Aceptar"
+      },
+      "reason": "¿Por qué lo rechazas?",
+      "done": {
+        "approve": "Aprobado. No hay nada más que hacer.",
+        "reject": "Rechazado con tu motivo.",
+        "accept": "Aceptado. La organización se encarga desde aquí."
+      },
+      "home": "Ir al inicio",
+      "state": {
+        "used": "Esto ya se resolvió. No hay nada más que hacer.",
+        "expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
+        "not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+        "elsewhere": "Este enlace se abre en Atlas, donde se aplican los ajustes de seguridad de tu organización. Usa el botón del correo para abrirlo allí.",
+        "invalid": "Este enlace no funciona. Abre el elemento desde Inicio."
+      },
+      "signedOut": {
+        "heading": {
+          "approve": "Aprueba esta solicitud desde tu correo",
+          "reject": "Rechaza esta solicitud desde tu correo"
+        },
+        "codeGoesTo": "Enviamos un código de 6 dígitos a {email}.",
+        "signInInstead": "Iniciar sesión para decidir",
+        "state": {
+          "used": "Esto ya se resolvió. No hay nada más que hacer.",
+          "expired": "Este enlace venció. Inicia sesión para decidir o pide a la organización que lo envíe de nuevo.",
+          "locked": "Demasiados códigos incorrectos. Este enlace está bloqueado; inicia sesión para decidir."
+        },
+        "codeIntro": "Para que esta decisión sea tuya, primero te enviamos un código por correo. La solicitud aparece cuando lo ingresas.",
+        "emailMeACode": "Enviarme un código",
+        "codeSent": "Código enviado. Funciona durante 10 minutos.",
+        "codeLabel": "Código de tu correo",
+        "codeHelp": "Los 6 dígitos del correo que acabamos de enviarte.",
+        "showRequest": "Ver la solicitud",
+        "sendAgain": "Enviar un código nuevo",
+        "untitled": "Esta solicitud",
+        "step": "Paso: {step}",
+        "reason": "¿Por qué la rechazas?",
+        "confirm": {
+          "approve": "Aprobar",
+          "reject": "Rechazar"
+        },
+        "done": {
+          "approve": "Aprobado. No hay nada más que hacer.",
+          "reject": "Rechazado con tu motivo."
+        },
+        "outcome": {
+          "approval_link_code_wrong": "Ese código es incorrecto o venció. {attemptsLeft, plural, one {Te queda # intento} other {Te quedan # intentos}} antes de que el enlace se bloquee.",
+          "approval_link_locked": "Demasiados códigos incorrectos. Este enlace está bloqueado; inicia sesión para decidir.",
+          "notification_action_used": "Esto ya se resolvió. No hay nada más que hacer.",
+          "notification_action_expired": "Este enlace venció. Inicia sesión para decidir o pide a la organización que lo envíe de nuevo.",
+          "notification_action_invalid": "Este enlace no funciona. Inicia sesión para decidir.",
+          "notification_action_reason": "Di por qué la rechazas."
+        }
+      }
     },
     "errors": {
       "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",

@@ -17,6 +17,7 @@ import {
   type OperationsProject,
   type Zone,
 } from "@xos/data/credentials";
+import { approvalBySubject, listSubjectApprovals, type SubjectApproval } from "@xos/data/workflow";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -339,6 +340,11 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
   const issued = unwrap(all, "issued credentials").filter(
     (c) => !statusFilter || credentialStatus(c, now) === statusFilter,
   );
+  // P9: a pass a project's approval rule holds scans Denied until approved (2860); its state shows beside the status.
+  const approvals = await listSubjectApprovals(page.ctx.viewer.db, {
+    credentialIds: issued.map((c) => c.id),
+  });
+  const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
   const categoryList = unwrap(categories, "credential categories");
   const peekId = param(page.search, "peek");
   const creating = param(page.search, "create") === "1";
@@ -351,6 +357,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
     return <ToneChip tone={STATUS_TONE[s]}>{t(`credentials.issued.status.${s}`)}</ToneChip>;
   };
   const holder = (c: IssuedCredential) => c.holderName ?? t("credentials.common.unnamed");
+  const approval = (c: IssuedCredential) => approvalChip(t, approvalOf.get(c.id));
 
   const columns: Column<IssuedCredential>[] = [
     {
@@ -372,6 +379,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
       render: (c) => (c.validTo ? dateTime(format, c.validTo) : t("credentials.issued.openEnded")),
     },
     { key: "status", label: t("credentials.issued.statusLabel"), primary: true, render: status },
+    { key: "approval", label: t("credentials.issued.approval.label"), render: approval },
   ];
 
   let body: ReactNode;
@@ -416,7 +424,12 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
           href: peekHref(c),
           title: holder(c),
           meta: `${c.number} · ${c.categoryCode} · ${c.projectKey}`,
-          trailing: status(c),
+          trailing: (
+            <span className="flex flex-wrap items-center gap-4">
+              {approval(c)}
+              {status(c)}
+            </span>
+          ),
         }))}
       />
     );
@@ -484,6 +497,18 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
       {body}
       {peekId ? <CredentialRecord page={page} id={peekId} section={section} /> : null}
     </CollectionPage>
+  );
+}
+
+const APPROVAL_TONE = { "In Review": "warning", Approved: "success", Rejected: "danger" } as const;
+
+/** A pass's approval state (P9): Awaiting approval, Approved or Rejected; nothing without one, or once withdrawn. */
+function approvalChip(t: ModulePage["t"], a: SubjectApproval | undefined): ReactNode {
+  if (!a || a.state === "Canceled") return null;
+  const key =
+    a.state === "In Review" ? "waiting" : a.state === "Approved" ? "approved" : "rejected";
+  return (
+    <ToneChip tone={APPROVAL_TONE[a.state]}>{t(`credentials.issued.approval.${key}`)}</ToneChip>
   );
 }
 

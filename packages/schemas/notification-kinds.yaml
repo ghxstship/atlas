@@ -80,6 +80,9 @@ email_templates:
   - code: subprocessor_notice
     transactional: false
     description: Announces a Subprocessor List change at least 30 days before it applies.
+  - code: approval_link_code
+    transactional: true
+    description: The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).
 
 categories:
   - code: mentions
@@ -149,12 +152,34 @@ kinds:
       # 1395 redefines 1030's emitter: an away approver hands over only what their delegation covers.
       - emitter: supabase/migrations/1395_approval_delegation_scope.sql#private.notify_step_approvers
         test: supabase/tests/1395_approval_delegation_scope.test.sql
+      # P9: a pass or dock booking an approval rule matched asks its current step's approvers.
+      - emitter: supabase/migrations/2860_approval_rules.sql#private.notify_subject_step_approvers
+        test: supabase/tests/2860_approval_rules.test.sql
   - kind: approval.decided
     category: approvals
     emitted_by:
       # 1395 redefines 1030's emitter; 1030's test observes the decision on every path.
       - emitter: supabase/migrations/1395_approval_delegation_scope.sql#app.decide_approval
         test: supabase/tests/1030_approvals.test.sql
+      # P9: the requester hears when a subject approval is approved or rejected.
+      - emitter: supabase/migrations/2860_approval_rules.sql#private.decide_subject_approval_as
+        test: supabase/tests/2860_approval_rules.test.sql
+  # P9 (G-261): the approvers of a step that waits are reminded, hourly or by the requester's nudge.
+  - kind: approval.reminder
+    category: approvals
+    push_category: approval_request
+    emitted_by:
+      - emitter: supabase/migrations/2862_approval_reminders.sql#private.send_approval_reminder
+        test: supabase/tests/2862_approval_reminders.test.sql
+  # P9 (G-31): the access code of a signed-out approval link, sent by email. Every kind is an In App notification too;
+  # this one is archived as soon as it is queued, so it shows nowhere but the email.
+  - kind: approval.link_code
+    category: approvals
+    channels: [In App, Email]
+    email_template: approval_link_code
+    emitted_by:
+      - emitter: supabase/migrations/2861_approval_links_signed_out.sql#api_public.request_approval_link_code
+        test: supabase/tests/2861_approval_links_signed_out.test.sql
   - kind: comment.created
     category: comments
     emitted_by:
@@ -442,6 +467,13 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1462_saved_search_alerts.sql#private.notify_saved_search_matches
         test: supabase/tests/1462_saved_search_alerts.test.sql
+  # Offers that wait on the applicant (A127, 2200): Gateway confirms an email's Accept link, Compass answers the push.
+  - kind: offer.sent
+    category: opportunities
+    channels: [In App, Email, Push]
+    emitted_by:
+      - emitter: supabase/migrations/2200_one_tap_actions.sql#private.notify_offer_sent
+        test: supabase/tests/2200_one_tap_actions.test.sql
   - kind: onboarding.item_expiring
     category: expiry_reminders
     emitted_by:

@@ -122,7 +122,13 @@
     "integration_disconnected": "Esa conexión está desconectada y no puede cambiar.",
     "moderation_appeal_window": "Las apelaciones se aceptan durante seis meses después de una decisión; esta es más antigua.",
     "moderation_appeal_grounds": "Explica por qué la decisión es incorrecta, en hasta 4,000 caracteres.",
-    "moderation_appeal_exists": "Esta decisión ya se apeló."
+    "moderation_appeal_exists": "Esta decisión ya se apeló.",
+    "approval_subject_beneficiary": "Esta aprobación es para usted, así que otra persona la decide.",
+    "approval_step_no_approver": "Nadie de los que nombra este paso tiene una cuenta de XOS para recibir correos de aprobación.",
+    "approval_rule_pending": "Esta solicitud espera su regla de aprobación. Apruébela cuando todos los pasos estén aprobados.",
+    "approval_link_email_off": "Los correos de aprobación están desactivados, así que no se puede enviar un código. Inicie sesión para decidir.",
+    "approval_reminder_too_soon": "Se notificó a los aprobadores hace menos de 4 horas. Intente más tarde.",
+    "approval_reminder_limit": "Ya se enviaron todos los recordatorios que permite este paso."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",
@@ -584,7 +590,9 @@
       },
       "approval": {
         "requested": "Aprobación solicitada",
-        "decided": "Aprobación resuelta"
+        "decided": "Aprobación resuelta",
+        "reminder": "Recordatorio de aprobación",
+        "link_code": "Código de acceso de aprobación"
       },
       "assignment": {
         "created": "Nueva asignación"
@@ -675,6 +683,9 @@
       },
       "opportunity": {
         "matched": "Nueva oportunidad coincidente"
+      },
+      "offer": {
+        "sent": "Oferta nueva"
       },
       "onboarding": {
         "item_expiring": "Elemento de incorporación por vencer"

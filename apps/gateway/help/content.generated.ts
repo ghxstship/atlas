@@ -6,6 +6,15 @@ export const HELP_CONTENT: HelpIndex = {
   articles: {
     "en-US": [
       {
+        slug: "approve-from-email",
+        title: "Approve from email",
+        summary:
+          "Decide a request an organization sends you from the email itself, with a code it emails you, without signing in.",
+        kind: "workflow",
+        nodes: ["home"],
+        order: 3,
+      },
+      {
         slug: "company-danger-zone",
         title: "Company danger zone",
         summary: "Transferring ownership or closing a company account.",
@@ -670,6 +679,15 @@ export const HELP_CONTENT: HelpIndex = {
       },
     ],
     "es-US": [
+      {
+        slug: "approve-from-email",
+        title: "Aprobar desde el correo",
+        summary:
+          "Decide una solicitud que te envía una organización desde el mismo correo, con un código que te envía, sin iniciar sesión.",
+        kind: "workflow",
+        nodes: ["home"],
+        order: 3,
+      },
       {
         slug: "company-danger-zone",
         title: "Zona de peligro de la empresa",

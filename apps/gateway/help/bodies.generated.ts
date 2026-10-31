@@ -4,6 +4,120 @@ import type { HelpBodies } from "@xos/help";
 
 export const HELP_BODIES: HelpBodies = {
   "en-US": {
+    "approve-from-email": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some organizations ask the people they engage to approve a pass, a dock booking or an equipment request before it takes effect. When yours lets you decide from email, the request email carries an ",
+          },
+          { t: "strong", v: "Approve" },
+          { t: "text", v: " button and a " },
+          { t: "strong", v: "Reject" },
+          { t: "text", v: " button." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "You still need an XOS account, any Gateway account, so the email can reach you. You do not have to sign in to decide.",
+          },
+        ],
+      },
+      { t: "h2", v: "Decide" },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Press " },
+            { t: "strong", v: "Approve" },
+            { t: "text", v: " or " },
+            { t: "strong", v: "Reject" },
+            {
+              t: "text",
+              v: " in the email. The page that opens says which organization asks and where the code goes. Nothing happens yet.",
+            },
+          ],
+          [
+            { t: "text", v: "Press " },
+            { t: "strong", v: "Email me a code" },
+            {
+              t: "text",
+              v: ". A 6-digit code arrives by email; it works for 10 minutes. You can ask for a new one after a minute, up to five an hour.",
+            },
+          ],
+          [
+            { t: "text", v: "Enter the code and press " },
+            { t: "strong", v: "Show the request" },
+            { t: "text", v: ". The request and the step it waits on appear." },
+          ],
+          [
+            { t: "text", v: "Press " },
+            { t: "strong", v: "Approve" },
+            { t: "text", v: ", or write why and press " },
+            { t: "strong", v: "Reject" },
+            { t: "text", v: ". The page confirms it, and the organization is told." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The page decides only what its button says: to reject an Approve email, open its ",
+          },
+          { t: "strong", v: "Reject" },
+          { t: "text", v: " button instead." },
+        ],
+      },
+      { t: "h2", v: "When it does not work" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Wrong code" },
+            {
+              t: "text",
+              v: ": the page says how many tries are left. After five wrong codes across both buttons, the link locks; sign in to decide.",
+            },
+          ],
+          [
+            { t: "strong", v: "Already handled" },
+            {
+              t: "text",
+              v: ": someone decided the step, or the organization withdrew the request.",
+            },
+          ],
+          [
+            { t: "strong", v: "Expired" },
+            {
+              t: "text",
+              v: ": the link lasts 7 days. Reminders from the organization carry a fresh link.",
+            },
+          ],
+          [
+            { t: "strong", v: "Approval emails off" },
+            {
+              t: "text",
+              v: ": no code can be sent while approval emails are off in your notification settings. Sign in to decide instead.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If you are a member of the organization, its links always ask you to sign in, so its security settings apply.",
+          },
+        ],
+      },
+    ],
     "company-danger-zone": [
       {
         t: "p",
@@ -733,8 +847,14 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The times booked for you at the dock: the zone, the start and end, any tracking number, and whether it is inbound or outbound.",
+            v: "The times booked for you at the dock: the zone, the start and end, any tracking number, and whether it is inbound or outbound. When the project approves bookings at that dock first, the slot also says ",
           },
+          { t: "strong", v: "Awaiting approval" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Approved" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Rejected" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "Shipments" },
@@ -2138,14 +2258,35 @@ export const HELP_BODIES: HelpBodies = {
           [{ t: "text", v: "engagements to rate, for 14 days after they complete" }],
         ],
       },
-      { t: "h2", v: "Updates" },
+      { t: "h2", v: "For your information" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "When an organization receives, approves, schedules or pays one of your invoices, the latest steps show here. Unread ones are marked New.",
+            v: "Updates that need nothing from you: an organization received, approved, scheduled or paid one of your invoices, a new match for a saved search, a reminder that something expires, a new shift or offer. Unread ones are marked New, and each opens where you follow it.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Clear each one with " },
+          { t: "strong", v: "Done" },
+          { t: "text", v: ", or " },
+          { t: "strong", v: "Snooze" },
+          {
+            t: "text",
+            v: " it to bring it back in a day. From the keyboard, select an item and press ",
+          },
+          { t: "strong", v: "E" },
+          { t: "text", v: " for Done or " },
+          { t: "strong", v: "H" },
+          { t: "text", v: " to snooze it; " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " move between items." },
         ],
       },
       { t: "h2", v: "Recommended for you" },
@@ -2165,7 +2306,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The view switcher shows Home as a feed, or as an inbox with only Needs you and Updates.",
+            v: "The view switcher shows Home as a feed, or as an inbox with only Needs you and For your information.",
           },
         ],
       },
@@ -2324,7 +2465,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Each step also shows under Updates on Home, and reaches you by email or push as you choose in ",
+            v: "Each step also shows under For your information on Home, and reaches you by email or push as you choose in ",
           },
           { t: "link", v: "Settings, Notifications", href: "help:settings-notifications" },
           { t: "text", v: "." },
@@ -3474,6 +3615,117 @@ export const HELP_BODIES: HelpBodies = {
     ],
   },
   "es-US": {
+    "approve-from-email": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunas organizaciones piden a las personas que contratan aprobar un pase, una reserva de muelle o una solicitud de equipo antes de que tenga efecto. Cuando la tuya te deja decidir desde el correo, el correo de la solicitud trae un botón ",
+          },
+          { t: "strong", v: "Aprobar" },
+          { t: "text", v: " y un botón " },
+          { t: "strong", v: "Rechazar" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Igual necesitas una cuenta de XOS, cualquier cuenta de Gateway, para que el correo te llegue. No tienes que iniciar sesión para decidir.",
+          },
+        ],
+      },
+      { t: "h2", v: "Decidir" },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Presiona " },
+            { t: "strong", v: "Aprobar" },
+            { t: "text", v: " o " },
+            { t: "strong", v: "Rechazar" },
+            {
+              t: "text",
+              v: " en el correo. La página que se abre dice qué organización lo pide y a dónde va el código. Todavía no pasa nada.",
+            },
+          ],
+          [
+            { t: "text", v: "Presiona " },
+            { t: "strong", v: "Enviarme un código" },
+            {
+              t: "text",
+              v: ". Llega un código de 6 dígitos por correo; funciona durante 10 minutos. Puedes pedir uno nuevo después de un minuto, hasta cinco por hora.",
+            },
+          ],
+          [
+            { t: "text", v: "Ingresa el código y presiona " },
+            { t: "strong", v: "Ver la solicitud" },
+            { t: "text", v: ". Aparecen la solicitud y el paso que espera." },
+          ],
+          [
+            { t: "text", v: "Presiona " },
+            { t: "strong", v: "Aprobar" },
+            { t: "text", v: ", o escribe por qué y presiona " },
+            { t: "strong", v: "Rechazar" },
+            { t: "text", v: ". La página lo confirma y se avisa a la organización." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La página decide solo lo que dice su botón: para rechazar desde un correo de Aprobar, abre su botón ",
+          },
+          { t: "strong", v: "Rechazar" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Cuando no funciona" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Código incorrecto" },
+            {
+              t: "text",
+              v: ": la página dice cuántos intentos quedan. Después de cinco códigos incorrectos entre los dos botones, el enlace se bloquea; inicia sesión para decidir.",
+            },
+          ],
+          [
+            { t: "strong", v: "Ya resuelto" },
+            { t: "text", v: ": alguien decidió el paso, o la organización retiró la solicitud." },
+          ],
+          [
+            { t: "strong", v: "Vencido" },
+            {
+              t: "text",
+              v: ": el enlace dura 7 días. Los recordatorios de la organización traen un enlace nuevo.",
+            },
+          ],
+          [
+            { t: "strong", v: "Correos de aprobación desactivados" },
+            {
+              t: "text",
+              v: ": no se puede enviar un código mientras los correos de aprobación estén desactivados en tu configuración de notificaciones. Inicia sesión para decidir.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si eres miembro de la organización, sus enlaces siempre te piden iniciar sesión, para que se apliquen sus ajustes de seguridad.",
+          },
+        ],
+      },
+    ],
     "company-danger-zone": [
       {
         t: "p",
@@ -4228,8 +4480,14 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los horarios reservados para ti en el muelle: la zona, el inicio y el fin, el número de seguimiento si lo hay, y si es de entrada o de salida.",
+            v: "Los horarios reservados para ti en el muelle: la zona, el inicio y el fin, el número de seguimiento si lo hay, y si es de entrada o de salida. Cuando el proyecto aprueba primero las reservas de ese muelle, el horario también dice ",
           },
+          { t: "strong", v: "En espera de aprobación" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Aprobado" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Rechazado" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "Envíos" },
@@ -5663,14 +5921,35 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
-      { t: "h2", v: "Novedades" },
+      { t: "h2", v: "Para tu información" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Cuando una organización recibe, aprueba, programa o paga una de tus facturas, los últimos pasos aparecen aquí. Los que no has leído se marcan como Nuevo.",
+            v: "Novedades que no te piden nada: una organización recibió, aprobó, programó o pagó una de tus facturas, una coincidencia nueva para una búsqueda guardada, un aviso de que algo vence, un turno o una oferta nuevos. Los que no has leído se marcan como Nuevo, y cada uno abre donde le das seguimiento.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Quita cada uno con " },
+          { t: "strong", v: "Listo" },
+          { t: "text", v: ", o " },
+          { t: "strong", v: "Posponer" },
+          {
+            t: "text",
+            v: " para que vuelva en un día. Con el teclado, selecciona un elemento y presiona ",
+          },
+          { t: "strong", v: "E" },
+          { t: "text", v: " para Listo o " },
+          { t: "strong", v: "H" },
+          { t: "text", v: " para posponerlo; " },
+          { t: "strong", v: "J" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "K" },
+          { t: "text", v: " pasan de un elemento a otro." },
         ],
       },
       { t: "h2", v: "Recomendadas para ti" },
@@ -5690,7 +5969,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "El selector de vista muestra Inicio como un feed, o como una bandeja con solo Te necesita y Novedades.",
+            v: "El selector de vista muestra Inicio como un feed, o como una bandeja con solo Te necesita y Para tu información.",
           },
         ],
       },
@@ -5858,7 +6137,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Cada paso también aparece en Novedades, en Inicio, y te llega por correo o aviso push según lo que elijas en ",
+            v: "Cada paso también aparece en Para tu información, en Inicio, y te llega por correo o aviso push según lo que elijas en ",
           },
           { t: "link", v: "Configuración, Notificaciones", href: "help:settings-notifications" },
           { t: "text", v: "." },

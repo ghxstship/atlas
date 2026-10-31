@@ -1,4 +1,4 @@
--- 1639_notification_kind_seed.test.sql
+-- 2869_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -31,7 +31,8 @@ select set_eq(
   ('import_finished', 'An import finished validating or committing.', true),
   ('dsar_received', 'Acknowledges a data subject request and states its due date.', true),
   ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
-  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false)$$,
+  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
+  ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true)$$,
   'email templates match notification-kinds.yaml');
 
 select set_eq(
@@ -73,6 +74,12 @@ select set_eq(
   ('approval.decided', 'Email', 'approvals', 'notification'),
   ('approval.decided', 'SMS', 'approvals', null::text),
   ('approval.decided', 'Push', 'approvals', null::text),
+  ('approval.reminder', 'In App', 'approvals', null::text),
+  ('approval.reminder', 'Email', 'approvals', 'notification'),
+  ('approval.reminder', 'SMS', 'approvals', null::text),
+  ('approval.reminder', 'Push', 'approvals', null::text),
+  ('approval.link_code', 'In App', 'approvals', null::text),
+  ('approval.link_code', 'Email', 'approvals', 'approval_link_code'),
   ('comment.created', 'In App', 'comments', null::text),
   ('comment.created', 'Email', 'comments', 'notification'),
   ('comment.created', 'SMS', 'comments', null::text),
@@ -258,6 +265,9 @@ select set_eq(
   ('opportunity.matched', 'In App', 'opportunities', null::text),
   ('opportunity.matched', 'Email', 'opportunities', 'notification'),
   ('opportunity.matched', 'Push', 'opportunities', null::text),
+  ('offer.sent', 'In App', 'opportunities', null::text),
+  ('offer.sent', 'Email', 'opportunities', 'notification'),
+  ('offer.sent', 'Push', 'opportunities', null::text),
   ('onboarding.item_expiring', 'In App', 'expiry_reminders', null::text),
   ('onboarding.item_expiring', 'Email', 'expiry_reminders', 'notification'),
   ('onboarding.item_expiring', 'SMS', 'expiry_reminders', null::text),

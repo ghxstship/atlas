@@ -31,6 +31,14 @@
       "decided": {
         "subject": "{title} fue {decision, select, approved {aprobado} other {rechazado}}",
         "body": "{actorName} {decision, select, approved {aprobó} other {rechazó}} {title}."
+      },
+      "reminder": {
+        "subject": "Recordatorio: {title} espera tu decisión",
+        "body": "{title} espera tu decisión desde el {waitingSince, date, medium}. Este es el recordatorio {reminderNumber} de {reminderLimit}."
+      },
+      "link_code": {
+        "subject": "Tu código de acceso de {orgName}",
+        "body": "Tu código de acceso para {title} está en este correo."
       }
     },
     "comment": {
@@ -189,6 +197,12 @@
         "body": "{count, plural, one {{orgName} publicó {title}, que coincide con su búsqueda guardada {searchName}.} other {{orgName} publicó # oportunidades que coinciden con su búsqueda guardada {searchName}, entre ellas {title}.}}"
       }
     },
+    "offer": {
+      "sent": {
+        "subject": "Oferta de {orgName}: {title}",
+        "body": "{orgName} te envió una oferta para {title}. Revisa las condiciones y acéptalas o respóndelas en Gateway."
+      }
+    },
     "onboarding": {
       "item_expiring": {
         "subject": "{title} vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
@@ -297,7 +311,13 @@
     }
   },
   "notification": {
-    "heading": "{subject}"
+    "heading": "{subject}",
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "accept": "Aceptar",
+      "note": "Cada botón abre una página para confirmar. Funciona una vez, durante 7 días."
+    }
   },
   "digest": {
     "subject": "{count, plural, one {# novedad} other {# novedades}} de {orgName}",
@@ -359,5 +379,12 @@
   "deletionCertificate": {
     "subject": "Certificado de eliminación de {org}",
     "body": "Los datos de {org} se eliminaron de XOS el {date}, según el ciclo de vida de la organización.\n\nSe adjunta su certificado de eliminación. Su id es {id}. También puede descargarlo desde Atlas mientras tenga una cuenta.\n\nLas copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario."
+  },
+  "approval_link_code": {
+    "subject": "Tu código para decidir en {orgName}",
+    "heading": "Tu código de acceso",
+    "body": "{orgName} te pidió decidir una aprobación. Ingresa este código en la página que abriste desde el correo de aprobación:",
+    "expiry": "El código funciona durante {minutes} minutos y solo con los enlaces del correo de aprobación que abriste.",
+    "ignore": "Si no pediste un código, ignora este correo. Nada se decide sin el código y el enlace."
   }
 }
