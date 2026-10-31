@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { Constants } from "./database.types.ts";
+import { rangeOrNull, type InstantRange } from "./ranges.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -15,6 +16,14 @@ export type ProjectState = Enums["project_state"];
 export type ProductionState = Enums["production_state"];
 export type ProjectRole = Enums["project_role"];
 export type ScopeKind = Enums["scope_kind"];
+export type EventScale = Enums["event_scale"];
+export type EventAudience = Enums["event_audience"];
+export type DocumentRequirement = Enums["document_requirement"];
+
+/** Scale bands in order (3030): Intimate up to 500 people, then 2,500, 10,000, 50,000 and over. */
+export const EVENT_SCALES: readonly EventScale[] = Constants.app.Enums.event_scale;
+/** Audience bands in order (3030). */
+export const EVENT_AUDIENCES: readonly EventAudience[] = Constants.app.Enums.event_audience;
 
 export interface ProjectSummary {
   readonly id: string;
@@ -37,6 +46,11 @@ export interface ProjectSummary {
   readonly workspaceId: string | null;
   readonly archivedAt: string | null;
   readonly updatedAt: string;
+  /** Event type chosen at intake (B14, 3030); null or absent for an untyped project. */
+  readonly eventTypeId?: string | null;
+  readonly eventTypeName?: string | null;
+  readonly eventScale?: EventScale | null;
+  readonly eventAudience?: EventAudience | null;
 }
 
 export interface ScopeNode {
@@ -144,7 +158,7 @@ export interface Venue {
 }
 
 const PROJECT_COLUMNS =
-  "id, project_key, name, description, currency, project_state, production_state, current_phase_code, jurisdiction_id, region_code, tier_code, time_zone, starts_on, ends_on, venue_id, workspace_id, archived_at, updated_at, venue:venues!projects_venue_id_fkey(name)";
+  "id, project_key, name, description, currency, project_state, production_state, current_phase_code, jurisdiction_id, region_code, tier_code, time_zone, starts_on, ends_on, venue_id, workspace_id, archived_at, updated_at, event_type_id, event_scale, event_audience, venue:venues!projects_venue_id_fkey(name), event_type:event_types!projects_event_type_id_fkey(name)";
 
 interface ProjectRow {
   id: string;
@@ -165,7 +179,11 @@ interface ProjectRow {
   workspace_id: string | null;
   archived_at: string | null;
   updated_at: string;
+  event_type_id: string | null;
+  event_scale: EventScale | null;
+  event_audience: EventAudience | null;
   venue: { name: string } | null;
+  event_type: { name: string } | null;
 }
 
 function toProject(row: ProjectRow): ProjectSummary {
@@ -189,6 +207,10 @@ function toProject(row: ProjectRow): ProjectSummary {
     workspaceId: row.workspace_id,
     archivedAt: row.archived_at,
     updatedAt: row.updated_at,
+    eventTypeId: row.event_type_id,
+    eventTypeName: row.event_type?.name ?? null,
+    eventScale: row.event_scale,
+    eventAudience: row.event_audience,
   };
 }
 
@@ -302,7 +324,12 @@ export async function createProject(
   return ok({ id: data });
 }
 
-export type ProjectPatch = Partial<Omit<ProjectInput, "orgId">>;
+export type ProjectPatch = Partial<Omit<ProjectInput, "orgId">> & {
+  /** Event type and bands (3030): set freely while none is set, changed with projects.settings.write. */
+  readonly eventTypeId?: string | null;
+  readonly eventScale?: EventScale | null;
+  readonly eventAudience?: EventAudience | null;
+};
 
 /** Edits a project's header fields; the database decides who may change the key (0301 guard). */
 export async function updateProject(
@@ -326,6 +353,9 @@ export async function updateProject(
   if (patch.description !== undefined) {
     (update as Record<string, unknown>)["description"] = patch.description?.trim() || null;
   }
+  if (patch.eventTypeId !== undefined) update.event_type_id = patch.eventTypeId;
+  if (patch.eventScale !== undefined) update.event_scale = patch.eventScale;
+  if (patch.eventAudience !== undefined) update.event_audience = patch.eventAudience;
   return writeOne(db.from("projects").update(update).eq("id", projectId).select("id"));
 }
 
@@ -971,4 +1001,119 @@ export async function listCurrencies(db: XosClient): Promise<Result<string[]>> {
     .order("currency_code");
   if (error) return fail(toDataError(error));
   return ok(data.flatMap((r) => (r.currency_code ? [r.currency_code] : [])));
+}
+
+// Setup completeness and site windows (B14) ----------------------------------------------------------
+
+export interface SetupItem {
+  readonly kind: "Document" | "Field";
+  /** The requirement row: a document requirement or an event type field. */
+  readonly requirementId: string;
+  readonly documentTypeId: string | null;
+  readonly customFieldDefinitionId: string | null;
+  readonly label: string;
+  readonly requirement: DocumentRequirement;
+  readonly requiredByGate: number;
+  /** Documents only: live typed documents with a version the viewer sees. */
+  readonly documentsCount: number | null;
+  readonly satisfied: boolean;
+}
+
+/**
+ * What the project's event type asks for and whether each is met (app.project_setup_progress, 3031), documents first
+ * then fields, each in its type's order. Empty for an untyped project and for a viewer who cannot read its documents,
+ * so a missing item is never shown falsely.
+ */
+export async function listSetupProgress(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<SetupItem[]>> {
+  const { data, error } = await db
+    .from("project_setup_progress")
+    .select(
+      "item_kind, requirement_id, document_type_id, custom_field_definition_id, label, requirement, required_by_gate, documents_count, satisfied, sort_order",
+    )
+    .eq("project_id", projectId)
+    .order("item_kind")
+    .order("sort_order");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      kind: r.item_kind === "Field" ? "Field" : "Document",
+      requirementId: r.requirement_id ?? "",
+      documentTypeId: r.document_type_id,
+      customFieldDefinitionId: r.custom_field_definition_id,
+      label: r.label ?? "",
+      requirement: (r.requirement ?? "Required") as DocumentRequirement,
+      requiredByGate: r.required_by_gate ?? 1,
+      documentsCount: r.documents_count,
+      satisfied: r.satisfied === true,
+    })),
+  );
+}
+
+/** How many Required and Recommended items are met, for the progress strips and the Setup card. */
+export function summarizeSetup(items: readonly SetupItem[], kind?: SetupItem["kind"]) {
+  const of = (requirement: DocumentRequirement) => {
+    const rows = items.filter(
+      (i) => i.requirement === requirement && (kind === undefined || i.kind === kind),
+    );
+    return { met: rows.filter((i) => i.satisfied).length, total: rows.length };
+  };
+  return { required: of("Required"), recommended: of("Recommended") };
+}
+
+/** The items a gate still needs: Required ones due at or before it that are not met (3032's rule). */
+export function unmetForGate(items: readonly SetupItem[], gate: number): SetupItem[] {
+  return items.filter(
+    (i) => i.requirement === "Required" && i.requiredByGate <= gate && !i.satisfied,
+  );
+}
+
+export interface SiteWindows {
+  /** From the first Load In day to the day after the last (computed from project days, never stored). */
+  readonly bumpIn: InstantRange | null;
+  readonly bumpOut: InstantRange | null;
+  /** The R7a site window procurement compares hires with; null without procurement.po.read. */
+  readonly siteWindow: InstantRange | null;
+}
+
+/** The project's bump-in, bump-out and site windows (app.project_site_windows, 3033). */
+export async function getSiteWindows(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<SiteWindows>> {
+  const { data, error } = await db
+    .from("project_site_windows")
+    .select("bump_in, bump_out, site_window")
+    .eq("project_id", projectId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  return ok({
+    bumpIn: rangeOrNull(data?.bump_in as string | null | undefined),
+    bumpOut: rangeOrNull(data?.bump_out as string | null | undefined),
+    siteWindow: rangeOrNull(data?.site_window as string | null | undefined),
+  });
+}
+
+export type SiteWindowWarning =
+  | "project_bump_in_after_show"
+  | "project_bump_out_before_show"
+  | "project_bump_windows_overlap"
+  | "project_bump_window_length"
+  | "project_bump_window_dates";
+
+/** Bump day checks against the show dates (app.project_site_window_warnings, 3033); warnings, never refusals. */
+export async function listSiteWindowWarnings(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<{ readonly warning: SiteWindowWarning; readonly dayOn: string | null }[]>> {
+  const { data, error } = await db
+    .from("project_site_window_warnings")
+    .select("warning, day_on")
+    .eq("project_id", projectId);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({ warning: r.warning as SiteWindowWarning, dayOn: r.day_on })),
+  );
 }

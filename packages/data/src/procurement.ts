@@ -1,4 +1,5 @@
 import type { Database, XosClient } from "./client.ts";
+import { parseTstzRange, type InstantRange } from "./ranges.ts";
 import {
   blankToNull,
   deletedNow,
@@ -465,19 +466,7 @@ export interface PoLine {
 }
 
 /** A tstzrange as PostgREST returns it (`["2027-06-01 12:00:00+00","2027-06-05 12:00:00+00")`), split into its bounds. */
-export function parseHirePeriod(value: string | null | undefined): {
-  readonly startsAt: string | null;
-  readonly endsAt: string | null;
-} {
-  const match = value?.match(/^[[(]"?([^",]*)"?,"?([^",]*)"?[\])]$/);
-  if (!match) return { startsAt: null, endsAt: null };
-  const bound = (raw: string | undefined) => {
-    if (!raw) return null;
-    const at = new Date(raw.replace(" ", "T").replace(/([+-]\d\d)$/, "$1:00"));
-    return Number.isNaN(at.getTime()) ? null : at.toISOString();
-  };
-  return { startsAt: bound(match[1]), endsAt: bound(match[2]) };
-}
+export const parseHirePeriod: (value: string | null | undefined) => InstantRange = parseTstzRange;
 
 /** A hire period as a tstzrange literal, start included and end excluded; null unless both bounds are given. */
 export function hirePeriodLiteral(

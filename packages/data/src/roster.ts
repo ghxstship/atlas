@@ -1,6 +1,7 @@
 import { bulkUpdate, sameValueRows, type BulkOutcome } from "./bulk.ts";
 import type { Database, XosClient } from "./client.ts";
 import { Constants, type Json } from "./database.types.ts";
+import { parseTstzRange } from "./ranges.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import {
   parseSharedWorkDetails,
@@ -724,5 +725,93 @@ export async function listRoleOptions(
       roleCode: r.role_code,
       jobTitle: r.job_title,
     })),
+  );
+}
+
+// Reusing a roster from a past event (B14, G-252, migration 3037) ------------------------------------
+
+export interface RosterCopySource {
+  readonly engagementId: string;
+  readonly projectId: string;
+  readonly projectName: string;
+  readonly startsOn: string | null;
+  /** Live entries other than the self entry. */
+  readonly entries: number;
+  /** Of them, unclaimed invitations, which are issued again by email. */
+  readonly invitations: number;
+}
+
+/**
+ * The past engagements whose roster a roster manager can reuse on this one (app.roster_copy_sources): the same
+ * producing org, the same supplying account or artist, rosters the caller manages, newest first. Refused (42501) for
+ * anyone who does not manage this roster.
+ */
+export async function rosterCopySources(
+  db: XosClient,
+  engagementId: string,
+): Promise<Result<RosterCopySource[]>> {
+  const { data, error } = await db.rpc("roster_copy_sources", { p_engagement_id: engagementId });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      engagementId: r.engagement_id,
+      projectId: r.project_id,
+      projectName: r.project_name,
+      startsOn: r.starts_on,
+      entries: r.entries,
+      invitations: r.invitations,
+    })),
+  );
+}
+
+export type RosterCopyOutcome = "copy" | "invite" | "skip";
+export type RosterCopySkipReason =
+  | "roster_person_is_engaged"
+  | "already_on_roster"
+  | "not_in_team"
+  | "already_invited"
+  | "window_dropped";
+
+export interface RosterCopyItem {
+  readonly sourceEntryId: string;
+  /** The person's name, or the address an invitation goes to. */
+  readonly label: string;
+  readonly outcome: RosterCopyOutcome;
+  readonly skipReason: RosterCopySkipReason | null;
+  readonly arrivalStartsAt: string | null;
+  readonly arrivalEndsAt: string | null;
+}
+
+/**
+ * Previews, or with `commit` makes, the reuse of a past engagement's roster (app.copy_roster_from_engagement): team
+ * members as Draft entries each person still accepts, open invitations issued again (one email each, on commit only),
+ * and who is skipped and why. Nothing is submitted.
+ */
+export async function copyRosterFromEngagement(
+  db: XosClient,
+  input: {
+    readonly engagementId: string;
+    readonly sourceEngagementId: string;
+    readonly commit: boolean;
+  },
+): Promise<Result<RosterCopyItem[]>> {
+  const { data, error } = await db.rpc("copy_roster_from_engagement", {
+    p_engagement_id: input.engagementId,
+    p_source_engagement_id: input.sourceEngagementId,
+    p_commit: input.commit,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => {
+      const window = parseTstzRange(r.arrival_window as string | null);
+      return {
+        sourceEntryId: r.source_entry_id,
+        label: r.label ?? "",
+        outcome: r.outcome as RosterCopyOutcome,
+        skipReason: (r.skip_reason ?? null) as RosterCopySkipReason | null,
+        arrivalStartsAt: window.startsAt,
+        arrivalEndsAt: window.endsAt,
+      };
+    }),
   );
 }

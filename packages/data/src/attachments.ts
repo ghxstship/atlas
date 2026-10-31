@@ -1,6 +1,7 @@
 import type { Database, XosClient } from "./client.ts";
 import type { Subject } from "./comments.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Attachments repository (Section 7.3, Section 9 file uploads). Files attach to any subject the caller
@@ -246,4 +247,89 @@ export async function removeAttachment(
   if (error) return fail(toDataError(error));
   if (!data || data.length === 0) return fail({ kind: "not-found" });
   return ok(undefined);
+}
+
+// File version reviews (B14, G-268, migration 3035) ----------------------------------------------------
+
+export type FileReviewDecision = "Approved" | "Changes Requested";
+
+export interface VersionReview {
+  readonly id: string;
+  readonly attachmentVersionId: string;
+  readonly decision: FileReviewDecision;
+  readonly note: string | null;
+  readonly reviewerId: string | null;
+  readonly reviewerName: string | null;
+  readonly reviewedAt: string;
+}
+
+/**
+ * Every review of the versions of the files on a subject, newest first (app.attachment_version_reviews). The latest
+ * review of a version is its decision; a new version starts unreviewed. Reviews are append-only.
+ */
+export async function listVersionReviews(
+  db: XosClient,
+  versionIds: readonly string[],
+): Promise<Result<VersionReview[]>> {
+  if (versionIds.length === 0) return ok([]);
+  const { data, error } = await untyped(db)
+    .from("attachment_version_reviews")
+    .select(
+      "id, attachment_version_id, decision, note, created_by, created_at, reviewer:people!attachment_version_reviews_created_by_fkey(full_name)",
+    )
+    .in("attachment_version_id", [...versionIds])
+    .order("created_at", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (
+      data as unknown as {
+        id: string;
+        attachment_version_id: string;
+        decision: FileReviewDecision;
+        note: string | null;
+        created_by: string | null;
+        created_at: string;
+        reviewer: { full_name: string | null } | null;
+      }[]
+    ).map((r) => ({
+      id: r.id,
+      attachmentVersionId: r.attachment_version_id,
+      decision: r.decision,
+      note: r.note,
+      reviewerId: r.created_by,
+      reviewerName: r.reviewer?.full_name ?? null,
+      reviewedAt: r.created_at,
+    })),
+  );
+}
+
+/** A version's decision: its latest review, or null while unreviewed. */
+export function latestReview(
+  reviews: readonly VersionReview[],
+  versionId: string,
+): VersionReview | null {
+  return reviews.find((r) => r.attachmentVersionId === versionId) ?? null;
+}
+
+/**
+ * Approves a Clean version of a file on a submittal or a record, or asks for changes with a note
+ * (app.review_attachment_version). The uploader never reviews their own version (sod_file_review_uploader).
+ */
+export async function reviewAttachmentVersion(
+  db: XosClient,
+  input: {
+    readonly versionId: string;
+    readonly decision: FileReviewDecision;
+    readonly note?: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await untyped(db).rpc("review_attachment_version", {
+    p_attachment_version_id: input.versionId,
+    p_decision: input.decision,
+    p_note: input.note?.trim() ? input.note.trim() : null,
+  });
+  if (error) return fail(toDataError(error));
+  return typeof data === "string"
+    ? ok({ id: data })
+    : fail({ kind: "unexpected", message: "no review id" });
 }

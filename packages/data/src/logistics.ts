@@ -292,6 +292,36 @@ export interface DockSlot {
   readonly checkedInByName: string | null;
 }
 
+/** A bump window's bounds as ISO instants (B14, 3033); a null bound is open. */
+export interface SiteWindowBounds {
+  readonly startsAt: string | null;
+  readonly endsAt: string | null;
+}
+
+/**
+ * True when a dock slot lies outside both the bump-in and the bump-out windows (B14, G-262): it overlaps neither. A
+ * project without either window raises nothing, and the warning never refuses a slot, as R7a's hire warnings never
+ * refuse a line. Windows are half open, [start, end).
+ */
+export function slotOutsideSiteWindows(
+  slot: { readonly startsAt: string; readonly endsAt: string },
+  windows: { readonly bumpIn: SiteWindowBounds | null; readonly bumpOut: SiteWindowBounds | null },
+): boolean {
+  const present = [windows.bumpIn, windows.bumpOut].filter(
+    (w): w is SiteWindowBounds => w !== null,
+  );
+  if (present.length === 0) return false;
+  const from = Date.parse(slot.startsAt);
+  const to = Date.parse(slot.endsAt);
+  if (Number.isNaN(from) || Number.isNaN(to)) return false;
+  const overlaps = (w: SiteWindowBounds) => {
+    const lower = w.startsAt === null ? -Infinity : Date.parse(w.startsAt);
+    const upper = w.endsAt === null ? Infinity : Date.parse(w.endsAt);
+    return from < upper && to > lower;
+  };
+  return !present.some(overlaps);
+}
+
 export interface GateEntry {
   readonly id: string;
   readonly projectId: string;

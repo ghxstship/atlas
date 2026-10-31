@@ -152,12 +152,18 @@ kinds:
       # 1395 redefines 1030's emitter: an away approver hands over only what their delegation covers.
       - emitter: supabase/migrations/1395_approval_delegation_scope.sql#private.notify_step_approvers
         test: supabase/tests/1395_approval_delegation_scope.test.sql
+      # B14 (3034): a record review asks the named reviewer, with the record's title and key.
+      - emitter: supabase/migrations/3034_record_reviews.sql#app.request_record_review
+        test: supabase/tests/3034_record_reviews.test.sql
   - kind: approval.decided
     category: approvals
     emitted_by:
       # 1395 redefines 1030's emitter; 1030's test observes the decision on every path.
       - emitter: supabase/migrations/1395_approval_delegation_scope.sql#app.decide_approval
         test: supabase/tests/1030_approvals.test.sql
+      # B14 (3034): a record review's decision tells the requester.
+      - emitter: supabase/migrations/3034_record_reviews.sql#app.decide_record_review
+        test: supabase/tests/3034_record_reviews.test.sql
   - kind: comment.created
     category: comments
     emitted_by:
