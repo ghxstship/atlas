@@ -226,6 +226,8 @@
     "sponsor_asset": "un activo de patrocinio",
     "cost_center": "un centro de costos",
     "time_off_request": "una solicitud de tiempo libre",
-    "access_grid": "una entrada de la matriz de acceso"
+    "access_grid": "una entrada de la matriz de acceso",
+    "communication_mark": "una marca de comunicación",
+    "travel_segment": "un tramo de viaje"
   }
 }

@@ -58,6 +58,7 @@ export function RunCollection({
   canCreate,
   create,
   peek,
+  showDay,
 }: {
   org: string;
   /** Today on the org's calendar (A71); an empty timeline starts here. */
@@ -71,6 +72,8 @@ export function RunCollection({
   canCreate: boolean;
   create: ReactNode;
   peek: ReactNode;
+  /** The project Show tab's link to its Show day (B6), with the project and today on its calendar. */
+  showDay?: ReactNode;
 }) {
   const t = useCopy("show");
   const locale = useLocale();
@@ -105,7 +108,14 @@ export function RunCollection({
           />
         ) : undefined
       }
-      actions={canCreate ? create : undefined}
+      actions={
+        canCreate || showDay ? (
+          <>
+            {showDay}
+            {canCreate ? create : null}
+          </>
+        ) : undefined
+      }
     />
   );
   const filters = (

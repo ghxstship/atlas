@@ -149,5 +149,61 @@
     "table": "Tabla",
     "timeline": "Cronograma",
     "calendar": "Calendario"
+  },
+  "showDay": {
+    "changed": "Cambió: {fields}",
+    "day": "Día",
+    "dayNav": "Días",
+    "emptyTitle": "Aún no hay día del show",
+    "go": "Mostrar",
+    "layoutLabel": "Mosaicos del día del show",
+    "markAllSeen": "Marcar todo como visto",
+    "minutes": "{minutes} min",
+    "new": "Nuevo desde su última visita",
+    "nextDay": "Día siguiente",
+    "noProject": "Ninguno de sus proyectos tiene una orden de show todavía. Cree una en Show > Escaleta y su día del show aparece aquí.",
+    "noTime": "Sin hora",
+    "open": "Abrir día del show",
+    "openRunOfShow": "Abrir Escaleta",
+    "previousDay": "Día anterior",
+    "project": "Proyecto",
+    "projectOption": "{key} · {name}",
+    "subtitle": "{project}, {day}",
+    "tiles": {
+      "arrivals": {
+        "arrives": "Llega {time}",
+        "departs": "Sale {time}",
+        "empty": "Nadie llega este día.",
+        "mode": {
+          "Flight": "Vuelo",
+          "Ground": "Terrestre"
+        },
+        "route": "{from} a {to}",
+        "title": "Llegadas"
+      },
+      "hotels": {
+        "checkIns": "Entran: {names}",
+        "checkOuts": "Salen: {names}",
+        "empty": "Nadie se aloja en una habitación reservada esta noche.",
+        "guests": "{count, plural, one {# huésped esta noche} other {# huéspedes esta noche}}",
+        "title": "Hoteles"
+      },
+      "runOfShow": {
+        "empty": "No hay órdenes de show este día.",
+        "nextCue": "Siguiente: {cue} a las {time}",
+        "open": "Abrir la pestaña Show del proyecto",
+        "progress": "{called} de {total} cues llamados",
+        "title": "Órdenes de show"
+      },
+      "sets": {
+        "called": "Llamada {time}",
+        "empty": "No hay horarios de presentación este día. Marque un cue como la presentación de un artista en su orden de show.",
+        "next": "Sigue",
+        "planned": "Prevista",
+        "title": "Presentaciones por escenario"
+      }
+    },
+    "title": "Día del show",
+    "unnamed": "Sin nombre"
   }
 }

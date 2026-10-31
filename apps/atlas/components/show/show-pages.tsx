@@ -11,10 +11,13 @@ import {
   listRunsOfShow,
 } from "@xos/data/show";
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
+import { todayIn } from "@xos/data/calendar";
+import { ButtonLink } from "@/components/ui";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
+import { RecordHistory } from "@/components/history/record-history";
 import {
   capabilitySet,
   loadRecordMeta,
@@ -43,17 +46,20 @@ async function collab(ctx: OrgContext, meta: RecordMeta, subject: Subject): Prom
     listAttachments(db, subject),
   ]);
   return (
-    <CollabPanels
-      org={ctx.org.slug}
-      subject={subject}
-      threads={must(threads, "comments")}
-      attachments={must(attachments, "attachments")}
-      names={Object.fromEntries(
-        meta.people.map((p) => [p.personId, p.name ?? t("work.values.unnamed")]),
-      )}
-      me={ctx.viewer.person?.id ?? null}
-      canPost
-    />
+    <>
+      <RecordHistory db={db} table={subject.table} id={subject.id} />
+      <CollabPanels
+        org={ctx.org.slug}
+        subject={subject}
+        threads={must(threads, "comments")}
+        attachments={must(attachments, "attachments")}
+        names={Object.fromEntries(
+          meta.people.map((p) => [p.personId, p.name ?? t("work.values.unnamed")]),
+        )}
+        me={ctx.viewer.person?.id ?? null}
+        canPost
+      />
+    </>
   );
 }
 
@@ -167,6 +173,18 @@ export async function RunsPage({
         />
       }
       peek={collectionPeek(peekId, peek)}
+      {...(project
+        ? {
+            showDay: (
+              <ButtonLink
+                href={`/${ctx.org.slug}/show/show-day?project=${encodeURIComponent(project.key)}&day=${todayIn(project.timeZone)}`}
+                size="sm"
+              >
+                {t("show.showDay.open")}
+              </ButtonLink>
+            ),
+          }
+        : {})}
     />
   );
 }

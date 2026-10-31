@@ -25,6 +25,43 @@
     "actions": "To submit, upload or reply, open this engagement in Gateway.",
     "time": "To correct your time, open this engagement in Gateway."
   },
+  "itinerary": {
+    "changed": "Changed",
+    "changedSentence": "Changed since you last looked: {fields}.",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "day": "{date}",
+    "fields": {
+      "arrives_at": "Arrival",
+      "arrives_at_place": "Arrival place",
+      "arrives_time_zone": "Arrival time zone",
+      "check_in_on": "Check-in",
+      "check_out_on": "Check-out",
+      "confirmation_identifier": "Confirmation",
+      "departs_at": "Departure",
+      "departs_from": "Departure place",
+      "departs_time_zone": "Departure time zone",
+      "duration": "Length",
+      "hotel": "Hotel",
+      "label": "Name",
+      "operator_name": "Operator",
+      "planned_at": "Time",
+      "service_identifier": "Flight or service number",
+      "travel_mode": "Mode"
+    },
+    "firstVisit": "From your next visit, changes to your stay are marked here.",
+    "markAllSeen": "Mark all as seen",
+    "new": "New",
+    "newSentence": "New since you last looked.",
+    "removedKind": {
+      "lodging": "Room removed",
+      "set": "Set time removed",
+      "travel": "Trip removed"
+    },
+    "removedTitle": "Removed since you last looked",
+    "set": "Set",
+    "title": "Your stay"
+  },
   "lodging": {
     "title": "Lodging"
   },

@@ -25,6 +25,43 @@
     "actions": "Para enviar, subir o responder, abre esta contratación en Gateway.",
     "time": "Para corregir tu tiempo, abre esta contratación en Gateway."
   },
+  "itinerary": {
+    "changed": "Cambió",
+    "changedSentence": "Cambió desde tu última visita: {fields}.",
+    "checkIn": "Entrada al hotel",
+    "checkOut": "Salida del hotel",
+    "day": "{date}",
+    "fields": {
+      "arrives_at": "Llegada",
+      "arrives_at_place": "Lugar de llegada",
+      "arrives_time_zone": "Zona horaria de llegada",
+      "check_in_on": "Entrada",
+      "check_out_on": "Salida del hotel",
+      "confirmation_identifier": "Confirmación",
+      "departs_at": "Salida",
+      "departs_from": "Lugar de salida",
+      "departs_time_zone": "Zona horaria de salida",
+      "duration": "Duración",
+      "hotel": "Hotel",
+      "label": "Nombre",
+      "operator_name": "Operador",
+      "planned_at": "Hora",
+      "service_identifier": "Número de vuelo o servicio",
+      "travel_mode": "Medio"
+    },
+    "firstVisit": "A partir de tu próxima visita, los cambios en tu estadía se marcan aquí.",
+    "markAllSeen": "Marcar todo como visto",
+    "new": "Nuevo",
+    "newSentence": "Nuevo desde tu última visita.",
+    "removedKind": {
+      "lodging": "Habitación eliminada",
+      "set": "Horario de presentación eliminado",
+      "travel": "Viaje eliminado"
+    },
+    "removedTitle": "Eliminado desde tu última visita",
+    "set": "Presentación",
+    "title": "Tu estadía"
+  },
   "lodging": {
     "title": "Alojamiento"
   },

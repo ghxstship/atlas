@@ -374,6 +374,11 @@ nodes:
             label: nav.atlas.pages.show.callSheets
             route: "/{org}/show/call-sheets"
             list: { views: [list, table, calendar], default: list }
+          # B6 (G-179): one project's show day on the Dashboard template: sets by stage, run of show, arrivals, hotels.
+          - id: show.show-day
+            kind: page
+            label: nav.atlas.pages.show.showDay
+            route: "/{org}/show/show-day"
       - id: advancing
         kind: item
         label: nav.atlas.items.advancing
@@ -401,6 +406,16 @@ nodes:
             label: nav.atlas.pages.advancing.reconciliation
             route: "/{org}/advancing/reconciliation"
             list: { views: [table, matrix], default: table }
+          - id: advancing.crew
+            kind: page
+            label: nav.atlas.pages.advancing.crew
+            route: "/{org}/advancing/crew"
+            list: { views: [list, table], default: list }
+          - id: advancing.allocations
+            kind: page
+            label: nav.atlas.pages.advancing.allocations
+            route: "/{org}/advancing/allocations"
+            list: { views: [list, table, matrix], default: list }
   - id: group.operations
     kind: group
     label: nav.atlas.groups.operations

@@ -51,6 +51,7 @@ engagementTabs:
         - engagement.deliveries
         - engagement.submittals
         - engagement.advance
+        - engagement.crew
         - engagement.credentials
         - engagement.invoices
         - engagement.compliance
@@ -61,6 +62,7 @@ engagementTabs:
         - engagement.overview
         - engagement.scope
         - engagement.deliverables
+        - engagement.crew
         - engagement.time
         - engagement.invoices
         - engagement.documents
@@ -70,6 +72,7 @@ engagementTabs:
         - engagement.overview
         - engagement.offer
         - engagement.onboarding
+        - engagement.project-details
         - engagement.shifts
         - engagement.timesheets
         - engagement.invoices
@@ -83,6 +86,8 @@ engagementTabs:
         - engagement.overview
         - engagement.offer
         - engagement.onboarding
+        - engagement.project-details
+        - engagement.crew
         - engagement.training
         - engagement.positions
         - engagement.shifts
@@ -96,6 +101,8 @@ engagementTabs:
         - engagement.overview
         - engagement.offer
         - engagement.advance
+        - engagement.crew
+        - engagement.project-details
         - engagement.rider
         - engagement.set-times
         - engagement.hospitality
@@ -112,6 +119,8 @@ engagementTabs:
         offers: [engagement.offer]
         advance:
           - engagement.advance
+          - engagement.crew
+          - engagement.project-details
           - engagement.rider
           - engagement.set-times
           - engagement.hospitality
@@ -125,8 +134,20 @@ engagementTabs:
         - engagement.entitlements
         - engagement.asset-approvals
         - engagement.activation-schedule
+        - engagement.crew
         - engagement.proof-of-performance
         - engagement.invoices
+        - engagement.documents
+        - engagement.messages
+    # A person who reaches an engagement only through an Accepted roster entry (R8, ADR 0100): their own
+    # badge, travel, lodging and per diem, never a colleague's.
+    roster-member:
+      tabs:
+        - engagement.overview
+        - engagement.project-details
+        - engagement.credentials
+        - engagement.travel-and-lodging
+        - engagement.per-diem
         - engagement.documents
         - engagement.messages
 nodes:
@@ -233,6 +254,11 @@ nodes:
                 kind: tab
                 label: nav.gateway.engagementTabs.onboarding
                 route: "/work/engagements/{engagementKey}/onboarding"
+              - id: engagement.project-details
+                kind: tab
+                label: nav.gateway.engagementTabs.projectDetails
+                route: "/work/engagements/{engagementKey}/project-details"
+                conditions: [offered-project-facts]
               - id: engagement.training
                 kind: tab
                 label: nav.gateway.engagementTabs.training
@@ -317,6 +343,12 @@ nodes:
                 kind: tab
                 label: nav.gateway.engagementTabs.advance
                 route: "/work/engagements/{engagementKey}/advance"
+              - id: engagement.crew
+                kind: tab
+                label: nav.gateway.engagementTabs.crew
+                route: "/work/engagements/{engagementKey}/crew"
+                conditions: [roster-manager]
+                list: { views: [list], default: list }
               - id: engagement.rider
                 kind: tab
                 label: nav.gateway.engagementTabs.rider

@@ -64,6 +64,9 @@ import { FilterSelect } from "./views-filter-select";
 // The table and calendar views and the drawers render only in some states (A24-009).
 import { DrawerForm, PeekCalendar, PeekTable, ShiftQuickAdd } from "./lazy";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { listCommunicationStatus, type CommunicationStatus } from "@xos/data/change-tracking";
+import { markCommunicatedAction } from "@/app/[org]/crew/actions";
+import { CommunicationSection, toldTag } from "./shift-communication";
 
 /**
  * Shifts in every view the registry offers (resource schedule, list, table, calendar), for the org
@@ -119,8 +122,34 @@ export async function ShiftsCollection(props: {
     ...(stateFilter ? { states: [stateFilter as Shift["state"]] } : {}),
   });
   if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
-  const shifts = result.data;
   const canWrite = crew.can("crew.shift.write");
+  // Needs review (B6, 2951): for writers, whether the people on the live staffed shifts still to come
+  // were told of their changes. The month calendar can list more than 500, so the data layer chunks.
+  const nowMs = new Date().getTime();
+  const communication = canWrite
+    ? await listCommunicationStatus(
+        db,
+        result.data
+          .filter((s) => s.member !== null && Date.parse(s.endsAt) > nowMs)
+          .map((s) => s.id),
+      )
+    : null;
+  if (communication && !communication.ok) {
+    throw new Error(`Cannot read communication status: ${communication.error.kind}`);
+  }
+  const told: ReadonlyMap<string, CommunicationStatus> = communication?.ok
+    ? communication.data
+    : new Map();
+  const reviewFilter = canWrite && search["review"] === "needs";
+  const shifts = reviewFilter
+    ? result.data.filter((s) => told.get(s.id)?.needsReview === true)
+    : result.data;
+  const needingReview = result.data.filter((s) => told.get(s.id)?.needsReview === true);
+  /** The status of a staffed shift the viewer writes; undefined otherwise. */
+  const communicationOf = (id: string): CommunicationStatus | undefined => {
+    const status = told.get(id);
+    return status?.personId ? status : undefined;
+  };
   const drafts = shifts.filter((s) => s.state === "Draft");
 
   const rules = new Map<string, number | null>();
@@ -342,6 +371,17 @@ export async function ShiftsCollection(props: {
               {t("crew.claims.waiting")}
             </p>
           ) : null}
+          {canWrite && communicationOf(s.id) ? (
+            <CommunicationSection
+              status={communicationOf(s.id) as CommunicationStatus}
+              org={crew.slug}
+              shiftId={s.id}
+              t={t}
+              when={(iso) =>
+                format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" })
+              }
+            />
+          ) : null}
           {canWrite && waiting.length > 0 ? (
             <section aria-labelledby="shift-claims" className="flex flex-col gap-8">
               <h2 id="shift-claims" className="m-0 text-text-13 font-semibold">
@@ -538,6 +578,17 @@ export async function ShiftsCollection(props: {
           hidden={{ org: crew.slug, ids: drafts.map((d) => d.id).join(",") }}
         />
       ) : null}
+      {reviewFilter && needingReview.length > 0 ? (
+        <ConfirmButton
+          label={t("crew.communication.markAll", { count: needingReview.length })}
+          title={t("crew.communication.markAllTitle", { count: needingReview.length })}
+          description={t("crew.communication.markHelp")}
+          defaultReason={t("crew.communication.markReason")}
+          action={markCommunicatedAction}
+          hidden={{ org: crew.slug, ids: needingReview.map((s) => s.id).join(",") }}
+          variant="primary"
+        />
+      ) : null}
       {projects.length > 0 ? (
         <ButtonLink href={withParams(base, search, { create: "1" })} variant="primary" size="sm">
           {t("crew.shifts.create")}
@@ -613,8 +664,34 @@ export async function ShiftsCollection(props: {
           })),
         ]}
       />
+      {canWrite ? (
+        <FilterSelect
+          name="review"
+          label={t("crew.communication.filter.label")}
+          value={reviewFilter ? "needs" : ""}
+          options={[
+            { value: "", label: t("crew.communication.filter.all") },
+            { value: "needs", label: t("crew.communication.filter.needs") },
+          ]}
+        />
+      ) : null}
     </>
   );
+
+  // The Told column: Needs review in the warning tone, Told, or Not told yet; empty for a shift without a status.
+  const toldCell = (id: string) => {
+    const tag = toldTag(told.get(id), t);
+    return tag
+      ? {
+          state: tag.needsReview
+            ? ("in-review" as const)
+            : told.get(id)?.toldAt
+              ? ("complete" as const)
+              : ("proposed" as const),
+          label: tag.label,
+        }
+      : { state: "proposed" as const, label: t("crew.communication.nobody") };
+  };
 
   let body;
   if (shifts.length === 0) {
@@ -653,6 +730,14 @@ export async function ShiftsCollection(props: {
         peekHref={peekHref}
         label={t("crew.shifts.gridLabel")}
         overtimeHours={rules}
+        notes={
+          new Map(
+            shifts.flatMap((s) => {
+              const tag = toldTag(told.get(s.id), t);
+              return tag?.needsReview ? [[s.id, t("crew.communication.needsReview")] as const] : [];
+            }),
+          )
+        }
       />
     );
   } else if (view === "calendar") {
@@ -663,7 +748,7 @@ export async function ShiftsCollection(props: {
         events={shifts.map((s) => ({
           id: s.id,
           date: dayIn(s.startsAt, shown(s)),
-          label: `${format.dateTime(new Date(s.startsAt), { timeZone: shown(s), hour: "numeric", minute: "2-digit", timeZoneName: "short" })} ${personName(s)}`,
+          label: `${format.dateTime(new Date(s.startsAt), { timeZone: shown(s), hour: "numeric", minute: "2-digit", timeZoneName: "short" })} ${personName(s)}${told.get(s.id)?.needsReview ? ` · ${t("crew.communication.needsReview")}` : ""}`,
           state: stateIcon("shift", s.state),
           preview: preview(s),
         }))}
@@ -680,6 +765,9 @@ export async function ShiftsCollection(props: {
           { key: "when", label: t("crew.fields.when"), wrap: true },
           { key: "hours", label: t("crew.fields.hours"), type: "number" },
           { key: "state", label: t("crew.fields.state"), type: "state" },
+          ...(canWrite
+            ? [{ key: "told", label: t("crew.communication.column"), type: "state" as const }]
+            : []),
         ]}
         rows={shifts.map((s) => ({
           id: s.id,
@@ -690,6 +778,7 @@ export async function ShiftsCollection(props: {
           when: when(s),
           hours: hoursFromMinutes(shiftMinutes(s)),
           state: { state: stateIcon("shift", s.state), label: t(`crew.states.shift.${s.state}`) },
+          ...(canWrite ? { told: toldCell(s.id) } : {}),
           preview: preview(s),
         }))}
         bulk={
@@ -744,7 +833,18 @@ export async function ShiftsCollection(props: {
                   {t("crew.common.pair", { a: s.projectKey, b: when(s) })}
                 </span>
               </span>
-              <span className="text-text-12 text-text-secondary">
+              <span className="flex flex-wrap items-center gap-6 text-text-12 text-text-secondary">
+                {toldTag(told.get(s.id), t) ? (
+                  <span
+                    className={
+                      toldTag(told.get(s.id), t)?.needsReview
+                        ? "rounded-chip bg-bg-hover px-6 py-2 font-medium text-warning-text"
+                        : "rounded-chip bg-bg-hover px-6 py-2"
+                    }
+                  >
+                    {toldTag(told.get(s.id), t)?.label}
+                  </span>
+                ) : null}
                 {t(`crew.states.shift.${s.state}`)}
               </span>
             </Link>

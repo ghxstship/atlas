@@ -34,6 +34,8 @@ const engagement = (over: Partial<EngagementSummary>): EngagementSummary => ({
   projectName: "Northwind Summer Series",
   roleType: "crew",
   state: "Active",
+  via: "engagement",
+  rosterEntryId: null,
   ...over,
 });
 
@@ -109,6 +111,41 @@ const TABLES: Readonly<Record<string, readonly Row[]>> = {
       hotel_name: "Harbor Inn",
       person_id: "someone-else",
       check_in_on: "2027-06-09",
+    }),
+  ],
+  itinerary_changes: [
+    r("travel:tr-1:e-crew", {
+      subject_kind: "travel",
+      subject_id: "tr-1",
+      engagement_id: "e-crew",
+      project_id: PROJECT,
+      change_kind: "changed",
+      changed_fields: ["departs_at"],
+      changed_at: "2027-06-08T15:00:00Z",
+      baseline_at: "2027-06-07T12:00:00Z",
+      title: null,
+    }),
+    r("lodging:lo-1:e-crew", {
+      subject_kind: "lodging",
+      subject_id: "lo-1",
+      engagement_id: "e-crew",
+      project_id: PROJECT,
+      change_kind: "added",
+      changed_fields: [],
+      changed_at: "2027-06-08T16:00:00Z",
+      baseline_at: "2027-06-07T12:00:00Z",
+      title: null,
+    }),
+    r("travel:tr-gone:e-crew", {
+      subject_kind: "travel",
+      subject_id: "tr-gone",
+      engagement_id: "e-crew",
+      project_id: PROJECT,
+      change_kind: "removed",
+      changed_fields: [],
+      changed_at: "2027-06-08T17:00:00Z",
+      baseline_at: "2027-06-07T12:00:00Z",
+      title: "MIA → JFK",
     }),
   ],
   onboarding_items: [
@@ -335,6 +372,8 @@ const input: PageInput = {
 const build = (id: ExternalPageId) => EXTERNAL_PAGES[id].build(input);
 const items = (sections: readonly ExternalSection[], id: string) =>
   sections.find((s) => s.id === id)?.items ?? [];
+/** Every item of a page, across its day sections. */
+const allItems = (sections: readonly ExternalSection[]) => sections.flatMap((s) => s.items);
 const instants = (item: ExternalItem | undefined) =>
   (item?.facts ?? []).filter((f): f is Extract<Fact, { kind: "instant" }> => f.kind === "instant");
 
@@ -343,7 +382,13 @@ describe("the external More screens are native (A65-011 part 2)", () => {
     for (const audience of EXTERNAL_AUDIENCES) {
       for (const entry of moreMenu(audience)) {
         expect(NATIVE_MORE.has(entry.id), `${audience} ${entry.id}`).toBe(true);
-        if (["offline-queue", "profile", "settings", "run-of-show"].includes(entry.id)) continue;
+        // Project details (R5) reads online only, so it is a screen of its own and never an offline external page.
+        if (
+          ["offline-queue", "profile", "settings", "run-of-show", "project-details"].includes(
+            entry.id,
+          )
+        )
+          continue;
         expect(isExternalPage(entry.id), entry.id).toBe(true);
         expect(EXTERNAL_PAGES[entry.id as ExternalPageId].audiences, entry.id).toContain(audience);
       }
@@ -394,7 +439,7 @@ describe("dates on the right calendar (A71)", () => {
 
   it("shows calendar dates as written and instants in the zone of their place", () => {
     expect(formatCalendarDay("2027-06-10", "en-US")).toBe("Thu, Jun 10");
-    const flight = items(build("travel-and-lodging"), "travel")[0];
+    const flight = allItems(build("travel-and-lodging")).find((i) => i.id === "tr-1");
     expect(instants(flight).map((f) => f.zone)).toEqual([
       "America/Los_Angeles",
       "America/New_York",
@@ -433,10 +478,63 @@ describe("dates on the right calendar (A71)", () => {
   });
 });
 
+describe("travel and lodging as an itinerary (B6)", () => {
+  it("builds a section per day, in order, with the check-in and check-out on their dates", () => {
+    const sections = build("travel-and-lodging");
+    expect(sections.map((s) => s.id)).toEqual(["day-2027-06-09", "day-2027-06-12", "removed"]);
+    expect(sections[0]?.titleKey).toBe("compassExternal.itinerary.day");
+    expect(sections[0]?.day).toBe("2027-06-09");
+    // The 9:00 departure from Los Angeles comes before the afternoon check-in in Miami.
+    expect(sections[0]?.items.map((i) => i.id)).toEqual(["tr-1", "check-in-lo-1"]);
+    expect(sections[1]?.items.map((i) => i.id)).toEqual(["check-out-lo-1"]);
+  });
+
+  it("marks the moved flight Changed and the new room New, and lists what was removed", () => {
+    const all = allItems(build("travel-and-lodging"));
+    expect(all.find((i) => i.id === "tr-1")?.changed).toEqual({
+      kind: "changed",
+      fields: ["departs_at"],
+    });
+    expect(all.find((i) => i.id === "check-in-lo-1")?.changed?.kind).toBe("added");
+    const removed = items(build("travel-and-lodging"), "removed");
+    expect(removed.map((i) => i.title)).toEqual(["MIA → JFK"]);
+    expect(removed[0]?.facts).toEqual([
+      { kind: "label", key: "compassExternal.itinerary.removedKind.travel" },
+    ]);
+  });
+
+  it("hides changes at or before the baseline the visit returned", () => {
+    const seen = EXTERNAL_PAGES["travel-and-lodging"].build({
+      ...input,
+      seenBaseline: "2027-06-08T16:00:00Z",
+    });
+    const all = allItems(seen);
+    expect(all.find((i) => i.id === "tr-1")?.changed).toBeUndefined();
+    expect(all.find((i) => i.id === "check-in-lo-1")?.changed).toBeUndefined();
+    expect(items(seen, "removed").map((i) => i.title)).toEqual(["MIA → JFK"]);
+  });
+
+  it("downloads the changes for crew and staff, by engagement", () => {
+    expect(TABLE_RULES.find((t) => t.table === "itinerary_changes")?.anyOf).toEqual([
+      {
+        column: "engagement_id",
+        key: "engagementIds",
+        audiences: ["crew", "staff"],
+        restOnly: true,
+      },
+    ]);
+    expect(EXTERNAL_PAGES["travel-and-lodging"].tables).toContain("itinerary_changes");
+  });
+});
+
 describe("each page", () => {
   it("keeps to the current project and to the person's own rows", () => {
     expect(items(build("timesheets"), "timesheets").map((i) => i.id)).toEqual(["ts-1"]);
-    expect(items(build("travel-and-lodging"), "lodging").map((i) => i.id)).toEqual(["lo-1"]);
+    expect(
+      allItems(build("travel-and-lodging"))
+        .filter((i) => i.icon === "bed-double")
+        .map((i) => i.id),
+    ).toEqual(["check-in-lo-1"]);
     expect(items(build("time-entries"), "time-entries").map((i) => i.id)).toEqual(["te-1"]);
     expect(items(build("submittals"), "submittals").map((i) => i.id)).toEqual(["rec-1"]);
   });
@@ -489,7 +587,7 @@ describe("each page", () => {
   it("reads each fact as words, a label joined to its value", () => {
     const t = (key: string, values: Readonly<Record<string, string | number>>) =>
       `${key}${Object.keys(values).length ? JSON.stringify(values) : ""}`;
-    const flight = items(build("travel-and-lodging"), "travel")[0];
+    const flight = allItems(build("travel-and-lodging")).find((i) => i.id === "tr-1");
     const words = factsText(flight?.facts ?? [], t, "en-US", "America/New_York");
     expect(words).toEqual([
       "Coastal Air CA 210",

@@ -497,6 +497,12 @@ export const sitemap: Sitemap = {
               route: "/{org}/show/call-sheets",
               list: { views: ["list", "table", "calendar"], default: "list" },
             },
+            {
+              id: "show.show-day",
+              kind: "page",
+              label: "nav.atlas.pages.show.showDay",
+              route: "/{org}/show/show-day",
+            },
           ],
         },
         {
@@ -534,6 +540,20 @@ export const sitemap: Sitemap = {
               label: "nav.atlas.pages.advancing.reconciliation",
               route: "/{org}/advancing/reconciliation",
               list: { views: ["table", "matrix"], default: "table" },
+            },
+            {
+              id: "advancing.crew",
+              kind: "page",
+              label: "nav.atlas.pages.advancing.crew",
+              route: "/{org}/advancing/crew",
+              list: { views: ["list", "table"], default: "list" },
+            },
+            {
+              id: "advancing.allocations",
+              kind: "page",
+              label: "nav.atlas.pages.advancing.allocations",
+              route: "/{org}/advancing/allocations",
+              list: { views: ["list", "table", "matrix"], default: "list" },
             },
           ],
         },

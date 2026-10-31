@@ -52,6 +52,7 @@ import {
   type ShiftState,
   type TimeOffState,
 } from "@xos/data/crew";
+import { markCommunicated } from "@xos/data/change-tracking";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -157,6 +158,30 @@ export async function updateShiftAction(_: State, form: FormData): Promise<State
     timeZone: times.zone,
     membershipId: member === "" ? null : member,
   });
+  return done(ctx.org.slug, result, t);
+}
+
+/**
+ * Mark as communicated (B6, G-120): one communication mark per shift for the person on it now, all
+ * or nothing (app.mark_communicated, 2951). The reason field is the note on how they were told.
+ */
+export async function markCommunicatedAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const ids = text(form, "ids")
+    .split(",")
+    .filter((s) => uuid.safeParse(s).success);
+  const note = text(form, "reason").trim();
+  if (note.length > 300) return invalid(t, { reason: "crew.errors.communication_note_length" });
+  if (ids.length === 0) return { error: t("crew.errors.communication_no_assignee") };
+  const result = await markCommunicated(db, ids, note === "" ? null : note);
+  if (
+    !result.ok &&
+    result.error.kind === "refusal" &&
+    (result.error.rule === "communication_no_assignee" ||
+      result.error.rule === "communication_too_many")
+  ) {
+    return { error: t(`crew.errors.${result.error.rule}`), rule: result.error.rule };
+  }
   return done(ctx.org.slug, result, t);
 }
 

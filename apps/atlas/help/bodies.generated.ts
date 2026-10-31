@@ -66,6 +66,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
+      { t: "h2", v: "Allocations" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Allocations say what each party and person is given for a production: badges, parking passes, radios and carts, catering, rooms, trips and per diems. A coordinator requests one for a party's pool or for one person; a reviewer who did not request it approves or declines it. Approving equipment holds it from class stock, a lot or the order it arrives on, and the dialog shows how many are available for those dates and how much of the allowance remains. Split a party's pool to its people, then issue each item: issuing confirms the person has it. The status reads held, ordered, received, issued and returned from the rows that record them. Holds that no longer fit what can supply them show in a banner. Radio allocations take channels, and Print radio hand-out gives the sheet people sign.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -267,6 +287,26 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Shifts open as a resource schedule in Atlas, with people down the side and time across. Publish shifts so crew can accept them in Compass. Swaps between crew members need approval.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS tells the person on a published shift when it is assigned to them and when its times move. Other changes, such as a new role, a cancellation or a return to Draft, are not announced, so the shift shows ",
+          },
+          { t: "strong", v: "Needs review" },
+          {
+            t: "text",
+            v: " with the number of changes since the person was told. The shift's peek shows how and when they were last told (by notification, by accepting the shift, or by your mark) and what changed since. After you tell them, choose ",
+          },
+          { t: "strong", v: "Mark as communicated" },
+          { t: "text", v: "; with " },
+          { t: "strong", v: "Review" },
+          { t: "text", v: " set to " },
+          { t: "strong", v: "Needs review" },
+          { t: "text", v: ", you can mark every listed shift at once." },
         ],
       },
       {
@@ -657,7 +697,33 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Today lists the records assigned to you or waiting on your decision, ordered by when they are due. Use ",
+            v: "Today is a dashboard of tiles you can widen or narrow; it keeps your layout. ",
+          },
+          { t: "strong", v: "Doors" },
+          {
+            t: "text",
+            v: " counts down to the next doors of an event in the next 14 days, in its project's time zone. ",
+          },
+          { t: "strong", v: "Waiting for your approval" },
+          {
+            t: "text",
+            v: " counts the approvals your Inbox asks you to decide and lists the first five. ",
+          },
+          { t: "strong", v: "Since your last visit" },
+          {
+            t: "text",
+            v: " names what others changed on the records you are assigned to or watch and on your shifts, and who changed it; a visit lasts 30 minutes, so refreshing keeps the list, and ",
+          },
+          { t: "strong", v: "Mark all as seen" },
+          { t: "text", v: " clears it. It starts from your second visit." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Below the tiles, the day's work lists the records assigned to you or waiting on your decision, ordered by when they are due. Use ",
           },
           { t: "strong", v: "J" },
           { t: "text", v: " and " },
@@ -1991,6 +2057,37 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Show day" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Show day puts one project's show day on one page. Pick the project and the day, or step a day back or forward. ",
+          },
+          { t: "strong", v: "Sets by stage" },
+          {
+            t: "text",
+            v: " lists each artist's set with its time and length, what has been called and what is up next. ",
+          },
+          { t: "strong", v: "Run of show" },
+          { t: "text", v: " shows how many cues each running order has called and the next one. " },
+          { t: "strong", v: "Arrivals" },
+          { t: "text", v: " lists who lands that day, in the arrival's own time zone, and " },
+          { t: "strong", v: "Hotels" },
+          {
+            t: "text",
+            v: " who sleeps where that night and who checks in or out; both need access to hospitality. Anything changed since you last looked carries a tag naming what changed, and ",
+          },
+          { t: "strong", v: "Mark all as seen" },
+          {
+            t: "text",
+            v: " clears the tags. The page updates live as cues are called. From a project's Show tab, ",
+          },
+          { t: "strong", v: "Open show day" },
+          { t: "text", v: " opens today's." },
+        ],
+      },
     ],
     "site-operations": [
       { t: "h2", v: "Occupancy" },
@@ -2275,6 +2372,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Asignaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
+          },
+        ],
+      },
     ],
     assets: [
       { t: "h2", v: "Clases, unidades y lotes" },
@@ -2472,6 +2589,26 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Los turnos se abren como un programa de recursos en Atlas, con personas a un lado y el tiempo a lo largo. Publique turnos para que el equipo los acepte en Compass. Los intercambios requieren aprobación.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS avisa a la persona de un turno publicado cuando se le asigna y cuando cambian sus horas. Otros cambios, como un rol nuevo, una cancelación o la vuelta a Borrador, no se anuncian, así que el turno muestra ",
+          },
+          { t: "strong", v: "Requiere revisión" },
+          {
+            t: "text",
+            v: " con el número de cambios desde el aviso. La vista rápida del turno muestra cómo y cuándo se le avisó por última vez (por notificación, al aceptar el turno o con su marca) y qué cambió desde entonces. Después de avisarle, elija ",
+          },
+          { t: "strong", v: "Marcar como comunicado" },
+          { t: "text", v: "; con " },
+          { t: "strong", v: "Revisión" },
+          { t: "text", v: " en " },
+          { t: "strong", v: "Requiere revisión" },
+          { t: "text", v: ", puede marcar todos los turnos de la lista a la vez." },
         ],
       },
       {
@@ -2879,7 +3016,28 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hoy muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use ",
+            v: "Hoy es un tablero de mosaicos que puede ensanchar o estrechar; conserva su diseño. El primer mosaico cuenta el tiempo hasta la próxima apertura de un evento en los próximos 14 días, en la zona horaria de su proyecto. ",
+          },
+          { t: "strong", v: "Esperan tu aprobación" },
+          {
+            t: "text",
+            v: " cuenta las aprobaciones que su Bandeja de entrada le pide decidir y muestra las cinco primeras. ",
+          },
+          { t: "strong", v: "Desde tu última visita" },
+          {
+            t: "text",
+            v: " nombra lo que otros cambiaron en los registros que tiene asignados o sigue y en sus turnos, y quién lo cambió; una visita dura 30 minutos, así que al actualizar la lista se mantiene, y ",
+          },
+          { t: "strong", v: "Marcar todo como visto" },
+          { t: "text", v: " la vacía. Empieza a partir de su segunda visita." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Debajo de los mosaicos, el trabajo del día muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use ",
           },
           { t: "strong", v: "J" },
           { t: "text", v: " y " },
@@ -4166,6 +4324,37 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Una hoja de llamado indica a cada persona cuándo y dónde presentarse. Se basa en el horario del equipo, así que los cambios de turnos aparecen en la siguiente versión publicada.",
           },
+        ],
+      },
+      { t: "h2", v: "Día del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El día del show reúne en una página el día de show de un proyecto. Elija el proyecto y el día, o avance o retroceda un día. ",
+          },
+          { t: "strong", v: "Presentaciones por escenario" },
+          {
+            t: "text",
+            v: " muestra la presentación de cada artista con su hora y duración, lo que ya se llamó y lo que sigue. ",
+          },
+          { t: "strong", v: "Órdenes de show" },
+          { t: "text", v: " muestra cuántos cues llamó cada orden de show y el siguiente. " },
+          { t: "strong", v: "Llegadas" },
+          { t: "text", v: " muestra quién llega ese día, en la zona horaria de su llegada, y " },
+          { t: "strong", v: "Hoteles" },
+          {
+            t: "text",
+            v: " quién duerme dónde esa noche y quién entra o sale; ambos requieren acceso a hospitalidad. Lo que cambió desde su última visita lleva una etiqueta que dice qué cambió, y ",
+          },
+          { t: "strong", v: "Marcar todo como visto" },
+          {
+            t: "text",
+            v: " quita las etiquetas. La página se actualiza en vivo a medida que se llaman los cues. Desde la pestaña Show de un proyecto, ",
+          },
+          { t: "strong", v: "Abrir día del show" },
+          { t: "text", v: " abre el de hoy." },
         ],
       },
     ],

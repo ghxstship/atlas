@@ -53,7 +53,10 @@
     "money": "Enter an amount with at most two decimals, or leave it blank for Unpriced.",
     "moneyRequired": "Enter the rate as an amount with at most two decimals.",
     "currency": "Choose a currency.",
-    "hours": "Enter the hours as a number above zero."
+    "hours": "Enter the hours as a number above zero.",
+    "communication_no_assignee": "Only a live shift with someone on it can be marked as communicated. Assign the shift first, or leave it out.",
+    "communication_too_many": "Mark at most 500 shifts at a time. Narrow the list to a week or a project and try again.",
+    "communication_note_length": "Keep the note to 300 characters."
   },
   "refusals": {
     "shift_accept_rpc": "Only the person on the shift accepts it, or a crew member claims it while it is open.",
@@ -626,5 +629,29 @@
       "currency": "Currency",
       "day": "Day"
     }
+  },
+  "communication": {
+    "changedFields": "Changed since then: {fields}",
+    "changesSinceTold": "{count, plural, one {# change since told} other {# changes since told}}",
+    "column": "Told",
+    "filter": {
+      "all": "All shifts",
+      "label": "Review",
+      "needs": "Needs review"
+    },
+    "markAll": "Mark {count} as communicated",
+    "markAllTitle": "{count, plural, one {Mark # shift as communicated} other {Mark # shifts as communicated}}",
+    "markHelp": "Say you told the people on these shifts about their changes. Their changes up to now no longer need review.",
+    "markOne": "Mark as communicated",
+    "markReason": "Told them by phone.",
+    "markTitle": "Mark as communicated",
+    "needsReview": "Needs review",
+    "nobody": "Nobody to tell",
+    "notTold": "Not told yet",
+    "title": "Communication",
+    "told": "Told",
+    "toldAccepted": "Accepted by {name} on {date}",
+    "toldMarked": "Marked as communicated by {name} on {date}",
+    "toldNotified": "Told by notification on {date}"
   }
 }

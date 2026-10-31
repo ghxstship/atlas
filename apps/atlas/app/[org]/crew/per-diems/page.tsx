@@ -84,6 +84,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         kindLabel={t("crew.perDiems.kind")}
         recordKey={peeked.projectKey}
         title={t("crew.perDiems.recordTitle", { name: name(peeked), day: day(peeked) })}
+        historySubject={{ table: "app.per_diems", id: peeked.id }}
         state="active"
         stateLabel={t("crew.perDiems.kind")}
         backHref={withParams(base, search, { peek: null, full: null })}

@@ -18,6 +18,7 @@ import {
 } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
+import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -291,9 +292,11 @@ export async function TimeTab({ view, t, locale, engagementKey }: TabProps) {
 export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational"))
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
+  // A person on the party's roster reads only their own rows (R8); the views hold to it as well.
+  const own = view.roleType === "roster-member" ? { person_id: view.ctx.personId } : {};
   const [lodging, segments, travel] = await Promise.all([
     readView(view.ctx.db, "lodging", {
-      eq: { project_id: view.engagement.projectId },
+      eq: { project_id: view.engagement.projectId, ...own },
       order: ["check_in_on", "asc"],
     }),
     readView(view.ctx.db, "travel", {
@@ -301,7 +304,7 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
       order: ["departs_at", "asc"],
     }),
     readView(view.ctx.db, "hospitality", {
-      eq: { project_id: view.engagement.projectId, fulfillment_kind: "Travel" },
+      eq: { project_id: view.engagement.projectId, fulfillment_kind: "Travel", ...own },
       order: ["starts_at", "asc"],
     }),
   ]);
@@ -316,59 +319,23 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
       />
     );
   }
+  // Your stay (B6): the segments, check-ins and check-outs by day, marked where they changed since the last look. The
+  // check-in and check-out lines carry the hotel and dates, so the Lodging list no longer repeats them.
+  const stay =
+    segments.data.length > 0 || lodging.data.length > 0
+      ? await loadItinerary(view, { travel: segments.data, lodging: lodging.data })
+      : null;
+  if ((segments.data.length > 0 || lodging.data.length > 0) && !stay) return <RegionError />;
   return (
     <div className="flex flex-col gap-16">
-      {segments.data.length > 0 ? (
-        <Section title={t("gateway.engagement.travel.itinerary")}>
-          <RowList
-            label={t("gateway.engagement.travel.itinerary")}
-            items={segments.data.map((s) => ({
-              id: s.id ?? "",
-              title: t("gateway.engagement.travel.route", {
-                from: s.departs_from ?? "",
-                to: s.arrives_at_place ?? "",
-              }),
-              meta: [
-                [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
-                s.departs_at
-                  ? t("gateway.engagement.travel.departs", {
-                      time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
-                    })
-                  : null,
-                s.arrives_at
-                  ? t("gateway.engagement.travel.arrives", {
-                      time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
-                    })
-                  : null,
-                s.confirmation_identifier
-                  ? t("gateway.engagement.travel.confirmation", {
-                      code: s.confirmation_identifier,
-                    })
-                  : null,
-              ],
-              ...(s.travel_mode
-                ? {
-                    tag: {
-                      label: t(enumLabelKey("travelMode", s.travel_mode)),
-                      tone: "neutral" as const,
-                    },
-                  }
-                : {}),
-            }))}
-          />
-        </Section>
-      ) : null}
-      {lodging.data.length > 0 ? (
-        <Section title={t("gateway.engagement.travel.lodging")}>
-          <RowList
-            label={t("gateway.engagement.travel.lodging")}
-            items={lodging.data.map((l) => ({
-              id: l.id ?? "",
-              title: l.hotel_name ?? l.block_title ?? "",
-              meta: [formatDateRange(locale, l.check_in_on, l.check_out_on), l.guest_name],
-            }))}
-          />
-        </Section>
+      {stay ? (
+        <ItinerarySections
+          itinerary={stay.itinerary}
+          baselineAt={stay.baselineAt}
+          view={view}
+          t={t}
+          locale={locale}
+        />
       ) : null}
       {travel.data.length > 0 ? (
         <Section title={t("gateway.engagement.travel.travel")}>
@@ -390,13 +357,19 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
 export async function PerDiemTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational"))
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
+  // A person on the party's roster is paid per diem on their roster entry (R7), never the engagement.
+  const roster = view.roleType === "roster-member" ? view.rosterEntryId : null;
   const [allowances, amenities] = await Promise.all([
     readView(view.ctx.db, "per_diems", {
-      eq: { engagement_id: view.engagement.id },
+      eq: roster ? { roster_entry_id: roster } : { engagement_id: view.engagement.id },
       order: ["day", "asc"],
     }),
     readView(view.ctx.db, "hospitality", {
-      eq: { project_id: view.engagement.projectId, fulfillment_kind: "Amenity" },
+      eq: {
+        project_id: view.engagement.projectId,
+        fulfillment_kind: "Amenity",
+        ...(roster ? { person_id: view.ctx.personId } : {}),
+      },
       order: ["starts_at", "asc"],
     }),
   ]);
@@ -512,6 +485,12 @@ export async function CredentialsTab({ view, t, locale, engagementKey }: TabProp
 
 async function vendorAwareCredentials(view: TabProps["view"]) {
   const { engagement } = view;
+  // A person on the party's roster holds their own badges and passes under its engagement (R8).
+  if (view.roleType === "roster-member") {
+    return readView(view.ctx.db, "credentials", {
+      eq: { engagement_id: engagement.id, holder_person_id: view.ctx.personId },
+    });
+  }
   if (engagement.roleType !== "Vendor" || engagement.accountId === null) {
     return readView(view.ctx.db, "credentials", { eq: { engagement_id: engagement.id } });
   }

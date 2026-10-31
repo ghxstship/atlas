@@ -114,6 +114,7 @@ export const clientSitemap: Sitemap = {
         ["run-of-show", "page"],
         ["day-sheets", "page"],
         ["call-sheets", "page"],
+        ["show-day", "page"],
       ],
     ],
     [
@@ -124,6 +125,8 @@ export const clientSitemap: Sitemap = {
         ["submissions", "page"],
         ["riders", "page"],
         ["reconciliation", "page"],
+        ["crew", "page"],
+        ["allocations", "page"],
       ],
     ],
     [
@@ -507,6 +510,8 @@ export const listNodes: ReadonlySet<string> = new Set([
   "advancing.submissions",
   "advancing.riders",
   "advancing.reconciliation",
+  "advancing.crew",
+  "advancing.allocations",
   "places.venues",
   "places.spaces-and-zones",
   "places.capability-documents",

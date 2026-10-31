@@ -1,4 +1,4 @@
-import type { Condition, ExternalRoleType, Sitemap, Visibility } from "./schema";
+import type { Condition, EngagementTabSetKey, Sitemap, Visibility } from "./schema";
 import { indexSitemap, type IndexedNode, type SitemapIndex } from "./tree";
 
 /**
@@ -10,8 +10,8 @@ export interface NavContext {
   readonly role: string | null;
   readonly conditions?: Iterable<Condition>;
   readonly disabledModules?: Iterable<string>;
-  /** Gateway: the role type of the engagement being viewed. */
-  readonly roleType?: ExternalRoleType;
+  /** Gateway: the tab set of the engagement being viewed, its role type or roster-member (R8). */
+  readonly roleType?: EngagementTabSetKey;
   /** Gateway: representation scopes held when acting for an artist. */
   readonly representationScopes?: Iterable<string>;
 }
@@ -102,10 +102,10 @@ export function moduleOf(sitemap: Sitemap, id: string): string | undefined {
   return undefined;
 }
 
-/** Ordered tab ids for an engagement of this role type, narrowed by representation scopes. */
+/** Ordered tab ids for an engagement of this tab set, narrowed by representation scopes. */
 export function engagementTabIds(
   sitemap: Sitemap,
-  roleType: ExternalRoleType,
+  roleType: EngagementTabSetKey,
   representationScopes?: Iterable<string>,
 ): string[] {
   const set = sitemap.engagementTabs?.sets[roleType];

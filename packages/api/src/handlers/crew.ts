@@ -17,6 +17,7 @@ import { selectColumns } from "../runtime/pagination.ts";
 import { problemFor } from "./projects.ts";
 import { crewA50Handlers } from "./parts/crew-a50.ts";
 import { bulkEdit, fieldHistory } from "./parts/bulk-edit-and-history.ts";
+import { communicationStatus, markShiftsCommunicated } from "./parts/communication.ts";
 import type { HandlerSet } from "../runtime/handler.ts";
 
 type Row = Record<string, unknown>;
@@ -362,4 +363,10 @@ export const handlers = defineHandlers("Crew", {
     ok((await bulkEdit(context, "shifts", body, false)) as never),
   "shifts.fieldHistory": async ({ params, query }, context) =>
     ok((await fieldHistory(context, "app.shifts", params.id, query.limit)) as never),
+
+  // Needs review and Mark as communicated (B6, migration 2951).
+  "shifts.communicationStatus": async ({ query }, context) =>
+    ok((await communicationStatus(context, query.ids)) as never),
+  "shifts.markCommunicated": async ({ body }, context) =>
+    ok((await markShiftsCommunicated(context, body)) as never),
 });

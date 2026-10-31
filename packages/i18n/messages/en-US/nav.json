@@ -35,13 +35,16 @@
       "show": {
         "runOfShow": "Run of Show",
         "daySheets": "Day Sheets",
-        "callSheets": "Call Sheets"
+        "callSheets": "Call Sheets",
+        "showDay": "Show Day"
       },
       "advancing": {
         "packets": "Packets",
         "submissions": "Submissions",
         "riders": "Riders",
-        "reconciliation": "Reconciliation"
+        "reconciliation": "Reconciliation",
+        "crew": "Crew Roster",
+        "allocations": "Allocations"
       },
       "places": {
         "venues": "Venues",
@@ -398,7 +401,9 @@
       "reports": "Reports",
       "invoices": "Invoices",
       "documents": "Documents",
-      "messages": "Messages"
+      "messages": "Messages",
+      "crew": "Crew",
+      "projectDetails": "Project Details"
     },
     "avatar": {
       "settings": "Settings",
@@ -474,7 +479,8 @@
       "reference": "Reference",
       "offlineQueue": "Offline Queue",
       "profile": "Profile and Certifications",
-      "settings": "Settings"
+      "settings": "Settings",
+      "projectDetails": "Project Details"
     },
     "reference": {
       "emergencyCodes": "Emergency Codes",

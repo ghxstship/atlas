@@ -24,6 +24,8 @@ order: 51
 
 Shifts open as a resource schedule in Atlas, with people down the side and time across. Publish shifts so crew can accept them in Compass. Swaps between crew members need approval.
 
+XOS tells the person on a published shift when it is assigned to them and when its times move. Other changes, such as a new role, a cancellation or a return to Draft, are not announced, so the shift shows **Needs review** with the number of changes since the person was told. The shift's peek shows how and when they were last told (by notification, by accepting the shift, or by your mark) and what changed since. After you tell them, choose **Mark as communicated**; with **Review** set to **Needs review**, you can mark every listed shift at once.
+
 Planners can plan a Draft shift from one line in the quick add field, such as "#stagehand @dana ~NWS-S01 Friday 8am-4pm": `#` names the role, `@` the person (leave it out for an open shift), `~` the scope and the date its call and end. Without an end time a shift runs eight hours.
 
 ## Time entries and timesheets

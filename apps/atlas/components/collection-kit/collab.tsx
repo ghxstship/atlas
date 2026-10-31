@@ -1,20 +1,27 @@
 import { listMembers } from "@xos/data";
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
+import { RecordHistory } from "@/components/history/record-history";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import type { OrgContext } from "@/lib/shell/context";
 import { CollabClient } from "./collab-client";
 import { ErrorPanel } from "./kit";
 
-/** Loads the comments and attachments of one A16 row and renders their panels. */
+/**
+ * Loads the comments and attachments of one A16 row and renders their panels, after the row's
+ * field history (A131) when its table has one. `history={false}` leaves the history to a page
+ * that words it with labels of its own.
+ */
 export async function CollabPanels({
   ctx,
   table,
   id,
+  history = true,
 }: {
   ctx: OrgContext;
   table: string;
   id: string;
+  history?: boolean;
 }) {
   const db = ctx.viewer.db;
   const subject = { table, id };
@@ -49,12 +56,15 @@ export async function CollabPanels({
     classification: a.classification,
   }));
   return (
-    <CollabClient
-      org={ctx.org.slug}
-      table={table}
-      id={id}
-      comments={comments}
-      attachments={files}
-    />
+    <>
+      {history ? <RecordHistory db={db} table={table} id={id} /> : null}
+      <CollabClient
+        org={ctx.org.slug}
+        table={table}
+        id={id}
+        comments={comments}
+        attachments={files}
+      />
+    </>
   );
 }

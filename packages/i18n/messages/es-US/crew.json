@@ -53,7 +53,10 @@
     "money": "Ingrese un monto con dos decimales como máximo, o déjelo en blanco para Sin precio.",
     "moneyRequired": "Ingrese la tarifa como un monto con dos decimales como máximo.",
     "currency": "Elija una moneda.",
-    "hours": "Ingrese las horas como un número mayor que cero."
+    "hours": "Ingrese las horas como un número mayor que cero.",
+    "communication_no_assignee": "Solo un turno vigente con alguien asignado se puede marcar como comunicado. Asigne el turno primero o déjelo fuera.",
+    "communication_too_many": "Marque como máximo 500 turnos a la vez. Reduzca la lista a una semana o un proyecto e inténtelo de nuevo.",
+    "communication_note_length": "La nota debe tener como máximo 300 caracteres."
   },
   "refusals": {
     "shift_accept_rpc": "Solo la persona del turno lo acepta, o un miembro del equipo lo reclama mientras está abierto.",
@@ -626,5 +629,29 @@
       "currency": "Moneda",
       "day": "Día"
     }
+  },
+  "communication": {
+    "changedFields": "Cambió desde entonces: {fields}",
+    "changesSinceTold": "{count, plural, one {# cambio desde el aviso} other {# cambios desde el aviso}}",
+    "column": "Aviso",
+    "filter": {
+      "all": "Todos los turnos",
+      "label": "Revisión",
+      "needs": "Requiere revisión"
+    },
+    "markAll": "Marcar {count} como comunicados",
+    "markAllTitle": "{count, plural, one {Marcar # turno como comunicado} other {Marcar # turnos como comunicados}}",
+    "markHelp": "Indique que avisó a las personas de estos turnos sobre sus cambios. Sus cambios hasta ahora ya no requieren revisión.",
+    "markOne": "Marcar como comunicado",
+    "markReason": "Les avisé por teléfono.",
+    "markTitle": "Marcar como comunicado",
+    "needsReview": "Requiere revisión",
+    "nobody": "Nadie a quien avisar",
+    "notTold": "Sin avisar todavía",
+    "title": "Comunicación",
+    "told": "Avisado",
+    "toldAccepted": "Aceptado por {name} el {date}",
+    "toldMarked": "Marcado como comunicado por {name} el {date}",
+    "toldNotified": "Avisado por notificación el {date}"
   }
 }

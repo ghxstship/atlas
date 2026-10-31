@@ -1,0 +1,31 @@
+# Settings registry: B6 (change tracking and show-day views; RRR-230). Section 11.6.
+# Field reference: see a30.yaml. Home > Today and Show > Show day are 12-column dashboards (A129): a person widens or
+# narrows their tiles in place, and the spans are kept as one of their own settings for every org, as `tile:span` pairs
+# ("doors:4,changes:8"). Settings pages show input `layout` with Reset only, and Gateway and Compass never offer it.
+contributor: b6
+settings:
+  # Personal: preferences ---------------------------------------------------------------------------------------------
+  - key: me.dashboard_layout.today
+    type: text
+    input: layout
+    max_length: 600
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.todayLayout.label
+    help: settings.fields.todayLayout.help
+    pages: { personal: me.preferences }
+    enforced_by:
+      - consumer: apps/atlas/lib/dashboard/layout.ts#DASHBOARD_LAYOUT_SETTINGS
+        test: apps/atlas/test/dashboard-layout.test.ts
+  - key: me.dashboard_layout.show_day
+    type: text
+    input: layout
+    max_length: 600
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.showDayLayout.label
+    help: settings.fields.showDayLayout.help
+    pages: { personal: me.preferences }
+    enforced_by:
+      - consumer: apps/atlas/lib/dashboard/layout.ts#DASHBOARD_LAYOUT_SETTINGS
+        test: apps/atlas/test/dashboard-layout.test.ts

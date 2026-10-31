@@ -75,7 +75,7 @@ onFlowComplete:
       ROUTE: travel-and-lodging
 - extendedWaitUntil:
     visible:
-      id: "external-section-travel"
+      id: "external-section-day-.*"
     timeout: 30000
 # Each end of a flight in its own zone: out of LAX at 9:00 AM, in to MIA at 8:05 PM. Hermes writes a narrow
 # no-break space before AM and PM, so the pattern takes any character there.

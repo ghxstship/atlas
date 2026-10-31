@@ -27,6 +27,13 @@ derived:
     reason: PowerSync project filter, as above
     adr: "0022"
   - objects:
+      - app.communication_marks.org_id
+      - app.communication_marks.project_id
+    source: "`app.shifts.org_id` and `app.shifts.project_id` (the marked row's)"
+    refresh: Stamped by `app.mark_communicated` on insert; the ledger is never updated (2951)
+    reason: The marks' read policy filters by project without a join to the polymorphic subject
+    adr: "0145"
+  - objects:
       - app.credentials.project_id
     source: "`app.credential_categories.project_id`"
     refresh: Stamped by trigger; changing it is refused (0470)
@@ -58,8 +65,8 @@ derived:
     adr: "0021"
   - objects:
       - private.sync_scope_grants
-    source: Membership, assignment, shift and engagement tables through the RLS helpers
-    refresh: Triggers on each source table plus a nightly full refresh (0942)
+    source: Membership, assignment, shift, engagement and roster entry tables through the RLS helpers (rosterEntryIds, R8)
+    refresh: Triggers on each source table plus a nightly full refresh (0942; roster entries and engagement states, 2702)
     reason: PowerSync parameter queries cannot call RLS helpers or join (gate 17 benchmark, A03F)
     adr: "0022"
   - objects:
@@ -126,6 +133,38 @@ derived:
     refresh: Written only with the ciphertext, by the encrypting RPC (`app.set_org_legal_entity_tax_identifier`, `app.set_my_passport_number`, `app.set_supplier_diversity_certificate_number`, `app.set_vendor_bank_account`); each table's guard trigger refuses a write of either outside it (1200, 1340, 2010, 2011)
     reason: The number is Restricted and encrypted under a Vault key no signed-in caller holds, so the last four cannot be computed when a row is read; readers tell records apart by it, as the v1 API's `account_last4` does (ADR 0057)
     adr: "0057"
+  - objects:
+      - app.work_detail_shares.engagement_id
+      - app.work_detail_shares.person_id
+    source: "The roster entry the share serves: its engagement and the person `private.roster_people` resolves (the engagement's person on the self entry)"
+    refresh: Written from the entry by `app.share_work_details`; `private.guard_work_detail_share_entry` refuses any row whose engagement or person differs from the entry's (migration 2638, R4)
+    reason: The frozen WorkDetailShare resource of API v1 returns both, and the share's readers filter by them without the resolver; the contract change waits for R6b
+    adr: "0103"
+  - objects:
+      - app.advance_allocations.project_id
+    source: "The holder's project: the pool engagement's, or the roster entry's engagement's"
+    refresh: Stamped by `private.stamp_allocation_project` on every write; a change is refused (allocation_project_fixed, migration 2691, R7)
+    reason: Every allocation read filters by project under advancing.packet.read without joining the engagement or the roster (ADR 0103)
+    adr: "0103"
+  - objects:
+      - app.asset_reservations.project_id
+    source: "`app.advance_allocations.project_id` of the hold's allocation"
+    refresh: Stamped by `private.guard_asset_reservation` on insert; the hold keeps it (reservation_immutable, migration 2691, R7)
+    reason: Holds are read by project or by the asset org without joining the allocation (ADR 0103)
+    adr: "0103"
+  - objects:
+      - app.asset_custody.roster_entry_id
+      - app.asset_lot_movements.roster_entry_id
+    source: "The roster entry of the allocation whose hold the hand-over names (`reservation_id`)"
+    refresh: Written by `app.apply_asset_scan` with the hold; `private.guard_custody_holder` and `private.guard_lot_movement_holder` refuse an entry other than the hold's allocation's (custody_not_reserved_holder, migration 2692, R7)
+    reason: A hand-over without a hold still names who on the engagement's roster took the asset, so the column is the fact of the scan; with a hold it is checked against the allocation, never copied later
+    adr: "0104"
+  - objects:
+      - app.asset_units.asset_state
+    source: "The unit's latest custody row: Deployed while it is checked out to a member or an engagement"
+    refresh: Written only by `app.apply_asset_scan` in the same transaction as the custody row (migration 2692, R7; moved from R0)
+    reason: Compass checks a unit's scan state offline without the custody ledger (ADR 0103 section 4); every other combined status is computed
+    adr: "0103"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
@@ -178,6 +217,9 @@ own_names:
 # Every json and jsonb column of an app, private or xpms table, with its ADR 0002 exception: rich-text, audit-diff,
 # provider-payload, or registered (a derived entry above carries the reason).
 json:
+  - column: app.advance_issue_events.possession
+    kind: audit-diff
+    note: Ids of the possession rows one issue event wrote, by table, returned again when the event replays (migration 2691, R7).
   - column: app.ai_suggestion_fields.proposed_value
     kind: provider-payload
     note: A field value the AI model proposed, kept as it answered until a person accepts or edits it.
@@ -277,6 +319,9 @@ arrays:
   - column: app.work_detail_events.changed_columns
     kind: reviewed
     note: Column names an edit changed, in the person's append-only log; a log payload, never a relationship (migration 1340).
+  - column: app.work_detail_events.fact_kinds
+    kind: reviewed
+    note: The set of project fact kinds an access touched, in the person's append-only log (R5, migration 2654).
   - column: app.work_detail_shares.categories
     kind: reviewed
     note: The set of work detail categories a share grants, read whole (migration 1340).
@@ -294,6 +339,10 @@ restated:
     parent: app.credentials.project_id
     kind: registered
     note: Copied from the credential by `private.copy_parent_project` (derived entry).
+  - column: app.accommodation_assignments.accommodation_block_id
+    parent: app.advance_allocations.accommodation_block_id
+    kind: own
+    note: A room issued under an allocation is in the allocation's block; `private.guard_allocation_possession` refuses any other (migration 2692, R7).
   - column: app.accommodation_assignments.check_in_on
     parent: app.accommodation_blocks.check_in_on
     kind: own
@@ -302,6 +351,26 @@ restated:
     parent: app.accommodation_blocks.check_out_on
     kind: own
     note: The guest's departure, inside the block's dates.
+  - column: app.advance_allocations.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only on a party pool, where no roster entry is named (`advance_allocations_one_holder`); a person's allocation names the entry and reads its engagement through it (migration 2691).
+  - column: app.advance_allocations.project_id
+    parent: app.accommodation_blocks.project_id
+    kind: registered
+    note: Stamped from the holder (derived entry); the guard requires a block of the same project (migration 2691).
+  - column: app.advance_allocations.project_id
+    parent: app.credential_categories.project_id
+    kind: registered
+    note: Stamped from the holder (derived entry); the guard requires a category of the same project (migration 2691).
+  - column: app.advance_allocations.project_id
+    parent: app.engagements.project_id
+    kind: registered
+    note: Stamped from the holder's engagement by `private.stamp_allocation_project` (derived entry, migration 2691).
+  - column: app.advance_allocations.project_id
+    parent: app.fulfillments.project_id
+    kind: registered
+    note: Stamped from the holder (derived entry); the guard requires a fulfillment of the same project (migration 2691).
   - column: app.advance_submissions.advance_recipient_id
     parent: app.advance_recipient_tokens.advance_recipient_id
     kind: own
@@ -326,6 +395,14 @@ restated:
     parent: app.approval_policies.document_type
     kind: fact
     note: Type of the document submitted, fixed with the instance; the policy's is the type it gates.
+  - column: app.asset_custody.asset_unit_id
+    parent: app.asset_reservations.asset_unit_id
+    kind: own
+    note: The unit handed over, required on every custody row; a hold names a unit only when pinned, and `private.guard_custody_holder` then requires the same unit (migration 2692).
+  - column: app.asset_custody.project_id
+    parent: app.asset_reservations.project_id
+    kind: own
+    note: Project the asset is out for, set by the scan from the custodian engagement; a hold's project is its allocation's (migration 2692).
   - column: app.asset_custody.project_id
     parent: app.engagements.project_id
     kind: own
@@ -334,10 +411,38 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Where the asset is kept, not the project's primary venue.
+  - column: app.asset_lot_movements.asset_lot_id
+    parent: app.asset_reservations.asset_lot_id
+    kind: own
+    note: A movement issued against a lot hold moves that lot; `private.guard_lot_movement_holder` refuses another (lot_reservation_mismatch, migration 2692).
+  - column: app.asset_lot_movements.project_id
+    parent: app.asset_reservations.project_id
+    kind: own
+    note: Project the quantity is out for, set by the scan from the custodian engagement (migration 2692).
   - column: app.asset_lot_movements.project_id
     parent: app.engagements.project_id
     kind: own
     note: Project the quantity is out for; the custodian's engagement can be for another project or for none.
+  - column: app.asset_lot_movements.receipt_line_id
+    parent: app.return_lines.receipt_line_id
+    kind: own
+    note: Set only on a Receipt movement, the receipt line the quantity came in on; a Vendor Return movement leaves it NULL and names its return line instead (asset_lot_movements_direction, migration 2681).
+  - column: app.asset_reservations.project_id
+    parent: app.advance_allocations.project_id
+    kind: registered
+    note: Stamped from the allocation by `private.guard_asset_reservation` (derived entry, migration 2691).
+  - column: app.asset_reservations.quantity
+    parent: app.advance_allocations.quantity
+    kind: own
+    note: Quantity one hold keeps from its source; an allocation's holds sum to it when reserved, and a split moves quantity between them (migration 2693).
+  - column: app.asset_reservations.quantity
+    parent: app.asset_lots.quantity
+    kind: own
+    note: Quantity held from the lot, not the lot's opening count (migration 2691).
+  - column: app.asset_reservations.quantity
+    parent: app.po_lines.quantity
+    kind: own
+    note: Quantity held on the order line, at most what it can still supply (migration 2691).
   - column: app.attachment_versions.checksum_sha256
     parent: app.document_versions.checksum_sha256
     kind: own
@@ -515,6 +620,18 @@ restated:
     parent: app.time_entry_corrections.reason
     kind: own
     note: Why the state changed; the correction's reason is why the entry is wrong.
+  - column: app.credentials.credential_category_id
+    parent: app.advance_allocations.credential_category_id
+    kind: own
+    note: A badge or pass issued under an allocation is of the allocation's category; `private.guard_allocation_possession` refuses any other (migration 2692).
+  - column: app.credentials.engagement_id
+    parent: app.advance_allocations.engagement_id
+    kind: own
+    note: Engagement the badge was issued under; an allocation names an engagement only for a pool, and an issued badge carries the roster entry's engagement (migration 2692).
+  - column: app.credentials.project_id
+    parent: app.advance_allocations.project_id
+    kind: registered
+    note: Copied from the category (derived entry); the allocation is of the same category, so of the same project.
   - column: app.credentials.project_id
     parent: app.credential_categories.project_id
     kind: registered
@@ -559,6 +676,14 @@ restated:
     parent: app.notification_deliveries.sent_at
     kind: own
     note: When the digest went out; the delivery's is when the provider accepted the message.
+  - column: app.engagement_roster_entries.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: The rostered person, never the engaged person (`roster_person_is_engaged`); NULL on the self entry, which `private.roster_people` resolves to the engagement's person (migration 2633, R4).
+  - column: app.engagement_roster_entries.role_code
+    parent: app.engagements.role_code
+    kind: own
+    note: The role this person works on the engagement, chosen per entry; the engagement's own role may be NULL (1624) and is never copied (migration 2633, R4).
   - column: app.engagements.currency_code
     parent: app.applications.currency_code
     kind: fact
@@ -600,6 +725,14 @@ restated:
     parent: app.form_templates.requires_signature
     kind: fact
     note: Whether the published version needs a signature, frozen when published.
+  - column: app.fulfillment_lines.fulfillment_id
+    parent: app.advance_allocations.fulfillment_id
+    kind: own
+    note: A catering line issued under an allocation is on the allocation's fulfillment; `private.guard_allocation_possession` refuses any other (migration 2692).
+  - column: app.fulfillment_lines.quantity
+    parent: app.advance_allocations.quantity
+    kind: own
+    note: Quantity on one line; an allocation's lines never sum beyond it (allocation_issue_exceeds, migration 2693).
   - column: app.gate_evidence.project_id
     parent: app.records.project_id
     kind: own
@@ -872,10 +1005,26 @@ restated:
     parent: app.engagements.currency_code
     kind: own
     note: Currency of the per diem.
+  - column: app.per_diems.engagement_id
+    parent: app.advance_allocations.engagement_id
+    kind: own
+    note: Engagement of an external person paid; NULL on a roster per diem, which names the entry instead (`per_diems_one_worker`, migration 2692).
+  - column: app.per_diems.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Set only when no roster entry is named (`per_diems_one_worker`, migration 2692).
+  - column: app.per_diems.project_id
+    parent: app.advance_allocations.project_id
+    kind: own
+    note: A day issued under an allocation is on the allocation's project; `private.guard_allocation_possession` refuses any other (migration 2692).
   - column: app.per_diems.project_id
     parent: app.engagements.project_id
     kind: own
     note: Project of the per diem; the engagement link is optional.
+  - column: app.per_diems.roster_entry_id
+    parent: app.advance_allocations.roster_entry_id
+    kind: own
+    note: A day issued under an allocation is for the allocation's entry; `private.guard_allocation_possession` refuses any other (migration 2692).
   - column: app.permit_requirements.project_id
     parent: app.records.project_id
     kind: own
@@ -1017,6 +1166,10 @@ restated:
     parent: app.projects.starts_on
     kind: own
     note: First day of the work, not of the production.
+  - column: app.return_lines.receipt_line_id
+    parent: app.asset_units.receipt_line_id
+    kind: own
+    note: The receipt line the goods go back against, required on every return line, a quantity with no unit included; for a unit, `app.return_goods` requires the unit's own receipt line (migration 2681).
   - column: app.riders.counterparty_id
     parent: app.engagements.counterparty_id
     kind: own
@@ -1255,10 +1408,22 @@ restated:
     parent: app.engagements.currency_code
     kind: own
     note: Currency of the fare.
+  - column: app.travel_segments.engagement_id
+    parent: app.advance_allocations.engagement_id
+    kind: own
+    note: Engagement travelled under; an issued trip carries the roster entry's engagement, which an allocation names only for a pool (migration 2692).
+  - column: app.travel_segments.fulfillment_id
+    parent: app.advance_allocations.fulfillment_id
+    kind: own
+    note: Travel fulfillment the trip belongs to; a travel allocation has no fulfillment (its target is the Travel service kind).
   - column: app.travel_segments.person_id
     parent: app.engagements.person_id
     kind: own
     note: Traveler; the engagement link is optional.
+  - column: app.travel_segments.project_id
+    parent: app.advance_allocations.project_id
+    kind: own
+    note: A trip issued under an allocation is on the allocation's project; `private.guard_allocation_possession` refuses any other (migration 2692).
   - column: app.travel_segments.project_id
     parent: app.engagements.project_id
     kind: own
@@ -1306,20 +1471,34 @@ restated:
     kind: finding
     note: The reading is required and is for one project, so the alert's project is the reading's.
     finding: A108-003
+  - column: app.work_detail_events.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: fact
+    note: The engagement of a share, read or reveal as it was when logged, in the person's append-only access log (migration 2638, R4).
+  - column: app.work_detail_events.person_id
+    parent: app.engagement_roster_entries.person_id
+    kind: fact
+    note: Whose details were touched, as logged; the entry's person is NULL on a self entry, so the log keeps its own (migration 2638, R4).
   - column: app.work_detail_events.person_id
     parent: app.engagements.person_id
     kind: own
     note: Person whose details were touched; the engagement link is optional.
+  - column: app.work_detail_shares.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: registered
+    note: Written from the roster entry by `app.share_work_details` and guarded by `private.guard_work_detail_share_entry` (derived entry, migration 2638).
   - column: app.work_detail_shares.person_id
     parent: app.consent_records.person_id
-    kind: finding
-    note: The consent record is required and names one person, so the share's person is the consent's.
-    finding: A108-003
+    kind: registered
+    note: The sharer, written from the roster entry with their own work_details_sharing consent (derived entry, migration 2638); moved from finding A108-003 by R4.
+  - column: app.work_detail_shares.person_id
+    parent: app.engagement_roster_entries.person_id
+    kind: registered
+    note: The entry's resolved person, written by `app.share_work_details` and guarded by `private.guard_work_detail_share_entry` (derived entry, migration 2638).
   - column: app.work_detail_shares.person_id
     parent: app.engagements.person_id
-    kind: finding
-    note: The engagement is required and names one person, so the share's person is the engagement's.
-    finding: A108-003
+    kind: own
+    note: The sharer is the engagement's person only on the self entry; on another roster entry it is the rostered person (R4, migration 2638). Moved from finding A108-003.
   - column: app.work_order_bids.currency_code
     parent: app.work_orders.currency_code
     kind: own
@@ -1573,6 +1752,9 @@ tenant_exceptions:
   - table: app.active_org_selections
     kind: person-owned
     note: One row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920).
+  - table: app.airports
+    kind: platform
+    note: Airports by IATA code, seeded by migration from packages/schemas/airports/airports.csv (R5, migration 2651).
   - table: app.blocks
     kind: person-owned
     note: Blocks keyed by person_id, readable only by the blocker (A52, migration 1206).

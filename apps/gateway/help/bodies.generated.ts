@@ -276,7 +276,27 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "To add someone, ask them to create a Gateway account; an Account Owner or Admin then adds them by their account. Owners and Admins can remove members here.",
+            v: "An Account Owner or Admin invites someone by email with a role; only an Owner offers Account Owner. We send one email to the address, and the person signs in to Gateway with it and accepts on Home. Pending invitations are listed here until they are accepted, and Owners and Admins can revoke them.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A member marked " },
+          { t: "strong", v: "Not confirmed" },
+          {
+            t: "text",
+            v: " was added without an invitation and has not confirmed yet. Until they confirm on Home, they cannot be put on a crew roster or assigned to an engagement, and nothing about them is shared.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An Account Member reaches only the engagements an Owner or Admin assigns them, on the engagement's Overview. Owners and Admins can remove members here.",
           },
         ],
       },
@@ -693,6 +713,62 @@ export const HELP_BODIES: HelpBodies = {
       },
       { t: "p", c: [{ t: "text", v: "Credentials are issued once onboarding passes." }] },
     ],
+    "engagement-crew": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew is the roster of people who work an engagement for your company: a vendor's technicians, a band and its touring crew, or a sponsor's activation staff. It shows to the people who manage the roster: the artist on their own engagement, the account's Owner and Admin, an Advancing Lead assigned to the engagement, and an artist's representative with the Advance scope.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add someone from your team, or invite an email address for someone who is not on XOS yet; they get one email asking them to sign in to Gateway with that address. Give each person a role and, when you know it, their arrival window in the project's time zone. Submit the roster when it is ready; the organization accepts or returns each person, and a returned entry shows the reason so you can fix it and submit again.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each person accepts or declines their own entry on Gateway Home. Nothing about them is shared until they accept: then your company can see their profile and project facts, and they choose what to share with the organization. View profile opens what they share with your company; each time you open it, they can see that you did. Allergies show only as On file.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The roster opens while the engagement is onboarding and closes when it completes or is canceled. To swap someone after they were accepted, withdraw their entry and add the replacement.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization can set a names lock: a date and time after which your company names no new crew for the engagement. Crew shows when names lock, and after that Add, Invite and Submit of new names are closed. A returned entry stays editable and can still be submitted again, and you can still withdraw entries. To add someone after the lock, ask the organization to move or clear it.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each row shows whether the person's travel, uniform sizes and vehicle are on file for the project. Project details opens them; like View profile, each time you open it the person can see that you did. When the organization allows it, you can enter a kind the person has not entered yet; they are told and can correct it. What the person entered themselves only they change.",
+          },
+        ],
+      },
+    ],
     "engagement-deliverables": [
       {
         t: "p",
@@ -869,7 +945,16 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hospitality is for artists. It lists what the production arranged for you: lodging with its dates and guest name, and travel, catering and other items with their time and supplier.",
+            v: "Hospitality is for artists. It starts with your stay, day by day: your flights and ground transport, your hotel's check-in and check-out and your set times. Anything the production changed since you last looked carries a tag that names what changed, such as a new set time, and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Below your stay come catering and the other items the production arranged, with their time and supplier.",
           },
         ],
       },
@@ -1288,6 +1373,44 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled.",
+          },
+        ],
+      },
+    ],
+    "engagement-project-details": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Project details shows when the organization offers travel, uniforms or parking on your engagement. It asks only for what the project offers: your travel request (the airports and dates you fly in and home, and whether you need a pickup or a room), your uniform sizes, and the vehicle you park on site.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each step saves when you continue, so you can stop and come back. Use my last details fills a step from what you entered on an earlier project; check it, then continue to save it.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These details stay on this engagement and are never written to your profile. The organization reads only the kinds its people need for their work, and your company sees them while you are on its roster; each time someone else reads them, your access log in Settings shows it. They are deleted after the engagement is complete or canceled, 90 days later unless the organization sets another time.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If your company entered something for you, you are told, and you can correct it here. You can clear a kind at any time.",
           },
         ],
       },
@@ -1786,23 +1909,22 @@ export const HELP_BODIES: HelpBodies = {
     ],
     "engagement-travel-and-lodging": [
       { t: "p", c: [{ t: "text", v: "Travel and Lodging is for crew." }] },
-      { t: "h2", v: "Itinerary" },
+      { t: "h2", v: "Your stay" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel.",
+            v: "Your whole stay, day by day: each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel, and your hotel's check-in and check-out on their dates. A leg sits on the day it departs, in the time zone of its departure.",
           },
         ],
       },
-      { t: "h2", v: "Lodging" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Your hotel or room block, with the check-in and check-out dates and the guest name.",
+            v: 'Anything the organization changed since you last looked carries a tag that names what changed, such as "Changed since you last looked: Departure", and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them. The tags start from your second visit.',
           },
         ],
       },
@@ -3278,19 +3400,35 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Your work details come from your profile: your skills, certifications, rates and availability. Organizations see them when you apply or share your profile.",
+            v: "Settings, Work Details holds what organizations need to feed, book and look after you: emergency contacts, dietary and accessibility needs, loyalty programs and your passport details.",
           },
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Choose " },
-          { t: "strong", v: "Edit profile" },
-          { t: "text", v: " to change them in " },
+          {
+            t: "text",
+            v: "Uniform sizes and your seat, meal and home airport are no longer kept here. Each production asks for them on the project you are rostered on and keeps them only for that project: open the engagement and choose ",
+          },
+          { t: "strong", v: "Project details" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, and the organization's Owner, can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Your skills, certifications, rates and availability are in " },
           { t: "link", v: "Profile settings", href: "help:settings-profile" },
-          { t: "text", v: ". Mark the dates you are available or not on your " },
-          { t: "link", v: "profile", href: "help:profile" },
           { t: "text", v: "." },
         ],
       },
@@ -3757,7 +3895,27 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Para agregar a alguien, pídele que cree una cuenta de Gateway; luego un Propietario o Administrador de la cuenta lo agrega por su cuenta. Los Propietarios y Administradores pueden quitar miembros aquí.",
+            v: "Un Propietario o Administrador de la cuenta invita a alguien por correo con un rol; solo un Propietario ofrece el rol de Propietario de la cuenta. Enviamos un correo a esa dirección, y la persona inicia sesión en Gateway con ella y acepta en Inicio. Las invitaciones pendientes aparecen aquí hasta que se aceptan, y los Propietarios y Administradores pueden revocarlas.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Un miembro marcado como " },
+          { t: "strong", v: "Sin confirmar" },
+          {
+            t: "text",
+            v: " se agregó sin invitación y aún no ha confirmado. Hasta que confirme en Inicio, no se le puede poner en una lista del equipo ni asignar a una contratación, y no se comparte nada sobre él.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un Miembro de la cuenta solo accede a las contrataciones que un Propietario o Administrador le asigna, en el Resumen de la contratación. Los Propietarios y Administradores pueden quitar miembros aquí.",
           },
         ],
       },
@@ -4187,6 +4345,62 @@ export const HELP_BODIES: HelpBodies = {
         c: [{ t: "text", v: "Las acreditaciones se emiten cuando pasa la incorporación." }],
       },
     ],
+    "engagement-crew": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Equipo es la lista de personas que trabajan en una contratación para tu empresa: los técnicos de un proveedor, una banda y su equipo de gira, o el personal de activación de un patrocinador. La ven quienes gestionan la lista: el artista en su propia contratación, el propietario y el administrador de la cuenta, un responsable de avance asignado a la contratación y el representante de un artista con el alcance de avance.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agrega a alguien de tu equipo, o invita una dirección de correo para alguien que todavía no está en XOS; recibe un correo que le pide iniciar sesión en Gateway con esa dirección. Asigna a cada persona un puesto y, cuando lo sepas, su ventana de llegada en la zona horaria del proyecto. Envía la lista cuando esté lista; la organización acepta o devuelve a cada persona, y una entrada devuelta muestra el motivo para que la corrijas y la envíes de nuevo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada persona acepta o rechaza su propia entrada en el Inicio de Gateway. No se comparte nada sobre ella hasta que acepta: entonces tu empresa puede ver su perfil y los datos del proyecto, y ella elige qué compartir con la organización. Ver perfil abre lo que comparte con tu empresa; cada vez que lo abres, la persona puede ver que lo hiciste. Las alergias solo aparecen como Registradas.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La lista se abre mientras la contratación está en incorporación y se cierra cuando se completa o se cancela. Para cambiar a alguien después de que lo aceptaron, retira su entrada y agrega el reemplazo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La organización puede fijar un cierre de nombres: una fecha y hora después de la cual tu empresa ya no nombra más gente para la contratación. Equipo muestra cuándo se cierran los nombres y, después, ya no puedes agregar, invitar ni enviar nombres nuevos. Una entrada devuelta sigue siendo editable y se puede volver a enviar, y aún puedes retirar entradas. Para agregar a alguien después del cierre, pide a la organización que lo mueva o lo quite.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada fila muestra si el viaje, las tallas de uniforme y el vehículo de la persona están registrados para el proyecto. Datos del proyecto los abre; como con Ver perfil, cada vez que los abres la persona puede ver que lo hiciste. Cuando la organización lo permite, puedes ingresar un tipo de dato que la persona todavía no ingresó; se le avisa y puede corregirlo. Lo que la persona ingresó por su cuenta solo lo cambia ella.",
+          },
+        ],
+      },
+    ],
     "engagement-deliverables": [
       {
         t: "p",
@@ -4368,7 +4582,16 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hospitalidad es para artistas. Muestra lo que la producción organizó para ti: el alojamiento con sus fechas y el nombre del huésped, y el viaje, la comida y otros elementos con su hora y proveedor.",
+            v: "Hospitalidad es para artistas. Empieza con tu estadía, día por día: tus vuelos y traslados, la entrada y salida de tu hotel y tus horarios de presentación. Lo que la producción cambió desde tu última visita lleva una etiqueta que dice qué cambió, como un nuevo horario de presentación, y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Debajo de tu estadía aparecen la comida y los demás elementos que organizó la producción, con su hora y proveedor.",
           },
         ],
       },
@@ -4801,6 +5024,44 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela.",
+          },
+        ],
+      },
+    ],
+    "engagement-project-details": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Datos del proyecto aparece cuando la organización ofrece viaje, uniformes o estacionamiento en tu contratación. Solo pide lo que el proyecto ofrece: tu solicitud de viaje (los aeropuertos y las fechas de llegada y de regreso, y si necesitas que te recojan o una habitación), tus tallas de uniforme y el vehículo que estacionas en el sitio.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada paso se guarda al continuar, así que puedes parar y volver. Usar mis últimos datos llena un paso con lo que ingresaste en un proyecto anterior; revísalo y continúa para guardarlo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Estos datos se quedan en esta contratación y nunca se escriben en tu perfil. La organización solo lee los tipos que su gente necesita para su trabajo, y tu empresa los ve mientras estás en su lista; cada vez que otra persona los lee, tu registro de accesos en Configuración lo muestra. Se eliminan después de que la contratación se completa o se cancela, 90 días después salvo que la organización fije otro plazo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si tu empresa ingresó algo por ti, se te avisa y puedes corregirlo aquí. Puedes borrar un tipo de dato en cualquier momento.",
           },
         ],
       },
@@ -5303,23 +5564,22 @@ export const HELP_BODIES: HelpBodies = {
     ],
     "engagement-travel-and-lodging": [
       { t: "p", c: [{ t: "text", v: "Viaje y alojamiento es para el equipo técnico." }] },
-      { t: "h2", v: "Itinerario" },
+      { t: "h2", v: "Tu estadía" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Cada tramo de un lugar a otro, con la empresa y el número de servicio, las horas de salida y llegada, el código de confirmación y el medio de transporte.",
+            v: "Toda tu estadía, día por día: cada tramo de un lugar a otro, con la empresa y el número de servicio, las horas de salida y llegada, el código de confirmación y el medio de transporte, y la entrada y salida de tu hotel en sus fechas. Un tramo aparece el día en que sale, en la zona horaria de su salida.",
           },
         ],
       },
-      { t: "h2", v: "Alojamiento" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Tu hotel o bloque de habitaciones, con las fechas de entrada y salida y el nombre del huésped.",
+            v: 'Lo que la organización cambió desde tu última visita lleva una etiqueta que dice qué cambió, como "Cambió desde tu última visita: Salida", y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita. Las etiquetas empiezan a partir de tu segunda visita.',
           },
         ],
       },
@@ -6847,19 +7107,35 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Tus datos laborales vienen de tu perfil: tus habilidades, certificaciones, tarifas y disponibilidad. Las organizaciones los ven cuando postulas o compartes tu perfil.",
+            v: "Configuración, Datos laborales reúne lo que las organizaciones necesitan para alimentarte, reservar tus viajes y cuidarte: contactos de emergencia, necesidades alimentarias y de accesibilidad, programas de lealtad y los datos de tu pasaporte.",
           },
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Elige " },
-          { t: "strong", v: "Editar perfil" },
-          { t: "text", v: " para cambiarlos en " },
+          {
+            t: "text",
+            v: "Las tallas de uniforme y tu asiento, comida y aeropuerto de origen ya no se guardan aquí. Cada producción te los pide en el proyecto en cuya lista estás y los guarda solo para ese proyecto: abre la contratación y elige ",
+          },
+          { t: "strong", v: "Datos del proyecto" },
+          { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, y el Propietario de la organización, pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Tus habilidades, certificaciones, tarifas y disponibilidad están en " },
           { t: "link", v: "Configuración del perfil", href: "help:settings-profile" },
-          { t: "text", v: ". Marca las fechas en que estás disponible o no en tu " },
-          { t: "link", v: "perfil", href: "help:profile" },
           { t: "text", v: "." },
         ],
       },
