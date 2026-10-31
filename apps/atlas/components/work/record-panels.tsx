@@ -10,6 +10,7 @@ import type {
   Recurrence,
   ScopeNodeRef,
 } from "@xos/data/work";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import {
   Button,
   Checkbox,
@@ -231,6 +232,8 @@ export function EditRecordForm({
           starts !== toLocalInput(record.startsAt, tz) ||
           ends !== toLocalInput(record.endsAt, tz) ||
           due !== toLocalInput(record.dueAt, tz);
+        // A date change is the Schedule funnel's step, and its save completes it (A146).
+        if (datesChanged) emitWorkflow("atlas.schedule:step1");
         run(
           () =>
             updateRecordAction(org, record.id, {
@@ -250,6 +253,7 @@ export function EditRecordForm({
           () => {
             setSaved(true);
             setReplan("");
+            if (datesChanged) emitWorkflow("atlas.schedule:done");
           },
         );
       }}

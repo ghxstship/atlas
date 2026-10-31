@@ -17,7 +17,7 @@ audience:
   dimension: operator-role
   roles: [administrator, support, trust-and-safety]
 chrome:
-  topBar: [tenants, metrics, flags, support, moderation, banners, team, activity]
+  topBar: [tenants, metrics, flags, support, moderation, banners, funnels, team, activity]
 nodes:
   - id: console
     kind: group
@@ -71,6 +71,11 @@ nodes:
         label: nav.console.banners
         route: /banners
         list: { views: [list], default: list }
+      - id: funnels
+        kind: page
+        label: nav.console.funnels
+        route: /funnels
+        list: { views: [table], default: table }
       - id: team
         kind: page
         label: nav.console.team

@@ -9,7 +9,17 @@ export const sitemap: Sitemap = {
   params: { orgId: { type: "uuid" }, sessionId: { type: "uuid" }, opportunityId: { type: "uuid" } },
   audience: { dimension: "operator-role", roles: ["administrator", "support", "trust-and-safety"] },
   chrome: {
-    topBar: ["tenants", "metrics", "flags", "support", "moderation", "banners", "team", "activity"],
+    topBar: [
+      "tenants",
+      "metrics",
+      "flags",
+      "support",
+      "moderation",
+      "banners",
+      "funnels",
+      "team",
+      "activity",
+    ],
   },
   nodes: [
     {
@@ -80,6 +90,13 @@ export const sitemap: Sitemap = {
           label: "nav.console.banners",
           route: "/banners",
           list: { views: ["list"], default: "list" },
+        },
+        {
+          id: "funnels",
+          kind: "page",
+          label: "nav.console.funnels",
+          route: "/funnels",
+          list: { views: ["table"], default: "table" },
         },
         {
           id: "team",

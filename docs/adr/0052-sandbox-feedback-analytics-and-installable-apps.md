@@ -3,7 +3,8 @@
 - Status: Accepted
 - Date: 2026-10-21
 - Decider: A96 (RRR-141), within the work package; the owner steps at the end need the owner
-- Related: findings A65-022 and A65-023; Sections 4.10, 7.3, 11.7 and 11.14; ADR 0011, ADR 0027, ADR 0030, ADR 0033 (decisions 1 and 35); migrations 1034, 1270, 1361, 1367 and 1530 to 1533
+- Amended: 2026-10-28, A146 (RRR-178): workflow funnels and regression alerts (section 6, migration 2340)
+- Related: findings A65-022 and A65-023; Sections 4.10, 7.3, 11.7 and 11.14; ADR 0011, ADR 0027, ADR 0030, ADR 0033 (decisions 1 and 35); migrations 1034, 1270, 1361, 1367, 1530 to 1533 and 2340
 
 ## Context
 
@@ -85,6 +86,61 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
   - 429 and server errors are retried.
 - The Edge Function reads `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` with `XOS_WEB_PUSH_TRANSPORT=vapid`, and records pushes otherwise. The apps read the same `VAPID_PUBLIC_KEY`; unset, the setting says browser notifications are not set up yet. Tests generate every key at runtime.
 
+### 6. Workflow funnels and regression alerts (A146, 2340)
+
+- **One registry.** `packages/data/src/product-workflows.ts` names every workflow funnel: its app, owning team, steps
+  and target completion rate. Every workflow event name comes from it.
+  - A funnel is Workflow Started, Workflow Step 1 to n, then Workflow Completed.
+  - Migration 2340 holds the same funnels in `private.product_funnels`, and a unit test keeps the two equal.
+- **Signals.** Pages send `<workflow>:start`, `<workflow>:step<n>` or `<workflow>:done` in three ways:
+  - a page view of a route template the registry lists, with no code in the page;
+  - a `data-workflow` attribute (`workflowMarker`). On a link, button or form it signals when clicked or submitted.
+    On any other element it signals when the element appears;
+  - `emitWorkflow` from client code, once a server action succeeded, so a refused submit never counts as a
+    completion. A form signals from its result, never by wrapping the action, so useActionState keeps the server
+    action and the form still posts without JavaScript (ADR 0001). `useActionOutcome` (`@xos/ui/pwa/action-outcome`)
+    or the form kit's own success effect does it.
+  - A row that leaves the page with its result (an answer reviewed out of the queue, an uploaded onboarding item)
+    never commits that result, since the revalidated page drops it in the same commit. Its list sits in an
+    `ActionOutcomeScope`, which stays mounted. A form that left while its action was pending counts as succeeded
+    when the scope's token changed in that commit. The token is the page's account of what those forms change, and
+    a refused action leaves both the row and the token as they were.
+  - The workflow kit's `ActionForm` (approvals, project templates) already ran its server action through a client
+    function before A146, to announce success for rows that leave. Its funnel signals ride on that function, so those
+    forms post as they did before.
+- **Consent unchanged.** The browser module that turns signals into events is the one section 3 describes. It loads
+  only on a yes to performance cookies, stops under Global Privacy Control and posts to the app's own
+  `/api/product-events`, which asks the consent seam again.
+  - The registry loads with that module. Pages carry only `@xos/data/workflow-signal`, a few hundred bytes with no
+    registry, so the key pages' route budgets hold.
+  - Without consent a signal reaches nothing.
+- **A completion needs its start.** A step or completion counts only once the same browser session started the
+  workflow (kept in sessionStorage beside the session key). A return visit to a finished packet or an empty queue
+  is not a completion.
+- **Funnel computation.** `private.product_funnel_stages` counts distinct sessions per hourly bucket, as
+  `app.product_funnel_hourly` does, and sums them over the window. It reads the events through the workflow index,
+  so only the window is scanned.
+- **The regression check.** `xos_check_product_funnels` runs at 23 minutes past each hour. For each funnel it compares
+  the 24 hours before the last hour boundary with the target and with the 7 days before.
+  - A funnel regresses when, with at least `min_started_sessions` (20) started sessions, its rate is below the target
+    or more than `regression_drop` (a quarter) below its own 7-day rate.
+  - A regression raises one alert per workflow in `app.product_funnel_alerts` for its owning team, refreshes it while
+    the regression lasts, and resolves it once the funnel recovers with enough sessions.
+  - A quiet hour keeps an alert open rather than calling the funnel healthy.
+- **Where the alert goes.** The operator console shows funnels and alerts at `/funnels`, for every operator role
+  (`tenants.read`, as A137's platform metrics). An operator acknowledges an alert there, and the console ledger
+  records it (`funnel_alert.acknowledge`).
+  - `private.notify` reaches org members and parties only, and platform staff are neither, so the console is the
+    platform team's channel. No outside alerting service is used.
+- **Owning teams** are names in the registry and the migration (Projects, Work, Schedule and so on); the console
+  shows and groups alerts by them. Renaming a team, or moving a workflow to another, is a registry and migration
+  change.
+- **Targets.** The spec's measured targets (time and tap counts, `private.product_workflows.target`) are checked by
+  the journeys of gate 26. A funnel's target is a completion rate, a starting value the owner may tune from
+  production data.
+- **Compass** workflows have funnels and targets but send no events yet. The native app has no cookie banner, so it
+  needs its own analytics consent choice (with Global Privacy Control's native equivalent) before it may send any.
+
 ## Owner steps
 
 1. **VAPID keys.**
@@ -96,6 +152,8 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
 3. **Push services review.** Browsers deliver through their vendor's push service (Google, Apple, Mozilla, Microsoft), which carries only an encrypted payload. Counsel decides whether `legal/subprocessors.md` lists them, as it lists Expo for Compass.
 4. **Platform staff.** Name the people who triage feedback: A90's roster once it lands, or rows in `private.platform_staff` until then.
 5. **App icons.** When the platform marks are set, replace the brand slots. A 1024 px PNG app icon serves iOS home screens better than the SVG slot.
+6. **Funnel targets and teams.** Review the starting completion targets and owning teams in `private.product_funnels` (2340) and the registry once production funnels have a few weeks of data.
+7. **Compass analytics consent.** Decide whether Compass asks for analytics consent, so its eight workflows can send funnel events.
 
 ## Consequences
 
@@ -104,3 +162,5 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
 - External parties with no membership still have no push device row, as with Compass. A person-level browser subscription is a follow-up.
   - Update (A101, RRR-147): Gateway browsers and Compass devices register for the person too (ADR 0056, migrations 1670 and 1671).
 - Explicit funnel events (Workflow Started, Step, Completed) are recorded when a workflow emits them. Instrumenting each Section 11.11 to 11.13 workflow is a follow-up for its owning module; page views give the route funnel meanwhile.
+  - Update (A146, RRR-178): every Atlas and Gateway workflow emits them (section 6); Compass waits on its consent choice.
+- The hourly funnel check reads 8 days of one workflow's events per funnel through the workflow index, 26 times an hour.

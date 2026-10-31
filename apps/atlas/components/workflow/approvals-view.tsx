@@ -242,7 +242,7 @@ export async function ApprovalsView({
                         <p className="m-0 text-text-12 text-text-secondary">
                           {t("approvals.decide.youDecide", { step: step?.name ?? "" })}
                         </p>
-                        <DecisionForm org={org} id={a.id} />
+                        <DecisionForm org={org} id={a.id} last={waiting.length === 1} />
                       </section>
                     ) : null}
                     {withdrawable ? <CancelForm org={org} id={a.id} /> : null}
