@@ -1,6 +1,6 @@
 -- pgTAP: migration 2605 (RRR-209 interim), Account Member reads of per diems and lot movements. For a vendor-supplied
--- person (sam, supplied by Bayside Audio), an Account Member who is not that person (mo) reaches the engagement's
--- operational area yet reads neither its per diems nor its lot movements from the tables; the account's Owner and
+-- person (sam, supplied by Bayside Audio), an Account Member who is not that person and not assigned to the engagement
+-- (mo) reads neither its per diems nor its lot movements from the tables; the account's Owner and
 -- Admin still read both, and so does sam. Org readers with crew.time_entry.read or assets.asset.read, a member's own
 -- rows, and an artist's Advance representative read as before. Account Finance, an unrelated person and another
 -- tenant read nothing. The engagement branch keeps its time box. Policies, comments and grants are checked.
@@ -73,8 +73,10 @@ select pg_temp.as_platform();
 -- The helper is asked as postgres with mo's claims: signed-in users have no usage on schema private.
 select pg_temp.as_user('mo');
 select set_config('role', 'postgres', true);
-select ok(pg_temp.id('eng_vendor_a') in (select private.my_engagement_ids('operational')),
-  'the Account Member still reaches the engagement''s operational area, so the refusals below come from 2605');
+-- Since R4 (2632) an Account Member reaches only the engagements assigned to them, so mo, who is not assigned, no longer
+-- reaches the operational area at all; 2605's policies refuse the reads either way.
+select ok(pg_temp.id('eng_vendor_a') not in (select private.my_engagement_ids('operational')),
+  'an unassigned Account Member does not reach the engagement''s operational area (R4, 2632)');
 select pg_temp.as_platform();
 select is(pg_temp.per_diems('mo', 'eng_vendor_a'), 0, 'an Account Member does not read the supplied person''s per diems');
 select is(pg_temp.lot_moves('mo', 'eng_vendor_a'), 0, 'nor the lot movements made to the supplied person''s engagement');
