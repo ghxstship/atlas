@@ -1,0 +1,88 @@
+-- Shared pgTAP fixture for the R7a supply bridge suites (2681 to 2683), included with \ir inside each test transaction.
+-- Builds on A03's domain world (0300_domain_world.psql). Every name is fictional; nothing persists.
+--
+-- Vendor ven (Harborline Staging, Active). Asset classes in org_a: cls_radio (a serialized radio) and cls_deck (deck
+-- sections kept as lots).
+-- po on prj_a, Sent:
+--   l_radio  Rental, 3 radios, hired 2026-01-01 to 2026-01-10 (the hire has ended)
+--   l_future Rental, 1 radio, hired 2099-06-01 to 2099-06-10 (the hire has not ended)
+--   l_deck   Purchase, 10 deck sections
+--   l_svc    Purchase, 1 crew call, no element (a service)
+-- po2 on prj_a, Sent: l2, Purchase, 1 deck section. po3 on prj_a, Proposed: l3, Purchase, 1 deck section.
+-- carol (manager) created the orders and sent them; bob (admin) approved them.
+\ir 0300_domain_world.psql
+
+create function pg_temp.build_supply_world() returns void
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform pg_temp.as_user('alice');
+  insert into world values ('cp_v', app.create_counterparty(pg_temp.id('org_a'), 'Harborline Staging', 'Equipment Rental'));
+  insert into app.spend_authorities (org_id, role_id, document_type, currency_code, limit_minor)
+  values (pg_temp.id('org_a'), pg_temp.system_role('admin'), 'Purchase Order', 'USD', 10000000);
+
+  perform pg_temp.as_user('carol');
+  insert into app.vendors (counterparty_id, payment_terms_days) values (pg_temp.id('cp_v'), 30) returning id into v_id;
+  insert into world values ('ven', v_id);
+  perform app.transition_vendor(pg_temp.id('ven'), 'Prospect', 'Onboarded', 'Paperwork in.');
+  perform app.transition_vendor(pg_temp.id('ven'), 'Onboarded', 'Active', 'Approved for use.');
+  insert into app.asset_classes (org_id, element_id, name) values (pg_temp.id('org_a'), '9000.03.01-XPMS-003', 'Digital Two-Way Radio')
+  returning id into v_id;
+  insert into world values ('cls_radio', v_id);
+  insert into app.asset_classes (org_id, element_id, name) values (pg_temp.id('org_a'), '0000.01.01-XOS-001', 'Stage Deck Section')
+  returning id into v_id;
+  insert into world values ('cls_deck', v_id);
+
+  insert into app.purchase_orders (project_id, vendor_id, currency_code) values (pg_temp.id('prj_a'), pg_temp.id('ven'), 'USD')
+  returning id into v_id;
+  insert into world values ('po', v_id);
+  insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor, acquisition_kind, hire_period)
+  values (pg_temp.id('po'), 1, 'Two-way radios on hire.', '9000.03.01-XPMS-003', 3, 5000, 'Rental', '[2026-01-01 12:00+00,2026-01-10 12:00+00)')
+  returning id into v_id;
+  insert into world values ('l_radio', v_id);
+  insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor, acquisition_kind, hire_period)
+  values (pg_temp.id('po'), 2, 'Spare radio on hire.', '9000.03.01-XPMS-003', 1, 5000, 'Rental', '[2099-06-01 12:00+00,2099-06-10 12:00+00)')
+  returning id into v_id;
+  insert into world values ('l_future', v_id);
+  insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor)
+  values (pg_temp.id('po'), 3, 'Stage deck sections.', '0000.01.01-XOS-001', 10, 100)
+  returning id into v_id;
+  insert into world values ('l_deck', v_id);
+  insert into app.po_lines (purchase_order_id, line_number, description, quantity, unit_price_minor)
+  values (pg_temp.id('po'), 4, 'Crew call for the load in.', 1, 1000)
+  returning id into v_id;
+  insert into world values ('l_svc', v_id);
+
+  insert into app.purchase_orders (project_id, vendor_id, currency_code) values (pg_temp.id('prj_a'), pg_temp.id('ven'), 'USD')
+  returning id into v_id;
+  insert into world values ('po2', v_id);
+  insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor)
+  values (pg_temp.id('po2'), 1, 'One more deck section.', '0000.01.01-XOS-001', 1, 100)
+  returning id into v_id;
+  insert into world values ('l2', v_id);
+
+  insert into app.purchase_orders (project_id, vendor_id, currency_code) values (pg_temp.id('prj_a'), pg_temp.id('ven'), 'USD')
+  returning id into v_id;
+  insert into world values ('po3', v_id);
+  insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor)
+  values (pg_temp.id('po3'), 1, 'A deck section not yet approved.', '0000.01.01-XOS-001', 1, 100)
+  returning id into v_id;
+  insert into world values ('l3', v_id);
+
+  perform pg_temp.as_user('bob');
+  perform app.approve_purchase_order(pg_temp.id('po'), 'Within limit.');
+  perform app.approve_purchase_order(pg_temp.id('po2'), 'Within limit.');
+  perform pg_temp.as_user('carol');
+  perform app.transition_purchase_order(pg_temp.id('po'), 'Approved', 'Sent', 'Emailed.');
+  perform app.transition_purchase_order(pg_temp.id('po2'), 'Approved', 'Sent', 'Emailed.');
+  perform pg_temp.as_platform();
+end $$;
+
+select pg_temp.build_supply_world();
+
+-- One receipt or return event of the calling person, by world keys.
+create function pg_temp.receive(p_event text, p_order text, p_lines jsonb) returns jsonb
+language sql as $$ select app.receive_goods(pg_temp.id(p_event), pg_temp.id(p_order), p_lines) $$;
+create function pg_temp.give_back(p_event text, p_order text, p_reason app.goods_return_reason, p_lines jsonb) returns jsonb
+language sql as $$ select app.return_goods(pg_temp.id(p_event), pg_temp.id(p_order), p_reason, p_lines) $$;

@@ -1,9 +1,8 @@
+import * as forms from "@xos/data/work-details-forms";
 import {
   parseAccessibilityForm,
   parseContactForm,
   parseDietaryForm,
-  parseTravelForm,
-  parseUniformForm,
 } from "@xos/data/work-details-forms";
 import { toE164 } from "@xos/i18n/formats";
 import { describe, expect, it } from "vitest";
@@ -16,9 +15,8 @@ import {
   saveErrorKey,
   SIZE_CHOICES,
   toggled,
-  travelFields,
-  uniformFields,
 } from "../src/settings/workDetails";
+import * as settings from "../src/settings/workDetails";
 
 /**
  * Work Details editing in Compass (A111, S4.5.6-44): the phone's forms feed the parsers Atlas and Gateway share, so
@@ -35,26 +33,14 @@ describe("the fields of a Work Details form", () => {
     expect(form.getAll("missing")).toEqual([]);
   });
 
-  it("pass the uniform parser with the saved sizes, blank meaning none", () => {
-    const fields = uniformFields(null);
-    expect(Object.values(fields).every((v) => v === "")).toBe(true);
-    expect(
-      parseUniformForm(formFields({ ...fields, shirtSize: "L", shoeSize: " US 10.5 " })),
-    ).toEqual({
-      ok: true,
-      value: {
-        shirtSize: "L",
-        jacketSize: null,
-        gloveSize: null,
-        pantsSize: null,
-        shoeSize: "US 10.5",
-        hatSize: null,
-        uniformNotes: null,
-      },
-    });
+  it("no longer edit uniform sizes or travel preferences, which each project asks for (R6a)", () => {
+    expect(forms).not.toHaveProperty("parseUniformForm");
+    expect(forms).not.toHaveProperty("parseTravelForm");
+    expect(settings).not.toHaveProperty("uniformFields");
+    expect(settings).not.toHaveProperty("travelFields");
   });
 
-  it("offer every garment size and none", () => {
+  it("offer every garment size and none, for Project details", () => {
     expect(SIZE_CHOICES[0]).toBe("");
     expect(SIZE_CHOICES).toContain("XL");
   });
@@ -72,14 +58,6 @@ describe("the fields of a Work Details form", () => {
       formFields({ accessibilityNeeds: toggled(["Seating"], "Seating"), accessibilityNotes: "" }),
     );
     expect(access).toMatchObject({ ok: true, value: { accessibilityNeeds: [] } });
-  });
-
-  it("name the travel fields to fix", () => {
-    const parsed = parseTravelForm(formFields({ ...travelFields(null), homeAirport: "MIAMI" }));
-    expect(fieldErrorKeys(parsed)).toEqual({ homeAirport: "workDetails.errors.invalid" });
-    expect(
-      fieldErrorKeys(parseTravelForm(formFields({ ...travelFields(null), homeAirport: "mia" }))),
-    ).toEqual({});
   });
 
   it("read a contact's phone in the person's region", () => {
