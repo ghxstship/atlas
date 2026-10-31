@@ -11,6 +11,7 @@ import {
   listVenues,
 } from "@xos/data/projects";
 import { getTranslations } from "next-intl/server";
+import { LimitBanners } from "@/components/plan-limits/banners";
 import { requireNode } from "@/lib/shell/require-node";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
@@ -84,7 +85,8 @@ export async function projectFormOptions(ctx: OrgContext): Promise<ProjectFormOp
 /**
  * A Projects page (Section 4.5.5): All projects, By phase and Portfolio timeline share this server
  * half, which reads the projects the viewer may see and offers the views the sitemap lists for the
- * node. Creating is offered only to holders of projects.project.create.
+ * node. Creating is offered only to holders of projects.project.create. Projects a plan limit made read-only are
+ * counted above the list (A107).
  */
 export async function ProjectsPage({
   node,
@@ -130,6 +132,7 @@ export async function ProjectsPage({
 
   return (
     <CustomFieldList value={await custom.view(listed.map((p) => p.id))}>
+      <LimitBanners ctx={ctx} limits={["active_projects"]} />
       <ProjectCollection
         org={ctx.org.slug}
         title={translate(entry.label)}

@@ -85,6 +85,10 @@
       "session_signed_out": {
         "subject": "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
         "body": "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones."
+      },
+      "work_details_moved": {
+        "subject": "Las tallas de uniforme y las preferencias de viaje pasaron a cada proyecto",
+        "body": "{moved, select, uniform {Tus tallas de uniforme se quitaron} travel {Tus preferencias de asiento, comida y aeropuerto de origen se quitaron} other {Tus tallas de uniforme y tus preferencias de viaje se quitaron}} de tu perfil. Ahora las producciones te las piden en cada proyecto en cuya lista estás, y las guardan solo para ese proyecto. Tus demás datos de trabajo no cambiaron."
       }
     },
     "report": {
@@ -294,6 +298,60 @@
         "subject": "{subject, select, comment {Se eliminó tu comentario} message {Se eliminó tu mensaje} other {Se eliminó tu publicación}}",
         "body": "Los moderadores de tu organización eliminaron tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
       }
+    },
+    "roster_entry": {
+      "invited": {
+        "subject": "Estás en el equipo de {partyName} para {projectName}",
+        "body": "Abre el Inicio de Gateway para aceptar o rechazar."
+      },
+      "returned": {
+        "subject": "Devolvieron a {personName} en la lista de {projectName}",
+        "body": "Motivo: {reason}"
+      },
+      "declined": {
+        "subject": "{personName} rechazó la lista de {projectName}",
+        "body": "Agrega a otra persona o retira la entrada."
+      },
+      "project_facts_entered": {
+        "subject": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "body": "{actorName} los ingresó para {projectName}. Revísalos y corrige lo que esté mal."
+      }
+    },
+    "engagement": {
+      "roster_lock_changed": {
+        "subject": "Cambió el cierre de nombres de {projectName}",
+        "body": "Abre la lista del equipo para ver cuándo se cierran los nombres. Después, pide a la organización productora que cambie la lista."
+      }
+    },
+    "allocation": {
+      "decided": {
+        "subject": "Tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName} fue {decision, select, approved {aprobada} declined {rechazada} other {decidida}}",
+        "body": "{decision, select, declined {Motivo: {reason}} other {{quantity} para {personName}, a través de {partyName}.}}"
+      },
+      "assigned": {
+        "subject": "Recibiste {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{partyName} te pasó {quantity}."
+      },
+      "issued": {
+        "subject": "Te entregaron tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "Ahora está a tu nombre. Devuélvelo cuando termine el trabajo."
+      },
+      "withdrawn": {
+        "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
+      }
+    },
+    "accommodation_block": {
+      "release_due": {
+        "subject": "{blockKey} {blockTitle} se libera {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        "body": "{freeRoomNights, plural, one {Queda # noche de habitación libre} other {Quedan # noches de habitación libres}} en {blockTitle} para {projectName}. Las habitaciones sin asignar vuelven al hotel el {releaseOn}."
+      }
+    },
+    "transfer": {
+      "assigned": {
+        "subject": "Conduces el traslado {transferKey}",
+        "body": "Recogida en {pickupPlace}, el {startsAt, date, medium} a las {startsAt, time, short}, hacia {dropoffPlace}, con {passengerCount, plural, one {# pasajero} other {# pasajeros}}."
+      }
     }
   },
   "notification": {
@@ -359,5 +417,11 @@
   "deletionCertificate": {
     "subject": "Certificado de eliminación de {org}",
     "body": "Los datos de {org} se eliminaron de XOS el {date}, según el ciclo de vida de la organización.\n\nSe adjunta su certificado de eliminación. Su id es {id}. También puede descargarlo desde Atlas mientras tenga una cuenta.\n\nLas copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario."
+  },
+  "party_invitation": {
+    "accountSubject": "{inviterName} te invita a {accountName} en XOS",
+    "rosterSubject": "{inviterName} te invita al equipo de {partyName} para {projectName}",
+    "how": "Inicia sesión en Gateway con este correo y acepta en el Inicio antes del {expiresAt, date, long}. La empresa verá tu perfil y los datos del proyecto. ¿No lo esperabas? Ignóralo.",
+    "action": "Iniciar sesión en Gateway"
   }
 }

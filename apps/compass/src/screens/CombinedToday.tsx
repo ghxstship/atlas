@@ -15,6 +15,7 @@ import { formatCountdown, showsCountdown } from "../domain/show";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { Card, ShiftCard, Text, useTheme } from "../ui";
 import { BrandChip } from "./OrgSwitcher";
+import { TodayContacts } from "./TodayContacts";
 import { formatDay, formatTime, useRoleTitle } from "./common";
 
 type LocalShift = ShiftRow & Row;
@@ -139,9 +140,16 @@ export function CombinedToday({
             );
           })}
           {g.sheets.map((d) => (
-            <Card key={d.id} title={t("nav.compass.content.daySheet")}>
-              <Text>{d.body}</Text>
-            </Card>
+            <View key={d.id} style={{ gap: theme.space["8"] }}>
+              <Card title={t("nav.compass.content.daySheet")}>
+                <Text>{d.body}</Text>
+              </Card>
+              <TodayContacts
+                testID={`today-contacts-${d.id}`}
+                projectId={d.project_id}
+                today={d.day}
+              />
+            </View>
           ))}
           {g.nextCue?.planned_at ? (
             <NextCueCard

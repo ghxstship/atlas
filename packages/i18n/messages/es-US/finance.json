@@ -481,7 +481,17 @@
     },
     "xyzCategory": "De la categoría",
     "xyzDeclare": "Las disciplinas necesitan una etiqueta declarada.",
-    "xyzFromCategory": "La etiqueta de la categoría es {tag}; elija otra solo para declarar una distinta."
+    "xyzFromCategory": "La etiqueta de la categoría es {tag}; elija otra solo para declarar una distinta.",
+    "lodging": {
+      "title": "Alojamiento en estas líneas",
+      "load": "Mostrar alojamiento en las líneas vinculadas",
+      "failed": "No se pudo leer el alojamiento. Inténtalo de nuevo.",
+      "empty": "Ningún bloque de alojamiento se carga a estas líneas.",
+      "unpriced": "sin precio",
+      "lodgingHeld": "Alojamiento reservado {amount} ({nights} noches de habitación)",
+      "lodgingAssigned": "Alojamiento asignado {amount} ({nights} noches de habitación)",
+      "otherCurrency": "{count, plural, one {# bloque en otra moneda} other {# bloques en otra moneda}}, sin sumar"
+    }
   },
   "expenses": {
     "create": "Gasto nuevo",

@@ -8,6 +8,7 @@ import {
   moreMenu,
   moreSections,
   operationalEngagements,
+  rosterOnly,
   scanModes,
   tabBar,
   todayBlocks,
@@ -47,6 +48,8 @@ function external(
         projectName: "Demo",
         roleType: audience,
         state,
+        via: "engagement",
+        rosterEntryId: null,
       },
     ],
   };
@@ -167,6 +170,7 @@ describe("navigation from the sitemap", () => {
       "inspections",
       "logistics",
       "show",
+      "drives",
       "expenses",
       "reference",
       "offline-queue",
@@ -189,6 +193,8 @@ describe("navigation from the sitemap", () => {
       "per-diem",
       "travel-and-lodging",
       "onboarding",
+      "drives",
+      "project-details",
       "offline-queue",
       "profile",
       "settings",
@@ -241,5 +247,62 @@ describe("navigation from the sitemap", () => {
       id: "set-time",
       label: "nav.compass.content.setTime",
     });
+  });
+});
+
+describe("a person who works the project only on a party's roster (R8)", () => {
+  const rostered = (projectId = "proj-1"): CompassIdentity => ({
+    ...external("crew", "Active", projectId),
+    engagements: [
+      {
+        id: "e-vendor",
+        orgId: "o1",
+        orgName: "Northwind Live",
+        projectId,
+        projectName: "Summer Series",
+        roleType: "crew",
+        state: "Active",
+        via: "roster",
+        rosterEntryId: "r1",
+      },
+    ],
+  });
+
+  it("denies time, swaps, the crew board, approvals and expenses as the party's own", () => {
+    const identity = rostered();
+    expect(rosterOnly(identity, "proj-1")).toBe(true);
+    for (const f of [
+      "clock",
+      "shifts.swap",
+      "crew.board",
+      "timesheets.approve",
+      "expenses.submit",
+    ] as Feature[]) {
+      expect(access(identity, f, "proj-1")).toEqual({ allowed: false, reason: "roster-member" });
+    }
+  });
+
+  it("keeps their badge and their own gear to scan", () => {
+    const identity = rostered();
+    expect(access(identity, "scan.credential.badge", "proj-1")).toEqual({ allowed: true });
+    expect(access(identity, "scan.asset", "proj-1")).toEqual({ allowed: true });
+  });
+
+  it("is not roster-only where the person also holds an engagement of their own", () => {
+    const both: CompassIdentity = {
+      ...rostered(),
+      engagements: [...rostered().engagements, ...external("crew").engagements],
+    };
+    expect(rosterOnly(both, "proj-1")).toBe(false);
+    expect(access(both, "clock", "proj-1")).toEqual({ allowed: true });
+    expect(rosterOnly(rostered("proj-2"), "proj-1")).toBe(false);
+  });
+
+  it("hides Timesheets and Invoices from their More menu", () => {
+    const ids = (o: { rosterOnly?: boolean }) =>
+      [...moreSections("crew", o).native, ...moreSections("crew", o).elsewhere].map((m) => m.id);
+    expect(ids({})).toContain("timesheets");
+    expect(ids({ rosterOnly: true })).not.toContain("timesheets");
+    expect(ids({ rosterOnly: true })).not.toContain("invoices");
   });
 });

@@ -50,10 +50,15 @@
   },
   "progress": "{done} de {total} listos",
   "proof": {
+    "addPhoto": "Agregar una foto",
+    "capture": "Fotografía cada beneficio cuando se entregue. Las fotos se suben cuando tengas señal, y el organizador las ve cuando pasan el análisis de virus.",
     "delivered": "Entregado",
     "documents": "Documentos de comprobación",
     "empty": "Todavía no hay beneficios ni comprobaciones de cumplimiento en este proyecto.",
     "entitlements": "Beneficios",
+    "noEngagement": "Puedes agregar fotos mientras tu patrocinio esté activo en este proyecto.",
+    "photosOne": "1 foto",
+    "photosOther": "{count} fotos",
     "waiting": "Sin entregar"
   },
   "purchaseOrders": {
@@ -110,5 +115,11 @@
     "departs": "Sale",
     "empty": "Todavía no hay viajes ni alojamiento reservados para ti en este proyecto.",
     "title": "Viaje"
+  },
+  "ground": {
+    "title": "Transporte terrestre",
+    "pickup": "Recogida",
+    "driver": "Conductor {name}",
+    "meets": "Recibe el vuelo {flight}"
   }
 }

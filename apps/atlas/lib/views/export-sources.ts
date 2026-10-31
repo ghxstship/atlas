@@ -244,6 +244,34 @@ const guests = source("app.guest_list_entries", [
   "note",
   "project_id",
 ]);
+// R4: the crew roster, through the producing org's read view (the person resolved, no profile value).
+const crewRoster = source("app.roster_entry_people", [
+  "full_name",
+  "party_name",
+  "job_title",
+  "arrival_starts_at",
+  "arrival_ends_at",
+  "arrival_time_zone",
+  "entry_state",
+  "person_response",
+  "project_id",
+]);
+
+// R7: what each party and person is given, read from the computed status (no prices).
+const allocations = source("app.advance_allocation_status", [
+  "item_name",
+  "kind",
+  "quantity",
+  "display_status",
+  "allocation_state",
+  "origin",
+  "needed_time_zone",
+  "reserved_quantity",
+  "issued_quantity",
+  "returned_quantity",
+  "decline_reason",
+  "project_id",
+]);
 
 const custody = source("app.asset_custody", [
   "created_at",
@@ -325,6 +353,67 @@ const blocks = source("app.accommodation_blocks", [
   "release_on",
   "nightly_rate_minor",
   "currency_code",
+  "project_id",
+]);
+
+// The flight grid (B5, G-58) exports Flight rows only, filtered by the phase its built-in views set.
+const travelGrid = source(
+  "app.travel_grid",
+  [
+    "traveler_name",
+    "service_identifier",
+    "operator_name",
+    "departs_from",
+    "departs_at",
+    "departs_time_zone",
+    "arrives_at_place",
+    "arrives_at",
+    "arrives_time_zone",
+    "final_arrival_place",
+    "final_arrival_at",
+    "leg_number",
+    "leg_count",
+    "confirmation_identifier",
+    "phase",
+    "project_id",
+  ],
+  { filters: { phase: "phase" }, fixed: { travel_mode: "Flight" } },
+);
+const transfers = source("app.transfer_board", [
+  "transfer_key",
+  "pickup_place",
+  "pickup_at",
+  "pickup_time_zone",
+  "dropoff_place",
+  "dropoff_at",
+  "dropoff_time_zone",
+  "driver_name",
+  "vehicle_label",
+  "vehicle_type",
+  "seats",
+  "passenger_count",
+  "primary_passenger_name",
+  "meets_service_identifier",
+  "meets_flight_arrives_at",
+  "status",
+  "tight_turnaround",
+  "meets_flight_after_pickup",
+  "project_id",
+]);
+const spaceBookings = source("app.space_booking_board", [
+  "space_name",
+  "act_name",
+  "purpose",
+  "booking_mode",
+  "party_size",
+  "starts_at",
+  "ends_at",
+  "set_label",
+  "set_planned_at",
+  "set_moved",
+  "group_size",
+  "group_peak_party",
+  "over_capacity",
   "project_id",
 ]);
 
@@ -467,6 +556,8 @@ const payments = source("app.payments", [
 export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "activity/feed": activity,
 
+  "advancing/crew": crewRoster,
+  "advancing/allocations": allocations,
   "advancing/packets": packets,
   "advancing/reconciliation": reconciliations,
   "advancing/riders": riders,
@@ -701,6 +792,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "hospitality/accommodation_blocks": blocks,
   "hospitality/beos": beos,
   "hospitality/fulfillments": fulfillments,
+  "hospitality/rooms": spaceBookings,
+  "hospitality/transfers": transfers,
+  "hospitality/travel": travelGrid,
 
   "knowledge/documents": documents,
   "knowledge/feed": source("app.feed_posts", [
@@ -763,6 +857,8 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     riders: inProject(riders),
     reconciliation: inProject(reconciliations),
     guests: inProject(guests),
+    crew: inProject(crewRoster),
+    allocations: inProject(allocations),
     submissions,
   }),
   "project/assets": inProject(custody),
@@ -780,6 +876,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     fulfillments: inProject(fulfillments),
     beos: inProject(beos),
     blocks: inProject(blocks),
+    travel: inProject(travelGrid),
+    transfers: inProject(transfers),
+    rooms: inProject(spaceBookings),
   }),
   "project/logistics": sections("section", "shipments", {
     shipments: inProject(shipments),

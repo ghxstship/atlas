@@ -22,6 +22,15 @@ export interface EngagementSummary {
   readonly projectName: string;
   readonly roleType: Audience;
   readonly state: EngagementState;
+  /**
+   * How the person reaches it: as the engaged party (api_external.engagements), or only through an
+   * Accepted entry on a party's roster (R8, api_external.my_roster_engagements), working as crew.
+   */
+  readonly via: "engagement" | "roster";
+  /** The person's roster entry, when reached through the roster; null otherwise. */
+  readonly rosterEntryId: string | null;
+  /** Whom to ask on the party side, for a roster engagement: its Advancing Lead, else its Account Owner. */
+  readonly leadName?: string | null;
 }
 
 export interface CompassIdentity {
@@ -49,6 +58,7 @@ export type Feature =
   | "show.read"
   | "scan.asset"
   | "scan.receiving"
+  | "scan.receiving.order"
   | "scan.credential.validate"
   | "scan.credential.badge"
   | "scan.lookup"
@@ -68,7 +78,12 @@ export type Denial =
   /** External: no engagement on this project has its operational area open. */
   | "engagement-not-active"
   /** External: the engagement reached Complete; Compass access ended (Section 8.7). */
-  | "engagement-closed";
+  | "engagement-closed"
+  /**
+   * External: the person works the project only on a party's roster (R8). Time, swaps, the crew board,
+   * approvals and expenses are the party's own, so the person scans their badge and gear and nothing more.
+   */
+  | "roster-member";
 
 export type Access =
   { readonly allowed: true } | { readonly allowed: false; readonly reason: Denial };
@@ -90,6 +105,8 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, CapabilityCode | null>> = {
   "show.read": "show.run_of_show.read",
   "scan.asset": "assets.custody.write",
   "scan.receiving": "procurement.receipt.write",
+  // Receiving against an order (R7a): app.receive_goods needs procurement.receipt.write on the project.
+  "scan.receiving.order": "procurement.receipt.write",
   "scan.credential.validate": "credentials.scan.write",
   "scan.credential.badge": null,
   "scan.lookup": "assets.asset.read",
@@ -116,6 +133,8 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   "show.read": ["client", "crew", "staff", "artist", "artist-representative"],
   "scan.asset": ["crew", "staff"],
   "scan.receiving": ["vendor"],
+  // Externals never receive against an order: the order, its lines and the receipt are internal records.
+  "scan.receiving.order": [],
   "scan.credential.validate": [],
   "scan.credential.badge": [
     "vendor",
@@ -142,6 +161,27 @@ const SUPERVISOR_ONLY = new Set<Feature>([
   "incidents.dispatch",
 ]);
 
+/**
+ * Features a person who works the project only on a party's roster never uses (R8): the party clocks,
+ * swaps, approves and claims for its people. Their badge and their own gear stay theirs to scan.
+ */
+const ROSTER_DENIED = new Set<Feature>([
+  "clock",
+  "shifts.swap",
+  "crew.board",
+  "timesheets.approve",
+  "expenses.submit",
+]);
+
+/**
+ * True when every open context the person has on the project is a roster entry (R8): no engagement of
+ * their own is operational there, and at least one roster entry is.
+ */
+export function rosterOnly(identity: CompassIdentity, projectId: string | null): boolean {
+  const open = operationalEngagements(identity, projectId);
+  return open.length > 0 && open.every((e) => e.via === "roster");
+}
+
 /** Engagements whose operational area is open (Section 8.7 time box). */
 export function operationalEngagements(
   identity: CompassIdentity,
@@ -166,6 +206,7 @@ export function access(
     if (capability === null) return ALLOW;
     return identity.capabilities.includes(capability) ? ALLOW : deny("capability");
   }
+  if (ROSTER_DENIED.has(feature) && rosterOnly(identity, projectId)) return deny("roster-member");
   if (!EXTERNAL_ROLES[feature].includes(identity.audience)) return deny("role");
   const onProject = identity.engagements.filter(
     (e) => projectId === null || e.projectId === projectId,
@@ -267,7 +308,14 @@ export const NATIVE_MORE: ReadonlySet<string> = new Set([
   "settlement",
   "reports",
   "proof-of-performance",
+  // R5: project facts on the person's own roster entries, online only.
+  "project-details",
+  // B5: the transfers the person drives, read-only from the device.
+  "drives",
 ]);
+
+/** More entries hidden from a person who works the project only on a party's roster (R8). */
+const ROSTER_HIDDEN_MORE: ReadonlySet<string> = new Set(["timesheets", "invoices"]);
 
 export interface MoreSections {
   /** Entries Compass opens as its own screens, in the sitemap's order. */
@@ -281,8 +329,13 @@ export interface MoreSections {
  * does not render yet gathered behind one row that opens the right app, instead of one "this is in
  * Gateway" page per entry.
  */
-export function moreSections(audience: Audience): MoreSections {
-  const items = moreMenu(audience);
+export function moreSections(
+  audience: Audience,
+  options: { rosterOnly?: boolean } = {},
+): MoreSections {
+  // A person who works the project only on a party's roster keeps no timesheets and sends no invoices (R8).
+  const hidden = options.rosterOnly ? ROSTER_HIDDEN_MORE : new Set<string>();
+  const items = moreMenu(audience).filter((m) => !hidden.has(m.id));
   return {
     native: items.filter((m) => NATIVE_MORE.has(m.id)),
     elsewhere: items.filter((m) => !NATIVE_MORE.has(m.id)),

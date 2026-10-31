@@ -72,7 +72,25 @@
       "travel_fulfillment_kind": "A travel segment belongs to a Travel fulfillment. Pick one of those.",
       "time_zone_unknown": "That time zone is not recognized. Pick a zone from the list.",
       "same_project": "That choice belongs to another project. Choose one from this project.",
-      "person_not_on_project": "That person is neither a member nor engaged on this project. Choose someone from the list."
+      "person_not_on_project": "That person is neither a member nor engaged on this project. Choose someone from the list.",
+      "transfer_driver_double_booked": "The driver is on another transfer at that time. Choose another driver or move the times.",
+      "transfer_vehicle_double_booked": "The vehicle is on another transfer at that time. Choose another vehicle or move the times.",
+      "transfer_passenger_double_booked": "A passenger is on another transfer at that time. Remove them there first or move the times.",
+      "transfer_vehicle_full": "The vehicle has no seat left. Choose a larger vehicle or remove a passenger.",
+      "transfer_driver_is_passenger": "The driver cannot also ride as a passenger.",
+      "transfer_person_not_on_project": "That person does not work on this project. Choose a member, or someone engaged or rostered on it.",
+      "transfer_meets_flight": "Choose a flight of this project for the pickup to meet.",
+      "transfer_canceled": "This transfer was canceled. Restore it before adding passengers.",
+      "space_booking_overlap": "The room is booked exclusively at that time, or an exclusive booking would overlap another. Make it shared or move the times.",
+      "space_booking_venue": "Choose a space at the project's venue.",
+      "space_booking_space": "That space was removed. Choose another one.",
+      "space_booking_set_engagement": "That set time belongs to another act.",
+      "local_contact_member": "That person is no longer an active member of the org.",
+      "local_contact_day_outside_project": "That day is outside the project's dates.",
+      "local_contact_org_fixed": "A contact stays in its org.",
+      "accommodation_block_budget_project": "Choose a budget line of this project's budget.",
+      "accommodation_block_budget_currency": "The budget is in another currency. Price the block in the budget's currency.",
+      "cross_org_reference": "That belongs to another org."
     },
     "fieldErrors": {
       "required": "Fill in this field.",
@@ -86,7 +104,9 @@
       "rooms": "Enter at least one room.",
       "guests": "Enter a guest count above zero, or leave it blank.",
       "file": "Choose a file to upload.",
-      "fileSize": "Files can be up to 50 MB."
+      "fileSize": "Files can be up to 50 MB.",
+      "seats": "Enter between 1 and 80 seats.",
+      "partySize": "Enter between 1 and 500 people."
     },
     "unnamed": "Unnamed person",
     "peekMissing": {

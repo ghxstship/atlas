@@ -47,6 +47,11 @@ export interface DownloadScope {
    * the onboarding checklist a person works through before operational access opens (A92). Absent holds none.
    */
   readonly onboardingEngagementIds?: readonly string[];
+  /**
+   * External: the person's own roster entries accepted by both sides on an Active or Closing engagement (R8), for a
+   * person who works an engagement only through a party's roster. Absent holds none.
+   */
+  readonly rosterEntryIds?: readonly string[];
 }
 
 export type ScopeKey = Exclude<keyof DownloadScope, "audience">;
@@ -168,6 +173,8 @@ export const TABLE_RULES: readonly TableRule[] = [
     anyOf: [
       { column: "custodian_membership_id", key: "membershipIds", audiences: INTERNAL },
       { column: "custodian_engagement_id", key: "engagementIds", audiences: ["crew", "staff"] },
+      // The units a person on a roster holds on their own entry (R8).
+      { column: "roster_entry_id", key: "rosterEntryIds" },
       internalOrg,
     ],
   },
@@ -242,10 +249,37 @@ export const TABLE_RULES: readonly TableRule[] = [
       ["shared_reports", "engagement_id", "engagementIds", CLIENT],
       ["sponsor_entitlements", "project_id", "engagedProjectIds", SPONSOR],
       ["engagement_documents", "engagement_id", "engagementIds", SPONSOR],
+      ["proof_of_performance_photos", "engagement_id", "engagementIds", SPONSOR],
     ] as const
   ).map(([table, column, key, audiences]): TableRule => ({
     table,
     anyOf: [{ column, key, audiences, restOnly: true }],
+  })),
+  // A person on a roster (R8): their own entries, what is allocated on them and their parking passes, from
+  // api_external views (my_roster_entries, advance_allocations, my_parking_passes) the REST downloader serves.
+  { table: "roster_entries", anyOf: [{ column: "id", key: "rosterEntryIds", restOnly: true }] },
+  {
+    table: "advance_allocations",
+    anyOf: [{ column: "roster_entry_id", key: "rosterEntryIds", restOnly: true }],
+  },
+  {
+    table: "parking_passes",
+    anyOf: [{ column: "holder_person_id", key: "personIds", restOnly: true }],
+  },
+  // Drives and local contacts (B5): api_external.my_transfers for every audience, and the project's local contacts
+  // (app.project_local_contacts inside the org, api_external.local_contacts outside it), by project. Both are views,
+  // which PowerSync does not replicate, so the REST downloader serves them.
+  ...["my_transfers", "local_contacts"].map((table): TableRule => ({
+    table,
+    anyOf: [
+      { ...internalProject, restOnly: true },
+      {
+        column: "project_id",
+        key: "engagedProjectIds",
+        audiences: OPERATIONAL_EXTERNAL,
+        restOnly: true,
+      },
+    ],
   })),
   // The canon codes: the swatch of every org's codes, and the list an org that holds no codes shows.
   { table: "canon_emergency_codes", anyOf: [], global: true },

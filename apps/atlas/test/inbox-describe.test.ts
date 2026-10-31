@@ -54,6 +54,8 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   // A99's account notices (1560, 1561), as private.notify_account stores them.
   "account.recovery_code_used": { remaining: "9" },
   "account.session_signed_out": { count: "2" },
+  // R6a's one-time move (2664), as private.move_profile_work_details stores it.
+  "account.work_details_moved": { moved: "both" },
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },
@@ -100,6 +102,76 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "occupancy.threshold": { title: "Main Gate", percent: "90", count: "450", permitted_load: "500" },
   "recognition.received": { title: "Re-rigged the stage left truss in record time." },
   "report.delivered": { title: "Weekly labor" },
+  // R4: the crew roster (2642), as private.roster_notification_args stores them.
+  "roster_entry.invited": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+  },
+  "roster_entry.returned": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    reason: "Add the arrival window.",
+  },
+  "roster_entry.declined": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+  },
+  // R5: project facts entered for the person (2655) and an engagement's names lock (2656).
+  "roster_entry.project_facts_entered": {
+    kind: "travel",
+    actorName: "Riley Chen",
+    companyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+  },
+  "engagement.roster_lock_changed": {
+    projectName: "Northwind Summer Series",
+    locksAt: "2027-03-01T17:00:00Z",
+  },
+  // R7: advance allocations (2693, 2694), as private.allocation_notification_args stores them.
+  "allocation.decided": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "asset",
+    itemName: "Two-way radios",
+    quantity: "2",
+    decision: "approved",
+  },
+  "allocation.assigned": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "asset",
+    itemName: "Two-way radios",
+    quantity: "2",
+  },
+  "allocation.issued": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "asset",
+    itemName: "Two-way radios",
+    quantity: "2",
+  },
+  "allocation.withdrawn": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "asset",
+    itemName: "Two-way radios",
+    quantity: "2",
+    cause: "engagement_ended",
+  },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
   "survey.opened": { title: "Load-In Pulse", anonymous: "true" },
@@ -129,6 +201,23 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     expiresOn: "2026-10-28",
   },
   "certification.expiring": { title: "First Aid", days: "30", expiresOn: "2026-11-20" },
+  // B5 (2947): block release reminders and the driver's transfer.
+  "accommodation_block.release_due": {
+    blockKey: "NWL-6",
+    blockTitle: "Harborview Crew Block",
+    releaseOn: "2027-05-15",
+    days: "7",
+    freeRoomNights: "12",
+    projectName: "Northwind Summer Series",
+  },
+  "transfer.assigned": {
+    transferKey: "NWL-3",
+    startsAt: "2027-06-02T14:00:00Z",
+    pickupTimeZone: "America/New_York",
+    pickupPlace: "Miami International Airport (MIA)",
+    dropoffPlace: "Crew Hotel",
+    passengerCount: "2",
+  },
   "document.expiring": { kind: "passport", title: "passport", days: "1", expiresOn: "2026-10-22" },
   // A90: marketplace moderation (1473), as private.notify_moderation_decision and console_decide_appeal store them.
   "listing.moderated": {

@@ -32,6 +32,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "shift.assigned": ["startsAt"],
   "shift.changed": ["startsAt"],
   "event.invited": ["startsAt"],
+  // B5 (2947): the pickup time of a transfer to drive.
+  "transfer.assigned": ["startsAt"],
   "occupancy.threshold": ["percent", "count", "permitted_load"],
   "weather.alert": ["level", "hazard", "reading"],
   // 2050: which sign-in setting changed (password, email, phone, a second factor, a passkey or the recovery codes).
@@ -39,6 +41,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   // A99: a recovery code used (the codes left) and sessions signed out (how many).
   "account.recovery_code_used": ["remaining"],
   "account.session_signed_out": ["count"],
+  // R6a (2664): which profile facts moved to each project (uniform, travel or both).
+  "account.work_details_moved": ["moved"],
   "billing.payment_failed": ["days"],
   // 2051: the rows of a validated or committed import.
   "import.finished": ["written", "refused", "skipped"],
@@ -144,7 +148,15 @@ function values(
   const startsAt = date(a["startsAt"]);
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
-  for (const key of ["days", "count", "written", "refused", "skipped"]) {
+  for (const key of [
+    "days",
+    "count",
+    "written",
+    "refused",
+    "skipped",
+    "freeRoomNights",
+    "passengerCount",
+  ]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }
   return out;

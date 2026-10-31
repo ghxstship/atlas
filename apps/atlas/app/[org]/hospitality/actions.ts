@@ -36,6 +36,7 @@ import {
   type TravelMode,
 } from "@xos/data/hospitality";
 import type { XosClient } from "@xos/data";
+import { setBlockBudgetLine } from "@xos/data/lodging";
 import { resolveProjectPerson } from "@xos/data/project-people";
 import { z } from "zod";
 import {
@@ -402,6 +403,8 @@ export async function createBlockAction(_: ActionState, form: FormData): Promise
   if (!input) return { fieldErrors: fieldErrors ?? {} };
   const created = await createAccommodationBlock(ctx.viewer.db, project.id, input);
   if (!created.ok) return failed(created);
+  const linked = await linkBudgetLine(ctx.viewer.db, form, created.data.id);
+  if (linked) return linked;
   refresh(ctx);
   const detail = await getAccommodationBlock(ctx.viewer.db, created.data.id);
   return detail.ok ? { ok: true, key: detail.data.key } : { ok: true };
@@ -420,8 +423,26 @@ export async function updateBlockAction(_: ActionState, form: FormData): Promise
     field(form, "expectedUpdatedAt") || undefined,
   );
   if (!updated.ok) return failed(updated);
+  const linked = await linkBudgetLine(ctx.viewer.db, form, id.data);
+  if (linked) return linked;
   refresh(ctx);
   return { ok: true };
+}
+
+/**
+ * Links a block to the budget line its form chose (B5, migration 2945), when the form offered the select (to holders
+ * of finance.budget.read). The database refuses another project's line and a priced block in another currency.
+ */
+async function linkBudgetLine(
+  db: XosClient,
+  form: FormData,
+  blockId: string,
+): Promise<ActionState | null> {
+  if (field(form, "budgetLineSent") !== "1") return null;
+  const line = optionalUuid.safeParse(field(form, "budgetLineId"));
+  if (!line.success) return { fieldErrors: { budgetLineId: "required" } };
+  const result = await setBlockBudgetLine(db, blockId, line.data);
+  return result.ok ? null : failed(result);
 }
 
 export async function deleteBlockAction(org: string, id: string): Promise<ActionState> {

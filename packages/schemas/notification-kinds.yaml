@@ -80,6 +80,9 @@ email_templates:
   - code: subprocessor_notice
     transactional: false
     description: Announces a Subprocessor List change at least 30 days before it applies.
+  - code: party_invitation
+    transactional: true
+    description: Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.
 
 categories:
   - code: mentions
@@ -251,6 +254,13 @@ kinds:
         test: supabase/tests/1561_signed_in_sessions.test.sql
       - emitter: supabase/migrations/1561_signed_in_sessions.sql#app.sign_out_my_other_sessions
         test: supabase/tests/1561_signed_in_sessions.test.sql
+  # Uniform sizes and travel preferences leave the profile (R6a, ADR 0102 decision 2): sent once to each person whose
+  # values the move deleted; moved names which (uniform, travel or both).
+  - kind: account.work_details_moved
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/2664_work_details_profile_move.sql#private.move_profile_work_details
+        test: supabase/tests/2664_work_details_profile_move.test.sql
   - kind: billing.payment_failed
     category: account
     emitted_by:
@@ -457,3 +467,68 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1463_expiry_reminders.sql#private.send_expiry_reminders
         test: supabase/tests/1463_expiry_reminders.test.sql
+  # Crew roster (R4: 2642)
+  - kind: roster_entry.invited
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_person
+        test: supabase/tests/2642_roster_notifications.test.sql
+  - kind: roster_entry.returned
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_returned
+        test: supabase/tests/2642_roster_notifications.test.sql
+  - kind: roster_entry.declined
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_declined
+        test: supabase/tests/2642_roster_notifications.test.sql
+  # Project facts and the names lock (R5: 2655, 2656)
+  - kind: roster_entry.project_facts_entered
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2655_roster_project_fact_rpcs.sql#private.notify_project_facts_entered
+        test: supabase/tests/2655_roster_project_fact_rpcs.test.sql
+  - kind: engagement.roster_lock_changed
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2656_roster_lock.sql#app.set_roster_lock
+        test: supabase/tests/2656_roster_lock.test.sql
+  # Advance allocations (R7: 2693, 2694). Accepted account members receive them through private.party_org_ids (1131).
+  - kind: allocation.decided
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#app.decide_allocation
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#app.assign_allocation
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+  - kind: allocation.assigned
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#private.split_allocation_parts
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+  - kind: allocation.issued
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#app.issue_allocation
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+  - kind: allocation.withdrawn
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#app.withdraw_allocation
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+      - emitter: supabase/migrations/2694_allocation_cascades.sql#private.close_engagement_allocations
+        test: supabase/tests/2694_allocation_cascades.test.sql
+      - emitter: supabase/migrations/2694_allocation_cascades.sql#private.withdraw_entry_allocations
+        test: supabase/tests/2694_allocation_cascades.test.sql
+  # Travel, lodging and ground transport (B5: 2947)
+  - kind: accommodation_block.release_due
+    category: expiry_reminders
+    emitted_by:
+      - emitter: supabase/migrations/2947_hospitality_notices.sql#private.send_block_release_reminders
+        test: supabase/tests/2947_hospitality_notices.test.sql
+  - kind: transfer.assigned
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2947_hospitality_notices.sql#private.notify_transfer_driver
+        test: supabase/tests/2947_hospitality_notices.test.sql

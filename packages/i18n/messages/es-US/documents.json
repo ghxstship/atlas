@@ -16,7 +16,8 @@
     "incident-report": "Informe de incidente",
     "final-cost-report": "Informe de costo final",
     "agreement-certificate": "Certificado de firma",
-    "deletion-certificate": "Certificado de eliminación"
+    "deletion-certificate": "Certificado de eliminación",
+    "radio-handout": "Hoja de radios"
   },
   "facts": {
     "recordKey": "Clave del registro",
@@ -108,7 +109,24 @@
   "daySheet": {
     "title": "Hoja del día {project}, {day}",
     "body": "Notas del día",
-    "emptyBody": "Esta hoja del día aún no tiene notas."
+    "emptyBody": "Esta hoja del día aún no tiene notas.",
+    "localContacts": "Contactos locales",
+    "contactRole": "Función",
+    "contactName": "Nombre",
+    "contactTitle": "Cargo",
+    "contactPhone": "Teléfono",
+    "contactEmail": "Correo",
+    "noContacts": "No hay contactos locales para este día.",
+    "roles": {
+      "Promoter": "Promotor",
+      "Venue": "Recinto",
+      "Production": "Producción",
+      "Security": "Seguridad",
+      "Transport": "Transporte",
+      "Hospitality": "Hospitalidad",
+      "Medical": "Atención médica",
+      "Other": "Otro"
+    }
   },
   "callSheet": {
     "title": "Hoja de llamados {project}, {day}",
@@ -451,6 +469,35 @@
       "fringe": "Los beneficios complementarios se pagaron en efectivo o a planes, fondos o programas de beneficios complementarios de buena fe.",
       "wages": "A todos los trabajadores del proyecto se les pagó el salario semanal completo ganado, y no se hicieron ni se harán reembolsos ni deducciones, directa o indirectamente, salvo las deducciones permitidas según 29 CFR parte 3.",
       "warning": "La falsificación intencional de cualquiera de las declaraciones anteriores puede exponer al contratista o subcontratista a un proceso civil o penal (consulta la sección 1001 del título 18 y la sección 3729 del título 31 del Código de los Estados Unidos), así como a la inhabilitación para futuros contratos federales y con asistencia federal."
+    }
+  },
+  "radioHandout": {
+    "title": "Hoja de radios",
+    "subtitle": "{project} · {date}",
+    "person": "Persona",
+    "party": "Parte",
+    "radio": "Radio",
+    "tags": "Etiquetas entregadas",
+    "channels": "Canales",
+    "status": "Estado",
+    "signature": "Firma",
+    "returned": "Devuelta",
+    "empty": "Aún no hay radios asignadas en este proyecto.",
+    "footer": "Firma al recibir una radio y al devolverla.",
+    "statuses": {
+      "Requested": "Solicitada",
+      "Approved": "Aprobada",
+      "Reserved": "Reservada",
+      "AwaitingOrder": "Pendiente de pedido",
+      "OnOrder": "Pedida",
+      "Confirmed": "Confirmada",
+      "Received": "Recibida",
+      "PartlyIssued": "Entregada en parte",
+      "Issued": "Entregada",
+      "Returned": "Devuelta",
+      "Revoked": "Revocada",
+      "Declined": "Rechazada",
+      "Withdrawn": "Retirada"
     }
   }
 }

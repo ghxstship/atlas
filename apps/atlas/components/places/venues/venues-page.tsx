@@ -38,6 +38,7 @@ import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { VenueForm } from "./venue-form";
+import { VenueContacts } from "@/components/local-contacts/venue-contacts";
 
 const NODE = "places.venues";
 const MAP = { width: 800, height: 480, margin: 40 } as const;
@@ -431,6 +432,7 @@ async function VenueDetail(props: DetailProps & { openFullHref: string }) {
       <VenueLinks venue={venue} t={t} params={params} />
       <ProvidedCapabilities statements={statements} t={t} />
       <CustomFieldsPanel org={org} table="app.venues" id={venue.id} />
+      <VenueContacts db={props.db} org={org} venueId={venue.id} canWrite={canWrite} />
       {canWrite ? (
         <RecordSection id="venue-edit" title={t("places.kit.edit")}>
           <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />

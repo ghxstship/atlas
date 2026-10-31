@@ -12,6 +12,10 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, setCapabilities } from "../correct.ts";
 import { transition } from "../define.ts";
+import {
+  groundTransportCapabilities,
+  groundTransportResources,
+} from "./parts/ground-transport-and-lodging.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -28,6 +32,10 @@ const lineCurrency = {
 };
 
 export const additions = defineAdditions("Hospitality", {
+  // Flights, transfers, vehicles, space bookings, local contacts and blocks by night (B5): see
+  // ./parts/ground-transport-and-lodging.ts.
+  resources: [...groundTransportResources],
+  capabilities: { ...groundTransportCapabilities },
   corrections: [
     {
       id: "fulfillment-kind-counterparty-and-state",

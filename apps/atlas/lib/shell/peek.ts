@@ -28,6 +28,8 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "home.gate-readiness",
   "home.recent",
   "home.today",
+  // The flight grid (B5) peeks no row of its own; its rows open the Travel fulfillment they belong to.
+  "hospitality.travel",
   "inbox",
   "my-work",
   "opportunities.engagements",

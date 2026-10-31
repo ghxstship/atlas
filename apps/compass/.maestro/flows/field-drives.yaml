@@ -1,0 +1,18 @@
+appId: pro.ghxstship.compass
+# More > Drives (B5): the transfers the signed-in person drives, read from the device. The demo seed books no
+# transfer, so the field tech sees the empty Drives screen, offline included, and no write control.
+# Named after its file: config.yaml orders flows by name.
+name: field-drives
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-drives"
+- assertVisible:
+    id: "drives"
+- assertVisible:
+    id: "drives-empty"

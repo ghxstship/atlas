@@ -1,0 +1,23 @@
+# Settings registry: B5 (travel, lodging, ground transport and local contacts, RRR-229). ADR 0144, parity gap G-33.
+# Field reference: see a30.yaml.
+#
+# How long a driver needs between one drop-off and the next pickup. app.transfer_board warns Tight turnaround when a
+# driver's previous live drop-off plus this many minutes is after the pickup; 0 turns the warning off for the scope.
+# It warns and never refuses.
+contributor: b5
+settings:
+  # Scheduling --------------------------------------------------------------------------------------------------
+  - key: hospitality.transfer_turnaround_minutes
+    type: integer
+    min: 0
+    max: 240
+    default: 15
+    scopes: [organization, project]
+    lockable: true
+    capability: org.scheduling.write
+    label: settings.fields.transferTurnaroundMinutes.label
+    help: settings.fields.transferTurnaroundMinutes.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2942_transfer_views.sql#private.transfer_turnaround
+        test: supabase/tests/2942_transfer_views.test.sql

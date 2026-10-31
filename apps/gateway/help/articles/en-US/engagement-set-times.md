@@ -16,4 +16,8 @@ Each of your sets with its planned time and duration. Once a set is called durin
 
 The day sheet for each show day, with what the production shared for that day.
 
+## Your rooms
+
+The green room or dressing room booked for you, with its in and out times and the set it serves. Each day sheet also lists that day's local contacts.
+
 This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Set times appear once the run of show is shared.

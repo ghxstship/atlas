@@ -41,7 +41,9 @@
         "packets": "Paquetes",
         "submissions": "Respuestas recibidas",
         "riders": "Riders",
-        "reconciliation": "Conciliación"
+        "reconciliation": "Conciliación",
+        "crew": "Lista del equipo",
+        "allocations": "Asignaciones"
       },
       "places": {
         "venues": "Recintos",
@@ -57,7 +59,10 @@
       "hospitality": {
         "fulfillments": "Servicios atendidos",
         "beos": "Órdenes de banquete",
-        "accommodationBlocks": "Bloqueos de habitaciones"
+        "accommodationBlocks": "Bloqueos de habitaciones",
+        "travel": "Viajes",
+        "transfers": "Traslados",
+        "rooms": "Camerinos y salas de espera"
       },
       "assets": {
         "assetClasses": "Catálogo de clases de activos",
@@ -398,7 +403,9 @@
       "reports": "Informes",
       "invoices": "Facturas",
       "documents": "Documentos",
-      "messages": "Mensajes"
+      "messages": "Mensajes",
+      "crew": "Equipo",
+      "projectDetails": "Datos del proyecto"
     },
     "avatar": {
       "settings": "Configuración",
@@ -474,7 +481,9 @@
       "reference": "Referencia",
       "offlineQueue": "Cola sin conexión",
       "profile": "Perfil y certificaciones",
-      "settings": "Configuración"
+      "settings": "Configuración",
+      "projectDetails": "Datos del proyecto",
+      "drives": "Traslados que conduzco"
     },
     "reference": {
       "emergencyCodes": "Códigos de emergencia",

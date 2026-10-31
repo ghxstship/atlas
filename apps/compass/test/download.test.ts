@@ -60,12 +60,14 @@ describe("sources", () => {
     const external = sourcesFor("vendor");
     expect(external.filter((s) => s.schema === "app")).toEqual([]);
     expect(external.map((s) => s.table)).toContain("dock_slots");
-    // A member reads api_external only for their own profile rows, which those views limit to the caller (A109).
+    // A member reads api_external only for their own profile rows, which those views limit to the caller (A109), and
+    // their own transfers, which api_external.my_transfers limits to the caller's roles on them (B5).
     expect(
       sourcesFor("field")
         .filter((s) => s.schema === "api_external")
         .map((s) => [s.table, s.personColumn]),
     ).toEqual([
+      ["my_transfers", undefined],
       ["profile_certifications", "person_id"],
       ["profile_documents", "person_id"],
     ]);

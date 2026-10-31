@@ -130,6 +130,56 @@ describe("download scope (Section 8.7)", () => {
     ).toBe(false);
   });
 
+  it("admits a person on a roster their own entry, gear, allocations and passes only (R8)", () => {
+    const rostered: DownloadScope = { ...external("crew", []), rosterEntryIds: ["entry-mine"] };
+    expect(admits("roster_entries", { id: "entry-mine" }, rostered)).toBe(true);
+    expect(admits("roster_entries", { id: "entry-colleague" }, rostered)).toBe(false);
+    expect(
+      admits(
+        "asset_custody",
+        { id: "c1", roster_entry_id: "entry-mine", custodian_engagement_id: "eng-party" },
+        rostered,
+      ),
+    ).toBe(true);
+    expect(
+      admits(
+        "asset_custody",
+        { id: "c2", roster_entry_id: "entry-colleague", custodian_engagement_id: "eng-party" },
+        rostered,
+      ),
+    ).toBe(false);
+    expect(
+      admits("advance_allocations", { id: "a1", roster_entry_id: "entry-mine" }, rostered),
+    ).toBe(true);
+    expect(admits("advance_allocations", { id: "a2", roster_entry_id: null }, rostered)).toBe(
+      false,
+    );
+    expect(admits("parking_passes", { id: "p1", holder_person_id: "person-ext" }, rostered)).toBe(
+      true,
+    );
+    expect(admits("parking_passes", { id: "p2", holder_person_id: "person-other" }, rostered)).toBe(
+      false,
+    );
+    // Without the key, nothing of a roster passes.
+    expect(admits("roster_entries", { id: "entry-mine" }, external("crew"))).toBe(false);
+    expect(ruleFor("advance_allocations")?.anyOf.every((a) => a.restOnly)).toBe(true);
+  });
+
+  it("admits transfers and local contacts by project, inside the org and outside it (B5)", () => {
+    for (const table of ["my_transfers", "local_contacts"]) {
+      expect(
+        ruleFor(table)?.anyOf.every((a) => a.restOnly),
+        table,
+      ).toBe(true);
+      expect(admits(table, { id: "t1", project_id: "proj-1" }, internal), table).toBe(true);
+      expect(admits(table, { id: "t2", project_id: "proj-9" }, internal), table).toBe(false);
+      expect(admits(table, { id: "t3", project_id: "proj-1" }, external("crew")), table).toBe(true);
+      expect(admits(table, { id: "t4", project_id: "proj-1" }, external("crew", [])), table).toBe(
+        false,
+      );
+    }
+  });
+
   it("filters a downloaded batch", () => {
     const result = filterDownload(
       "shifts",

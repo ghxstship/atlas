@@ -5,6 +5,13 @@ import {
   addRecipient,
   addRiderLine,
   addSection,
+  addSectionChoice,
+  ADVANCE_SECTION_KINDS,
+  ADVANCE_WINDOW_KINDS,
+  bookDockSlotFromAnswer,
+  removeSectionChoice,
+  sectionConfig,
+  setRecipientNamesDue,
   archivePacket,
   archiveRider,
   createPacket,
@@ -29,6 +36,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { gatewayUrl } from "@/lib/gateway-url";
+import { localToInstant } from "@/lib/operations/time";
 import { getOrgContext } from "@/lib/shell/context";
 import { KNOWN_ERRORS } from "./errors";
 
@@ -170,13 +178,99 @@ export async function sendPacketAction(_: AdvancingState, form: FormData): Promi
 
 export async function addSectionAction(_: AdvancingState, form: FormData): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ packetId: id, title, prompt: optionalText(2000) }).safeParse({
-    packetId: text(form, "packetId"),
-    title: text(form, "title"),
-    prompt: text(form, "prompt"),
+  const parsed = z
+    .object({
+      packetId: id,
+      title,
+      prompt: optionalText(2000),
+      kind: z.enum(ADVANCE_SECTION_KINDS).catch("Text"),
+      windowKind: z.enum(ADVANCE_WINDOW_KINDS).nullable().catch(null),
+      maxLines: z.coerce.number().int().nullable().catch(null),
+      perPerson: z.boolean(),
+      choices: z.array(z.string().regex(/^(asset_class|credential_category):[0-9a-f-]{36}$/)),
+    })
+    .safeParse({
+      packetId: text(form, "packetId"),
+      title: text(form, "title"),
+      prompt: text(form, "prompt"),
+      kind: text(form, "kind") || "Text",
+      windowKind: text(form, "windowKind") || null,
+      maxLines: text(form, "maxLines") || null,
+      perPerson: text(form, "perPerson") === "on",
+      choices: form.getAll("choice").filter((c): c is string => typeof c === "string" && c !== ""),
+    });
+  if (!parsed.success) {
+    return {
+      fieldErrors: {
+        [parsed.error.issues[0]?.path[0] === "choices" ? "choices" : "title"]: "invalid",
+      },
+    };
+  }
+  const f = parsed.data;
+  // R9: the kind and its configuration, held to the kind as advance_sections_kind_fields holds them.
+  const config = sectionConfig({
+    kind: f.kind,
+    windowKind: f.windowKind,
+    maxLines: f.maxLines,
+    perPerson: f.perPerson,
   });
-  if (!parsed.success) return { fieldErrors: { title: "title" } };
-  return done(ctx.org.slug, await addSection(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data }));
+  if (config === null) return { fieldErrors: { maxLines: "maxLines" } };
+  const needsChoices = f.kind === "Item Request" || f.kind === "Credential Request";
+  if (needsChoices && f.choices.length === 0) return { fieldErrors: { choices: "choices" } };
+  const added = await addSection(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    packetId: f.packetId,
+    title: f.title,
+    prompt: f.prompt,
+    config,
+  });
+  if (!added.ok || !needsChoices) return done(ctx.org.slug, added);
+  for (const choice of f.choices) {
+    const [kind, targetId] = choice.split(":") as ["asset_class" | "credential_category", string];
+    const made = await addSectionChoice(ctx.viewer.db, {
+      orgId: ctx.org.id,
+      sectionId: added.data.id,
+      target: { kind, id: targetId },
+    });
+    if (!made.ok) {
+      // Leave no half-built section behind: the builder adds it again with its choices.
+      await removeSection(ctx.viewer.db, added.data.id);
+      return done(ctx.org.slug, made);
+    }
+  }
+  return done(ctx.org.slug, added);
+}
+
+/** Removes one choice from a draft Item Request or Credential Request section (R9). */
+export async function removeSectionChoiceAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const choiceId = id.safeParse(text(form, "choiceId"));
+  if (!choiceId.success) return { error: "invalid" };
+  return done(ctx.org.slug, await removeSectionChoice(ctx.viewer.db, choiceId.data));
+}
+
+/** Adds one choice to a draft Item Request or Credential Request section (R9). */
+export async function addSectionChoiceAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const [kind, targetId] = text(form, "choice").split(":");
+  const parsed = z
+    .object({ sectionId: id, kind: z.enum(["asset_class", "credential_category"]), targetId: id })
+    .safeParse({ sectionId: text(form, "sectionId"), kind, targetId });
+  if (!parsed.success) return { fieldErrors: { choice: "choice" } };
+  return done(
+    ctx.org.slug,
+    await addSectionChoice(ctx.viewer.db, {
+      orgId: ctx.org.id,
+      sectionId: parsed.data.sectionId,
+      target: { kind: parsed.data.kind, id: parsed.data.targetId },
+    }),
+  );
 }
 
 export async function updateSectionAction(
@@ -234,17 +328,67 @@ export async function addRecipientAction(
   const ctx = await contextFor(form);
   const [kind, partyId] = text(form, "party").split(":");
   const parsed = z
-    .object({ packetId: id, kind: z.enum(["person", "counterparty"]), partyId: id })
-    .safeParse({ packetId: text(form, "packetId"), kind, partyId });
+    .object({
+      packetId: id,
+      kind: z.enum(["person", "counterparty"]),
+      partyId: id,
+      engagementId: id.nullable(),
+      timeZone: z.string().trim().min(1).max(64),
+    })
+    .safeParse({
+      packetId: text(form, "packetId"),
+      kind,
+      partyId,
+      engagementId: text(form, "engagementId") || null,
+      timeZone: text(form, "timeZone") || "UTC",
+    });
   if (!parsed.success) return { fieldErrors: { party: "party" } };
+  // R9: the engagement the recipient answers under, and its naming deadline in the project's zone (G-141).
+  const local = parsed.data.engagementId ? text(form, "namesDueAt") : "";
+  const namesDue = local === "" ? null : localToInstant(local, parsed.data.timeZone);
+  if (local !== "" && namesDue === null) return { fieldErrors: { namesDueAt: "namesDueAt" } };
   return done(
     ctx.org.slug,
     await addRecipient(ctx.viewer.db, {
       orgId: ctx.org.id,
       packetId: parsed.data.packetId,
       party: { kind: parsed.data.kind, id: parsed.data.partyId },
+      engagementId: parsed.data.engagementId,
+      namesDueAt: namesDue,
     }),
   );
+}
+
+/** Sets or clears a recipient's naming deadline, in the project's zone (G-141, migration 2716). */
+export async function setNamesDueAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({ recipientId: id, timeZone: z.string().trim().min(1).max(64) })
+    .safeParse({
+      recipientId: text(form, "recipientId"),
+      timeZone: text(form, "timeZone") || "UTC",
+    });
+  if (!parsed.success) return { error: "invalid" };
+  const local = text(form, "namesDueAt");
+  const at = local === "" ? null : localToInstant(local, parsed.data.timeZone);
+  if (local !== "" && at === null) return { fieldErrors: { namesDueAt: "namesDueAt" } };
+  return done(ctx.org.slug, await setRecipientNamesDue(ctx.viewer.db, parsed.data.recipientId, at));
+}
+
+/** Books an Accepted Load In or Load Out window as a dock slot (app.book_dock_slot_from_answer, R9). */
+export async function bookDockSlotAction(
+  _: AdvancingState,
+  form: FormData,
+): Promise<AdvancingState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({ lineId: id, zoneId: id })
+    .safeParse({ lineId: text(form, "lineId"), zoneId: text(form, "zoneId") });
+  if (!parsed.success) return { fieldErrors: { zoneId: "zoneId" } };
+  return done(ctx.org.slug, await bookDockSlotFromAnswer(ctx.viewer.db, parsed.data));
 }
 
 export async function removeRecipientAction(

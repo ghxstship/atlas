@@ -3,7 +3,7 @@
 - Status: Accepted (the owner confirmed this answer to decision 8 as recommended on 2026-10-27)
 - Date: 2026-10-28
 - Decider: Owner decisions on advancing, 2026-10-28 (decision 8, answered here and confirmed by the owner on 2026-10-27); R0 (RRR-176)
-- Migrations: none
+- Migrations: none (R0); 2680 to 2683 (R7a, see the amendment below)
 
 ## Context
 
@@ -121,3 +121,85 @@ fully received order, and finance committed and accrued views. None blocks advan
 - Reservations and scans take the same row lock, so a scan never checks out a unit a concurrent reservation is
   claiming without seeing it.
 - With the owner's confirmation, R7a and R7 may start once their dependencies merge.
+
+## Amendment: R7a as built (RRR-183, 2026-10-28)
+
+Migrations 2680 to 2683 build section 4. Where the build differs from the text above or adds to it:
+
+- **Idempotency.** The event id is the row id: `app.receive_goods` inserts the goods receipt with id = the event id,
+  and `app.return_goods` the goods return. A replay on the same order returns outcome duplicate with the stored ids;
+  the same id on another order is refused (receipt_event_reused, return_event_reused). The API mints a fresh event id
+  on the first request and its Idempotency-Key ledger replays the stored response. Both RPCs check
+  procurement.receipt.write before they lock the order or answer a replay, so a person who may not receive on an
+  order neither locks it nor reads back its stored ids.
+- **Compass.** The receiving scan mode is not replaced. Receiving gains a Receive against an order sheet for internal
+  receivers (feature `scan.receiving.order`, procurement.receipt.write) that queues one `app.receive_goods`
+  mutation; scans outside the sheet keep queuing unknown codes to scan intake, and a vendor still only acknowledges.
+- **Returned.** Reached from Available, Damaged or In Maintenance, only inside `app.return_goods`
+  (`app.transition_asset` refuses it otherwise, asset_returned_through_goods_return). A unit in someone's custody is
+  checked in first (return_unit_in_custody). A quantity out of a lot is a Vendor Return movement; the direction
+  constraint keeps R1's engagement custodian on Check Out. A receipt line goes back the way it came in: units by
+  unit, each named once (return_units_count, return_unit_repeated), a quantity that came into a lot out of a lot (return_venue_required), and a quantity
+  that never came into stock without one (return_line_not_stocked), so stock that went back never stays on hand.
+- **Units on a receipt line.** `app.asset_units.receipt_line_id` is fixed once set, and a receipt line never brings
+  in more live units than it received or a unit of another element (t42_guard_asset_unit_receipt).
+- **Trash.** `app.goods_returns` and `app.return_lines` are excluded from Trash (ADR 0110): a return is undone by
+  receiving again, never by restoring a row.
+- **Reader views.** `app.po_line_supply` (ordered, acknowledged, received, returned, off-hire due; no prices) and
+  `app.asset_unit_provenance` (receipt, order, vendor and unit price) run as the reader, so cost never reaches a
+  reader without procurement.po.read.
+- **Parity additions (gaps G-96 and G-99).** `app.asset_unit_hire`, an owner-rights view filtered to
+  assets.asset.read with no vendor, cost or order, feeds the units list's built-in Damaged, Hired in and Unavailable
+  views: presets in A117's filter model (`f.state`, `f.acquisition`) listed first in the saved views menu, which a
+  person copies to a saved view of their own. `app.po_line_hire_warnings` and `app.hire_window_warnings` warn, never refuse, when a hire starts after the
+  site opens, ends before it closes, runs more than a day beyond it, or starts or ends when every dock the project
+  books is taken. The site window is the project's live Build and Strike records, else its dates; a missing bound
+  gives no warning for the rules that use it.
+- **API.** `poLines` and `assetUnits` take the new fields through correction entries (`po-line-rental`,
+  `asset-unit-receipt-line`); `purchaseOrders.receive`, `purchaseOrders.returnGoods`, `poLines.hireWindowWarnings`,
+  `goodsReturns`, `returnLines`, `poLineHireWarnings` and `assetUnitHire` are additions.
+- **Gate 20 exception (awaiting the owner's confirmation).** Returned also enters the `asset_state` enum of every
+  `assetUnits` response and of the scan result, which oasdiff reports against v4.0.0 as six response-enum additions
+  (response-property-enum-value-added). Decision 8 approved the state; it did not separately approve this change to
+  the v1 contract, so R7a records it as a one-off exception under ADR 0014 and asks the owner to confirm it before
+  R7a merges. The six entries are in [`0104-oasdiff-err-ignore.txt`](0104-oasdiff-err-ignore.txt). `infra/ci/oasdiff.sh`
+  reads only the exception files its `EXCEPTIONS` list names, each beside an Accepted ADR, so a later exception is a
+  reviewed change to the gate script and never a file that appears on its own. Any other breaking change still
+  fails the gate. Clients typed from v4.0.0 (the `sdk-ts` union, the `sdk-python` `Literal` of a `TypedDict`) do
+  not list Returned; neither validates at run time, so a returned unit reads as an unlisted string until the client
+  regenerates. Without the confirmation, the alternative is to keep Returned out of v1 responses until `/v2`.
+
+## Amendment: R7 as built (RRR-187, 2026-10-30)
+
+Migrations 2690 to 2698 build section 5. Where the build differs from the text above or adds to it:
+
+- **No Issue or Return lot kinds.** 2690 adds none. Possession out of a lot stays Check Out and Check In, as the
+  Alternatives above reject the two extra kinds.
+- **Asset class offering.** `app.asset_classes.offering` is a column of type `app.offering_kind`, used for Radios and
+  Carts. A live (org, offering) pair is unique. `app.ensure_offering_asset_class` finds or creates the class from
+  the offering's Standard Library element; it refuses any other offering with `offering_not_asset_class`. This
+  replaces a free-text offering key. It reaches API v1 as the correction entry `asset-class-offering`, and
+  `credential_categories.category_kind` (Access or Parking) as `credential-category-kind`. The orchestrator records
+  both in the ADR 0023 register at merge.
+- **Caps.** `private.check_allocation_caps(allocation, step, reason)` runs at request, approve, assign and split. It
+  returns how far the allocation goes beyond the offering's allowance. Going beyond needs a reason when the setting
+  `advancing.allowance_overflow` says so. An unknown step refuses with `allocation_cap_step`.
+- **Section 6, as built.**
+  - `private.guard_asset_reservation` (BEFORE) locks the class row first, then the source row (unit, lot or order
+    line), so every hold on a class waits in one order.
+  - The AFTER trigger `private.check_asset_reservation_capacity` refuses two overlapping holds on one unit, and a
+    peak above the class's capacity.
+  - The peak is a boundary sweep over the live windows (`private.asset_reservation_peak`), so two holds that never
+    overlap each other do not add up.
+  - A rental order line counts for its open quantity, and only inside its hire period.
+- **Cascades (2694).**
+  - An engagement moving to Complete or Canceled withdraws its open allocations, releases their holds and revokes
+    their credentials and parking passes.
+  - So does a roster entry that is Withdrawn, deleted, or whose person declines.
+  - The revocation runs inside the trusted operations `engagement_close` and `roster_entry_close`.
+    `private.guard_credential` then skips the revoke-capability check and records who closed the engagement or entry.
+- **Parity (2697).**
+  - G-174: `app.allocation_allowances` shows what is left of each allowance.
+  - G-91: `app.allocation_radio_channels` stores radio channels, set as a whole through
+    `app.set_allocation_radio_channels`, and read by `app.radio_handout` and the radio hand-out document (ADR 0031).
+  - G-93: `app.asset_class_availability` gives a class's availability over a window.

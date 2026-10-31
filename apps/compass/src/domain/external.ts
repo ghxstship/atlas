@@ -14,6 +14,7 @@
 import type { Audience, Row } from "@xos/sync";
 import type { EngagementSummary } from "./access";
 import { dayIn, daysUntil } from "./dates";
+import { photoCounts, PROOF_PHOTOS_TABLE } from "./proof";
 
 export type ExternalPageId =
   | "timesheets"
@@ -315,9 +316,56 @@ function travelAndLodging(input: PageInput): ExternalSection[] {
           : []),
       ],
     }));
+  // Ground transport (B5): the person's transfers on the project, as driver, passenger or for the people they answer for.
+  const ground = onProject(input, "my_transfers")
+    .sort(byKey("pickup_at"))
+    .map((r): ExternalItem => {
+      const pickup = str(r, "pickup_at");
+      const names = Array.isArray(r["passenger_names"])
+        ? (r["passenger_names"] as unknown[]).filter((n): n is string => typeof n === "string")
+        : [];
+      const meets = str(r, "meets_service_identifier");
+      return {
+        id: r.id,
+        icon: "truck",
+        title: [str(r, "pickup_place"), str(r, "dropoff_place")].filter(Boolean).join(" → "),
+        facts: [
+          ...(pickup
+            ? [
+                { kind: "label", key: "compassExternal.ground.pickup" } as const,
+                { kind: "instant", at: pickup, zone: str(r, "pickup_time_zone") } as const,
+              ]
+            : []),
+          ...(str(r, "driver_name")
+            ? [
+                {
+                  kind: "label",
+                  key: "compassExternal.ground.driver",
+                  values: { name: str(r, "driver_name") ?? "" },
+                } as const,
+              ]
+            : []),
+          ...(str(r, "vehicle_label")
+            ? [{ kind: "text", text: str(r, "vehicle_label") ?? "" } as const]
+            : []),
+          ...(meets
+            ? [
+                {
+                  kind: "label",
+                  key: "compassExternal.ground.meets",
+                  values: { flight: meets },
+                } as const,
+              ]
+            : []),
+          ...(names.length > 0 ? [{ kind: "text", text: names.join(", ") } as const] : []),
+        ],
+        tag: stateTag("transferStatus", str(r, "status"), {}),
+      };
+    });
   return [
     ...section("travel", "compassExternal.travel.title", travel),
     ...section("lodging", "compassExternal.lodging.title", lodging),
+    ...section("ground", "compassExternal.ground.title", ground),
   ];
 }
 
@@ -846,6 +894,8 @@ function reports(input: PageInput): ExternalSection[] {
 }
 
 function proofOfPerformance(input: PageInput): ExternalSection[] {
+  // Proof photos of the sponsor's engagements on the device, queued or downloaded (A140).
+  const photos = photoCounts(input.rows(PROOF_PHOTOS_TABLE));
   const entitlements = onProject(input, "sponsor_entitlements")
     .sort(byKey("due_on"))
     .map((r): ExternalItem => {
@@ -853,11 +903,24 @@ function proofOfPerformance(input: PageInput): ExternalSection[] {
       const fulfilled = str(r, "fulfilled_at");
       const overdue = !fulfilled && due !== null && due < input.todayOf(str(r, "project_id"));
       const quantity = num(r, "quantity");
+      const photoCount = photos.get(r.id) ?? 0;
       return {
         id: r.id,
         icon: "megaphone",
         title: str(r, "description") ?? "",
         facts: [
+          ...(photoCount > 0
+            ? [
+                {
+                  kind: "label",
+                  key:
+                    photoCount === 1
+                      ? "compassExternal.proof.photosOne"
+                      : "compassExternal.proof.photosOther",
+                  values: { count: photoCount },
+                } as const,
+              ]
+            : []),
           ...(quantity !== null
             ? [
                 {
@@ -935,7 +998,7 @@ export const EXTERNAL_PAGES: Readonly<Record<ExternalPageId, ExternalPage>> = {
   "travel-and-lodging": {
     id: "travel-and-lodging",
     audiences: CREW,
-    tables: ["travel_segments", "lodging"],
+    tables: ["travel_segments", "lodging", "my_transfers"],
     gatewayTab: "travel-and-lodging",
     icon: "plane",
     emptyKey: "compassExternal.travel.empty",
@@ -1034,7 +1097,7 @@ export const EXTERNAL_PAGES: Readonly<Record<ExternalPageId, ExternalPage>> = {
   "proof-of-performance": {
     id: "proof-of-performance",
     audiences: ["sponsor"],
-    tables: ["sponsor_entitlements", "engagement_documents"],
+    tables: ["sponsor_entitlements", "engagement_documents", PROOF_PHOTOS_TABLE],
     gatewayTab: "proof-of-performance",
     icon: "megaphone",
     emptyKey: "compassExternal.proof.empty",

@@ -208,7 +208,8 @@ nodes:
                     label: nav.atlas.projectTabs.hospitality
                     route: "/{org}/p/{projectKey}/hospitality"
                     twin: hospitality
-                    list: { views: [list, table, calendar], default: list }
+                    list:
+                      { views: [list, table, calendar, resource-schedule, matrix], default: list }
                   - id: project.assets
                     kind: tab
                     label: nav.atlas.projectTabs.assets
@@ -401,6 +402,16 @@ nodes:
             label: nav.atlas.pages.advancing.reconciliation
             route: "/{org}/advancing/reconciliation"
             list: { views: [table, matrix], default: table }
+          - id: advancing.crew
+            kind: page
+            label: nav.atlas.pages.advancing.crew
+            route: "/{org}/advancing/crew"
+            list: { views: [list, table], default: list }
+          - id: advancing.allocations
+            kind: page
+            label: nav.atlas.pages.advancing.allocations
+            route: "/{org}/advancing/allocations"
+            list: { views: [list, table, matrix], default: list }
   - id: group.operations
     kind: group
     label: nav.atlas.groups.operations
@@ -484,7 +495,22 @@ nodes:
             kind: page
             label: nav.atlas.pages.hospitality.accommodationBlocks
             route: "/{org}/hospitality/accommodation-blocks"
-            list: { views: [list, table, calendar], default: list }
+            list: { views: [list, table, calendar, matrix], default: list }
+          - id: hospitality.travel
+            kind: page
+            label: nav.atlas.pages.hospitality.travel
+            route: "/{org}/hospitality/travel"
+            list: { views: [table, list], default: table }
+          - id: hospitality.transfers
+            kind: page
+            label: nav.atlas.pages.hospitality.transfers
+            route: "/{org}/hospitality/transfers"
+            list: { views: [list, table, resource-schedule, calendar], default: list }
+          - id: hospitality.rooms
+            kind: page
+            label: nav.atlas.pages.hospitality.rooms
+            route: "/{org}/hospitality/rooms"
+            list: { views: [list, table, resource-schedule], default: list }
       - id: assets
         kind: item
         label: nav.atlas.items.assets

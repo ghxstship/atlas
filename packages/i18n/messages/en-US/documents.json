@@ -16,7 +16,8 @@
     "incident-report": "Incident report",
     "final-cost-report": "Final cost report",
     "agreement-certificate": "Signature certificate",
-    "deletion-certificate": "Deletion certificate"
+    "deletion-certificate": "Deletion certificate",
+    "radio-handout": "Radio hand-out"
   },
   "facts": {
     "recordKey": "Record key",
@@ -108,7 +109,24 @@
   "daySheet": {
     "title": "Day sheet {project}, {day}",
     "body": "Notes for the day",
-    "emptyBody": "This day sheet has no notes yet."
+    "emptyBody": "This day sheet has no notes yet.",
+    "localContacts": "Local contacts",
+    "contactRole": "Role",
+    "contactName": "Name",
+    "contactTitle": "Title",
+    "contactPhone": "Phone",
+    "contactEmail": "Email",
+    "noContacts": "No local contacts for this day.",
+    "roles": {
+      "Promoter": "Promoter",
+      "Venue": "Venue",
+      "Production": "Production",
+      "Security": "Security",
+      "Transport": "Transport",
+      "Hospitality": "Hospitality",
+      "Medical": "Medical",
+      "Other": "Other"
+    }
   },
   "callSheet": {
     "title": "Call sheet {project}, {day}",
@@ -451,6 +469,35 @@
       "fringe": "Fringe benefits have been paid in cash and/or to bona fide fringe benefit plans, funds, or programs.",
       "wages": "All workers on the project have been paid the full weekly wages earned, and no rebates or deductions have been or will be made either directly or indirectly, other than permissible deductions as defined in 29 CFR part 3.",
       "warning": "The willful falsification of any of the above statements may subject the contractor or subcontractor to civil or criminal prosecution (see section 1001 of title 18 and section 3729 of title 31 of the United States Code), as well as debarment from future federal and federally-assisted contracts."
+    }
+  },
+  "radioHandout": {
+    "title": "Radio hand-out",
+    "subtitle": "{project} · {date}",
+    "person": "Person",
+    "party": "Party",
+    "radio": "Radio",
+    "tags": "Tags issued",
+    "channels": "Channels",
+    "status": "Status",
+    "signature": "Signature",
+    "returned": "Returned",
+    "empty": "No radios are allocated on this project yet.",
+    "footer": "Sign when you take a radio and when you hand it back.",
+    "statuses": {
+      "Requested": "Requested",
+      "Approved": "Approved",
+      "Reserved": "Reserved",
+      "AwaitingOrder": "Awaiting order",
+      "OnOrder": "On order",
+      "Confirmed": "Confirmed",
+      "Received": "Received",
+      "PartlyIssued": "Partly issued",
+      "Issued": "Issued",
+      "Returned": "Returned",
+      "Revoked": "Revoked",
+      "Declined": "Declined",
+      "Withdrawn": "Withdrawn"
     }
   }
 }

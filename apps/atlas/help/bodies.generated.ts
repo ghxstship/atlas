@@ -66,6 +66,26 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
+      { t: "h2", v: "Allocations" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Allocations say what each party and person is given for a production: badges, parking passes, radios and carts, catering, rooms, trips and per diems. A coordinator requests one for a party's pool or for one person; a reviewer who did not request it approves or declines it. Approving equipment holds it from class stock, a lot or the order it arrives on, and the dialog shows how many are available for those dates and how much of the allowance remains. Split a party's pool to its people, then issue each item: issuing confirms the person has it. The status reads held, ordered, received, issued and returned from the rows that record them. Holds that no longer fit what can supply them show in a banner. Radio allocations take channels, and Print radio hand-out gives the sheet people sign.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -736,6 +756,56 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "An accommodation block holds rooms at a hotel for a date range. Assign people to rooms from the block and see how many remain.",
+          },
+        ],
+      },
+      { t: "h2", v: "Flights" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Hospitality > Travel lists every flight booked under a Travel fulfillment, across the org or in the project's Travel section. Legs a traveler flies within 24 hours of the last landing are one journey, so each row shows Leg 1 of 3 and the journey's final arrival. Each time shows in the zone it was entered in. The built-in views show Upcoming flights, those In flight, or All; save one as your own view, and export the rows on screen as CSV, Excel or PDF. The fare never appears.",
+          },
+        ],
+      },
+      { t: "h2", v: "Transfers" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A transfer is one vehicle run: a pickup and a drop-off, a vehicle, a driver and the passengers riding. Type the drop-off time you expect; drive times are not computed and no map is drawn. Manage the project's vehicles from Vehicles. XOS refuses a driver, vehicle or passenger booked on two transfers at once, more passengers than seats, and the driver riding as a passenger. Each transfer shows Unassigned, Assigned, Underway or Done, and warns of a Tight turnaround (the driver's previous drop-off plus the turnaround in Settings > Scheduling) or a flight that lands after the pickup. The resource schedule lays transfers out by driver or by vehicle for the week. The driver is told when they are assigned.",
+          },
+        ],
+      },
+      { t: "h2", v: "Green rooms and dressing rooms" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Book a space at the project's venue for an act or a team, or use Book from set time: in is filled in 90 minutes before the set and out 60 minutes after it ends, and you can change both. An exclusive booking holds the room alone; shared bookings may overlap, and the overlaps to check list them together with the most people in the room at once against its capacity. Set moved shows when the set's planned time leaves the booking.",
+          },
+        ],
+      },
+      { t: "h2", v: "Rooms by night and acts without rooms" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The Matrix view of accommodation blocks shows each block's rooms assigned of held on every night. A night with free rooms is highlighted when the block releases within 14 days, and the block's creator and last editor get a reminder at 14, 7 and 1 days. The header counts the artists with lodging offered whose people hold no room yet. Link a block to a budget line to see its lodging held and assigned on the budget; nothing is written to the budget.",
+          },
+        ],
+      },
+      { t: "h2", v: "Rooming list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The project's Rooming section lists the people of the travel party who need a room: the stays their passes or travel dates suggest, the rooms they hold, the nights still uncovered and what they cost. Filter to Missing, Partial or No dates. Assign room opens the allocation to issue when the person has one approved, and otherwise the room form filled in with the suggested stay; nothing is saved until you confirm. Each read of the list is recorded in each person's access log, so it loads only when you ask, and it cannot be exported.",
           },
         ],
       },
@@ -1991,6 +2061,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Local contacts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A day sheet lists the local contacts for its day: the venue's contacts, the project's contacts for every day, and that day's. Add a member of the org, whose current name and directory work phone always show, or type a contact with a business phone and email. Shared contacts also reach the people engaged or rostered on the project in Gateway and Compass; a member's work phone never leaves the org. Manage a venue's own contacts from its peek in Places > Venues.",
+          },
+        ],
+      },
     ],
     "site-operations": [
       { t: "h2", v: "Occupancy" },
@@ -2272,6 +2352,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Asignaciones" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
           },
         ],
       },
@@ -2958,6 +3058,56 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Un bloque reserva habitaciones en un hotel para un rango de fechas. Asigne personas a habitaciones del bloque y vea cuántas quedan.",
+          },
+        ],
+      },
+      { t: "h2", v: "Vuelos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Hospitalidad > Viajes muestra cada vuelo reservado en una gestión de viaje, en toda la organización o en la sección Viajes del proyecto. Los tramos que un viajero vuela dentro de las 24 horas del último aterrizaje forman un viaje, así que cada fila muestra Tramo 1 de 3 y la llegada final del viaje. Cada hora se muestra en la zona en que se escribió. Las vistas incluidas muestran los vuelos Próximos, los que están En vuelo o Todos; guarde una como vista propia y exporte las filas en pantalla como CSV, Excel o PDF. La tarifa nunca aparece.",
+          },
+        ],
+      },
+      { t: "h2", v: "Traslados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un traslado es un recorrido de un vehículo: una recogida y un destino, un vehículo, un conductor y los pasajeros. Escriba la hora de llegada que espera; no se calculan tiempos de manejo ni se dibuja un mapa. Administre los vehículos del proyecto desde Vehículos. XOS rechaza un conductor, vehículo o pasajero reservado en dos traslados a la vez, más pasajeros que asientos y que el conductor viaje como pasajero. Cada traslado muestra Sin asignar, Asignado, En curso o Terminado, y avisa de un Margen corto (la llegada anterior del conductor más el margen de Configuración > Programación) o de un vuelo que aterriza después de la recogida. La agenda de recursos organiza los traslados por conductor o por vehículo durante la semana. Se avisa al conductor cuando se le asigna.",
+          },
+        ],
+      },
+      { t: "h2", v: "Camerinos y salas de espera" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Reserve un espacio del recinto del proyecto para un artista o un equipo, o use Reservar desde el horario de presentación: la entrada se completa 90 minutos antes de la presentación y la salida 60 minutos después de que termina, y puede cambiar ambas. Una reserva exclusiva ocupa la sala sola; las compartidas pueden superponerse, y las superposiciones por revisar las agrupan con el máximo de personas a la vez frente a la capacidad. Cambió el horario aparece cuando la hora planificada de la presentación sale de la reserva.",
+          },
+        ],
+      },
+      { t: "h2", v: "Habitaciones por noche y artistas sin habitación" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La vista Matriz de los bloques de alojamiento muestra en cada noche las habitaciones asignadas de las reservadas. Una noche con habitaciones libres se resalta cuando el bloque se libera en 14 días o menos, y quien creó el bloque y quien lo editó por última vez reciben un recordatorio a los 14, 7 y 1 días. El encabezado cuenta los artistas con alojamiento ofrecido cuyas personas aún no tienen habitación. Vincule un bloque a una línea del presupuesto para ver su alojamiento reservado y asignado; no se escribe nada en el presupuesto.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista de alojamiento" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La sección Lista de alojamiento del proyecto muestra a las personas del grupo de viaje que necesitan habitación: las estancias que sugieren sus pases o fechas de viaje, las habitaciones que tienen, las noches sin cubrir y su costo. Filtre por Falta, Parcial o Sin fechas. Asignar habitación abre la asignación por entregar cuando la persona tiene una aprobada y, si no, el formulario de habitación con la estancia sugerida; no se guarda nada hasta que confirme. Cada lectura de la lista queda registrada en el historial de acceso de cada persona, así que solo se carga cuando lo pide y no se puede exportar.",
           },
         ],
       },
@@ -4165,6 +4315,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Una hoja de llamado indica a cada persona cuándo y dónde presentarse. Se basa en el horario del equipo, así que los cambios de turnos aparecen en la siguiente versión publicada.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contactos locales" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una hoja del día muestra los contactos locales de ese día: los del recinto, los del proyecto para todos los días y los de ese día. Agregue un miembro de la organización, cuyo nombre actual y teléfono de trabajo del directorio siempre se muestran, o escriba un contacto con teléfono y correo comerciales. Los contactos compartidos también llegan a las personas contratadas o en la lista del proyecto en Gateway y Compass; el teléfono de trabajo de un miembro nunca sale de la organización. Administre los contactos de un recinto desde su vista previa en Lugares > Recintos.",
           },
         ],
       },

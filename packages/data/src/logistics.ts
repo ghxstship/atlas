@@ -861,14 +861,16 @@ export async function addMarshallingEntry(
 
 // Display key lookup --------------------------------------------------------------------------------
 
-/** Tables whose rows carry a display number from the project record sequence (migration 0440). */
-export type NumberedTable = "shipments" | "fulfillments" | "beos" | "accommodation_blocks";
+/** Tables whose rows carry a display number from the project record sequence (migrations 0440 and 2941). */
+export type NumberedTable =
+  "shipments" | "fulfillments" | "beos" | "accommodation_blocks" | "transfers";
 
 const NUMBER_COLUMN = {
   shipments: "shipment_number",
   fulfillments: "fulfillment_number",
   beos: "beo_number",
   accommodation_blocks: "block_number",
+  transfers: "transfer_number",
 } as const satisfies Record<NumberedTable, string>;
 
 interface KeyQuery {

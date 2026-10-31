@@ -1,0 +1,4 @@
+# Hand-written Hospitality pages owned by B5 (RRR-229, ADR 0144). One sitemap node id per line.
+hospitality.travel
+hospitality.transfers
+hospitality.rooms

@@ -1,17 +1,19 @@
 import { credentialStatus, type IssuedCredential } from "../credentials.ts";
+import type { RadioHandoutLine } from "../allocations.ts";
 import type { ChangeOrder, ChangeOrderLine, Invoice, InvoiceLine } from "../finance.ts";
 import type { BeoDetail } from "../hospitality.ts";
 import type { Incident, IncidentTransition } from "../incidents.ts";
 import type { AgreementDetail } from "../people.ts";
 import type { PoLine, PurchaseOrder, PurchaseOrderTotals } from "../procurement.ts";
 import type { FinalCostReport, FinalCostRow } from "../reports.ts";
+import type { LocalContact } from "../local-contacts.ts";
 import type { Inspection, InspectionItem } from "../safety-permits.ts";
 import type { Call, CallSheet, Cue, DaySheet, RunOfShow } from "../show.ts";
 import type { Formatter, Translate } from "./format.ts";
 import type { DocumentBlock, DocumentKind } from "./model.ts";
 
 /**
- * Versioned templates for the twelve Section 11.9 documents (ADR 0031). Each kind keeps every
+ * Versioned templates for the twelve Section 11.9 documents and the radio hand-out (ADR 0031). Each kind keeps every
  * version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
@@ -45,7 +47,12 @@ export interface DocumentDataMap {
     readonly budgetName: string | null;
     readonly currency: string;
   };
-  "day-sheet": { readonly project: DocumentProject; readonly sheet: DaySheet };
+  "day-sheet": {
+    readonly project: DocumentProject;
+    readonly sheet: DaySheet;
+    /** The day's local contacts (B5): the venue's, every day's and that day's. Version 1 shows none. */
+    readonly contacts?: readonly LocalContact[];
+  };
   "call-sheet": {
     readonly project: DocumentProject;
     readonly sheet: CallSheet;
@@ -78,6 +85,11 @@ export interface DocumentDataMap {
   "agreement-certificate": {
     readonly project: DocumentProject | null;
     readonly agreement: AgreementDetail;
+  };
+  /** A project's radio allocations, sorted by party then person (R7, G-91). */
+  "radio-handout": {
+    readonly project: DocumentProject;
+    readonly lines: readonly RadioHandoutLine[];
   };
 }
 
@@ -171,6 +183,10 @@ export const DESCRIBE: {
     recordKey: keyed(d.project?.key ?? "", `AGR-${d.agreement.id.slice(0, 8)}`),
     issuedAt: d.agreement.signedAt ?? d.agreement.createdAt,
   }),
+  "radio-handout": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, "RADIOS"),
+    issuedAt: generatedAt.toISOString(),
+  }),
 };
 
 const field = (label: string, value: string) => ({ label, value });
@@ -194,6 +210,8 @@ function lineColumns(t: Translate) {
 }
 
 const V1 = "2026-01-01T00:00:00Z";
+/** Day sheets issued from this instant list the day's local contacts (B5, ADR 0144). */
+const DAY_SHEET_CONTACTS = "2026-11-01T00:00:00Z";
 
 export const TEMPLATES: TemplateRegistry = {
   "purchase-order": [
@@ -397,6 +415,52 @@ export const TEMPLATES: TemplateRegistry = {
           {
             kind: "paragraph",
             text: sheet.body.trim() === "" ? t("daySheet.emptyBody") : sheet.body,
+          },
+        ],
+      }),
+    },
+    // B5 (G-56): the day's local contacts follow the notes.
+    {
+      version: 2,
+      effectiveFrom: DAY_SHEET_CONTACTS,
+      build: ({ project, sheet, contacts }, { t, f }) => ({
+        title: t("daySheet.title", { project: project.key, day: f.day(sheet.day) }),
+        blocks: [
+          {
+            kind: "fields",
+            caption: t("common.details"),
+            fields: [
+              field(t("common.project"), projectLabel(project)),
+              field(t("common.day"), f.day(sheet.day)),
+              field(
+                t("common.published"),
+                sheet.publishedAt ? f.dateTime(sheet.publishedAt) : t("common.draft"),
+              ),
+            ],
+          },
+          { kind: "heading", text: t("daySheet.body") },
+          {
+            kind: "paragraph",
+            text: sheet.body.trim() === "" ? t("daySheet.emptyBody") : sheet.body,
+          },
+          {
+            kind: "table",
+            caption: t("daySheet.localContacts"),
+            columns: [
+              { label: t("daySheet.contactRole") },
+              { label: t("daySheet.contactName"), weight: 2 },
+              { label: t("daySheet.contactTitle"), weight: 1.6 },
+              { label: t("daySheet.contactPhone"), weight: 1.6 },
+              { label: t("daySheet.contactEmail"), weight: 2 },
+            ],
+            rows: (contacts ?? []).map((c) => [
+              t(`daySheet.roles.${c.role}`),
+              [c.displayName, c.organizationName].filter(Boolean).join(", ") || t("common.none"),
+              c.title ?? "",
+              c.phone ?? "",
+              c.email ?? "",
+            ]),
+            empty: t("daySheet.noContacts"),
           },
         ],
       }),
@@ -811,6 +875,60 @@ export const TEMPLATES: TemplateRegistry = {
           },
           { kind: "heading", text: t("agreementCertificate.text") },
           { kind: "paragraph", text: agreement.body },
+        ],
+      }),
+    },
+  ],
+  "radio-handout": [
+    {
+      version: 1,
+      effectiveFrom: V1,
+      build: ({ project, lines }, { t, f, generatedAt }) => ({
+        title: t("radioHandout.title"),
+        blocks: [
+          {
+            kind: "paragraph",
+            text: t("radioHandout.subtitle", {
+              project: projectLabel(project),
+              date: f.dateTime(generatedAt.toISOString()),
+            }),
+          },
+          {
+            kind: "table",
+            caption: t("radioHandout.title"),
+            columns: [
+              { label: t("radioHandout.person"), weight: 2 },
+              { label: t("radioHandout.party"), weight: 2 },
+              { label: t("radioHandout.radio"), weight: 1.6 },
+              { label: t("radioHandout.tags"), weight: 1.6 },
+              { label: t("radioHandout.channels"), weight: 2 },
+              { label: t("radioHandout.status"), weight: 1.2 },
+              { label: t("radioHandout.signature"), weight: 1.6 },
+              { label: t("radioHandout.returned"), weight: 1 },
+            ],
+            rows: [...lines]
+              .sort(
+                (a, b) =>
+                  a.partyName.localeCompare(b.partyName) ||
+                  a.personName.localeCompare(b.personName),
+              )
+              .map((l) => [
+                l.personName || l.partyName,
+                l.partyName,
+                l.quantity === 1 ? l.className : `${l.className} × ${f.number(l.quantity)}`,
+                l.tagsIssued.length > 0 ? l.tagsIssued.join(", ") : t("common.none"),
+                l.channelNumbers.length > 0
+                  ? l.channelNumbers
+                      .map((n, i) => (l.channelNames[i] ? `${n} ${l.channelNames[i]}` : String(n)))
+                      .join(", ")
+                  : t("common.none"),
+                t(`radioHandout.statuses.${keyOf(l.status)}`),
+                "",
+                "",
+              ]),
+            empty: t("radioHandout.empty"),
+          },
+          { kind: "paragraph", text: t("radioHandout.footer") },
         ],
       }),
     },

@@ -190,9 +190,32 @@ describe("loaders read each record as the caller", () => {
     const day = fakeClient({
       "from:day_sheets": [okResponse([sheet])],
       "from:projects": [project],
+      // The day's local contacts (B5): read with the sheet for template version 2.
+      "from:project_local_contacts": [
+        okResponse([
+          {
+            id: "c1",
+            project_id: "p1",
+            venue_id: null,
+            day: null,
+            contact_role: "Transport",
+            contact_title: "Dispatch",
+            source: "Contact",
+            membership_id: null,
+            display_name: "Harbor Car Service",
+            organization_name: null,
+            phone: "+13055550100",
+            email: null,
+            audience: "Shared",
+            member_active: true,
+            notes: null,
+          },
+        ]),
+      ],
     });
     const d = await loadDocumentData(day.db, ORG, "day-sheet", "s1");
     expect(d.ok && d.data.sheet.body).toBe("Gates at 16:00");
+    expect(d.ok && d.data.contacts?.map((c) => c.displayName)).toEqual(["Harbor Car Service"]);
 
     const call = fakeClient({
       "from:call_sheets": [okResponse([sheet])],
@@ -368,6 +391,38 @@ describe("loaders read each record as the caller", () => {
   it("final cost report needs a project of the org", async () => {
     const { db } = fakeClient({ "from:projects": [okResponse(null)] });
     expect((await loadDocumentData(db, ORG, "final-cost-report", "p1")).ok).toBe(false);
+  });
+
+  it("radio hand-out: the project of the org and its radio allocations", async () => {
+    const missing = fakeClient({ "from:projects": [okResponse(null)] });
+    expect((await loadDocumentData(missing.db, ORG, "radio-handout", "p1")).ok).toBe(false);
+    const { db, calls } = fakeClient({
+      "from:projects": [project],
+      "rpc:radio_handout": [
+        okResponse([
+          {
+            allocation_id: "a1",
+            roster_entry_id: "re1",
+            person_name: "Kai Morgan",
+            party_name: "Bayside Audio",
+            class_name: "Two-way radios",
+            quantity: 1,
+            tags_issued: ["R-001"],
+            channel_numbers: [1, 4],
+            channel_names: ["Production", "Audio"],
+            display_status: "Issued",
+          },
+        ]),
+      ],
+    });
+    const r = await loadDocumentData(db, ORG, "radio-handout", "p1");
+    expect(r.ok && r.data.lines.map((l) => [l.personName, l.tagsIssued, l.status])).toEqual([
+      ["Kai Morgan", ["R-001"], "Issued"],
+    ]);
+    expect(calls.find((c) => c.target === "rpc:radio_handout")?.steps).toContainEqual([
+      "args",
+      [{ p_project_id: "p1" }],
+    ]);
   });
 
   const agreementRow = (signed: boolean) => ({

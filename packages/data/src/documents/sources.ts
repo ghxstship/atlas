@@ -1,3 +1,5 @@
+import { radioHandout } from "../allocations.ts";
+import { listProjectLocalContacts } from "../local-contacts.ts";
 import type { XosClient } from "../client.ts";
 import { getIssuedCredential } from "../credentials.ts";
 import {
@@ -133,7 +135,9 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     if (!sheet) return fail({ kind: "not-found" });
     const project = await documentProject(db, orgId, sheet.projectId);
     if (!project.ok) return project;
-    return ok({ project: project.data, sheet });
+    // The day's local contacts (B5); a reader who cannot read them gets the sheet without.
+    const contacts = await listProjectLocalContacts(db, sheet.projectId, sheet.day);
+    return ok({ project: project.data, sheet, contacts: contacts.ok ? contacts.data : [] });
   },
 
   "call-sheet": async (db, orgId, id) => {
@@ -168,6 +172,14 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     const project = await documentProject(db, orgId, beo.data.projectId);
     if (!project.ok) return project;
     return ok({ project: project.data, beo: beo.data });
+  },
+
+  "radio-handout": async (db, orgId, id) => {
+    const project = await documentProject(db, orgId, id);
+    if (!project.ok) return project;
+    const lines = await radioHandout(db, id);
+    if (!lines.ok) return lines;
+    return ok({ project: project.data, lines: lines.data });
   },
 
   "credential-badge": async (db, orgId, id) => {
