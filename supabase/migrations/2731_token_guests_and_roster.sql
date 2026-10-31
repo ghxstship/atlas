@@ -13,7 +13,8 @@
 --      an invitation.
 --   3. private.roster_entry_creator (from 2635) answers created_by, else the person who claimed the link an
 --      invitation came through, so after the claim the claimer does not review the entries they invited
---      (sod_roster_reviewer). Nothing is stamped at claim.
+--      (sod_roster_reviewer). Nothing is stamped at claim. app.respond_party_invitation (from 2636) likewise grants
+--      a link invitee's Account Member role on behalf of the person who claimed the link, NULL until it is claimed.
 --   4. private.submit_roster_entries: the body of app.submit_roster (from 2656, names lock included), which
 --      app.submit_roster now calls after its own checks, as the token RPC does.
 --   5. On a Crew Roster section of a recipient with a rosterable engagement whose roster area is open (R4,
@@ -236,6 +237,90 @@ $$;
 comment on function private.roster_entry_creator(uuid) is 'Who created a roster entry, for the reviewer separation rule (sod_roster_reviewer): its created_by, else, for an entry invited through an advance link (R10), the person who claimed that link; NULL until it is claimed. Nothing is stamped at claim.';
 revoke all on function private.roster_entry_creator(uuid) from public, anon, authenticated;
 
+-- 3b. The granter of a link invitee's account role, from 2636 ---------------------------------------------------------
+
+create or replace function app.respond_party_invitation(p_invitation_kind text, p_invitation_id uuid, p_accept boolean)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := private.require_person();
+  v_email text := private.my_confirmed_email();
+  v_account app.account_invitations;
+  v_roster app.roster_invitations;
+  v_entry app.engagement_roster_entries;
+  v_engagement app.engagements;
+  v_counterparty_account uuid;
+  v_membership uuid;
+begin
+  if p_invitation_kind = 'account' then
+    select * into v_account from app.account_invitations i where i.id = p_invitation_id and i.deleted_at is null for update;
+    if v_account.id is null or v_email is null or v_account.email <> v_email then
+      perform private.refuse('invitation_not_yours', 'This invitation was sent to another address. Sign in with the address it was sent to.');
+    end if;
+    if v_account.accepted_at is not null or v_account.declined_at is not null or v_account.revoked_at is not null
+       or v_account.expires_at <= now() then
+      perform private.refuse('invitation_closed', 'This invitation was answered, revoked or has expired.');
+    end if;
+    if not p_accept then
+      update app.account_invitations set declined_at = now() where id = v_account.id;
+      return null;
+    end if;
+    v_membership := private.ensure_accepted_membership(v_account.org_id, v_me, v_account.account_role, v_account.invited_by);
+    update app.account_invitations set accepted_at = now(), accepted_person_id = v_me where id = v_account.id;
+    return v_membership;
+  elsif p_invitation_kind = 'roster' then
+    select * into v_roster from app.roster_invitations i where i.id = p_invitation_id and i.deleted_at is null for update;
+    if v_roster.id is null or v_email is null or v_roster.email <> v_email then
+      perform private.refuse('invitation_not_yours', 'This invitation was sent to another address. Sign in with the address it was sent to.');
+    end if;
+    select * into v_entry from app.engagement_roster_entries r where r.id = v_roster.roster_entry_id and r.deleted_at is null for update;
+    if v_roster.claimed_at is not null or v_roster.declined_at is not null or v_roster.revoked_at is not null
+       or v_roster.expires_at <= now() or v_entry.id is null or v_entry.entry_state = 'Withdrawn' or v_entry.person_id is not null then
+      perform private.refuse('invitation_closed', 'This invitation was answered, revoked or has expired.');
+    end if;
+    if not p_accept then
+      update app.roster_invitations set declined_at = now() where id = v_roster.id;
+      if v_entry.entry_state = 'Draft' then
+        perform private.transition_lifecycle('roster_entry', 'app.engagement_roster_entries', 'entry_state',
+          'app.roster_entry_state_transitions', 'roster_entry_id', v_entry.id, 'Draft', 'Withdrawn', 'Invitation declined.');
+      end if;
+      return v_entry.id;
+    end if;
+    select * into v_engagement from app.engagements e where e.id = v_entry.engagement_id and e.deleted_at is null;
+    if v_engagement.person_id = v_me then
+      perform private.refuse('roster_person_is_engaged', 'You are on this engagement''s roster through your own entry.');
+    end if;
+    select c.organization_id into v_counterparty_account from app.counterparties c where c.id = v_engagement.counterparty_id;
+    if v_counterparty_account is not null then
+      -- R10: an invitation sent through an advance link is granted by the person who claimed the link.
+      perform private.ensure_accepted_membership(v_counterparty_account, v_me, 'Account Member', coalesce(v_roster.invited_by, (
+        select t.claimed_by from app.advance_recipient_tokens t where t.id = v_roster.advance_recipient_token_id)));
+    end if;
+    perform private.begin_trusted_operation('roster_invitation_claim');
+    begin
+      update app.engagement_roster_entries set person_id = v_me, person_response = 'Accepted', responded_at = now()
+      where id = v_entry.id;
+    exception when unique_violation then
+      perform private.refuse('roster_person_duplicate', 'You are already on this engagement''s roster.');
+    end;
+    perform private.end_trusted_operation('roster_invitation_claim');
+    update app.roster_invitations set claimed_at = now(), claimed_person_id = v_me where id = v_roster.id;
+    perform private.sync_account_roster_consent(v_counterparty_account, v_me);
+    return v_entry.id;
+  end if;
+  perform private.refuse('invitation_kind', 'An invitation is an account or a roster invitation.');
+  return null;
+end;
+$$;
+
+comment on function app.respond_party_invitation(text, uuid, boolean) is 'The invitee, signed in with the confirmed address an invitation was sent to, accepts or declines it while it is pending and unexpired (invitation_not_yours, invitation_closed). Account: accepting confirms their membership with the offered role, creating it when needed, and returns the membership id. Roster: accepting claims the entry for them and accepts it, and on a company engagement also confirms them as an Account Member of the account, the role granted by the inviter or, for an invitation sent through an advance link, by the person who claimed the link, NULL until it is claimed (R10). It refuses roster_person_duplicate and roster_person_is_engaged; declining withdraws the Draft entry. Returns the entry id.';
+revoke all on function app.respond_party_invitation(text, uuid, boolean) from public, anon;
+grant execute on function app.respond_party_invitation(text, uuid, boolean) to authenticated, service_role;
+
 -- 4. One submit, from 2656 -------------------------------------------------------------------------------------------------------
 
 create or replace function private.submit_roster_entries(p_engagement_id uuid)
@@ -445,11 +530,9 @@ begin
       perform private.refuse('roster_person_duplicate', 'This address is already invited onto the engagement''s roster.');
     end if;
     v_window := private.roster_arrival(p_arrival_starts_at, p_arrival_ends_at, p_arrival_zone);
-    perform private.begin_trusted_operation('invite_advance_roster_member');
     v_entry := private.insert_roster_entry(v_engagement, null, nullif(btrim(coalesce(p_role_code, '')), ''), v_window,
       p_arrival_zone, null, false);
     perform private.issue_roster_invitation(v_entry, v_email, interval '14 days', v_token_id);
-    perform private.end_trusted_operation('invite_advance_roster_member');
   exception when sqlstate 'XR001' then
     get stacked diagnostics v_reason = pg_exception_hint;
     return query select null::uuid, 'REFUSE'::text, v_reason;

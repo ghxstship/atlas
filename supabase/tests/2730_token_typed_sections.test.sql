@@ -3,10 +3,12 @@
 -- order and appends the new ones. A typed answer through the link creates lines and Requested allocations with no
 -- created_by, one open answer per section. Upload tickets: single use, 15 minutes, another token's ticket refused, a
 -- mismatched section or path refused, anon writes and reads only the ticket's object, finish refuses a missing object
--- and a bad checksum, the upload is queued for scanning and the File answer takes it. Guests through the link: the cap
--- and a closed engagement. Roster: an invite makes a Draft entry, the rate limit holds, the invitee accepts, submit
--- works and masking holds. After the claim the claimer cannot approve the allocation their token answer created nor
--- review the entry they invited, with no column written at claim.
+-- and a bad checksum, the upload is queued for scanning and the File answer takes it; an unattached upload holds the
+-- section only while its ticket's 15 minutes run. Guests through the link: the cap and a closed engagement. Roster: an
+-- invite makes a Draft entry, the rate limit holds, the invitee accepts, submit works and masking holds. After the claim
+-- the claimer cannot approve the allocation their token answer created nor review the entry they invited, with no
+-- column written at claim; the status rows agree with the requester rule, and a link invitee's account role is granted
+-- by the claimer.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -254,6 +256,8 @@ insert into storage.objects (bucket_id, name, metadata)
 values ('party-uploads', pg_temp.id('org_a') || '/advance/' || pg_temp.id('rcp') || '/' || pg_temp.id('s_file') || '/signed-in.pdf', '{}');
 select is(pg_temp.anon($$select count(*)::text from storage.objects where bucket_id = 'party-uploads'$$), '1',
   'anon reads only the open ticket''s object');
+select is((select roles::text from pg_policies where schemaname = 'storage' and tablename = 'objects'
+  and policyname = 'party_uploads_token_read'), '{anon}', 'only anon reads through a ticket');
 
 select is(pg_temp.finish('xadv_r10artist', pg_temp.id('t1')), 'advance_upload_ticket', 'another link''s ticket is refused');
 select is(pg_temp.finish('xadv_r10vendor', pg_temp.id('t2')), 'party_upload_missing', 'finish refuses a missing object');
@@ -268,6 +272,12 @@ select is(pg_temp.anon($$select count(*)::text from storage.objects where bucket
 update private.advance_upload_tickets set expires_at = now() - interval '1 second' where id = pg_temp.id('t2');
 select throws_ok(format($$select pg_temp.anon_store(%L)$$, pg_temp.ticket_name(pg_temp.id('t2'))),
   '42501', null, 'an expired ticket opens nothing');
+insert into world select 't3', pg_temp.begin_upload('xadv_r10vendor', 's_file', 'plot.pdf')::uuid;
+select is(pg_temp.begin_upload('xadv_r10vendor', 's_file', 'third.pdf'), 'advance_upload_limit',
+  'a finished file in no answer counts while its ticket''s 15 minutes run');
+update private.advance_upload_tickets set expires_at = now() - interval '1 second' where id in (pg_temp.id('t1'), pg_temp.id('t3'));
+select ok(pg_temp.begin_upload('xadv_r10vendor', 's_file', 'retry.pdf') ~ '^[0-9a-f-]{36}$',
+  'once the window closes an unattached file no longer holds the section, so a failed answer can be sent again');
 
 select is(pg_temp.typed('xadv_r10artist', 's_file', '[]', null, array[pg_temp.id('doc1')]), 'advance_file_document',
   'another link cannot attach the file');
@@ -371,6 +381,31 @@ select throws_like($$select app.review_roster_entry((select id from world where 
   '%sod_roster_reviewer%', 'nor review the entry she invited');
 select is((select count(*)::int from app.my_advance_submissions() where submission_id in (pg_temp.id('a_items'))), 1,
   'her token answers are hers');
+insert into world select 'alloc_signed_in', pg_temp.alloc('assign', 'carol', 'e_kai', 'class', 'cls_radio', 1);
+select pg_temp.as_platform();
+select is((select count(*)::int from private.advance_allocation_status_rows s
+  where s.requested_by is distinct from private.allocation_requester(s.allocation_id)), 0,
+  'the status rows and the separation rule agree on every allocation''s requester');
+select ok(exists (select 1 from private.advance_allocation_status_rows s
+    join app.advance_allocations a on a.id = s.allocation_id where a.created_by is not null)
+  and exists (select 1 from private.advance_allocation_status_rows s
+    join app.advance_allocations a on a.id = s.allocation_id where a.created_by is null and s.requested_by is not null),
+  'over allocations made signed in and through a claimed link');
+
+select is((select r.granted_by from app.account_membership_roles r join app.account_memberships m on m.id = r.account_membership_id
+  where m.person_id = pg_temp.id('nova') and r.account_role = 'Account Member' and r.deleted_at is null), null::uuid,
+  'a link invitee who accepted before the claim holds a role no one granted yet');
+delete from private.rate_limit_events where bucket = 'advance_token_roster';
+insert into world select 'e_ash', pg_temp.invite('xadv_r10vendor', 'ash.crew@bayside-audio.test')::uuid;
+select pg_temp.new_user('ash', 'ash.crew@bayside-audio.test', 'Ash Moreno');
+select pg_temp.as_user('ash');
+select lives_ok($$select app.respond_party_invitation('roster',
+  (select invitation_id from app.my_pending_invitations() where invitation_kind = 'roster'), true)$$,
+  'a person invited through the link after its claim accepts');
+select pg_temp.as_platform();
+select is((select r.granted_by from app.account_membership_roles r join app.account_memberships m on m.id = r.account_membership_id
+  where m.person_id = pg_temp.id('ash') and r.account_role = 'Account Member' and r.deleted_at is null), pg_temp.id('carol'),
+  'and holds the Account Member role granted by the person who claimed the link');
 
 select * from finish();
 rollback;

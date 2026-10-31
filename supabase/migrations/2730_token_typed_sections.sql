@@ -182,7 +182,7 @@ cross join lateral (
 ) p
 where a.deleted_at is null;
 
-comment on view private.advance_allocation_status_rows is 'The combined status of every live allocation (R7, ADR 0103), computed from the rows that own each state: the body of app.advance_allocation_status without a row filter (2701). requested_by is private.allocation_requester written out: created_by, else the person who claimed the advance link whose answer asked for it (R10). Read only by views owned by the migration role, which filter it: app.advance_allocation_status (advancing.packet.read) and api_external.advance_allocations (the party side and the person).';
+comment on view private.advance_allocation_status_rows is 'The combined status of every live allocation (R7, ADR 0103), computed from the rows that own each state: the body of app.advance_allocation_status without a row filter (2701). requested_by is private.allocation_requester written out, since that function is not executable by the readers of the views over this one: created_by, else the person who claimed the advance link whose answer asked for it (R10). pgTAP 2730 checks that the two agree for every allocation. Read only by views owned by the migration role, which filter it: app.advance_allocation_status (advancing.packet.read) and api_external.advance_allocations (the party side and the person).';
 revoke all on private.advance_allocation_status_rows from public, anon, authenticated;
 revoke select on private.advance_allocation_status_rows from xos_backup;
 
@@ -243,9 +243,9 @@ grant execute on function api_public.advance_upload_ticket_open(text) to anon, a
 create policy party_uploads_token_insert on storage.objects for insert to anon, authenticated
   with check (bucket_id = 'party-uploads' and api_public.advance_upload_ticket_open(name));
 comment on policy party_uploads_token_insert on storage.objects is 'R10: an advance link uploads the one object its open ticket names (api_public.begin_advance_upload).';
-create policy party_uploads_token_read on storage.objects for select to anon, authenticated
+create policy party_uploads_token_read on storage.objects for select to anon
   using (bucket_id = 'party-uploads' and api_public.advance_upload_ticket_open(name));
-comment on policy party_uploads_token_read on storage.objects is 'R10: the object of an open ticket is readable while the ticket is open, so the storage API''s INSERT ... RETURNING works (1041). For a signed-in caller the restrictive object_scan_read_gate still applies.';
+comment on policy party_uploads_token_read on storage.objects is 'R10: the object of an open ticket is readable by anon while the ticket is open, so the storage API''s INSERT ... RETURNING works (1041). Gateway uploads through a link with an anonymous client; signed-in readers go through party_upload_readable.';
 
 -- 3. Org readers read token uploads, from 2712 -----------------------------------------------------------------------------
 
@@ -747,11 +747,12 @@ begin
     return query select null::uuid, null::text, null::timestamptz, 'REFUSE'::text, 'advance_upload_size'::text;
     return;
   end if;
-  -- Open tickets and uploaded files not yet in an answer count toward the section's files.
+  -- A ticket counts toward the section's files while its 15 minutes run, unless its file is already in an answer: an
+  -- open ticket, or a finished upload whose answer has not gone in yet. Once the window closes an unattached upload
+  -- no longer holds the section, so an answer that failed after its uploads blocks the link for 15 minutes at most.
   if (select count(*) from private.advance_upload_tickets k
-      where k.advance_recipient_token_id = v_token_id and k.advance_section_id = v_section.id
-        and ((k.used_at is null and k.expires_at > now())
-          or (k.document_id is not null and not exists (select 1 from app.advance_submission_files f where f.document_id = k.document_id))))
+      where k.advance_recipient_token_id = v_token_id and k.advance_section_id = v_section.id and k.expires_at > now()
+        and not exists (select 1 from app.advance_submission_files f where f.document_id = k.document_id))
      >= v_section.max_lines then
     return query select null::uuid, null::text, null::timestamptz, 'REFUSE'::text, 'advance_upload_limit'::text;
     return;
@@ -770,7 +771,7 @@ begin
   return query select v_id, v_name, v_expires, null::text, null::text;
 end;
 $$;
-comment on function api_public.begin_advance_upload(text, text, uuid, text, text, integer) is 'Gateway advance form without an account (R10): with a valid token and access code, issues an upload ticket for a File section of the recipient''s packet, open for 15 minutes, for one object <org_id>/advance-token/<ticket id>/<file name>, the name cleaned to letters, digits, dot, underscore and hyphen. Refusals come back as REFUSE with a reason: the token reasons of preview_advance; advance_section_open (not a File section of the packet); advance_answer_pending while the section''s answer awaits review or was Accepted; advance_upload_type (a type party-uploads does not take); advance_upload_size (over 25 MB); advance_upload_limit (open tickets and unattached files reach the section''s most files); advance_upload_rate (20 tickets per link per hour).';
+comment on function api_public.begin_advance_upload(text, text, uuid, text, text, integer) is 'Gateway advance form without an account (R10): with a valid token and access code, issues an upload ticket for a File section of the recipient''s packet, open for 15 minutes, for one object <org_id>/advance-token/<ticket id>/<file name>, the name cleaned to letters, digits, dot, underscore and hyphen. Refusals come back as REFUSE with a reason: the token reasons of preview_advance; advance_section_open (not a File section of the packet); advance_answer_pending while the section''s answer awaits review or was Accepted; advance_upload_type (a type party-uploads does not take); advance_upload_size (over 25 MB); advance_upload_limit (tickets issued in the last 15 minutes whose file is in no answer, used or not, reach the section''s most files); advance_upload_rate (20 tickets per link per hour).';
 revoke all on function api_public.begin_advance_upload(text, text, uuid, text, text, integer) from public;
 grant execute on function api_public.begin_advance_upload(text, text, uuid, text, text, integer) to anon, authenticated, service_role;
 
