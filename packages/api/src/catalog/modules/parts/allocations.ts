@@ -103,12 +103,10 @@ const AdvanceAllocation = defineResource({
     parent_allocation_id: orNull(fields.ref("pool a share was split from")),
     kind: z.enum(KINDS).meta({ description: "What the allocation gives.", example: "Asset" }),
     offering: orNull(
-      z
-        .enum(OFFERINGS)
-        .meta({
-          description: "Offering it draws on; null for a badge or a site asset.",
-          example: "Radios",
-        }),
+      z.enum(OFFERINGS).meta({
+        description: "Offering it draws on; null for a badge or a site asset.",
+        example: "Radios",
+      }),
     ),
     item_name: orNull(
       text(
@@ -378,12 +376,10 @@ const IssueResult = z
     outcome: z
       .enum(["applied", "duplicate"])
       .meta({ description: "applied, or duplicate for a replay.", example: "applied" }),
-    possession: z
-      .record(z.string(), z.array(z.uuid()))
-      .meta({
-        description: "Ids of the possession rows written, by table.",
-        example: { asset_custody: [fields.EXAMPLE_UUID] },
-      }),
+    possession: z.record(z.string(), z.array(z.uuid())).meta({
+      description: "Ids of the possession rows written, by table.",
+      example: { asset_custody: [fields.EXAMPLE_UUID] },
+    }),
   })
   .meta({ id: "AdvanceAllocationIssueResult", description: "What one issue event wrote." });
 

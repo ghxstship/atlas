@@ -56,9 +56,7 @@ export function RosterFactsDrawer({
   return (
     <Drawer
       open
-      title={
-        self ? t("projectFacts.title") : t("projectFacts.drawerTitle", { name })
-      }
+      title={self ? t("projectFacts.title") : t("projectFacts.drawerTitle", { name })}
       onClose={onClose}
     >
       {error ? <InlineAlert tone="danger">{t(`errors.${error}`)}</InlineAlert> : null}
