@@ -1,9 +1,17 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, Input, MoreFields, Select } from "@xos/ui";
+import {
+  Button,
+  Checkbox,
+  ColorPicker,
+  InlineAlert,
+  Input,
+  MoreFields,
+  Select,
+  type ColorCheck,
+} from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useState, type CSSProperties } from "react";
-import { checkAccentAction } from "@/app/[org]/settings/actions";
+import { useActionState, useState, type CSSProperties } from "react";
 import {
   acceptLegalAction,
   addDomainAction,
@@ -13,7 +21,6 @@ import {
   uploadBrandAssetAction,
   type IdentityFormState,
 } from "@/app/[org]/settings/identity-actions";
-import type { AccentCheck } from "@/lib/brand/contrast";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { ScanNotice } from "@/components/platform/scan-notice";
@@ -61,6 +68,18 @@ export interface BrandFormProps {
     readonly suppressPoweredBy: boolean;
   };
   readonly defaultAccent: string;
+  /**
+   * The theme engine's contrast pairs for the accent (lib/brand/contrast.ts accentPairs), labelled.
+   * The picker measures them live; the save action checks the same pairs again and refuses a failure.
+   */
+  readonly accentChecks: readonly ColorCheck[];
+  /** Whether the starting accent passes those pairs today (the token build may have moved since). */
+  readonly accentPasses: boolean;
+}
+
+/** A 3-digit hex color as the 6 digits the save action takes. */
+function sixDigits(hex: string): string {
+  return /^#[0-9a-fA-F]{3}$/.test(hex) ? `#${hex.slice(1).replace(/./g, "$&$&")}` : hex;
 }
 
 export function BrandForm(props: BrandFormProps) {
@@ -68,23 +87,7 @@ export function BrandForm(props: BrandFormProps) {
   const tErr = useCopy("settings.errors");
   const [state, action, pending] = useActionState(saveBrandAction, INITIAL);
   const [accent, setAccent] = useState(props.brand.accentHex || props.defaultAccent);
-  const [check, setCheck] = useState<AccentCheck | null>(null);
-  const valid = /^#[0-9a-fA-F]{6}$/.test(accent);
-
-  useEffect(() => {
-    if (!valid) return undefined;
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      const result = await checkAccentAction(accent);
-      if (!cancelled) setCheck(result);
-    }, 150);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [accent, valid]);
-
-  const current = valid ? check : null;
+  const [passes, setPasses] = useState(props.accentPasses);
   const fieldError = (name: string) =>
     state.fieldErrors?.[name] ? tErr(state.fieldErrors[name] ?? "invalid") : "";
   const disabled = !props.canEdit;
@@ -108,47 +111,20 @@ export function BrandForm(props: BrandFormProps) {
         width="100%"
         error={fieldError("displayName")}
       />
-      <div className="flex flex-wrap items-end gap-12">
-        <Input
-          id="brand-accent"
-          name="accentHex"
-          spellCheck={false}
-          label={t("accent")}
-          help={t("accentHelp")}
-          value={accent}
-          disabled={disabled}
-          onChange={(e) => setAccent(e.target.value.trim())}
-          error={valid ? fieldError("accentHex") : t("invalidColor")}
-        />
-        <input
-          type="color"
-          aria-label={t("accent")}
-          value={valid ? accent : props.defaultAccent}
-          disabled={disabled}
-          onChange={(e) => setAccent(e.target.value.toUpperCase())}
-          className="h-control-md w-48 cursor-pointer rounded-control border border-border-control bg-bg-surface"
-        />
-      </div>
-      {current ? (
-        current.passes ? (
-          <InlineAlert tone="success">{t("passes")}</InlineAlert>
-        ) : (
-          <InlineAlert tone="danger" title={t("fails", { count: current.failures.length })}>
-            <ul className="m-0 ps-16">
-              {current.failures.map((f) => (
-                <li key={`${f.theme}-${f.rule}-${f.fg}-${f.bg}`}>
-                  {t("failure", {
-                    rule: f.rule,
-                    theme: f.theme,
-                    ratio: f.ratio.toFixed(2),
-                    min: f.min,
-                  })}
-                </li>
-              ))}
-            </ul>
-          </InlineAlert>
-        )
-      ) : null}
+      <input type="hidden" name="accentHex" value={sixDigits(accent)} />
+      <ColorPicker
+        id="brand-accent"
+        label={t("accent")}
+        help={t("accentHelp")}
+        value={accent}
+        checks={[...props.accentChecks]}
+        disabled={disabled}
+        error={fieldError("accentHex")}
+        onChange={(value, savable) => {
+          setAccent(value);
+          setPasses(savable);
+        }}
+      />
       <div
         className="flex gap-12 rounded-card border border-border-subtle p-16"
         aria-label={t("preview")}
@@ -156,7 +132,7 @@ export function BrandForm(props: BrandFormProps) {
         // A visual sample of the brand color, not a control.
         inert
         style={
-          current?.passes ? ({ "--color-accent-default": accent } as CSSProperties) : undefined
+          passes ? ({ "--color-accent-default": sixDigits(accent) } as CSSProperties) : undefined
         }
       >
         <Button variant="primary" type="button">
@@ -247,7 +223,8 @@ export function BrandForm(props: BrandFormProps) {
             type="submit"
             variant="primary"
             loading={pending}
-            disabled={valid && current?.passes === false}
+            // An accent that fails a pair cannot be saved (Section 12); the action refuses it too.
+            disabled={!passes}
           >
             {t("save")}
           </Button>

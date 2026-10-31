@@ -13,6 +13,7 @@ import {
   uploadAttachmentAction,
 } from "@/lib/operations/collab-actions";
 import { ActionForm, useErrorCopy } from "./action-form";
+import { AttachmentPreview } from "@/components/files/file-preview";
 
 interface SubjectProps {
   readonly org: string;
@@ -151,6 +152,7 @@ export function AttachmentsPanel({
                 </span>
               </span>
               <span className="flex items-center gap-8">
+                <AttachmentPreview attachment={a} />
                 <Button
                   variant="secondary"
                   size="sm"

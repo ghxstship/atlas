@@ -4,9 +4,9 @@
    arithmetic and output; the functions are exported for tests and the white-label theme editor. */
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-import { ratio } from "./ratio.js";
+import { composite, ratio } from "./ratio.js";
 
-export { ratio };
+export { composite, ratio };
 
 /** Resolves a color token to its hex value in a theme, following `{name}` references. */
 export function resolveColor(tokens, name, theme) {
@@ -21,26 +21,6 @@ export function resolveColor(tokens, name, theme) {
         : t.value[themes[0]];
   const m = /^\{(.+)\}$/.exec(v);
   return m ? resolveColor(tokens, m[1], theme) : v;
-}
-
-/**
- * A background with an overlay composited over it, as a hover or pressed state draws it: the
- * overlay color at `opacity` over the fill, per sRGB channel (CSS `color-mix(in srgb, ...)`).
- */
-export function composite(bgHex, overlayHex, opacity) {
-  const channels = (h) => {
-    let x = h.replace("#", "");
-    if (x.length === 3) x = x.replace(/./g, "$&$&");
-    return [0, 2, 4].map((i) => parseInt(x.substring(i, i + 2), 16));
-  };
-  const over = channels(overlayHex);
-  return (
-    "#" +
-    channels(bgHex)
-      .map((c, i) => Math.round(c * (1 - opacity) + over[i] * opacity))
-      .map((c) => c.toString(16).padStart(2, "0"))
-      .join("")
-  );
 }
 
 /**

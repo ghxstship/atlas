@@ -12,7 +12,6 @@ import { requireSecondFactor } from "@xos/data/auth-assurance";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { checkAccent, HEX_COLOR, type AccentCheck } from "@/lib/brand/contrast";
 import { getOrgContext } from "@/lib/shell/context";
 import { env } from "@/lib/env";
 
@@ -135,9 +134,4 @@ export async function removeMemberAction(_: SettingsState, form: FormData): Prom
   if (!result.ok) return { error: errorKey(result.error) };
   revalidatePath(`/${ctx.org.slug}/settings/members`);
   return { ok: true };
-}
-
-/** The live contrast gate behind the White Label editor (Section 12). */
-export async function checkAccentAction(accent: string): Promise<AccentCheck | null> {
-  return HEX_COLOR.test(accent) ? checkAccent(accent) : null;
 }

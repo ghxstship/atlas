@@ -17,6 +17,7 @@ import {
   type CollabSubject,
 } from "./collab-actions";
 import { ActionAlert } from "./forms";
+import { AttachmentPreview } from "@/components/files/file-preview";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -176,6 +177,7 @@ export function CollabPanels({
                   >
                     {t(`scan.${scan(a)}`)}
                   </Tag>
+                  <AttachmentPreview attachment={a} />
                   {a.current ? (
                     <Button
                       size="sm"

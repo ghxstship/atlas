@@ -2,6 +2,7 @@ export {
   type FilterBuilderProps,
   type QuickAddProps,
   type ColorPickerProps,
+  type ColorCheck,
   type DiffViewerProps,
   type QuickAddToken,
   type QuickAddResult,

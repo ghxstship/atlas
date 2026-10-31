@@ -31,12 +31,18 @@ import {
 import { referenceOptions } from "@/components/settings/registry-section";
 import { SettingsForm } from "@/components/settings/setting-field";
 import { InlineAlert } from "@/components/ui";
-import { defaultAccent } from "@/lib/brand/contrast";
+import {
+  HEX_COLOR,
+  accentPairs,
+  checkAccent,
+  defaultAccent,
+  type AccentPair,
+} from "@/lib/brand/contrast";
 import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
 import { planHasFeature } from "@/lib/settings/plan";
 import { choiceLabelKey, formText, workspaceSettings } from "@/lib/settings/registry";
 import { sitemap } from "@/lib/shell/sitemap";
-import { getTranslate } from "@/lib/shell/translate";
+import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
@@ -59,6 +65,51 @@ function LoadFailed({ message }: { message: string }) {
 
 async function GeneralNamePanel({ ctx }: SettingsPanelProps) {
   return <GeneralForm org={ctx.org.slug} name={ctx.org.name} />;
+}
+
+/** Copy keys for the accent's counterparts in the gate's pairs; any other pair names its rule and token. */
+const PAIR_COPY: Record<string, string> = {
+  "accent-text-on": "pairLabel",
+  "accent-text-on hover": "pairLabelHover",
+  "accent-text-on pressed": "pairLabelPressed",
+  "bg-canvas": "pairCanvas",
+  "bg-surface": "pairSurface",
+  "bg-raised": "pairRaised",
+  "bg-hover": "pairHover",
+};
+const THEME_COPY: Record<string, string> = {
+  dark: "themeDark",
+  light: "themeLight",
+  sunlight: "themeSunlight",
+};
+
+/** The ColorPicker checks for the brand accent: the theme engine's pairs, each named in the viewer's language. */
+function accentChecks(t: Translate) {
+  const text = (key: string, values?: Record<string, string>) => t(`settings.brand.${key}`, values);
+  return accentPairs().map((p: AccentPair) => {
+    const pairKey = PAIR_COPY[p.state ? `${p.counterpart} ${p.state}` : p.counterpart];
+    const themeKey = THEME_COPY[p.theme];
+    return {
+      label: text("check", {
+        theme: themeKey ? text(themeKey) : p.theme,
+        pair: pairKey
+          ? text(pairKey)
+          : text("pairOther", {
+              rule: p.rule,
+              token: p.state ? `${p.counterpart} ${p.state}` : p.counterpart,
+            }),
+      }),
+      ...(p.fg ? { fg: p.fg } : {}),
+      ...(p.bg ? { bg: p.bg } : {}),
+      fgIsValue: p.fgIsValue,
+      min: p.min,
+      ...(p.overlay ? { overlay: { ...p.overlay } } : {}),
+    };
+  });
+}
+
+function accentPasses(accent: string): boolean {
+  return HEX_COLOR.test(accent) && checkAccent(accent).passes;
 }
 
 async function BrandPanel({ ctx }: SettingsPanelProps) {
@@ -95,6 +146,8 @@ async function BrandPanel({ ctx }: SettingsPanelProps) {
           whiteLabelInPlan={planHasFeature(subscription.data.planCode, "white_label")}
           fonts={fonts.data}
           defaultAccent={defaultAccent()}
+          accentChecks={accentChecks(t)}
+          accentPasses={accentPasses(b.accentHex ?? defaultAccent())}
           brand={{
             displayName: b.displayName ?? "",
             accentHex: b.accentHex ?? "",
