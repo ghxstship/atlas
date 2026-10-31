@@ -170,6 +170,52 @@ export async function assignRosterShift(
   return ok({ id: data });
 }
 
+/** A shift as Atlas's editor saves it when the agency's roster is involved (app.save_roster_shift). */
+export interface RosterShiftSave {
+  /** The shift to edit; absent to create one. */
+  readonly shiftId?: string;
+  readonly orgId: string;
+  readonly projectId: string;
+  readonly roleCode: string | null;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly timeZone: string;
+  /** Exactly one worker: a member, the agency's slot, or a person of its roster on that slot. */
+  readonly worker:
+    | { readonly kind: "member"; readonly membershipId: string }
+    | { readonly kind: "agency"; readonly engagementId: string }
+    | { readonly kind: "staff"; readonly engagementId: string; readonly rosterEntryId: string }
+    | { readonly kind: "open" };
+  /** Why a person comes off the roster, when they do. */
+  readonly reason?: string;
+}
+
+/**
+ * Creates or edits a shift and places, moves or takes off an agency staff member in one transaction, so a refused
+ * placement (roster_training_incomplete, roster_entry_not_accepted, roster_shift_overlap) leaves the shift as it was.
+ */
+export async function saveRosterShift(
+  db: XosClient,
+  input: RosterShiftSave,
+): Promise<Result<{ id: string }>> {
+  const w = input.worker;
+  const { data, error } = await db.rpc("save_roster_shift", {
+    p_shift_id: input.shiftId ?? (null as unknown as string),
+    p_org_id: input.orgId,
+    p_project_id: input.projectId,
+    p_role_code: input.roleCode as string,
+    p_starts_at: input.startsAt,
+    p_ends_at: input.endsAt,
+    p_time_zone: input.timeZone,
+    p_membership_id: (w.kind === "member" ? w.membershipId : null) as string,
+    p_engagement_id: (w.kind === "agency" || w.kind === "staff" ? w.engagementId : null) as string,
+    p_roster_entry_id: (w.kind === "staff" ? w.rosterEntryId : null) as string,
+    ...(input.reason ? { p_reason: input.reason } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data });
+}
+
 /** Takes an agency staff member off a shift, which becomes the agency's slot again (app.unassign_roster_shift). */
 export async function unassignRosterShift(
   db: XosClient,

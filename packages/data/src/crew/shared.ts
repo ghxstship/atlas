@@ -137,6 +137,46 @@ export function toWorker(
   };
 }
 
+/** A worker held through a roster entry (R12), before its person is filled in by `withRosterPeople`. */
+export function rosterWorker(rosterEntryId: string): WorkerRef {
+  return { membershipId: "", personId: null, name: null, engagementId: null, rosterEntryId };
+}
+
+/**
+ * Fills in the person behind each roster-held worker (R12) from app.roster_entry_people, in one read for the
+ * whole list. A row whose entry the caller may not read keeps a null name, as a hidden person row does.
+ */
+export async function withRosterPeople<T extends { readonly member: WorkerRef | null }>(
+  db: XosClient,
+  rows: readonly T[],
+): Promise<Result<T[]>> {
+  const ids = [
+    ...new Set(rows.flatMap((r) => (r.member?.rosterEntryId ? [r.member.rosterEntryId] : []))),
+  ];
+  if (ids.length === 0) return ok([...rows]);
+  const { data, error } = await db
+    .from("roster_entry_people")
+    .select("id, person_id, full_name")
+    .in("id", ids);
+  if (error) return fail(toDataError(error));
+  const people = new Map(
+    (data as { id: string; person_id: string | null; full_name: string | null }[]).map((e) => [
+      e.id,
+      e,
+    ]),
+  );
+  return ok(
+    rows.map((r) => {
+      const entry = r.member?.rosterEntryId ? people.get(r.member.rosterEntryId) : undefined;
+      if (!r.member || !entry) return r;
+      return {
+        ...r,
+        member: { ...r.member, personId: entry.person_id, name: entry.full_name },
+      };
+    }),
+  );
+}
+
 /** Numeric code order (Section 3.6): URIDs and canon codes compare segment by segment. */
 export function byCode(a: string, b: string): number {
   return a.localeCompare(b, "en", { numeric: true });

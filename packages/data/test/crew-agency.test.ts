@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   assignRosterShift,
+  getTimesheet,
   listAgencyEngagements,
   listAssignableRosterEntries,
   listRosterTrainingRecords,
   listShifts,
   listSupervisorPunchers,
+  listTimesheets,
   rosterTrainingSummary,
   unassignRosterShift,
   verifyRosterTraining,
@@ -28,6 +30,70 @@ const baseShift = {
   project: { project_key: "NWL", name: "Northwind" },
   membership: null,
 };
+
+describe("agency staff time (R12)", () => {
+  const sheet = {
+    id: "ts1",
+    org_id: "o1",
+    project_id: "pr1",
+    membership_id: null,
+    membership: null,
+    engagement_id: null,
+    engagement: null,
+    roster_entry_id: "re1",
+    period_start: "2027-06-01",
+    period_end: "2027-06-07",
+    timesheet_state: "Submitted",
+    submitted_by: "p1",
+    project: { project_key: "NWL" },
+  };
+  const entry = {
+    id: "te1",
+    project_id: "pr1",
+    membership_id: null,
+    membership: null,
+    engagement_id: null,
+    engagement: null,
+    roster_entry_id: "re1",
+    shift_id: "held",
+    clock_in: "2027-06-01T12:00:00.000Z",
+    clock_out: "2027-06-01T20:00:00.000Z",
+    break_minutes: 30,
+    source: "Mobile",
+    created_at: "2027-06-01T12:00:00.000Z",
+    project: { project_key: "NWL" },
+  };
+  const person = okResponse([{ id: "re1", person_id: "p1", full_name: "Stella Okafor" }]);
+
+  it("names the agency staff member on their timesheet and its entries", async () => {
+    const { db } = fakeClient({
+      "from:timesheets": [okResponse([sheet]), okResponse(sheet)],
+      "from:timesheet_hours": [
+        okResponse([{ timesheet_id: "ts1", worked_minutes: 450, has_open_entry: false }]),
+        okResponse([{ timesheet_id: "ts1", worked_minutes: 450, has_open_entry: false }]),
+      ],
+      "from:roster_entry_people": [person, person, person],
+      "from:timesheet_approvals": [okResponse([])],
+      "from:timesheet_state_transitions": [okResponse([])],
+      "from:time_entries": [okResponse([entry])],
+    });
+    const list = await listTimesheets(db, { orgId: "o1" });
+    expect(list.ok && list.data[0]?.member).toEqual({
+      membershipId: "",
+      personId: "p1",
+      name: "Stella Okafor",
+      engagementId: null,
+      rosterEntryId: "re1",
+    });
+    const detail = await getTimesheet(db, "ts1");
+    expect(detail.ok && detail.data.member.name).toBe("Stella Okafor");
+    expect(detail.ok && detail.data.entries[0]?.member).toMatchObject({
+      personId: "p1",
+      name: "Stella Okafor",
+      rosterEntryId: "re1",
+    });
+  });
+});
 
 describe("agency shifts (R12)", () => {
   it("names the agency on a slot and the person on a roster shift", async () => {

@@ -4,8 +4,10 @@ import {
   ENGAGEMENT_EMBED,
   landed,
   MEMBERSHIP_EMBED,
+  rosterWorker,
   toTransitions,
   toWorker,
+  withRosterPeople,
   type EngagementRow,
   type TransitionEntry,
   type WorkerRef,
@@ -97,7 +99,7 @@ function toShift(row: ShiftRow): Shift {
     projectKey: row.project?.project_key ?? "",
     projectName: row.project?.name ?? "",
     member: rosterEntryId
-      ? { membershipId: "", personId: null, name: null, engagementId: null, rosterEntryId }
+      ? rosterWorker(rosterEntryId)
       : (row.membership_id || row.engagement_id) && !slot
         ? toWorker(row.membership, row.membership_id, row.engagement, row.engagement_id)
         : null,
@@ -115,22 +117,16 @@ function toShift(row: ShiftRow): Shift {
 }
 
 /**
- * Fills in who an agency's shifts are with (R12): the roster person's name (app.roster_entry_people) and the agency
- * that holds a slot (app.engagement_board). Rows the caller may not read leave the names null.
+ * Fills in who an agency's shifts are with (R12): the roster person's name (app.roster_entry_people, through
+ * withRosterPeople) and the agency that holds a slot (app.engagement_board). Rows the caller may not read leave
+ * the names null.
  */
 async function withAgencyNames(db: XosClient, shifts: Shift[]): Promise<Result<Shift[]>> {
-  const entryIds = [...new Set(shifts.flatMap((s) => (s.rosterEntryId ? [s.rosterEntryId] : [])))];
   const slotIds = [
     ...new Set(shifts.flatMap((s) => (s.agencySlot ? [s.agencySlot.engagementId] : []))),
   ];
-  if (entryIds.length === 0 && slotIds.length === 0) return ok(shifts);
-  const [entries, slots] = await Promise.all([
-    entryIds.length === 0
-      ? Promise.resolve({ data: [], error: null })
-      : db
-          .from("roster_entry_people")
-          .select("id, person_id, full_name, party_name")
-          .in("id", entryIds),
+  const [named, slots] = await Promise.all([
+    withRosterPeople(db, shifts),
     slotIds.length === 0
       ? Promise.resolve({ data: [], error: null })
       : db
@@ -138,13 +134,8 @@ async function withAgencyNames(db: XosClient, shifts: Shift[]): Promise<Result<S
           .select("engagement_id, account_name")
           .in("engagement_id", slotIds),
   ]);
-  if (entries.error) return fail(toDataError(entries.error));
+  if (!named.ok) return named;
   if (slots.error) return fail(toDataError(slots.error));
-  const person = new Map(
-    (entries.data as { id: string; person_id: string | null; full_name: string | null }[]).map(
-      (e) => [e.id, e],
-    ),
-  );
   const account = new Map(
     (slots.data as { engagement_id: string | null; account_name: string | null }[]).map((e) => [
       e.engagement_id,
@@ -152,25 +143,17 @@ async function withAgencyNames(db: XosClient, shifts: Shift[]): Promise<Result<S
     ]),
   );
   return ok(
-    shifts.map((s) => {
-      if (s.rosterEntryId && s.member) {
-        const p = person.get(s.rosterEntryId);
-        return {
-          ...s,
-          member: { ...s.member, personId: p?.person_id ?? null, name: p?.full_name ?? null },
-        };
-      }
-      if (s.agencySlot) {
-        return {
-          ...s,
-          agencySlot: {
-            ...s.agencySlot,
-            accountName: account.get(s.agencySlot.engagementId) ?? null,
-          },
-        };
-      }
-      return s;
-    }),
+    named.data.map((s) =>
+      s.agencySlot
+        ? {
+            ...s,
+            agencySlot: {
+              ...s.agencySlot,
+              accountName: account.get(s.agencySlot.engagementId) ?? null,
+            },
+          }
+        : s,
+    ),
   );
 }
 

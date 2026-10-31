@@ -365,6 +365,72 @@ export async function rankShiftCandidates(
   );
 }
 
+/** A person of an agency's roster ranked for one shift (R12 with A132), beside the org's members. */
+export interface RosterShiftCandidate {
+  readonly rosterEntryId: string;
+  readonly engagementId: string;
+  readonly personId: string;
+  readonly name: string | null;
+  readonly accountName: string | null;
+  readonly availability: StatedAvailability;
+  readonly conflict: boolean;
+  readonly workedRole: boolean;
+  /** Training still due, which app.assign_roster_shift refuses on (roster_training_incomplete). */
+  readonly trainingDue: number;
+  readonly weekMinutes: number;
+  readonly rank: number;
+}
+
+/**
+ * The accepted people of the agencies' rosters on the shift's project ranked for it (app.rank_roster_candidates):
+ * free of an overlapping shift first, then nothing due in training, then the availability they share with the org,
+ * then those who worked the role, then the fewest hours in the week from `weekStart`.
+ */
+export async function rankRosterCandidates(
+  db: XosClient,
+  shiftId: string,
+  weekStart?: string,
+): Promise<Result<RosterShiftCandidate[]>> {
+  const { data, error } = await db.rpc("rank_roster_candidates", {
+    p_shift_id: shiftId,
+    ...(weekStart ? { p_week_start: weekStart } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((row) => ({
+      rosterEntryId: row.roster_entry_id,
+      engagementId: row.engagement_id,
+      personId: row.person_id,
+      name: row.full_name,
+      accountName: row.account_name,
+      availability: statedOf(row.availability),
+      conflict: row.conflict,
+      workedRole: row.worked_role,
+      trainingDue: row.training_due,
+      weekMinutes: row.week_minutes,
+      rank: row.candidate_rank,
+    })),
+  );
+}
+
+/**
+ * Puts a person of an agency's roster on an open shift from the drag board (app.assign_open_shift_to_roster): the
+ * shift becomes the agency's slot and the person is placed in one transaction, so a refusal (roster_shift_overlap,
+ * roster_training_incomplete, shift_already_filled) leaves the shift open.
+ */
+export async function assignOpenShiftToRoster(
+  db: XosClient,
+  shiftId: string,
+  rosterEntryId: string,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("assign_open_shift_to_roster", {
+    p_shift_id: shiftId,
+    p_roster_entry_id: rosterEntryId,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
 /**
  * The org's projects on which the viewer may plan and assign shifts (app.my_shift_planning_projects, 2252):
  * crew.shift.write can reach some projects and not others, so the drag board offers only shifts on these. For

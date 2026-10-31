@@ -4,7 +4,9 @@ import {
   landed,
   ENGAGEMENT_EMBED,
   MEMBERSHIP_EMBED,
+  rosterWorker,
   toWorker,
+  withRosterPeople,
   type EngagementRow,
   toTransitions,
   type WorkerRef,
@@ -34,7 +36,7 @@ export interface TimeEntry {
   readonly createdAt: string;
 }
 
-const ENTRY_SELECT = `id, project_id, membership_id, shift_id, clock_in, clock_out, break_minutes, source, created_at, project:projects!time_entries_project_id_fkey(project_key), membership:memberships!time_entries_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!time_entries_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
+const ENTRY_SELECT = `id, project_id, membership_id, shift_id, clock_in, clock_out, break_minutes, source, created_at, project:projects!time_entries_project_id_fkey(project_key), membership:memberships!time_entries_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!time_entries_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id`;
 
 interface EntryRow {
   id: string;
@@ -42,6 +44,7 @@ interface EntryRow {
   membership_id: string | null;
   engagement_id: string | null;
   engagement: EngagementRow | null;
+  roster_entry_id?: string | null;
   shift_id: string | null;
   clock_in: string;
   clock_out: string | null;
@@ -57,7 +60,9 @@ function toEntry(row: EntryRow): TimeEntry {
     id: row.id,
     projectId: row.project_id,
     projectKey: row.project?.project_key ?? "",
-    member: toWorker(row.membership, row.membership_id, row.engagement, row.engagement_id),
+    member: row.roster_entry_id
+      ? rosterWorker(row.roster_entry_id)
+      : toWorker(row.membership, row.membership_id, row.engagement, row.engagement_id),
     shiftId: row.shift_id,
     clockIn: row.clock_in,
     clockOut: row.clock_out,
@@ -111,7 +116,7 @@ export async function listTimeEntries(
   if (filter.openOnly) query = query.is("clock_out", null);
   const { data, error } = await query;
   if (error) return fail(toDataError(error));
-  return ok((data as unknown as EntryRow[]).map(toEntry));
+  return withRosterPeople(db, (data as unknown as EntryRow[]).map(toEntry));
 }
 
 export interface AuditEntry {
@@ -172,8 +177,10 @@ export async function getTimeEntry(db: XosClient, id: string): Promise<Result<Ti
   ]);
   if (audit.error) return fail(toDataError(audit.error));
   if (corrections.error) return fail(toDataError(corrections.error));
+  const named = await withRosterPeople(db, [toEntry(data as unknown as EntryRow)]);
+  if (!named.ok) return named;
   return ok({
-    ...toEntry(data as unknown as EntryRow),
+    ...(named.data[0] as TimeEntry),
     audit: audit.data.map((a) => ({
       id: a.id,
       at: a.created_at,
@@ -446,12 +453,15 @@ async function withHours(db: XosClient, rows: readonly SheetRow[]): Promise<Resu
     );
   if (error) return fail(toDataError(error));
   const hours = new Map(data.map((h) => [h.timesheet_id, h]));
-  return ok(
+  return withRosterPeople(
+    db,
     rows.map((r) => ({
       id: r.id,
       projectId: r.project_id,
       projectKey: r.project?.project_key ?? "",
-      member: toWorker(r.membership, r.membership_id, r.engagement, r.engagement_id),
+      member: r.roster_entry_id
+        ? rosterWorker(r.roster_entry_id)
+        : toWorker(r.membership, r.membership_id, r.engagement, r.engagement_id),
       periodStart: r.period_start,
       periodEnd: r.period_end,
       state: r.timesheet_state,
