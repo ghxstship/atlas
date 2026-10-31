@@ -1,6 +1,6 @@
 import { useState, type ReactElement } from "react";
-import { Button, Card, Sheet, StateChip, Text, TextField } from "@xos/ui-native";
-import type { DoorGuest } from "@xos/data/workforce-site";
+import { Banner, Button, Card, Sheet, StateChip, Text, TextField } from "@xos/ui-native";
+import { guestByPassCode, passCodeFromScan, type DoorGuest } from "@xos/data/workforce-site";
 import {
   Empty,
   Stack,
@@ -28,6 +28,14 @@ export interface DoorCheckInScreenLabels extends FrameLabels {
   readonly more: string;
   readonly fewer: string;
   readonly admitted: (plusOnes: number, door: string | null, at: string) => string;
+  // B8 (2974): a guest's pass, scanned or typed at the door.
+  readonly pass: string;
+  readonly passHelp: string;
+  readonly checkPass: string;
+  readonly passNotListed: string;
+  readonly passOffline: string;
+  readonly passType: (name: string) => string;
+  readonly table: (table: string) => string;
 }
 
 export interface DoorCheckInScreenProps {
@@ -44,7 +52,11 @@ export interface DoorCheckInScreenProps {
   readonly errorReference?: string;
 }
 
-/** Compass door check-in: search the guest list and admit a guest with their plus-ones. */
+/**
+ * Compass door check-in: search the guest list and admit a guest with their plus-ones. A guest's pass (B8, XOSGP1:<code>,
+ * from a scanner or typed) finds them in the loaded door list and opens their check-in; a pass not on the list says
+ * so, and without a loaded list (offline) the door is asked to connect first.
+ */
 export function DoorCheckInScreen({
   status,
   labels,
@@ -60,7 +72,25 @@ export function DoorCheckInScreen({
   const [guest, setGuest] = useState<DoorGuest | null>(null);
   const [plus, setPlus] = useState(0);
   const [door, setDoor] = useState("");
+  const [pass, setPass] = useState("");
+  const [passNotice, setPassNotice] = useState<string | null>(null);
   const { busy, run, alert } = useActionRunner(labels.failed);
+  const checkPass = () => {
+    const code = passCodeFromScan(pass);
+    if (status !== "ready") {
+      setPassNotice(labels.passOffline);
+      return;
+    }
+    const found = code ? guestByPassCode(guests, code) : undefined;
+    if (!found || found.state !== "Approved") {
+      setPassNotice(found ? null : labels.passNotListed);
+      return;
+    }
+    setPassNotice(null);
+    setPass("");
+    setPlus(found.plusOnes);
+    setGuest(found);
+  };
   const admit = async () => {
     if (guest === null) return;
     const ok = await run("admit", () =>
@@ -71,10 +101,34 @@ export function DoorCheckInScreen({
   return (
     <WorkforceFrame
       status={status}
-      labels={labels}
+      // The door list is read online; without it no pass can be checked, which the error state says.
+      labels={
+        status === "error"
+          ? { ...labels, errorSentence: `${labels.errorSentence} ${labels.passOffline}` }
+          : labels
+      }
       testID="workforce-door"
       {...defined({ refreshing, onRefresh, onRetry, errorReference })}
     >
+      <TextField
+        label={labels.pass}
+        help={labels.passHelp}
+        value={pass}
+        onChangeText={(value) => {
+          setPass(value);
+          setPassNotice(null);
+        }}
+      />
+      <Button
+        testID="door-check-pass"
+        label={labels.checkPass}
+        variant="secondary"
+        icon="scan-line"
+        block
+        disabled={pass.trim() === ""}
+        onPress={checkPass}
+      />
+      {passNotice ? <Banner tone="warning" icon="triangle-alert" message={passNotice} /> : null}
       <TextField label={labels.search} value={search} onChangeText={onSearch} />
       <TextField label={labels.door} value={door} onChangeText={setDoor} />
       {guests.length === 0 ? (
@@ -87,6 +141,16 @@ export function DoorCheckInScreen({
         guests.map((g) => (
           <Card key={g.entryId} title={g.name} {...defined({ meta: g.note ?? undefined })}>
             <Stack>
+              {g.passCategoryName || g.tableLabel ? (
+                <Text variant="text13" tone="secondary">
+                  {[
+                    g.passCategoryName ? labels.passType(g.passCategoryName) : null,
+                    g.tableLabel ? labels.table(g.tableLabel) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </Text>
+              ) : null}
               {g.state === "Checked In" ? (
                 <>
                   <StateChip state="complete" label={labels.checkedIn} />
@@ -130,6 +194,12 @@ export function DoorCheckInScreen({
       >
         <Stack>
           {alert}
+          {guest?.passCategoryName ? (
+            <Text variant="text13">{labels.passType(guest.passCategoryName)}</Text>
+          ) : null}
+          {guest?.tableLabel ? (
+            <Text variant="text13">{labels.table(guest.tableLabel)}</Text>
+          ) : null}
           <Text variant="heading20">{labels.plusOnes(plus, guest?.plusOnes ?? 0)}</Text>
           <Stack row>
             <Button

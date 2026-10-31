@@ -1203,7 +1203,26 @@
       },
       "alertLine": "{hazard}: {level} · {time}",
       "readingLine": "{value} {unit} · {time}",
-      "thresholdLine": "{level} at {value} {unit} ({source})"
+      "thresholdLine": "{level} at {value} {unit} ({source})",
+      "holdSince": "Weather hold since {time}",
+      "warnings": "Official warnings",
+      "noWarnings": "No official warnings.",
+      "issuedBy": "Issued by the National Weather Service, in English",
+      "severities": {
+        "extreme": "Extreme",
+        "severe": "Severe",
+        "moderate": "Moderate",
+        "minor": "Minor",
+        "unknown": "Unknown"
+      },
+      "callHold": "Call hold",
+      "allClear": "All clear",
+      "message": "Message",
+      "messageHelp": "1 to 1,000 characters. Everyone in the alert roles, the dispatchers and everyone inside the project's zones hears it.",
+      "send": "Send",
+      "defaultHold": "Weather hold: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultHoldHazard": "Weather hold for {hazard}: stop work now and move to the nearest shelter. Wait for the all-clear.",
+      "defaultAllClear": "All clear: the weather hold is over. Return to work when your lead says so."
     },
     "door": {
       "title": "Guest Check-In",
@@ -1219,7 +1238,14 @@
       "more": "One more",
       "fewer": "One fewer",
       "admitted": "In with {plusOnes} plus-ones · {time}",
-      "admittedAt": "In with {plusOnes} plus-ones at {door} · {time}"
+      "admittedAt": "In with {plusOnes} plus-ones at {door} · {time}",
+      "pass": "Guest pass",
+      "passHelp": "Scan the pass, or type the code printed on it, such as GP-ABCDEFGHIJ.",
+      "checkPass": "Find the guest",
+      "passNotListed": "This pass is not on tonight's list.",
+      "passOffline": "Connect to check passes.",
+      "passType": "Pass: {name}",
+      "table": "Table {table}"
     },
     "lostFound": {
       "title": "Lost and Found",

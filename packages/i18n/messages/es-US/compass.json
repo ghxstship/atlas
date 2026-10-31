@@ -232,7 +232,8 @@
       "_me_notification_matrix": "Opción de notificación",
       "_me_notification_settings": "Horas de silencio y resumen",
       "_me_party_preferences": "Opción de notificación",
-      "_me_quiet_hours": "Horas de silencio"
+      "_me_quiet_hours": "Horas de silencio",
+      "weather_holds": "Suspensión por clima"
     },
     "punchActions": {
       "in": "Registrar entrada",
@@ -285,7 +286,16 @@
       "weatherAllClear": "Dar fin a la suspensión por clima"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
-    "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
+    "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor.",
+    "refusedScanNotDenied": "El servidor dejó pasar a esta persona de todos modos; no hacía falta autorizarla.",
+    "refusedScanOverrideRevoked": "Nunca se deja pasar una credencial revocada.",
+    "refusedScanOverrideStale": "La denegación tenía más de 15 minutos. Escanee la credencial de nuevo.",
+    "refusedScanOverrideTaken": "Otra persona ya autorizó esta denegación.",
+    "refusedScanOverrideSelf": "Nadie autoriza la denegación de su propia credencial. Pida a otro supervisor.",
+    "refusedWeatherHoldOpen": "Ya había una suspensión por clima abierta en este proyecto.",
+    "refusedWeatherHoldClosed": "Esta suspensión por clima ya tenía su aviso de fin.",
+    "refusedWeatherHoldStale": "Esta suspensión se creó más de 10 minutos antes de llegar al servidor y no se envió. Revise el clima y vuelva a suspender.",
+    "refusedWeatherHoldIdTaken": "Otra suspensión ya usa este identificador."
   },
   "today": {
     "title": "Hoy",
@@ -505,7 +515,6 @@
       "tagSkipped": "Ya etiquetada, o la línea está completa",
       "queued": "{count} recibidas; se sincroniza cuando tengas conexión"
     },
-    "direction": "Sentido",
     "directionLabel": "Sentido del escaneo en esta zona",
     "in": "Entrada",
     "out": "Salida",
@@ -516,20 +525,7 @@
     "overrideReason": "Motivo",
     "overrideReasonHelp": "Indica por qué, en 1 a 300 caracteres.",
     "overrideSubmit": "Dejar pasar",
-    "overrideQueued": "Anulación registrada",
-    "overrideRefusals": {
-      "scan_not_denied": "El servidor sí dejó pasar a esta persona; no hace falta anular.",
-      "scan_override_revoked": "Una credencial revocada nunca entra.",
-      "scan_override_stale": "Esta denegación tiene más de 15 minutos. Escanea de nuevo.",
-      "scan_override_taken": "Alguien ya anuló esta denegación.",
-      "scan_override_self": "Nadie anula la denegación de su propia credencial."
-    },
-    "guestPass": "Pase de invitado",
-    "guestPassNotListed": "Este pase no está en la lista de esta noche.",
-    "guestPassOffline": "Conéctate para verificar pases.",
-    "guestPassTable": "Mesa {table}",
-    "guestPassPlusOnes": "{count, plural, =0 {Sin acompañantes} one {# acompañante} other {# acompañantes}}",
-    "guestPassCheckIn": "Registrar entrada"
+    "overrideQueued": "Anulación registrada"
   },
   "incidents": {
     "title": "Incidentes",
@@ -803,12 +799,7 @@
     "done": "Listo",
     "close": "Cerrar",
     "failed": "No se pudo completar",
-    "offline": "Denunciar y bloquear necesitan conexión. Vuelve a intentarlo cuando tengas conexión.",
-    "weatherHold": "Suspensión por clima desde las {time}",
-    "warnings": "Avisos oficiales",
-    "noWarnings": "No hay avisos oficiales.",
-    "callHold": "Suspender",
-    "allClear": "Fin de la suspensión"
+    "offline": "Denunciar y bloquear necesitan conexión. Vuelve a intentarlo cuando tengas conexión."
   },
   "blocked": {
     "title": "Personas bloqueadas",

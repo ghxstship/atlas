@@ -1203,7 +1203,26 @@
       },
       "alertLine": "{hazard}: {level} · {time}",
       "readingLine": "{value} {unit} · {time}",
-      "thresholdLine": "{level} con {value} {unit} ({source})"
+      "thresholdLine": "{level} con {value} {unit} ({source})",
+      "holdSince": "Suspensión por clima desde {time}",
+      "warnings": "Avisos oficiales",
+      "noWarnings": "No hay avisos oficiales.",
+      "issuedBy": "Emitido por el Servicio Meteorológico Nacional, en inglés",
+      "severities": {
+        "extreme": "Extremo",
+        "severe": "Grave",
+        "moderate": "Moderado",
+        "minor": "Menor",
+        "unknown": "Desconocido"
+      },
+      "callHold": "Suspender por clima",
+      "allClear": "Fin de la suspensión",
+      "message": "Mensaje",
+      "messageHelp": "De 1 a 1,000 caracteres. Lo reciben las personas de los roles de alerta, los despachadores y todos los que están dentro de las zonas del proyecto.",
+      "send": "Enviar",
+      "defaultHold": "Suspensión por clima: detenga el trabajo ahora y vaya al refugio más cercano. Espere el aviso de fin.",
+      "defaultHoldHazard": "Suspensión por clima por {hazard}: detenga el trabajo ahora y vaya al refugio más cercano. Espere el aviso de fin.",
+      "defaultAllClear": "Fin de la suspensión: terminó la suspensión por clima. Vuelva al trabajo cuando su líder lo indique."
     },
     "door": {
       "title": "Registro de invitados",
@@ -1219,7 +1238,14 @@
       "more": "Uno más",
       "fewer": "Uno menos",
       "admitted": "Ingresó con {plusOnes} acompañantes · {time}",
-      "admittedAt": "Ingresó con {plusOnes} acompañantes por {door} · {time}"
+      "admittedAt": "Ingresó con {plusOnes} acompañantes por {door} · {time}",
+      "pass": "Pase de invitado",
+      "passHelp": "Escanee el pase o escriba el código impreso, como GP-ABCDEFGHIJ.",
+      "checkPass": "Buscar al invitado",
+      "passNotListed": "Este pase no está en la lista de esta noche.",
+      "passOffline": "Conéctese para revisar los pases.",
+      "passType": "Pase: {name}",
+      "table": "Mesa {table}"
     },
     "lostFound": {
       "title": "Objetos perdidos",

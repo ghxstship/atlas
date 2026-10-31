@@ -379,6 +379,24 @@ export function weatherLabels(t: T, units: WeatherUnits = STORED_IMPERIAL): Weat
         unit: symbol(unit),
         source,
       }),
+    holdSince: (calledAt) => t(`${C}.weather.holdSince`, { time: when(calledAt) }),
+    warnings: t(`${C}.weather.warnings`),
+    noWarnings: t(`${C}.weather.noWarnings`),
+    issuedBy: t(`${C}.weather.issuedBy`),
+    severities: record(
+      ["Extreme", "Severe", "Moderate", "Minor", "Unknown"],
+      t,
+      `${C}.weather.severities`,
+    ),
+    callHold: t(`${C}.weather.callHold`),
+    allClear: t(`${C}.weather.allClear`),
+    message: t(`${C}.weather.message`),
+    messageHelp: t(`${C}.weather.messageHelp`),
+    send: t(`${C}.weather.send`),
+    close: t(`${C}.common.close`),
+    defaultHold: (hazard) =>
+      hazard ? t(`${C}.weather.defaultHoldHazard`, { hazard }) : t(`${C}.weather.defaultHold`),
+    defaultAllClear: t(`${C}.weather.defaultAllClear`),
   };
 }
 
@@ -405,6 +423,13 @@ export function doorLabels(t: T): DoorCheckInScreenLabels {
         door: door ?? "",
         time: when(at),
       }),
+    pass: t(`${C}.door.pass`),
+    passHelp: t(`${C}.door.passHelp`),
+    checkPass: t(`${C}.door.checkPass`),
+    passNotListed: t(`${C}.door.passNotListed`),
+    passOffline: t(`${C}.door.passOffline`),
+    passType: (name) => t(`${C}.door.passType`, { name }),
+    table: (table) => t(`${C}.door.table`, { table }),
   };
 }
 

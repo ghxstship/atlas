@@ -232,7 +232,8 @@
       "_me_notification_matrix": "Notification choice",
       "_me_notification_settings": "Quiet hours and digest",
       "_me_party_preferences": "Notification choice",
-      "_me_quiet_hours": "Quiet hours"
+      "_me_quiet_hours": "Quiet hours",
+      "weather_holds": "Weather hold"
     },
     "punchActions": {
       "in": "Clock in",
@@ -285,7 +286,16 @@
       "weatherAllClear": "Give the weather all-clear"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
-    "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
+    "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor.",
+    "refusedScanNotDenied": "The server let this person in after all; no override was needed.",
+    "refusedScanOverrideRevoked": "A revoked badge is never let in.",
+    "refusedScanOverrideStale": "The denial was more than 15 minutes old. Scan the badge again.",
+    "refusedScanOverrideTaken": "Someone already overrode this denial.",
+    "refusedScanOverrideSelf": "Nobody overrides a denial of their own badge. Ask another supervisor.",
+    "refusedWeatherHoldOpen": "A weather hold was already open on this project.",
+    "refusedWeatherHoldClosed": "This weather hold already had its all-clear.",
+    "refusedWeatherHoldStale": "This hold was made more than 10 minutes before it reached the server and was not sent. Check the weather and call it again.",
+    "refusedWeatherHoldIdTaken": "Another hold already uses this id."
   },
   "today": {
     "title": "Today",
@@ -505,7 +515,6 @@
       "tagSkipped": "Already tagged, or the line is full",
       "queued": "{count} received; it syncs when you are online"
     },
-    "direction": "Direction",
     "directionLabel": "Scan direction for this zone",
     "in": "In",
     "out": "Out",
@@ -516,20 +525,7 @@
     "overrideReason": "Reason",
     "overrideReasonHelp": "Say why, in 1 to 300 characters.",
     "overrideSubmit": "Let in",
-    "overrideQueued": "Override recorded",
-    "overrideRefusals": {
-      "scan_not_denied": "The server let this person in after all; no override is needed.",
-      "scan_override_revoked": "A revoked badge is never let in.",
-      "scan_override_stale": "This denial is more than 15 minutes old. Scan again.",
-      "scan_override_taken": "Someone already overrode this denial.",
-      "scan_override_self": "Nobody overrides a denial of their own badge."
-    },
-    "guestPass": "Guest pass",
-    "guestPassNotListed": "This pass is not on tonight's list.",
-    "guestPassOffline": "Connect to check passes.",
-    "guestPassTable": "Table {table}",
-    "guestPassPlusOnes": "{count, plural, =0 {No plus-ones} one {# plus-one} other {# plus-ones}}",
-    "guestPassCheckIn": "Check in"
+    "overrideQueued": "Override recorded"
   },
   "incidents": {
     "title": "Incidents",
@@ -803,12 +799,7 @@
     "done": "Done",
     "close": "Close",
     "failed": "That did not go through",
-    "offline": "Reporting and blocking need a connection. Try again when you are back online.",
-    "weatherHold": "Weather hold since {time}",
-    "warnings": "Official warnings",
-    "noWarnings": "No official warnings.",
-    "callHold": "Call hold",
-    "allClear": "All clear"
+    "offline": "Reporting and blocking need a connection. Try again when you are back online."
   },
   "blocked": {
     "title": "Blocked People",

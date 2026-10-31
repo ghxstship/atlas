@@ -494,6 +494,13 @@ export interface DoorGuest {
   readonly hostPersonId: string | null;
 }
 
+/** The pass code a door scan carries: the guest pass's XOSGP1:<code>, or the code typed as printed. */
+export function passCodeFromScan(raw: string): string | null {
+  const text = raw.trim().toUpperCase();
+  const match = /^(?:XOSGP1:)?(GP-[A-Z2-7]{10})$/.exec(text);
+  return match ? (match[1] ?? null) : null;
+}
+
 /** The guest whose pass the door scanned (XOSGP1:<code>), or none: a pass not on tonight's list. */
 export function guestByPassCode(
   guests: readonly DoorGuest[],
