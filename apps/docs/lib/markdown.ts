@@ -7,6 +7,7 @@
  *   ## and ### headings, paragraphs, - and 1. lists, > notes
  *   fenced code blocks with a language, pipe tables with a header separator row
  *   inline **bold**, `code` and [text](href)
+ *   a line that is a whole HTML comment is skipped (a help article's generated-list marker)
  *
  * Links: `help:<slug>`, `guide:<slug>` and `reference:<resource>` point inside the site.
  */
@@ -119,7 +120,8 @@ export function parseBody(markdown: string): Block[] {
     const bullet = /^- (.+)$/.exec(line);
     const numbered = /^\d+\. (.+)$/.exec(line);
     const quote = /^> ?(.*)$/.exec(line);
-    if (line === "") flush();
+    // A comment line, such as a help article's generated-list marker, ends the block like a blank line.
+    if (line === "" || /^<!--.*-->$/.test(line)) flush();
     else if (h) {
       flush();
       heading(h[1] === "##" ? "h2" : "h3", h[2] as string);

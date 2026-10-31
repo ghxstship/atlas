@@ -217,6 +217,7 @@ export function CollabClient({
           <Hidden org={org} table={table} id={id} />
           <Textarea
             id={`${prefix}-body`}
+            data-shortcut="record.comment"
             name="body"
             label={t("add")}
             rows={3}

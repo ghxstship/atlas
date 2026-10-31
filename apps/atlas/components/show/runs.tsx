@@ -1091,6 +1091,7 @@ export function RunPeek({ title, children }: { title: string; children: ReactNod
     <Drawer
       title={title}
       open
+      shortcutScope="record"
       onOpenChange={(v) => {
         if (!v)
           router.replace(withQuery(pathname, params, { peek: null, live: null }) as Route, {

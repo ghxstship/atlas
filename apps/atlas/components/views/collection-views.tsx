@@ -212,6 +212,7 @@ export function CollectionViews({
 
   const announce = (key: string, name?: string) =>
     setStatus(t(`status.${key}`, name === undefined ? {} : { name }));
+  const save = () => setDialog({ kind: "save" });
 
   const run = async (
     action: () => Promise<{ ok: true } | { ok: false; error: ViewsError }>,
@@ -348,7 +349,12 @@ export function CollectionViews({
   });
 
   return (
-    <div className="flex flex-wrap items-center gap-8">
+    // The view.switch shortcut focuses the view on screen (the selected option); the arrow keys then
+    // switch it.
+    <div
+      data-shortcut={options.length > 1 ? "view.switch" : undefined}
+      className="flex flex-wrap items-center gap-8"
+    >
       {options.length > 1 ? (
         <SegmentedControl
           label={label}
@@ -369,6 +375,10 @@ export function CollectionViews({
           onOpen={retryLoad}
         />
       ) : null}
+      {collection ? (
+        // Save view lives in the menu above; this hidden button is the view.save shortcut's target.
+        <button type="button" hidden data-shortcut="view.save" onClick={save} />
+      ) : null}
       <CollectionExport />
       <p role="status" className="sr-only">
         {status}
@@ -384,7 +394,7 @@ export function CollectionViews({
           fields={fields}
           {...(customFields !== undefined ? { customFields } : {})}
           onNavigate={go}
-          {...(collection && !active ? { onSave: () => setDialog({ kind: "save" }) } : {})}
+          {...(collection && !active ? { onSave: save } : {})}
         />
       ) : null}
       {live && liveModule ? (

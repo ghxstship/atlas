@@ -808,6 +808,7 @@
     "resetAllDone": "Todos los atajos vuelven a usar sus teclas predeterminadas.",
     "singleKeysOff": "Los atajos de una sola tecla están desactivados, así que las teclas de carácter sin Ctrl, Cmd o Alt no hacen nada. Las teclas de función F13 a F20 siguen funcionando. Activa Atajos de teclado arriba para usarlos.",
     "fixed": "Esc, Intro y las teclas de lista J, K y X pertenecen a todas las listas y diálogos, así que no cambian. La Ayuda muestra todos los atajos.",
+    "dropped": "Algunos de tus atajos vuelven a usar sus teclas predeterminadas, porque las teclas que elegiste ahora pertenecen a otros atajos o ya no se permiten: {actions}.",
     "problems": {
       "conflict": "{keys} ya hace {action}. Cambia primero ese atajo o elige otras teclas.",
       "browser": "{keys} pertenece a tu navegador o computadora. Elige otras teclas.",

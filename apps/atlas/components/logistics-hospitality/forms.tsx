@@ -293,6 +293,8 @@ export function ActionButton({
         variant={variant}
         loading={pending}
         {...(icon ? { icon } : {})}
+        // A record's own delete, which goes to Trash and leaves the page, is its Move to Trash target.
+        {...(undo && doneHref ? { "data-shortcut": "record.trash" } : {})}
         onClick={() =>
           startTransition(async () => {
             const next = await run();
@@ -325,7 +327,10 @@ export function ActionButton({
   );
 }
 
-/** A state move with its required reason, offering only the moves the lifecycle allows. */
+/**
+ * A state move with its required reason, offering only the moves the lifecycle allows. The form is
+ * the record's Change state shortcut target (data-shortcut="record.state"): the key opens the moves.
+ */
 export function TransitionForm({
   formLabel,
   label,
@@ -352,6 +357,7 @@ export function TransitionForm({
   return (
     <form
       aria-label={formLabel}
+      data-shortcut="record.state"
       className="flex flex-col gap-8"
       noValidate
       onSubmit={(e) => {

@@ -31,7 +31,9 @@
       "lists": "Lists",
       "inbox": "Inbox",
       "show": "Show calling",
-      "showDeck": "Show calling: Stream Deck"
+      "showDeck": "Show calling: Stream Deck",
+      "record": "Records",
+      "view": "Views"
     },
     "command": "Open the command menu",
     "search": "Search pages and settings",
@@ -94,6 +96,30 @@
       "nudgeLater": "Nudge the remaining plan one minute later",
       "nudgeEarlier": "Nudge the remaining plan one minute earlier",
       "department": "Show the next department's calls"
+    },
+    "record": {
+      "state": "Change the state",
+      "assign": "Assign an owner",
+      "comment": "Add a comment",
+      "editTitle": "Edit the title",
+      "open": "Open the full page",
+      "copyLink": "Copy the link",
+      "trash": "Move to Trash"
+    },
+    "view": {
+      "switch": "Switch the view",
+      "filters": "Open the filters",
+      "save": "Save the view",
+      "export": "Export the view"
+    },
+    "keyNames": {
+      "Escape": "Esc",
+      "Enter": "Enter",
+      "Space": "Space",
+      "Backspace": "Backspace",
+      "Delete": "Delete",
+      "Home": "Home",
+      "End": "End"
     }
   },
   "whatsNew": {
@@ -259,7 +285,19 @@
   "gateway": {
     "general": "Everywhere in Gateway",
     "shortcuts": {
-      "search": "Search Gateway"
+      "search": "Search Gateway",
+      "account": "Open the account menu",
+      "switchOrg": "Switch organization",
+      "go": {
+        "home": "Go to Home",
+        "explore": "Go to Explore",
+        "work": "Go to Work",
+        "money": "Go to Money",
+        "messages": "Go to Messages",
+        "profile": "Go to Profile",
+        "documents": "Go to Documents",
+        "settings": "Go to Settings"
+      }
     },
     "whatsNew": {
       "contextual-help": {
