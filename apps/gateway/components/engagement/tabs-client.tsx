@@ -535,12 +535,12 @@ export async function AssetApprovalsTab({ view, t, locale, engagementKey }: TabP
             })
           : null,
       ],
-      tag: {
-        label: a.awaiting_sponsor
-          ? t("gateway.engagement.assets.awaiting")
-          : t(enumLabelKey("reviewState", state)),
-        tone: a.awaiting_sponsor ? ("accent" as const) : toneFor(state),
-      },
+      // A supplied asset Returned to the sponsor waits on the sponsor too, but for a resubmission,
+      // so it reads Returned rather than Awaiting your approval.
+      tag:
+        a.awaiting_sponsor && a.asset_source !== "Sponsor Supplied"
+          ? { label: t("gateway.engagement.assets.awaiting"), tone: "accent" as const }
+          : { label: t(enumLabelKey("reviewState", state)), tone: toneFor(state) },
       ...(detail ? { detail } : {}),
     };
   };
