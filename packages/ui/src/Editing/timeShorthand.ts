@@ -100,7 +100,7 @@ function hhmm(minutes: number): string {
   return `${String(Math.floor(within / 60)).padStart(2, "0")}:${String(within % 60).padStart(2, "0")}`;
 }
 
-const RANGE = /\s*(?:-|–|—|\bto\b|\bhasta\b|\s(?:a)\s(?=\d))\s*/u;
+const RANGE = /\s*(?:-|\u2013|\u2014|\bto\b|\bhasta\b|\s(?:a)\s(?=\d))\s*/u;
 
 /** Reads a time or a time range typed as shorthand, or null when the text is not shorthand. */
 export function parseTimeShorthand(

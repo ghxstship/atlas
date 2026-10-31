@@ -1,9 +1,9 @@
 -- pgTAP: migrations 2651 and 2652 (R5), the airports of a travel request. The table, its checks and indexes; the seed
 -- holds more than 1,000 active airports, among them those the journeys and tests name; anon reads nothing, a signed-in
 -- person reads the active rows, nobody writes.
--- The two checks of more than 1,000 airports are TODO until the owner step lands: the committed airports.csv is a
+-- The two checks of more than 1,000 airports are marked todo until the owner step lands: the committed airports.csv is a
 -- 177-airport starter set until `pnpm --filter @xos/schemas fetch:airports` replaces it with the OurAirports snapshot
--- (see packages/schemas/airports/airports.csv). pg_prove reports them as not ok # TODO without failing the suite; drop
+-- (see packages/schemas/airports/airports.csv). pg_prove reports them as expected failures without failing the suite; drop
 -- the todo_start and todo_end lines with the snapshot, and they gate as written.
 begin;
 create extension if not exists pgtap with schema extensions;
