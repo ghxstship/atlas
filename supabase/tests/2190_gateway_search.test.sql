@@ -120,10 +120,19 @@ select is(pg_temp.found('quinn', '{"terms": ["rigging"]}', 'org_b'), 'document:H
   'and on org_b''s domain, quinn finds his own org_b rows');
 
 -- A closed documents area and deleted rows -------------------------------------------------------------------------------
--- noah is an Account Member of Bayside Audio: he reaches the engagement area of eng_vendor_a but not its documents.
+-- noah is an Account Member of Bayside Audio assigned to eng_vendor_a as a Member (R4, 2631): he reaches its engagement
+-- area but not its documents.
 select pg_temp.new_user('noah', 'noah@bayside-audio.test', 'Noah Lind');
 select pg_temp.as_user('victor');
 select app.add_account_member(pg_temp.id('acct_v'), pg_temp.id('noah'), 'Account Member');
+select pg_temp.as_user('noah');
+select app.accept_account_membership((select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v')
+  and m.person_id = pg_temp.id('noah')));
+select pg_temp.as_platform();
+insert into world select 'noah_membership', m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v')
+  and m.person_id = pg_temp.id('noah');
+select pg_temp.as_user('victor');
+select app.assign_engagement_member(pg_temp.id('eng_vendor_a'), pg_temp.id('noah_membership'), 'Member');
 select pg_temp.as_user('alice');
 insert into app.engagement_documents (engagement_id, document_kind, title) values (pg_temp.id('eng_vendor_a'), 'Agreement', 'Bayside Supply Agreement');
 insert into app.engagement_threads (engagement_id, subject) values (pg_temp.id('eng_vendor_a'), 'Bayside Supply Schedule');
@@ -131,7 +140,7 @@ select pg_temp.as_platform();
 select is(pg_temp.found('victor', '{"terms": ["bayside"]}'), 'document:Bayside Supply Agreement,message:Bayside Supply Schedule',
   'the vendor account''s owner finds the engagement''s document and thread');
 select is(pg_temp.found('noah', '{"terms": ["bayside"]}'), 'message:Bayside Supply Schedule',
-  'an Account Member finds the thread, never a document of an engagement whose documents area is closed to him');
+  'an Account Member assigned as a Member finds the thread, never a document of an engagement whose documents area is closed to him');
 update app.engagement_documents set deleted_at = now() where engagement_id = pg_temp.id('eng_vendor_a');
 update app.engagement_threads set deleted_at = now() where engagement_id = pg_temp.id('eng_vendor_a');
 select is(pg_temp.found('victor', '{"terms": ["bayside"]}'), '', 'a deleted document or thread is never found');

@@ -20,6 +20,8 @@ import {
  */
 
 type Enums = Database["app"]["Enums"];
+/** A producing org accepts or returns a roster entry (app.advance_review_outcome). */
+type ReviewOutcome = Enums["advance_review_outcome"];
 export type RosterEntryState = Enums["roster_entry_state"];
 export type RosterPersonResponse = Enums["roster_person_response"];
 export type AccountEngagementDuty = Enums["account_engagement_duty"];
@@ -377,7 +379,7 @@ export async function rosterSharedWorkDetails(
 export async function reviewRosterEntry(
   db: XosClient,
   rosterEntryId: string,
-  outcome: "Accepted" | "Returned",
+  outcome: ReviewOutcome,
   reason?: string | null,
 ): Promise<Result<null>> {
   const { error } = await db.rpc("review_roster_entry", {
@@ -393,7 +395,7 @@ export async function reviewRosterEntry(
 export async function bulkReviewRosterEntries(
   db: XosClient,
   ids: readonly string[],
-  outcome: "Accepted" | "Returned",
+  outcome: ReviewOutcome,
   options: { readonly reason?: string | null; readonly preview?: boolean } = {},
 ): Promise<Result<BulkOutcome>> {
   return bulkUpdate(db, "engagement_roster_entries", sameValueRows(ids, { entry_state: outcome }), {
