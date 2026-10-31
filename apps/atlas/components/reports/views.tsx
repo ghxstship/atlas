@@ -421,9 +421,17 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
     t("reports.bva.budget"),
     t("reports.bva.changes"),
     t("reports.bva.revised"),
+    t("reports.bva.committed"),
     t("reports.bva.actual"),
     t("reports.bva.variance"),
   ];
+  // A row's committed amount is withheld, never partial, when any of its lines' purchase orders are
+  // hidden from the viewer (2810).
+  const committedCell = (r: (typeof rows)[number]) =>
+    r.committedWithheldCount > 0
+      ? t("reports.bva.withheld")
+      : c.money(r.committedMinor, r.currency);
+  const anyWithheld = rows.some((r) => r.committedWithheldCount > 0);
   const line = (r: (typeof rows)[number], label: string) => [
     label,
     r.currency,
@@ -432,6 +440,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
       : c.money(r.budgetMinor, r.currency),
     c.money(r.approvedChangeMinor, r.currency),
     c.money(r.revisedMinor, r.currency),
+    committedCell(r),
     c.money(r.actualMinor, r.currency),
     c.money(r.varianceMinor, r.currency),
   ];
@@ -482,6 +491,12 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
           categories={same.map((r) => keyLabel(r.key))}
           series={[
             { name: t("reports.bva.revised"), values: same.map((r) => major(r.revisedMinor, exp)) },
+            {
+              name: t("reports.bva.committed"),
+              values: same.map((r) =>
+                r.committedWithheldCount > 0 ? null : major(r.committedMinor, exp),
+              ),
+            },
             { name: t("reports.bva.actual"), values: same.map((r) => major(r.actualMinor, exp)) },
           ]}
           format="money"
@@ -490,7 +505,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         <SimpleTable
           caption={t("reports.bva.chartTitle", { currency: cur })}
           head={header}
-          numeric={[2, 3, 4, 5, 6]}
+          numeric={[2, 3, 4, 5, 6, 7]}
           rows={same.map((r) => line(r, keyLabel(r.key)))}
         />
       </div>
@@ -508,7 +523,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         <SimpleTable
           caption={t("reports.bva.tableCaption")}
           head={header}
-          numeric={[2, 3, 4, 5, 6]}
+          numeric={[2, 3, 4, 5, 6, 7]}
           rows={rows.map((r) => line(r, keyLabel(r.key)))}
         />
         <SimpleTable
@@ -521,7 +536,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
             t(`reports.bva.dimensions.${dimension === "costCenter" ? "account" : "costCenter"}`),
             ...header.slice(1),
           ]}
-          numeric={[2, 3, 4, 5, 6]}
+          numeric={[2, 3, 4, 5, 6, 7]}
           rows={other.map((r) => line(r, r.key || t("reports.bva.unassigned.costCenter")))}
         />
       </div>
@@ -531,7 +546,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
       <SimpleTable
         caption={t("reports.bva.tableCaption")}
         head={header}
-        numeric={[2, 3, 4, 5, 6]}
+        numeric={[2, 3, 4, 5, 6, 7]}
         rows={rows.map((r) => [
           <Link key="k" className="text-accent-text underline" href={drill(r.key) as Route}>
             {keyLabel(r.key)}
@@ -577,6 +592,9 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         ])}
       />
       {body}
+      {anyWithheld ? (
+        <p className="m-0 text-text-12 text-text-secondary">{t("reports.bva.committedWithheld")}</p>
+      ) : null}
     </ReportFrame>
   );
 }

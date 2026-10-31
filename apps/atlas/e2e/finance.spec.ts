@@ -11,7 +11,8 @@ import { expectAccessible, uniqueId } from "./support";
  *   7  a period is closed and a posting into it is refused
  *   8  the Universal Posting Line exported through each of the four canon mappings
  *   23 the final cost report against the gate 3 baseline
- *   33 two people edit one budget line; the second sees the conflict dialog and keeps theirs
+ *   33 two people edit one budget line at once; the one saving second sees the conflict dialog and
+ *      takes theirs
  *   34 200 spreadsheet rows pasted as one batch, then undone
  *   37 budget totals shown in EUR at the recorded rate, with its date
  * plus the spend authority and separation of duties refusals. Every page is checked with axe in both
@@ -165,6 +166,13 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
 
     const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
     const description = (p: Page) => grid(p).getByRole("gridcell", { name: /Delay towers/ });
+    await settle(other);
+    // The grid is live (P4): an idle grid takes the other person's value as it lands, so the
+    // producer opens the cell and types before the owner's save.
+    await description(page).dblclick();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.type("Delay towers, one set");
+
     await description(other).dblclick();
     await other.keyboard.press("ControlOrMeta+a");
     await other.keyboard.type("Delay towers, two sets");
@@ -173,9 +181,8 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     // The grid shows the edit before the save lands; the conflict needs the save committed first.
     await settle(other);
 
-    await description(page).dblclick();
-    await page.keyboard.press("ControlOrMeta+a");
-    await page.keyboard.type("Delay towers, one set");
+    // The open draft is kept while the other value arrives; saving it finds the newer version.
+    await expect(grid(page).getByRole("textbox")).toHaveValue("Delay towers, one set");
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
     await expect(dialog).toBeVisible();

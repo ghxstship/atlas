@@ -1,4 +1,5 @@
 import {
+  budgetCommittedTotal,
   convertMinor,
   findFxRate,
   fxRateAgeDays,
@@ -11,6 +12,7 @@ import {
   listGrades,
   listUridOptions,
   nullAwareSum,
+  type BudgetLine,
   type BudgetSummary,
 } from "@xos/data/finance";
 import { getNode } from "@xos/ia";
@@ -114,13 +116,22 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
     />
   );
 
-  const totalsFigures = (b: BudgetSummary, target: string | null, rate: number | null) => {
+  const totalsFigures = (
+    b: BudgetSummary,
+    lines: readonly BudgetLine[],
+    target: string | null,
+    rate: number | null,
+  ) => {
     const cur = target ?? b.currency;
     const conv = (v: number | null) =>
       rate === null || target === null
         ? v
         : convertMinor(v, rate, exponentOf(exponents, b.currency), exponentOf(exponents, target));
     const variance = b.revisedTotalMinor === null ? null : b.revisedTotalMinor - b.actualMinor;
+    // Committed is withheld, never partial, when any line's purchase orders are hidden from the viewer,
+    // and Unpriced when a counted order line has no price (approval refuses those, so it is rare).
+    const committed = budgetCommittedTotal(lines);
+    const committedWithheld = lines.some((l) => l.committedWithheld);
     return [
       {
         label: t("finance.budgets.figures.total"),
@@ -140,6 +151,22 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
         caption: t("finance.budgets.figures.changeCount", { count: b.approvedChangeCount }),
       },
       { label: t("finance.budgets.figures.revised"), value: money(conv(b.revisedTotalMinor), cur) },
+      {
+        label: t("finance.budgets.figures.committed"),
+        value: committed
+          ? money(conv(committed.totalMinor), cur)
+          : committedWithheld
+            ? t("finance.budgets.figures.withheld")
+            : t("finance.budgets.figures.unpriced"),
+        caption: committed
+          ? t("finance.budgets.figures.committedCaption", {
+              count: committed.committedLineCount,
+              other: committed.otherCurrencyLineCount,
+            })
+          : committedWithheld
+            ? t("finance.budgets.committedWithheld")
+            : t("finance.budgets.figures.committedUnpricedCaption"),
+      },
       {
         label: t("finance.budgets.figures.actual"),
         value: money(conv(b.actualMinor), cur),
@@ -275,7 +302,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
           <>
             <Figures
               label={t("finance.budgets.figures.label")}
-              items={totalsFigures(b, target, fx?.rate ?? null)}
+              items={totalsFigures(b, detail.data.lines, target, fx?.rate ?? null)}
             />
             {fx && target ? (
               <p className="m-0 text-text-12 text-text-secondary">
@@ -388,6 +415,15 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
             <BudgetEditor
               org={ctx.org.slug}
               budgetId={b.id}
+              projectId={b.projectId}
+              me={
+                ctx.viewer.person
+                  ? {
+                      key: ctx.viewer.person.id,
+                      name: ctx.viewer.person.fullName ?? t("collab.history.someone"),
+                    }
+                  : null
+              }
               currency={b.currency}
               exponent={exponentOf(exponents, b.currency)}
               lines={detail.data.lines}

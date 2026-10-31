@@ -375,9 +375,12 @@
     "catalogSearch": "Buscar en el catálogo",
     "catalogSentence": "Elija elementos y una categoría de precio. Cada línea toma el precio del canon para esa categoría, o Sin precio cuando el elemento no tiene precio en ella.",
     "choose": "Elija un presupuesto",
+    "committedOtherCurrency": "{count, plural, one {La línea {lines} tiene órdenes de compra en otra moneda, que no se incluyen en Comprometido.} other {Las líneas {lines} tienen órdenes de compra en otra moneda, que no se incluyen en Comprometido.}}",
+    "committedWithheld": "El comprometido está oculto: no puede leer las órdenes de compra de este proyecto",
     "columns": {
       "account": "Cuenta",
       "actual": "Real",
+      "committed": "Comprometido",
       "costCenter": "Centro de costo",
       "description": "Descripción",
       "extended": "Total de línea",
@@ -423,13 +426,18 @@
       "actual": "Real",
       "changeCount": "{count, plural, =0 {Sin órdenes de cambio aprobadas} one {# orden de cambio aprobada} other {# órdenes de cambio aprobadas}}",
       "changes": "Cambios aprobados",
+      "committed": "Comprometido",
+      "committedCaption": "{count, plural, =0 {Ninguna línea comprometida} one {# línea comprometida} other {# líneas comprometidas}}{other, plural, =0 {} one {; no se incluye # línea de orden en otra moneda} other {; no se incluyen # líneas de orden en otra moneda}}. Las órdenes de cambio de OC aprobadas no se asignan a líneas y no se incluyen.",
+      "committedUnpricedCaption": "Una línea de orden de compra que usa este presupuesto no tiene precio, así que el comprometido no se totaliza.",
       "label": "Totales del presupuesto",
       "lines": "{count, plural, one {# línea} other {# líneas}}",
       "revised": "Presupuesto revisado",
       "total": "Presupuesto original",
+      "unpriced": "Sin precio",
       "unpricedCaption": "{count, plural, one {# línea está sin precio} other {# líneas están sin precio}}; las líneas con precio suman {priced}.",
       "variance": "Quedan {amount} frente al presupuesto revisado",
-      "varianceUnknown": "La variación se desconoce hasta que todas las líneas tengan precio."
+      "varianceUnknown": "La variación se desconoce hasta que todas las líneas tengan precio.",
+      "withheld": "Retenido"
     },
     "grade": "Categoría de precio",
     "gridErrors": {
@@ -440,6 +448,7 @@
     },
     "gridLabel": "Líneas del presupuesto",
     "kind": "Presupuesto",
+    "lineRemoved": "Otra persona eliminó la línea {line}, así que su cambio no se guardó.",
     "lineTypes": {
       "Cost": "Costo",
       "Labor": "Mano de obra",
