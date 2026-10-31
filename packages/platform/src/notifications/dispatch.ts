@@ -36,8 +36,16 @@ export type DeliveryOutcome = "Sent" | "Failed" | "Bounced";
 /** What the email dispatcher needs from the database. */
 export interface NotificationStore {
   claimEmail(limit: number): Promise<readonly ClaimedEmail[]>;
-  /** Sender identity of an org: name, postal address, From address, preference and unsubscribe links. */
-  senderFor(orgId: string, recipientPersonId: string): Promise<Sender & { readonly from: string }>;
+  /**
+   * Sender identity of an org: name, postal address, From address, preference and unsubscribe links.
+   * While white label is in force (A138) it also carries the org's brand and its support address as
+   * the reply-to, except for the platform kinds of `kind` (billing and plan notices).
+   */
+  senderFor(
+    orgId: string,
+    recipientPersonId: string,
+    kind?: string,
+  ): Promise<Sender & { readonly from: string; readonly replyTo?: string }>;
   /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
   /** Link that opens the notification's subject in the app. */
@@ -127,9 +135,10 @@ export async function dispatchEmail(
     try {
       const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       const locale: Locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
-      const sender = await store.senderFor(claim.orgId, claim.recipientPersonId);
+      const sender = await store.senderFor(claim.orgId, claim.recipientPersonId, claim.kind);
       const { code, props } = await propsFor(claim, store);
-      const replyTo = await store.replyAddressFor(claim);
+      // A signed reply address threads the reply onto the record; otherwise replies reach the org's support address.
+      const replyTo = (await store.replyAddressFor(claim)) ?? sender.replyTo ?? null;
       const result = await sendEmail({
         transport,
         template: code,

@@ -14,6 +14,8 @@
 //     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. Twilio posts delivery status to sms-webhook. Texts held by
 //     quiet hours go out as one summary per member and org when the quiet hours end (ADR 0033 decision 35).
 // One channel failing never stops the others: its error is logged and reported in the answer.
+//   * A white-label org's email wears its logo, accent and sender name and replies go to its support address
+//     (A138, migration 2310); billing and plan notices stay platform-branded.
 // React Email, the templates and Resend load only when an email is rendered or sent (A85), so the many runs
 // with nothing due boot without them.
 import {
@@ -76,6 +78,8 @@ serve(async (request) => {
       inboundDomain: Deno.env.get("XOS_INBOUND_DOMAIN") ?? null,
       // External parties' notifications (1131) link to Gateway.
       gatewayUrl: Deno.env.get("XOS_GATEWAY_URL") ?? null,
+      // A white-label org's email shows its logo from the public org-brand bucket (A138).
+      brandAssetUrl: `${env("SUPABASE_URL")}/storage/v1/object/public/org-brand`,
     });
     return dispatchEmail(store, createTransport(emailEnv));
   });

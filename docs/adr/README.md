@@ -63,6 +63,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0061](0061-watermarked-uploaded-pdfs.md)                           | Watermarked Uploaded PDFs                                                        | Proposed |
 | [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0065](0065-carrier-client-credentials.md)                          | UPS and FedEx Mint Their Access Tokens with the Client-Credentials Grant         | Proposed |
+| [0066](0066-white-label-email-and-docs-site.md)                     | White Label on Notification Email and the Docs Site                              | Proposed |
 | [0068](0068-denormalization-register-and-catalog-lints.md)          | Denormalization Register and Catalog Lints                                       | Proposed |
 | [0069](0069-compass-profile-certifications-and-documents.md)        | Compass Profile Certifications and Documents                                     | Accepted |
 | [0070](0070-compass-native-identity-settings.md)                    | Compass Native Identity Settings                                                 | Proposed |
