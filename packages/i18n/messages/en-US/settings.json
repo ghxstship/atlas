@@ -289,6 +289,18 @@
       "label": "Supplier diversity program",
       "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
     },
+    "availabilityRequired": {
+      "label": "Members state their availability",
+      "help": "Members state when they can work for the days ahead, and their availability inside the notice period is locked so planners can rely on it."
+    },
+    "availabilityNoticeDays": {
+      "label": "Availability notice (days)",
+      "help": "While availability is required, nobody can change a member's availability for this many days ahead. Availability stays the member's own: planners read it and reassign shifts, but cannot edit it."
+    },
+    "availabilityHorizonDays": {
+      "label": "Availability horizon (days)",
+      "help": "How many days ahead members state their availability. Planners see who has not stated it for a shift inside this window."
+    },
     "offeringsTravel": {
       "label": "Travel",
       "help": "Flights and ground transport for the people you engage. Offered, the Travel and lodging and Hospitality tabs appear on their Gateway engagements."

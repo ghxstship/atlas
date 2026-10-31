@@ -61,6 +61,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0057](0057-encrypted-bank-and-certificate-numbers.md)              | Encrypted Bank and Certificate Numbers                                           | Accepted |
 | [0060](0060-collection-exports-and-the-export-worker.md)            | Exports of Every Collection and the Export Worker                                | Proposed |
 | [0061](0061-watermarked-uploaded-pdfs.md)                           | Watermarked Uploaded PDFs                                                        | Proposed |
+| [0063](0063-shift-templates-availability-and-crew-drag.md)          | Shift Templates, Members' Availability and the Crew Drag Board                   | Proposed |
 | [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0065](0065-carrier-client-credentials.md)                          | UPS and FedEx Mint Their Access Tokens with the Client-Credentials Grant         | Proposed |
 | [0068](0068-denormalization-register-and-catalog-lints.md)          | Denormalization Register and Catalog Lints                                       | Proposed |
