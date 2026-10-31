@@ -84,7 +84,10 @@
     "unitBasisHelp": "A canon unit alias such as ea, day or m.",
     "extended": "Amount",
     "received": "Received",
-    "addRow": "Add another line"
+    "addRow": "Add another line",
+    "budgetLine": "Budget line",
+    "budgetLineNone": "None",
+    "budgetLineOtherCurrency": "{label} (not counted in Committed)"
   },
   "rfqs": {
     "title": "Requests for quotation",
@@ -141,6 +144,7 @@
     "notAcknowledged": "Not yet",
     "lines": "Lines",
     "noLines": "No lines yet. Add what is being ordered; a line without a price stays unpriced.",
+    "commitsLine": "Budget line",
     "addLine": "Add line",
     "removeLine": "Remove line {n}",
     "linesLocked": "Lines are locked after approval. Use a change order to change the order.",

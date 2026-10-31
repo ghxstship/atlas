@@ -81,6 +81,106 @@ describe("SpreadsheetGrid", () => {
     ]);
   });
 
+  it("is unchanged without rowKey: new rows are ignored once it has rendered", () => {
+    const { rerender } = render(<SpreadsheetGrid label="Grid" columns={columns} rows={rows} />);
+    rerender(
+      <SpreadsheetGrid label="Grid" columns={columns} rows={[{ id: "LRC-009", rate: 1, ot: 1 }]} />,
+    );
+    const grid = screen.getByRole("grid");
+    expect(within(grid).getByText("LRC-001")).toBeTruthy();
+    expect(within(grid).queryByText("LRC-009")).toBeNull();
+  });
+
+  describe("with rowKey", () => {
+    const lineColumns: GridColumn[] = [
+      { key: "id", label: "Line", type: "code" },
+      { key: "description", label: "Description", editable: true },
+      { key: "amount", label: "Amount", type: "money", total: true },
+    ];
+    const stage = { id: "a", description: "Stage", amount: 100 };
+    const sound = { id: "b", description: "Sound", amount: 200 };
+    const lines = [stage, sound];
+    const grid = (shown: Record<string, string | number | null>[], extra = {}) => (
+      <SpreadsheetGrid label="Lines" columns={lineColumns} rows={shown} rowKey="id" {...extra} />
+    );
+    const cellOf = (rowId: string, column: number) => {
+      const row = within(screen.getByRole("grid"))
+        .getAllByRole("row")
+        .find((r) => within(r).queryByText(rowId));
+      return within(row as HTMLElement).getAllByRole("gridcell")[column] as HTMLElement;
+    };
+
+    it("takes rows added, removed and changed elsewhere", () => {
+      const { rerender } = render(grid(lines));
+      rerender(
+        grid([
+          { id: "c", description: "Lights", amount: 50 },
+          { id: "a", description: "Stage deck", amount: 100 },
+        ]),
+      );
+      const table = screen.getByRole("grid");
+      expect(within(table).getByText("Lights")).toBeTruthy();
+      expect(within(table).getByText("Stage deck")).toBeTruthy();
+      expect(within(table).queryByText("Sound")).toBeNull();
+      expect(within(table).getByText("$150.00")).toBeTruthy();
+    });
+
+    it("keeps a value typed here when a refresh still carries the version from before the save", async () => {
+      const onChange = vi.fn();
+      const { rerender } = render(grid(lines, { onChange }));
+      fireEvent.doubleClick(cellOf("a", 1));
+      const editor = within(screen.getByRole("grid")).getByRole("textbox");
+      await userEvent.clear(editor);
+      await userEvent.type(editor, "Stage deck{Enter}");
+      expect(onChange).toHaveBeenLastCalledWith([{ ...stage, description: "Stage deck" }, sound]);
+      rerender(
+        grid(
+          lines.map((l) => ({ ...l })),
+          { onChange },
+        ),
+      );
+      expect(within(screen.getByRole("grid")).getByText("Stage deck")).toBeTruthy();
+      rerender(grid([{ ...stage, description: "Stage riser" }, sound], { onChange }));
+      expect(within(screen.getByRole("grid")).getByText("Stage riser")).toBeTruthy();
+    });
+
+    it("keeps an open cell's draft and selection on its row when rows shift, and reports editing", async () => {
+      const onChange = vi.fn();
+      const onEditingChange = vi.fn();
+      const { rerender } = render(grid(lines, { onChange, onEditingChange }));
+      fireEvent.doubleClick(cellOf("b", 1));
+      expect(onEditingChange).toHaveBeenLastCalledWith("b");
+      const editor = within(screen.getByRole("grid")).getByRole("textbox");
+      await userEvent.clear(editor);
+      await userEvent.type(editor, "Sound package");
+      const shifted = [
+        { id: "z", description: "Rigging", amount: 10 },
+        { ...stage },
+        { ...sound, description: "Sound (theirs)", amount: 250 },
+      ];
+      rerender(grid(shifted, { onChange, onEditingChange }));
+      const still = within(screen.getByRole("grid")).getByRole("textbox") as HTMLInputElement;
+      expect(still.value).toBe("Sound package");
+      expect(cellOf("b", 1).getAttribute("aria-selected")).toBe("true");
+      await userEvent.keyboard("{Enter}");
+      expect(onEditingChange).toHaveBeenLastCalledWith(null);
+      expect(onChange).toHaveBeenLastCalledWith([
+        shifted[0],
+        stage,
+        { ...sound, description: "Sound package" },
+      ]);
+    });
+
+    it("drops the open cell when its row is removed", () => {
+      const onEditingChange = vi.fn();
+      const { rerender } = render(grid(lines, { onEditingChange }));
+      fireEvent.doubleClick(cellOf("b", 1));
+      rerender(grid([stage], { onEditingChange }));
+      expect(within(screen.getByRole("grid")).queryByRole("textbox")).toBeNull();
+      expect(onEditingChange).toHaveBeenLastCalledWith(null);
+    });
+  });
+
   it("parses typed cells and totals with the silence rule", () => {
     expect(parseCell({ key: "a", label: "A", type: "money" }, " $1,200 ")).toBe(1200);
     expect(parseCell({ key: "a", label: "A", type: "multiplier" }, "1.5x")).toBe(1.5);

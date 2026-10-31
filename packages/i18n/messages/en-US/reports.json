@@ -67,6 +67,8 @@
     "actualIn": "Actual in {currency}",
     "budget": "Original budget",
     "changes": "Approved changes",
+    "committed": "Committed",
+    "committedWithheld": "Committed is hidden on some rows: you cannot read those projects' purchase orders",
     "chartSubtitle": "Revised budget against approved and paid spend.",
     "chartTitle": "Budget versus actual in {currency}",
     "dimensions": {
@@ -92,7 +94,8 @@
       "project": "No project"
     },
     "variance": "Variance",
-    "varianceIn": "Variance in {currency}"
+    "varianceIn": "Variance in {currency}",
+    "withheld": "Withheld"
   },
   "labor": {
     "budget": "Labor budget",
