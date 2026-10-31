@@ -11,6 +11,14 @@ import {
   type Representation,
   type SharedRecord,
 } from "@xos/data/gateway";
+import { parkingLines } from "./roster-member";
+import type { ParkingPass, RosterEngagement } from "@xos/data/gateway-allocations";
+import {
+  pendingRosterAnswers,
+  type MyRosterEntry,
+  type PendingInvitation,
+  type UnconfirmedMembership,
+} from "@xos/data/roster";
 
 /**
  * Gateway Home (Section 4.5.8): the Up Next card for the person's next shift, set time, delivery
@@ -40,11 +48,15 @@ export type UpNext =
     }
   | { readonly kind: "engagement"; readonly engagement: Engagement };
 
-/** The soonest dated record ahead, else the next engagement to start. */
+/**
+ * The soonest dated record ahead, else the next engagement to start: one the person holds by its
+ * start date, or one they work on a party's roster (R8) by the start of their arrival window.
+ */
 export function pickUpNext(
   records: readonly SharedRecord[],
   engagements: readonly Engagement[],
   now: Date,
+  rosterEngagements: readonly RosterEngagement[] = [],
 ): UpNext | null {
   const at = now.toISOString();
   const today = at.slice(0, 10);
@@ -61,10 +73,18 @@ export function pickUpNext(
       engagement: engagements.find((e) => e.projectId === next.projectId) ?? null,
     };
   }
-  const starting = engagements
+  const held = engagements
     .filter((e) => isCurrentEngagement(e) && (e.endDate ?? e.startDate) >= today)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
-  return starting ? { kind: "engagement", engagement: starting } : null;
+    .map((e) => ({ engagement: e, from: e.startDate }));
+  const rostered = rosterEngagements
+    .filter(
+      (e) =>
+        isCurrentEngagement(e) &&
+        (e.arrivalEndsAt ? e.arrivalEndsAt >= at : (e.endDate ?? e.startDate) >= today),
+    )
+    .map((e) => ({ engagement: e as Engagement, from: e.arrivalStartsAt ?? e.startDate }));
+  const starting = [...held, ...rostered].sort((a, b) => a.from.localeCompare(b.from))[0];
+  return starting ? { kind: "engagement", engagement: starting.engagement } : null;
 }
 
 export type FeedItem =
@@ -86,11 +106,17 @@ export type FeedItem =
       readonly application: ApplicationWithOpportunity;
       readonly at: string;
     }
-  | { readonly kind: "rate"; readonly engagement: Engagement };
+  | { readonly kind: "rate"; readonly engagement: Engagement }
+  // R4: an invitation to an account or onto a roster, a membership to confirm, a roster entry to answer.
+  | { readonly kind: "invitation"; readonly invitation: PendingInvitation }
+  | { readonly kind: "membership"; readonly membership: UnconfirmedMembership }
+  | { readonly kind: "roster"; readonly entry: MyRosterEntry };
 
 /**
- * Things that need the person, most urgent first: documents to sign, offers to answer, blocking
- * onboarding, representations to accept, interviews ahead, then completed engagements to rate.
+ * Things that need the person, most urgent first: invitations, memberships to confirm and roster
+ * entries to answer (R4: nothing about the person flows until they do), documents to sign, offers to
+ * answer, blocking onboarding, representations to accept, interviews ahead, then completed engagements
+ * to rate.
  */
 export function needsYou(input: {
   readonly engagements: readonly Engagement[];
@@ -98,12 +124,19 @@ export function needsYou(input: {
   readonly onboarding: readonly OnboardingItem[];
   readonly applications: readonly ApplicationWithOpportunity[];
   readonly representations: readonly Representation[];
+  readonly invitations?: readonly PendingInvitation[];
+  readonly memberships?: readonly UnconfirmedMembership[];
+  readonly rosterEntries?: readonly MyRosterEntry[];
   readonly personId: string;
   readonly now: Date;
 }): FeedItem[] {
   const today = input.now.toISOString().slice(0, 10);
   const byId = new Map(input.engagements.map((e) => [e.id, e]));
   const items: FeedItem[] = [];
+  for (const invitation of input.invitations ?? []) items.push({ kind: "invitation", invitation });
+  for (const membership of input.memberships ?? []) items.push({ kind: "membership", membership });
+  for (const entry of pendingRosterAnswers(input.rosterEntries ?? []))
+    items.push({ kind: "roster", entry });
   for (const document of awaitingSignature(input.documents)) {
     const engagement = byId.get(document.engagementId);
     if (engagement) items.push({ kind: "sign", document, engagement });
@@ -175,6 +208,8 @@ export interface UpNextDetails {
   readonly where: string | null;
   /** Whom to ask: the member who set up the engagement, else the org. */
   readonly contact: string;
+  /** The person's live parking passes on the project: zones, then the vehicle (R8); never a plate. */
+  readonly parking: readonly string[];
   /** Badge categories, then gear with its asset tag, at most BRING_LIMIT. */
   readonly bring: readonly string[];
   /** How many more things to bring than the list shows. */
@@ -184,7 +219,8 @@ export interface UpNextDetails {
 /**
  * What the Up Next card adds for an engagement (R2, api_external.engagement_up_next): the next call,
  * where, whom to ask, and what to bring (the person's live badges on the project and the gear the
- * engagement holds). Parking stays out until passes exist (R7, R8).
+ * engagement holds), and the person's own parking passes with their zones and vehicle (R8). For a person
+ * on a party's roster the contact is the party's lead (api_external.my_roster_engagements).
  */
 export function upNextDetails(input: {
   readonly row: {
@@ -206,6 +242,9 @@ export function upNextDetails(input: {
     readonly class_name: string | null;
     readonly asset_tag: string | null;
   }[];
+  readonly parking?: readonly ParkingPass[];
+  /** The party's lead, for a person on its roster; it comes before the org's contact. */
+  readonly lead?: string | null;
 }): UpNextDetails {
   const row = input.row;
   const kind = row?.next_call_kind ? CALL_KINDS[row.next_call_kind] : undefined;
@@ -232,7 +271,8 @@ export function upNextDetails(input: {
   return {
     call,
     where: place.length > 0 ? place.join(", ") : null,
-    contact: row?.contact_name?.trim() || input.orgName,
+    contact: input.lead?.trim() || row?.contact_name?.trim() || input.orgName,
+    parking: parkingLines(input.parking ?? []),
     bring: all.slice(0, BRING_LIMIT),
     bringMore: Math.max(0, all.length - BRING_LIMIT),
   };

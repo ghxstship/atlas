@@ -46,6 +46,11 @@ const DYNAMIC = [
   "setting-",
   "notify-",
   "work-",
+  // R7a's Receive against an order sheet: an order by number, a line's stepper by line number.
+  "receive-order-",
+  "receive-more-",
+  // A140: a sponsor's proof photo button, by entitlement.
+  "proof-photo-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

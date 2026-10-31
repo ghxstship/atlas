@@ -147,6 +147,16 @@
       "unitPrice": "Unit price",
       "currency": "Currency",
       "remove": "Remove {description}"
+    },
+    "rosterCounts": {
+      "title": "Roster counts",
+      "sentence": "People allocated this catering, and what they shared. The guest count above stays your own figure.",
+      "headcount": "Headcount",
+      "fewerThanFive": "Fewer than 5",
+      "allergies": "Allergies",
+      "load": "Show roster counts",
+      "empty": "No one is allocated this catering yet.",
+      "failed": "Roster counts could not be read."
     }
   },
   "blocks": {

@@ -125,6 +125,7 @@ export const registeredIconNames = [
   "ListVideo",
   "Lock",
   "LogOut",
+  "Mail",
   "MailCheck",
   "Map",
   "MapPin",

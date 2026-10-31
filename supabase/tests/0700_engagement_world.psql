@@ -7,6 +7,7 @@
 --   victor Account Owner of the vendor account Bayside Audio (acct_v)
 --   fiona  Account Finance of acct_v
 --   sam    Account Member of acct_v, the technician acct_v supplies
+--          (fiona and sam confirm their memberships, R4: an unconfirmed member is never rostered or assigned)
 --   rita   Account Owner of the artist agency Lumen Artists (acct_t), representing art (rep_art: Advance and
 --          Documents scopes, accepted by art)
 --   art    artist, engaged by org_a on prj_a
@@ -35,6 +36,12 @@ begin
   insert into world values ('acct_v', app.create_external_account('Bayside Audio', 'bayside-audio'));
   perform app.add_account_member(pg_temp.id('acct_v'), pg_temp.id('fiona'), 'Account Finance');
   perform app.add_account_member(pg_temp.id('acct_v'), pg_temp.id('sam'), 'Account Member');
+  perform pg_temp.as_user('fiona');
+  perform app.accept_account_membership((select m.id from app.account_memberships m
+    where m.org_id = pg_temp.id('acct_v') and m.person_id = pg_temp.id('fiona')));
+  perform pg_temp.as_user('sam');
+  perform app.accept_account_membership((select m.id from app.account_memberships m
+    where m.org_id = pg_temp.id('acct_v') and m.person_id = pg_temp.id('sam')));
   perform pg_temp.as_user('rita');
   insert into world values ('acct_t', app.create_external_account('Lumen Artists', 'lumen-artists'));
   insert into world values ('rep_art', app.propose_representation(pg_temp.id('acct_t'), pg_temp.id('art'), pg_temp.id('rita'),

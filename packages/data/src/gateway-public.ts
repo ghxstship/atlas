@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { advanceAnswerLines, type AdvanceAnswerLine } from "./gateway-operations.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -9,6 +10,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  *
  * The type generator does not cover `api_public` yet, so the row shapes below restate each
  * function's `returns table` from its migration; refusals arrive as rows (`refusal`, `reason`).
+ * R10 (2730, 2731) adds typed answers, uploads, guests and the crew roster through an advance link.
  */
 
 type PublicRpc = {
@@ -313,6 +315,50 @@ export async function signTokenDocument(
   return ok({ refused: false, signedAt: row.signed_at });
 }
 
+export type AdvanceSectionKind =
+  | "Text"
+  | "File"
+  | "Schedule Window"
+  | "Item Request"
+  | "Crew Roster"
+  | "Guest List"
+  | "Credential Request";
+
+/** What an Item Request or Credential Request section offers (R9 choices, with names). */
+export interface AdvanceChoice {
+  readonly id: string;
+  readonly assetClassId: string | null;
+  readonly className: string | null;
+  readonly credentialCategoryId: string | null;
+  readonly categoryName: string | null;
+}
+
+/** One line of the latest answer, as the link shows it back. */
+export interface AdvanceAnsweredLine {
+  readonly lineNumber: number;
+  readonly assetClassId: string | null;
+  readonly credentialCategoryId: string | null;
+  readonly rosterEntryId: string | null;
+  readonly quantity: number | null;
+  readonly neededFrom: string | null;
+  readonly neededTo: string | null;
+  readonly windowZone: string | null;
+  readonly note: string | null;
+}
+
+/** A file of the latest answer and its virus scan. */
+export interface AdvanceAnsweredFile {
+  readonly fileId: string;
+  readonly title: string;
+  readonly scanStatus: string;
+}
+
+/** A person a per-person line may name: their name once they accepted, a masked email before. */
+export interface AdvanceRosterPerson {
+  readonly rosterEntryId: string;
+  readonly displayName: string | null;
+}
+
 export interface AdvanceSection {
   readonly id: string;
   readonly position: number;
@@ -324,6 +370,25 @@ export interface AdvanceSection {
   readonly reviewOutcome: "Accepted" | "Returned" | null;
   /** Why the latest answer was returned, shown to the recipient. */
   readonly returnReason: string | null;
+  /** R9 section kind and configuration (Text for a section from before R9). */
+  readonly kind: AdvanceSectionKind;
+  readonly windowKind: string | null;
+  readonly maxLines: number | null;
+  readonly perPerson: boolean;
+  readonly choices: readonly AdvanceChoice[];
+  readonly answerId: string | null;
+  readonly answerNote: string | null;
+  readonly answerLines: readonly AdvanceAnsweredLine[];
+  readonly answerFiles: readonly AdvanceAnsweredFile[];
+  /** False for a Crew Roster section and while the latest answer awaits review or was Accepted. */
+  readonly canAnswer: boolean;
+  /** Guest List: the engagement's cap (null when uncapped) and the places taken, plus-ones counted. */
+  readonly guestCap: number | null;
+  readonly guestsUsed: number | null;
+  /** Crew Roster: entries by state, such as { Draft: 2, Submitted: 1 }. */
+  readonly rosterSummary: Readonly<Record<string, number>> | null;
+  /** Item and Credential Request: the roster people a line may name. */
+  readonly rosterPeople: readonly AdvanceRosterPerson[];
 }
 
 /**
@@ -331,8 +396,9 @@ export interface AdvanceSection {
  * database refuses with advance_answer_pending (migration 2604).
  */
 export function advanceSectionOpen(
-  section: Pick<AdvanceSection, "answer" | "reviewOutcome">,
+  section: Pick<AdvanceSection, "answer" | "reviewOutcome"> & { readonly canAnswer?: boolean },
 ): boolean {
+  if (section.canAnswer !== undefined) return section.canAnswer;
   return !section.answer || section.reviewOutcome === "Returned";
 }
 
@@ -343,6 +409,8 @@ export interface AdvancePacket {
   readonly dueAt: string | null;
   readonly recipientEmail: string | null;
   readonly expiresAt: string | null;
+  /** IANA zone of the packet's project, for the times a typed answer gives. */
+  readonly timeZone: string;
   readonly sections: readonly AdvanceSection[];
 }
 
@@ -362,6 +430,94 @@ interface AdvanceRow {
   answered_at: string | null;
   review_outcome: "Accepted" | "Returned" | null;
   return_reason: string | null;
+  section_kind?: AdvanceSectionKind | null;
+  window_kind?: string | null;
+  max_lines?: number | null;
+  per_person?: boolean | null;
+  choices?:
+    | readonly {
+        id: string;
+        asset_class_id: string | null;
+        class_name: string | null;
+        credential_category_id: string | null;
+        category_name: string | null;
+      }[]
+    | null;
+  answer_id?: string | null;
+  answer_note?: string | null;
+  answer_lines?:
+    | readonly {
+        line_number: number;
+        asset_class_id?: string;
+        credential_category_id?: string;
+        roster_entry_id?: string;
+        quantity?: number;
+        needed_window_start?: string;
+        needed_window_end?: string;
+        window_zone?: string;
+        note?: string;
+      }[]
+    | null;
+  answer_files?: readonly { file_id: string; title: string; scan_status: string }[] | null;
+  can_answer?: boolean | null;
+  guest_cap?: number | null;
+  guests_used?: number | null;
+  roster_summary?: Record<string, number> | null;
+  project_time_zone?: string | null;
+  roster_people?: readonly { roster_entry_id: string; display_name: string | null }[] | null;
+}
+
+function advanceSection(r: AdvanceRow): AdvanceSection {
+  const answer = r.answer_body;
+  const reviewOutcome = r.review_outcome ?? null;
+  return {
+    id: r.section_id as string,
+    position: r.section_position ?? 0,
+    title: r.section_title ?? "",
+    prompt: r.section_prompt,
+    answer,
+    answeredAt: r.answered_at,
+    reviewOutcome,
+    returnReason: r.return_reason ?? null,
+    kind: r.section_kind ?? "Text",
+    windowKind: r.window_kind ?? null,
+    maxLines: r.max_lines ?? null,
+    perPerson: r.per_person ?? false,
+    choices: (r.choices ?? []).map((c) => ({
+      id: c.id,
+      assetClassId: c.asset_class_id,
+      className: c.class_name,
+      credentialCategoryId: c.credential_category_id,
+      categoryName: c.category_name,
+    })),
+    answerId: r.answer_id ?? null,
+    answerNote: r.answer_note ?? null,
+    answerLines: (r.answer_lines ?? []).map((l) => ({
+      lineNumber: l.line_number,
+      assetClassId: l.asset_class_id ?? null,
+      credentialCategoryId: l.credential_category_id ?? null,
+      rosterEntryId: l.roster_entry_id ?? null,
+      quantity: l.quantity ?? null,
+      neededFrom: l.needed_window_start ?? null,
+      neededTo: l.needed_window_end ?? null,
+      windowZone: l.window_zone ?? null,
+      note: l.note ?? null,
+    })),
+    answerFiles: (r.answer_files ?? []).map((f) => ({
+      fileId: f.file_id,
+      title: f.title,
+      scanStatus: f.scan_status,
+    })),
+    // A row from before R10 carries no can_answer: the 2604 rule decides.
+    canAnswer: r.can_answer ?? (!answer || reviewOutcome === "Returned"),
+    guestCap: r.guest_cap ?? null,
+    guestsUsed: r.guests_used ?? null,
+    rosterSummary: r.roster_summary ?? null,
+    rosterPeople: (r.roster_people ?? []).map((p) => ({
+      rosterEntryId: p.roster_entry_id,
+      displayName: p.display_name,
+    })),
+  };
 }
 
 /** The advance packet an advance link opens, after the access code (api_public.preview_advance). */
@@ -384,18 +540,10 @@ export async function previewAdvance(
     dueAt: first.due_at,
     recipientEmail: first.recipient_email,
     expiresAt: first.expires_at,
+    timeZone: first.project_time_zone ?? "UTC",
     sections: result.data
       .filter((r) => r.section_id !== null)
-      .map((r) => ({
-        id: r.section_id as string,
-        position: r.section_position ?? 0,
-        title: r.section_title ?? "",
-        prompt: r.section_prompt,
-        answer: r.answer_body,
-        answeredAt: r.answered_at,
-        reviewOutcome: r.review_outcome ?? null,
-        returnReason: r.return_reason ?? null,
-      }))
+      .map(advanceSection)
       .sort((a, b) => a.position - b.position),
   });
 }
@@ -427,4 +575,254 @@ export async function submitAdvance(
   if (refused || !row?.submitted_at)
     return ok(refused ?? { refused: true, reason: "token_invalid" });
   return ok({ refused: false, submittedAt: row.submitted_at });
+}
+
+/** The token, its access code and the section every typed call through an advance link names. */
+interface TokenSection {
+  readonly token: string;
+  readonly accessCode: string;
+  readonly sectionId: string;
+}
+
+function tokenArgs(input: TokenSection) {
+  return { p_token: input.token, p_access_code: input.accessCode, p_section_id: input.sectionId };
+}
+
+/** The first row of a token call, or its refusal (`token_invalid` when nothing came back). */
+function firstOf<T extends { refusal: string | null; reason: string | null }>(
+  rows: readonly T[],
+  has: (row: T) => boolean,
+): T | TokenRefusal {
+  const row = rows[0];
+  const refused = refusalOf(row);
+  if (refused) return refused;
+  return row && has(row) ? row : { refused: true, reason: "token_invalid" };
+}
+
+function isRefusal(value: object): value is TokenRefusal {
+  return "refused" in value && (value as TokenRefusal).refused;
+}
+
+/**
+ * Answers a section of any kind through an advance link (R10 api_public.submit_advance_typed):
+ * text, files from finishAdvanceUpload, windows, items or credentials, as a signed-in recipient
+ * answers through app.submit_advance_answer.
+ */
+export async function submitAdvanceTyped(
+  db: XosClient,
+  input: TokenSection & {
+    readonly text?: string | null;
+    readonly note?: string | null;
+    readonly lines?: readonly AdvanceAnswerLine[];
+    readonly documentIds?: readonly string[];
+  },
+): Promise<Result<{ refused: false; submissionId: string; submittedAt: string } | TokenRefusal>> {
+  const result = await rows<{
+    submission_id: string | null;
+    submitted_at: string | null;
+    refusal: string | null;
+    reason: string | null;
+  }>(db, "submit_advance_typed", {
+    ...tokenArgs(input),
+    p_text: input.text?.trim() ? input.text.trim() : null,
+    p_note: input.note?.trim() ? input.note.trim() : null,
+    p_lines: advanceAnswerLines(input.lines ?? []),
+    p_document_ids: [...(input.documentIds ?? [])],
+  });
+  if (!result.ok) return result;
+  const row = firstOf(result.data, (r) => r.submission_id !== null && r.submitted_at !== null);
+  if (isRefusal(row)) return ok(row);
+  return ok({
+    refused: false,
+    submissionId: row.submission_id as string,
+    submittedAt: row.submitted_at as string,
+  });
+}
+
+/** An upload ticket for a File section (R10 api_public.begin_advance_upload), open 15 minutes. */
+export async function beginAdvanceUpload(
+  db: XosClient,
+  input: TokenSection & {
+    readonly fileName: string;
+    readonly contentType: string;
+    readonly byteSize: number;
+  },
+): Promise<
+  Result<{ refused: false; ticketId: string; objectName: string; expiresAt: string } | TokenRefusal>
+> {
+  const result = await rows<{
+    ticket_id: string | null;
+    object_name: string | null;
+    expires_at: string | null;
+    refusal: string | null;
+    reason: string | null;
+  }>(db, "begin_advance_upload", {
+    ...tokenArgs(input),
+    p_file_name: input.fileName,
+    p_content_type: input.contentType,
+    p_byte_size: input.byteSize,
+  });
+  if (!result.ok) return result;
+  const row = firstOf(result.data, (r) => r.ticket_id !== null && r.object_name !== null);
+  if (isRefusal(row)) return ok(row);
+  return ok({
+    refused: false,
+    ticketId: row.ticket_id as string,
+    objectName: row.object_name as string,
+    expiresAt: row.expires_at ?? "",
+  });
+}
+
+/**
+ * Stores the file of an upload ticket under its object name, as anon (the party-uploads token
+ * policies of 2730 open exactly that object while the ticket is open).
+ */
+export async function storeAdvanceUpload(
+  db: XosClient,
+  input: { readonly objectName: string; readonly body: Blob; readonly contentType: string },
+): Promise<Result<null>> {
+  const stored = await db.storage
+    .from("party-uploads")
+    .upload(input.objectName, input.body, { contentType: input.contentType, upsert: false });
+  return stored.error ? fail({ kind: "unexpected", message: stored.error.message }) : ok(null);
+}
+
+/** Registers a stored ticket's object as a document (R10 api_public.finish_advance_upload). */
+export async function finishAdvanceUpload(
+  db: XosClient,
+  input: {
+    readonly token: string;
+    readonly accessCode: string;
+    readonly ticketId: string;
+    readonly title: string;
+    readonly checksumSha256: string;
+  },
+): Promise<Result<{ refused: false; documentId: string } | TokenRefusal>> {
+  const result = await rows<{
+    document_id: string | null;
+    refusal: string | null;
+    reason: string | null;
+  }>(db, "finish_advance_upload", {
+    p_token: input.token,
+    p_access_code: input.accessCode,
+    p_ticket_id: input.ticketId,
+    p_title: input.title,
+    p_checksum_sha256: input.checksumSha256,
+  });
+  if (!result.ok) return result;
+  const row = firstOf(result.data, (r) => r.document_id !== null);
+  if (isRefusal(row)) return ok(row);
+  return ok({ refused: false, documentId: row.document_id as string });
+}
+
+/** Asks for a guest on a Guest List section (R10 api_public.request_advance_guest). */
+export async function requestAdvanceGuest(
+  db: XosClient,
+  input: TokenSection & {
+    readonly guestName: string;
+    readonly plusOnes: number;
+    readonly note?: string | null;
+  },
+): Promise<Result<{ refused: false; guestEntryId: string } | TokenRefusal>> {
+  const result = await rows<{
+    guest_entry_id: string | null;
+    refusal: string | null;
+    reason: string | null;
+  }>(db, "request_advance_guest", {
+    ...tokenArgs(input),
+    p_guest_name: input.guestName,
+    p_plus_ones: input.plusOnes,
+    p_note: input.note?.trim() ? input.note.trim() : null,
+  });
+  if (!result.ok) return result;
+  const row = firstOf(result.data, (r) => r.guest_entry_id !== null);
+  if (isRefusal(row)) return ok(row);
+  return ok({ refused: false, guestEntryId: row.guest_entry_id as string });
+}
+
+/** One person on the roster behind a Crew Roster section, as the link sees them. */
+export interface AdvanceRosterEntry {
+  readonly rosterEntryId: string;
+  /** The person's name once they accepted, else the invited address masked (n***@example.com). */
+  readonly displayName: string | null;
+  readonly roleCode: string | null;
+  readonly entryState: string;
+  /** Pending, Accepted, Declined, Revoked or Expired; null when nobody was invited. */
+  readonly invitationState: string | null;
+}
+
+/** The crew roster behind a Crew Roster section (R10 api_public.advance_roster). */
+export async function listAdvanceRoster(
+  db: XosClient,
+  input: TokenSection,
+): Promise<Result<{ refused: false; entries: AdvanceRosterEntry[] } | TokenRefusal>> {
+  const result = await rows<{
+    refusal: string | null;
+    reason: string | null;
+    roster_entry_id: string | null;
+    display_name: string | null;
+    role_code: string | null;
+    entry_state: string | null;
+    invitation_state: string | null;
+  }>(db, "advance_roster", tokenArgs(input));
+  if (!result.ok) return result;
+  const refused = result.data[0]?.refusal ? refusalOf(result.data[0]) : null;
+  if (refused) return ok(refused);
+  return ok({
+    refused: false,
+    entries: result.data
+      .filter((r) => r.roster_entry_id !== null)
+      .map((r) => ({
+        rosterEntryId: r.roster_entry_id as string,
+        displayName: r.display_name,
+        roleCode: r.role_code,
+        entryState: r.entry_state ?? "Draft",
+        invitationState: r.invitation_state,
+      })),
+  });
+}
+
+/** Invites an email address onto the roster (R10 api_public.invite_advance_roster_member). */
+export async function inviteAdvanceRosterMember(
+  db: XosClient,
+  input: TokenSection & {
+    readonly email: string;
+    readonly roleCode?: string | null;
+    readonly arrivalFrom?: string | null;
+    readonly arrivalTo?: string | null;
+    readonly arrivalZone?: string | null;
+  },
+): Promise<Result<{ refused: false; rosterEntryId: string } | TokenRefusal>> {
+  const result = await rows<{
+    roster_entry_id: string | null;
+    refusal: string | null;
+    reason: string | null;
+  }>(db, "invite_advance_roster_member", {
+    ...tokenArgs(input),
+    p_email: input.email,
+    p_role_code: input.roleCode ?? null,
+    p_arrival_starts_at: input.arrivalFrom ?? null,
+    p_arrival_ends_at: input.arrivalTo ?? null,
+    p_arrival_zone: input.arrivalFrom ? (input.arrivalZone ?? null) : null,
+  });
+  if (!result.ok) return result;
+  const row = firstOf(result.data, (r) => r.roster_entry_id !== null);
+  if (isRefusal(row)) return ok(row);
+  return ok({ refused: false, rosterEntryId: row.roster_entry_id as string });
+}
+
+/** Submits the roster behind a Crew Roster section (R10 api_public.submit_advance_roster). */
+export async function submitAdvanceRoster(
+  db: XosClient,
+  input: TokenSection,
+): Promise<Result<{ refused: false; submitted: number } | TokenRefusal>> {
+  const result = await rows<{
+    submitted: number | null;
+    refusal: string | null;
+    reason: string | null;
+  }>(db, "submit_advance_roster", tokenArgs(input));
+  if (!result.ok) return result;
+  const row = firstOf(result.data, (r) => r.submitted !== null);
+  if (isRefusal(row)) return ok(row);
+  return ok({ refused: false, submitted: row.submitted as number });
 }

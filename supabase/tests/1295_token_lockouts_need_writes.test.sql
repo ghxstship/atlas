@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(13);
+select plan(20);
 
 -- Calls an api_public function with NULL for every argument inside a read-only subtransaction, as anon, and answers the
 -- error it raised ('' when it raised nothing). The subtransaction always rolls back.
@@ -44,7 +44,7 @@ select is_empty($$
 $$, 'every volatile api_public RPC refuses a read-only (GET) call before looking anything up');
 
 select cmp_ok((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'api_public' and p.provolatile = 'v'), '>=', 9, 'the check covers at least the nine token and code RPCs');
+  where n.nspname = 'api_public' and p.provolatile = 'v'), '>=', 16, 'the check covers at least the sixteen token and code RPCs');
 
 select is(pg_temp.read_only_outcome('api_public.preview_advance(text, text)'::regprocedure),
   '25006 this call changes data: send it with POST', 'preview_advance refuses GET');
@@ -52,6 +52,17 @@ select is(pg_temp.read_only_outcome('api_public.token_document(text, text)'::reg
   '25006 this call changes data: send it with POST', 'token_document refuses GET');
 select is(pg_temp.read_only_outcome('api_public.verify_certification(text)'::regprocedure),
   '25006 this call changes data: send it with POST', 'verify_certification refuses GET');
+-- R10 (2730, 2731): the token advance parity RPCs.
+select is(pg_temp.read_only_outcome(f::regprocedure), '25006 this call changes data: send it with POST',
+  split_part(f, '(', 1) || ' refuses GET')
+from unnest(array[
+  'api_public.submit_advance_typed(text, text, uuid, text, text, jsonb, uuid[])',
+  'api_public.begin_advance_upload(text, text, uuid, text, text, integer)',
+  'api_public.finish_advance_upload(text, text, uuid, text, text)',
+  'api_public.request_advance_guest(text, text, uuid, text, integer, text)',
+  'api_public.advance_roster(text, text, uuid)',
+  'api_public.invite_advance_roster_member(text, text, uuid, text, text, timestamptz, timestamptz, text)',
+  'api_public.submit_advance_roster(text, text, uuid)']) f;
 
 -- A link with a known code, on the suite's own packet (0300 world), so it runs without the demo seed (A71, RRR-116).
 -- The read-only refusal happens before the token is read, so a GET with a wrong code counts nothing and a GET with the
