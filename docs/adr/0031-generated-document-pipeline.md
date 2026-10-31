@@ -95,3 +95,21 @@ The owner approved the competitor parity audit on 2026-10-28; gap G-144 asks for
 5. **The badge photo.** The badge prints, in resolution order computed at read time (`app.credential_photo_states`, 2822): the org's badge photo for the holder once its object scanned Clean; else the holder's profile photo when the caller may see the photo section of the profile, no block stands between them (ADR 0033 decision 57), and it is a JPEG or PNG of at most 2 MiB; else the placeholder "No photo on file". The holder gives the badge photo in Gateway (Profile, Badge photos), from an upload they crop by hand or their own profile photo, with a `credential_photo` consent record, and withdraws it there; an issuer may ask for one (`credential_photo.requested`) or remove it. There is no capture at a desk. The photo is Internal, like the badge it prints on (no Section 8.6 watermark), and no machine learning reads it.
 6. **Batch printing.** `GET /{org}/documents/badges?id=…&paper=…` prints 1 to 100 credentials in one file: one `Document` root, a `Sect` per badge starting on a new page, each with its own facts and page numbers. Credentials the viewer cannot read, of another org (ADR 0003), revoked or expired are left out and counted in `X-Badges-Skipped`. A run of 100 badges with photos is larger than Vercel's 4.5 MB buffered function response, so the route streams the PDF: each badge's pages are written as soon as it is drawn. If streaming is found not to lift the cap on the deployed functions, the batch maximum is lowered until the worst case fits, and this amendment and the print panel notice record the new cap.
 7. **veraPDF** also renders, per locale, CR80 and A6 badges with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter (16 more files); the per-kind loop keeps the version 1 badge, issued before `BADGE_V2_FROM`.
+
+## Amendment (B8, RRR-232, G-68 and G-71): the guest pass
+
+ADR 0147 decision 6 gives guests passes, not credentials. These decisions extend the pipeline for the guest pass only.
+
+1. **A new kind, `guest-pass`.** It is keyed by the guest list entry, so it is served at
+   `/{org}/documents/guest-pass/{id}` through the existing `[kind]/[id]` route. Its loader reads the entry as the
+   caller (`advancing.packet.read` through row level security) and answers not found unless the guest is Approved or
+   Checked In, so a Requested or Declined guest has no pass.
+2. **Card papers, as the badge.** `printSizesFor("guest-pass")` is the badge's four sizes with A6 as the default; the
+   guest-email worker attaches the A6 pass. The card layout (`render-card.ts`) places its blocks by kind: the guest's
+   name as the heading, the scan code `XOSGP1:<pass code>` as the only QR, and compact paragraphs for the pass type,
+   the show and its date in the project's time zone, "Admits {n} more" when plus-ones are over 0, and the table.
+   There is no portrait.
+3. **Classification and version.** It prints a name, a pass code and a table, so it is Internal. Version 1 takes
+   effect at a fixed instant no earlier than the planned release of the package that ships it, as P5's
+   `BADGE_V2_FROM`; the record key in its facts line is the pass code.
+4. **veraPDF** renders the guest pass on A6 and CR80 in en-US and es-US (four more files).

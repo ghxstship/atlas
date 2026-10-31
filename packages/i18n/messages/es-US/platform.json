@@ -719,7 +719,10 @@
         "assigned": "Capacitación asignada"
       },
       "weather": {
-        "alert": "Alerta meteorológica"
+        "alert": "Alerta meteorológica",
+        "warning": "Aviso oficial de clima",
+        "hold": "Suspensión por clima",
+        "all_clear": "Fin de la suspensión por clima"
       },
       "opportunity": {
         "matched": "Nueva oportunidad coincidente"
@@ -758,6 +761,9 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "guest": {
+        "arrived": "Llegó tu invitado"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

@@ -719,7 +719,10 @@
         "assigned": "Training assigned"
       },
       "weather": {
-        "alert": "Weather alert"
+        "alert": "Weather alert",
+        "warning": "Official weather warning",
+        "hold": "Weather hold",
+        "all_clear": "Weather all-clear"
       },
       "opportunity": {
         "matched": "New opportunity match"
@@ -758,6 +761,9 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "guest": {
+        "arrived": "Your guest arrived"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

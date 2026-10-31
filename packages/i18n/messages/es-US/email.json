@@ -179,6 +179,18 @@
       "alert": {
         "subject": "Alerta de clima: {level}",
         "body": "Una lectura de {hazard} de {reading} alcanzó el umbral de {level}. Sigue el plan de emergencia."
+      },
+      "warning": {
+        "subject": "Aviso oficial: {event}",
+        "body": "El Servicio Meteorológico Nacional emitió una alerta {severity}: {headline}. Sigue el plan de emergencia."
+      },
+      "hold": {
+        "subject": "Suspensión por clima",
+        "body": "{message}"
+      },
+      "all_clear": {
+        "subject": "Fin de la suspensión por clima",
+        "body": "{message}"
       }
     },
     "access": {
@@ -346,6 +358,12 @@
         "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
         "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
       }
+    },
+    "guest": {
+      "arrived": {
+        "subject": "Llegó {guest_name}",
+        "body": "Tu invitado {guest_name} se registró{has_door, select, yes { en {door}} other {}} con {plus_ones_admitted, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}}.{has_table, select, yes { Mesa: {table_label}.} other {}}"
+      }
     }
   },
   "notification": {
@@ -417,5 +435,17 @@
     "rosterSubject": "{inviterName} te invita al equipo de {partyName} para {projectName}",
     "how": "Inicia sesión en Gateway con este correo y acepta en el Inicio antes del {expiresAt, date, long}. La empresa verá tu perfil y los datos del proyecto. ¿No lo esperabas? Ignóralo.",
     "action": "Iniciar sesión en Gateway"
+  },
+  "guest_message": {
+    "invitationSubject": "{orgName} te invita a {projectName}",
+    "passSubject": "Tu pase para {projectName}",
+    "heading": "{projectName}",
+    "greeting": "Hola, {name}:",
+    "invitation": "{orgName} te agregó a la lista de invitados de {projectName}.",
+    "pass": "Adjuntamos tu pase para {projectName}. Muéstralo en la puerta{plusOnes, plural, =0 {} one {; admite # invitado más} other {; admite # invitados más}}.",
+    "show": "Función: {showName}.",
+    "showOn": "Función: {showName}, {showDate, date, long}.",
+    "why": "Recibes este correo porque estás en la lista de invitados de {orgName}.",
+    "preferences": "Dejar de recibir correos de esta organización"
   }
 }

@@ -22,13 +22,17 @@ export type { Sender } from "./templates/layout.tsx";
 // this entry, so a worker that only checks or routes email does not parse them (A85).
 export type { KindItem, TemplateCode, TemplateProps } from "./templates/index.tsx";
 export {
+  assertAttachmentSize,
   EmailSendError,
   GuardedTransport,
+  MAX_ATTACHMENT_BYTES,
   MailpitTransport,
   RecipientRefusedError,
   RecordingTransport,
   ResendTransport,
   recipientAllowed,
+  toBase64,
+  type EmailAttachment,
   type EmailTransport,
   type OutgoingEmail,
   type RecipientPolicy,

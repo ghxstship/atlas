@@ -88,6 +88,21 @@ export interface TemplateProps {
     readonly expiresAt: Date;
     readonly signInUrl: string;
   };
+  /**
+   * An org's email to a guest on its guest list (B8, migration 2975, ADR 0147 decision 7): an invitation, the guest's
+   * pass (the guest-pass PDF goes as an attachment) or a message with its own subject and text. Never transactional:
+   * it carries the unsubscribe link and the postal address of decision 41.
+   */
+  readonly guest_message: {
+    readonly kind: "Invitation" | "Pass" | "Message";
+    readonly guestName: string;
+    readonly projectName: string;
+    readonly showName?: string;
+    readonly showDate?: Date;
+    readonly plusOnes: number;
+    readonly subject?: string;
+    readonly body?: string;
+  };
 }
 
 export type TemplateCode = keyof TemplateProps;
@@ -381,6 +396,52 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             <Paragraph>{ctx.t("subprocessor_notice.intro", { effectiveOn })}</Paragraph>
             <Paragraph>{summary}</Paragraph>
             <Paragraph>{ctx.t("subprocessor_notice.objection")}</Paragraph>
+          </Layout>
+        ),
+      };
+    },
+  },
+  guest_message: {
+    transactional: false,
+    compose: (p, ctx) => {
+      const orgName = ctx.sender.orgName;
+      const subject =
+        p.kind === "Message" && p.subject !== undefined
+          ? p.subject
+          : ctx.t(p.kind === "Pass" ? "guest_message.passSubject" : "guest_message.invitationSubject", {
+              orgName,
+              projectName: p.projectName,
+            });
+      const show =
+        p.showName === undefined
+          ? null
+          : p.showDate === undefined
+            ? ctx.t("guest_message.show", { showName: p.showName })
+            : ctx.t("guest_message.showOn", { showName: p.showName, showDate: p.showDate });
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={p.kind === "Message" ? subject : ctx.t("guest_message.heading", { projectName: p.projectName })}
+            transactional={false}
+            why={ctx.t("guest_message.why", { orgName })}
+            preferencesLabel={ctx.t("guest_message.preferences")}
+          >
+            <Paragraph>{ctx.t("guest_message.greeting", { name: p.guestName })}</Paragraph>
+            {p.kind === "Invitation" && (
+              <Paragraph>{ctx.t("guest_message.invitation", { orgName, projectName: p.projectName })}</Paragraph>
+            )}
+            {p.kind === "Pass" && (
+              <Paragraph>
+                {ctx.t("guest_message.pass", { projectName: p.projectName, plusOnes: p.plusOnes })}
+              </Paragraph>
+            )}
+            {show !== null && <Paragraph>{show}</Paragraph>}
+            {p.body !== undefined && <Paragraph>{p.body}</Paragraph>}
           </Layout>
         ),
       };
