@@ -2531,6 +2531,55 @@ export type Database = {
           },
         ];
       };
+      proof_of_performance_photos: {
+        Row: {
+          captured_at: string | null;
+          created_at: string | null;
+          engagement_id: string | null;
+          id: string | null;
+          media_uri: string | null;
+          project_id: string | null;
+          sponsor_entitlement_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_offerings";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_up_next";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_entitlements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       purchase_orders: {
         Row: {
           account_id: string | null;
@@ -3126,6 +3175,7 @@ export type Database = {
           fulfilled_at: string | null;
           id: string | null;
           is_overdue: boolean | null;
+          keep_photo_location: boolean | null;
           project_id: string | null;
           project_name: string | null;
           quantity: number | null;
@@ -38581,6 +38631,113 @@ export type Database = {
           },
         ];
       };
+      proof_of_performance_photos: {
+        Row: {
+          captured_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_id: string;
+          id: string;
+          media_uri: string;
+          org_id: string;
+          sponsor_entitlement_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          captured_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id: string;
+          id?: string;
+          media_uri: string;
+          org_id: string;
+          sponsor_entitlement_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          captured_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string;
+          id?: string;
+          media_uri?: string;
+          org_id?: string;
+          sponsor_entitlement_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "proof_of_performance_photos_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_entitlements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_proof_of_performance";
+            referencedColumns: ["sponsor_entitlement_id"];
+          },
+          {
+            foreignKeyName: "proof_of_performance_photos_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       punch_items: {
         Row: {
           created_at: string;
@@ -66297,6 +66454,7 @@ export type Database = {
           ends_at: string;
           holder_name: string;
           kind: string;
+          logo_path: string;
           org_id: string;
           org_name: string;
           project_name: string;
@@ -67039,6 +67197,15 @@ export type Database = {
       record_product_events: {
         Args: { p_app_code: string; p_events: Json; p_session_key: string };
         Returns: number;
+      };
+      record_proof_of_performance_photo: {
+        Args: {
+          p_captured_at?: string;
+          p_id: string;
+          p_media_uri: string;
+          p_sponsor_entitlement_id: string;
+        };
+        Returns: string;
       };
       record_provider_payment: {
         Args: {

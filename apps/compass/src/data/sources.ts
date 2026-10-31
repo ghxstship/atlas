@@ -543,7 +543,9 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     table: "sponsor_entitlements",
     schema: "api_external",
     relation: "sponsor_entitlements",
-    select: "id,project_id,project_name,description,quantity,due_on,fulfilled_at,is_overdue",
+    // keep_photo_location: the org's photo-location rule for proof photos of the entitlement (A140, 2333).
+    select:
+      "id,project_id,project_name,description,quantity,due_on,fulfilled_at,is_overdue,keep_photo_location",
     projectColumn: "project_id",
     audiences: ["sponsor"],
   },
@@ -552,6 +554,15 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "engagement_documents",
     select: "id,engagement_id,document_kind,title,expires_on,engagement_document_state",
+    audiences: ["sponsor"],
+  },
+  {
+    // Proof photos on the sponsor's engagements while capture is open (A140, 2332).
+    table: "proof_of_performance_photos",
+    schema: "api_external",
+    relation: "proof_of_performance_photos",
+    select: "id,engagement_id,sponsor_entitlement_id,project_id,media_uri,captured_at,created_at",
+    projectColumn: "project_id",
     audiences: ["sponsor"],
   },
 ];

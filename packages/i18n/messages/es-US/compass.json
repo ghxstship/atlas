@@ -157,6 +157,7 @@
       "settlement_lines": "líneas de liquidación",
       "shared_reports": "informes compartidos",
       "sponsor_entitlements": "beneficios del patrocinador",
+      "proof_of_performance_photos": "fotos de comprobación de cumplimiento",
       "engagement_documents": "documentos de la contratación",
       "profile_certifications": "tus certificaciones",
       "profile_documents": "tus documentos",
@@ -275,7 +276,8 @@
       "serverState": "{title}, ahora {state}",
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
-      "expenseReceipt": "Gasto: {description}, {day}"
+      "expenseReceipt": "Gasto: {description}, {day}",
+      "proofPhoto": "Foto de comprobación de cumplimiento, {time}"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
     "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
@@ -338,7 +340,13 @@
     "since": "Desde las {time}",
     "cueTitle": "Siguiente cue: {cue}",
     "cueBody": "{project} a las {time}",
-    "channel": "Turno y siguiente cue"
+    "channel": "Turno y siguiente cue",
+    "gallery": {
+      "todayName": "Compass Hoy",
+      "todayDescription": "Tus turnos de hoy y el siguiente cue.",
+      "nextCueName": "Siguiente cue de Compass",
+      "nextCueDescription": "El tiempo que falta para el siguiente cue."
+    }
   },
   "wallet": {
     "holder": "Nombre",

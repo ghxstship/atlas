@@ -1,7 +1,7 @@
 # Maestro flows for the Compass field journeys (Wave 4 exit, walked on the iOS simulator by A39; the whole
 # suite, kiosk and offline flows included, by A66). Run against a freshly reset local stack seeded with
 # supabase/seeds (0010 identity, 0107 project, 0217 Compass data, 0230 and 1340 the crew member's certification and
-# passport, 1090 the Demo Field Tech, 1490 the Demo Road Crew) and the app
+# passport, 1090 the Demo Field Tech, 1490 the Demo Road Crew, 2332 the Demo Activation Sponsor) and the app
 # built against it. On an iOS simulator use scripts/maestro-ios.sh: it grants location, camera and
 # microphone, starts the network helper that cuts the server for the offline flows (Maestro sets airplane
 # mode only on Android) and passes the variables below. By hand:
@@ -43,6 +43,7 @@ executionOrder:
     - project-details
     - profile-credentials
     - vendor-external-scan
+    - sponsor-proof-photo
     - multi-org-today
     - settings-identity-profile
     - settings-identity-privacy
