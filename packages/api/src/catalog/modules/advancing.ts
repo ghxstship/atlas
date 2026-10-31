@@ -246,14 +246,10 @@ export const additions = defineAdditions("Advancing", {
                   section_kind: z
                     .enum(SECTION_KINDS)
                     .meta({ description: "Section kind.", example: "Schedule Window" }),
-                  window_kind: z
-                    .enum(WINDOW_KINDS)
-                    .nullable()
-                    .optional()
-                    .meta({
-                      description: "Window kind, for a Schedule Window.",
-                      example: "Load In",
-                    }),
+                  window_kind: z.enum(WINDOW_KINDS).nullable().optional().meta({
+                    description: "Window kind, for a Schedule Window.",
+                    example: "Load In",
+                  }),
                   max_lines: z
                     .number()
                     .int()
@@ -316,13 +312,10 @@ export const additions = defineAdditions("Advancing", {
                 "Sets or clears the engagement a draft packet's recipient answers under: a live engagement of the same party on the packet's project (advance_recipient_engagement, 422); fixed once the packet is sent.",
               body: z
                 .object({
-                  engagement_id: z
-                    .uuid()
-                    .nullable()
-                    .meta({
-                      description: "The engagement, or null to clear it.",
-                      example: "01920000-0000-7000-8000-000000000001",
-                    }),
+                  engagement_id: z.uuid().nullable().meta({
+                    description: "The engagement, or null to clear it.",
+                    example: "01920000-0000-7000-8000-000000000001",
+                  }),
                 })
                 .meta({
                   id: "AdvanceRecipientBindEngagementRequest",
@@ -335,13 +328,10 @@ export const additions = defineAdditions("Advancing", {
                 "Sets or clears when the party stops naming, renaming and unnaming people on the passes it requested through this recipient (G-141). Production can still change them afterwards. Needs an engagement (advance_recipients_names_due_engagement, 422); editable after the packet is sent.",
               body: z
                 .object({
-                  names_due_at: z.iso
-                    .datetime({ offset: true })
-                    .nullable()
-                    .meta({
-                      description: "The deadline, or null to clear it.",
-                      example: "2027-05-20T23:59:00Z",
-                    }),
+                  names_due_at: z.iso.datetime({ offset: true }).nullable().meta({
+                    description: "The deadline, or null to clear it.",
+                    example: "2027-05-20T23:59:00Z",
+                  }),
                 })
                 .meta({
                   id: "AdvanceRecipientSetNamesDueRequest",
