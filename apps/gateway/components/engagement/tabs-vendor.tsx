@@ -6,6 +6,7 @@ import {
   onboardingStanding,
   readView,
 } from "@xos/data/gateway";
+import { approvalBySubject, listSubjectApprovals } from "@xos/data/workflow";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
 import { InlineAlert, Tag } from "@/components/ui";
@@ -175,6 +176,11 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
     }),
   ]);
   if (!docks.ok || !deliveries.ok) return <RegionError />;
+  // P9: a booking on a gated dock waits on the project's approval rule; the vendor sees only its state (2860).
+  const approvals = await listSubjectApprovals(view.ctx.db, {
+    dockSlotIds: docks.data.map((d) => d.id ?? "").filter((id) => id !== ""),
+  });
+  const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
   if (docks.data.length === 0 && deliveries.data.length === 0) {
     return (
       <TabEmpty
@@ -198,6 +204,12 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
                 d.starts_at ? formatDateTime(locale, d.starts_at) : null,
                 d.ends_at ? formatDateTime(locale, d.ends_at) : null,
                 d.tracking_identifier,
+                (() => {
+                  const state = approvalOf.get(d.id ?? "")?.state;
+                  return state && state !== "Canceled"
+                    ? t(`gateway.engagement.deliveries.approval.${state === "In Review" ? "waiting" : state.toLowerCase()}`)
+                    : null;
+                })(),
               ],
               ...(d.direction
                 ? {

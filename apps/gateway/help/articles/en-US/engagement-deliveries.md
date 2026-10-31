@@ -10,7 +10,7 @@ Deliveries is for vendors.
 
 ## Dock slots
 
-The times booked for you at the dock: the zone, the start and end, any tracking number, and whether it is inbound or outbound.
+The times booked for you at the dock: the zone, the start and end, any tracking number, and whether it is inbound or outbound. When the project approves bookings at that dock first, the slot also says **Awaiting approval**, **Approved** or **Rejected**.
 
 ## Shipments
 

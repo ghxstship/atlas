@@ -45,7 +45,16 @@
       "notification_action_reason": "Say why you are rejecting it.",
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
-      "submittal_note_length": "Write a note of 1 to 500 characters."
+      "submittal_note_length": "Write a note of 1 to 500 characters.",
+      "approval_link_code_too_soon": "A code was sent a moment ago. Wait a minute, then ask again; at most five are sent an hour.",
+      "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
+      "approval_link_email_off": "Your approval emails are turned off, so no code can be sent. Sign in to decide instead.",
+      "approval_not_in_review": "This approval was already decided or withdrawn.",
+      "approval_not_step_approver": "You are not an approver of the step this approval is waiting on.",
+      "approval_one_step_per_approver": "You already decided a step of this approval. The next step needs someone else.",
+      "approval_subject_beneficiary": "This approval is for you, so someone else decides it.",
+      "approval_rejection_reason": "Say why you are rejecting it.",
+      "sod_approval_requester": "You requested this approval, so someone else decides it."
     }
   },
   "common": {
@@ -224,7 +233,12 @@
     "deliveries": {
       "empty": "No deliveries or dock slots yet. Your dock times appear here once booked.",
       "docks": "Dock slots",
-      "shipments": "Shipments"
+      "shipments": "Shipments",
+      "approval": {
+        "waiting": "Awaiting approval",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
     },
     "submittals": {
       "empty": "No submittals have been requested yet.",
@@ -1767,6 +1781,45 @@
         "not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
         "elsewhere": "This link opens in Atlas, where your organization's security settings apply. Use the button in the email to open it there.",
         "invalid": "This link does not work. Open the item from Home."
+      },
+      "signedOut": {
+        "heading": {
+          "approve": "Approve this request from your email",
+          "reject": "Reject this request from your email"
+        },
+        "codeGoesTo": "We email a 6-digit code to {email}.",
+        "signInInstead": "Sign in to decide instead",
+        "state": {
+          "used": "This was already handled. Nothing else to do.",
+          "expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
+          "locked": "Too many wrong codes. This link is locked; sign in to decide."
+        },
+        "codeIntro": "To keep this decision yours, we email you a code first. The request appears once you enter it.",
+        "emailMeACode": "Email me a code",
+        "codeSent": "Code sent. It works for 10 minutes.",
+        "codeLabel": "Code from your email",
+        "codeHelp": "The 6 digits from the email we just sent you.",
+        "showRequest": "Show the request",
+        "sendAgain": "Send a new code",
+        "untitled": "This request",
+        "step": "Step: {step}",
+        "reason": "Why are you rejecting it?",
+        "confirm": {
+          "approve": "Approve",
+          "reject": "Reject"
+        },
+        "done": {
+          "approve": "Approved. Nothing else to do.",
+          "reject": "Rejected with your reason."
+        },
+        "outcome": {
+          "approval_link_code_wrong": "That code is wrong or has expired. {attemptsLeft, plural, one {# try left} other {# tries left}} before the link locks.",
+          "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
+          "notification_action_used": "This was already handled. Nothing else to do.",
+          "notification_action_expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
+          "notification_action_invalid": "This link does not work. Sign in to decide.",
+          "notification_action_reason": "Say why you are rejecting it."
+        }
       }
     },
     "errors": {

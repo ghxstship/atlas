@@ -55,6 +55,16 @@ export const KNOWN_REFUSALS = [
   "notification_action_invalid",
   "notification_action_reason",
   "notification_action_elsewhere",
+  // P9 signed-out approval links and subject approvals (migrations 2860 and 2861).
+  "approval_link_code_too_soon",
+  "approval_link_locked",
+  "approval_link_email_off",
+  "approval_not_in_review",
+  "approval_not_step_approver",
+  "approval_one_step_per_approver",
+  "approval_subject_beneficiary",
+  "approval_rejection_reason",
+  "sod_approval_requester",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

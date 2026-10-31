@@ -10,7 +10,7 @@ Entregas es para proveedores.
 
 ## Horarios de muelle
 
-Los horarios reservados para ti en el muelle: la zona, el inicio y el fin, el número de seguimiento si lo hay, y si es de entrada o de salida.
+Los horarios reservados para ti en el muelle: la zona, el inicio y el fin, el número de seguimiento si lo hay, y si es de entrada o de salida. Cuando el proyecto aprueba primero las reservas de ese muelle, el horario también dice **En espera de aprobación**, **Aprobado** o **Rechazado**.
 
 ## Envíos
 
