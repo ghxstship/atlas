@@ -75,7 +75,7 @@ $$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_vers
   ('organization_profile'), ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
   ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
-  ('invite_token_open'),
+  ('invite_token_open'), ('live_channel_open'), ('live_display'), ('live_view'), ('open_live_link'),
   ('advance_roster'), ('advance_upload_ticket_open'), ('begin_advance_upload'), ('finish_advance_upload'), ('invite_advance_roster_member'),
   ('request_advance_guest'), ('submit_advance_roster'), ('submit_advance_typed'),
   ('submit_advance'), ('subscribe_subprocessor_notices'), ('token_document'), ('token_sign_document'),

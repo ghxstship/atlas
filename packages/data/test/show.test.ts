@@ -303,6 +303,21 @@ describe("cues", () => {
     expect(cueProgress(done, now)).toMatchObject({ current: 2, next: -1, complete: true });
     expect(cueProgress([cue()], now)).toMatchObject({ current: -1, next: 0, nextInSeconds: null });
   });
+
+  it("derives progression from the called and planned times alone (P1 display screens)", () => {
+    const now = new Date("2027-06-05T23:00:00Z");
+    const slim = [
+      { calledAt: "2027-06-05T22:59:00Z", plannedAt: null },
+      { calledAt: null, plannedAt: "2027-06-05T23:02:00Z" },
+    ];
+    expect(cueProgress(slim, now)).toEqual({
+      current: 0,
+      next: 1,
+      nextInSeconds: 120,
+      elapsedSeconds: 60,
+      complete: false,
+    });
+  });
 });
 
 describe("sheets", () => {

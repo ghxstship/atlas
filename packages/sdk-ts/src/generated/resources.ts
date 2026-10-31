@@ -550,6 +550,12 @@ import type {
   LeavePartnerRequest,
   ListingReport,
   ListingReportCreate,
+  LiveDisplayLinkRequest,
+  LiveDisplayLinkToken,
+  LiveLink,
+  LiveLinkRegenerated,
+  LiveViewLinkRequest,
+  LiveViewLinkToken,
   LostFoundClaim,
   LostFoundItem,
   LostFoundItemCreate,
@@ -39118,6 +39124,140 @@ export class ShareLinksResource extends $Resource {
   revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<ShareLink>> {
     return this.client.request<ShareLink>(
       $OPERATIONS["shareLinks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `liveLinks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class LiveLinksResource extends $Resource {
+  /**
+   * List live link rows
+   *
+   * A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns a cursor page of live link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /live-links` (operation `liveLinks.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(params?: $ListParams<LiveLink>, options?: $RequestOptions): Promise<$Page<LiveLink>> {
+    return this.client.requestPage<LiveLink>(
+      $OPERATIONS["liveLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List live link rows
+   *
+   * A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns a cursor page of live link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /live-links` (operation `liveLinks.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<LiveLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<LiveLink, void, undefined> {
+    return this.client.paginate<LiveLink>(
+      $OPERATIONS["liveLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a live link
+   *
+   * A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns one live link with its `ETag`. A live link the caller may not see returns 404.
+   *
+   * `GET /live-links/{id}` (operation `liveLinks.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<LiveLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<LiveLink>> {
+    return this.client.request<LiveLink>(
+      $OPERATIONS["liveLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a live link to a saved view
+   *
+   * Makes a no-account link to a saved view the caller can read, on one project of its org, through app.create_view_link. The caller must be a member of the project's org and hold the collection's share capability on the project (schedule.timeline.export for the Schedule, show.run_of_show.write for running orders, show.day_sheet.write for day sheets; 422 `live_link_capability`). The view's page and every filter, sort and grouping must be ones a live link shows (422 `live_link_view_unsupported`). `expires_at` is required, after now and within 90 days (422 `live_link_expiry`, `live_link_expiry_range`); a view holds at most 20 live links (422 `live_link_limit`); a read-only org makes none (422 `org_read_only`). Every link has an access code. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /live-links/view` (operation `liveLinks.createView`).
+   * Requires the capability `projects.project.read`.
+   */
+  createView(
+    body: LiveViewLinkRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<LiveViewLinkToken>> {
+    return this.client.request<LiveViewLinkToken>(
+      $OPERATIONS["liveLinks.createView"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Create a display screen link to a running order
+   *
+   * Makes a no-account display screen link (room clock, presenter timer, backstage) to a running order through app.create_display_link. The caller must be a member of its org and hold show.run_of_show.write on the project (422 `live_link_capability`). `expires_at` defaults to the end of the day after the show in the project's zone, at most 90 days ahead; when given it must be after now and within 90 days (422 `live_link_expiry_range`). A running order holds at most 20 live links (422 `live_link_limit`); a read-only org makes none (422 `org_read_only`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /live-links/display` (operation `liveLinks.createDisplay`).
+   * Requires the capability `projects.project.read`.
+   */
+  createDisplay(
+    body: LiveDisplayLinkRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<LiveDisplayLinkToken>> {
+    return this.client.request<LiveDisplayLinkToken>(
+      $OPERATIONS["liveLinks.createDisplay"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Regenerate a live link
+   *
+   * Draws a new token and access code through app.regenerate_live_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device that opened the link must enter the new code. Its creator, or a holder of the collection's share capability on the project, may. A revoked link (422 `live_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /live-links/{id}/regenerate` (operation `liveLinks.regenerate`).
+   * Requires the capability `projects.project.read`.
+   */
+  regenerate(id: string, options?: $MutationOptions): Promise<$ApiResponse<LiveLinkRegenerated>> {
+    return this.client.request<LiveLinkRegenerated>(
+      $OPERATIONS["liveLinks.regenerate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a live link
+   *
+   * Revokes the link through app.revoke_live_link so it never opens again and every open page stops on its next update. Its creator, or a holder of the collection's share capability on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /live-links/{id}/revoke` (operation `liveLinks.revoke`).
+   * Requires the capability `projects.project.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<LiveLink>> {
+    return this.client.request<LiveLink>(
+      $OPERATIONS["liveLinks.revoke"],
       { path: { id } },
       options,
     );

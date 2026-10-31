@@ -27,6 +27,17 @@ import type { CustomFieldListView } from "@/lib/custom-fields/types";
 /** The save, share and delete dialogs, and the writes, load when one is used (A24-009). */
 const viewDialogs = onDemand(() => import("./view-dialogs"));
 
+/** The live link dialog (P1, ADR 0130) loads when someone shares a view live. */
+const liveLinkDialog = onDemand(() => import("./live-link-dialog"));
+
+/** Collections a saved view may share live; private.live_view_collections (2780) holds the same list. */
+const LIVE_COLLECTIONS: ReadonlySet<string> = new Set([
+  "project/schedule",
+  "project/show",
+  "show/run_of_show",
+  "show/day_sheets",
+]);
+
 /** The Add filter control loads on a page that has something to filter by, not with every collection (A24-009). */
 const CollectionFilters = dynamic(() => import("./filter-bar").then((m) => m.CollectionFilters));
 
@@ -107,8 +118,10 @@ export function CollectionViews({
   const [loadFailed, setLoadFailed] = useState(false);
   const [status, setStatus] = useState("");
   const [dialog, setDialog] = useState<Dialogs>(null);
+  const [live, setLive] = useState<SavedView | null>(null);
   const [applied, setApplied] = useState<string | null>(null);
   const dialogsModule = useOnDemand(viewDialogs, dialog !== null);
+  const liveModule = useOnDemand(liveLinkDialog, live !== null);
   const appliedDefault = useRef(false);
 
   const go = useCallback(
@@ -305,6 +318,13 @@ export function CollectionViews({
               ),
           },
     );
+    if (collection && LIVE_COLLECTIONS.has(collection)) {
+      items.push({
+        label: t("liveLink.menu", { name: active.name }),
+        icon: "Radio",
+        onSelect: () => setLive(active),
+      });
+    }
     if (active.mine) {
       items.push(
         {
@@ -365,6 +385,18 @@ export function CollectionViews({
           {...(customFields !== undefined ? { customFields } : {})}
           onNavigate={go}
           {...(collection && !active ? { onSave: () => setDialog({ kind: "save" }) } : {})}
+        />
+      ) : null}
+      {live && liveModule ? (
+        <liveModule.LiveLinkDialog
+          org={org}
+          view={live}
+          projectKey={
+            pathname.split("/").filter(Boolean)[1] === "p"
+              ? (pathname.split("/").filter(Boolean)[2] ?? null)
+              : null
+          }
+          onClose={() => setLive(null)}
         />
       ) : null}
       {dialog && dialogsModule ? (

@@ -15,6 +15,12 @@ derived:
     reason: Compass PowerSync filters rows by project without a join (Section 13)
     adr: "0022"
   - objects:
+      - app.live_links.project_id
+    source: "`app.run_of_show.project_id`"
+    refresh: Stamped by trigger for a Display link; a link never changes what it shows (2780)
+    reason: Every live link names its project, so the read checks, the ping triggers and the list policy need no join
+    adr: "0130"
+  - objects:
       - app.inspection_results.project_id
     source: "`app.inspections.project_id`"
     refresh: Stamped by trigger on insert (0420)
@@ -330,6 +336,12 @@ arrays:
   - column: app.work_detail_shares.categories
     kind: reviewed
     note: The set of work detail categories a share grants, read whole (migration 1340).
+  - column: private.live_view_fields.source_columns
+    kind: reviewed
+    note: The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 2780).
+  - column: private.realtime_channel_policies.roles
+    kind: reviewed
+    note: The roles a Realtime channel policy is created for, anon or authenticated, read whole by the ensure function (migration 2782).
 
 # Every column with the same name and type as a non-key column of the table one of its foreign keys references (own
 # names left out): registered (a derived entry above), fact (kept as it was when written while the parent can
@@ -910,6 +922,10 @@ restated:
     parent: app.people.user_id
     kind: fact
     note: Sign-in used, kept as evidence after the sign-in is deleted.
+  - column: app.live_links.project_id
+    parent: app.run_of_show.project_id
+    kind: registered
+    note: Stamped from the running order for a Display link by `private.stamp_live_link_project` (derived entry); for a View link it is the creator's choice of project.
   - column: app.marshalling_log.project_id
     parent: app.shipments.project_id
     kind: own
@@ -1617,6 +1633,10 @@ restated:
     parent: app.share_links.expires_at
     kind: own
     note: When the ticket stops working, two minutes after it was issued.
+  - column: private.live_link_grants.expires_at
+    parent: app.live_links.expires_at
+    kind: own
+    note: When the device grant stops working, the link's expiry or 7 days after the open, whichever comes first.
   - column: private.session_devices.user_agent
     parent: auth.sessions.user_agent
     kind: finding
@@ -1694,6 +1714,9 @@ stored:
   - column: app.invite_links.use_count
     kind: fact
     note: Memberships do not record the link they came from (A22 review).
+  - column: app.live_links.open_count
+    kind: fact
+    note: Successful opens with the access code; the anonymous open writes no other per-link record (migration 2781).
   - column: app.notification_deliveries.attempt_count
     kind: fact
     note: No attempts table exists, so the count is the only record (A22 review).

@@ -88,6 +88,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0117](0117-photo-location-pass-art-and-sponsor-proof-photos.md)    | Photo Location, Pass Art from the Org Logo, and Sponsor Proof Photos             | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
+| [0130](0130-live-share-links-and-display-screens.md)                | Live Share Links to Saved Views and Run-of-Show Display Screens                  | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 

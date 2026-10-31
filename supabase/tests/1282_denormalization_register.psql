@@ -64,7 +64,9 @@ insert into register_arrays values
   ('app.work_detail_events.categories', 'reviewed'),
   ('app.work_detail_events.changed_columns', 'reviewed'),
   ('app.work_detail_events.fact_kinds', 'reviewed'),
-  ('app.work_detail_shares.categories', 'reviewed');
+  ('app.work_detail_shares.categories', 'reviewed'),
+  ('private.live_view_fields.source_columns', 'reviewed'),
+  ('private.realtime_channel_policies.roles', 'reviewed');
 create temporary table register_restated (column_name text not null, parent_column text not null, kind text not null, primary key (column_name, parent_column));
 insert into register_restated values
   ('app.access_grid.project_id', 'app.credential_categories.project_id', 'registered'),
@@ -209,6 +211,7 @@ insert into register_restated values
   ('app.invoices.currency_code', 'app.engagements.currency_code', 'own'),
   ('app.invoices.project_id', 'app.engagements.project_id', 'own'),
   ('app.legal_acceptances.user_id', 'app.people.user_id', 'fact'),
+  ('app.live_links.project_id', 'app.run_of_show.project_id', 'registered'),
   ('app.marshalling_log.project_id', 'app.shipments.project_id', 'own'),
   ('app.marshalling_log.urid', 'app.shipments.urid', 'fact'),
   ('app.moderation_actions.decided_at', 'app.moderation_appeals.decided_at', 'own'),
@@ -381,6 +384,7 @@ insert into register_restated values
   ('private.auth_factor_labels.user_id', 'auth.mfa_factors.user_id', 'finding'),
   ('private.file_download_tickets.attachment_version_id', 'app.share_links.attachment_version_id', 'fact'),
   ('private.file_download_tickets.expires_at', 'app.share_links.expires_at', 'own'),
+  ('private.live_link_grants.expires_at', 'app.live_links.expires_at', 'own'),
   ('private.session_devices.user_agent', 'auth.sessions.user_agent', 'finding'),
   ('private.session_devices.user_id', 'auth.sessions.user_id', 'finding'),
   ('xpms.bridge_element_metric.item', 'xpms.elements.item', 'own'),
@@ -403,6 +407,7 @@ insert into register_stored values
   ('app.import_job_sheets.column_count', 'fact'),
   ('app.import_job_sheets.data_row_count', 'fact'),
   ('app.invite_links.use_count', 'fact'),
+  ('app.live_links.open_count', 'fact'),
   ('app.notification_deliveries.attempt_count', 'fact'),
   ('app.occupancy_counters.alert_level_percent', 'registered'),
   ('app.occupancy_counters.current_count', 'registered'),

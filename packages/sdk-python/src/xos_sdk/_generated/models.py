@@ -1472,6 +1472,13 @@ __all__ = [
     "ShareLink",
     "ShareLinkToken",
     "ShareLinkCreate",
+    "LiveLinkPage",
+    "LiveLink",
+    "LiveViewLinkToken",
+    "LiveViewLinkRequest",
+    "LiveDisplayLinkToken",
+    "LiveDisplayLinkRequest",
+    "LiveLinkRegenerated",
     "PersonCalendarFeedPage",
     "PersonCalendarFeed",
     "ProjectInboxPage",
@@ -24220,6 +24227,129 @@ class ShareLinkCreate(_ShareLinkCreateRequired, total=False):
     note: Optional[str]
     #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
     expires_at: Optional[str]
+
+
+class LiveLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[LiveLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class LiveLink(TypedDict):
+    """A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens)."""
+
+    #: Identifier of the live link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the link shows.
+    project_id: str
+    #: View, a saved view; Display, a running order on a screen.
+    link_kind: Literal["View", "Display"]
+    #: Saved view a View link shows.
+    saved_view_id: Optional[str]
+    #: Running order a Display link shows.
+    run_of_show_id: Optional[str]
+    #: Mode a display screen opens in.
+    default_mode: Optional[Literal["Room Clock", "Presenter Timer", "Backstage"]]
+    #: Last four characters of the token, to tell links apart.
+    token_hint: str
+    #: What the link is for. Never shown on the public page.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days of when it was made.
+    expires_at: str
+    #: Wrong access codes since the link was made or regenerated; it locks at 5.
+    failed_attempts: int
+    #: Successful opens with the access code.
+    open_count: int
+    #: When the link was last opened.
+    last_opened_at: Optional[str]
+    #: When the link was last regenerated.
+    rotated_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class LiveViewLinkToken(TypedDict):
+    """A new live link with its token and access code, shown once."""
+
+    #: The new link.
+    live_link_id: str
+    #: The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _LiveViewLinkRequestRequired(TypedDict):
+    #: Identifier of the saved view to share.
+    saved_view_id: str
+    #: Identifier of the project the link shows.
+    project_id: str
+    #: When the link stops opening: after now and within 90 days.
+    expires_at: str
+
+
+class LiveViewLinkRequest(_LiveViewLinkRequestRequired, total=False):
+    """A live link to a saved view."""
+
+    #: What the link is for. Never shown on the public page.
+    note: str
+
+
+class LiveDisplayLinkToken(TypedDict):
+    """A new live link with its token and access code, shown once."""
+
+    #: The new link.
+    live_link_id: str
+    #: The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _LiveDisplayLinkRequestRequired(TypedDict):
+    #: Identifier of the running order to show.
+    run_of_show_id: str
+
+
+class LiveDisplayLinkRequest(_LiveDisplayLinkRequestRequired, total=False):
+    """A display screen link to a running order."""
+
+    #: When the link stops opening; by default the end of the day after the show.
+    expires_at: str
+    #: Mode a display screen opens in.
+    default_mode: Literal["Room Clock", "Presenter Timer", "Backstage"]
+    #: What the link is for. Never shown on the public page.
+    note: str
+
+
+class LiveLinkRegenerated(TypedDict):
+    """A regenerated live link's new token and access code, shown once."""
+
+    #: The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link.
+    access_code: str
+    #: When the link stops opening; regenerating keeps the expiry.
+    expires_at: str
 
 
 class PersonCalendarFeedPage(TypedDict):

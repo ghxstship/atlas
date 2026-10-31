@@ -516,5 +516,60 @@
       "returned_quantity": "Returned",
       "decline_reason": "Decline reason"
     }
+  },
+  "liveLink": {
+    "menu": "Share {name} live",
+    "title": "Share {name} live",
+    "description": "Anyone with the link and its access code sees this view, without an account, and it updates while they watch. They see only the columns a public page shows, never owners, notes or costs.",
+    "project": "Project",
+    "projectHelp": "The link shows this project's rows.",
+    "expiresOn": "Expires",
+    "expiresHelp": "At most 90 days ahead. The link always needs its access code.",
+    "note": "Note",
+    "noteHelp": "Only you and your team see it, never the person you share with.",
+    "submit": "Create live link",
+    "close": "Close",
+    "errors": {
+      "live_link_view_unsupported": "This view cannot be shared live. Live links show Schedule, Show, Run of show and Day sheets views whose filters, sorts and grouping use the fields a public page shows; custom field filters are not shown.",
+      "live_link_capability": "You do not have permission to share this live on the project.",
+      "live_link_expiry": "Pick when the link expires.",
+      "live_link_expiry_range": "Pick an expiry date after today and within 90 days.",
+      "live_link_limit": "This has 20 live links. Revoke one before you add another.",
+      "live_link_revoked": "A revoked link cannot be regenerated. Make a new link instead.",
+      "org_read_only": "This organization is read-only. New links cannot be made, but you can still revoke links.",
+      "projectRequired": "Pick a project.",
+      "notFound": "This link or view no longer exists.",
+      "unexpected": "Something went wrong. Try again."
+    },
+    "links": {
+      "heading": "Live links",
+      "loading": "Loading live links",
+      "none": "No live links yet.",
+      "made": "Made {date}",
+      "expires": "Expires {date}",
+      "opened": "{count, plural, =0 {Never opened} one {Opened once} other {Opened # times}}",
+      "lastOpened": "Last opened {date}",
+      "hint": "Ends in {hint}",
+      "states": {
+        "Active": "Active",
+        "Locked": "Locked",
+        "Expired": "Expired",
+        "Revoked": "Revoked"
+      },
+      "regenerate": "Regenerate",
+      "regenerateConfirm": "Regenerate this link? The old address and code stop working at once, and every screen showing it must enter the new code.",
+      "revoke": "Revoke",
+      "revokeConfirm": "Revoke this link? It stops working at once and cannot be turned back on.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "created": {
+      "heading": "Link ready",
+      "copyOnce": "Copy the address and the code now: they are shown only once. Send the code separately from the link.",
+      "link": "Link",
+      "code": "Access code",
+      "copy": "Copy",
+      "copied": "Copied"
+    }
   }
 }

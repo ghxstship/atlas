@@ -44307,6 +44307,248 @@ export interface ShareLinkCreate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface LiveLinkPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<LiveLink>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens).
+ */
+export interface LiveLink {
+  /**
+   * Identifier of the live link.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project the link shows.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * View, a saved view; Display, a running order on a screen.
+   */
+  readonly link_kind: "View" | "Display";
+  /**
+   * Saved view a View link shows.
+   * Format: `uuid`.
+   */
+  readonly saved_view_id: string | null;
+  /**
+   * Running order a Display link shows.
+   * Format: `uuid`.
+   */
+  readonly run_of_show_id: string | null;
+  /**
+   * Mode a display screen opens in.
+   */
+  readonly default_mode: "Room Clock" | "Presenter Timer" | "Backstage" | null;
+  /**
+   * Last four characters of the token, to tell links apart.
+   * Length: 1 to 4.
+   */
+  readonly token_hint: string;
+  /**
+   * What the link is for. Never shown on the public page.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+  /**
+   * When the link stops opening: within 90 days of when it was made.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Wrong access codes since the link was made or regenerated; it locks at 5.
+   * Range: 0 to unbounded.
+   */
+  readonly failed_attempts: number;
+  /**
+   * Successful opens with the access code.
+   * Range: 0 to unbounded.
+   */
+  readonly open_count: number;
+  /**
+   * When the link was last opened.
+   * Format: `date-time`.
+   */
+  readonly last_opened_at: string | null;
+  /**
+   * When the link was last regenerated.
+   * Format: `date-time`.
+   */
+  readonly rotated_at: string | null;
+  /**
+   * When the link was revoked; it never opens again.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the link.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new live link with its token and access code, shown once.
+ */
+export interface LiveViewLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly live_link_id: string;
+  /**
+   * The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+   * Pattern: `^xshv_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * A live link to a saved view.
+ */
+export interface LiveViewLinkRequest {
+  /**
+   * Identifier of the saved view to share.
+   * Format: `uuid`.
+   */
+  readonly saved_view_id: string;
+  /**
+   * Identifier of the project the link shows.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * When the link stops opening: after now and within 90 days.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * What the link is for. Never shown on the public page.
+   * Length: 1 to 200.
+   */
+  readonly note?: string;
+}
+
+/**
+ * A new live link with its token and access code, shown once.
+ */
+export interface LiveDisplayLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly live_link_id: string;
+  /**
+   * The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+   * Pattern: `^xscr_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * A display screen link to a running order.
+ */
+export interface LiveDisplayLinkRequest {
+  /**
+   * Identifier of the running order to show.
+   * Format: `uuid`.
+   */
+  readonly run_of_show_id: string;
+  /**
+   * When the link stops opening; by default the end of the day after the show.
+   * Format: `date-time`.
+   */
+  readonly expires_at?: string;
+  /**
+   * Mode a display screen opens in.
+   */
+  readonly default_mode?: "Room Clock" | "Presenter Timer" | "Backstage";
+  /**
+   * What the link is for. Never shown on the public page.
+   * Length: 1 to 200.
+   */
+  readonly note?: string;
+}
+
+/**
+ * A regenerated live link's new token and access code, shown once.
+ */
+export interface LiveLinkRegenerated {
+  /**
+   * The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+   * Pattern: `^xs(hv|cr)_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening; regenerating keeps the expiry.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface PersonCalendarFeedPage {
   /**
    * Items on this page, in the documented default order.
