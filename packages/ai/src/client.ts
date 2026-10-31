@@ -473,6 +473,8 @@ export interface AuroraClient {
           instructions: string;
           target: { collection: "projects"; id: string };
           verbiage?: readonly { term: string; preferred: string }[];
+          /** The outline headings in the person's locale; the English outline when absent. */
+          outline?: readonly string[];
         },
   ): Promise<AuroraCall<AuroraApiResult<AuroraDraft>>>;
   /** A run of show or risk assessment drafted into an empty list (P6); `target` names the list. */

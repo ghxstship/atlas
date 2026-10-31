@@ -9,7 +9,9 @@ import {
   getIntake,
   intakePartyCandidates,
   itineraryTravelerCandidates,
+  listDraftSources,
   readsPayroll,
+  saveDraftDocument,
   startIntake,
   vendorLineHistory,
 } from "../src/ai.ts";
@@ -301,5 +303,57 @@ describe("drafted advance answers (B15)", () => {
     });
     expect(calls[2]?.steps).toContainEqual(["in", ["iata_code", ["MIA", "XXX"]]]);
     expect(await activeAirportCodes(db, ["Terminal"])).toEqual({ ok: true, data: new Set() });
+  });
+});
+
+describe("draft sources and saved drafts (B15)", () => {
+  it("lists verified, live project inbox mail without its body", async () => {
+    const { db, calls } = fakeClient({
+      "from:inbound_addresses": [okResponse([{ id: "a1" }]), okResponse([])],
+      "from:inbound_messages": [
+        okResponse([
+          {
+            id: "m1",
+            subject_line: "Advance",
+            from_address: "tm@band.test",
+            received_at: "2026-10-30T00:00:00Z",
+          },
+        ]),
+      ],
+    });
+    expect(await listDraftSources(db, "p1")).toEqual({
+      ok: true,
+      data: [
+        {
+          id: "m1",
+          subject: "Advance",
+          fromAddress: "tm@band.test",
+          receivedAt: "2026-10-30T00:00:00Z",
+        },
+      ],
+    });
+    const steps = calls.find((c) => c.target === "from:inbound_messages")?.steps ?? [];
+    expect(steps).toContainEqual(["eq", ["dkim_verified", true]]);
+    expect(steps).toContainEqual(["is", ["discarded_at", null]]);
+    expect(JSON.stringify(steps)).not.toContain("body_text");
+    expect(await listDraftSources(db, "p2")).toEqual({ ok: true, data: [] });
+  });
+
+  it("refuses to save a draft the database will not file", async () => {
+    const { db } = fakeClient({
+      "from:documents": [
+        errorResponse("42501", "new row violates row-level security policy for table documents"),
+      ],
+    });
+    expect(
+      await saveDraftDocument(db, {
+        orgId: "o1",
+        projectId: "p1",
+        title: "Waste Plan",
+        markdown: "# x",
+      }),
+    ).toMatchObject({
+      ok: false,
+    });
   });
 });
