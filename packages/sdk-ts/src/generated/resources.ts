@@ -552,6 +552,8 @@ import type {
   LoyaltyProgramCreate,
   LoyaltyProgramUpdate,
   MarkAllReadResult,
+  MarkCommunicatedRequest,
+  MarkCommunicatedResult,
   MarkConversationReadRequest,
   MarketplaceListingPage,
   MarshallingLogEntry,
@@ -900,6 +902,7 @@ import type {
   ShiftBulkEditRequest,
   ShiftBulkEditResult,
   ShiftClaimResult,
+  ShiftCommunicationStatusPage,
   ShiftCreate,
   ShiftSwap,
   ShiftSwapCreate,
@@ -8479,6 +8482,49 @@ export class ShiftsResource extends $Resource {
     return this.client.request<FieldHistoryEventPage>(
       $OPERATIONS["shifts.fieldHistory"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Read whether shift workers were told of changes
+   *
+   * For up to 100 shifts, the person on each, when and how they were last told, the communicable fields others changed since, and whether the shift needs review (app.communication_status). Shifts the caller cannot read, or cannot write (crew.shift.write), are left out. More than 100 ids are refused with 422 communication_too_many. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /shifts/communication-status` (operation `shifts.communicationStatus`).
+   * Requires the capability `crew.shift.write`.
+   */
+  communicationStatus(
+    params: {
+      /**
+       * Shift ids, comma-separated, at most 100; more are refused as communication_too_many.
+       */
+      readonly ids: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ShiftCommunicationStatusPage>> {
+    return this.client.request<ShiftCommunicationStatusPage>(
+      $OPERATIONS["shifts.communicationStatus"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Mark shifts as communicated
+   *
+   * Saves one communication mark per shift for the person on it now, at the same instant (app.mark_communicated); their changes up to then no longer need review. All or nothing: 404 unless the caller holds crew.shift.write on every shift's project, 422 communication_no_assignee for an open or deleted shift and communication_too_many above 500 ids. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /shifts/mark-communicated` (operation `shifts.markCommunicated`).
+   * Requires the capability `crew.shift.write`.
+   */
+  markCommunicated(
+    body: MarkCommunicatedRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<MarkCommunicatedResult>> {
+    return this.client.request<MarkCommunicatedResult>(
+      $OPERATIONS["shifts.markCommunicated"],
+      { body },
       options,
     );
   }

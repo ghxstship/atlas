@@ -9639,6 +9639,89 @@ export interface ShiftBulkEditRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface ShiftCommunicationStatusPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ShiftCommunicationStatus>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Whether the person on a shift was told of its changes (Section 4.2 Needs review).
+ */
+export interface ShiftCommunicationStatus {
+  /**
+   * The shift.
+   * Format: `uuid`.
+   */
+  readonly shift_id: string;
+  /**
+   * Person on the shift now; null for an open shift.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * When the person was last told; null when never.
+   * Format: `date-time`.
+   */
+  readonly told_at: string | null;
+  /**
+   * How the person was last told: marked (a coordinator marked it as communicated), accepted (they accepted the shift) or notified (a shift notification reached them).
+   */
+  readonly told_via: "marked" | "accepted" | "notified" | null;
+  /**
+   * Who told them: the coordinator, or whose change sent the notification.
+   * Length: 1 to 300.
+   */
+  readonly told_by_name: string | null;
+  /**
+   * When the latest communicable change after that was saved.
+   * Format: `date-time`.
+   */
+  readonly changed_at: string | null;
+  /**
+   * Fields others changed after the person was told, such as role_code or shift_state (a cancellation or a return to Draft). Names only, never values.
+   */
+  readonly changed_fields: ReadonlyArray<string>;
+  /**
+   * True when the shift is live, has a person on it and ends after now, and either it is Published or Accepted with a change since they were told or was never told, or it was canceled or returned to Draft after they were told.
+   */
+  readonly needs_review: boolean;
+}
+
+/**
+ * What Mark as communicated saved.
+ */
+export interface MarkCommunicatedResult {
+  /**
+   * Marks saved: one per shift, for the person on it now.
+   * Range: 0 to unbounded.
+   */
+  readonly marked: number;
+}
+
+/**
+ * Shifts whose people were told of their changes.
+ */
+export interface MarkCommunicatedRequest {
+  /**
+   * Shifts to mark, at most 500.
+   */
+  readonly ids: ReadonlyArray<string>;
+  /**
+   * How the people were told, such as a phone call.
+   * Length: 1 to 300.
+   */
+  readonly note?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface ShiftSwapPage {
   /**
    * Items on this page, in the documented default order.

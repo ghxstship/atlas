@@ -331,6 +331,8 @@ export type OperationId =
   | "shifts.bulkPreview"
   | "shifts.bulkUpdate"
   | "shifts.fieldHistory"
+  | "shifts.communicationStatus"
+  | "shifts.markCommunicated"
   | "shiftSwaps.list"
   | "shiftSwaps.create"
   | "shiftSwaps.get"
@@ -9160,6 +9162,52 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     tag: "Crew",
     summary: "Field history of a shift",
     capability: "crew.shift.read",
+    scopes: ["crew"],
+  },
+  "shifts.communicationStatus": {
+    id: "shifts.communicationStatus",
+    resource: "shifts",
+    verb: "communicationStatus",
+    method: "GET",
+    path: "/shifts/communication-status",
+    pathParams: [],
+    queryParams: ["ids"],
+    requiredQueryParams: ["ids"],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "ShiftCommunicationStatusPage",
+    item: null,
+    tag: "Crew",
+    summary: "Read whether shift workers were told of changes",
+    capability: "crew.shift.write",
+    scopes: ["crew"],
+  },
+  "shifts.markCommunicated": {
+    id: "shifts.markCommunicated",
+    resource: "shifts",
+    verb: "markCommunicated",
+    method: "POST",
+    path: "/shifts/mark-communicated",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "MarkCommunicatedRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "MarkCommunicatedResult",
+    item: null,
+    tag: "Crew",
+    summary: "Mark shifts as communicated",
+    capability: "crew.shift.write",
     scopes: ["crew"],
   },
   "shiftSwaps.list": {
@@ -41306,6 +41354,8 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "shifts.bulkPreview",
       "shifts.bulkUpdate",
       "shifts.fieldHistory",
+      "shifts.communicationStatus",
+      "shifts.markCommunicated",
     ],
   },
   {

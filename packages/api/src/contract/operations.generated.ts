@@ -4796,6 +4796,8 @@ export interface Components {
     sort_order?: number;
   };
   MarkAllReadResult: { updated_count: number };
+  MarkCommunicatedRequest: { ids: Array<string>; note?: string };
+  MarkCommunicatedResult: { marked: number };
   MarkConversationReadRequest: { muted?: boolean };
   MarketplaceListing: {
     id: string;
@@ -8185,6 +8187,20 @@ export interface Components {
     time_zone: string;
     scheduled_break_minutes: number | null;
     claim: { id: string; claim_state: "Requested" } | null;
+  };
+  ShiftCommunicationStatus: {
+    shift_id: string;
+    person_id: string | null;
+    told_at: string | null;
+    told_via: "marked" | "accepted" | "notified" | null;
+    told_by_name: string | null;
+    changed_at: string | null;
+    changed_fields: Array<string>;
+    needs_review: boolean;
+  };
+  ShiftCommunicationStatusPage: {
+    data: Array<Components["ShiftCommunicationStatus"]>;
+    next_cursor: string | null;
   };
   ShiftCreate: {
     project_id: string;
@@ -13601,6 +13617,24 @@ export interface Operations {
     query: { limit?: number };
     body: undefined;
     responses: { 200: Components["FieldHistoryEventPage"] };
+  };
+  "shifts.communicationStatus": {
+    module: "Crew";
+    method: "get";
+    path: "/shifts/communication-status";
+    params: Record<string, never>;
+    query: { ids: string };
+    body: undefined;
+    responses: { 200: Components["ShiftCommunicationStatusPage"] };
+  };
+  "shifts.markCommunicated": {
+    module: "Crew";
+    method: "post";
+    path: "/shifts/mark-communicated";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["MarkCommunicatedRequest"];
+    responses: { 200: Components["MarkCommunicatedResult"] };
   };
   "shiftSwaps.list": {
     module: "Crew";
@@ -28536,6 +28570,8 @@ export interface ModuleOperations {
     | "shifts.bulkPreview"
     | "shifts.bulkUpdate"
     | "shifts.fieldHistory"
+    | "shifts.communicationStatus"
+    | "shifts.markCommunicated"
     | "shiftSwaps.list"
     | "shiftSwaps.create"
     | "shiftSwaps.get"

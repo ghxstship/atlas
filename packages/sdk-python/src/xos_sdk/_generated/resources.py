@@ -752,6 +752,8 @@ if TYPE_CHECKING:
         LoyaltyProgramPage,
         LoyaltyProgramUpdate,
         MarkAllReadResult,
+        MarkCommunicatedRequest,
+        MarkCommunicatedResult,
         MarkConversationReadRequest,
         MarketplaceListingPage,
         MarshallingLogEntry,
@@ -1227,6 +1229,7 @@ if TYPE_CHECKING:
         ShiftBulkEditRequest,
         ShiftBulkEditResult,
         ShiftClaimResult,
+        ShiftCommunicationStatusPage,
         ShiftCreate,
         ShiftPage,
         ShiftSwap,
@@ -8453,6 +8456,37 @@ class ShiftsResource(Resource):
         Requires the capability ``crew.shift.read``.
         """
         return self._client.request(OPERATIONS["shifts.fieldHistory"], path={"id": id}, query={"limit": limit_}, options=options)
+
+    def communication_status(
+        self,
+        *,
+        ids: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShiftCommunicationStatusPage]:
+        """Read whether shift workers were told of changes
+
+        For up to 100 shifts, the person on each, when and how they were last told, the communicable fields others changed since, and whether the shift needs review (app.communication_status). Shifts the caller cannot read, or cannot write (crew.shift.write), are left out. More than 100 ids are refused with 422 communication_too_many. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /shifts/communication-status`` (operation ``shifts.communicationStatus``).
+        Requires the capability ``crew.shift.write``.
+        """
+        return self._client.request(OPERATIONS["shifts.communicationStatus"], query={"ids": ids}, options=options)
+
+    def mark_communicated(
+        self,
+        body: MarkCommunicatedRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[MarkCommunicatedResult]:
+        """Mark shifts as communicated
+
+        Saves one communication mark per shift for the person on it now, at the same instant (app.mark_communicated); their changes up to then no longer need review. All or nothing: 404 unless the caller holds crew.shift.write on every shift's project, 422 communication_no_assignee for an open or deleted shift and communication_too_many above 500 ids. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /shifts/mark-communicated`` (operation ``shifts.markCommunicated``).
+        Requires the capability ``crew.shift.write``.
+        """
+        return self._client.request(OPERATIONS["shifts.markCommunicated"], body=body, idempotency_key=idempotency_key, options=options)
 
 
 class ShiftSwapsResource(Resource):

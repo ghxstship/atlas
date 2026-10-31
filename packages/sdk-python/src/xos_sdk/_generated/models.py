@@ -309,6 +309,10 @@ __all__ = [
     "ShiftBulkRow",
     "ShiftBulkValues",
     "ShiftBulkEditRequest",
+    "ShiftCommunicationStatusPage",
+    "ShiftCommunicationStatus",
+    "MarkCommunicatedResult",
+    "MarkCommunicatedRequest",
     "ShiftSwapPage",
     "ShiftSwap",
     "ShiftSwapCreate",
@@ -6471,6 +6475,55 @@ class ShiftBulkEditRequest(_ShiftBulkEditRequestRequired, total=False):
 
     #: Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
     reason: str
+
+
+class ShiftCommunicationStatusPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ShiftCommunicationStatus]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ShiftCommunicationStatus(TypedDict):
+    """Whether the person on a shift was told of its changes (Section 4.2 Needs review)."""
+
+    #: The shift.
+    shift_id: str
+    #: Person on the shift now; null for an open shift.
+    person_id: Optional[str]
+    #: When the person was last told; null when never.
+    told_at: Optional[str]
+    #: How the person was last told: marked (a coordinator marked it as communicated), accepted (they accepted the shift) or notified (a shift notification reached them).
+    told_via: Optional[Literal["marked", "accepted", "notified"]]
+    #: Who told them: the coordinator, or whose change sent the notification.
+    told_by_name: Optional[str]
+    #: When the latest communicable change after that was saved.
+    changed_at: Optional[str]
+    #: Fields others changed after the person was told, such as role_code or shift_state (a cancellation or a return to Draft). Names only, never values.
+    changed_fields: List[str]
+    #: True when the shift is live, has a person on it and ends after now, and either it is Published or Accepted with a change since they were told or was never told, or it was canceled or returned to Draft after they were told.
+    needs_review: bool
+
+
+class MarkCommunicatedResult(TypedDict):
+    """What Mark as communicated saved."""
+
+    #: Marks saved: one per shift, for the person on it now.
+    marked: int
+
+
+class _MarkCommunicatedRequestRequired(TypedDict):
+    #: Shifts to mark, at most 500.
+    ids: List[str]
+
+
+class MarkCommunicatedRequest(_MarkCommunicatedRequestRequired, total=False):
+    """Shifts whose people were told of their changes."""
+
+    #: How the people were told, such as a phone call.
+    note: str
 
 
 class ShiftSwapPage(TypedDict):

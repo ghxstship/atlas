@@ -13099,6 +13099,126 @@
         "required": ["rows"],
         "description": "A bulk change of shifts."
       },
+      "ShiftCommunicationStatusPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ShiftCommunicationStatus" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ShiftCommunicationStatus": {
+        "type": "object",
+        "properties": {
+          "shift_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The shift.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person on the shift now; null for an open shift.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "told_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the person was last told; null when never.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "told_via": {
+            "type": ["string", "null"],
+            "enum": ["marked", "accepted", "notified", null],
+            "description": "How the person was last told: marked (a coordinator marked it as communicated), accepted (they accepted the shift) or notified (a shift notification reached them).",
+            "example": "notified"
+          },
+          "told_by_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Who told them: the coordinator, or whose change sent the notification.",
+            "example": "Carol Nguyen"
+          },
+          "changed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the latest communicable change after that was saved.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "changed_fields": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Fields others changed after the person was told, such as role_code or shift_state (a cancellation or a return to Draft). Names only, never values.",
+            "example": ["role_code"]
+          },
+          "needs_review": {
+            "type": "boolean",
+            "description": "True when the shift is live, has a person on it and ends after now, and either it is Published or Accepted with a change since they were told or was never told, or it was canceled or returned to Draft after they were told.",
+            "example": true
+          }
+        },
+        "required": [
+          "shift_id",
+          "person_id",
+          "told_at",
+          "told_via",
+          "told_by_name",
+          "changed_at",
+          "changed_fields",
+          "needs_review"
+        ],
+        "description": "Whether the person on a shift was told of its changes (Section 4.2 Needs review)."
+      },
+      "MarkCommunicatedResult": {
+        "type": "object",
+        "properties": {
+          "marked": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Marks saved: one per shift, for the person on it now.",
+            "example": 2
+          }
+        },
+        "required": ["marked"],
+        "description": "What Mark as communicated saved."
+      },
+      "MarkCommunicatedRequest": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "description": "A shift.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "Shifts to mark, at most 500."
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "How the people were told, such as a phone call.",
+            "example": "Called each crew member."
+          }
+        },
+        "required": ["ids"],
+        "description": "Shifts whose people were told of their changes."
+      },
       "ShiftSwapPage": {
         "type": "object",
         "properties": {
@@ -86515,6 +86635,112 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/shifts/communication-status": {
+      "get": {
+        "operationId": "shifts.communicationStatus",
+        "tags": ["Crew"],
+        "x-xos-table": "app.shifts",
+        "x-xos-capability": "crew.shift.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
+        "x-xos-rpc": "app.communication_status",
+        "summary": "Read whether shift workers were told of changes",
+        "description": "For up to 100 shifts, the person on each, when and how they were last told, the communicable fields others changed since, and whether the shift needs review (app.communication_status). Shifts the caller cannot read, or cannot write (crew.shift.write), are left out. More than 100 ids are refused with 422 communication_too_many. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F-]{36}(,[0-9a-fA-F-]{36})*$",
+              "description": "Shift ids, comma-separated, at most 100; more are refused as communication_too_many.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Shift ids, comma-separated, at most 100; more are refused as communication_too_many.",
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "shift_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "told_at": "2026-10-08T14:30:00Z",
+                      "told_via": "notified",
+                      "told_by_name": "Carol Nguyen",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "changed_fields": ["role_code"],
+                      "needs_review": true
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ShiftCommunicationStatusPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/shifts/mark-communicated": {
+      "post": {
+        "operationId": "shifts.markCommunicated",
+        "tags": ["Crew"],
+        "x-xos-table": "app.shifts",
+        "x-xos-capability": "crew.shift.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
+        "x-xos-rpc": "app.mark_communicated",
+        "summary": "Mark shifts as communicated",
+        "description": "Saves one communication mark per shift for the person on it now, at the same instant (app.mark_communicated); their changes up to then no longer need review. All or nothing: 404 unless the caller holds crew.shift.write on every shift's project, 422 communication_no_assignee for an open or deleted shift and communication_too_many above 500 ids. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                "note": "Called each crew member."
+              },
+              "schema": { "$ref": "#/components/schemas/MarkCommunicatedRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "marked": 2 },
+                "schema": { "$ref": "#/components/schemas/MarkCommunicatedResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }

@@ -11,6 +11,7 @@ import { z } from "@hono/zod-openapi";
 import { canonCodes, exampleOf, fields, maskable } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { fieldHistoryAction, shiftBulkActions } from "./parts/bulk-edit-and-history.ts";
+import { shiftCommunicationActions } from "./parts/communication.ts";
 import {
   all,
   editShape,
@@ -88,7 +89,15 @@ const shiftClaimResult = (shift: z.ZodObject) => {
 };
 
 export const additions = defineAdditions("Crew", {
-  actions: { shifts: [...shiftBulkActions, fieldHistoryAction("shift")] },
+  actions: {
+    shifts: [...shiftBulkActions, fieldHistoryAction("shift"), ...shiftCommunicationActions],
+  },
+  // Needs review and Mark as communicated (B6, 2951) are for the people who write shifts.
+  capabilities: {
+    shifts: {
+      actions: { communicationStatus: "crew.shift.write", markCommunicated: "crew.shift.write" },
+    },
+  },
   corrections: [
     {
       id: "shift-worker-and-time-zone",
