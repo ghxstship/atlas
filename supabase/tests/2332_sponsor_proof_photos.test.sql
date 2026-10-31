@@ -89,6 +89,16 @@ select results_eq(format($$select org_id, engagement_id, created_by from app.pro
   'the photo belongs to the org and the engagement, recorded by sol');
 select is((select count(*)::int from app.proof_of_performance_photos), 1, 'the replay made no second row');
 
+-- R4 (2630, 2631, owner decision 6): an Account Member reaches the account's engagement once she confirms her membership
+-- and the Owner assigns her to it.
+select pg_temp.as_user('lena');
+select app.accept_account_membership((select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_s')
+  and m.person_id = pg_temp.id('lena')));
+select pg_temp.as_platform();
+insert into world select 'lena_membership', m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_s')
+  and m.person_id = pg_temp.id('lena');
+select pg_temp.as_user('sol');
+select app.assign_engagement_member(pg_temp.id('eng_sponsor'), pg_temp.id('lena_membership'), 'Member');
 select pg_temp.as_user('lena');
 -- As the storage API writes it, with the uploader as the object's owner.
 select lives_ok(format($$insert into storage.objects (bucket_id, name, owner_id) values ('field-media', %L, %L)$$,
