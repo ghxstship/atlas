@@ -32838,6 +32838,113 @@ export type Database = {
           },
         ];
       };
+      over_limit_objects: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          limit_code: Database["app"]["Enums"]["plan_limit_code"];
+          membership_id: string | null;
+          org_id: string;
+          plan_code: string;
+          project_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          limit_code: Database["app"]["Enums"]["plan_limit_code"];
+          membership_id?: string | null;
+          org_id: string;
+          plan_code: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          limit_code?: Database["app"]["Enums"]["plan_limit_code"];
+          membership_id?: string | null;
+          org_id?: string;
+          plan_code?: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "over_limit_objects_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "over_limit_objects_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "over_limit_objects_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "over_limit_objects_plan_code_fkey";
+            columns: ["plan_code"];
+            isOneToOne: false;
+            referencedRelation: "plans";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "over_limit_objects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "over_limit_objects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "over_limit_objects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "over_limit_objects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "over_limit_objects_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ownership_transfers: {
         Row: {
           accepted_at: string | null;
@@ -35936,6 +36043,103 @@ export type Database = {
           },
           {
             foreignKeyName: "personal_setting_values_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      plan_limit_choices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          limit_code: Database["app"]["Enums"]["plan_limit_code"];
+          membership_id: string | null;
+          org_id: string;
+          project_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          limit_code: Database["app"]["Enums"]["plan_limit_code"];
+          membership_id?: string | null;
+          org_id: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          limit_code?: Database["app"]["Enums"]["plan_limit_code"];
+          membership_id?: string | null;
+          org_id?: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "plan_limit_choices_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "plan_limit_choices_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "plan_limit_choices_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "plan_limit_choices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "plan_limit_choices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "plan_limit_choices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "plan_limit_choices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "plan_limit_choices_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -64474,6 +64678,14 @@ export type Database = {
         };
         Returns: string;
       };
+      choose_plan_limit_keeps: {
+        Args: {
+          p_keep: string[];
+          p_limit: Database["app"]["Enums"]["plan_limit_code"];
+          p_org_id: string;
+        };
+        Returns: number;
+      };
       claim_advance_token: {
         Args: { p_token: string };
         Returns: {
@@ -66436,12 +66648,17 @@ export type Database = {
         Args: { p_org_id: string };
         Returns: {
           billing_state: string;
+          over_limit_plan: string;
+          own_seat_read_only: string;
           ownership_expires_at: string;
           ownership_offered_by: string;
           ownership_transfer_id: string;
           past_due_since: string;
           purge_after: string;
+          read_only_field_seats: number;
+          read_only_projects: number;
           read_only_reason: string;
+          read_only_seats: number;
           read_only_until: string;
           recover_until: string;
           trial_ends_at: string;
@@ -66573,6 +66790,31 @@ export type Database = {
         Returns: {
           full_name: string;
           person_id: string;
+        }[];
+      };
+      plan_limit_candidates: {
+        Args: { p_limit: Database["app"]["Enums"]["plan_limit_code"]; p_org_id: string };
+        Returns: {
+          chosen: boolean;
+          created_at: string;
+          label: string;
+          locked: boolean;
+          membership_id: string;
+          project_id: string;
+          project_key: string;
+          read_only: boolean;
+          role_code: string;
+          role_name: string;
+        }[];
+      };
+      plan_limit_usage: {
+        Args: { p_org_id: string };
+        Returns: {
+          in_use: number;
+          limit_code: string;
+          limit_value: number;
+          plan_code: string;
+          read_only: number;
         }[];
       };
       point_in_geofence: {

@@ -1,0 +1,47 @@
+{
+  "limits": {
+    "active_projects": "Proyectos activos",
+    "seats": "Asientos",
+    "field_members": "Asientos de campo"
+  },
+  "counts": {
+    "projects": "{count, plural, one {# proyecto} other {# proyectos}}",
+    "seats": "{count, plural, one {# asiento} other {# asientos}}",
+    "fieldSeats": "{count, plural, one {# asiento de campo} other {# asientos de campo}}"
+  },
+  "banners": {
+    "project": "Este proyecto es de solo lectura: el plan {plan} permite {limit, plural, one {# proyecto activo} other {# proyectos activos}} y la organización tiene más. Puede seguir leyendo todo su contenido, y no se elimina nada.",
+    "projects": "{count, plural, one {# proyecto es} other {# proyectos son}} de solo lectura: el plan {plan} permite {limit, plural, one {# proyecto activo} other {# proyectos activos}}. No se elimina nada.",
+    "seats": "{count, plural, one {El asiento de # miembro es} other {Los asientos de # miembros son}} de solo lectura: el plan {plan} incluye {limit, plural, one {# asiento} other {# asientos}}. Esos miembros pueden seguir leyendo todo.",
+    "fieldSeats": "{count, plural, one {# asiento de campo es} other {# asientos de campo son}} de solo lectura: el plan {plan} incluye Compass para {limit, plural, one {# miembro de campo} other {# miembros de campo}}.",
+    "summary": "La organización supera los límites del plan {plan}, así que {items} {count, plural, one {es} other {son}} de solo lectura. No se elimina nada.",
+    "ownSeat": "Su asiento es de solo lectura: el plan {plan} incluye {limit, plural, one {# asiento} other {# asientos}} y más miembros tienen uno. Puede seguir leyendo todo.",
+    "ownFieldSeat": "Su asiento de campo es de solo lectura: el plan {plan} incluye Compass para {limit, plural, one {# miembro de campo} other {# miembros de campo}} y la organización tiene más. Puede seguir leyendo todo.",
+    "ownerAction": "Elegir qué sigue editable, o mejorar el plan",
+    "askOwner": "Un Propietario puede elegir qué sigue editable, archivar un proyecto o terminar una membresía, o mejorar el plan."
+  },
+  "panel": {
+    "title": "Qué sigue editable",
+    "description": "Terminar una prueba o pasar a un plan más pequeño no elimina nada. Cuando la organización tiene más de lo que permite el plan {plan}, lo que supera un límite pasa a ser de solo lectura: los Propietarios conservan sus asientos, luego sigue editable lo que elija aquí y luego lo más antiguo. Archivar un proyecto, terminar una membresía o mejorar el plan vuelve a hacerlo editable de inmediato.",
+    "usage": "{inUse, number} de {limit, number}",
+    "unlimited": "Ilimitado en el plan {plan}.",
+    "within": "Dentro del límite: todo es editable.",
+    "over": "{count, plural, one {# es} other {# son}} de solo lectura.",
+    "room": "Mantenga hasta {room, plural, one {# editable} other {# editables}}. Si no elige, siguen editables los más antiguos.",
+    "noRoom": "Los Propietarios ocupan todos los asientos que incluye el plan, así que ningún otro miembro conserva uno. Mejore el plan o compre asientos adicionales para hacer espacio.",
+    "owner": "Propietario, siempre editable",
+    "readOnly": "Solo lectura",
+    "writable": "Editable",
+    "save": "Mantener estos editables",
+    "saved": "Guardado. {count, plural, =0 {Ya no hay nada de solo lectura.} one {# sigue de solo lectura.} other {# siguen de solo lectura.}}",
+    "unnamed": "Miembro sin nombre",
+    "ownerOnly": "Solo un Propietario elige qué sigue editable."
+  },
+  "errors": {
+    "plan_limit_choice_too_many": "No elija más de lo que el plan permite.",
+    "plan_limit_choice_unknown": "Uno de ellos ya no cuenta para este límite. Actualice la página y vuelva a elegir.",
+    "plan_limit_choice_limit": "Elija qué sigue editable para proyectos activos, asientos o asientos de campo.",
+    "denied": "Solo un Propietario elige qué sigue editable.",
+    "unexpected": "Algo salió mal. Vuelva a intentarlo en un momento."
+  }
+}
