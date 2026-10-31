@@ -1,8 +1,9 @@
 import type { ReactElement } from "react";
-import { Link, Section, Text } from "@react-email/components";
+import { Button, Link, Section, Text } from "@react-email/components";
 import type { Locale } from "@xos/i18n";
+import { EMAIL_ACTIONS, type EmailAction } from "../actions.ts";
 import type { MessageArgs, Translate } from "../messages.ts";
-import { color, space, text } from "../theme.ts";
+import { color, radius, space, stroke, text } from "../theme.ts";
 import { Layout, Paragraph, type Sender } from "./layout.tsx";
 
 /** What every template receives besides its own props. */
@@ -24,6 +25,11 @@ export interface KindItem {
   readonly kind: string;
   readonly args: MessageArgs;
   readonly url: string;
+  /**
+   * One-tap actions (A127, ADR 0106): signed, single-use links to the confirm page of each action the item's Inbox
+   * entry offers. A link never acts by itself; the confirm page asks, and a rejection asks for the reason.
+   */
+  readonly actions?: readonly EmailAction[];
 }
 
 export interface TemplateProps {
@@ -90,6 +96,60 @@ function kindKey(kind: string, part: "subject" | "body"): string {
   return `kinds.${kind}.${part}`;
 }
 
+/**
+ * The one-tap action buttons (A127): each opens the confirm page, so acting from an email takes two taps. Approve and
+ * accept are filled; reject is outlined, after them.
+ */
+function ActionLinks({
+  actions,
+  t,
+}: {
+  readonly actions: readonly EmailAction[];
+  readonly t: Translate;
+}) {
+  const ordered = EMAIL_ACTIONS.flatMap((name) => actions.filter((a) => a.action === name));
+  if (ordered.length === 0) return null;
+  return (
+    <Section>
+      <Text style={{ margin: `0 0 ${space("space-16")}` }}>
+        {ordered.flatMap((a, index) => [
+          index > 0 ? " " : null,
+          <Button
+            key={a.action}
+            href={a.url}
+            style={a.action === "reject" ? actionStyles.secondary : actionStyles.primary}
+          >
+            {t(`notification.actions.${a.action}`)}
+          </Button>,
+        ])}
+      </Text>
+      <Text style={actionStyles.note}>{t("notification.actions.note")}</Text>
+    </Section>
+  );
+}
+
+const actionStyles = {
+  primary: {
+    ...text("label-13"),
+    backgroundColor: color("accent-default"),
+    border: `${stroke("stroke-hairline")} solid ${color("accent-default")}`,
+    borderRadius: radius("radius-control"),
+    color: color("accent-text-on"),
+    padding: `${space("space-12")} ${space("space-20")}`,
+    textDecoration: "none",
+  },
+  secondary: {
+    ...text("label-13"),
+    backgroundColor: color("bg-raised"),
+    border: `${stroke("stroke-hairline")} solid ${color("border-control")}`,
+    borderRadius: radius("radius-control"),
+    color: color("text-primary"),
+    padding: `${space("space-12")} ${space("space-20")}`,
+    textDecoration: "none",
+  },
+  note: { ...text("text-12"), color: color("text-secondary"), margin: `0 0 ${space("space-16")}` },
+} as const;
+
 function Greeting({ ctx }: { readonly ctx: TemplateContext }) {
   return <Paragraph>{ctx.t("common.greeting", { name: ctx.recipientName })}</Paragraph>;
 }
@@ -113,6 +173,7 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
           >
             <Greeting ctx={ctx} />
             <Paragraph>{ctx.t(kindKey(item.kind, "body"), item.args)}</Paragraph>
+            <ActionLinks actions={item.actions ?? []} t={ctx.t} />
           </Layout>
         ),
       };

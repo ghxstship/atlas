@@ -105,7 +105,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
-  "notification-dispatch": 180,
+  // A127: one-tap email action links in the shared stores, the offer and message push categories, offer.sent and the
+  // email action copy in both locales (about 3.5 KB); 182.1 KB on 2026-10-27.
+  "notification-dispatch": 186,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25.
   "org-lifecycle": 215,

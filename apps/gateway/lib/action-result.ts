@@ -48,6 +48,13 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
+  // A127 one-tap email links and push actions.
+  "notification_action_used",
+  "notification_action_expired",
+  "notification_action_not_yours",
+  "notification_action_invalid",
+  "notification_action_reason",
+  "notification_action_elsewhere",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

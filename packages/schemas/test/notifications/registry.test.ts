@@ -57,8 +57,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "account",
     ]);
     // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473) and the four
-    // reported content kinds of ADR 0033 decision 57 (1630).
-    expect(registry.kinds).toHaveLength(54);
+    // reported content kinds of ADR 0033 decision 57 (1630), and A127's offer.sent (2200).
+    expect(registry.kinds).toHaveLength(55);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -126,7 +126,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // kind that names fewer channels. Kinds are never deleted.
     expect(sql.match(/\bdelete\b/g)).toHaveLength(2);
     expect(sql).toContain(
-      "delete from private.notification_templates\nwhere (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'));",
+      "delete from private.notification_templates\nwhere (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'));",
     );
     const drift = renderNotificationDriftTest(registry);
     expect(drift).toContain("select plan(5);");
