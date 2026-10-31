@@ -73,6 +73,11 @@ select is((select count(*)::int from pg_trigger t join pg_class c on c.oid = t.t
   'running orders, cues, department calls, segment colors and custom field values each have insert, update and delete ping triggers');
 select has_trigger('app', 'showcaller_links', 't96_showcaller_link_ping_update', 'a revoked or regenerated link pings its portal');
 select has_index('app', 'showcaller_links', 'showcaller_links_live_expiry_idx', 'the probe for an unexpired live link has its index');
+-- The topic join below also skips an expired link, so the no-ping case alone cannot tell the probes apart: this pins the
+-- early return itself, which spares every write the join once no link is unexpired.
+select matches(pg_get_functiondef('private.showcaller_link_ping_rows()'::regprocedure),
+  'if not exists \(select 1 from app\.showcaller_links l where l\.revoked_at is null and l\.deleted_at is null and l\.expires_at > now\(\)\) then\s+return null;',
+  'the early return probes for an unexpired link, so expired links never cost a write the join');
 
 -- Pings ------------------------------------------------------------------------------------------------------------------------------
 create function pg_temp.pings(p_topic text) returns integer
