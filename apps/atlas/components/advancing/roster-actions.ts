@@ -1,6 +1,7 @@
 "use server";
 
 import type { DataError } from "@xos/data";
+import { Constants } from "@xos/data/database.types";
 import { reviewRosterEntry, rosterSharedWorkDetails } from "@xos/data/roster";
 import type { SharedWorkDetails } from "@xos/data/work-details";
 import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
@@ -39,7 +40,7 @@ export async function reviewRosterEntryAction(
   const parsed = z
     .object({
       id: z.uuid(),
-      outcome: z.enum(["Accepted", "Returned"]),
+      outcome: z.enum(Constants.app.Enums.advance_review_outcome),
       reason: z.string().trim().max(500),
     })
     .safeParse({

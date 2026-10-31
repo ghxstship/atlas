@@ -13,6 +13,8 @@ export const accessibilityNeed = [
   "Quiet Space",
   "Assistance on Arrival",
 ] as const;
+/** app.account_engagement_duty */
+export const accountEngagementDuty = ["Advancing Lead", "Member"] as const;
 /** app.account_role */
 export const accountRole = [
   "Account Owner",
@@ -763,6 +765,16 @@ export const reviewState = ["Proposed", "Submitted", "Approved", "Returned", "Ca
 export const rfqState = ["Proposed", "Issued", "Closed", "Awarded", "Canceled"] as const;
 /** app.role_assignment_state */
 export const roleAssignmentState = ["Proposed", "Active", "Complete", "Canceled"] as const;
+/** app.roster_entry_state */
+export const rosterEntryState = [
+  "Draft",
+  "Submitted",
+  "Accepted",
+  "Returned",
+  "Withdrawn",
+] as const;
+/** app.roster_person_response */
+export const rosterPersonResponse = ["Pending", "Accepted", "Declined"] as const;
 /** app.rsvp_response */
 export const rsvpResponse = ["Going", "Maybe", "Declined"] as const;
 /** app.run_status */
