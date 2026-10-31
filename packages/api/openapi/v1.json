@@ -54130,7 +54130,7 @@
           "intake_batch_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the intake batch the file is read into (aurora.startIntake); the request's subject.",
+            "description": "Identifier of the intake batch the file is read into (auroraIntakes.start); the request's subject.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "invoice_id": {
@@ -54865,7 +54865,7 @@
             "minLength": 1,
             "maxLength": 100,
             "description": "Operation that applies it.",
-            "example": "aurora.applyItineraries"
+            "example": "auroraIntakes.applyItineraries"
           },
           "target_id": {
             "type": ["string", "null"],

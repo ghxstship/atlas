@@ -208,7 +208,7 @@ begin
     v_mode := v_engagement ->> 'mode';
     v_contract := null;
     if jsonb_typeof(v_engagement -> 'contract_suggestion_id') = 'string' then
-      v_contract := private.intake_suggestion(p_batch_id, (v_engagement ->> 'contract_suggestion_id')::uuid, 'aurora.applyContracts');
+      v_contract := private.intake_suggestion(p_batch_id, (v_engagement ->> 'contract_suggestion_id')::uuid, 'auroraIntakes.applyContracts');
       if v_contract.id is null or v_contract.id = any (v_seen) then
         perform private.refuse('aurora_intake_item_invalid', format('Act %s: the contract is not a proposed contract of this intake.', v_g));
       end if;

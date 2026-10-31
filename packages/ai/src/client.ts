@@ -250,7 +250,7 @@ export type AuroraExtractKind =
   | "intake_rider"
   | "invoice_lines";
 
-/** An Aurora intake batch with its requests and Proposed suggestions (aurora.getIntake). */
+/** An Aurora intake batch with its requests and Proposed suggestions (auroraIntakes.get). */
 export interface AuroraIntake {
   readonly id: string;
   readonly project_id: string;
@@ -267,7 +267,7 @@ export interface AuroraIntake {
   readonly suggestions: readonly (AuroraSuggestion & { readonly request_id: string })[];
 }
 
-/** One kept segment of an itinerary intake, with the person's values (aurora.applyItineraries). */
+/** One kept segment of an itinerary intake, with the person's values (auroraIntakes.applyItineraries). */
 export interface AuroraItineraryItem {
   readonly suggestion_id: string;
   readonly values: Readonly<Record<string, unknown>>;
@@ -280,7 +280,7 @@ export interface AuroraItineraryCheckRow {
   readonly departs_at?: string | null;
 }
 
-/** One act of a contract intake (aurora.applyContracts). */
+/** One act of a contract intake (auroraIntakes.applyContracts). */
 export interface AuroraContractGroup {
   readonly act_name: string;
   readonly engagement: {

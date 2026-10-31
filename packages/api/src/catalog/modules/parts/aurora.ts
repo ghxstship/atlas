@@ -356,7 +356,7 @@ const ExtractBody = z
       .meta({ description: "What the document is.", example: "insurance_certificate" }),
     document_id: orNull(fields.ref("stored document read, when the file is one")).optional(),
     intake_batch_id: fields
-      .ref("intake batch the file is read into (aurora.startIntake); the request's subject")
+      .ref("intake batch the file is read into (auroraIntakes.start); the request's subject")
       .optional(),
     invoice_id: fields
       .ref(
@@ -725,7 +725,7 @@ const IntakeSuggestion = z
   .object({
     id: fields.ref("suggestion"),
     request_id: fields.ref("request that proposed it"),
-    operation_id: fields.text("Operation that applies it.", "aurora.applyItineraries", 100),
+    operation_id: fields.text("Operation that applies it.", "auroraIntakes.applyItineraries", 100),
     target_id: orNull(fields.ref("record it updates")),
     summary: fields.text("What will change.", "Add segment 1: MIA to ORD.", 1000),
     suggestion_state: SuggestionState,

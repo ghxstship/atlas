@@ -35,8 +35,9 @@ and waste plans. Four questions had no recorded answer:
    trigger `t13_aurora_batch_apply_only` refuses confirming a suggestion of an intake batch, or of a
    drafting request about an advance recipient, outside the trusted operation `aurora_batch_apply`
    (`ai_suggestion_batch_apply`). Rejecting one stays allowed. The suggestions name real public
-   operations: `aurora.applyItineraries`, `aurora.applyContracts`, `riders.create`, `riderLines.create` and
-   `aurora.applyAdvanceAnswer`. Every resource names its own op, so the batch operations are
+   operations: `auroraIntakes.applyItineraries`, `auroraIntakes.applyContracts`, `riders.create`,
+   `riderLines.create` and `aurora.applyAdvanceAnswer` (an API test checks each against the published
+   OpenAPI document). Every resource names its own op, so the batch operations are
    `auroraIntakes.start`, `get`, `close`, `checkItineraries`, `applyItineraries` and `applyContracts` under
    `/aurora/intakes`. A segment the traveler already has as a live segment of the org (same service and
    departure) refuses the whole apply (`itinerary_duplicate`), so the preview asks `checkItineraries`

@@ -16,7 +16,7 @@ create function pg_temp.segment(p_key text, p_request text, p_from text, p_to te
 language plpgsql as $$
 declare v uuid;
 begin
-  v := app.ai_propose_suggestion(pg_temp.id(p_request), 'aurora.applyItineraries', null, 'Add a segment from ' || p_from || ' to ' || p_to || '.',
+  v := app.ai_propose_suggestion(pg_temp.id(p_request), 'auroraIntakes.applyItineraries', null, 'Add a segment from ' || p_from || ' to ' || p_to || '.',
     jsonb_build_array(
       jsonb_build_object('field_path', 'passenger_name', 'value', 'Ivy Marchetti', 'confidence', 0.9),
       jsonb_build_object('field_path', 'travel_mode', 'value', 'Flight', 'confidence', 0.9),

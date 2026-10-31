@@ -6,7 +6,14 @@
  * Requests run through `contractApp` and every response is checked against openapi/v1.json. The
  * database is a recording stand-in and the model a scripted client.
  */
-import type { ModelClient, ModelRequest, ModelResponse, PublicApi } from "@xos/ai";
+import { readFileSync } from "node:fs";
+import {
+  EXTRACTION_TARGETS,
+  type ModelClient,
+  type ModelRequest,
+  type ModelResponse,
+  type PublicApi,
+} from "@xos/ai";
 import { describe, expect, it } from "vitest";
 import { auroraHandlers, draftTarget } from "../src/handlers/parts/aurora.ts";
 import { defineHandlers, type HandlerSet } from "../src/runtime/handler.ts";
@@ -324,7 +331,7 @@ describe("extraction into an intake batch", () => {
       p_subject_table: "app.ai_intake_batches",
       p_subject_id: BATCH,
     });
-    expect(body.suggestions.map((s) => s.operation_id)).toEqual(["aurora.applyItineraries"]);
+    expect(body.suggestions.map((s) => s.operation_id)).toEqual(["auroraIntakes.applyItineraries"]);
     expect(body.answer.checks).toEqual(
       expect.arrayContaining([
         { type: "unknown_airport", line: 0 },
@@ -603,7 +610,7 @@ describe("invoice lines", () => {
       updated_at: T,
       updated_by: null,
       request_id: id(900),
-      operation_id: "aurora.applyItineraries",
+      operation_id: "auroraIntakes.applyItineraries",
       target_id: null,
       summary: "Add segment 1: MIA to ORD.",
       suggestion_state: "Proposed",
@@ -635,7 +642,7 @@ describe("intake batches", () => {
     const proposed = {
       id: id(901),
       request_id: id(900),
-      operation_id: "aurora.applyItineraries",
+      operation_id: "auroraIntakes.applyItineraries",
       target_id: null,
       summary: "Add segment 1: MIA to ORD.",
       suggestion_state: "Proposed",
@@ -1027,5 +1034,28 @@ describe("governance drafts", () => {
         .every((q) => q.includes("vendor_id")),
     ).toBe(true);
     expect(asked).not.toContainEqual(expect.stringContaining(id(421)));
+  });
+});
+
+describe("suggestion operations", () => {
+  // A suggestion's operation_id names the public operation that applies it (correction 22 and the
+  // column comment), and API v1 operation names freeze at release.
+  it("names only operations API v1 publishes", () => {
+    const spec = JSON.parse(
+      readFileSync(new URL("../openapi/v1.json", import.meta.url), "utf8"),
+    ) as {
+      paths: Record<string, Record<string, { operationId?: string }>>;
+    };
+    const published = new Set(
+      Object.values(spec.paths).flatMap((item) => Object.values(item).map((op) => op.operationId)),
+    );
+    const named = Object.values(EXTRACTION_TARGETS).flatMap((target) => [
+      target.operationId,
+      ...(target.lines ? [target.lines.operationId] : []),
+    ]);
+    for (const id of [...named, "aurora.applyAdvanceAnswer"]) expect(published, id).toContain(id);
+    expect(named).toEqual(
+      expect.arrayContaining(["auroraIntakes.applyItineraries", "auroraIntakes.applyContracts"]),
+    );
   });
 });

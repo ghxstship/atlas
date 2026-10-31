@@ -118,8 +118,8 @@ describe("itinerary extraction", () => {
     });
     expect(log.begun[0]?.subject).toEqual({ table: "app.ai_intake_batches", id: "b1" });
     expect(log.proposed.map((p) => p.change.operationId)).toEqual([
-      "aurora.applyItineraries",
-      "aurora.applyItineraries",
+      "auroraIntakes.applyItineraries",
+      "auroraIntakes.applyItineraries",
     ]);
     const [ivy, art] = log.proposed.map((p) => p.change.fields);
     const get = (fields: typeof ivy, path: string) => fields?.find((f) => f.field_path === path);
@@ -208,7 +208,7 @@ describe("contract extraction", () => {
       readable: ["data.restricted.read.payroll"],
     });
     const fields = log.proposed[0]?.change.fields ?? [];
-    expect(log.proposed[0]?.change.operationId).toBe("aurora.applyContracts");
+    expect(log.proposed[0]?.change.operationId).toBe("auroraIntakes.applyContracts");
     expect(fields.find((f) => f.field_path === "fee_minor")).toMatchObject({ value: 750000 });
     expect(fields.find((f) => f.field_path === "start_date")?.source_excerpt).toBe(
       "Engagement June 4, 2027 for a guarantee of [Restricted]",

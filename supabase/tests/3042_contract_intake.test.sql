@@ -34,7 +34,7 @@ end $$;
 
 create function pg_temp.contract(p_key text, p_request text, p_fee jsonb) returns uuid
 language sql as $$
-  select pg_temp.propose(p_key, p_request, 'aurora.applyContracts', jsonb_build_array(
+  select pg_temp.propose(p_key, p_request, 'auroraIntakes.applyContracts', jsonb_build_array(
     jsonb_build_object('field_path', 'act_name', 'value', 'The Midnight Owls', 'confidence', 0.9),
     jsonb_build_object('field_path', 'contracting_party', 'value', 'Owl Touring LLC', 'confidence', 0.8),
     jsonb_build_object('field_path', 'start_date', 'value', '2027-06-04', 'confidence', 0.9, 'source_excerpt', 'June 4, 2027'),

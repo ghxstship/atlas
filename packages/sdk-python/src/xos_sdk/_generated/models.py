@@ -22272,7 +22272,7 @@ class AuroraExtractRequest(_AuroraExtractRequestRequired, total=False):
 
     #: Identifier of the stored document read, when the file is one.
     document_id: Optional[str]
-    #: Identifier of the intake batch the file is read into (aurora.startIntake); the request's subject.
+    #: Identifier of the intake batch the file is read into (auroraIntakes.start); the request's subject.
     intake_batch_id: str
     #: Identifier of the Proposed payable invoice whose lines are read, required for invoice_lines; the subject, ahead of document_id.
     invoice_id: str

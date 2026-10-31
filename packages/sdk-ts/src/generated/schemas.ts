@@ -40311,7 +40311,7 @@ export interface AuroraExtractRequest {
    */
   readonly document_id?: string | null;
   /**
-   * Identifier of the intake batch the file is read into (aurora.startIntake); the request's subject.
+   * Identifier of the intake batch the file is read into (auroraIntakes.start); the request's subject.
    * Format: `uuid`.
    */
   readonly intake_batch_id?: string;

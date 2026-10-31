@@ -1,6 +1,6 @@
 -- 3041_itinerary_intake.sql
 -- B15 itinerary intake (RRR-239, parity gap G-59; ADR 0154). Aurora reads up to 25 confirmations into one preview of
--- proposed travel segments, one aurora.applyItineraries suggestion per passenger and segment, and the person files the
+-- proposed travel segments, one auroraIntakes.applyItineraries suggestion per passenger and segment, and the person files the
 -- rows they keep under a Travel fulfillment in one step.
 --
 --   * private.fold_name: the name key both candidate lookups compare (case-folded, accents and punctuation removed).
@@ -155,7 +155,7 @@ begin
     select * into v_suggestion from app.ai_suggestions s where s.id = v_suggestion_id and s.deleted_at is null;
     select * into v_request from app.ai_requests r where r.id = v_suggestion.request_id;
     if v_suggestion.id is null or v_request.subject_table is distinct from 'app.ai_intake_batches'
-       or v_request.subject_id is distinct from p_batch_id or v_suggestion.operation_id <> 'aurora.applyItineraries' then
+       or v_request.subject_id is distinct from p_batch_id or v_suggestion.operation_id <> 'auroraIntakes.applyItineraries' then
       perform private.refuse('aurora_intake_item_invalid', format('Item %s is not a segment of this intake.', v_line));
     end if;
     if v_suggestion_id = any (v_seen) then
@@ -320,7 +320,7 @@ begin
 end;
 $$;
 
-comment on function app.apply_itinerary_intake(uuid, jsonb) is 'Applies the caller''s own open Itineraries batch (B15; 42501 for anyone else or without hospitality.fulfillment.write on its project, aurora_intake_closed once closed). p_items lists 1 to 1,500 {suggestion_id, values}: each a Proposed, unexpired aurora.applyItineraries suggestion of a request about the batch, named once (aurora_intake_item_invalid otherwise). values (person_id, engagement_id, fulfillment_id, departs_at, departs_time_zone, arrives_at, arrives_time_zone, departs_from, arrives_at_place, operator_name, service_identifier, confirmation_identifier, travel_mode, price_minor, currency_code) override the proposed fields of the same path key by key; the traveler, the engagement and the instants come only from values, and the fulfillment defaults to the batch''s. The traveler is a current member of the org, engaged on the project or in its travel party; person_id, travel_mode, departs_from, departs_at, departs_time_zone, arrives_at_place and arrives_time_zone are required, with the column lengths, each refusal naming its item. A segment with a service identifier that repeats one of the items or a live segment of the same person in the org with the same departure refuses itinerary_duplicate. Inserts app.travel_segments in one transaction under their own guards (IANA zones, Travel fulfillment, same project); a database refusal names the item. Kept suggestions move Proposed, Confirmed, Applied with the segment written inside aurora_batch_apply; every other Proposed suggestion of the batch is Rejected and the batch is closed. Returns {written: [{suggestion_id, id}], rejected}. Calls no model and meters nothing.';
+comment on function app.apply_itinerary_intake(uuid, jsonb) is 'Applies the caller''s own open Itineraries batch (B15; 42501 for anyone else or without hospitality.fulfillment.write on its project, aurora_intake_closed once closed). p_items lists 1 to 1,500 {suggestion_id, values}: each a Proposed, unexpired auroraIntakes.applyItineraries suggestion of a request about the batch, named once (aurora_intake_item_invalid otherwise). values (person_id, engagement_id, fulfillment_id, departs_at, departs_time_zone, arrives_at, arrives_time_zone, departs_from, arrives_at_place, operator_name, service_identifier, confirmation_identifier, travel_mode, price_minor, currency_code) override the proposed fields of the same path key by key; the traveler, the engagement and the instants come only from values, and the fulfillment defaults to the batch''s. The traveler is a current member of the org, engaged on the project or in its travel party; person_id, travel_mode, departs_from, departs_at, departs_time_zone, arrives_at_place and arrives_time_zone are required, with the column lengths, each refusal naming its item. A segment with a service identifier that repeats one of the items or a live segment of the same person in the org with the same departure refuses itinerary_duplicate. Inserts app.travel_segments in one transaction under their own guards (IANA zones, Travel fulfillment, same project); a database refusal names the item. Kept suggestions move Proposed, Confirmed, Applied with the segment written inside aurora_batch_apply; every other Proposed suggestion of the batch is Rejected and the batch is closed. Returns {written: [{suggestion_id, id}], rejected}. Calls no model and meters nothing.';
 
 -- Privileges ---------------------------------------------------------------------------------------------------------------
 

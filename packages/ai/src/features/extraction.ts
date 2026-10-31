@@ -185,13 +185,13 @@ export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>
     },
   },
   // B15 intake kinds. An itinerary proposes one segment per passenger and segment, filed together
-  // by aurora.applyItineraries; the traveler and the instants come from the person.
+  // by auroraIntakes.applyItineraries; the traveler and the instants come from the person.
   itinerary: {
-    operationId: "aurora.applyItineraries",
+    operationId: "auroraIntakes.applyItineraries",
     header: false,
     fields: [],
     lines: {
-      operationId: "aurora.applyItineraries",
+      operationId: "auroraIntakes.applyItineraries",
       max: 60,
       fields: [
         { path: "passenger_name", kind: "text", description: "The passenger's name as printed." },
@@ -250,10 +250,10 @@ export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>
       ],
     },
   },
-  // A booking contract becomes an Artist engagement through aurora.applyContracts; the role, the
+  // A booking contract becomes an Artist engagement through auroraIntakes.applyContracts; the role, the
   // classification, the terms and the party come from the person (ADR 0154).
   contract: {
-    operationId: "aurora.applyContracts",
+    operationId: "auroraIntakes.applyContracts",
     fields: [
       { path: "act_name", kind: "text", description: "The act or artist booked, as printed." },
       {

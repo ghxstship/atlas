@@ -118,9 +118,9 @@ select throws_ok($$select app.ai_begin_request((select id from world where key =
 
 -- Batch-applied suggestions -------------------------------------------------------------------------------------------------
 select app.ai_complete_request(pg_temp.id('r1'), 'Answered', 'Read the itinerary.', 'Two segments.', 100, 40);
-insert into world values ('s_seg', app.ai_propose_suggestion(pg_temp.id('r1'), 'aurora.applyItineraries', null, 'Add a segment.',
+insert into world values ('s_seg', app.ai_propose_suggestion(pg_temp.id('r1'), 'auroraIntakes.applyItineraries', null, 'Add a segment.',
   '[{"field_path": "departs_from", "value": "MIA", "confidence": 0.9, "source_excerpt": "MIA 08:15"}]'));
-insert into world values ('s_seg2', app.ai_propose_suggestion(pg_temp.id('r1'), 'aurora.applyItineraries', null, 'Add a segment.',
+insert into world values ('s_seg2', app.ai_propose_suggestion(pg_temp.id('r1'), 'auroraIntakes.applyItineraries', null, 'Add a segment.',
   '[{"field_path": "departs_from", "value": "JFK", "confidence": 0.9}]'));
 select throws_ok($$select app.transition_ai_suggestion((select id from world where key = 's_seg'), 'Proposed', 'Confirmed', 'One at a time.')$$,
   'XR001', 'ai_suggestion_batch_apply: Add these together from the Aurora preview, so nothing is written piecemeal.',
@@ -169,7 +169,7 @@ end $$;
 
 select pg_temp.as_user('alice');
 select pg_temp.contract_request('r_fee_alice');
-select lives_ok($$insert into world values ('s_fee', app.ai_propose_suggestion((select id from world where key = 'r_fee_alice'), 'aurora.applyContracts', null,
+select lives_ok($$insert into world values ('s_fee', app.ai_propose_suggestion((select id from world where key = 'r_fee_alice'), 'auroraIntakes.applyContracts', null,
   'Book the act.', '[{"field_path": "act_name", "value": "The Midnight Owls", "confidence": 0.9, "restricted_capability": "data.restricted.read.payroll"},
     {"field_path": "fee_minor", "value": 750000, "confidence": 0.9, "source_excerpt": "[Restricted]", "restricted_capability": null}]'))$$,
   'a payroll reader stores a proposed fee');
@@ -186,10 +186,10 @@ select is(pg_temp.n('bob', 'select 1 from app.ai_suggestion_fields where suggest
   'but not its fee, without payroll');
 select pg_temp.as_user('carol');
 select pg_temp.contract_request('r_fee_carol');
-select throws_ok($$select app.ai_propose_suggestion((select id from world where key = 'r_fee_carol'), 'aurora.applyContracts', null, 'Book the act.',
+select throws_ok($$select app.ai_propose_suggestion((select id from world where key = 'r_fee_carol'), 'auroraIntakes.applyContracts', null, 'Book the act.',
   '[{"field_path": "fee_minor", "value": 750000, "confidence": 0.9}]')$$,
   'XR001', 'aurora_field_restricted: This value is Restricted and was not read for you.', 'a fee from a caller without payroll is refused');
-select lives_ok($$insert into world values ('s_nofee', app.ai_propose_suggestion((select id from world where key = 'r_fee_carol'), 'aurora.applyContracts', null,
+select lives_ok($$insert into world values ('s_nofee', app.ai_propose_suggestion((select id from world where key = 'r_fee_carol'), 'auroraIntakes.applyContracts', null,
   'Book the act.', '[{"field_path": "fee_minor", "refusal": "NO_ANSWER", "missing": "Fees are read only by someone who may see pay rates."}]'))$$,
   'a NO_ANSWER fee is stored for them');
 select is(pg_temp.n('carol', 'select 1 from app.ai_suggestion_fields where suggestion_id = (select id from world where key = ''s_nofee'') and missing is not null'), 1,
@@ -197,7 +197,7 @@ select is(pg_temp.n('carol', 'select 1 from app.ai_suggestion_fields where sugge
 select is((select restricted_capability from app.ai_suggestion_fields where suggestion_id = pg_temp.id('s_nofee')), null,
   'so the database leaves it unmarked');
 select pg_temp.as_user('carol');
-select lives_ok($$insert into world values ('s_excerpt', app.ai_propose_suggestion((select id from world where key = 'r_fee_carol'), 'aurora.applyContracts', null,
+select lives_ok($$insert into world values ('s_excerpt', app.ai_propose_suggestion((select id from world where key = 'r_fee_carol'), 'auroraIntakes.applyContracts', null,
   'Book the act.', '[{"field_path": "fee_minor", "refusal": "NO_ANSWER", "missing": "Not read.", "source_excerpt": "Guarantee: USD 7,500"}]'))$$,
   'an excerpt without a value is stored');
 select is(pg_temp.n('carol', 'select 1 from app.ai_suggestion_fields where suggestion_id = (select id from world where key = ''s_excerpt'')'), 0,

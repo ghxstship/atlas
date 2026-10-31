@@ -251,7 +251,7 @@ create table private.ai_restricted_fields (
 create index ai_restricted_fields_capability_idx on private.ai_restricted_fields (capability);
 
 comment on table private.ai_restricted_fields is 'Proposed fields whose value is Restricted (B15): app.ai_propose_suggestion marks such a field with the capability that reads it and refuses a value from a caller without it.';
-comment on column private.ai_restricted_fields.operation_id is 'Operation of the suggestion, for example aurora.applyContracts.';
+comment on column private.ai_restricted_fields.operation_id is 'Operation of the suggestion, for example auroraIntakes.applyContracts.';
 comment on column private.ai_restricted_fields.field_path is 'Field of that suggestion, for example fee_minor.';
 comment on column private.ai_restricted_fields.capability is 'Capability that reads the value.';
 
@@ -260,7 +260,7 @@ revoke all on private.ai_restricted_fields from public, anon, authenticated;
 grant select on private.ai_restricted_fields to service_role;
 
 insert into private.ai_restricted_fields (operation_id, field_path, capability) values
-  ('aurora.applyContracts', 'fee_minor', 'data.restricted.read.payroll');
+  ('auroraIntakes.applyContracts', 'fee_minor', 'data.restricted.read.payroll');
 
 alter table app.ai_suggestion_fields add column restricted_capability text,
   add constraint ai_suggestion_fields_restricted_capability check (
@@ -340,7 +340,7 @@ call private.install_policies('app.ai_suggestion_fields',
 
 comment on column app.ai_settings.extraction_enabled is 'Document extraction from riders, insurance certificates, invoices, receipts and quotes, and, in intake batches, from itineraries, booking contracts and riders, with the line items of invoices and receipts.';
 comment on column app.ai_settings.drafting_enabled is 'Drafting of SOPs, advance packets, emails, day sheets, change order descriptions, running orders, risk assessments, advance answers, event plans, event briefs, approval packs and waste plans.';
-comment on column app.ai_suggestions.operation_id is 'Public API operation that performs the change, for example records.create or savedViews.create. A drafted list''s suggestions (drafting requests about app.run_of_show or app.projects) are applied together by app.apply_drafted_list. An intake batch''s suggestions (aurora.applyItineraries, aurora.applyContracts, riders.create and riderLines.create on extraction requests about app.ai_intake_batches) are applied together by app.apply_itinerary_intake or app.apply_contract_intake, and a drafted advance answer (aurora.applyAdvanceAnswer, a drafting request about app.advance_recipients) by app.apply_drafted_advance_answer.';
+comment on column app.ai_suggestions.operation_id is 'Public API operation that performs the change, for example records.create or savedViews.create. A drafted list''s suggestions (drafting requests about app.run_of_show or app.projects) are applied together by app.apply_drafted_list. An intake batch''s suggestions (auroraIntakes.applyItineraries, auroraIntakes.applyContracts, riders.create and riderLines.create on extraction requests about app.ai_intake_batches) are applied together by app.apply_itinerary_intake or app.apply_contract_intake, and a drafted advance answer (aurora.applyAdvanceAnswer, a drafting request about app.advance_recipients) by app.apply_drafted_advance_answer.';
 
 -- Privileges ---------------------------------------------------------------------------------------------------------------
 
