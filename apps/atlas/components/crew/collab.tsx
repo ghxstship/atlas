@@ -17,6 +17,7 @@ import {
 import type { CrewActionState } from "@/lib/crew/action-state";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { AttachmentPreview } from "@/components/files/file-preview";
 type Action = (state: CrewActionState, form: FormData) => Promise<CrewActionState>;
 
 /** Runs an action, refreshes the page on success and keeps the latest error to show. */
@@ -170,6 +171,7 @@ export function CrewCollab(props: {
                   >
                     {t(`scan.${scan(a)}`)}
                   </Tag>
+                  <AttachmentPreview attachment={a} />
                   {a.current ? (
                     <form action={link} onSubmit={keepInputOnSubmit(link)}>
                       {subject}

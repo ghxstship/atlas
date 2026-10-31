@@ -79,5 +79,20 @@
   "presence": {
     "label": "También están viendo",
     "viewing": "{count, plural, one {# persona más aquí} other {# personas más aquí}}"
+  },
+  "preview": {
+    "open": "Vista previa",
+    "loading": "Cargando la vista previa…",
+    "failed": "No se pudo cargar la vista previa. Inténtalo de nuevo o descarga el archivo.",
+    "office": "Los archivos de Office no tienen vista previa aquí. Descarga el archivo para abrirlo.",
+    "unsupported": "Este tipo de archivo no tiene vista previa. Descarga el archivo para abrirlo.",
+    "tooLarge": "Este archivo es demasiado grande para la vista previa. Descarga el archivo para abrirlo.",
+    "download": "Descargar",
+    "watermarked": "Los archivos Confidenciales y Restringidos se ven como se descargan: con tu correo electrónico y la hora en cada página.",
+    "pages": "{count, plural, one {# página} other {# páginas}}",
+    "pageOf": "Página {page} de {count}",
+    "image": "Imagen",
+    "video": "Video",
+    "videoLabel": "Video: {name}"
   }
 }

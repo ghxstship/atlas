@@ -15,6 +15,8 @@ import {
   type CollabState,
 } from "@/lib/collection-kit/collab-actions";
 import { KitSection } from "./kit";
+import { FilePreviewButton } from "@/components/files/file-preview";
+import { filePreviewSrc } from "@/lib/files/preview";
 
 /** Sharing and classification (Section 8.6) load only when someone opens them. */
 const SharePanel = dynamic(
@@ -45,6 +47,9 @@ export interface CollabAttachment {
   readonly title: string;
   readonly filename: string | null;
   readonly sizeBytes: number | null;
+  /** The clean version that downloads and previews; null while the upload is being scanned. */
+  readonly versionId: string | null;
+  readonly contentType: string | null;
   readonly ready: boolean;
   readonly mine: boolean;
   /** Section 8.6 classification of the file. */
@@ -258,6 +263,15 @@ export function CollabClient({
                         </>
                       }
                       onLink={(link) => window.open(link, "_blank", "noopener")}
+                    />
+                  ) : null}
+                  {a.ready && a.versionId ? (
+                    <FilePreviewButton
+                      src={filePreviewSrc(a.versionId)}
+                      name={a.filename ?? a.title}
+                      contentType={a.contentType}
+                      sizeBytes={a.sizeBytes}
+                      classification={a.classification}
                     />
                   ) : null}
                   {a.ready ? <ShareToggle org={org} attachment={a} /> : null}

@@ -40,9 +40,21 @@ export type QuickAddProps = ReferenceQuickAddProps & {
   disabled?: boolean;
 };
 
-export type ColorPickerProps = ReferenceColorPickerProps & {
+/** One contrast check: the value against a fixed color, as the foreground or the background. */
+export type ColorCheck = ReferenceColorPickerProps["checks"][number] & {
+  /** A state drawn over the background (hover, pressed): `color` at `opacity`, composited first. */
+  overlay?: { color: string; opacity: number };
+};
+
+export type ColorPickerProps = Omit<ReferenceColorPickerProps, "checks"> & {
+  checks: ColorCheck[];
   /** Called with the value and whether it is a valid hex that passes every check. */
   onChange?: (value: string, savable: boolean) => void;
+  disabled?: boolean;
+  help?: string;
+  /** A refusal from the server, shown under the checks. */
+  error?: string;
+  id?: string;
 };
 
 export type DiffViewerProps = ReferenceDiffViewerProps;

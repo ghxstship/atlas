@@ -62,8 +62,15 @@ test("white label blocks an accent that fails contrast", async ({ page }) => {
   await signUp(page, { name: "Bea Brand", email: testEmail("brand", id) });
   await createOrganization(page, { name: `Brand ${id}`, slug });
   await page.goto(`/${slug}/settings/white-label`);
-  await expect(page.getByText("Passes WCAG 2.2 AA in every theme.")).toBeVisible();
-  await page.getByLabel("Brand accent", { exact: true }).first().fill("#FFE680");
-  await expect(page.getByText(/Fails WCAG 2.2 AA/)).toBeVisible();
+  // The default accent passes every pair, so it can be saved.
+  const save = page.getByRole("button", { name: "Save brand" });
+  await expect(page.getByText("Passes AA").first()).toBeVisible();
+  await expect(page.getByText("Fails AA")).toHaveCount(0);
+  await expect(save).toBeEnabled();
+  // A pale yellow fails the label-on-accent pairs: the picker marks them and Save is refused.
+  await page.getByRole("textbox", { name: "Brand accent hex value" }).fill("#FFE680");
+  await expect(page.getByText("Fails AA").first()).toBeVisible();
+  await expect(page.getByText("This color can't be saved until every check passes.")).toBeVisible();
+  await expect(save).toBeDisabled();
   await expectAccessible(page);
 });
