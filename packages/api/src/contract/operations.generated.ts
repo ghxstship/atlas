@@ -1230,10 +1230,44 @@ export interface Components {
     redacted_at: string | null;
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
+  AuroraAppliedAdvanceAnswer: { submission_id: string };
+  AuroraAppliedContracts: {
+    applied: Array<{ suggestion_id: string; id: string }>;
+    engagements: number;
+    riders: number;
+    rider_lines: number;
+    rejected: number;
+  };
   AuroraAppliedDraft: { written: Array<{ suggestion_id: string; id: string }>; rejected: number };
+  AuroraAppliedIntake: { written: Array<{ suggestion_id: string; id: string }>; rejected: number };
+  AuroraApplyAdvanceAnswerRequest: {
+    suggestion_id: string;
+    values?: Record<string, unknown>;
+    source: { inbound_message_id?: string; file_name?: string };
+  };
+  AuroraApplyContractsRequest: {
+    groups: Array<{
+      act_name: string;
+      engagement: {
+        mode: "new" | "existing";
+        engagement_id?: string;
+        contract_suggestion_id?: string;
+        values?: Record<string, unknown>;
+      };
+      riders?: Array<{
+        header_suggestion_id: string;
+        title?: string;
+        line_suggestion_ids?: Array<string>;
+        line_values?: Record<string, Record<string, unknown>>;
+      }>;
+    }>;
+  };
   AuroraApplyDraftRequest: {
     request_id: string;
     items: Array<{ suggestion_id: string; values?: Record<string, unknown> }>;
+  };
+  AuroraApplyItinerariesRequest: {
+    items: Array<{ suggestion_id: string; values: Record<string, unknown> }>;
   };
   AuroraAskRequest: { question: string; history?: Array<{ question: string; answer: string }> };
   AuroraBindCodeRequest: {
@@ -1241,6 +1275,7 @@ export interface Components {
     description: string | null;
     candidates: Array<{ element_id: string; name: string; urid: string }>;
   };
+  AuroraClosedIntake: { rejected: number };
   AuroraDraftRequest: {
     kind:
       | "sop"
@@ -1249,18 +1284,45 @@ export interface Components {
       | "day_sheet"
       | "change_order_description"
       | "run_of_show"
-      | "risk_assessment";
+      | "risk_assessment"
+      | "advance_answers"
+      | "event_plan"
+      | "event_brief"
+      | "approval_pack"
+      | "waste_plan";
     instructions: string;
     target?: { collection: string; id: string };
+    source?: Components["AuroraDraftSource"];
+    outline?: Array<string>;
     context?: Array<{ collection: string; id: string }>;
     verbiage?: Array<{ term: string; preferred: string }>;
   };
+  AuroraDraftSource: {
+    inbound_message_id?: string;
+    document?: {
+      media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+      content_base64: string;
+      file_name: string;
+    };
+  };
   AuroraExtractRequest: {
-    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+    kind:
+      | "rider"
+      | "insurance_certificate"
+      | "invoice"
+      | "receipt"
+      | "quote"
+      | "itinerary"
+      | "contract"
+      | "intake_rider"
+      | "invoice_lines";
     document_id?: string | null;
-    media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
-    content_base64: string;
-    file_name: string;
+    intake_batch_id?: string;
+    invoice_id?: string;
+    inbound_message_id?: string;
+    media_type?: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    content_base64?: string;
+    file_name?: string;
   };
   AuroraFilterRequest: {
     sentence: string;
@@ -1273,6 +1335,38 @@ export interface Components {
       description?: string;
       ops?: Array<"eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains">;
     }>;
+  };
+  AuroraIntake: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    intake_kind: Components["AuroraIntakeKind"];
+    fulfillment_id: string | null;
+    file_count: number;
+    closed_at: string | null;
+    requests: Array<{
+      id: string;
+      outcome: Components["AiRequestOutcome"];
+      failure_code: string | null;
+      created_at: string;
+    }>;
+    suggestions: Array<Components["AuroraIntakeSuggestion"]>;
+  };
+  AuroraIntakeKind: "Itineraries" | "Contracts and Riders";
+  AuroraIntakeSuggestion: {
+    id: string;
+    request_id: string;
+    operation_id: string;
+    target_id: string | null;
+    summary: string;
+    suggestion_state: Components["AiSuggestionState"];
+    expires_at: string;
+    applied_id: string | null;
+    proposed_fields: Array<Components["AiSuggestionField"]>;
   };
   AuroraMapColumnsRequest: {
     collection: string;
@@ -1294,8 +1388,16 @@ export interface Components {
   };
   AuroraPreviewRequest: {
     feature: "drafting" | "summaries";
-    draft_kind?: "run_of_show" | "risk_assessment";
+    draft_kind?:
+      | "run_of_show"
+      | "risk_assessment"
+      | "advance_answers"
+      | "event_plan"
+      | "event_brief"
+      | "approval_pack"
+      | "waste_plan";
     target?: { collection: string; id: string };
+    source?: Components["AuroraDraftSource"];
     kind?: "record_activity" | "project_week" | "gate_readiness";
     subject_collection?: string;
     subject_id?: string;
@@ -1311,6 +1413,12 @@ export interface Components {
     failure_code: string | null;
     answer?: unknown;
     suggestions: Array<Components["AuroraProposal"]>;
+  };
+  AuroraStartIntakeRequest: {
+    project_id: string;
+    kind: Components["AuroraIntakeKind"];
+    file_count: number;
+    fulfillment_id?: string;
   };
   AuroraStatus: {
     enabled_features: Array<Components["AiFeature"]>;
@@ -25307,6 +25415,15 @@ export interface Operations {
     body: Components["AuroraBindCodeRequest"];
     responses: { 200: Components["AuroraResult"] };
   };
+  "aurora.applyAdvanceAnswer": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-advance-answer";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyAdvanceAnswerRequest"];
+    responses: { 200: Components["AuroraAppliedAdvanceAnswer"] };
+  };
   "aurora.preview": {
     module: "Settings";
     method: "post";
@@ -25315,6 +25432,51 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AuroraPreviewRequest"];
     responses: { 200: Components["AuroraPreview"] };
+  };
+  "auroraIntakes.get": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/intakes/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AuroraIntake"] };
+  };
+  "auroraIntakes.start": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/intakes";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraStartIntakeRequest"];
+    responses: { 200: Components["AuroraIntake"] };
+  };
+  "auroraIntakes.close": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/intakes/{id}/close";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["AuroraClosedIntake"] };
+  };
+  "auroraIntakes.applyItineraries": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/intakes/{id}/apply-itineraries";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AuroraApplyItinerariesRequest"];
+    responses: { 200: Components["AuroraAppliedIntake"] };
+  };
+  "auroraIntakes.applyContracts": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/intakes/{id}/apply-contracts";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AuroraApplyContractsRequest"];
+    responses: { 200: Components["AuroraAppliedContracts"] };
   };
   "aiSuggestions.list": {
     module: "Settings";
@@ -29510,7 +29672,13 @@ export interface ModuleOperations {
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"
+    | "aurora.applyAdvanceAnswer"
     | "aurora.preview"
+    | "auroraIntakes.get"
+    | "auroraIntakes.start"
+    | "auroraIntakes.close"
+    | "auroraIntakes.applyItineraries"
+    | "auroraIntakes.applyContracts"
     | "aiSuggestions.list"
     | "aiSuggestions.get"
     | "aiSuggestions.confirm"

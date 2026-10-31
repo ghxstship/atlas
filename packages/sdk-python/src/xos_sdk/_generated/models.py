@@ -1349,25 +1349,37 @@ __all__ = [
     "AuroraFilterRequest",
     "AuroraExtractRequest",
     "AuroraDraftRequest",
+    "AuroraDraftSource",
     "AuroraAppliedDraft",
     "AuroraApplyDraftRequest",
     "AuroraSummarizeRequest",
     "AuroraMapColumnsRequest",
     "AuroraBindCodeRequest",
+    "AuroraAppliedAdvanceAnswer",
+    "AuroraApplyAdvanceAnswerRequest",
     "AuroraPreview",
     "AuroraPreviewRecord",
     "AuroraPreviewRequest",
-    "AiSuggestionPage",
-    "AiSuggestion",
+    "AuroraIntake",
+    "AuroraIntakeKind",
+    "AiRequestOutcome",
+    "AuroraIntakeSuggestion",
     "AiSuggestionState",
     "AiSuggestionField",
+    "AuroraStartIntakeRequest",
+    "AuroraClosedIntake",
+    "AuroraAppliedIntake",
+    "AuroraApplyItinerariesRequest",
+    "AuroraAppliedContracts",
+    "AuroraApplyContractsRequest",
+    "AiSuggestionPage",
+    "AiSuggestion",
     "AiSuggestionConfirmRequest",
     "AiSuggestionRejectRequest",
     "AiSuggestionApplyRequest",
     "AiSuggestionReopenRequest",
     "AiRequestPage",
     "AiRequest",
-    "AiRequestOutcome",
     "AiUsagePage",
     "AiUsage",
     "EngagedAllocationPage",
@@ -22250,13 +22262,7 @@ class AuroraFilterRequest(_AuroraFilterRequestRequired, total=False):
 
 class _AuroraExtractRequestRequired(TypedDict):
     #: What the document is.
-    kind: Literal["rider", "insurance_certificate", "invoice", "receipt", "quote"]
-    #: Media type of the content.
-    media_type: Literal["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"]
-    #: The document content in base64, read by the caller from storage.
-    content_base64: str
-    #: File name shown in the log.
-    file_name: str
+    kind: Literal["rider", "insurance_certificate", "invoice", "receipt", "quote", "itinerary", "contract", "intake_rider", "invoice_lines"]
 
 
 class AuroraExtractRequest(_AuroraExtractRequestRequired, total=False):
@@ -22264,11 +22270,23 @@ class AuroraExtractRequest(_AuroraExtractRequestRequired, total=False):
 
     #: Identifier of the stored document read, when the file is one.
     document_id: Optional[str]
+    #: Identifier of the intake batch the file is read into (aurora.startIntake); the request's subject.
+    intake_batch_id: str
+    #: Identifier of the Proposed payable invoice whose lines are read, required for invoice_lines; the subject, ahead of document_id.
+    invoice_id: str
+    #: Identifier of the DKIM-verified project inbox message read instead of a file, for an itinerary; exactly one of this and content_base64.
+    inbound_message_id: str
+    #: Media type of the content.
+    media_type: Literal["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"]
+    #: The document content in base64, read by the caller from storage. Exactly one of this and inbound_message_id; with it, media_type and file_name are required.
+    content_base64: str
+    #: File name shown in the log.
+    file_name: str
 
 
 class _AuroraDraftRequestRequired(TypedDict):
     #: What to draft.
-    kind: Literal["sop", "advance_packet", "email", "day_sheet", "change_order_description", "run_of_show", "risk_assessment"]
+    kind: Literal["sop", "advance_packet", "email", "day_sheet", "change_order_description", "run_of_show", "risk_assessment", "advance_answers", "event_plan", "event_brief", "approval_pack", "waste_plan"]
     #: What the draft should say.
     instructions: str
 
@@ -22276,12 +22294,24 @@ class _AuroraDraftRequestRequired(TypedDict):
 class AuroraDraftRequest(_AuroraDraftRequestRequired, total=False):
     """Instructions for a draft."""
 
-    #: The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+    #: The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Advance answers name the recipient (advance-recipients); an event plan, brief, approval pack or waste plan names its project (projects). Required for those kinds.
     target: Dict[str, Any]
+    source: AuroraDraftSource
+    #: For a governance kind, its outline headings in the caller's locale, in order; the English outline when absent.
+    outline: List[str]
     #: Records to draft from, read with the caller's permissions.
     context: List[Dict[str, Any]]
     #: The org's verbiage library entries to apply.
     verbiage: List[Dict[str, Any]]
+
+
+class AuroraDraftSource(TypedDict, total=False):
+    """What advance answers are drafted from: exactly one of a project inbox message and a document. A message that is not a verified Project Inbox message of the packet's project the caller can read refuses aurora_draft_source_invalid before any model call."""
+
+    #: Identifier of the DKIM-verified, live message of the project inbox of the recipient's packet.
+    inbound_message_id: str
+    #: A document the party sent: a tour book, a rider or a reply.
+    document: Dict[str, Any]
 
 
 class AuroraAppliedDraft(TypedDict):
@@ -22337,6 +22367,27 @@ class AuroraBindCodeRequest(TypedDict):
     candidates: List[Dict[str, Any]]
 
 
+class AuroraAppliedAdvanceAnswer(TypedDict):
+    """The advance answer a drafted answer recorded."""
+
+    #: Identifier of the advance answer recorded.
+    submission_id: str
+
+
+class _AuroraApplyAdvanceAnswerRequestRequired(TypedDict):
+    #: Identifier of the drafted advance answer accepted.
+    suggestion_id: str
+    #: The draft's source, checked again: exactly one of a message and a file name.
+    source: Dict[str, Any]
+
+
+class AuroraApplyAdvanceAnswerRequest(_AuroraApplyAdvanceAnswerRequestRequired, total=False):
+    """A drafted advance answer to record on the party's behalf."""
+
+    #: The person's changes: body, lines (R9's line shape) or note.
+    values: Dict[str, Any]
+
+
 class _AuroraPreviewRequired(TypedDict):
     #: Each record the request names, in order, with the gate readiness a gate summary adds.
     records: List[AuroraPreviewRecord]
@@ -22378,16 +22429,151 @@ class _AuroraPreviewRequestRequired(TypedDict):
 class AuroraPreviewRequest(_AuroraPreviewRequestRequired, total=False):
     """A drafting or summary request to preview before it is sent."""
 
-    #: For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.
-    draft_kind: Literal["run_of_show", "risk_assessment"]
-    #: The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+    #: For a drafted list, advance answers or a governance draft, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.
+    draft_kind: Literal["run_of_show", "risk_assessment", "advance_answers", "event_plan", "event_brief", "approval_pack", "waste_plan"]
+    #: The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Advance answers name the recipient (advance-recipients); an event plan, brief, approval pack or waste plan names its project (projects). Required for those kinds.
     target: Dict[str, Any]
+    source: AuroraDraftSource
     #: For summaries, what is summarized.
     kind: Literal["record_activity", "project_week", "gate_readiness"]
     #: For summaries, the collection summarized.
     subject_collection: str
     #: Identifier of the record or project summarized.
     subject_id: str
+
+
+class AuroraIntake(TypedDict):
+    """An Aurora intake batch (B15): the files it reads, its requests and its Proposed suggestions, read with the caller's permissions, so a preview reloads within the seven-day expiry."""
+
+    #: Identifier of the aurora intake.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    intake_kind: AuroraIntakeKind
+    #: Identifier of the Travel fulfillment the segments are filed under.
+    fulfillment_id: Optional[str]
+    #: Files the batch reads.
+    file_count: int
+    #: When the batch was applied or closed.
+    closed_at: Optional[str]
+    #: One request per file read, oldest first.
+    requests: List[Dict[str, Any]]
+    #: Proposed suggestions, oldest first.
+    suggestions: List[AuroraIntakeSuggestion]
+
+
+class AuroraIntakeSuggestion(TypedDict):
+    """A Proposed suggestion of an intake batch."""
+
+    #: Identifier of the suggestion.
+    id: str
+    #: Identifier of the request that proposed it.
+    request_id: str
+    #: Operation that applies it.
+    operation_id: str
+    #: Identifier of the record it updates.
+    target_id: Optional[str]
+    #: What will change.
+    summary: str
+    suggestion_state: AiSuggestionState
+    #: After this time it can no longer be applied.
+    expires_at: str
+    #: Identifier of the record written, once Applied.
+    applied_id: Optional[str]
+    #: Proposed fields in order; a Restricted field is left out for anyone who may not read it.
+    proposed_fields: List[AiSuggestionField]
+
+
+class _AiSuggestionFieldRequired(TypedDict):
+    #: API field the value is for.
+    field_path: str
+    #: Confidence from 0 to 1; null when the field is NO_ANSWER.
+    confidence: Optional[float]
+    #: NO_ANSWER when the source does not support a value.
+    refusal: Optional[Literal["NO_ANSWER"]]
+    #: What the source lacks, when the field is NO_ANSWER.
+    missing: Optional[str]
+    #: The passage the value was read from, redacted.
+    source_excerpt: Optional[str]
+    #: Every AI-proposed value carries provenance agent (rank 40, Section 3.8).
+    provenance: Literal["agent"]
+
+
+class AiSuggestionField(_AiSuggestionFieldRequired, total=False):
+    """One proposed field of an AI suggestion."""
+
+    #: Proposed value as JSON; null when the field is NO_ANSWER.
+    proposed_value: Any
+
+
+class _AuroraStartIntakeRequestRequired(TypedDict):
+    #: Identifier of the project the files are read for.
+    project_id: str
+    kind: AuroraIntakeKind
+    #: Files the batch reads, 1 to 25: one metered request each, checked against this month's allowance first.
+    file_count: int
+
+
+class AuroraStartIntakeRequest(_AuroraStartIntakeRequestRequired, total=False):
+    """An intake batch to open."""
+
+    #: Identifier of the Travel fulfillment of the project the segments are filed under, for Itineraries.
+    fulfillment_id: str
+
+
+class AuroraClosedIntake(TypedDict):
+    """What closing an intake rejected."""
+
+    #: Suggestions rejected.
+    rejected: int
+
+
+class AuroraAppliedIntake(TypedDict):
+    """What an applied intake wrote."""
+
+    #: Each kept suggestion with the row it wrote.
+    written: List[Dict[str, Any]]
+    #: Suggestions of the batch left out and rejected.
+    rejected: int
+
+
+class AuroraApplyItinerariesRequest(TypedDict):
+    """The segments of an itinerary intake to add."""
+
+    #: The kept segments: 25 files of at most 60.
+    items: List[Dict[str, Any]]
+
+
+class AuroraAppliedContracts(TypedDict):
+    """What an applied contract intake wrote."""
+
+    #: Each kept suggestion with what it wrote.
+    applied: List[Dict[str, Any]]
+    #: Artist engagements booked.
+    engagements: int
+    #: Riders written.
+    riders: int
+    #: Rider lines written.
+    rider_lines: int
+    #: Suggestions of the batch left out and rejected.
+    rejected: int
+
+
+class AuroraApplyContractsRequest(TypedDict):
+    """The acts of a contract intake to book."""
+
+    #: The acts to book, at most 25.
+    groups: List[Dict[str, Any]]
 
 
 class AiSuggestionPage(TypedDict):
@@ -22429,28 +22615,6 @@ class AiSuggestion(TypedDict):
     applied_id: Optional[str]
     #: Proposed fields in confirmation order.
     proposed_fields: List[AiSuggestionField]
-
-
-class _AiSuggestionFieldRequired(TypedDict):
-    #: API field the value is for.
-    field_path: str
-    #: Confidence from 0 to 1; null when the field is NO_ANSWER.
-    confidence: Optional[float]
-    #: NO_ANSWER when the source does not support a value.
-    refusal: Optional[Literal["NO_ANSWER"]]
-    #: What the source lacks, when the field is NO_ANSWER.
-    missing: Optional[str]
-    #: The passage the value was read from, redacted.
-    source_excerpt: Optional[str]
-    #: Every AI-proposed value carries provenance agent (rank 40, Section 3.8).
-    provenance: Literal["agent"]
-
-
-class AiSuggestionField(_AiSuggestionFieldRequired, total=False):
-    """One proposed field of an AI suggestion."""
-
-    #: Proposed value as JSON; null when the field is NO_ANSWER.
-    proposed_value: Any
 
 
 class _AiSuggestionConfirmRequestRequired(TypedDict):
@@ -27255,11 +27419,14 @@ ShoeSizeSystem = Literal["US Men", "US Women", "EU", "UK"]
 #: An Aurora AI feature (Section 4.7).
 AiFeature = Literal["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"]
 
-#: Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.
-AiSuggestionState = Literal["Proposed", "Confirmed", "Applied", "Rejected", "Expired"]
+#: What an intake batch reads: Itineraries or Contracts and Riders.
+AuroraIntakeKind = Literal["Itineraries", "Contracts and Riders"]
 
 #: How a model call ended. No Answer is the silence rule (Section 3.7).
 AiRequestOutcome = Literal["Pending", "Answered", "No Answer", "Failed"]
+
+#: Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.
+AiSuggestionState = Literal["Proposed", "Confirmed", "Applied", "Rejected", "Expired"]
 
 #: Letter size for a shirt, jacket or gloves.
 GarmentLetterSize = Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]

@@ -177,17 +177,26 @@ if TYPE_CHECKING:
         AssignTrainingResult,
         AuditEvent,
         AuditEventPage,
+        AuroraAppliedAdvanceAnswer,
+        AuroraAppliedContracts,
         AuroraAppliedDraft,
+        AuroraAppliedIntake,
+        AuroraApplyAdvanceAnswerRequest,
+        AuroraApplyContractsRequest,
         AuroraApplyDraftRequest,
+        AuroraApplyItinerariesRequest,
         AuroraAskRequest,
         AuroraBindCodeRequest,
+        AuroraClosedIntake,
         AuroraDraftRequest,
         AuroraExtractRequest,
         AuroraFilterRequest,
+        AuroraIntake,
         AuroraMapColumnsRequest,
         AuroraPreview,
         AuroraPreviewRequest,
         AuroraResult,
+        AuroraStartIntakeRequest,
         AuroraStatus,
         AuroraSummarizeRequest,
         Automation,
@@ -33714,7 +33723,7 @@ class AuroraResource(Resource):
     ) -> ApiResponse[AuroraResult]:
         """Extract a document
 
-        Reads a rider, insurance certificate, invoice, receipt or quote into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        Reads a rider, insurance certificate, invoice, receipt or quote into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. B15: an itinerary, contract or intake rider read into an intake batch (intake_batch_id), whose suggestions are applied together; the lines of a Proposed payable invoice (invoice_lines with invoice_id, aurora_invoice_not_proposed otherwise); a receipt's items. The answer adds the tie-out against printed totals, the vendor's line history, the itinerary checks and traveler or party candidates. Every refusal comes before any model call and is not metered. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /aurora/extract`` (operation ``aurora.extract``).
         Requires the capability ``home.dashboard.read``.
@@ -33730,7 +33739,7 @@ class AuroraResource(Resource):
     ) -> ApiResponse[AuroraResult]:
         """Draft text
 
-        Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. B15: advance answers for a recipient of a sent packet (`target` advance-recipients) from one `source`, each answer a suggestion for `aurora.applyAdvanceAnswer`, the sections the source does not answer listed; and an event plan, event brief, approval pack or waste plan from a project's own records (`target` projects), held to its outline. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /aurora/draft`` (operation ``aurora.draft``).
         Requires the capability ``home.dashboard.read``.
@@ -33801,6 +33810,22 @@ class AuroraResource(Resource):
         """
         return self._client.request(OPERATIONS["aurora.bindCode"], body=body, idempotency_key=idempotency_key, options=options)
 
+    def apply_advance_answer(
+        self,
+        body: AuroraApplyAdvanceAnswerRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraAppliedAdvanceAnswer]:
+        """Record a drafted advance answer
+
+        Records one advance answer Aurora drafted, on the recipient's behalf, through the single writer of advance answers (B15, ADR 0154): the caller holds advancing.submission.review on the packet's project and asked for the draft. The source is checked again. The caller becomes the answer's submitter, so someone else reviews it, and Gateway labels it as recorded by the org. An open answer refuses advance_answer_pending. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/apply-advance-answer`` (operation ``aurora.applyAdvanceAnswer``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.applyAdvanceAnswer"], body=body, idempotency_key=idempotency_key, options=options)
+
     def preview(
         self,
         body: AuroraPreviewRequest,
@@ -33816,6 +33841,92 @@ class AuroraResource(Resource):
         Requires the capability ``home.dashboard.read``.
         """
         return self._client.request(OPERATIONS["aurora.preview"], body=body, idempotency_key=idempotency_key, options=options)
+
+
+class AuroraIntakesResource(Resource):
+    """Operations on ``auroraIntakes``, in the Settings module."""
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraIntake]:
+        """Get an Aurora intake
+
+        An Aurora intake batch (B15): the files it reads, its requests and its Proposed suggestions, read with the caller's permissions, so a preview reloads within the seven-day expiry. Returns one Aurora intake with its `ETag`. A Aurora intake the caller may not see returns 404.
+
+        ``GET /aurora/intakes/{id}`` (operation ``auroraIntakes.get``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["auroraIntakes.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def start(
+        self,
+        body: AuroraStartIntakeRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraIntake]:
+        """Start an intake
+
+        Opens an intake batch for up to 25 itineraries or contracts and riders (B15). Itineraries need hospitality.fulfillment.write on the project; contracts and riders need opportunities.engagement.write and advancing.rider.write. The plan, the extraction switch and this month's remaining allowance are checked for every file first (XR001 plan_limit_exceeded). Each file is then read with aurora.extract and the batch's intake_batch_id, one metered request each. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/intakes`` (operation ``auroraIntakes.start``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["auroraIntakes.start"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def close(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraClosedIntake]:
+        """Close an intake
+
+        Closes the caller's intake batch, rejecting its Proposed suggestions. A closed batch reads no more files. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/intakes/{id}/close`` (operation ``auroraIntakes.close``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["auroraIntakes.close"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def apply_itineraries(
+        self,
+        id: str,
+        body: AuroraApplyItinerariesRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraAppliedIntake]:
+        """Add an intake's travel segments
+
+        Adds the kept segments of an itinerary intake in one transaction under its Travel fulfillment, with the person's traveler, times and values. A segment repeating a live one of the same person refuses itinerary_duplicate and nothing is written. The other suggestions are rejected and the batch is closed. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/intakes/{id}/apply-itineraries`` (operation ``auroraIntakes.applyItineraries``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["auroraIntakes.applyItineraries"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def apply_contracts(
+        self,
+        id: str,
+        body: AuroraApplyContractsRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraAppliedContracts]:
+        """Book an intake's acts
+
+        Books the kept acts of a contract intake in one transaction (ADR 0154): an Artist engagement at Onboarding per new act with the person's party, role and terms and the contract's dates, fee and currency, and each act's riders and lines. A fee from a caller who may not read pay rates refuses intake_fee_restricted; an act without a party refuses intake_group_party; the engagement plan limit refuses XR001. Any refusal writes nothing. The other suggestions are rejected and the batch is closed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/intakes/{id}/apply-contracts`` (operation ``auroraIntakes.applyContracts``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["auroraIntakes.applyContracts"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class AiSuggestionsResource(Resource):

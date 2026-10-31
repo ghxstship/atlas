@@ -367,6 +367,7 @@ from .resources import (
     ReportScheduleRecipientsResource,
     ReportDeliveriesResource,
     AuroraResource,
+    AuroraIntakesResource,
     AiSuggestionsResource,
     AiRequestsResource,
     AiUsageResource,
@@ -811,6 +812,7 @@ class XosClient(XosClientCore):
     report_schedule_recipients: ReportScheduleRecipientsResource
     report_deliveries: ReportDeliveriesResource
     aurora: AuroraResource
+    aurora_intakes: AuroraIntakesResource
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
     ai_usage: AiUsageResource
@@ -1243,6 +1245,7 @@ class XosClient(XosClientCore):
         self.report_schedule_recipients = ReportScheduleRecipientsResource(self)
         self.report_deliveries = ReportDeliveriesResource(self)
         self.aurora = AuroraResource(self)
+        self.aurora_intakes = AuroraIntakesResource(self)
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
         self.ai_usage = AiUsageResource(self)

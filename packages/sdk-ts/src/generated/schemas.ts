@@ -40295,26 +40295,51 @@ export interface AuroraExtractRequest {
   /**
    * What the document is.
    */
-  readonly kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+  readonly kind:
+    | "rider"
+    | "insurance_certificate"
+    | "invoice"
+    | "receipt"
+    | "quote"
+    | "itinerary"
+    | "contract"
+    | "intake_rider"
+    | "invoice_lines";
   /**
    * Identifier of the stored document read, when the file is one.
    * Format: `uuid`.
    */
   readonly document_id?: string | null;
   /**
+   * Identifier of the intake batch the file is read into (aurora.startIntake); the request's subject.
+   * Format: `uuid`.
+   */
+  readonly intake_batch_id?: string;
+  /**
+   * Identifier of the Proposed payable invoice whose lines are read, required for invoice_lines; the subject, ahead of document_id.
+   * Format: `uuid`.
+   */
+  readonly invoice_id?: string;
+  /**
+   * Identifier of the DKIM-verified project inbox message read instead of a file, for an itinerary; exactly one of this and content_base64.
+   * Format: `uuid`.
+   */
+  readonly inbound_message_id?: string;
+  /**
    * Media type of the content.
    */
-  readonly media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+  readonly media_type?:
+    "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
   /**
-   * The document content in base64, read by the caller from storage.
+   * The document content in base64, read by the caller from storage. Exactly one of this and inbound_message_id; with it, media_type and file_name are required.
    * Length: 1 to 14000000.
    */
-  readonly content_base64: string;
+  readonly content_base64?: string;
   /**
    * File name shown in the log.
    * Length: 1 to 300.
    */
-  readonly file_name: string;
+  readonly file_name?: string;
 }
 
 /**
@@ -40331,14 +40356,19 @@ export interface AuroraDraftRequest {
     | "day_sheet"
     | "change_order_description"
     | "run_of_show"
-    | "risk_assessment";
+    | "risk_assessment"
+    | "advance_answers"
+    | "event_plan"
+    | "event_brief"
+    | "approval_pack"
+    | "waste_plan";
   /**
    * What the draft should say.
    * Length: 1 to 4000.
    */
   readonly instructions: string;
   /**
-   * The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+   * The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Advance answers name the recipient (advance-recipients); an event plan, brief, approval pack or waste plan names its project (projects). Required for those kinds.
    */
   readonly target?: {
     /**
@@ -40352,6 +40382,11 @@ export interface AuroraDraftRequest {
      */
     readonly id: string;
   };
+  readonly source?: AuroraDraftSource;
+  /**
+   * For a governance kind, its outline headings in the caller's locale, in order; the English outline when absent.
+   */
+  readonly outline?: ReadonlyArray<string>;
   /**
    * Records to draft from, read with the caller's permissions.
    */
@@ -40378,6 +40413,37 @@ export interface AuroraDraftRequest {
      */
     readonly preferred: string;
   }>;
+}
+
+/**
+ * What advance answers are drafted from: exactly one of a project inbox message and a document. A message that is not a verified Project Inbox message of the packet's project the caller can read refuses aurora_draft_source_invalid before any model call.
+ */
+export interface AuroraDraftSource {
+  /**
+   * Identifier of the DKIM-verified, live message of the project inbox of the recipient's packet.
+   * Format: `uuid`.
+   */
+  readonly inbound_message_id?: string;
+  /**
+   * A document the party sent: a tour book, a rider or a reply.
+   */
+  readonly document?: {
+    /**
+     * Media type of the content.
+     */
+    readonly media_type:
+      "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    /**
+     * The document content in base64.
+     * Length: 1 to 14000000.
+     */
+    readonly content_base64: string;
+    /**
+     * File name shown in the log and the answer's provenance.
+     * Length: 1 to 300.
+     */
+    readonly file_name: string;
+  };
 }
 
 /**
@@ -40532,6 +40598,47 @@ export interface AuroraBindCodeRequest {
 }
 
 /**
+ * The advance answer a drafted answer recorded.
+ */
+export interface AuroraAppliedAdvanceAnswer {
+  /**
+   * Identifier of the advance answer recorded.
+   * Format: `uuid`.
+   */
+  readonly submission_id: string;
+}
+
+/**
+ * A drafted advance answer to record on the party's behalf.
+ */
+export interface AuroraApplyAdvanceAnswerRequest {
+  /**
+   * Identifier of the drafted advance answer accepted.
+   * Format: `uuid`.
+   */
+  readonly suggestion_id: string;
+  /**
+   * The person's changes: body, lines (R9's line shape) or note.
+   */
+  readonly values?: { readonly [key: string]: unknown };
+  /**
+   * The draft's source, checked again: exactly one of a message and a file name.
+   */
+  readonly source: {
+    /**
+     * Identifier of the project inbox message the draft was read from.
+     * Format: `uuid`.
+     */
+    readonly inbound_message_id?: string;
+    /**
+     * File the draft was read from.
+     * Length: 1 to 300.
+     */
+    readonly file_name?: string;
+  };
+}
+
+/**
  * What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered.
  */
 export interface AuroraPreview {
@@ -40590,11 +40697,18 @@ export interface AuroraPreviewRequest {
    */
   readonly feature: "drafting" | "summaries";
   /**
-   * For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.
+   * For a drafted list, advance answers or a governance draft, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.
    */
-  readonly draft_kind?: "run_of_show" | "risk_assessment";
+  readonly draft_kind?:
+    | "run_of_show"
+    | "risk_assessment"
+    | "advance_answers"
+    | "event_plan"
+    | "event_brief"
+    | "approval_pack"
+    | "waste_plan";
   /**
-   * The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+   * The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Advance answers name the recipient (advance-recipients); an event plan, brief, approval pack or waste plan names its project (projects). Required for those kinds.
    */
   readonly target?: {
     /**
@@ -40608,6 +40722,7 @@ export interface AuroraPreviewRequest {
      */
     readonly id: string;
   };
+  readonly source?: AuroraDraftSource;
   /**
    * For summaries, what is summarized.
    */
@@ -40634,6 +40749,363 @@ export interface AuroraPreviewRequest {
      * Format: `uuid`.
      */
     readonly id: string;
+  }>;
+}
+
+/**
+ * An Aurora intake batch (B15): the files it reads, its requests and its Proposed suggestions, read with the caller's permissions, so a preview reloads within the seven-day expiry.
+ */
+export interface AuroraIntake {
+  /**
+   * Identifier of the aurora intake.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  readonly intake_kind: AuroraIntakeKind;
+  /**
+   * Identifier of the Travel fulfillment the segments are filed under.
+   * Format: `uuid`.
+   */
+  readonly fulfillment_id: string | null;
+  /**
+   * Files the batch reads.
+   * Range: 0 to unbounded.
+   */
+  readonly file_count: number;
+  /**
+   * When the batch was applied or closed.
+   * Format: `date-time`.
+   */
+  readonly closed_at: string | null;
+  /**
+   * One request per file read, oldest first.
+   */
+  readonly requests: ReadonlyArray<{
+    /**
+     * Identifier of the request.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+    readonly outcome: AiRequestOutcome;
+    /**
+     * Why it failed.
+     * Length: 1 to 64.
+     */
+    readonly failure_code: string | null;
+    /**
+     * When the file was read.
+     * Format: `date-time`.
+     */
+    readonly created_at: string;
+  }>;
+  /**
+   * Proposed suggestions, oldest first.
+   */
+  readonly suggestions: ReadonlyArray<AuroraIntakeSuggestion>;
+}
+
+/**
+ * What an intake batch reads: Itineraries or Contracts and Riders.
+ */
+export type AuroraIntakeKind = "Itineraries" | "Contracts and Riders";
+
+/**
+ * How a model call ended. No Answer is the silence rule (Section 3.7).
+ */
+export type AiRequestOutcome = "Pending" | "Answered" | "No Answer" | "Failed";
+
+/**
+ * A Proposed suggestion of an intake batch.
+ */
+export interface AuroraIntakeSuggestion {
+  /**
+   * Identifier of the suggestion.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the request that proposed it.
+   * Format: `uuid`.
+   */
+  readonly request_id: string;
+  /**
+   * Operation that applies it.
+   * Length: 1 to 100.
+   */
+  readonly operation_id: string;
+  /**
+   * Identifier of the record it updates.
+   * Format: `uuid`.
+   */
+  readonly target_id: string | null;
+  /**
+   * What will change.
+   * Length: 1 to 1000.
+   */
+  readonly summary: string;
+  readonly suggestion_state: AiSuggestionState;
+  /**
+   * After this time it can no longer be applied.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Identifier of the record written, once Applied.
+   * Format: `uuid`.
+   */
+  readonly applied_id: string | null;
+  /**
+   * Proposed fields in order; a Restricted field is left out for anyone who may not read it.
+   */
+  readonly proposed_fields: ReadonlyArray<AiSuggestionField>;
+}
+
+/**
+ * Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.
+ */
+export type AiSuggestionState = "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
+
+/**
+ * One proposed field of an AI suggestion.
+ */
+export interface AiSuggestionField {
+  /**
+   * API field the value is for.
+   */
+  readonly field_path: string;
+  /**
+   * Proposed value as JSON; null when the field is NO_ANSWER.
+   */
+  readonly proposed_value?: unknown;
+  /**
+   * Confidence from 0 to 1; null when the field is NO_ANSWER.
+   * Range: 0 to 1.
+   */
+  readonly confidence: number | null;
+  /**
+   * NO_ANSWER when the source does not support a value.
+   */
+  readonly refusal: "NO_ANSWER" | null;
+  /**
+   * What the source lacks, when the field is NO_ANSWER.
+   */
+  readonly missing: string | null;
+  /**
+   * The passage the value was read from, redacted.
+   */
+  readonly source_excerpt: string | null;
+  /**
+   * Every AI-proposed value carries provenance agent (rank 40, Section 3.8).
+   */
+  readonly provenance: "agent";
+}
+
+/**
+ * An intake batch to open.
+ */
+export interface AuroraStartIntakeRequest {
+  /**
+   * Identifier of the project the files are read for.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  readonly kind: AuroraIntakeKind;
+  /**
+   * Files the batch reads, 1 to 25: one metered request each, checked against this month's allowance first.
+   * Range: 1 to 25.
+   */
+  readonly file_count: number;
+  /**
+   * Identifier of the Travel fulfillment of the project the segments are filed under, for Itineraries.
+   * Format: `uuid`.
+   */
+  readonly fulfillment_id?: string;
+}
+
+/**
+ * What closing an intake rejected.
+ */
+export interface AuroraClosedIntake {
+  /**
+   * Suggestions rejected.
+   * Range: 0 to unbounded.
+   */
+  readonly rejected: number;
+}
+
+/**
+ * What an applied intake wrote.
+ */
+export interface AuroraAppliedIntake {
+  /**
+   * Each kept suggestion with the row it wrote.
+   */
+  readonly written: ReadonlyArray<{
+    /**
+     * Identifier of the suggestion applied.
+     * Format: `uuid`.
+     */
+    readonly suggestion_id: string;
+    /**
+     * Identifier of the row written.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  }>;
+  /**
+   * Suggestions of the batch left out and rejected.
+   * Range: 0 to unbounded.
+   */
+  readonly rejected: number;
+}
+
+/**
+ * The segments of an itinerary intake to add.
+ */
+export interface AuroraApplyItinerariesRequest {
+  /**
+   * The kept segments: 25 files of at most 60.
+   */
+  readonly items: ReadonlyArray<{
+    /**
+     * Identifier of the segment suggestion kept.
+     * Format: `uuid`.
+     */
+    readonly suggestion_id: string;
+    /**
+     * The person's values, overriding the proposed fields key by key: person_id (required), engagement_id, fulfillment_id, departs_at and arrives_at (instants), the zones, places, operator, service and confirmation, travel_mode, price_minor and currency_code.
+     */
+    readonly values: { readonly [key: string]: unknown };
+  }>;
+}
+
+/**
+ * What an applied contract intake wrote.
+ */
+export interface AuroraAppliedContracts {
+  /**
+   * Each kept suggestion with what it wrote.
+   */
+  readonly applied: ReadonlyArray<{
+    /**
+     * Identifier of the suggestion applied.
+     * Format: `uuid`.
+     */
+    readonly suggestion_id: string;
+    /**
+     * Identifier of the engagement, rider or rider line written.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  }>;
+  /**
+   * Artist engagements booked.
+   * Range: 0 to unbounded.
+   */
+  readonly engagements: number;
+  /**
+   * Riders written.
+   * Range: 0 to unbounded.
+   */
+  readonly riders: number;
+  /**
+   * Rider lines written.
+   * Range: 0 to unbounded.
+   */
+  readonly rider_lines: number;
+  /**
+   * Suggestions of the batch left out and rejected.
+   * Range: 0 to unbounded.
+   */
+  readonly rejected: number;
+}
+
+/**
+ * The acts of a contract intake to book.
+ */
+export interface AuroraApplyContractsRequest {
+  /**
+   * The acts to book, at most 25.
+   */
+  readonly groups: ReadonlyArray<{
+    /**
+     * The act, as grouped.
+     * Length: 1 to 200.
+     */
+    readonly act_name: string;
+    readonly engagement: {
+      /**
+       * Book a new Artist engagement, or attach riders to a live one.
+       */
+      readonly mode: "new" | "existing";
+      /**
+       * Identifier of the live Artist engagement of the project, for existing.
+       * Format: `uuid`.
+       */
+      readonly engagement_id?: string;
+      /**
+       * Identifier of the contract suggestion whose dates, fee and currency are kept.
+       * Format: `uuid`.
+       */
+      readonly contract_suggestion_id?: string;
+      /**
+       * The person's party and terms: person_id and/or counterparty_id, role_code, worker_classification, pay_basis, arrangement, and any start_date, end_date, agreed_rate_minor or currency_code to change.
+       */
+      readonly values?: { readonly [key: string]: unknown };
+    };
+    /**
+     * The act's riders.
+     */
+    readonly riders?: ReadonlyArray<{
+      /**
+       * Identifier of the rider suggestion kept.
+       * Format: `uuid`.
+       */
+      readonly header_suggestion_id: string;
+      /**
+       * The rider's title, when changed.
+       * Length: 1 to 200.
+       */
+      readonly title?: string;
+      /**
+       * Rider lines kept.
+       */
+      readonly line_suggestion_ids?: ReadonlyArray<string>;
+      /**
+       * Changed description or quantity by line suggestion id.
+       */
+      readonly line_values?: { readonly [key: string]: { readonly [key: string]: unknown } };
+    }>;
   }>;
 }
 
@@ -40720,46 +41192,6 @@ export interface AiSuggestion {
    * Proposed fields in confirmation order.
    */
   readonly proposed_fields: ReadonlyArray<AiSuggestionField>;
-}
-
-/**
- * Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.
- */
-export type AiSuggestionState = "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
-
-/**
- * One proposed field of an AI suggestion.
- */
-export interface AiSuggestionField {
-  /**
-   * API field the value is for.
-   */
-  readonly field_path: string;
-  /**
-   * Proposed value as JSON; null when the field is NO_ANSWER.
-   */
-  readonly proposed_value?: unknown;
-  /**
-   * Confidence from 0 to 1; null when the field is NO_ANSWER.
-   * Range: 0 to 1.
-   */
-  readonly confidence: number | null;
-  /**
-   * NO_ANSWER when the source does not support a value.
-   */
-  readonly refusal: "NO_ANSWER" | null;
-  /**
-   * What the source lacks, when the field is NO_ANSWER.
-   */
-  readonly missing: string | null;
-  /**
-   * The passage the value was read from, redacted.
-   */
-  readonly source_excerpt: string | null;
-  /**
-   * Every AI-proposed value carries provenance agent (rank 40, Section 3.8).
-   */
-  readonly provenance: "agent";
 }
 
 /**
@@ -40906,11 +41338,6 @@ export interface AiRequest {
    */
   readonly completed_at: string | null;
 }
-
-/**
- * How a model call ended. No Answer is the silence rule (Section 3.7).
- */
-export type AiRequestOutcome = "Pending" | "Answered" | "No Answer" | "Failed";
 
 /**
  * One page of results with a cursor to the next page.

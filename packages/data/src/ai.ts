@@ -427,11 +427,17 @@ export interface AiIntakeSuggestion {
 
 export interface AiIntake {
   readonly id: string;
+  readonly org_id: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+  readonly updated_by: string | null;
   readonly project_id: string;
   readonly intake_kind: AiIntakeKind;
   readonly fulfillment_id: string | null;
   readonly file_count: number;
   readonly closed_at: string | null;
+  /** Who opened the batch; only they read files into it and apply it. */
+  readonly created_by: string | null;
   readonly requests: readonly {
     readonly id: string;
     readonly outcome: Database["app"]["Enums"]["ai_request_outcome"];
@@ -448,7 +454,9 @@ export interface AiIntake {
 export async function getIntake(db: XosClient, id: string): Promise<Result<AiIntake>> {
   const batch = await db
     .from("ai_intake_batches")
-    .select("id, project_id, intake_kind, fulfillment_id, file_count, closed_at, created_by")
+    .select(
+      "id, org_id, project_id, intake_kind, fulfillment_id, file_count, closed_at, created_at, created_by, updated_at, updated_by",
+    )
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
@@ -506,11 +514,16 @@ export async function getIntake(db: XosClient, id: string): Promise<Result<AiInt
   const b = batch.data;
   return ok({
     id: b.id,
+    org_id: b.org_id,
+    created_at: b.created_at,
+    updated_at: b.updated_at,
+    updated_by: b.updated_by ?? null,
     project_id: b.project_id,
     intake_kind: b.intake_kind,
     fulfillment_id: b.fulfillment_id ?? null,
     file_count: b.file_count,
     closed_at: b.closed_at ?? null,
+    created_by: b.created_by ?? null,
     requests: (requests.data ?? []).map((r) => ({
       id: r.id,
       outcome: r.outcome,
