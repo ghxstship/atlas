@@ -18,6 +18,7 @@ import {
 import { getNode } from "@xos/ia";
 import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
+import type { BulkConfig } from "@/components/bulk/types";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { PeekHandoff } from "@/components/shell/peek-handoff";
 import type { OrgContext } from "@/lib/shell/context";
@@ -33,6 +34,7 @@ import {
   must,
   nodeViews,
   param,
+  recordBulkConfig,
   type SearchParams,
 } from "./load";
 import { PunchCollection } from "./punch";
@@ -85,6 +87,31 @@ export async function WorkOrdersPage({
   ]);
   const orders = must(filtered, "work orders");
   const title = t(getNode(sitemap, node).node.label);
+  // Bulk edit (Section 11.7): state across a selection, every move but the award, which names a
+  // bid. A work order in a state it cannot leave that way (Complete, Canceled) offers no change.
+  const movable = new Set(
+    must(rules, "work order transitions")
+      .filter((r) => r.to !== "Awarded")
+      .map((r) => r.from),
+  );
+  const bulk: BulkConfig | null = caps.has("work.work_order.write")
+    ? {
+        org: ctx.org.slug,
+        resource: "work_orders",
+        fields: [
+          {
+            key: "work_order_state",
+            label: t("work.columns.state"),
+            reason: true,
+            options: WORK_ORDER_STATES.filter((s) => s !== "Awarded").map((s) => ({
+              value: s,
+              label: t(`work.workOrders.states.${s}`),
+            })),
+            rows: orders.filter((o) => movable.has(o.state)).map((o) => o.id),
+          },
+        ],
+      }
+    : null;
 
   let peek: ReactNode = null;
   let full: ReactNode = null;
@@ -156,6 +183,8 @@ export async function WorkOrdersPage({
       q={q}
       state={state}
       canCreate={caps.has("work.work_order.write")}
+      bulk={bulk}
+      peekedId={peek && peekId ? peekId : null}
       create={
         <CreateWorkOrderDialog
           org={ctx.org.slug}
@@ -226,6 +255,37 @@ export async function PunchListsPage({
       : offered.includes(defaultView)
         ? defaultView
         : (offered[0] ?? "list");
+  // Bulk edit (Section 11.7): an item's state and owner across a selection, on its record. Blocked
+  // and Deferred need a blocker or a reason per item, so they stay single edits, and an item whose
+  // record cannot move (Canceled) offers no state change.
+  const movable = new Set(
+    meta.rules.filter((r) => r.to !== "Blocked" && r.to !== "Deferred").map((r) => r.from),
+  );
+  const bulk: BulkConfig | null = caps.has("work.punch_list.write")
+    ? {
+        org: ctx.org.slug,
+        resource: "punch_items",
+        fields: [
+          {
+            key: "record_state",
+            label: t("work.columns.state"),
+            reason: true,
+            options: meta.states
+              .filter((s) => s.state !== "Blocked" && s.state !== "Deferred")
+              .map((s) => ({ value: s.state, label: t(`work.states.${s.state}`) })),
+            rows: items.filter((i) => movable.has(i.record.state)).map((i) => i.id),
+          },
+          {
+            key: "owner_party_id",
+            label: t("work.columns.owner"),
+            options: [
+              { value: null, label: t("work.values.unassigned") },
+              ...meta.people.map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
+            ],
+          },
+        ],
+      }
+    : null;
   return (
     <PunchCollection
       org={ctx.org.slug}
@@ -239,6 +299,7 @@ export async function PunchListsPage({
       projects={meta.projects}
       people={meta.people}
       canCreate={caps.has("work.punch_list.write")}
+      bulk={bulk}
       open={param(search, "create") === "1"}
       peek={await recordPeek(ctx, search)}
     />
@@ -265,10 +326,12 @@ export async function RecurringPage({
   const monthParam = param(search, "month");
   const month =
     monthParam && /^\d{4}-\d{2}-01$/.test(monthParam) ? monthParam : `${today.slice(0, 7)}-01`;
-  const rows = must(
-    await listRecurringRecords(ctx.viewer.db, { orgId: ctx.org.id }),
-    "recurring records",
-  );
+  const [meta, caps, listed] = await Promise.all([
+    loadRecordMeta(ctx),
+    capabilitySet(ctx),
+    listRecurringRecords(ctx.viewer.db, { orgId: ctx.org.id }),
+  ]);
+  const rows = must(listed, "recurring records");
   const items = rows.map(({ record, recurrence }) => {
     const first = record.startsAt ?? record.dueAt ?? record.endsAt;
     const next = first ? occurrences(first, recurrence.rrule, 60, recurrence.untilAt) : [];
@@ -289,6 +352,7 @@ export async function RecurringPage({
       view={view}
       month={month}
       today={today}
+      bulk={caps.has("work.record.write") ? recordBulkConfig(ctx.org.slug, meta, t) : null}
       peek={await recordPeek(ctx, search)}
     />
   );

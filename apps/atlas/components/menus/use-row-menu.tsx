@@ -84,7 +84,7 @@ export function useRowMenu(): {
             onSelect: () => bulk.toggle(actions.id),
           });
         }
-        for (const field of bulk.fields.slice(0, 4)) {
+        for (const field of bulk.fieldsFor(actions.id).slice(0, 4)) {
           items.push({
             label: t("change", { field: field.label }),
             icon: "PenLine",
