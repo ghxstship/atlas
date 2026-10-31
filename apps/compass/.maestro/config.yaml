@@ -39,6 +39,7 @@ executionOrder:
     - field-report-block
     - crew-external-today
     - roster-member-today
+    - clock-team
     - crew-external-work
     - project-details
     - profile-credentials

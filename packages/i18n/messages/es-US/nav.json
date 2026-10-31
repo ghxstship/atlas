@@ -533,7 +533,8 @@
       "shiftCoverage": "Cobertura de turnos"
     },
     "routes": {
-      "record": "Registro"
+      "record": "Registro",
+      "clockTeam": "Fichar al equipo"
     }
   },
   "console": {

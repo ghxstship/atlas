@@ -2,6 +2,7 @@ import type { Row } from "@xos/sync";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { isInternal } from "@xos/sync";
 import { View } from "react-native";
 import { access, operationalEngagements, rosterOnly, todayBlocks } from "../../src/domain/access";
 import { currentShift, isMine } from "../../src/domain/shifts";
@@ -379,6 +380,15 @@ export default function TodayScreen(): ReactElement {
         <ProjectPicker />
         <StorageResetNotice />
         <SyncBanner />
+        {/* Agency staff clock their own time on the shifts the agency placed them on (R12). */}
+        {access(identity, "clock", projectId).allowed && projectId ? (
+          <ClockCard
+            current={null}
+            onState={setClockState}
+            glance={glance}
+            zone={itemZone(null, projectRows[0]?.time_zone, personZone)}
+          />
+        ) : null}
         <RosterToday />
       </Screen>
     );
@@ -432,6 +442,16 @@ export default function TodayScreen(): ReactElement {
       ) : (
         <CueGlance glance={glance} />
       )}
+      {/* A staffing agency's lead clocks its roster staff in from here (R12); internal supervisors use the Crew tab. */}
+      {!isInternal(identity.audience) && access(identity, "clock.team", projectId).allowed ? (
+        <Button
+          testID="today-clock-team"
+          variant="secondary"
+          icon="users"
+          label={t("compass.clockTeam.open")}
+          onPress={() => router.push("/clock-team")}
+        />
+      ) : null}
       {combined ? <CombinedToday clockState={clockState} /> : null}
       {!combined &&
       blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (

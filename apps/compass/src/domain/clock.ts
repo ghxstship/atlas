@@ -19,7 +19,9 @@ export interface Punch {
   readonly shift_id: string | null;
   readonly membership_id: string | null;
   readonly engagement_id: string | null;
-  readonly source: "Mobile" | "Kiosk";
+  /** The agency staff member's roster entry (R12); absent on punches from before it. */
+  readonly roster_entry_id?: string | null;
+  readonly source: "Mobile" | "Kiosk" | "Supervisor";
 }
 
 export type ClockState = "out" | "on" | "break";
@@ -221,9 +223,13 @@ export function workedMs(snapshot: ClockSnapshot, nowMs: number): number {
 export interface PunchContext {
   readonly projectId: string;
   readonly shiftId: string | null;
-  /** Internal users punch as their membership; external users as their engagement (never both). */
+  /**
+   * Internal users punch as their membership; external users as their engagement; agency staff as their roster
+   * entry, on its shift (R12). Exactly one of the three.
+   */
   readonly membershipId: string | null;
   readonly engagementId: string | null;
+  readonly rosterEntryId?: string | null;
   readonly source: "Mobile" | "Kiosk";
   readonly kioskDeviceId?: string | null;
   readonly photoUri?: string | null;
@@ -242,8 +248,14 @@ export function buildPunch(
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
 ): MutationInput {
-  if ((ctx.membershipId === null) === (ctx.engagementId === null)) {
-    throw new Error("a punch names exactly one of a membership or an engagement");
+  const rosterEntryId = ctx.rosterEntryId ?? null;
+  const workers = [ctx.membershipId, ctx.engagementId, rosterEntryId].filter((w) => w !== null);
+  if (workers.length !== 1) {
+    throw new Error("a punch names exactly one of a membership, an engagement or a roster entry");
+  }
+  // app.record_punch finds an agency staff member's roster entry through their shift (R12).
+  if (rosterEntryId !== null && ctx.shiftId === null) {
+    throw new Error("a roster punch names the roster entry's shift");
   }
   const id = newId(nowMs);
   const status = evaluateGeofence(fix, geofences, nowMs);
@@ -256,6 +268,7 @@ export function buildPunch(
     shift_id: ctx.shiftId,
     membership_id: ctx.membershipId,
     engagement_id: ctx.engagementId,
+    roster_entry_id: rosterEntryId,
     source: ctx.source,
     latitude: fix?.latitude ?? null,
     longitude: fix?.longitude ?? null,
@@ -267,7 +280,8 @@ export function buildPunch(
     device_needs_review: needsReview(event),
   };
   // Named arguments of app.record_punch. The monotonic offset is the punch's age at upload, so the
-  // uploader fills p_monotonic_offset_ms from monotonic_at and boot_id when it sends.
+  // uploader fills p_monotonic_offset_ms from monotonic_at and boot_id when it sends. A roster punch sends only
+  // the shift, with no membership and no engagement.
   const args = {
     p_punch_id: id,
     p_project_id: ctx.projectId,
@@ -295,4 +309,153 @@ export function buildPunch(
     policy: "append",
     optimistic: row,
   };
+}
+
+/** One worker a supervisor punches in or out: the shift they hold today, and their name for the screen. */
+export interface TeamMember {
+  readonly shiftId: string;
+  readonly name: string;
+}
+
+/** What the server answered for one worker of a team punch (app.record_supervisor_punches). */
+export type TeamPunchOutcome = "pending" | "applied" | "duplicate" | "refused";
+
+/** A team punch as the device keeps it: the batch, and each worker's punch id, shift and outcome. */
+export interface TeamPunchBatch {
+  readonly id: string;
+  readonly punch_kind: PunchKind;
+  readonly project_id: string;
+  readonly device_time: string;
+  readonly results: readonly {
+    readonly punch_id: string;
+    readonly shift_id: string;
+    readonly outcome: TeamPunchOutcome;
+    readonly code: string | null;
+  }[];
+}
+
+/** The device table that holds team punches and, once uploaded, the server's answer for each worker. */
+export const TEAM_PUNCH_TABLE = "supervisor_punch_batches";
+
+/** The most a team punch holds, as the server refuses more (supervisor_punch_batch). */
+export const TEAM_PUNCH_LIMIT = 100;
+
+/**
+ * Builds a supervisor's team punch (R12, G-126): one queued mutation for the whole selection, so it replays
+ * offline as one call to app.record_supervisor_punches. The batch id and one punch id per worker are minted
+ * now, at capture, with the device time and the monotonic age, so a replay after reconnecting is the same
+ * punch and the server answers duplicate instead of punching twice. The optimistic row shows every worker
+ * as pending until the server's answer, with an outcome and refusal code each, replaces it.
+ */
+export function buildSupervisorPunchBatch(
+  kind: PunchKind,
+  projectId: string,
+  team: readonly TeamMember[],
+  event: EventTime,
+  fix: LocationFix | null,
+  geofences: readonly Geofence[],
+  nowMs: number,
+  newId: (ms: number) => string = uuidv7,
+): MutationInput {
+  const shifts = [...new Set(team.map((m) => m.shiftId))];
+  if (shifts.length === 0) throw new Error("a team punch names at least one worker");
+  if (shifts.length > TEAM_PUNCH_LIMIT)
+    throw new Error(`a team punch names at most ${TEAM_PUNCH_LIMIT} workers`);
+  const batchId = newId(nowMs);
+  const punches = shifts.map((shiftId) => ({ punch_id: newId(nowMs), shift_id: shiftId }));
+  const status = evaluateGeofence(fix, geofences, nowMs);
+  const optimistic: TeamPunchBatch & Record<string, unknown> = {
+    id: batchId,
+    punch_kind: kind,
+    project_id: projectId,
+    device_time: event.deviceAt,
+    results: punches.map((p) => ({ ...p, outcome: "pending", code: null })),
+  };
+  return {
+    op: "rpc",
+    target: "app.record_supervisor_punches",
+    table: TEAM_PUNCH_TABLE,
+    rowId: batchId,
+    payload: {
+      p_batch_id: batchId,
+      p_project_id: projectId,
+      p_punch_kind: kind,
+      p_device_time: event.deviceAt,
+      p_punches: punches,
+      p_latitude: fix?.latitude ?? null,
+      p_longitude: fix?.longitude ?? null,
+      p_accuracy_m: fix?.accuracyM ?? null,
+      p_geofence_id: status.kind === "inside" ? status.geofence.id : null,
+      monotonic_at: event.monotonicAt,
+      boot_id: event.bootId,
+    },
+    policy: "append",
+    optimistic,
+  };
+}
+
+/**
+ * Whether each selected worker is clocked in now, from the newest team punch that reached them: an In that
+ * applied (or was already recorded) puts them in, an Out takes them out. Their own punches are theirs to read
+ * in their own app; a supervisor sees what they punched.
+ */
+export function teamClockState(
+  batches: readonly TeamPunchBatch[],
+): ReadonlyMap<string, "in" | "out"> {
+  const state = new Map<string, "in" | "out">();
+  const ordered = [...batches].sort(
+    (a, b) => Date.parse(a.device_time) - Date.parse(b.device_time) || a.id.localeCompare(b.id),
+  );
+  for (const batch of ordered) {
+    for (const r of batch.results) {
+      if (r.outcome === "refused") continue;
+      state.set(r.shift_id, batch.punch_kind === "Out" ? "out" : "in");
+    }
+  }
+  return state;
+}
+
+/** The one primary team action (Section 11.13): Clock in while nobody selected is in, else Clock out. */
+export function primaryTeamPunch(
+  selected: readonly string[],
+  state: ReadonlyMap<string, "in" | "out">,
+): "In" | "Out" {
+  return selected.some((shiftId) => state.get(shiftId) === "in") ? "Out" : "In";
+}
+
+/** A shift on the supervisor's team board, as the device holds it (internal sync or api_external.shifts). */
+export interface TeamShiftRow {
+  readonly [column: string]: unknown;
+  readonly id: string;
+  readonly project_id: string;
+  readonly membership_id?: string | null;
+  readonly engagement_id?: string | null;
+  readonly roster_entry_id?: string | null;
+  readonly holder_name?: string | null;
+  readonly is_agency_slot?: boolean | null;
+  readonly starts_at: string;
+  readonly ends_at: string;
+  readonly shift_state?: string;
+  readonly time_zone?: string;
+  readonly job_title?: string | null;
+}
+
+/** Shifts on today's board: someone holds them, they are live, and they have not ended long ago or start tomorrow. */
+export function teamShifts(
+  rows: readonly TeamShiftRow[],
+  projectId: string | null,
+  nowMs: number,
+): TeamShiftRow[] {
+  return rows
+    .filter(
+      (s) =>
+        s.project_id === projectId &&
+        s.shift_state !== "Canceled" &&
+        s.shift_state !== "Draft" &&
+        s.is_agency_slot !== true &&
+        (Boolean(s.membership_id) || Boolean(s.engagement_id) || Boolean(s.roster_entry_id)) &&
+        Date.parse(s.ends_at) > nowMs - 6 * 3600_000 &&
+        Date.parse(s.starts_at) < nowMs + 18 * 3600_000,
+    )
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at) || a.id.localeCompare(b.id));
 }

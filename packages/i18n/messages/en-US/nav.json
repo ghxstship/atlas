@@ -533,7 +533,8 @@
       "shiftCoverage": "Shift Coverage"
     },
     "routes": {
-      "record": "Record"
+      "record": "Record",
+      "clockTeam": "Clock In Team"
     }
   },
   "console": {

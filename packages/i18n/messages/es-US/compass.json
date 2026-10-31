@@ -1003,5 +1003,41 @@
   "systemBanner": {
     "details": "Detalles",
     "dismiss": "Ocultar"
+  },
+  "clockTeam": {
+    "open": "Fichar al equipo",
+    "listTitle": "Equipo de hoy",
+    "selected": "{count} seleccionados",
+    "selectAll": "Seleccionar todos",
+    "select": "Seleccionar a {name}",
+    "window": "{start} a {end}",
+    "unnamed": "Miembro del equipo",
+    "pending": "Pendiente de sincronizar",
+    "in": "Dentro",
+    "refused": "Sin fichar",
+    "empty": "Nadie a quien supervisas tiene turno en este proyecto hoy.",
+    "refresh": "Actualizar",
+    "hint": "Cada persona se ficha con tu hora y tu ubicación. Si el servidor rechaza a alguien, el motivo aparece junto a su nombre.",
+    "clockIn": "Fichar entrada",
+    "clockOut": "Fichar salida",
+    "outsideGeofence": "Estás fuera de la geocerca del proyecto, así que las entradas pueden rechazarse. Ficha al equipo en el lugar.",
+    "agencyShift": "Turno de agencia",
+    "refusals": {
+      "supervisor_punch_batch": "Ficha entre 1 y 100 personas a la vez.",
+      "supervisor_punch_batch_required": "Este fichaje de equipo no tiene identificador de lote. Vuelve a fichar al equipo.",
+      "supervisor_punch_project": "Este turno ya no está en este proyecto o se canceló.",
+      "supervisor_punch_no_worker": "Nadie tiene este turno todavía.",
+      "supervisor_punch_not_lead": "No supervisas el turno de esta persona.",
+      "supervisor_punch_self": "Ficha tu propia entrada desde tu reloj.",
+      "supervisor_punch_outside_shift": "La entrada se abre dos horas antes del inicio del turno y se cierra cuando termina.",
+      "punch_already_in": "Ya fichó la entrada.",
+      "punch_not_in": "No ha fichado la entrada.",
+      "punch_shift_not_accepted": "Este turno no está publicado o no es suyo.",
+      "punch_id_conflict": "Este fichaje ya se usó para otro. Vuelve a fichar.",
+      "punch_location_required": "Este proyecto necesita tu ubicación para fichar al equipo.",
+      "punch_outside_geofence": "Estás fuera de la geocerca del proyecto.",
+      "punch_before_clock_in": "Una salida cuenta después de la entrada.",
+      "roster_entry_not_working": "Su entrada en el equipo está retirada o su contratación no está activa."
+    }
   }
 }

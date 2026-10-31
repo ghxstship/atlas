@@ -1003,5 +1003,41 @@
   "systemBanner": {
     "details": "Details",
     "dismiss": "Dismiss"
+  },
+  "clockTeam": {
+    "open": "Clock in team",
+    "listTitle": "Today's team",
+    "selected": "{count} selected",
+    "selectAll": "Select all",
+    "select": "Select {name}",
+    "window": "{start} to {end}",
+    "unnamed": "Crew member",
+    "pending": "Waiting to sync",
+    "in": "In",
+    "refused": "Not punched",
+    "empty": "No one you supervise has a shift on this project today.",
+    "refresh": "Refresh",
+    "hint": "Each person is punched at your time and location. Anyone the server refuses shows why beside their name.",
+    "clockIn": "Clock in",
+    "clockOut": "Clock out",
+    "outsideGeofence": "You are outside the project's geofence, so clock-ins may be refused. Punch the team in on site.",
+    "agencyShift": "Agency shift",
+    "refusals": {
+      "supervisor_punch_batch": "Punch between 1 and 100 people at a time.",
+      "supervisor_punch_batch_required": "This team punch has no batch id. Punch the team again.",
+      "supervisor_punch_project": "This shift is no longer on this project, or it was canceled.",
+      "supervisor_punch_no_worker": "Nobody holds this shift yet.",
+      "supervisor_punch_not_lead": "You do not supervise this person's shift.",
+      "supervisor_punch_self": "Clock yourself in from your own clock.",
+      "supervisor_punch_outside_shift": "Clock-in opens two hours before the shift starts and closes when it ends.",
+      "punch_already_in": "Already clocked in.",
+      "punch_not_in": "Not clocked in.",
+      "punch_shift_not_accepted": "This shift is not published or not theirs.",
+      "punch_id_conflict": "This punch was already used for another punch. Punch again.",
+      "punch_location_required": "This project needs your location to clock the team in.",
+      "punch_outside_geofence": "You are outside the project's geofence.",
+      "punch_before_clock_in": "A clock-out counts after the clock-in.",
+      "roster_entry_not_working": "Their roster entry is withdrawn or their engagement is not active."
+    }
   }
 }

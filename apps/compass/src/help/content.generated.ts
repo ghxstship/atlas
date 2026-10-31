@@ -181,6 +181,89 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "clock-team",
+        title: "Clock in team",
+        summary: "Punch the people you supervise in or out at once, offline too.",
+        kind: "page",
+        nodes: ["clock-team"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Clock in team" },
+              {
+                t: "text",
+                v: " punches a whole crew in or out from your phone. Field supervisors open it from the ",
+              },
+              { t: "strong", v: "Crew" },
+              {
+                t: "text",
+                v: " tab. If you lead a staffing agency's crew on a project, open it from ",
+              },
+              { t: "strong", v: "Today" },
+              { t: "text", v: "." },
+            ],
+          },
+          { t: "h2", v: "Punch the team" },
+          {
+            t: "ol",
+            items: [
+              [
+                { t: "text", v: "Check the people to punch, or turn on " },
+                { t: "strong", v: "Select all" },
+                { t: "text", v: ". The list shows today's shifts of the people you supervise." },
+              ],
+              [
+                { t: "text", v: "Tap " },
+                { t: "strong", v: "Clock in" },
+                { t: "text", v: ". When anyone you checked is already in, the main action is " },
+                { t: "strong", v: "Clock out" },
+                { t: "text", v: " instead." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Each person is punched at your time and your location, so stand on site when the project needs a location to clock in.",
+              },
+            ],
+          },
+          { t: "h2", v: "Offline" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The punch waits on your phone as one change and uploads when you are back online. A punch sent twice counts once.",
+              },
+            ],
+          },
+          { t: "h2", v: "When someone is not punched" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The reason shows beside their name. For example, a shift may not have started yet: clock-in opens two hours before a shift starts and closes when it ends. You cannot punch yourself in here; use your own clock.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "You cannot approve a timesheet that holds time you punched for someone. Another approver approves it.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "contact-support",
         title: "Contact support",
         summary:
@@ -3313,6 +3396,96 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Escaleta" },
               { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "clock-team",
+        title: "Fichar al equipo",
+        summary:
+          "Ficha la entrada o la salida de las personas que supervisas a la vez, también sin conexión.",
+        kind: "page",
+        nodes: ["clock-team"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Fichar al equipo" },
+              {
+                t: "text",
+                v: " registra la entrada o la salida de todo un equipo desde tu teléfono. Los supervisores de campo lo abren desde la pestaña ",
+              },
+              { t: "strong", v: "Equipo técnico" },
+              {
+                t: "text",
+                v: ". Si diriges el equipo de una agencia de personal en un proyecto, ábrelo desde ",
+              },
+              { t: "strong", v: "Hoy" },
+              { t: "text", v: "." },
+            ],
+          },
+          { t: "h2", v: "Fichar al equipo" },
+          {
+            t: "ol",
+            items: [
+              [
+                { t: "text", v: "Marca a las personas que quieres fichar o activa " },
+                { t: "strong", v: "Seleccionar todos" },
+                {
+                  t: "text",
+                  v: ". La lista muestra los turnos de hoy de las personas que supervisas.",
+                },
+              ],
+              [
+                { t: "text", v: "Toca " },
+                { t: "strong", v: "Fichar entrada" },
+                {
+                  t: "text",
+                  v: ". Si alguien que marcaste ya está dentro, la acción principal es ",
+                },
+                { t: "strong", v: "Fichar salida" },
+                { t: "text", v: "." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Cada persona se ficha con tu hora y tu ubicación, así que quédate en el lugar cuando el proyecto pide la ubicación para fichar la entrada.",
+              },
+            ],
+          },
+          { t: "h2", v: "Sin conexión" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "El fichaje espera en tu teléfono como un solo cambio y se sube cuando vuelves a tener conexión. Un fichaje enviado dos veces cuenta una sola vez.",
+              },
+            ],
+          },
+          { t: "h2", v: "Cuando no se ficha a alguien" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "El motivo aparece junto a su nombre. Por ejemplo, puede que un turno todavía no haya empezado: la entrada se abre dos horas antes del inicio del turno y se cierra cuando termina. Aquí no puedes ficharte a ti mismo; usa tu propio reloj.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "No puedes aprobar una hoja de horas que incluya tiempo que fichaste para otra persona. La aprueba otra persona.",
+              },
             ],
           },
         ],
