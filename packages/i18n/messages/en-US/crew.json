@@ -643,6 +643,7 @@
     "loading": "Ranking crew for this shift.",
     "noCandidates": "Nobody else in the organization or on an agency's roster can take this shift.",
     "unnamed": "Unnamed member",
+    "unnamedStaff": "Unnamed agency staff member",
     "availability": {
       "Available": "Available",
       "Tentative": "Tentative or partly available",

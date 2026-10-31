@@ -84,7 +84,8 @@ export function SchedulingBoard(props: {
   const percentOf = (n: number) => (total === 0 ? 0 : Math.round((n / total) * 100));
   const meterText = t("fill.value", { filled, total, percent: percentOf(filled) });
   const shiftLabel = (id: string) => open.find((s) => s.id === id)?.label ?? "";
-  const nameOf = (c: BoardCandidate) => c.name ?? t("unnamed");
+  const nameOf = (c: BoardCandidate) =>
+    c.name ?? (c.kind === "staff" ? t("unnamedStaff") : t("unnamed"));
 
   const assign = async (shiftId: string, person: BoardCandidate) => {
     if (busy) return;
