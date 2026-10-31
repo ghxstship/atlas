@@ -289,6 +289,10 @@
       "label": "Programa de diversidad de proveedores",
       "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
     },
+    "keepPhotoLocation": {
+      "label": "Conservar la ubicación de las fotos",
+      "help": "Conservar en el archivo de la foto dónde se tomó en Compass. Si está desactivado, Compass quita la ubicación al reducir la foto."
+    },
     "offeringsTravel": {
       "label": "Viajes",
       "help": "Vuelos y transporte terrestre para las personas que contratas. Si se ofrece, las pestañas Viajes y alojamiento y Hospitalidad aparecen en sus contrataciones de Gateway."

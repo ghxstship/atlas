@@ -155,6 +155,7 @@
       "settlement_lines": "settlement lines",
       "shared_reports": "shared reports",
       "sponsor_entitlements": "sponsor entitlements",
+      "proof_of_performance_photos": "proof-of-performance photos",
       "engagement_documents": "engagement documents",
       "profile_certifications": "your certifications",
       "profile_documents": "your documents"
@@ -270,7 +271,8 @@
       "serverState": "{title}, now {state}",
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}.",
-      "expenseReceipt": "Expense: {description}, {day}"
+      "expenseReceipt": "Expense: {description}, {day}",
+      "proofPhoto": "Proof of performance photo, {time}"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
     "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
@@ -309,7 +311,13 @@
     "since": "Since {time}",
     "cueTitle": "Next cue: {cue}",
     "cueBody": "{project} at {time}",
-    "channel": "Shift and next cue"
+    "channel": "Shift and next cue",
+    "gallery": {
+      "todayName": "Compass Today",
+      "todayDescription": "Your shifts today and the next cue.",
+      "nextCueName": "Compass Next Cue",
+      "nextCueDescription": "The time to the next cue."
+    }
   },
   "wallet": {
     "holder": "Name",

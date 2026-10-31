@@ -289,6 +289,10 @@
       "label": "Supplier diversity program",
       "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
     },
+    "keepPhotoLocation": {
+      "label": "Keep photo location",
+      "help": "Keep where a Compass photo was taken in the photo's file. When off, Compass removes the location as it resizes the photo."
+    },
     "offeringsTravel": {
       "label": "Travel",
       "help": "Flights and ground transport for the people you engage. Offered, the Travel and lodging and Hospitality tabs appear on their Gateway engagements."
