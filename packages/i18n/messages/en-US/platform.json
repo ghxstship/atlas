@@ -678,6 +678,9 @@
       "opportunity": {
         "matched": "New opportunity match"
       },
+      "offer": {
+        "sent": "New offer"
+      },
       "onboarding": {
         "item_expiring": "Onboarding item expiring"
       },

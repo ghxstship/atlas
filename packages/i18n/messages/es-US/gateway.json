@@ -37,6 +37,12 @@
       "notification_channel_outside": "Una empresa solo configura Correo electrónico y Push.",
       "supplier_diversity_no_program": "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
       "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "notification_action_used": "Esto ya se resolvió. No hay nada más que hacer.",
+      "notification_action_expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
+      "notification_action_not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+      "notification_action_invalid": "Este enlace no funciona. Abre el elemento desde Inicio.",
+      "notification_action_elsewhere": "Este enlace se abre en Atlas. Usa el botón del correo para abrirlo allí.",
+      "notification_action_reason": "Di por qué lo rechazas.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
       "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
       "submittal_note_length": "Escribe una nota de 1 a 500 caracteres.",
@@ -1458,6 +1464,24 @@
       "rate": "Califica tu trabajo con {org}",
       "rateAction": "Calificar"
     },
+    "fyi": {
+      "title": "Para tu información",
+      "empty": "Nada nuevo. Aquí aparecen las novedades de las organizaciones con las que trabajas.",
+      "done": "Listo",
+      "snooze": "Posponer",
+      "doneLabel": "Marcar {text} como listo",
+      "snoozeLabel": "Posponer {text} un día",
+      "keys": "Selecciona un elemento y presiona E para Listo o H para posponerlo un día. J y K pasan de un elemento a otro.",
+      "new": "Nuevo",
+      "kinds": {
+        "offerSent": "{orgName} te envió una oferta para {title}",
+        "shiftAssigned": "Nuevo turno: {title}",
+        "shiftChanged": "Turno modificado: {title}",
+        "messageReceived": "Mensaje nuevo",
+        "other": "{title}",
+        "untitled": "Novedad"
+      }
+    },
     "recommended": {
       "title": "Recomendadas para ti",
       "all": "Ver todas",
@@ -1465,8 +1489,6 @@
       "emptyAction": "Crear alerta"
     },
     "updates": {
-      "title": "Novedades",
-      "new": "Nuevo",
       "kinds": {
         "invoiceSubmitted": "{orgName} recibió la factura {title}",
         "invoiceApproved": "{orgName} aprobó la factura {title}",
@@ -2121,6 +2143,36 @@
       "invitationRoster": "{party} te invita a su equipo para {project}",
       "accept": "Aceptar",
       "decline": "Rechazar"
+    },
+    "actionLink": {
+      "title": "Confirmar desde el correo",
+      "heading": {
+        "approve": "¿Aprobar {title}?",
+        "reject": "¿Rechazar {title}?",
+        "accept": "¿Aceptar {title}?"
+      },
+      "untitled": "este elemento",
+      "org": "De {org}. No pasa nada hasta que confirmes.",
+      "signedInAs": "Sesión iniciada como {email}.",
+      "confirm": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "accept": "Aceptar"
+      },
+      "reason": "¿Por qué lo rechazas?",
+      "done": {
+        "approve": "Aprobado. No hay nada más que hacer.",
+        "reject": "Rechazado con tu motivo.",
+        "accept": "Aceptado. La organización se encarga desde aquí."
+      },
+      "home": "Ir al inicio",
+      "state": {
+        "used": "Esto ya se resolvió. No hay nada más que hacer.",
+        "expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
+        "not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+        "elsewhere": "Este enlace se abre en Atlas, donde se aplican los ajustes de seguridad de tu organización. Usa el botón del correo para abrirlo allí.",
+        "invalid": "Este enlace no funciona. Abre el elemento desde Inicio."
+      }
     },
     "errors": {
       "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",

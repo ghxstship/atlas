@@ -667,6 +667,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "offer.sent",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.offer.sent.subject",
+      body: "kinds.offer.sent.body",
+    },
+  },
+  {
     kind: "onboarding.item_expiring",
     category: "expiry_reminders",
     emailTemplate: "notification",

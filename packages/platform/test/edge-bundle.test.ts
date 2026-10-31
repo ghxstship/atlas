@@ -107,21 +107,26 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "kiosk-punch": 64,
   // R5 (2650): the two project facts and names lock kinds in both locales took it to 181.6 KB on 2026-10-28.
   // R7 (2698): the four allocation kinds (decided, assigned, issued, withdrawn) in both locales took it to 186.9 KB
-  // on 2026-10-30; the same 2 percent of headroom R5 left.
-  "notification-dispatch": 190,
+  // on 2026-10-30; the same 2 percent of headroom R5 left. A127: one-tap email action links in the shared stores, the
+  // offer and message push categories, offer.sent and the email action copy in both locales (about 3.5 KB); 182.1 KB
+  // on its own on 2026-10-27; with R5 and R7, 191.6 KB on 2026-10-31.
+  "notification-dispatch": 195,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. R7: the radio hand-out's document copy in both
-  // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30.
-  "org-lifecycle": 222,
+  // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30. A127's
+  // one-tap action links in the same shared stores chunk took it to 222.6 KB with R7 on 2026-10-31.
+  "org-lifecycle": 226,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
   // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
   // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent. R7 (2698): the four
-  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom.
-  "sms-webhook": 152,
+  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom. A127's
+  // offer.sent and one-tap action copy in both locales took it to 153.6 KB with R7 on 2026-10-31.
+  "sms-webhook": 156,
   "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // A127's one-tap action links in the shared stores chunk took it to 116.8 KB with R7 on 2026-10-31.
+  "subprocessor-notices": 119,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
   "wallet-pass": 120,

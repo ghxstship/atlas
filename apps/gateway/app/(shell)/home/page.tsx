@@ -31,7 +31,7 @@ import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import { PageTitle, RegionError, Section, pickView, ViewSwitcher } from "@/components/page/page";
 import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/components/ui";
 import { UpNextActions } from "@/components/page/up-next-actions";
-import { Updates } from "@/components/page/updates";
+import { ForYourInformation } from "@/components/page/for-your-information";
 import { acceptRepresentationAction, signDocumentAction } from "@/lib/actions/engagement";
 import {
   acceptAccountMembershipAction,
@@ -79,7 +79,8 @@ function engagementHref(e: Engagement, tab = "overview"): Route {
 
 /**
  * Gateway Home (Section 4.5.8): search first, the Up Next card, a feed of things that need the
- * person with each action inline, then recommended opportunities. Every engagement detail is one
+ * person with each action inline, For Your Information beside it with Done (E) and Snooze (H) (A127), then
+ * recommended opportunities. Every engagement detail is one
  * tap from here (Section 11.12, Work).
  */
 export default async function HomePage({ searchParams }: PageProps<"/home">) {
@@ -232,7 +233,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
         )}
       </Section>
 
-      <Updates db={ctx.db} t={t} locale={locale} />
+      <ForYourInformation db={ctx.db} t={t} locale={locale} />
 
       {view === "feed" ? (
         <Section
