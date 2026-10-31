@@ -945,7 +945,16 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hospitality is for artists. It lists what the production arranged for you: lodging with its dates and guest name, and travel, catering and other items with their time and supplier.",
+            v: "Hospitality is for artists. It starts with your stay, day by day: your flights and ground transport, your hotel's check-in and check-out and your set times. Anything the production changed since you last looked carries a tag that names what changed, such as a new set time, and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Below your stay come catering and the other items the production arranged, with their time and supplier.",
           },
         ],
       },
@@ -1900,23 +1909,22 @@ export const HELP_BODIES: HelpBodies = {
     ],
     "engagement-travel-and-lodging": [
       { t: "p", c: [{ t: "text", v: "Travel and Lodging is for crew." }] },
-      { t: "h2", v: "Itinerary" },
+      { t: "h2", v: "Your stay" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel.",
+            v: "Your whole stay, day by day: each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel, and your hotel's check-in and check-out on their dates. A leg sits on the day it departs, in the time zone of its departure.",
           },
         ],
       },
-      { t: "h2", v: "Lodging" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Your hotel or room block, with the check-in and check-out dates and the guest name.",
+            v: 'Anything the organization changed since you last looked carries a tag that names what changed, such as "Changed since you last looked: Departure", and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them. The tags start from your second visit.',
           },
         ],
       },
@@ -4574,7 +4582,16 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hospitalidad es para artistas. Muestra lo que la producción organizó para ti: el alojamiento con sus fechas y el nombre del huésped, y el viaje, la comida y otros elementos con su hora y proveedor.",
+            v: "Hospitalidad es para artistas. Empieza con tu estadía, día por día: tus vuelos y traslados, la entrada y salida de tu hotel y tus horarios de presentación. Lo que la producción cambió desde tu última visita lleva una etiqueta que dice qué cambió, como un nuevo horario de presentación, y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Debajo de tu estadía aparecen la comida y los demás elementos que organizó la producción, con su hora y proveedor.",
           },
         ],
       },
@@ -5547,23 +5564,22 @@ export const HELP_BODIES: HelpBodies = {
     ],
     "engagement-travel-and-lodging": [
       { t: "p", c: [{ t: "text", v: "Viaje y alojamiento es para el equipo técnico." }] },
-      { t: "h2", v: "Itinerario" },
+      { t: "h2", v: "Tu estadía" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Cada tramo de un lugar a otro, con la empresa y el número de servicio, las horas de salida y llegada, el código de confirmación y el medio de transporte.",
+            v: "Toda tu estadía, día por día: cada tramo de un lugar a otro, con la empresa y el número de servicio, las horas de salida y llegada, el código de confirmación y el medio de transporte, y la entrada y salida de tu hotel en sus fechas. Un tramo aparece el día en que sale, en la zona horaria de su salida.",
           },
         ],
       },
-      { t: "h2", v: "Alojamiento" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Tu hotel o bloque de habitaciones, con las fechas de entrada y salida y el nombre del huésped.",
+            v: 'Lo que la organización cambió desde tu última visita lleva una etiqueta que dice qué cambió, como "Cambió desde tu última visita: Salida", y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita. Las etiquetas empiezan a partir de tu segunda visita.',
           },
         ],
       },

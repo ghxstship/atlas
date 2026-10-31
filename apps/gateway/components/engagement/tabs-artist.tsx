@@ -19,6 +19,7 @@ import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { engagementTitle } from "@/lib/engagement-state";
 import { toneFor, type Tone } from "@/lib/states";
+import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
 import { DocumentsTab } from "./tabs-common";
@@ -160,7 +161,7 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
   if (!hasArea(view, "operational")) {
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
-  const [hospitality, lodging, travel] = await Promise.all([
+  const [hospitality, lodging, travel, sets] = await Promise.all([
     readView(view.ctx.db, "hospitality", {
       eq: { project_id: view.engagement.projectId },
       order: ["starts_at", "asc"],
@@ -174,53 +175,24 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       eq: { engagement_id: view.engagement.id },
       order: ["departs_at", "asc"],
     }),
+    // The artist's own set times on the project (0760), placed in the itinerary on their day.
+    readView(view.ctx.db, "cues", {
+      eq: { project_id: view.engagement.projectId, is_my_set: true },
+      order: ["planned_at", "asc"],
+    }),
   ]);
-  if (!hospitality.ok || !lodging.ok || !travel.ok) return <RegionError />;
-  const rows = [
-    ...travel.data.map((s) => ({
-      id: `travel-${s.id}`,
-      title: t("gateway.engagement.travel.route", {
-        from: s.departs_from ?? "",
-        to: s.arrives_at_place ?? "",
-      }),
-      meta: [
-        [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
-        s.travel_mode ? t(enumLabelKey("travelMode", s.travel_mode)) : null,
-        s.departs_at
-          ? t("gateway.engagement.travel.departs", {
-              time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
-            })
-          : null,
-        s.arrives_at
-          ? t("gateway.engagement.travel.arrives", {
-              time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
-            })
-          : null,
-        s.confirmation_identifier
-          ? t("gateway.engagement.travel.confirmation", { code: s.confirmation_identifier })
-          : null,
-      ],
-    })),
-    ...lodging.data.map((l) => ({
-      id: `lodging-${l.id}`,
-      title: l.hotel_name ?? l.block_title ?? "",
-      meta: [
-        t(enumLabelKey("fulfillmentKind", "Lodging")),
-        formatDateRange(locale, l.check_in_on, l.check_out_on),
-        l.guest_name,
-      ],
-    })),
-    ...hospitality.data.map((h) => ({
-      id: h.id ?? "",
-      title: h.title ?? h.description ?? "",
-      meta: [
-        h.fulfillment_kind ? t(enumLabelKey("fulfillmentKind", h.fulfillment_kind)) : null,
-        h.starts_at ? formatDateTime(locale, h.starts_at) : null,
-        h.supplier_name,
-      ],
-    })),
-  ];
-  if (rows.length === 0) {
+  if (!hospitality.ok || !lodging.ok || !travel.ok || !sets.ok) return <RegionError />;
+  const lines = hospitality.data.map((h) => ({
+    id: h.id ?? "",
+    title: h.title ?? h.description ?? "",
+    meta: [
+      h.fulfillment_kind ? t(enumLabelKey("fulfillmentKind", h.fulfillment_kind)) : null,
+      h.starts_at ? formatDateTime(locale, h.starts_at) : null,
+      h.supplier_name,
+    ],
+  }));
+  const hasStay = travel.data.length > 0 || lodging.data.length > 0 || sets.data.length > 0;
+  if (!hasStay && lines.length === 0) {
     return (
       <TabEmpty
         icon="UtensilsCrossed"
@@ -230,7 +202,28 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       />
     );
   }
-  return <RowList label={t("nav.gateway.engagementTabs.hospitality")} items={rows} />;
+  // The itinerary first (B6): travel, nights and set times by day, marked where they changed since the last look; then
+  // the hospitality lines alone.
+  const stay = hasStay
+    ? await loadItinerary(view, { travel: travel.data, lodging: lodging.data, setTimes: sets.data })
+    : null;
+  if (hasStay && !stay) return <RegionError />;
+  return (
+    <div className="flex flex-col gap-16">
+      {stay ? (
+        <ItinerarySections
+          itinerary={stay.itinerary}
+          baselineAt={stay.baselineAt}
+          view={view}
+          t={t}
+          locale={locale}
+        />
+      ) : null}
+      {lines.length > 0 ? (
+        <RowList label={t("nav.gateway.engagementTabs.hospitality")} items={lines} />
+      ) : null}
+    </div>
+  );
 }
 
 /**

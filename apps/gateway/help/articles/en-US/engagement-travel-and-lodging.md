@@ -8,13 +8,11 @@ order: 1
 
 Travel and Lodging is for crew.
 
-## Itinerary
+## Your stay
 
-Each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel.
+Your whole stay, day by day: each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel, and your hotel's check-in and check-out on their dates. A leg sits on the day it departs, in the time zone of its departure.
 
-## Lodging
-
-Your hotel or room block, with the check-in and check-out dates and the guest name.
+Anything the organization changed since you last looked carries a tag that names what changed, such as "Changed since you last looked: Departure", and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them. The tags start from your second visit.
 
 ## Travel
 

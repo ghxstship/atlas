@@ -18,6 +18,7 @@ import {
 } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
+import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -318,59 +319,23 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
       />
     );
   }
+  // Your stay (B6): the segments, check-ins and check-outs by day, marked where they changed since the last look. The
+  // check-in and check-out lines carry the hotel and dates, so the Lodging list no longer repeats them.
+  const stay =
+    segments.data.length > 0 || lodging.data.length > 0
+      ? await loadItinerary(view, { travel: segments.data, lodging: lodging.data })
+      : null;
+  if ((segments.data.length > 0 || lodging.data.length > 0) && !stay) return <RegionError />;
   return (
     <div className="flex flex-col gap-16">
-      {segments.data.length > 0 ? (
-        <Section title={t("gateway.engagement.travel.itinerary")}>
-          <RowList
-            label={t("gateway.engagement.travel.itinerary")}
-            items={segments.data.map((s) => ({
-              id: s.id ?? "",
-              title: t("gateway.engagement.travel.route", {
-                from: s.departs_from ?? "",
-                to: s.arrives_at_place ?? "",
-              }),
-              meta: [
-                [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
-                s.departs_at
-                  ? t("gateway.engagement.travel.departs", {
-                      time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
-                    })
-                  : null,
-                s.arrives_at
-                  ? t("gateway.engagement.travel.arrives", {
-                      time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
-                    })
-                  : null,
-                s.confirmation_identifier
-                  ? t("gateway.engagement.travel.confirmation", {
-                      code: s.confirmation_identifier,
-                    })
-                  : null,
-              ],
-              ...(s.travel_mode
-                ? {
-                    tag: {
-                      label: t(enumLabelKey("travelMode", s.travel_mode)),
-                      tone: "neutral" as const,
-                    },
-                  }
-                : {}),
-            }))}
-          />
-        </Section>
-      ) : null}
-      {lodging.data.length > 0 ? (
-        <Section title={t("gateway.engagement.travel.lodging")}>
-          <RowList
-            label={t("gateway.engagement.travel.lodging")}
-            items={lodging.data.map((l) => ({
-              id: l.id ?? "",
-              title: l.hotel_name ?? l.block_title ?? "",
-              meta: [formatDateRange(locale, l.check_in_on, l.check_out_on), l.guest_name],
-            }))}
-          />
-        </Section>
+      {stay ? (
+        <ItinerarySections
+          itinerary={stay.itinerary}
+          baselineAt={stay.baselineAt}
+          view={view}
+          t={t}
+          locale={locale}
+        />
       ) : null}
       {travel.data.length > 0 ? (
         <Section title={t("gateway.engagement.travel.travel")}>
