@@ -21,6 +21,12 @@ derived:
     reason: Every live link names its project, so the read checks, the ping triggers and the list policy need no join
     adr: "0130"
   - objects:
+      - app.showcaller_links.project_id
+    source: "`app.run_of_show.project_id`"
+    refresh: Stamped by trigger on insert and update; a link never changes its running order (2923)
+    reason: The read checks, the list policy and the ping triggers name the link's project without a join
+    adr: "0142"
+  - objects:
       - app.inspection_results.project_id
     source: "`app.inspections.project_id`"
     refresh: Stamped by trigger on insert (0420)
@@ -681,6 +687,18 @@ restated:
     parent: app.run_of_show.project_id
     kind: registered
     note: Stamped from the running order by `private.stamp_cue_project` (derived entry).
+  - column: app.cues.project_id
+    parent: app.showcaller_links.project_id
+    kind: own
+    note: A call through a link is made only within the link's running order, so the link is in the cue's project; the cue's project is its running order's (`private.stamp_cue_project`, migration 2923, B3).
+  - column: app.cues.run_of_show_id
+    parent: app.run_segment_instances.run_of_show_id
+    kind: own
+    note: The cue's own running order; `private.guard_cue_segment_instance` refuses a segment copy of another running order (migration 2921, B3).
+  - column: app.cues.run_of_show_id
+    parent: app.showcaller_links.run_of_show_id
+    kind: own
+    note: The cue's own running order; a showcaller link calls cues of its running order only, so the link it was called through is of the same one (migration 2924, B3).
   - column: app.custom_field_values.custom_field_definition_id
     parent: app.custom_field_choices.custom_field_definition_id
     kind: own
@@ -1382,6 +1400,10 @@ restated:
     kind: finding
     note: The application is required and is for one opportunity, so the shortlist's opportunity is the application's.
     finding: A108-003
+  - column: app.showcaller_links.project_id
+    parent: app.run_of_show.project_id
+    kind: registered
+    note: Stamped from the running order by `private.stamp_showcaller_link_project` (derived entry).
   - column: app.site_plans.venue_id
     parent: app.projects.venue_id
     kind: own
@@ -1651,6 +1673,10 @@ restated:
     kind: finding
     note: The session is required and belongs to one sign-in, so the device's sign-in is the session's.
     finding: A108-003
+  - column: private.showcaller_link_grants.expires_at
+    parent: app.showcaller_links.expires_at
+    kind: own
+    note: The device grant stops working at the link's expiry or 48 hours after the open, whichever comes first (migration 2924, B3).
   - column: xpms.bridge_element_metric.item
     parent: xpms.elements.item
     kind: own
@@ -1754,6 +1780,9 @@ stored:
   - column: app.report_runs.unpriced_count
     kind: fact
     note: Unpriced rows of a run; not derivable later (A22 review).
+  - column: app.segment_library.version
+    kind: fact
+    note: A change counter the database raises on every change of the segment, its cues or their calls; copies compare against it, and no history row records it (migration 2921, B3).
   - column: app.share_links.open_count
     kind: fact
     note: Opens are logged by file, not by link, so the count is the only per-link record (migration 1380).
@@ -1763,6 +1792,9 @@ stored:
   - column: app.shipments.piece_count
     kind: input
     note: Pieces shipped (migration 1180).
+  - column: app.showcaller_links.open_count
+    kind: fact
+    note: Successful opens with the access code; the anonymous open writes no other per-link record (migration 2924, B3).
   - column: app.tax_rates.rate_percent
     kind: input
     note: A tax rate.
