@@ -50,6 +50,8 @@ declare
   v_project uuid;
   v_count integer;
   v_day date;
+  v_starts_on date;
+  v_ends_on date;
 begin
   if auth.uid() is null then
     raise exception using errcode = '42501', message = 'a signed-in person is required';
@@ -110,8 +112,19 @@ begin
     end if;
   end if;
 
-  -- 4. Load In and Load Out days, through B4's day editor save.
+  -- 4. Load In and Load Out days, through B4's day editor save. At intake they sit outside the show dates when those
+  -- are known (a template may set the last show day): load-in ends on or before the first show day and load-out
+  -- starts on or after the last. B4's day editor only warns, for tours (3033).
   if p_load_in_from is not null or p_load_out_from is not null then
+    select p.starts_on, p.ends_on into v_starts_on, v_ends_on from app.projects p where p.id = v_project;
+    if p_load_in_to > v_starts_on then
+      raise exception using errcode = 'XR001', hint = 'project_bump_in_after_show',
+        message = 'project_bump_in_after_show: Load-in ends on or before the first show day.';
+    end if;
+    if p_load_out_from < v_ends_on then
+      raise exception using errcode = 'XR001', hint = 'project_bump_out_before_show',
+        message = 'project_bump_out_before_show: Load-out starts on or after the last show day.';
+    end if;
     if not ('schedule.timeline.write' = any (app.my_schedule_capabilities_on_project(v_project))) then
       raise exception using errcode = '42501', message = 'schedule.timeline.write is required on the project';
     end if;
@@ -135,6 +148,6 @@ begin
 end;
 $$;
 
-comment on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer, text, text, text, text, text) is 'The staged intake wizard''s save (G-250, G-252, G-262; ADR 0153), in one transaction as the caller: creates the project from the event type''s template for the scale and audience (p_template_choice type, app.resolve_event_type_template; blank when none matches), from a template of the org (template) or blank (none; 22023 otherwise) through app.apply_template or app.create_project; sets the event type, bands and, over a template''s defaults, the last show day, jurisdiction, region, tier, currency and description when given (42501 when the caller cannot update the project); saves each date from p_load_in_from to p_load_in_to as a Load In day and each from p_load_out_from to p_load_out_to as a Load Out day through app.save_project_days, which needs schedule.timeline.write on the project (42501; project_bump_window_bounds for a missing or reversed bound, project_bump_window_length beyond 60 days); and, when p_copy_from_project_id is given, copies p_copy_parts from it with app.copy_project_setup. Any refusal leaves no project. Returns the project id.';
+comment on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer, text, text, text, text, text) is 'The staged intake wizard''s save (G-250, G-252, G-262; ADR 0153), in one transaction as the caller: creates the project from the event type''s template for the scale and audience (p_template_choice type, app.resolve_event_type_template; blank when none matches), from a template of the org (template) or blank (none; 22023 otherwise) through app.apply_template or app.create_project; sets the event type, bands and, over a template''s defaults, the last show day, jurisdiction, region, tier, currency and description when given (42501 when the caller cannot update the project); saves each date from p_load_in_from to p_load_in_to as a Load In day and each from p_load_out_from to p_load_out_to as a Load Out day through app.save_project_days, which needs schedule.timeline.write on the project (42501; project_bump_window_bounds for a missing or reversed bound, project_bump_window_length beyond 60 days; project_bump_in_after_show when load-in ends after the first show day and project_bump_out_before_show when load-out starts before the last, when the project has show dates); and, when p_copy_from_project_id is given, copies p_copy_parts from it with app.copy_project_setup. Any refusal leaves no project. Returns the project id.';
 revoke all on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer, text, text, text, text, text) from public, anon;
 grant execute on function app.create_project_from_intake(uuid, text, text, text, date, date, uuid, uuid, app.event_scale, app.event_audience, text, uuid, boolean, date, date, date, date, uuid, app.project_copy_part[], integer, text, text, text, text, text) to authenticated, service_role;

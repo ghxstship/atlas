@@ -187,8 +187,10 @@
     "template_time_zone_required": "Choose the project's time zone; the template does not set one.",
     "project_bump_window_bounds": "Give the first and the last day of each of load-in and load-out, in order.",
     "project_bump_window_length": "Load-in and load-out each last at most 60 days.",
+    "project_event_type_locked": "Only someone who may change the project's settings changes its event type, scale or audience.",
+    "project_bump_in_after_show": "Load-in ends on or before the first show day. Move the load-in days earlier, or the show dates later.",
+    "project_bump_out_before_show": "Load-out starts on or after the last show day. Move the load-out days later, or the show dates earlier.",
     "copy_nothing": "Choose at least one part to copy.",
-    "copy_other_org": "Copy between projects of the same organization.",
     "copy_same_project": "Choose another project to copy from.",
     "copy_offset_unknown": "Set the show dates on both projects, or give the number of days to move everything by.",
     "copy_too_large": "This copy has more than 2,000 items. Copy fewer parts at a time.",
@@ -635,13 +637,11 @@
     "reasons": {
       "scope_code_taken": "A node with this code is already on the project.",
       "outside_copy": "What it links to is not part of the copy.",
-      "dependency_needs_timeline": "Copying dependencies needs permission to change the schedule.",
       "day_taken": "The project already has this day.",
-      "day_needs_timeline": "Copying project days needs permission to change the schedule.",
       "code_taken": "A category with this code is already on the project; its access rows go to that one.",
-      "zone_other_venue": "Its zone is at another venue.",
+      "zone_other_venue": "Its zone is at another venue, and the project's venue has no zone with the same code.",
       "event_cost_center_cleared": "Its cost center belongs to the old event, so it was left empty.",
-      "category_missing": "The project has no pass category with this code. Copy the pass categories too."
+      "category_unmapped": "The project has no pass category with this code. Copy the pass categories too."
     },
     "commit": "Copy",
     "done": "Copied {copied} items; {skipped} skipped."

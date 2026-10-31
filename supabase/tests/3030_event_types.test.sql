@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(27);
+select plan(29);
 
 select has_table('app', 'event_types', 'app.event_types exists');
 select has_table('app', 'event_type_templates', 'app.event_type_templates exists');
@@ -45,6 +45,20 @@ select lives_ok($$insert into app.event_type_templates (event_type_id, template_
   values (pg_temp.id('type_fest'), pg_temp.id('tpl_default'))$$, 'a default rule for any scale and audience');
 select throws_ok($$insert into app.event_type_templates (event_type_id, template_id)
   values (pg_temp.id('type_fest'), pg_temp.id('tpl_large'))$$, '23505', null, 'one rule per band pair, NULLs counted equal');
+-- A rule names a live project template of the org: a deleted one is refused, and another org's is not referenced.
+with x as (insert into app.templates (org_id, name) values (pg_temp.id('org_a'), 'Old Festival Plan') returning id)
+  insert into world select 'tpl_gone', id from x;
+update app.templates set deleted_at = now() where id = pg_temp.id('tpl_gone');
+select throws_ok($$insert into app.event_type_templates (event_type_id, event_scale, template_id)
+  values (pg_temp.id('type_fest'), 'Small', pg_temp.id('tpl_gone'))$$,
+  'XR001', 'event_type_template_kind: Choose a live project template.', 'a rule naming a deleted template is refused');
+select pg_temp.as_platform();
+with x as (insert into app.templates (org_id, name) values (pg_temp.id('org_b'), 'Harbor Plan') returning id)
+  insert into world select 'tpl_b', id from x;
+select pg_temp.as_user('carol');
+select throws_like($$insert into app.event_type_templates (event_type_id, event_scale, template_id)
+  values (pg_temp.id('type_fest'), 'Medium', pg_temp.id('tpl_b'))$$,
+  'cross_org_reference:%', 'a rule naming another org''s template is refused');
 with x as (insert into app.event_types (org_id, name) values (pg_temp.id('org_a'), 'Gala') returning id)
   insert into world select 'type_gala', id from x;
 insert into app.event_type_templates (event_type_id, template_id) values (pg_temp.id('type_gala'), pg_temp.id('tpl_draft'));
@@ -103,7 +117,8 @@ select pg_temp.as_user('dave');
 select lives_ok($$update app.projects set event_type_id = pg_temp.id('type_fest'), event_scale = 'Large', event_audience = 'Public Ticketed'
   where id = pg_temp.id('prj_a')$$, 'the update policy sets a type and bands on a project with none');
 select throws_ok($$update app.projects set event_scale = 'Major' where id = pg_temp.id('prj_a')$$,
-  '42501', 'projects.settings.write is required on the project', 'changing a band needs projects.settings.write');
+  'XR001', 'project_event_type_locked: Only someone who may change the project''s settings changes its event type, scale or audience.',
+  'changing a band needs projects.settings.write');
 select pg_temp.as_user('carol');
 update app.projects set event_scale = 'Major' where id = pg_temp.id('prj_a');
 select pg_temp.as_platform();

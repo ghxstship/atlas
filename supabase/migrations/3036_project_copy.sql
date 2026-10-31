@@ -6,16 +6,19 @@
 --   * Parts: Plan (Show and Standing Venue scope nodes, open records with their parents and dependencies, and B4's
 --     project days), Pass Categories (credential categories and their access grid at the target's venues), Hotel Blocks,
 --     Budgets (as new, non-baseline budgets) and Advance Forms (packets, sections and choices, unsent).
---   * Never copied: shifts, engagements, people, credentials issued, allocations, submissions, advance recipients,
---     roster facts, record owners, record extension rows, hotel assignments and project offering rules and settings
---     (2620, 2621). They are bookings, commercial terms, consented personal data or the party's own answers (D4).
+--   * Never copied: shifts, engagements, roster entries, roster travel parties (2657), people, credentials issued,
+--     allocations, submissions, advance recipients, roster facts, record owners, Approval records, record extension
+--     rows, record and file reviews, hotel assignments and project offering rules and settings (2620, 2621). They are bookings, commercial terms, consented personal data or the party's own answers (D4).
 --   * app.copy_project_setup previews and commits the same rows. The writes run inside a BEGIN ... EXCEPTION block; a
 --     preview raises the private sentinel XB001 that rolls them back while the result rows stay in a jsonb accumulator
 --     outside the block, the pattern of 1451's private.run_bulk. With no target (the intake wizard, before the project
 --     exists) the preview runs against a stand-in project in the same block, at the would-be venue and zone, so a skip
 --     that depends on the target (scope_code_taken, code_taken, day_taken) cannot occur; a commit needs a target.
---   * The caller needs, per part, the read capability on the source and the write capabilities on the target (42501
---     naming it, before anything is written). Every guard of the target tables runs as for a hand-made row
+--   * The caller needs, per part, the read capabilities on the source and the write capabilities on the target (42501
+--     naming it, before anything is written), the same ones each target table's write policy asks for: Plan reads
+--     work.record.read and schedule.timeline.read and writes with work.record.write, projects.scope.write and
+--     schedule.timeline.write. A project in an org the caller does not belong to, as source or target, is "project not
+--     found" (42501), so its existence is not revealed. Every guard of the target tables runs as for a hand-made row
 --     (plan_limit_read_only, production_closed, title grammar).
 --   * A commit records one app.project_copies row and one app.project_copy_parts row per part, and emits
 --     project.copied. Both tables are append-only facts, not derived totals, and stay out of Trash and of the
@@ -171,7 +174,6 @@ declare
   v_records jsonb := '{}'::jsonb;
   v_categories jsonb := '{}'::jsonb;
   v_days date[] := '{}';
-  v_timeline boolean;
   v_id uuid;
   v_other uuid;
   v_zone_from text;
@@ -193,17 +195,17 @@ begin
     perform private.refuse('copy_nothing', 'Choose at least one part to copy.');
   end if;
   v_parts := array(select distinct x from unnest(p_parts) x where x is not null order by x);
-  select * into v_src from app.projects p where p.id = p_source_project_id and p.deleted_at is null;
+  select * into v_src from app.projects p
+  where p.id = p_source_project_id and p.deleted_at is null and p.org_id in (select private.my_org_ids());
   if v_src.id is null then
     raise exception using errcode = '42501', message = 'project not found';
   end if;
   if p_target_project_id is not null then
-    select * into v_tgt from app.projects p where p.id = p_target_project_id and p.deleted_at is null;
+    -- A target in another org reads as missing, as a source does, so a copy never tells whether it exists.
+    select * into v_tgt from app.projects p
+    where p.id = p_target_project_id and p.deleted_at is null and p.org_id = v_src.org_id;
     if v_tgt.id is null then
       raise exception using errcode = '42501', message = 'project not found';
-    end if;
-    if v_tgt.org_id <> v_src.org_id then
-      perform private.refuse('copy_other_org', 'Copy between projects of the same organization.');
     end if;
     if v_tgt.id = v_src.id then
       perform private.refuse('copy_same_project', 'Choose another project to copy from.');
@@ -222,7 +224,8 @@ begin
   -- Every capability before anything is written.
   foreach v_part in array v_parts loop
     case v_part
-      when 'Plan' then v_reads := array['work.record.read']; v_writes := array['work.record.write', 'projects.scope.write'];
+      when 'Plan' then v_reads := array['work.record.read', 'schedule.timeline.read'];
+        v_writes := array['work.record.write', 'projects.scope.write', 'schedule.timeline.write'];
       when 'Pass Categories' then v_reads := array['credentials.credential.read'];
         v_writes := array['credentials.category.write', 'credentials.access_grid.write'];
       when 'Hotel Blocks' then v_reads := array['hospitality.fulfillment.read']; v_writes := array['hospitality.accommodation.write'];
@@ -242,8 +245,6 @@ begin
       end if;
     end loop;
   end loop;
-  v_timeline := case when v_tgt.id is not null then private.can_on_project(v_tgt.id, 'schedule.timeline.write')
-                     else private.has_capability(v_src.org_id, 'schedule.timeline.write') end;
 
   -- The size, before anything is written.
   if 'Plan' = any (v_parts) then
@@ -373,8 +374,6 @@ begin
       loop
         if not (v_records ? r.predecessor_record_id::text and v_records ? r.successor_record_id::text) then
           v_rows := v_rows || private.copy_result('Plan', 'Dependency', r.id, r.caption, 'outside_copy', true);
-        elsif not v_timeline then
-          v_rows := v_rows || private.copy_result('Plan', 'Dependency', r.id, r.caption, 'dependency_needs_timeline', true);
         else
           insert into app.record_dependencies (predecessor_record_id, successor_record_id, dependency_type, lag)
           values ((v_records ->> r.predecessor_record_id::text)::uuid, (v_records ->> r.successor_record_id::text)::uuid,
@@ -387,11 +386,6 @@ begin
         select d.* from app.project_days d where d.project_id = v_src.id and d.deleted_at is null
         order by d.day_on, d.sort_order, d.id
       loop
-        if not v_timeline then
-          v_rows := v_rows || private.copy_result('Plan', 'Project Day', r.id, coalesce(r.label, r.day_type::text),
-            'day_needs_timeline', true, r.day_on + v_offset);
-          continue;
-        end if;
         if not ((r.day_on + v_offset) = any (v_days))
            and exists (select 1 from app.project_days d where d.project_id = v_tgt.id and d.day_on = r.day_on + v_offset
                        and d.deleted_at is null) then
@@ -436,21 +430,29 @@ begin
       end loop;
       for r in
         select g.id, g.zone_id, g.access_level_enum_id, g.window_starts_at, g.window_ends_at, k.code, z.venue_id,
-          k.code || ' ' || z.name as caption
+          z.code as zone_code, k.code || ' ' || z.name as caption
         from app.access_grid g
         join app.credential_categories k on k.id = g.credential_category_id
         join app.zones z on z.id = g.zone_id
         where k.project_id = v_src.id and k.deleted_at is null and g.deleted_at is null
         order by k.code, z.code, g.window_starts_at, g.id
       loop
-        if r.venue_id is distinct from v_tgt.venue_id and not exists (
+        -- The same zone where the target holds its venue (the project's own or a Show node's); else the zone with the
+        -- same code at the target's venue; else skipped.
+        if r.venue_id is not distinct from v_tgt.venue_id or exists (
             select 1 from app.scope_nodes n
             where n.project_id = v_tgt.id and n.deleted_at is null and n.scope_kind = 'Show' and n.venue_id = r.venue_id) then
+          v_other := r.zone_id;
+        else
+          select z.id into v_other from app.zones z
+          where z.venue_id = v_tgt.venue_id and z.code = r.zone_code and z.deleted_at is null;
+        end if;
+        if v_other is null then
           v_rows := v_rows || private.copy_result('Pass Categories', 'Access Grid', r.id, r.caption, 'zone_other_venue', true);
         else
           v_starts := private.shift_wall_clock(r.window_starts_at, v_offset, v_src.time_zone, v_tgt.time_zone);
           insert into app.access_grid (credential_category_id, zone_id, access_level_enum_id, window_starts_at, window_ends_at)
-          values ((v_categories ->> r.code)::uuid, r.zone_id, r.access_level_enum_id, v_starts,
+          values ((v_categories ->> r.code)::uuid, v_other, r.access_level_enum_id, v_starts,
             private.shift_wall_clock(r.window_ends_at, v_offset, v_src.time_zone, v_tgt.time_zone));
           v_rows := v_rows || private.copy_result('Pass Categories', 'Access Grid', r.id, r.caption, null, false,
             (v_starts at time zone v_tgt.time_zone)::date, v_starts);
@@ -531,7 +533,7 @@ begin
               select k.id into v_other from app.credential_categories k
               where k.project_id = v_tgt.id and k.code = c.category_code and k.deleted_at is null;
               if v_other is null then
-                v_rows := v_rows || private.copy_result('Advance Forms', 'Section Choice', c.id, c.caption, 'category_missing', true);
+                v_rows := v_rows || private.copy_result('Advance Forms', 'Section Choice', c.id, c.caption, 'category_unmapped', true);
               else
                 insert into app.advance_section_choices (advance_section_id, credential_category_id) values (v_section, v_other);
                 v_rows := v_rows || private.copy_result('Advance Forms', 'Section Choice', c.id, c.caption);
@@ -569,7 +571,7 @@ begin
 end;
 $$;
 
-comment on function app.copy_project_setup(uuid, uuid, app.project_copy_part[], boolean, integer, uuid, text) is 'Copies the org-owned setup of a past project into another of the same org (G-252, ADR 0153 D4), every date moved by the offset (p_offset_days, else the difference of the projects'' starts_on; copy_offset_unknown without either; at most 3660 days, 22023) and every time moved by whole days on the wall clock (private.shift_wall_clock). Plan: Show and Standing Venue scope nodes by code suffix (scope_code_taken), live records that are not Complete, Canceled or Approval records in Proposed with no owner, their parents and dependencies within the copy (outside_copy; dependency_needs_timeline without schedule.timeline.write), and project days (day_taken on a date the target already has; day_needs_timeline). Pass Categories: categories by code (code_taken, its grid rows going to the existing category) and access grid rows at the target''s venue or a venue of its Show nodes (zone_other_venue). Hotel Blocks without assignments. Budgets as new non-baseline budgets with their lines (unit prices kept, NULL as NULL; an Event cost center cleared, event_cost_center_cleared). Advance Forms unsent, with sections and choices (a credential category choice maps by code to the target''s live category, else category_missing). Never copies shifts, engagements, people, credentials, allocations, recipients, submissions, roster facts or offering rules. Refuses copy_nothing, copy_other_org, copy_same_project and copy_too_large (over 2000 items), and 42501 naming each capability a part needs (the read capability on the source, the write capabilities on the target) before anything is written; every guard of the target tables applies (plan_limit_read_only, production_closed, title grammar). Preview (p_commit false) writes nothing and returns the rows a commit returns; with no target it previews against the would-be venue (p_target_venue_id) and zone (p_target_time_zone), and a commit needs a target. A commit records app.project_copies and one app.project_copy_parts row per part and emits project.copied. Returns one row per item: copy or skip, the reason, and its new date and time.';
+comment on function app.copy_project_setup(uuid, uuid, app.project_copy_part[], boolean, integer, uuid, text) is 'Copies the org-owned setup of a past project into another of the same org (G-252, ADR 0153 D4), every date moved by the offset (p_offset_days, else the difference of the projects'' starts_on; copy_offset_unknown without either; at most 3660 days, 22023) and every time moved by whole days on the wall clock (private.shift_wall_clock). Plan: Show and Standing Venue scope nodes by code suffix (scope_code_taken), live records that are not Complete, Canceled or Approval records in Proposed with no owner, their parents and dependencies within the copy (outside_copy), and project days (day_taken on a date the target already has). Pass Categories: categories by code (code_taken, its grid rows going to the existing category) and access grid rows: the same zone at the target''s venue or a venue of its Show nodes, else the zone with the same code at the target''s venue, else skipped (zone_other_venue). Hotel Blocks without assignments. Budgets as new non-baseline budgets with their lines (unit prices kept, NULL as NULL; an Event cost center cleared, event_cost_center_cleared). Advance Forms unsent, with sections and choices (a credential category choice maps by code to the target''s live category, else category_unmapped). Never copies shifts, engagements, roster entries, roster travel parties, people, credentials, allocations, recipients, submissions, roster facts, Approval records, record extension rows, reviews, file reviews, hotel assignments or offering rules. Refuses copy_nothing, copy_same_project and copy_too_large (over 2000 items); 42501 "project not found" for a source or target outside the caller''s orgs or in different orgs, and 42501 naming each capability a part needs (the read capabilities on the source, the write capabilities on the target, as each target table''s write policy asks; Plan also schedule.timeline.read and schedule.timeline.write) before anything is written; every guard of the target tables applies (plan_limit_read_only, production_closed, title grammar). Preview (p_commit false) writes nothing and returns the rows a commit returns; with no target it previews against the would-be venue (p_target_venue_id) and zone (p_target_time_zone), and a commit needs a target. A commit records app.project_copies and one app.project_copy_parts row per part and emits project.copied. Returns one row per item: copy or skip, the reason, and its new date and time.';
 revoke all on function app.copy_project_setup(uuid, uuid, app.project_copy_part[], boolean, integer, uuid, text) from public, anon;
 grant execute on function app.copy_project_setup(uuid, uuid, app.project_copy_part[], boolean, integer, uuid, text) to authenticated, service_role;
 

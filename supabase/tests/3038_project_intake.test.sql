@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(23);
+select plan(26);
 
 create function pg_temp.project(p_key text) returns uuid
 language sql as $$ select p.id from app.projects p where p.project_key = p_key and p.deleted_at is null $$;
@@ -77,6 +77,15 @@ select throws_ok($$select app.create_project_from_intake(pg_temp.id('org_a'), 'N
   p_template_choice => 'copy')$$, '22023', null, 'an unknown template choice is refused');
 select throws_like($$select app.create_project_from_intake(pg_temp.id('org_a'), 'NWQ', 'Northwind Q', 'America/New_York',
   p_load_in_from => '2027-06-12')$$, 'project_bump_window_bounds:%', 'a Load In range needs both ends');
+select throws_like($$select app.create_project_from_intake(pg_temp.id('org_a'), 'NWQ', 'Northwind Q', 'America/New_York',
+  '2027-06-15', '2027-06-16', p_template_choice => 'none', p_load_in_from => '2027-04-01', p_load_in_to => '2027-05-31')$$,
+  'project_bump_window_length:%', 'a load-in of 61 days is refused');
+select throws_like($$select app.create_project_from_intake(pg_temp.id('org_a'), 'NWQ', 'Northwind Q', 'America/New_York',
+  '2027-06-15', '2027-06-16', p_template_choice => 'none', p_load_in_from => '2027-06-14', p_load_in_to => '2027-06-16')$$,
+  'project_bump_in_after_show:%', 'a load-in that ends after the first show day is refused');
+select throws_like($$select app.create_project_from_intake(pg_temp.id('org_a'), 'NWQ', 'Northwind Q', 'America/New_York',
+  '2027-06-15', '2027-06-16', p_template_choice => 'none', p_load_out_from => '2027-06-15', p_load_out_to => '2027-06-17')$$,
+  'project_bump_out_before_show:%', 'a load-out that starts before the last show day is refused');
 
 -- A copy in the same transaction, and a refused one that leaves no project.
 select lives_ok($$insert into world select 'p4', app.create_project_from_intake(pg_temp.id('org_a'), 'NWC', 'Northwind Copy',

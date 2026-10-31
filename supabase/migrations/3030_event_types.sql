@@ -15,7 +15,7 @@
 --     required_for_type must hold a value before the gate named by required_by_gate passes (3032).
 --   * app.projects gains event_type_id, event_scale and event_audience. Setting them on a project that has none needs
 --     only the project update policy (projects.project.write), so intake's own update passes for every role that
---     creates projects; changing or clearing them needs projects.settings.write (t44, ADR 0153 C3).
+--     creates projects; changing or clearing them needs projects.settings.write (project_event_type_locked; t44, ADR 0153 C3).
 --   * app.resolve_event_type_template wraps the resolver for invokers, which have no usage on schema private.
 --   * private.emit_project_update names the three columns in project.updated (additive to the webhook payload).
 -- Event types come back from Trash (ADR 0110); the template rules and field set are configuration children that go
@@ -232,13 +232,14 @@ begin
           or new.event_audience is distinct from old.event_audience)
      and (old.event_type_id is not null or old.event_scale is not null or old.event_audience is not null)
      and not private.can_on_project(new.id, 'projects.settings.write') then
-    raise exception using errcode = '42501', message = 'projects.settings.write is required on the project';
+    perform private.refuse('project_event_type_locked',
+      'Only someone who may change the project''s settings changes its event type, scale or audience.');
   end if;
   return new;
 end;
 $$;
 
-comment on function private.guard_project_event_type() is 'A project''s event type and bands (G-250, ADR 0153 C3): a type newly set must be live and not archived (event_type_archived). Setting them while all three are empty needs only the project update policy, so intake passes for every role that creates projects; changing or clearing a value needs projects.settings.write on the project (42501). Inserts and platform calls with no session pass.';
+comment on function private.guard_project_event_type() is 'A project''s event type and bands (G-250, ADR 0153 C3): a type newly set must be live and not archived (event_type_archived). Setting them while all three are empty needs only the project update policy, so intake passes for every role that creates projects; changing or clearing a value needs projects.settings.write on the project (project_event_type_locked). Inserts and platform calls with no session pass.';
 revoke all on function private.guard_project_event_type() from public, anon, authenticated;
 
 create trigger t44_guard_project_event_type before insert or update of event_type_id, event_scale, event_audience on app.projects

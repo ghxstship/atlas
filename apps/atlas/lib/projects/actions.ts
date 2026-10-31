@@ -78,8 +78,10 @@ const KNOWN_REFUSALS = new Set([
   "template_time_zone_required",
   "project_bump_window_bounds",
   "project_bump_window_length",
+  "project_bump_in_after_show",
+  "project_bump_out_before_show",
+  "project_event_type_locked",
   "copy_nothing",
-  "copy_other_org",
   "copy_same_project",
   "copy_offset_unknown",
   "copy_too_large",
@@ -312,6 +314,12 @@ async function createProjectFromIntakeActionImpl(
     }
     return { fieldErrors: errors };
   }
+  // At intake the bump days sit outside the show dates, as the database holds them (3038); B4's day editor only warns.
+  const { startsOn, endsOn } = parsed.data;
+  if (intake.data.loadInTo && startsOn && intake.data.loadInTo > startsOn)
+    return { fieldErrors: { loadInTo: "project_bump_in_after_show" } };
+  if (intake.data.loadOutFrom && endsOn && intake.data.loadOutFrom < endsOn)
+    return { fieldErrors: { loadOutTo: "project_bump_out_before_show" } };
   // The type's required fields are held before anything is created, as A117 holds the org's own required fields.
   let requiredKeys: string[] = [];
   if (intake.data.eventTypeId) {
@@ -350,7 +358,8 @@ async function updateProjectActionImpl(_: ActionState, form: FormData): Promise<
   const ctx = await projectFor(form);
   const parsed = parseProject(form);
   if (!parsed.success) return fieldErrors(parsed.error.issues);
-  // B14 (3030): Settings carries the event type and bands; changing them needs projects.settings.write (42501).
+  // B14 (3030): Settings carries the event type and bands; changing them needs projects.settings.write
+  // (project_event_type_locked).
   const typed = form.has("eventTypeId")
     ? intakeFields.safeParse({
         eventTypeId: field(form, "eventTypeId"),

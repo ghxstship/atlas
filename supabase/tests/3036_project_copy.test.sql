@@ -4,14 +4,15 @@
 -- of daylight saving; parents and dependencies are remapped inside the copy; unit prices stay NULL, the copied budget
 -- is not a baseline and an Event cost center is cleared; grid rows at another venue, a taken code, a missing category
 -- and a taken scope code are skipped with reasons; nothing that is a booking or a party's answer is created. The
--- refusals: a missing capability (42501, before anything is written), another org, the same project, an unknown
--- offset, no part, more than 2000 items and a read-only target. The intake form previews with no target.
+-- refusals: a missing capability (42501, before anything is written), another org's project as target or source (it
+-- reads as missing), the same project, an unknown offset, no part, more than 2000 items and a read-only target. At a
+-- target with another venue, a grid row takes the zone of the same code there. The intake form previews with no target.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(33);
+select plan(36);
 
 create temporary table pv (part app.project_copy_part, item_kind text, source_id uuid, label text, outcome text, skip_reason text,
   new_on date, new_at timestamptz);
@@ -177,15 +178,33 @@ with x as (insert into app.projects (org_id, project_key, name, time_zone, start
 delete from pv;
 insert into pv select * from app.copy_project_setup(pg_temp.id('prj_a'), pg_temp.id('prj_z'), '{Advance Forms}');
 select is((select string_agg(pg_temp.copy_of('Advance Forms', k), ',' order by k) from unnest(array['choice_aaa', 'choice_prk']) k),
-  'skip:category_missing,skip:category_missing', 'a credential choice with no category of its code on the target is skipped');
+  'skip:category_unmapped,skip:category_unmapped', 'a credential choice with no category of its code on the target is skipped');
+
+-- At a target with another venue: a grid row takes the zone of the same code there, and one with none is skipped.
+with x as (insert into app.zones (venue_id, code, name) values (pg_temp.id('venue_c'), 'BOH', 'Riverside Back of House') returning id)
+  insert into world select 'z_c_boh', id from x;
+with x as (insert into app.projects (org_id, project_key, name, time_zone, starts_on, venue_id)
+  values (pg_temp.id('org_a'), 'NWV', 'Northwind Riverside', 'America/New_York', '2027-03-29', pg_temp.id('venue_c'))
+  returning id) insert into world select 'prj_v', id from x;
+delete from pv;
+insert into pv select * from app.copy_project_setup(pg_temp.id('prj_a'), pg_temp.id('prj_v'), '{Pass Categories}', true);
+select is((select string_agg(z.code || '@' || v.name, ',' order by z.code) from app.access_grid g join app.zones z on z.id = g.zone_id
+           join app.venues v on v.id = z.venue_id where g.project_id = pg_temp.id('prj_v')),
+  'BOH@Northwind Riverside Lot,GATE@Northwind Riverside Lot',
+  'the Back of House row takes the target venue''s zone of the same code, and the Riverside row keeps its own');
 
 -- Refusals -------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
 select throws_ok(format($$select * from app.copy_project_setup(%L, %L, '{Budgets}')$$, pg_temp.id('prj_a'), pg_temp.id('prj_a2')),
   '42501', 'finance.budget.write is required on the project', 'a missing write capability is named before anything is written');
+select pg_temp.as_user('frank');
+select throws_like(format($$select * from app.copy_project_setup(%L, %L, '{Plan}')$$, pg_temp.id('prj_a'), pg_temp.id('prj_a2')),
+  '%is required on the%', 'a Field member without the plan''s capabilities is refused before anything is written');
 select pg_temp.as_user('carol');
 select throws_ok(format($$select * from app.copy_project_setup(%L, %L, '{Plan}')$$, pg_temp.id('prj_a'), pg_temp.id('prj_b')),
-  'XR001', 'copy_other_org: Copy between projects of the same organization.', 'copying to another org is refused');
+  '42501', 'project not found', 'another org''s project reads as missing as a target');
+select throws_ok(format($$select * from app.copy_project_setup(%L, %L, '{Plan}')$$, pg_temp.id('prj_b'), pg_temp.id('prj_a2')),
+  '42501', 'project not found', 'and as a source');
 select throws_ok(format($$select * from app.copy_project_setup(%L, %L, '{Plan}')$$, pg_temp.id('prj_a'), pg_temp.id('prj_a')),
   'XR001', 'copy_same_project: Choose another project to copy from.', 'copying onto itself is refused');
 select throws_ok(format($$select * from app.copy_project_setup(%L, %L, '{}')$$, pg_temp.id('prj_a'), pg_temp.id('prj_a2')),

@@ -25,13 +25,11 @@ export const PROJECT_COPY_PARTS: readonly ProjectCopyPart[] = [
 export type ProjectCopySkipReason =
   | "scope_code_taken"
   | "outside_copy"
-  | "dependency_needs_timeline"
   | "day_taken"
-  | "day_needs_timeline"
   | "code_taken"
   | "zone_other_venue"
   | "event_cost_center_cleared"
-  | "category_missing";
+  | "category_unmapped";
 
 export interface ProjectCopyItem {
   readonly part: ProjectCopyPart;
