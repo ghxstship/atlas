@@ -49,6 +49,8 @@ const DYNAMIC = [
   // A126's Today search: a group by kind, a result by kind and row.
   "search-group-",
   "search-result-",
+  // A140: a sponsor's proof photo button, by entitlement.
+  "proof-photo-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

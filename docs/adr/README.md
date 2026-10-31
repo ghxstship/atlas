@@ -92,6 +92,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0114](0114-stricter-separation-of-duties-options.md)               | Stricter Separation of Duties Options                                            | Proposed |
 | [0115](0115-addresses-and-work-phones-checked-by-country.md)        | Addresses and Work Phones Checked by Country                                     | Accepted |
 | [0116](0116-file-previews-and-the-brand-color-picker.md)            | File Previews and the Brand Color Picker                                         | Accepted |
+| [0117](0117-photo-location-pass-art-and-sponsor-proof-photos.md)    | Photo Location, Pass Art from the Org Logo, and Sponsor Proof Photos             | Accepted |
 | [0118](0118-route-view-transitions-and-region-boundaries.md)        | Route View Transitions and Region Boundaries                                     | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |

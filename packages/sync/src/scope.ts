@@ -242,6 +242,7 @@ export const TABLE_RULES: readonly TableRule[] = [
       ["shared_reports", "engagement_id", "engagementIds", CLIENT],
       ["sponsor_entitlements", "project_id", "engagedProjectIds", SPONSOR],
       ["engagement_documents", "engagement_id", "engagementIds", SPONSOR],
+      ["proof_of_performance_photos", "engagement_id", "engagementIds", SPONSOR],
     ] as const
   ).map(([table, column, key, audiences]): TableRule => ({
     table,
