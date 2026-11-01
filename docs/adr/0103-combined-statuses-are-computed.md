@@ -82,7 +82,7 @@ answer everywhere.
 
 ## Amendment: R7 as built (RRR-187, 2026-10-30)
 
-Migrations 2690 to 2698 build sections 3 and 4. Where the build differs from the text above or adds to it:
+Migrations 4690 to 4698 build sections 3 and 4. Where the build differs from the text above or adds to it:
 
 - **Display status.** `app.advance_allocation_status.display_status` is computed in this order: Declined,
   Withdrawn and Requested come from the stored state. Then Returned (everything issued came back or was lost; not

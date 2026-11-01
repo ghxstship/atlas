@@ -378,7 +378,7 @@ export const additions = defineAdditions("Procurement", {
       change:
         "Adds `acquisition_kind` (Purchase or Rental, Purchase when omitted) and, for a Rental line, `hire_starts_at` and `hire_ends_at`, both required together and null on a Purchase line.",
       reason:
-        "app.po_lines (2681, R7a) records whether a line buys or hires its item and the hire as one tstzrange, hire_period, set exactly when the line is a Rental (po_lines_hire_period_kind) with both bounds (po_lines_hire_period_bounded); the API splits the range into its two instants.",
+        "app.po_lines (4681, R7a) records whether a line buys or hires its item and the hire as one tstzrange, hire_period, set exactly when the line is a Rental (po_lines_hire_period_kind) with both bounds (po_lines_hire_period_bounded); the API splits the range into its two instants.",
       apply: editShape({
         add: {
           acquisition_kind: {

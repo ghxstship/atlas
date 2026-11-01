@@ -840,7 +840,7 @@ export interface CustodyInput {
 }
 
 /**
- * Records a custody hand-over through app.record_asset_custody (R7, 2692): a check-out or transfer to one
+ * Records a custody hand-over through app.record_asset_custody (R7, 4692): a check-out or transfer to one
  * custodian, or a check-in to a place, written by app.apply_asset_scan so the unit's state moves with it and the
  * holder guards apply. Signed-in users no longer insert custody rows directly.
  */

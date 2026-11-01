@@ -20,5 +20,5 @@ settings:
     help: settings.fields.advancingAllowanceOverflow.help
     pages: { org: settings.gateway-and-marketplace }
     enforced_by:
-      - consumer: supabase/migrations/2693_allocation_rpcs.sql#private.check_allocation_caps
-        test: supabase/tests/2697_allocation_parity.test.sql
+      - consumer: supabase/migrations/4693_allocation_rpcs.sql#private.check_allocation_caps
+        test: supabase/tests/4697_allocation_parity.test.sql

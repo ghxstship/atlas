@@ -1,5 +1,5 @@
 /**
- * Contract tests for R7a's supply bridge (RRR-183, migrations 2681 to 2683): receiving and returning against a
+ * Contract tests for R7a's supply bridge (RRR-183, migrations 4681 to 4683): receiving and returning against a
  * purchase order, the goods returns read back, rental lines with their hire period, the window warnings of rental
  * lines (G-99) and the hired-in units (G-96). Requests run through `contractApp` against the in-memory client and
  * every success is checked against openapi/v1.json with `expectContract`.

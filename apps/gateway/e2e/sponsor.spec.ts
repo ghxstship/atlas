@@ -159,7 +159,7 @@ const PIXEL = Buffer.from(
 );
 
 /**
- * Journey 47 extended (R9, migration 2713): the sponsor supplies its own logo for an entitlement in
+ * Journey 47 extended (R9, migration 4713): the sponsor supplies its own logo for an entitlement in
  * Gateway, the org returns it with what to change, the sponsor resubmits it with a new file at the
  * next revision, and the org approves it. The org's two decisions run as the Producer through
  * app.transition_sponsor_asset, as Atlas makes them; the sponsor never approves its own asset.

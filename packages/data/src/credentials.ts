@@ -142,7 +142,7 @@ export interface CredentialCategory {
   readonly projectKey: string;
   readonly code: string;
   readonly name: string;
-  /** Access for a badge, Parking for a parking pass (R7, 2691). */
+  /** Access for a badge, Parking for a parking pass (R7, 4691). */
   readonly kind: CredentialCategoryKind;
   /** Credentials of this category that are not revoked. */
   readonly activeCount: number;

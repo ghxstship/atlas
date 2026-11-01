@@ -11,7 +11,7 @@ import { localToInstant } from "@/lib/local-time";
 
 const id = z.uuid();
 
-/** What party-uploads accepts (2712), all known to packages/platform/src/scanning/content.ts. */
+/** What party-uploads accepts (4712), all known to packages/platform/src/scanning/content.ts. */
 export const PARTY_UPLOAD_TYPES: readonly string[] = [
   "application/pdf",
   "image/jpeg",

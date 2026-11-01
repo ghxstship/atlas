@@ -4,8 +4,8 @@
 - Date: 2026-10-30
 - Decider: Owner decisions on advancing, 2026-10-28 (decisions 2, 4 and 5); R6a (RRR-185)
 - Amends: ADR 0102 sections 1, 3 and 4 (records them as built); ADR 0071, decision 6
-- Migrations: `2660_notification_kind_seed.sql`, `2661_work_detail_category_contact.sql`,
-  `2662_workforce_role_capabilities.sql`, `2663_allergies_restricted.sql`, `2664_work_details_profile_move.sql`
+- Migrations: `4660_notification_kind_seed.sql`, `4661_work_detail_category_contact.sql`,
+  `4662_workforce_role_capabilities.sql`, `4663_allergies_restricted.sql`, `4664_work_details_profile_move.sql`
 
 ## Context
 
@@ -56,7 +56,7 @@ these; the person may still narrow or end their own.
 
 - `private.column_classifications` marks `allergies` Restricted with read capability `data.restricted.read.medical`.
   Dietary needs and notes stay Confidential.
-- A Restricted column is never directly selectable (`9900_security_catalog.test.sql`, test 16), so 2663 revokes
+- A Restricted column is never directly selectable (`9900_security_catalog.test.sql`, test 16), so 4663 revokes
   select on `allergies` from `authenticated`. The person reads their own through `app.my_allergies()` and still
   writes them on the row.
 - `private.read_allergies` is the one place a value leaves for anyone but its owner. For a holder of the capability
@@ -73,7 +73,7 @@ these; the person may still narrow or end their own.
 
 ### 5. Contact
 
-`app.work_detail_category` gains `Contact` (2661, alone in its migration). It maps to `opportunities.engagement.read`
+`app.work_detail_category` gains `Contact` (4661, alone in its migration). It maps to `opportunities.engagement.read`
 and `safety.incident.read`; a share may name seven categories. Reads return `contact {email, phone}`, the verified
 sign-in addresses `private.recipient_address` returns, to org readers with the capability and to the company. API v1's
 `WorkDetailCategory` enum is frozen: a new value in a response enum is a breaking change under gate 20 (oasdiff), so
@@ -83,7 +83,7 @@ review correction, which named an enum value; the frozen contract wins, pending 
 
 v1's `WorkDetailShare.categories` keeps `minItems: 1`, and a smaller minimum in a response is breaking too, so a share
 of Contact alone would read back with no categories. Contact is therefore shared with at least one other category,
-on every surface: `app.share_work_details` refuses Contact alone (`work_detail_share_contact_alone`, 2664), the
+on every surface: `app.share_work_details` refuses Contact alone (`work_detail_share_contact_alone`, 4664), the
 constraint `work_detail_shares_contact_not_alone` keeps live shares from holding it, and `parseShareForm` refuses it
 before the call. v1 itself cannot ask for it, because its category list has the same minimum. Hiding such a share
 from v1 instead would leave an API client unable to see or revoke it.

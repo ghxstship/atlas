@@ -360,7 +360,7 @@ export async function addRecipientAction(
   );
 }
 
-/** Sets or clears a recipient's naming deadline, in the project's zone (G-141, migration 2716). */
+/** Sets or clears a recipient's naming deadline, in the project's zone (G-141, migration 4716). */
 export async function setNamesDueAction(
   _: AdvancingState,
   form: FormData,

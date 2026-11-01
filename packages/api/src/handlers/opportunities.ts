@@ -148,7 +148,7 @@ interface EngagementRow extends AuditRow {
   start_date: string;
   end_date: string | null;
   counterparty_id: string | null;
-  /** Names lock (R5, 2656); null means no lock. */
+  /** Names lock (R5, 4656); null means no lock. */
   roster_locks_at: string | null;
   counterparty: { organization_id: string } | null;
   transitions: { to_state: string; created_at: string }[] | null;

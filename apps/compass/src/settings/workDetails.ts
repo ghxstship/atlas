@@ -2,7 +2,7 @@
  * Work Details editing in Compass (Section 4.5.6 personal settings item 10, migration 1340, ADR 0071): dietary and
  * accessibility needs and emergency contacts, checked by the parsers Atlas and Gateway share
  * (@xos/data/work-details-forms) and saved by the same repository functions. Uniform sizes and travel preferences
- * left the profile in R6a (2664); Project details asks for them per roster entry and uses SIZE_CHOICES.
+ * left the profile in R6a (4664); Project details asks for them per roster entry and uses SIZE_CHOICES.
  *
  * Work Details save online only and never stay on the phone: dietary and accessibility needs are health
  * information, and emergency contacts are other people's details (A65-003). The passport number needs a step-up

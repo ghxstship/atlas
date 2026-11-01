@@ -738,7 +738,7 @@ export function receiveSheetLines(
 }
 
 /**
- * Queues the sheet as one receipt event for app.receive_goods (R7a 2681), replayed through
+ * Queues the sheet as one receipt event for app.receive_goods (R7a 4681), replayed through
  * app.apply_sync_mutation: the mutation id is the event id, so a replay after a reconnect answers duplicate and
  * records nothing twice. Null when the sheet counted nothing.
  */

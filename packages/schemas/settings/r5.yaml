@@ -18,8 +18,8 @@ settings:
     help: settings.fields.projectFactsKeepDays.help
     pages: { org: settings.data-and-privacy }
     enforced_by:
-      - consumer: supabase/migrations/2655_roster_project_fact_rpcs.sql#private.expire_roster_project_facts
-        test: supabase/tests/2655_roster_project_fact_rpcs.test.sql
+      - consumer: supabase/migrations/4655_roster_project_fact_rpcs.sql#private.expire_roster_project_facts
+        test: supabase/tests/4655_roster_project_fact_rpcs.test.sql
 
   # Gateway and marketplace -----------------------------------------------------------------------------------------
   - key: advancing.company_may_submit_project_facts
@@ -32,5 +32,5 @@ settings:
     help: settings.fields.companyMaySubmitProjectFacts.help
     pages: { org: settings.gateway-and-marketplace }
     enforced_by:
-      - consumer: supabase/migrations/2655_roster_project_fact_rpcs.sql#private.assert_project_fact_writer
-        test: supabase/tests/2655_roster_project_fact_rpcs.test.sql
+      - consumer: supabase/migrations/4655_roster_project_fact_rpcs.sql#private.assert_project_fact_writer
+        test: supabase/tests/4655_roster_project_fact_rpcs.test.sql

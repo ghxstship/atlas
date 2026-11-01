@@ -146,7 +146,7 @@ export const handlers = defineHandlers("Assets", {
   ...handlersFor("Assets", lots),
   ...handlersFor("Assets", identifiers),
   ...handlersFor("Assets", custody),
-  // Signed-in users no longer insert custody rows (R7, 2692): create goes through app.record_asset_custody, which
+  // Signed-in users no longer insert custody rows (R7, 4692): create goes through app.record_asset_custody, which
   // writes through the scan so the unit's state moves with the row; the request and response keep their v1 shape.
   "assetCustodyEntries.create": async ({ body }, context) => {
     const row = unwrap(

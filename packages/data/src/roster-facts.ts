@@ -4,7 +4,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 import type { GarmentLetterSize, SeatPreference } from "./work-details.ts";
 
 /**
- * Project facts on a roster entry (R5, migrations 2654 to 2657, ADR 0102), imported as `@xos/data/roster-facts`. The
+ * Project facts on a roster entry (R5, migrations 4654 to 4657, ADR 0102), imported as `@xos/data/roster-facts`. The
  * rostered person enters a travel request, uniform sizes and a vehicle for one project, each only while its offering
  * is on; the company that rosters them may enter them on their behalf when the project allows it. Facts never reach the
  * profile and leave keep_days after the engagement closes.

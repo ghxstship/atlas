@@ -52,7 +52,7 @@ select is(pg_temp.read_only_outcome('api_public.token_document(text, text)'::reg
   '25006 this call changes data: send it with POST', 'token_document refuses GET');
 select is(pg_temp.read_only_outcome('api_public.verify_certification(text)'::regprocedure),
   '25006 this call changes data: send it with POST', 'verify_certification refuses GET');
--- R10 (2730, 2731): the token advance parity RPCs.
+-- R10 (4730, 4731): the token advance parity RPCs.
 select is(pg_temp.read_only_outcome(f::regprocedure), '25006 this call changes data: send it with POST',
   split_part(f, '(', 1) || ' refuses GET')
 from unnest(array[

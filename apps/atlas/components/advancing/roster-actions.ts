@@ -21,8 +21,8 @@ import { KNOWN_ERRORS } from "./errors";
  * a submitted entry or returns it with a reason; the database refuses the entry's creator and its
  * submitter (sod_roster_reviewer). Bulk review goes through the bulk kit (app.bulk_update_roster_entries).
  *
- * R5 adds the names lock a writer sets per engagement (app.set_roster_lock, 2656) and the logged read of an entry's
- * project facts when its peek opens (app.roster_project_facts, 2655).
+ * R5 adds the names lock a writer sets per engagement (app.set_roster_lock, 4656) and the logged read of an entry's
+ * project facts when its peek opens (app.roster_project_facts, 4655).
  */
 
 function errorKey(error: DataError): string {

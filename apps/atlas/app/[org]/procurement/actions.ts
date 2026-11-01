@@ -274,7 +274,7 @@ async function lineInput(
   ) {
     return null;
   }
-  // A Rental line hires the item between two local times typed in the project's zone (R7a, 2681).
+  // A Rental line hires the item between two local times typed in the project's zone (R7a, 4681).
   const rental = text(form, "acquisitionKind") === "Rental";
   const zone = text(form, "timeZone") ?? "UTC";
   const hireStartsAt = rental ? localToInstant(text(form, "hireFrom"), zone) : null;

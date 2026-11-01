@@ -175,7 +175,7 @@ describe("work details form parsers", () => {
       fields: ["engagementId"],
     });
     expect(parseShareForm(form([["engagementId", ID]]))).toMatchObject({ fields: ["categories"] });
-    // Contact goes with another category (2664): API v1 lists at least one beside it.
+    // Contact goes with another category (4664): API v1 lists at least one beside it.
     expect(
       parseShareForm(
         form([

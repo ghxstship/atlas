@@ -20,7 +20,7 @@ test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
 const expect = baseExpect.configure({ timeout: 20_000 });
 
-// Uniform Sizes is retired (R6a, 2664), so the seed no longer shares it.
+// Uniform Sizes is retired (R6a, 4664), so the seed no longer shares it.
 const SEEDED = "{Emergency Contacts,Dietary Needs,Passport}";
 
 test.afterEach(async () => {

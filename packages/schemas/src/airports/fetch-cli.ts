@@ -7,7 +7,7 @@ import { AIRPORTS_CSV, selectAirports } from "./load.ts";
 /**
  * Airports snapshot CLI (owner step, R5): downloads OurAirports airports.csv, writes the committed snapshot
  * packages/schemas/airports/airports.csv with today's date in its header, and regenerates
- * supabase/migrations/2652_airports_seed.sql from it. Run it from a machine allowed to reach the source, then commit
+ * supabase/migrations/4652_airports_seed.sql from it. Run it from a machine allowed to reach the source, then commit
  * both files.
  *   fetch-cli.ts   downloads from OURAIRPORTS_URL
  */

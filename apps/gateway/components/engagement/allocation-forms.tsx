@@ -109,7 +109,7 @@ export function RequestItemForm(props: {
 export interface AssignableEntry {
   readonly id: string;
   readonly name: string;
-  /** Accepted by the reviewer and the person: only they take a share (2693). */
+  /** Accepted by the reviewer and the person: only they take a share (4693). */
   readonly eligible: boolean;
   /** Each pool's current share for this person, by pool id. */
   readonly shares: Readonly<Record<string, number>>;

@@ -903,13 +903,13 @@ export interface SponsorAsset {
   readonly decidedBy: string | null;
   readonly decidedAt: string | null;
   readonly createdBy: string | null;
-  /** Org Supplied, or Sponsor Supplied from Gateway (R9, migration 2713). */
+  /** Org Supplied, or Sponsor Supplied from Gateway (R9, migration 4713). */
   readonly source: Database["app"]["Enums"]["sponsor_asset_source"];
   /** Files of the current revision, with the version Atlas serves at /files/party/<version>. */
   readonly files: readonly { readonly title: string; readonly versionId: string | null }[];
 }
 
-/** The org's moves on a sponsor-supplied asset: approve, return or cancel a submitted one (2713). */
+/** The org's moves on a sponsor-supplied asset: approve, return or cancel a submitted one (4713). */
 export function sponsorSuppliedMoves(state: ReviewState): readonly ReviewState[] {
   return state === "Submitted" ? ["Approved", "Returned", "Canceled"] : [];
 }

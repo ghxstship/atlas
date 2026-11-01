@@ -1,5 +1,5 @@
 /**
- * Advance allocations in the public API (R7, RRR-187; migrations 2690 to 2697, ADR 0103 and 0104). Additive only (v1
+ * Advance allocations in the public API (R7, RRR-187; migrations 4690 to 4697, ADR 0103 and 0104). Additive only (v1
  * is frozen, Section 10.1):
  *
  *   * `advanceAllocations` reads app.advance_allocation_status, the computed status of each allocation, and carries

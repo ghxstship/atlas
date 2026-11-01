@@ -8,9 +8,9 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * that shares chosen categories with the engaging org. Every read and write runs as the caller: the
  * owner reads and writes their own rows, an engaging org reads only what was shared through
  * app.shared_work_details, and the passport number is never read except through an audited reveal.
- * Allergies are Restricted (R6a, 2663): an org reads them only with data.restricted.read.medical on
+ * Allergies are Restricted (R6a, 4663): an org reads them only with data.restricted.read.medical on
  * the project, and every such read is logged. Uniform sizes and travel preferences left the profile
- * in R6a (2664); productions ask for them per roster entry (roster-facts.ts). Refusals come back as
+ * in R6a (4664); productions ask for them per roster entry (roster-facts.ts). Refusals come back as
  * typed errors.
  */
 
@@ -24,7 +24,7 @@ export type LoyaltyProgramKind = Enums["loyalty_program_kind"];
 
 export const WORK_DETAIL_CATEGORIES: readonly WorkDetailCategory[] =
   Constants.app.Enums.work_detail_category;
-/** The categories a person can share: all but Uniform Sizes, retired in R6a (2664) and kept for the access log. */
+/** The categories a person can share: all but Uniform Sizes, retired in R6a (4664) and kept for the access log. */
 export const SHAREABLE_WORK_DETAIL_CATEGORIES: readonly WorkDetailCategory[] =
   WORK_DETAIL_CATEGORIES.filter((c) => c !== "Uniform Sizes");
 /** Garment sizes and seat preferences are asked per roster entry since R6a (roster-facts.ts). */
@@ -51,10 +51,10 @@ export const WORK_DETAIL_RULES = [
   "work_detail_share_categories",
   "work_detail_not_shared",
   "org_read_only",
-  // R6a (2664): uniform sizes and travel preferences are entered per roster entry now.
+  // R6a (4664): uniform sizes and travel preferences are entered per roster entry now.
   "work_detail_field_moved",
   "work_detail_category_retired",
-  // R6a (2664): Contact is shared with at least one other category.
+  // R6a (4664): Contact is shared with at least one other category.
   "work_detail_share_contact_alone",
 ] as const;
 
@@ -88,10 +88,10 @@ const LOG_KEYS: Readonly<Record<string, string>> = {
   "work_details.share_revoked": "shareRevoked",
   "work_details.viewed": "viewed",
   "work_details.erased": "erased",
-  // R6a: the one-time removal of uniform sizes and travel preferences (2664), and a Restricted allergy read (2663).
+  // R6a: the one-time removal of uniform sizes and travel preferences (4664), and a Restricted allergy read (4663).
   "work_details.fields_removed": "fieldsRemoved",
   "allergies.viewed": "allergiesViewed",
-  // Project facts on a roster entry (R5, 2654 to 2657).
+  // Project facts on a roster entry (R5, 4654 to 4657).
   "roster_travel_requests.insert": "travelSaved",
   "roster_travel_requests.update": "travelSaved",
   "roster_travel_requests.delete": "travelCleared",
@@ -105,7 +105,7 @@ const LOG_KEYS: Readonly<Record<string, string>> = {
   "project_facts.counted": "projectFactsCounted",
   "project_facts.expired": "projectFactsExpired",
   "project_facts.erased": "projectFactsErased",
-  // A catering's roster counts (R7, 2695): one row per person counted.
+  // A catering's roster counts (R7, 4695): one row per person counted.
   "dietary_needs.counted": "dietaryNeedsCounted",
   "allergies.counted": "allergiesCounted",
 };

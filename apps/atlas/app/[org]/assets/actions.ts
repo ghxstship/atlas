@@ -319,7 +319,7 @@ const SCAN_RULES = new Set([
   "asset_scan_event_reused",
   "asset_scan_engagement_closed",
   "asset_scan_engagement_project",
-  // R7: holder rules of a hand-over (2692).
+  // R7: holder rules of a hand-over (4692).
   "asset_reserved_for_other",
   "asset_class_held_for_reservations",
   "custody_not_reserved_holder",

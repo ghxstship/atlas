@@ -38,7 +38,7 @@ import { WorkDetailsForm, type WorkDetailsField } from "./form";
 /**
  * The person's own Work Details in Atlas (Section 4.5.6 item 10, A65-003): emergency contacts,
  * dietary and accessibility needs, loyalty programs and passport, which engagements see what, and
- * the access log. Uniform sizes and travel preferences are asked per project since R6a (2664), so
+ * the access log. Uniform sizes and travel preferences are asked per project since R6a (4664), so
  * a notice says so at the top. Everything reads with the viewer's client, so only
  * the person's own rows appear. Phones show in national format for the viewer's region and in
  * international format otherwise (Section 15).

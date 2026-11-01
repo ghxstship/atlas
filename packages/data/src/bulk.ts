@@ -4,7 +4,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2130, 2150,
- * 2151, 2635, 2696 and 3140): one property across a selection, previewed, all or nothing, with the
+ * 2151, 2635, 4696 and 3140): one property across a selection, previewed, all or nothing, with the
  * inverse rows that undo it. Each resource has its own RPC; adding one is a row function, a registry row
  * and a name here.
  */

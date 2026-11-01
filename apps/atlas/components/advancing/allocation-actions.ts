@@ -32,7 +32,7 @@ import type { AdvancingState } from "./actions";
 import { KNOWN_ERRORS } from "./errors";
 
 /**
- * Advance allocations in Atlas (R7, migrations 2690 to 2697). Each action resolves the viewer's org context again
+ * Advance allocations in Atlas (R7, migrations 4690 to 4697). Each action resolves the viewer's org context again
  * (404 when it is gone), validates the form with Zod and calls @xos/data/allocations; the RPCs decide every write and
  * their refusals come back as catalog keys under `advancing.errors`. The dialog loaders read what a dialog offers
  * when it opens, so the page carries none of it: holders and items, the project's radio channels with each role's
@@ -139,7 +139,7 @@ export async function assignAllocationAction(
             : { kind: "service", serviceKind: targetId === "Per Diem" ? "Per Diem" : "Travel" };
   const sources = parseSources(form.get("sources"));
   if (sources === "invalid") return { error: "allocation_sources_invalid" };
-  // Channels are set once the allocation exists, so the count rule (2697) is checked first: a refusal after the
+  // Channels are set once the allocation exists, so the count rule (4697) is checked first: a refusal after the
   // allocation is created would leave it without channels.
   const channels = target.kind === "asset" ? channelIds(form) : [];
   if (channels.length > 16) return { error: "allocation_channel_count" };

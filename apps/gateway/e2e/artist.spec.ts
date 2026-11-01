@@ -201,7 +201,7 @@ test("R2: an individual artist reads the rider Atlas assigned to their engagemen
 });
 
 /**
- * R9 (RRR-189, migration 2715): the guest list cap on an artist's advance. The run makes its own
+ * R9 (RRR-189, migration 4715): the guest list cap on an artist's advance. The run makes its own
  * project, so its cap of three places per engagement touches no other journey. The org sends a packet
  * with a Guest List section; the artist reads how many places are used of the cap, plus-ones
  * included, fills it with one guest and two plus-ones, is refused the next guest, and confirms the

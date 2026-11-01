@@ -26,7 +26,7 @@ export const additions = defineAdditions("Credentials", {
       resources: ["credentialCategories"],
       change: "Adds the optional `category_kind`, Access or Parking (Access by default).",
       reason:
-        "app.credential_categories.category_kind (2691, R7) makes a parking pass a credential category of kind Parking, tied to parking zones through the access grid; allocations read the kind (Credential or Parking Pass).",
+        "app.credential_categories.category_kind (4691, R7) makes a parking pass a credential category of kind Parking, tied to parking zones through the access grid; allocations read the kind (Credential or Parking Pass).",
       apply: editShape({
         add: {
           category_kind: {

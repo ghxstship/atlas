@@ -33,7 +33,7 @@ import { createAnonSupabase, createServerSupabase } from "@/lib/supabase/server"
  * The access code travels only in the form body, never in a URL. Refusals come back as their rule
  * code so the page can say exactly what to do (`gateway.tokens.refusals.<rule>`).
  *
- * R10 (migrations 2730 and 2731): the link answers every kind of section the Advance tab does. The
+ * R10 (migrations 4730 and 4731): the link answers every kind of section the Advance tab does. The
  * typed forms of components/engagement/advance-forms.tsx post here through the token adapter
  * (lib/token-form.ts), which adds the token and code to the form body; these actions return the
  * FormResult those forms read, a refusal as `refusals.<rule>` under gateway.outcomes. They call the

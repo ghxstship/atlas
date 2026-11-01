@@ -1,5 +1,5 @@
 /**
- * Contract tests for R7's advance allocations (RRR-187, migrations 2690 to 2697): the computed status read back, every
+ * Contract tests for R7's advance allocations (RRR-187, migrations 4690 to 4697): the computed status read back, every
  * allocation action through its RPC, an issue replayed with the same Idempotency-Key, the parity reads and writes
  * (allowances, radio channels, conflicts, class availability) and the holds. Requests run through `contractApp`
  * against the in-memory client and every success is checked against openapi/v1.json with `expectContract`.

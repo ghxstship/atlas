@@ -3,7 +3,7 @@
 - Status: Accepted (the owner confirmed this answer to decision 8 as recommended on 2026-10-27)
 - Date: 2026-10-28
 - Decider: Owner decisions on advancing, 2026-10-28 (decision 8, answered here and confirmed by the owner on 2026-10-27); R0 (RRR-176)
-- Migrations: none (R0); 2680 to 2683 (R7a, see the amendment below)
+- Migrations: none (R0); 4680 to 4683 (R7a, see the amendment below)
 
 ## Context
 
@@ -124,7 +124,7 @@ fully received order, and finance committed and accrued views. None blocks advan
 
 ## Amendment: R7a as built (RRR-183, 2026-10-28)
 
-Migrations 2680 to 2683 build section 4. Where the build differs from the text above or adds to it:
+Migrations 4680 to 4683 build section 4. Where the build differs from the text above or adds to it:
 
 - **Idempotency.** The event id is the row id: `app.receive_goods` inserts the goods receipt with id = the event id,
   and `app.return_goods` the goods return. A replay on the same order returns outcome duplicate with the stored ids;
@@ -171,9 +171,9 @@ Migrations 2680 to 2683 build section 4. Where the build differs from the text a
 
 ## Amendment: R7 as built (RRR-187, 2026-10-30)
 
-Migrations 2690 to 2698 build section 5. Where the build differs from the text above or adds to it:
+Migrations 4690 to 4698 build section 5. Where the build differs from the text above or adds to it:
 
-- **No Issue or Return lot kinds.** 2690 adds none. Possession out of a lot stays Check Out and Check In, as the
+- **No Issue or Return lot kinds.** 4690 adds none. Possession out of a lot stays Check Out and Check In, as the
   Alternatives above reject the two extra kinds.
 - **Asset class offering.** `app.asset_classes.offering` is a column of type `app.offering_kind`, used for Radios and
   Carts. A live (org, offering) pair is unique. `app.ensure_offering_asset_class` finds or creates the class from
@@ -192,13 +192,13 @@ Migrations 2690 to 2698 build section 5. Where the build differs from the text a
   - The peak is a boundary sweep over the live windows (`private.asset_reservation_peak`), so two holds that never
     overlap each other do not add up.
   - A rental order line counts for its open quantity, and only inside its hire period.
-- **Cascades (2694).**
+- **Cascades (4694).**
   - An engagement moving to Complete or Canceled withdraws its open allocations, releases their holds and revokes
     their credentials and parking passes.
   - So does a roster entry that is Withdrawn, deleted, or whose person declines.
   - The revocation runs inside the trusted operations `engagement_close` and `roster_entry_close`.
     `private.guard_credential` then skips the revoke-capability check and records who closed the engagement or entry.
-- **Parity (2697).**
+- **Parity (4697).**
   - G-174: `app.allocation_allowances` shows what is left of each allowance.
   - G-91: `app.allocation_radio_channels` stores radio channels, set as a whole through
     `app.set_allocation_radio_channels`, and read by `app.radio_handout` and the radio hand-out document (ADR 0031).

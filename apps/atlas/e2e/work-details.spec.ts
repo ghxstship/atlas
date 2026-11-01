@@ -86,7 +86,7 @@ test("Work Details: a member records their details and reveals the passport numb
   await expectAccessible(page);
 });
 
-// Restricted allergies (R6a, migrations 2662 and 2663) -------------------------------------------------
+// Restricted allergies (R6a, migrations 4662 and 4663) -------------------------------------------------
 
 const DEMO_OWNER = "01920000-0000-7000-8000-000000000101";
 const DEMO_ADMIN = "01920000-0000-7000-8000-000000000102";

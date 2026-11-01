@@ -156,7 +156,7 @@ export function parseShareForm(
   const categories = pickAll(SHAREABLE_WORK_DETAIL_CATEGORIES, form, "categories");
   if (!engagementId) return bad(["engagementId"]);
   if (categories.length === 0) return bad(["categories"]);
-  // Contact goes with another category (2664): API v1 lists at least one beside it.
+  // Contact goes with another category (4664): API v1 lists at least one beside it.
   if (categories.length === 1 && categories[0] === "Contact") return bad(["contactAlone"]);
   return good({ engagementId, categories });
 }

@@ -1,5 +1,5 @@
 /**
- * Advance allocations (R7, migrations 2690 to 2697; ADR 0103 and 0104). The producing org reads allocations through
+ * Advance allocations (R7, migrations 4690 to 4697; ADR 0103 and 0104). The producing org reads allocations through
  * app.advance_allocation_status and writes them only through the allocation RPCs, the same @xos/data functions Atlas
  * calls; refusals come back as 422 with the rule. An issue is one event: the handler mints the event id on the first
  * request and the runtime's Idempotency-Key ledger replays the stored response, so a retry never issues twice.

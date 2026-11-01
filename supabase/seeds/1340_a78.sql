@@ -3,7 +3,7 @@
 -- and loyalty program, shared with their crew engagement (0228's ...228401) under work_details_sharing consent, so
 -- Atlas's engagement record shows the org side; the demo Owner's own dietary needs and contact for Atlas Settings, Work
 -- Details; and the crew person's given and family names (Section 15). Uniform sizes and travel preferences are entered per
--- roster entry since R6a (2664), so nothing here writes them. Every value is fictional: phones in the 555-01xx range,
+-- roster entry since R6a (4664), so nothing here writes them. Every value is fictional: phones in the 555-01xx range,
 -- addresses on example.com, and a passport number that reads TEST.
 -- Builds on 0010 and 0228 and loads cleanly without them. Idempotent: fixed ids in the 1340 block with
 -- `on conflict do nothing`, and the share is written only when it does not exist yet. Extra fixed ids:

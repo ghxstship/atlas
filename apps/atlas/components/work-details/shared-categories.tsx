@@ -121,7 +121,7 @@ export function categoryBody(
           ) : null}
         </>
       );
-    // Retired in R6a (2664): no live share names it, and sizes are read per roster entry.
+    // Retired in R6a (4664): no live share names it, and sizes are read per roster entry.
     case "Uniform Sizes":
       return null;
     case "Dietary Needs":

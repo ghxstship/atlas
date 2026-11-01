@@ -3,7 +3,7 @@ import { fileResponse } from "@/lib/files/deliver";
 import { getViewer } from "@/lib/shell/context";
 
 /**
- * Serves a file a party uploaded to party-uploads (R9, migration 2712): an advance answer's file or
+ * Serves a file a party uploaded to party-uploads (R9, migration 4712): an advance answer's file or
  * a sponsor-supplied brand asset. app.party_file_object answers only for a caller who may read it
  * (the uploading side, or org members with advancing.packet.read or vendors.vendor.read on the
  * project); the download then runs under the caller's session, so the storage policy and the scan

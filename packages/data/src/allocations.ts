@@ -4,7 +4,7 @@ import { Constants, type Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Advance allocations (R7, migrations 2690 to 2697, ADR 0103 and 0104), imported as `@xos/data/allocations`. A
+ * Advance allocations (R7, migrations 4690 to 4697, ADR 0103 and 0104), imported as `@xos/data/allocations`. A
  * production allocates badges, parking passes, radios and carts, catering, rooms, trips and per diems to a party's
  * pool or to one person on its roster; a reviewer who did not request it approves or declines it; approval holds the
  * asset stock (class stock, a pinned unit, a lot or an order line); a pool is split to its people; Issue hands the

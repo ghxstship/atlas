@@ -16,7 +16,7 @@ import { answerHead, answerHeadOf, answerLines, formFiles } from "@/lib/advance-
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * Typed advance answers and party uploads in Gateway (R9, migrations 2711 to 2713). Files go to the
+ * Typed advance answers and party uploads in Gateway (R9, migrations 4711 to 4713). Files go to the
  * party-uploads bucket under the recipient and section (or the sponsor entitlement), are registered as
  * documents, and are attached to the answer or the supplied asset in the same request; the scan worker
  * clears them before anyone but the uploader can read them. The database decides who may answer and

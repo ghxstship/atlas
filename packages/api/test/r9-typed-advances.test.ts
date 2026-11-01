@@ -1,5 +1,5 @@
 /**
- * Contract tests for R9's typed advance sections (RRR-189, migrations 2710 to 2716): section choices, the lines and
+ * Contract tests for R9's typed advance sections (RRR-189, migrations 4710 to 4716): section choices, the lines and
  * files of typed answers, `advanceSections.configure`, and the recipient's `bindEngagement` and `setNamesDue` (G-141).
  * Requests run through `contractApp` against the in-memory client; every success is checked against openapi/v1.json
  * with `expectContract`. A configuration that does not fit its kind answers 400; a database refusal 422 with its rule.

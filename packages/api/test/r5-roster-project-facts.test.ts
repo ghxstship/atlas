@@ -1,7 +1,7 @@
 /**
- * Contract tests for R5: roster entries and their project facts, the travel party, and the names lock (migrations 2654
- * to 2657). Requests run through `contractApp` and every success is checked against openapi/v1.json with
- * `expectContract`. Standing, logging and every refusal are the database's (pgTAP 2654 to 2657); here the RPCs answer
+ * Contract tests for R5: roster entries and their project facts, the travel party, and the names lock (migrations 4654
+ * to 4657). Requests run through `contractApp` and every success is checked against openapi/v1.json with
+ * `expectContract`. Standing, logging and every refusal are the database's (pgTAP 4654 to 4657); here the RPCs answer
  * the way the database does, and queued failures stand in for its refusals (422) and for no standing (404).
  */
 import { describe, expect, it } from "vitest";

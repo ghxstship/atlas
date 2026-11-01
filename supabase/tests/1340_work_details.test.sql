@@ -57,7 +57,7 @@ select results_eq($$select classification::text, read_capability from private.co
 select pg_temp.as_user('ivy');
 insert into world select 'wd_ivy', app.ensure_my_work_details();
 select is(app.ensure_my_work_details(), pg_temp.id('wd_ivy'), 'ensure_my_work_details returns the same row');
--- Uniform sizes and travel preferences are entered per roster entry since R6a (2664).
+-- Uniform sizes and travel preferences are entered per roster entry since R6a (4664).
 select lives_ok($$update app.person_work_details set dietary_needs = '{Vegan,Nut Free,Vegan}',
   allergies = 'Peanuts, severe', accessibility_needs = '{Seating}', passport_issuing_country = 'IT', passport_expires_on = '2031-04-30', passport_name = 'IVY MARCHETTI'
   where id = (select id from world where key = 'wd_ivy')$$, 'the owner fills in her work details');
@@ -133,7 +133,7 @@ select is((select count(*)::int from app.my_work_detail_sharing() where work_det
 select pg_temp.as_user('alice');
 select is((select d -> 'readable' from app.shared_work_details(pg_temp.id('eng_ivy_a')) d),
   '["Emergency Contacts", "Dietary Needs", "Passport"]'::jsonb, 'the Owner reads every shared category');
--- The Owner holds data.restricted.read.medical org-wide, so the Restricted allergies reach her (R6a, 2663).
+-- The Owner holds data.restricted.read.medical org-wide, so the Restricted allergies reach her (R6a, 4663).
 select is((select d -> 'dietary' ->> 'allergies' from app.shared_work_details(pg_temp.id('eng_ivy_a')) d), 'Peanuts, severe',
   'the shared dietary needs reach the org');
 select is((select jsonb_array_length(d -> 'emergency_contacts') from app.shared_work_details(pg_temp.id('eng_ivy_a')) d), 1,

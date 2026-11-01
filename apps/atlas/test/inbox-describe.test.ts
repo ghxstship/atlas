@@ -54,7 +54,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   // A99's account notices (1560, 1561), as private.notify_account stores them.
   "account.recovery_code_used": { remaining: "9" },
   "account.session_signed_out": { count: "2" },
-  // R6a's one-time move (2664), as private.move_profile_work_details stores it.
+  // R6a's one-time move (4664), as private.move_profile_work_details stores it.
   "account.work_details_moved": { moved: "both" },
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
@@ -122,7 +122,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     projectName: "Northwind Summer Series",
     orgName: "Northwind Live",
   },
-  // R5: project facts entered for the person (2655) and an engagement's names lock (2656).
+  // R5: project facts entered for the person (4655) and an engagement's names lock (4656).
   "roster_entry.project_facts_entered": {
     kind: "travel",
     actorName: "Riley Chen",
@@ -133,7 +133,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     projectName: "Northwind Summer Series",
     locksAt: "2027-03-01T17:00:00Z",
   },
-  // R7: advance allocations (2693, 2694), as private.allocation_notification_args stores them.
+  // R7: advance allocations (4693, 4694), as private.allocation_notification_args stores them.
   "allocation.decided": {
     personName: "Kai Morgan",
     partyName: "Bayside Audio",

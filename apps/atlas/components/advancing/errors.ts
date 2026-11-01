@@ -30,7 +30,7 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "sod_guest_requester",
   "sod_allocation_requester",
   // R9: typed sections, their choices, recipient engagements, dock slots from answers and the naming deadline
-  // (migrations 2710 to 2716).
+  // (migrations 4710 to 4716).
   "advance_section_choices_missing",
   "advance_section_choice_kind",
   "advance_section_choice_project",
@@ -51,11 +51,11 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "roster_entry_not_submitted",
   "roster_review_reason",
   "roster_review_outcome",
-  // R5: the names lock of an engagement (G-142, migration 2656).
+  // R5: the names lock of an engagement (G-142, migration 4656).
   "roster_locked",
   "roster_lock_engagement_closed",
   "roster_lock_rpc",
-  // R7: advance allocations, their holds and issue (migrations 2690 to 2697).
+  // R7: advance allocations, their holds and issue (migrations 4690 to 4697).
   "allocation_cap_engagement",
   "allocation_cap_person",
   "allocation_channel_count",

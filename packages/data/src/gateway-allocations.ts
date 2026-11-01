@@ -7,7 +7,7 @@ import type { Engagement, XosClient } from "./gateway.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Allocations in Gateway (R8, migrations 2700 to 2702, ADR 0103 and 0104), imported as
+ * Allocations in Gateway (R8, migrations 4700 to 4702, ADR 0103 and 0104), imported as
  * `@xos/data/gateway-allocations`. The party side of an engagement (its Owner or Admin, an Advancing
  * Lead, an Advance representative, the engaged person of an Artist engagement) asks for what its pool
  * or one person needs and shares an approved pool out to its people; a person on a roster reads their
@@ -27,7 +27,7 @@ export type OfferingKind = Enums["offering_kind"];
 export type AllocationKind =
   "Credential" | "Parking Pass" | "Asset" | "Catering" | "Lodging" | "Travel" | "Per Diem";
 
-/** The computed status of 2695, in its order. */
+/** The computed status of 4695, in its order. */
 export const DISPLAY_STATUSES = [
   "Requested",
   "Approved",

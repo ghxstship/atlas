@@ -3,7 +3,7 @@
  * needs, passport details, emergency contacts and loyalty programs, the per-engagement consent that
  * shares chosen categories with the engaging org, what that org reads, and the person's access log.
  * catalog/modules/identity.ts spreads these into the Identity additions, with the correction that
- * adds the Section 15 given and family names to people. R6a (2663, 2664) retires the uniform size
+ * adds the Section 15 given and family names to people. R6a (4663, 4664) retires the uniform size
  * and travel preference fields, which v1 keeps as always null, makes allergies Restricted, and adds
  * the Contact category. Every change here is an addition: a new value in a response enum is a
  * breaking change under gate 20, so v1's WorkDetailCategory keeps its six values and Contact travels
@@ -68,7 +68,7 @@ const airport = z
   .regex(/^[A-Z]{3}$/)
   .meta({ description: "IATA airport code.", example: "MIA" });
 
-/** The ten profile fields R6a retired (2664): v1 keeps them, always null. */
+/** The ten profile fields R6a retired (4664): v1 keeps them, always null. */
 const RETIRED =
   "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).";
 const retired = (schema: z.ZodType) => orNull(schema).meta({ description: RETIRED });

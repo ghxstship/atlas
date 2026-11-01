@@ -6,7 +6,7 @@ import { BookDockSlotForm } from "./answer-forms";
 import { Tag } from "./ui";
 
 /**
- * What a typed advance answer holds, for its reviewer (R9, migrations 2711 and 2712): the note, the
+ * What a typed advance answer holds, for its reviewer (R9, migrations 4711 and 4712): the note, the
  * lines with the item, quantity, person and window in the window's zone and each allocation's
  * computed stage (app.advance_allocation_status), "Named n of q" on a credential pool (G-141), the
  * files as links served by /files/party/<version>, and Book dock slot on an Accepted Load In or Load

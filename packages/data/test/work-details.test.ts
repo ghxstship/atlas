@@ -61,9 +61,9 @@ describe("work details", () => {
     });
     const select = calls[0]?.steps.find(([step]) => step === "select")?.[1][0] as string;
     expect(select).not.toMatch(/passport_number,/);
-    // Uniform sizes and travel preferences left the profile in R6a (2664).
+    // Uniform sizes and travel preferences left the profile in R6a (4664).
     expect(select).not.toMatch(/shirt_size|seat_preference|home_airport/);
-    // Allergies are Restricted (R6a, 2663): the owner reads them through app.my_allergies.
+    // Allergies are Restricted (R6a, 4663): the owner reads them through app.my_allergies.
     expect(select).not.toMatch(/allergies/);
     const none = await getMyWorkDetails(db);
     expect(none.ok && none.data).toBeNull();

@@ -1,5 +1,5 @@
 /**
- * Roster entries and their project facts (R4 2637, R5 2654 to 2657; ADR 0101 and 0102). The producing org lists and
+ * Roster entries and their project facts (R4 2637, R5 4654 to 4657; ADR 0101 and 0102). The producing org lists and
  * reads entries through app.roster_entry_people. The project fact actions do not read the entry first: the person and
  * the company that rosters them are not producers and cannot see that view, so every call goes straight to its RPC,
  * which decides the caller's standing (42501, answered 404) and logs every read of a value by anyone but the person.

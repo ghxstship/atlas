@@ -314,7 +314,7 @@ export function submitAdvanceAnswer(
   );
 }
 
-// Typed advance answers and party uploads (R9, migrations 2711 and 2712) ----------------------------
+// Typed advance answers and party uploads (R9, migrations 4711 and 4712) ----------------------------
 
 /** What a party-uploads object is for: a File section of an advance, or a sponsor entitlement. */
 export type PartyUploadTarget =
@@ -322,7 +322,7 @@ export type PartyUploadTarget =
   | { readonly kind: "sponsor-asset"; readonly entitlementId: string };
 
 /**
- * The object name a party upload takes in the party-uploads bucket (2712):
+ * The object name a party upload takes in the party-uploads bucket (4712):
  * <org>/advance/<recipient>/<section>/<file> or <org>/sponsor-asset/<entitlement>/<file>.
  */
 export function partyUploadObjectName(input: {

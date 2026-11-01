@@ -7,7 +7,7 @@ import { KNOWN_REFUSALS, refusalOutcome } from "../lib/action-result";
 import { withAdvanceLink } from "../lib/token-form";
 
 /**
- * The advance link's typed sections (R10, migrations 2730 and 2731): the token adapter puts the
+ * The advance link's typed sections (R10, migrations 4730 and 4731): the token adapter puts the
  * token and access code in the form body and nowhere else, the page and its actions never put the
  * code in a URL, and every refusal the link can meet has its own copy in both locales, under
  * gateway.tokens.refusals and under gateway.outcomes.refusals, which the typed forms read.

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-/** One airport of app.airports (migration 2651). */
+/** One airport of app.airports (migration 4651). */
 export interface Airport {
   readonly iataCode: string;
   readonly name: string;

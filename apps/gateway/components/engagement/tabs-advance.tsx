@@ -24,7 +24,7 @@ import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 
 /**
- * The Advance tab (Section 4.4.4; R9, migrations 2710 to 2716): the sent packets the party answers,
+ * The Advance tab (Section 4.4.4; R9, migrations 4710 to 4716): the sent packets the party answers,
  * each section by its kind. Text keeps the free answer; File uploads through the scanned party-uploads
  * bucket; Schedule Window proposes windows; Item Request and Credential Request ask for the section's
  * choices, which become allocations the producer's review decides; Crew Roster reads the roster;

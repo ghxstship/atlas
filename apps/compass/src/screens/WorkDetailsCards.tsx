@@ -12,7 +12,7 @@ import { Button, Card, ListRow, Text } from "../ui";
  * The emergency contacts on the Compass profile (Section 4.3 item 13, A65-003). They are the
  * person's own Work Details, read online with their session (owner-only rows); they are never
  * synced to the device. They stay read-only here: the button opens Settings, Work Details, where
- * Compass edits them (A111). Uniform sizes left the profile in R6a (2664); each project asks for
+ * Compass edits them (A111). Uniform sizes left the profile in R6a (4664); each project asks for
  * them in Project details.
  */
 export function WorkDetailsCards(): ReactElement {

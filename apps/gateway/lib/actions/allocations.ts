@@ -13,7 +13,7 @@ import { localToInstant } from "@/lib/local-time";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * Allocations in Gateway (R8, migration 2700): the party side asks for what its pool or one person
+ * Allocations in Gateway (R8, migration 4700): the party side asks for what its pool or one person
  * needs, gives a share back to the pool and withdraws a request; assigning from a pool to several
  * people at once is the bulk action engaged_allocation_assignments (lib/bulk/catalog.ts). The database decides who may (private.can_advance_engagement) and refuses with a
  * named rule; these actions only shape the input. A credential need is a request: Gateway never

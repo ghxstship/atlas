@@ -99,7 +99,7 @@ const poChangeOrders = tableResource("poChangeOrders");
 const HIRE_FIELDS = ["hire_starts_at", "hire_ends_at"] as const;
 
 /**
- * The hire period of a line being written (R7a, 2681): the contract's two instants become one tstzrange, kept from
+ * The hire period of a line being written (R7a, 4681): the contract's two instants become one tstzrange, kept from
  * the current line where the body leaves one out, and cleared on a Purchase line. The database refuses a Rental line
  * without both bounds (po_lines_hire_period_kind).
  */

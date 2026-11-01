@@ -2,7 +2,7 @@ import type { Database, XosClient } from "../client.ts";
 import { fail, ok, toDataError, type Result } from "../result.ts";
 
 /**
- * Agency staff on shifts (R12, migrations 2750 to 2754; ADR 0101 R12 amendment). A staffing agency wins one Staff
+ * Agency staff on shifts (R12, migrations 4750 to 4754; ADR 0101 R12 amendment). A staffing agency wins one Staff
  * engagement; the production allocates shifts to it as agency slots (the shift names the engagement), and the agency's
  * lead, or a planner with crew.shift.write, places the people on its roster on them (app.assign_roster_shift), once
  * the production accepted their entry, they accepted it, and nothing is due in training. Atlas's shift editor and

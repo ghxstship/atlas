@@ -1,5 +1,5 @@
 /**
- * Typed advance sections in the public API (R9, RRR-189; migrations 2710 to 2716). Additive only (v1 is frozen,
+ * Typed advance sections in the public API (R9, RRR-189; migrations 4710 to 4716). Additive only (v1 is frozen,
  * Section 10.1):
  *
  *   * `advanceSectionChoices`: the asset classes an Item Request offers and the credential categories a Credential

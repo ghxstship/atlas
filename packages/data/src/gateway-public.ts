@@ -11,7 +11,7 @@ import type { Database } from "./database.types.ts";
  *
  * The type generator does not cover `api_public` yet, so the row shapes below restate each
  * function's `returns table` from its migration; refusals arrive as rows (`refusal`, `reason`).
- * R10 (2730, 2731) adds typed answers, uploads, guests and the crew roster through an advance link.
+ * R10 (4730, 4731) adds typed answers, uploads, guests and the crew roster through an advance link.
  */
 
 type PublicRpc = {
@@ -676,7 +676,7 @@ export async function beginAdvanceUpload(
 
 /**
  * Stores the file of an upload ticket under its object name, as anon (the party-uploads token
- * policies of 2730 open exactly that object while the ticket is open).
+ * policies of 4730 open exactly that object while the ticket is open).
  */
 export async function storeAdvanceUpload(
   db: XosClient,

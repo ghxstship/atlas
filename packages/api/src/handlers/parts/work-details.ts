@@ -4,8 +4,8 @@
  * Every call runs as the caller, so the owner-only policies, the share RPCs and the capability
  * checks of app.shared_work_details decide. The Restricted passport number is written through its
  * encrypting RPC, always read masked, and shown only by the logged reveal actions. Allergies are
- * Restricted too (R6a, 2663): the column is not selectable, so the owner's come from
- * app.my_allergies. The retired uniform size and travel preference fields (2664) still pass through,
+ * Restricted too (R6a, 4663): the column is not selectable, so the owner's come from
+ * app.my_allergies. The retired uniform size and travel preference fields (4664) still pass through,
  * so the database refuses a value with 422 work_detail_field_moved. v1's category enum is frozen, so
  * R6a's Contact category leaves the category lists and travels as share_contact, contact_shared and
  * includes_contact.

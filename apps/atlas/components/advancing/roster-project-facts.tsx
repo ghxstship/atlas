@@ -8,7 +8,7 @@ import { RefusalNotice } from "@/components/refusal-notice";
 import { rosterProjectFactsAction } from "./roster-actions";
 import { useCopy } from "./use-copy";
 
-/** The capability each kind's read needs on the project (2655, private.project_fact_kind_capabilities). */
+/** The capability each kind's read needs on the project (4655, private.project_fact_kind_capabilities). */
 const CAPABILITY = {
   Travel: "hospitality.fulfillment.read",
   Uniform: "opportunities.engagement.read",

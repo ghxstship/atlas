@@ -1,5 +1,5 @@
 /**
- * The supply bridge in the public API (R7a, RRR-183; migrations 2681 to 2683, ADR 0104). Procurement already owns
+ * The supply bridge in the public API (R7a, RRR-183; migrations 4681 to 4683, ADR 0104). Procurement already owns
  * Ordered, Confirmed and Received; these operations add the links between them and stock, additively (v1 is frozen,
  * Section 10.1):
  *

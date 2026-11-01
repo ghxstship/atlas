@@ -5,7 +5,7 @@ import { loadAirports } from "./load.ts";
 
 /**
  * Airports seed CLI.
- *   generate-cli.ts           writes supabase/migrations/2652_airports_seed.sql from airports/airports.csv
+ *   generate-cli.ts           writes supabase/migrations/4652_airports_seed.sql from airports/airports.csv
  *   generate-cli.ts --check   writes nothing and exits 1 when the seed is out of date
  */
 const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));

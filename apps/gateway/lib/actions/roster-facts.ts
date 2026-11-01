@@ -27,7 +27,7 @@ import { z } from "zod";
 import { getGatewayContext } from "@/lib/shell/context";
 
 /**
- * Gateway server actions for project facts (R5, migrations 2654 and 2655): the person enters travel, uniform sizes and
+ * Gateway server actions for project facts (R5, migrations 4654 and 4655): the person enters travel, uniform sizes and
  * a vehicle on their own roster entry, and a roster manager may enter them for the person when the producing org
  * allows it. The parsers are shared with Compass (@xos/data/roster-facts-forms); every write runs as the signed-in
  * person, so the RPCs decide standing and refuse with a named rule, which comes back as a `workDetails.errors.*` key.

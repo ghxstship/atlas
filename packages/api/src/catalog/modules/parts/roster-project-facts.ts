@@ -1,5 +1,5 @@
 /**
- * Crew roster entries and their project facts (R4 2633 to 2637, R5 2650 to 2657; ADR 0101 and 0102). The producing
+ * Crew roster entries and their project facts (R4 2633 to 2637, R5 4650 to 4657; ADR 0101 and 0102). The producing
  * org's read of roster entries with their people (app.roster_entry_people), the per-project facts a rostered person
  * enters on their entry (travel request, uniform sizes, vehicle), and the travel party of a project with its daily
  * counts. catalog/modules/advancing.ts spreads these into the Advancing additions.

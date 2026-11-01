@@ -82,7 +82,7 @@ function world() {
       ],
     },
     {
-      // R7 (2692): custody is recorded through the scan; the fake appends the row it would write.
+      // R7 (4692): custody is recorded through the scan; the fake appends the row it would write.
       record_asset_custody: (args, self) => {
         const row = tenantRow(id(91), ORG, {
           asset_unit_id: args["p_asset_unit_id"],

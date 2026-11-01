@@ -14,7 +14,7 @@ import type { XosClient } from "../src/client.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 /**
- * R10 (migrations 2730 and 2731): the advance link's typed sections, uploads, guests and crew
+ * R10 (migrations 4730 and 4731): the advance link's typed sections, uploads, guests and crew
  * roster. The preview maps the columns it appends after return_reason; every token call keeps a
  * refusal's rule, answers token_invalid when nothing comes back, and passes a database error on.
  */

@@ -29,7 +29,7 @@ describe("Identity: work details", () => {
       ? [
           globalRow(DETAILS, {
             person_id: ME,
-            // Retired in R6a (2664): always null.
+            // Retired in R6a (4664): always null.
             shirt_size: null,
             jacket_size: null,
             pants_size: null,
@@ -79,7 +79,7 @@ describe("Identity: work details", () => {
           return null;
         },
         reveal_my_passport_number: () => "YA0000TEST",
-        // Allergies are Restricted (R6a, 2663): the owner reads them through their own RPC.
+        // Allergies are Restricted (R6a, 4663): the owner reads them through their own RPC.
         my_allergies: () => (rows[0]?.["allergies"] as string | undefined) ?? null,
       },
     );
@@ -333,7 +333,7 @@ describe("Identity: work detail shares and the access log", () => {
             categories: ["Contact", "Dietary Needs"],
             changed_columns: [],
             reason: null,
-            // R5 (2654): the event names its roster entry and the project fact kinds; a work details read has none.
+            // R5 (4654): the event names its roster entry and the project fact kinds; a work details read has none.
             roster_entry_id: null,
             fact_kinds: [],
             created_at: "2026-10-02T12:00:00.000Z",
@@ -346,7 +346,7 @@ describe("Identity: work detail shares and the access log", () => {
             (s) => s["engagement_id"] === args["p_engagement_id"] && s["revoked_at"] === null,
           );
           const categories = args["p_categories"] as string[];
-          // 2664: the retired category is refused.
+          // 4664: the retired category is refused.
           if (categories.includes("Uniform Sizes")) throw refusal("work_detail_category_retired");
           if (live) {
             live["categories"] = categories;
@@ -436,7 +436,7 @@ describe("Identity: work detail shares and the access log", () => {
     expect(
       (await http.post("/work-detail-shares", { engagement_id: id(42), categories: [] })).status,
     ).toBe(422);
-    // A share of Contact alone would read back with no categories, so v1 never makes one (2664).
+    // A share of Contact alone would read back with no categories, so v1 never makes one (4664).
     expect(
       (
         await http.post("/work-detail-shares", {

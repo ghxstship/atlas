@@ -7,7 +7,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * returned one, through app.respond_sponsor_asset. Gateway reads the assets from
  * api_external.sponsor_assets.
  *
- * R9 (migration 2713) adds the other direction: the sponsor supplies its own asset with files
+ * R9 (migration 4713) adds the other direction: the sponsor supplies its own asset with files
  * uploaded to party-uploads (app.supply_sponsor_asset) and resubmits it with new files after the
  * org returns it (app.resubmit_sponsor_asset); the org approves those in Atlas.
  */

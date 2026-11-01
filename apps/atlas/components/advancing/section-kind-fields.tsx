@@ -6,7 +6,7 @@ import { addSectionChoiceAction, removeSectionChoiceAction, type AdvancingState 
 import { useCopy } from "./use-copy";
 
 /**
- * The kind-specific fields of an advance section (R9, migration 2710), loaded on demand by the
+ * The kind-specific fields of an advance section (R9, migration 4710), loaded on demand by the
  * packet builder only when a section's kind is not Text, so the packet page keeps its weight:
  * the window kind of a Schedule Window, the most files, windows or lines an answer may hold, per
  * person for item and credential requests, and the asset classes or credential categories a

@@ -1,11 +1,11 @@
 /**
- * Allocations from the engaged party's side in the public API (R8, RRR-188; migrations 2700 and 2701, ADR 0103 and
+ * Allocations from the engaged party's side in the public API (R8, RRR-188; migrations 4700 and 4701, ADR 0103 and
  * 0104). Additive only (v1 is frozen, Section 10.1):
  *
  *   * `engagedAllocations` reads api_external.advance_allocations: an engagement's pool and its people's shares for the
  *     party side (the supplying account's Owner or Admin, an Advancing Lead, an Advance representative, the engaged
  *     person of an Artist engagement), and a person's own rows on their roster entries. Writes are actions: request,
- *     split, unsplit and withdraw, through the RPCs of 2700.
+ *     split, unsplit and withdraw, through the RPCs of 4700.
  *   * `requestableItems` lists what the party side may ask for on each engagement it answers for (owner decision 7).
  *   * `myParkingPasses` lists the caller's own parking passes with zones and vehicle, never the plate.
  *

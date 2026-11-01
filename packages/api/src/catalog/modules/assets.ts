@@ -23,7 +23,7 @@ const SINCE = "1.0.0-draft.2";
 
 const ASSET_STATES = Constants.app.Enums.asset_state;
 
-/** The ten asset states since R7a's Returned (2680). */
+/** The ten asset states since R7a's Returned (4680). */
 const ASSET_STATES_WITH_RETURNED = [...ASSET_STATES, "Returned"] as const;
 
 const assetState = (description: string) =>
@@ -105,7 +105,7 @@ export const additions = defineAdditions("Assets", {
       change:
         "Adds the optional `offering`, Radios or Carts: the offering the class answers for, at most one live class per offering in an org.",
       reason:
-        "app.asset_classes.offering (2691, R7) names the app.offering_kind a class supplies (asset_classes_offering, asset_classes_org_offering_key); allocations read the offering's caps through it.",
+        "app.asset_classes.offering (4691, R7) names the app.offering_kind a class supplies (asset_classes_offering, asset_classes_org_offering_key); allocations read the offering's caps through it.",
       apply: editShape({
         add: {
           offering: {
@@ -192,7 +192,7 @@ export const additions = defineAdditions("Assets", {
       change:
         "Adds the read-only `receipt_line_id`, the receipt line the unit arrived on; `asset_state` gains Returned, the tenth state.",
       reason:
-        "app.asset_units.receipt_line_id (2681, R7a) links a unit received through app.receive_goods to its receipt line, fixed once set (unit_receipt_immutable), so owner, cost and vendor are derived and never stored on the unit. 2680 adds Returned to app.asset_state, reached only through app.return_goods.",
+        "app.asset_units.receipt_line_id (4681, R7a) links a unit received through app.receive_goods to its receipt line, fixed once set (unit_receipt_immutable), so owner, cost and vendor are derived and never stored on the unit. 4680 adds Returned to app.asset_state, reached only through app.return_goods.",
       apply: editShape({
         add: {
           receipt_line_id: { schema: orNull(fields.ref("receipt line the unit arrived on")) },

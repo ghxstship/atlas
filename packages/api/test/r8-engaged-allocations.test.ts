@@ -1,5 +1,5 @@
 /**
- * Contract tests for R8's allocations from the engaged party's side (RRR-188, migrations 2700 and 2701): the
+ * Contract tests for R8's allocations from the engaged party's side (RRR-188, migrations 4700 and 4701): the
  * engagement's allocations, what may be asked for and the caller's parking passes read back from their api_external
  * views, and request, split, unsplit and withdraw through their RPCs. Requests run through `contractApp` against the
  * in-memory client and every success is checked against openapi/v1.json with `expectContract`.

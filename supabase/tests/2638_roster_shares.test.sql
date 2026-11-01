@@ -134,7 +134,7 @@ select app.ensure_my_work_details();
 update app.person_work_details set allergies = 'Shellfish' where person_id = pg_temp.id('ivy');
 select pg_temp.as_platform();
 select is(pg_temp.read('alice', 'self_ivy') #>> '{dietary,allergies}', 'Shellfish',
-  'the Owner, who holds data.restricted.read.medical, reads the Restricted allergies (R6a, 2663)');
+  'the Owner, who holds data.restricted.read.medical, reads the Restricted allergies (R6a, 4663)');
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('ivy') and action = 'allergies.viewed'
   and roster_entry_id = pg_temp.id('self_ivy')), 1, 'an unmasked allergy read is logged as allergies.viewed');
 

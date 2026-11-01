@@ -1059,7 +1059,7 @@ export async function bindRecipientEngagement(
 }
 
 /**
- * Sets or clears a recipient's naming deadline (G-141, migration 2716). It stays editable after
+ * Sets or clears a recipient's naming deadline (G-141, migration 4716). It stays editable after
  * the packet is sent; a recipient without an engagement takes none.
  */
 export async function setRecipientNamesDue(
@@ -1311,7 +1311,7 @@ export async function reviewSubmission(
   return ok({ reviewedAt });
 }
 
-// Typed answer details (R9, migrations 2711 and 2712) ------------------------------------------------
+// Typed answer details (R9, migrations 4711 and 4712) ------------------------------------------------
 
 /** One line of a typed answer as a reviewer reads it. */
 export interface AnswerLine {

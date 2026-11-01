@@ -11,7 +11,7 @@ import type { FormResult } from "@/lib/actions/operations";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * A staffing agency's staff on shifts in Gateway (R12, migrations 2750 to 2752): the agency's lead places the people
+ * A staffing agency's staff on shifts in Gateway (R12, migrations 4750 to 4752): the agency's lead places the people
  * on its roster on the slots the production allocated (Positions) and takes them off again; the person on a roster
  * entry acknowledges the training due on it before their first shift. The database decides who may do each and
  * refuses with a named rule, such as roster_training_incomplete.

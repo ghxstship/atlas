@@ -47,7 +47,7 @@ export const additions = defineAdditions("Opportunities", {
       resources: ["engagements"],
       change: "The read shape gains the read-only `roster_locks_at`.",
       reason:
-        "app.engagements.roster_locks_at (2656, R5 G-142) is the names lock the producing org sets through app.set_roster_lock: after it the company side can no longer add, invite, edit Draft entries or submit new names.",
+        "app.engagements.roster_locks_at (4656, R5 G-142) is the names lock the producing org sets through app.set_roster_lock: after it the company side can no longer add, invite, edit Draft entries or submit new names.",
       apply: editShape({
         add: {
           roster_locks_at: {

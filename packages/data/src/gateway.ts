@@ -73,7 +73,7 @@ export interface Engagement {
   readonly areas: readonly EngagementArea[];
   /** IANA time zone of the project: the calendar the engagement's dates follow (1390). */
   readonly projectTimeZone: string;
-  /** Names lock (R5, 2656): after this instant the company side names no new crew; null means no lock. */
+  /** Names lock (R5, 4656): after this instant the company side names no new crew; null means no lock. */
   readonly rosterLocksAt: string | null;
 }
 

@@ -98,7 +98,7 @@ export const KNOWN_BULK_REFUSALS = [
   "application_offered",
   "lifecycle_transition",
   "lifecycle_conflict",
-  // R8: assigning from a pool (2700, through 2693's split and unsplit).
+  // R8: assigning from a pool (4700, through 4693's split and unsplit).
   "allocation_not_pool",
   "allocation_split_exceeds",
   "allocation_cap_person",

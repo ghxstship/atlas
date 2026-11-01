@@ -3,7 +3,7 @@
  * the person's dietary and accessibility needs and emergency contacts. The forms read and save online with the
  * person's session (owner-only rows, migration 1340), checked by the parsers Atlas and Gateway share; nothing of them
  * stays on the phone. The passport, loyalty programs, sharing with engagements and the access log open in Gateway.
- * Uniform sizes and travel preferences are asked per project since R6a (2664, ADR 0071 amendment): a notice says so,
+ * Uniform sizes and travel preferences are asked per project since R6a (4664, ADR 0071 amendment): a notice says so,
  * and Project details holds them. The Profile keeps showing the contacts read-only (WorkDetailsCards).
  */
 import type { XosClient } from "@xos/data";

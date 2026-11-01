@@ -93,7 +93,7 @@ export async function CrewTab({ view, t, locale }: TabProps) {
           : p.fullName,
     }));
   const timeZone = engagement.projectTimeZone;
-  // Under a names lock only Returned entries go back for review (2656); Draft names wait for the lock to move.
+  // Under a names lock only Returned entries go back for review (4656); Draft names wait for the lock to move.
   const toSubmit = entries.filter(
     (e) =>
       !e.isSelf &&

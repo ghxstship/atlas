@@ -46,7 +46,7 @@ export function snapshotCsv(
   return [
     "# Airports for travel requests (R5, ADR 0102). Read by packages/schemas/src/airports/load.ts, which keeps rows of type",
     "# large_airport or medium_airport with scheduled_service yes and an IATA code of three capital letters, and writes",
-    "# supabase/migrations/2652_airports_seed.sql (pnpm --filter @xos/schemas generate:airports).",
+    "# supabase/migrations/4652_airports_seed.sql (pnpm --filter @xos/schemas generate:airports).",
     `# Source: OurAirports airports.csv (https://ourairports.com/data/, public domain), downloaded from ${url}`,
     `# on ${downloadedOn} by pnpm --filter @xos/schemas fetch:airports, which keeps the large and medium airports and the`,
     "# columns the loader reads.",

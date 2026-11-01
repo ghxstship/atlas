@@ -1,5 +1,5 @@
 /**
- * Allocations from the engaged party's side (R8, migrations 2700 and 2701). Reads go through the api_external views
+ * Allocations from the engaged party's side (R8, migrations 4700 and 4701). Reads go through the api_external views
  * as the caller, so the views' filters decide what each caller sees; writes go through the same @xos/data functions
  * Gateway calls, and refusals come back as 422 with the rule.
  */

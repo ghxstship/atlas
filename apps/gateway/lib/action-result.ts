@@ -61,10 +61,10 @@ export const KNOWN_REFUSALS = [
   "account_membership_not_yours",
   "account_membership_unconfirmed",
   "assignment_account_mismatch",
-  // R5: the producing org's names lock (G-142, migration 2656).
+  // R5: the producing org's names lock (G-142, migration 4656).
   "roster_locked",
   "roster_lock_engagement_closed",
-  // R8: the party side asks for and shares out what its engagement needs (migration 2700, through 2693).
+  // R8: the party side asks for and shares out what its engagement needs (migration 4700, through 4693).
   "allocation_not_your_engagement",
   "allocation_entry_not_on_engagement",
   "allocation_not_requestable",
@@ -86,7 +86,7 @@ export const KNOWN_REFUSALS = [
   "allocation_quantity_positive",
   "allocation_quantity_whole",
   // R9: typed advance answers, party uploads, supplied sponsor assets, guest list caps and the naming
-  // deadline (migrations 2710 to 2716).
+  // deadline (migrations 4710 to 4716).
   "advance_section_derived",
   "advance_section_role",
   "advance_section_open",
@@ -106,7 +106,7 @@ export const KNOWN_REFUSALS = [
   "sponsor_asset_files_invalid",
   "sponsor_asset_source",
   "credential_names_closed",
-  // R10: the advance link's typed sections, uploads, guests and crew roster (migrations 2730 and 2731).
+  // R10: the advance link's typed sections, uploads, guests and crew roster (migrations 4730 and 4731).
   "advance_token_invalid",
   "advance_token_locked",
   "advance_token_expired",
@@ -123,7 +123,7 @@ export const KNOWN_REFUSALS = [
   "guest_name_length",
   "guest_plus_ones",
   "guest_note_length",
-  // R12: a staffing agency places its roster staff on shifts after their training (migrations 2750 to 2752).
+  // R12: a staffing agency places its roster staff on shifts after their training (migrations 4750 to 4752).
   "roster_shift_not_agency_slot",
   "roster_entry_other_engagement",
   "roster_training_incomplete",

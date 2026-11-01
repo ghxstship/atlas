@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * The route that serves party uploads (R9, migration 2712). app.party_file_object answers only for a
+ * The route that serves party uploads (R9, migration 4712). app.party_file_object answers only for a
  * caller who may read the file, and the download runs under the caller's session, so every other
  * case is a 404 and the stored bytes never leave.
  */

@@ -487,7 +487,7 @@ export async function AssetApprovalsTab({ view, t, locale, engagementKey }: TabP
     order: ["revision", "desc"],
   });
   if (!files.ok) return <RegionError />;
-  // R9 (2713): the sponsor's own assets, which the org approves, and the org's, which the sponsor approves.
+  // R9 (4713): the sponsor's own assets, which the org approves, and the org's, which the sponsor approves.
   const supplied = assets.data.filter((a) => a.asset_source === "Sponsor Supplied");
   const toApprove = assets.data.filter((a) => a.asset_source !== "Sponsor Supplied");
   const supplyForm =

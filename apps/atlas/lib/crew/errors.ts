@@ -104,7 +104,7 @@ export const KNOWN_REFUSALS = [
   "per_diem_day_taken",
   "engagement_worker_person",
   "engagement_not_working",
-  // R12: agency slots, agency staff on shifts, their training, and the supervisor's team punch (2750 to 2754).
+  // R12: agency slots, agency staff on shifts, their training, and the supervisor's team punch (4750 to 4754).
   "roster_shift_rpc",
   "roster_shift_not_agency_slot",
   "roster_entry_other_engagement",

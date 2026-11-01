@@ -193,7 +193,7 @@ export const additions = defineAdditions("Advancing", {
       change:
         "Adds `section_kind`, `window_kind`, `max_lines` and `per_person`, optional on create, and the `configure` action that changes them while the packet is a draft.",
       reason:
-        "app.advance_sections (2710, R9) stores the section kind (Text, File, Schedule Window, Item Request, Crew Roster, Guest List or Credential Request) and its configuration, held to the kind by advance_sections_kind_fields and fixed once the packet is sent (advance_packet_sections_fixed).",
+        "app.advance_sections (4710, R9) stores the section kind (Text, File, Schedule Window, Item Request, Crew Roster, Guest List or Credential Request) and its configuration, held to the kind by advance_sections_kind_fields and fixed once the packet is sent (advance_packet_sections_fixed).",
       apply: all(
         editShape({
           add: {
@@ -285,7 +285,7 @@ export const additions = defineAdditions("Advancing", {
       change:
         "Adds `engagement_id`, the engagement the recipient answers under, and `names_due_at`, the naming deadline (both optional on create), with the `bindEngagement` and `setNamesDue` actions.",
       reason:
-        "app.advance_recipients.engagement_id (2710, R9) links a recipient to a live engagement of the same party on the packet's project, fixed once the packet is sent (advance_recipient_engagement); names_due_at (2716, G-141) is when the party stops naming people on requested passes, only with an engagement and editable after send.",
+        "app.advance_recipients.engagement_id (4710, R9) links a recipient to a live engagement of the same party on the packet's project, fixed once the packet is sent (advance_recipient_engagement); names_due_at (4716, G-141) is when the party stops naming people on requested passes, only with an engagement and editable after send.",
       apply: all(
         editShape({
           add: {

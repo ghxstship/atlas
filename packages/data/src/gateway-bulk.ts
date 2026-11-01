@@ -14,7 +14,7 @@ export const GATEWAY_BULK_RESOURCES = [
   "my_timesheets",
   "my_engagement_documents",
   "my_applications",
-  // R8 (2700): the party side's share of a pool for each selected person on its roster.
+  // R8 (4700): the party side's share of a pool for each selected person on its roster.
   "engaged_allocation_assignments",
 ] as const;
 export type GatewayBulkResource = (typeof GATEWAY_BULK_RESOURCES)[number];
