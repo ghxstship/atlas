@@ -46,16 +46,6 @@ with e as (insert into app.engagements (project_id, person_id, counterparty_id, 
 with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, start_date)
   values (pg_temp.id('prj_a'), pg_temp.id('tom'), pg_temp.id('cp_t_a'), 'Sponsor', '2027-06-01') returning id)
   insert into world select 'eng_other', id from e;
--- Since R4 (2632) an Account Member reaches only the engagements assigned to them: lena accepts her membership and sol
--- assigns her to the sponsor engagement as a Member.
-select pg_temp.as_user('lena');
-select app.accept_account_membership((select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_s')
-  and m.person_id = pg_temp.id('lena')));
-select pg_temp.as_platform();
-insert into world select 'lena_membership', m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_s')
-  and m.person_id = pg_temp.id('lena');
-select pg_temp.as_user('sol');
-select app.assign_engagement_member(pg_temp.id('eng_sponsor'), pg_temp.id('lena_membership'), 'Member');
 select pg_temp.as_user('carol');
 with s as (insert into app.sponsor_entitlements (project_id, counterparty_id, description, quantity)
   values (pg_temp.id('prj_a'), pg_temp.id('cp_s_a'), 'Main stage banner placement', 2) returning id) insert into world select 'ent', id from s;
