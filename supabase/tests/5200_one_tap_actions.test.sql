@@ -335,6 +335,7 @@ select is((select count(*)::integer from app.inbox_items where id in (pg_temp.id
 
 -- 5200 and 5861 (P9) recreate functions that must know a shift worked through a roster entry (agency staff, R12, 4750
 -- and 4752), or its notices, its email's Accept link and answering it from a notification stop reaching that person.
+select pg_temp.as_platform();
 select ok(pg_get_functiondef('private.notify_shift_change()'::regprocedure) like '%new.roster_entry_id%',
   'shift notices find the worker of a roster entry''s shift (R12)');
 select ok(pg_get_functiondef('private.notification_link_actions(uuid)'::regprocedure) like '%v_shift.roster_entry_id%',

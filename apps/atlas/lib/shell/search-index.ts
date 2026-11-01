@@ -151,7 +151,11 @@ export function inventoryEntry(
     readonly key: string | null;
     readonly title: string;
   },
-  input: { readonly org: string; readonly visible: (node: string) => boolean; readonly noun: string },
+  input: {
+    readonly org: string;
+    readonly visible: (node: string) => boolean;
+    readonly noun: string;
+  },
 ): InventoryEntry | null {
   if (!input.visible(INVENTORY_NODES[hit.type])) return null;
   const label = `${hit.title} · ${input.noun}`;
