@@ -93,6 +93,7 @@ call private.install_policies('app.per_diems',
     or engagement_id in (select private.my_engagement_ids('operational'))
     or roster_entry_id in (select private.my_roster_entry_ids('operational'))$$,
   $$project_id in (select private.project_ids_with('crew.time_entry.write'))$$);
+comment on policy per_diems_read on app.per_diems is 'Per diems of projects where the person may read time entries, their own as a member, those of engagements whose operational area they reach, and their own days on operational roster entries (R7). The engagement branch follows R4''s account engagement assignments (2632), which replace the interim narrowing for RRR-209 (2605): an Account Member reaches only the engagements assigned to them.';
 
 call private.install_tenant_guards('app.credentials', 'app.credential_categories', 'credential_category_id',
   array['app.advance_allocations', 'allocation_id']);

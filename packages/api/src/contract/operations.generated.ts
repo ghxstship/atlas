@@ -1137,6 +1137,7 @@ export interface Components {
       | "Damaged"
       | "Lost"
       | "Retired"
+      | "Returned"
       | null;
     on_hand: number | null;
   };
@@ -1189,7 +1190,8 @@ export interface Components {
       | "In Maintenance"
       | "Damaged"
       | "Lost"
-      | "Retired";
+      | "Retired"
+      | "Returned";
     home_venue_id?: string | null;
     condition_enum_id?: string | null;
   };
