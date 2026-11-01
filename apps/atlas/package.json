@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "next typegen && NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit",
     "test": "vitest run",
     "generate:routes": "XOS_WRITE_GENERATED=1 vitest run test/routes.test.ts",
     "e2e": "playwright test",

@@ -60,6 +60,26 @@ function values(value: unknown): string[] {
   return [];
 }
 
+/**
+ * The runs the hard-coded check reads from a value shown whole: it reads `[` … `]` as an en-XA wrap, so a
+ * value with brackets in it (the filter grammar `filter[field][op]=value`) reaches it as the pieces outside them.
+ */
+function bracketRuns(value: string): string[] {
+  const runs: string[] = [];
+  let depth = 0;
+  let run = "";
+  for (const char of value) {
+    if (char === "[") {
+      if (depth === 0 && run.trim()) runs.push(run.trim());
+      run = "";
+      depth += 1;
+    } else if (char === "]") depth = Math.max(0, depth - 1);
+    else if (depth === 0) run += char;
+  }
+  if (run.trim()) runs.push(run.trim());
+  return value.includes("[") ? runs : [];
+}
+
 /** A guide's or help article's strings outside its body, and the h2 headings its outline lists. */
 function page(p: Page): string[] {
   return [
@@ -77,8 +97,10 @@ function page(p: Page): string[] {
  */
 function content(): KnownText {
   const dictionary = loadDictionary();
+  const reference = values(loadReference());
   const whole = new Set([
-    ...values(loadReference()),
+    ...reference,
+    ...reference.flatMap(bracketRuns),
     ...values(dictionary),
     ...dictionary.tables.flatMap((table) => [tableSlug(table), firstSentence(table.comment)]),
     ...guides("en-US").flatMap(page),
