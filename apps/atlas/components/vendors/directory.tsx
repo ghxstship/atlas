@@ -18,6 +18,8 @@ import { nextStates } from "@xos/data/commercial-common";
 import { regionFromLocale } from "@xos/i18n/formats";
 import { getFormatter, getLocale } from "next-intl/server";
 import { addressFormat, addressLines } from "@/lib/address";
+import { getFormatter } from "next-intl/server";
+import { vendorBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   addBankAccountAction,
@@ -71,13 +73,16 @@ export async function VendorDirectory({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, vendors, classes, rules, locale, custom] = await Promise.all([
+  const canWrite = ctx.capabilities.has("vendors.vendor.write");
+  const [t, vendors, classes, rules, locale, custom, currencies] = await Promise.all([
     getCopy("vendors"),
     listVendors(db, ctx.org.id),
     listVendorClasses(db, ctx.org.id),
     listTransitionRules<VendorState>(db, "vendor"),
     getLocale(),
     customFieldList(ctx, "app.vendors", search),
+    // The bulk currency choices, for a person who may change vendors.
+    canWrite && !(state.peek && state.full) ? listCurrencies(db) : null,
   ]);
   const title = t("directory.title");
   if (!vendors.ok || !classes.ok || !rules.ok) {
@@ -87,7 +92,6 @@ export async function VendorDirectory({
       </CollectionPage>
     );
   }
-  const canWrite = ctx.capabilities.has("vendors.vendor.write");
   const className = new Map(classes.data.map((c) => [c.id, c.name]));
   const stateLabel = (s: string) => t(`states.${s}`);
 
@@ -109,6 +113,7 @@ export async function VendorDirectory({
     id: v.id,
     key: v.counterpartyType ?? t("directory.untyped"),
     title: v.name ?? t("directory.unnamed"),
+    label: v.name ?? t("directory.unnamed"),
     state: { state: recordStateOf(v.state), label: stateLabel(v.state) },
     meta: v.classIds
       .map((c) => className.get(c))
@@ -127,6 +132,12 @@ export async function VendorDirectory({
         .join(", "),
     },
   }));
+
+  // Bulk edit (Section 11.7): state, payment terms and default currency across a selection.
+  const bulk = vendorBulk(ctx.org.slug, ctx.capabilities, t, {
+    currencies: currencies?.ok ? currencies.data.map((c) => c.code) : [],
+    terms: vendors.data.map((v) => v.paymentTermsDays),
+  });
 
   let drawer = null;
   if (state.create && canWrite) {
@@ -200,6 +211,7 @@ export async function VendorDirectory({
           <EmptyRefresh icon="Building2" sentence={t("directory.emptyRead")} />
         )
       }
+      bulk={bulk}
     >
       {drawer}
     </CollectionView>
