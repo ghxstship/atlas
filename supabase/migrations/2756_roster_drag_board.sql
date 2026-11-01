@@ -2,11 +2,11 @@
 -- R12 Agency staff on shifts (RRR-190), A132's drag board takes agency staff.
 --
 --   * app.rank_roster_candidates ranks, for one shift, the accepted people of the agencies' rosters on its project the
---     way app.rank_shift_candidates (2251) ranks members: free of an overlapping shift first, then by the availability
+--     way app.rank_shift_candidates (3251) ranks members: free of an overlapping shift first, then by the availability
 --     they share with the org (a calendar kept for the org, or a Public one; otherwise not stated), then those who
 --     worked the role, then the fewest hours that week. It also counts the training still due, which
 --     app.assign_roster_shift refuses on. Their availability is read here because planners' row level security reads
---     only members' calendars (2251), and agency staff hold no membership.
+--     only members' calendars (3251), and agency staff hold no membership.
 --   * app.assign_open_shift_to_roster puts one of them on an open shift from the board: the shift becomes their
 --     agency's slot and app.assign_roster_shift places them, in one transaction, so a refusal leaves the shift open.
 --     Like app.assign_open_shift, it lands only while the shift is still open (shift_already_filled) and no claim

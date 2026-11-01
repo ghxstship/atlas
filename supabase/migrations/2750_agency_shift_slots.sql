@@ -18,7 +18,7 @@
 --     stay for their callers); private.notify_shift_change (1394) and private.sync_scope_trigger (0942) resolve the
 --     roster person through them. An agency slot resolves to nobody.
 --   * Open shifts need every worker column NULL: private.assert_claimable (1322), the open-shift half of the
---     shifts_read policy (0462, folded in by 1221), shifts_open_idx (0460) and A132's app.assign_open_shift (2253).
+--     shifts_read policy (0462, folded in by 1221), shifts_open_idx (0460) and A132's app.assign_open_shift (3253).
 --     Shifts assigned to an engagement no longer show as open.
 --   * api_external.shifts (1000) appends roster_entry_id, holder_name and is_agency_slot. A Staff agency's leads
 --     (R4's private.can_manage_roster) read its slots and the shifts of its roster with the holder's name; the person
@@ -292,7 +292,7 @@ drop index app.shifts_open_idx;
 create index shifts_open_idx on app.shifts (org_id, starts_at)
   where membership_id is null and engagement_id is null and roster_entry_id is null and deleted_at is null;
 
--- The schedule's drag board (latest: 2253, A132) -----------------------------------------------------------------------------------------
+-- The schedule's drag board (latest: 3253, A132) -----------------------------------------------------------------------------------------
 
 create or replace function app.assign_open_shift(p_shift_id uuid, p_membership_id uuid)
 returns uuid
