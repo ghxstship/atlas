@@ -96,6 +96,10 @@ select pg_temp.as_platform();
 select is((select to_state::text || ': ' || reason from app.advance_allocation_state_transitions
            where advance_allocation_id = pg_temp.id('decl') and to_state = 'Declined'), 'Declined: Kai already has a badge.',
   'the decline reason is in the ledger');
+-- The rules hold no move out of Declined (4691), so the lifecycle itself refuses one, whatever its caller checked first.
+select throws_ok(format($$select private.withdraw_allocation_row(%L, 'Declined', 'Reviewer', 'Too late.')$$, pg_temp.id('decl')),
+  'XR001', 'advance_allocation_transition_not_allowed: An advance allocation cannot move from Declined to Withdrawn.',
+  'a declined allocation is never withdrawn');
 
 insert into world select 'nosrc', pg_temp.alloc('request', 'dave', 'eng_vendor_a', 'class', 'cls_cable', 10);
 select pg_temp.as_platform();

@@ -2,6 +2,7 @@
 
 import { Button, InlineAlert, Input, Select } from "@xos/ui";
 import { useActionState, useId } from "react";
+import { useKeepInput } from "@/components/collection-kit/keep-input";
 import { bookDockSlotAction, setNamesDueAction, type AdvancingState } from "./actions";
 import { useCopy } from "./use-copy";
 
@@ -24,6 +25,8 @@ export function BookDockSlotForm({
   const errors = useCopy("advancing.errors");
   const [state, action, pending] = useActionState<AdvancingState, FormData>(bookDockSlotAction, {});
   const id = useId();
+  // Keeps the chosen zone and times when the booking is refused (React resets a form after its action).
+  const keep = useKeepInput(state, action, (s) => s.ok === true);
   if (state.ok) {
     return (
       <p role="status" className="m-0 text-text-13 text-success-text">
@@ -34,7 +37,12 @@ export function BookDockSlotForm({
   if (zones.length === 0)
     return <p className="m-0 text-text-12 text-text-secondary">{t("noZones")}</p>;
   return (
-    <form action={action} className="flex flex-wrap items-end gap-8" aria-label={t("title")}>
+    <form
+      action={action}
+      {...keep}
+      className="flex flex-wrap items-end gap-8"
+      aria-label={t("title")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="lineId" value={lineId} />
       <Select
@@ -72,8 +80,14 @@ export function SetNamesDueForm({
   const errors = useCopy("advancing.errors");
   const [state, action, pending] = useActionState<AdvancingState, FormData>(setNamesDueAction, {});
   const id = useId();
+  const keep = useKeepInput(state, action, (s) => s.ok === true);
   return (
-    <form action={action} className="flex flex-wrap items-end gap-8" aria-label={t("set")}>
+    <form
+      action={action}
+      {...keep}
+      className="flex flex-wrap items-end gap-8"
+      aria-label={t("set")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="recipientId" value={recipientId} />
       <input type="hidden" name="timeZone" value={timeZone} />
