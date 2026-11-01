@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decider: A139 (RRR-202), trace rows S15-13 and S15-14
-- Migrations: `2320_postal_codes_by_country.sql`, `2321_work_phone_e164.sql`
+- Migrations: `3320_postal_codes_by_country.sql`, `3321_work_phone_e164.sql`
 
 ## Context
 

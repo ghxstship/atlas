@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decider: Owner, through the competitor parity audit approved on 2026-10-28 (package P1, RRR-215)
-- Migrations: `2780_live_links.sql`, `2781_live_link_reads.sql`, `2782_live_link_channels.sql`
+- Migrations: `3780_live_links.sql`, `3781_live_link_reads.sql`, `3782_live_link_channels.sql`
 - Gaps closed: G-28 (live, view-only, no-account links to a saved view, with access code, expiry and regenerate) and
   G-76 (room clock, presenter timer and backstage screens on a revocable link with no sign-in, red on overrun,
   poppable to a second screen)

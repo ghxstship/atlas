@@ -4071,7 +4071,7 @@
           "type": "double precision"
         },
         {
-          "comment": "True while the org hides the client and event until booking (2870) and the caller's side holds no Accepted application on the listing: the venue name is NULL and the venue point is rounded to 1 decimal. The posting org stays named.",
+          "comment": "True while the org hides the client and event until booking (3870) and the caller's side holds no Accepted application on the listing: the venue name is NULL and the venue point is rounded to 1 decimal. The posting org stays named.",
           "name": "client_hidden",
           "nullable": true,
           "references": null,
@@ -5838,7 +5838,7 @@
           "type": "boolean"
         },
         {
-          "comment": "True when the entitlement's org keeps where a photo was taken (media.keep_photo_location, 2330); Compass applies it to proof-of-performance photos of the entitlement.",
+          "comment": "True when the entitlement's org keeps where a photo was taken (media.keep_photo_location, 3330); Compass applies it to proof-of-performance photos of the entitlement.",
           "name": "keep_photo_location",
           "nullable": true,
           "references": null,
@@ -22608,7 +22608,7 @@
           "type": "uuid"
         },
         {
-          "comment": "True when holiday pay is paid under the code (app.calculate_payroll_run, 2271). Never true with is_overtime.",
+          "comment": "True when holiday pay is paid under the code (app.calculate_payroll_run, 3271). Never true with is_overtime.",
           "name": "is_holiday",
           "nullable": false,
           "references": null,
@@ -30878,7 +30878,7 @@
           "type": "uuid"
         }
       ],
-      "comment": "The signed-in person's Inbox (Section 11.10 rule 5): live notifications that are not Done or snoozed, sorted into Needs You (approvals, mentions, assignments) and For Your Information, with the approval an approval request is about and the approver of the step it waits on (2211, for the role lens). Read with the person's own row level security.",
+      "comment": "The signed-in person's Inbox (Section 11.10 rule 5): live notifications that are not Done or snoozed, sorted into Needs You (approvals, mentions, assignments) and For Your Information, with the approval an approval request is about and the approver of the step it waits on (3211, for the role lens). Read with the person's own row level security.",
       "kind": "view",
       "name": "inbox_items",
       "partitioned": false,
@@ -39654,7 +39654,7 @@
           "type": "boolean"
         },
         {
-          "comment": "True while crew should not learn the client or the event before they are booked (2870): external projections hide the venue name and round the venue point to 1 decimal until the viewer holds an Accepted application, and the title and description cannot name the project, its client or the venue. Turned on only while Draft or Pending Approval.",
+          "comment": "True while crew should not learn the client or the event before they are booked (3870): external projections hide the venue name and round the venue point to 1 decimal until the viewer holds an Accepted application, and the title and description cannot name the project, its client or the venue. Turned on only while Draft or Pending Approval.",
           "name": "hide_client_until_booked",
           "nullable": false,
           "references": null,
@@ -39844,7 +39844,7 @@
           "type": "timestamp with time zone"
         },
         {
-          "comment": "Whether a new opportunity starts with its client and event hidden until booked (2870).",
+          "comment": "Whether a new opportunity starts with its client and event hidden until booked (3870).",
           "name": "hide_client_until_booked",
           "nullable": false,
           "references": null,

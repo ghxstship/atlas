@@ -1,4 +1,4 @@
--- 2310_email_and_docs_branding.sql
+-- 3310_email_and_docs_branding.sql
 --
 -- A138 (RRR-201), trace row S12-01, Section 12: "Brand per org applied on Atlas, Gateway, emails, PDFs, the docs site
 -- (Enterprise) and Compass." Atlas, Gateway, PDFs and Compass already wear an org's brand; this adds the two lookups

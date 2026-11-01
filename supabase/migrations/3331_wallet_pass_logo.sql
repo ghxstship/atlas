@@ -1,4 +1,4 @@
--- 2331_wallet_pass_logo.sql
+-- 3331_wallet_pass_logo.sql
 --
 -- A140 (RRR-204; follow-up of A93, 1501): wallet passes carry the org's logo. The wallet-pass Edge Function draws the
 -- Apple pass's icon, logo and (for a shift pass) strip from it, and hands Google Wallet its public URL; without a

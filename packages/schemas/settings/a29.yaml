@@ -51,5 +51,5 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1010_workforce_settings_directory.sql
         test: supabase/tests/1010_workforce_settings_directory.test.sql
-      - consumer: supabase/migrations/2321_work_phone_e164.sql
-        test: supabase/tests/2321_work_phone_e164.test.sql
+      - consumer: supabase/migrations/3321_work_phone_e164.sql
+        test: supabase/tests/3321_work_phone_e164.test.sql

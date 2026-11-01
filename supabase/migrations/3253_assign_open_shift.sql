@@ -1,4 +1,4 @@
--- 2253_assign_open_shift.sql
+-- 3253_assign_open_shift.sql
 --
 -- Putting a member on an open shift from the schedule's drag board (ADR 0022, 3250-2259), A132, RRR-194, ADR 0063.
 -- The board used to write app.shifts.membership_id directly, guarded only by "nobody holds it yet". Under the

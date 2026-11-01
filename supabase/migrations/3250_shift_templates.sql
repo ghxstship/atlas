@@ -1,4 +1,4 @@
--- 2250_shift_templates.sql
+-- 3250_shift_templates.sql
 --
 -- Shift templates (ADR 0022, 3250-2259), A132, RRR-194, ADR 0063. Section 4.5.6 item 25 lists shift templates
 -- among the Scheduling settings, and Section 11.11 asks that crew fill be quick to plan. An org keeps named shift

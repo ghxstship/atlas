@@ -3,7 +3,7 @@
 - Status: Proposed
 - Date: 2026-10-28
 - Decider: A138 (RRR-201), trace row S12-01
-- Migrations: `2310_email_and_docs_branding.sql`
+- Migrations: `3310_email_and_docs_branding.sql`
 
 ## Context
 

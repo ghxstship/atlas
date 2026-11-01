@@ -96,7 +96,7 @@ describe("signals", () => {
 describe("the registry follows the migrations", () => {
   const funnels = new Map(
     [
-      ...read("supabase/migrations/2340_workflow_funnels.sql").matchAll(
+      ...read("supabase/migrations/3340_workflow_funnels.sql").matchAll(
         /\('((?:atlas|gateway|compass)\.[a-z_]+)', '([A-Za-z]+)', (\d+), ([\d.]+)\)/g,
       ),
     ].map((m) => [m[1] ?? "", { team: m[2], steps: Number(m[3]), target: Number(m[4]) }]),

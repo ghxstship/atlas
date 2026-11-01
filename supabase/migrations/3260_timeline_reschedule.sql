@@ -1,4 +1,4 @@
--- 2260_timeline_reschedule.sql
+-- 3260_timeline_reschedule.sql
 -- A133 (RRR-195; ADR 0022 block 3260 to 2269). Drag to reschedule on the timeline (Section 11.11, S11.11-01).
 --
 --   * app.reschedule_record(record, start days, end days, commit, reason) moves or resizes one record by whole days

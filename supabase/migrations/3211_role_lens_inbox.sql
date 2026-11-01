@@ -1,4 +1,4 @@
--- 2211_role_lens_inbox.sql
+-- 3211_role_lens_inbox.sql
 -- A128 (RRR-173, S4.8.1-06, ADR 0107): what the role lens needs to keep each Inbox item under the role that brought
 -- it, as each sender picks its recipients.
 --   * app.inbox_items names the approver of the step an approval request waits on: the role it names

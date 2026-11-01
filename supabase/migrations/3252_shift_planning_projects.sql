@@ -1,4 +1,4 @@
--- 2252_shift_planning_projects.sql
+-- 3252_shift_planning_projects.sql
 --
 -- The projects a planner may staff (ADR 0022, 3250-2259), A132, RRR-194, ADR 0063. The schedule's drag board offers
 -- open shifts to drop crew on. crew.shift.write can reach some of an org's projects and not others (assigned reach,

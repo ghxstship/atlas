@@ -1,4 +1,4 @@
--- 2190_gateway_search.sql
+-- 3190_gateway_search.sql
 --
 -- A126 (RRR-171), Section 11.10 item 1 (trace S11.10-02): search first in Gateway. The command menu (Cmd or Ctrl+K)
 -- and the search field on the phone Home find the person's own engagements, opportunities, documents and messages, the

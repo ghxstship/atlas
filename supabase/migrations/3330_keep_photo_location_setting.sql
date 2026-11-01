@@ -1,4 +1,4 @@
--- 2330_keep_photo_location_setting.sql
+-- 3330_keep_photo_location_setting.sql
 --
 -- A140 (RRR-204, trace S13-10; Section 13 Media: "Photos compressed to 2048 px; EXIF location kept only if the org
 -- enables it"). Compass resizes every field photo and re-encodes it as JPEG, which drops the camera's EXIF. With

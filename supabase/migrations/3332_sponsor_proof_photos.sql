@@ -1,4 +1,4 @@
--- 2332_sponsor_proof_photos.sql
+-- 3332_sponsor_proof_photos.sql
 --
 -- A140 (RRR-204; follow-up of A92, ADR 0048 "left for later"): sponsors capture proof-of-performance photos in
 -- Compass (Section 4.5.7 role table: "External Sponsor ... Proof-of-performance capture with photos"; journey 47:

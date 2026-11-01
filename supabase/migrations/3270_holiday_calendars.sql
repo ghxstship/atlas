@@ -1,4 +1,4 @@
--- 2270_holiday_calendars.sql
+-- 3270_holiday_calendars.sql
 --
 -- A134 (RRR-196), Section 4.5.6 Payroll and Time Off (trace S4.5.6-26), ADR 0112. Settings, Payroll and Time Off edits
 -- earning codes, time off policies and holiday calendars (org.payroll.write, 0203). This adds the calendars:

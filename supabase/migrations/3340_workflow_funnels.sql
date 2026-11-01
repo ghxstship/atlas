@@ -1,4 +1,4 @@
--- 2340_workflow_funnels.sql
+-- 3340_workflow_funnels.sql
 -- A146 (RRR-178), trace row S11.14-03, finding A65-022, Section 11.14 ("Consent-gated product analytics track the funnel
 -- for each workflow in Sections 11.11 to 11.13 against its target. Regressions alert the owning team."), ADR 0052
 -- amended. A96's pipeline (1532) records Workflow Started, Workflow Step and Workflow Completed events; this defines the
