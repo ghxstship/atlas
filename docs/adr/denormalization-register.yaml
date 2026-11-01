@@ -1481,10 +1481,6 @@ restated:
     parent: app.notification_deliveries.sent_at
     kind: own
     note: When the summary carrying this delivery was sent.
-  - column: app.spaces.venue_id
-    parent: app.venue_levels.venue_id
-    kind: own
-    note: The space's venue; its level is a level of that venue (`space_level_venue`, 5900).
   - column: app.space_bookings.engagement_id
     parent: app.engagement_cues.engagement_id
     kind: registered
@@ -1493,6 +1489,10 @@ restated:
     parent: app.engagements.project_id
     kind: own
     note: Project of the booking; `t39_space_booking_project` and the guard require the engagement's (migration 5943).
+  - column: app.spaces.venue_id
+    parent: app.venue_levels.venue_id
+    kind: own
+    note: The space's venue; its level is a level of that venue (`space_level_venue`, 5900).
   - column: app.spend_approvals.currency_code
     parent: app.spend_authorities.currency_code
     kind: fact
