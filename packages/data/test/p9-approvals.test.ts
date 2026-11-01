@@ -171,6 +171,7 @@ describe("the Inbox acts on approval reminders and subject approvals", () => {
         currency: "USD",
         state: "In Review",
         currentStep: 1,
+        approverRoleId: null,
       },
     };
     expect(isActionableApproval(spend)).toBe(true);

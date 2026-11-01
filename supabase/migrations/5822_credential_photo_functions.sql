@@ -1,4 +1,4 @@
--- 2822_credential_photo_functions.sql
+-- 5822_credential_photo_functions.sql
 -- P5 Printable photo badges (RRR-219, gap G-144, ADR 0031 amendment). The org asks for badge photos, the holder gives or
 -- withdraws one, and every badge reads the photo it prints from one computation.
 --

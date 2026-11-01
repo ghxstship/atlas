@@ -1,4 +1,4 @@
--- 2820_credential_photos.sql
+-- 5820_credential_photos.sql
 -- P5 Printable photo badges (RRR-219, gap G-144, ADR 0031 amendment). An org keeps one badge photo per credential holder,
 -- given by the holder in Gateway, so a printed badge shows who wears it.
 --

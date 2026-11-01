@@ -1,4 +1,4 @@
--- 2183_shared_records_leave_out_archived.sql
+-- 5183_shared_records_leave_out_archived.sql
 -- A124 (RRR-169), trace row S4.10-02. The records an org shares with an engaged external party (api_external.records,
 -- 0750) filtered on deleted_at only, so a record archived in Atlas (5180) stayed on the party's Gateway schedule and in
 -- their calendar feed (1410), which reads this view. It restates the view's latest definition (0750) with archived

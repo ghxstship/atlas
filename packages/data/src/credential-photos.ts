@@ -1,3 +1,5 @@
+import * as enums from "./enums.generated.ts";
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { isEmbeddableImage } from "./documents/render.ts";
 import type { BadgePhoto } from "./documents/templates.ts";
@@ -18,19 +20,11 @@ export const CREDENTIAL_PHOTO_NOTICE_VERSION = "credential-photo-2026-11";
 /** The largest photo a badge embeds, the bucket's limit too: 2 MiB. */
 export const BADGE_PHOTO_MAX_BYTES = 2_097_152;
 
-export type CredentialPhotoState =
-  "Provided" | "Scanning" | "Refused" | "Profile" | "Requested" | "Missing";
+export type CredentialPhotoState = Database["app"]["Enums"]["credential_photo_state"];
 
-export const CREDENTIAL_PHOTO_STATES: readonly CredentialPhotoState[] = [
-  "Provided",
-  "Scanning",
-  "Refused",
-  "Profile",
-  "Requested",
-  "Missing",
-];
+export const CREDENTIAL_PHOTO_STATES: readonly CredentialPhotoState[] = enums.credentialPhotoState;
 
-export type CredentialPhotoSource = "Holder Upload" | "Holder Profile Photo";
+export type CredentialPhotoSource = Database["app"]["Enums"]["credential_photo_source"];
 
 export interface BadgePhotoRow {
   readonly credentialId: string;

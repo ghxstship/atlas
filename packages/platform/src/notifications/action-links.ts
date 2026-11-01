@@ -16,6 +16,7 @@ import { ACTION_PATH, ACTION_TOKEN, isActionToken } from "@xos/schemas/notificat
 
 export { ACTION_PATH, ACTION_TOKEN, isActionToken };
 
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export type ActionAudience = "Atlas" | "Gateway";
 
 /** One token as app.mint_notification_action_tokens returns it. */

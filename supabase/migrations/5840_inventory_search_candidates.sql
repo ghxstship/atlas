@@ -1,4 +1,4 @@
--- 2840_inventory_search_candidates.sql
+-- 5840_inventory_search_candidates.sql
 -- P7 (RRR-221), gap G-290, Section 11.7 Search, Section 11.10 item 1. Global search reaches the org's own
 -- inventory: asset classes by name, and asset units by asset tag, by the name of their class and by serial (5841).
 --

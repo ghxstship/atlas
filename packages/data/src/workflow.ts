@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
@@ -983,7 +984,7 @@ export async function setStateLabel(
 
 // Approval rules: passes, deliveries and equipment (P9, migrations 5860 and 5862) ----------------------------
 
-export const APPROVAL_RULE_SUBJECTS = ["Pass", "Delivery", "Equipment"] as const;
+export const APPROVAL_RULE_SUBJECTS = enums.approvalRuleSubject;
 export type ApprovalRuleSubject = (typeof APPROVAL_RULE_SUBJECTS)[number];
 
 export interface ApprovalRuleStep {

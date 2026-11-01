@@ -1,4 +1,4 @@
--- 2861_approval_links_signed_out.sql
+-- 5861_approval_links_signed_out.sql
 -- P9 Signed-out decisions from an email link (RRR-223, gap G-31, ADR 0138; narrows ADR 0106's rejected alternative
 -- "Let the link alone authorize, without a sign-in"). An outside approver on an engagement step that allows it decides
 -- from the email's one-tap link without signing in. Section 7.5 invariant 8 (ADR 0033 decision 56) still holds: the

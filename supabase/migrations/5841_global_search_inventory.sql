@@ -1,4 +1,4 @@
--- 2841_global_search_inventory.sql
+-- 5841_global_search_inventory.sql
 -- P7 (RRR-221), gap G-290, Section 11.7 Search, Section 11.10 item 1. Global search finds asset classes (by name)
 -- and asset units (by asset tag, by the name of their class and by serial) as two more result types, asset_class
 -- and asset, under the caller's own row level security and with the same ranking. Restates the latest definition,

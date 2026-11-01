@@ -1,4 +1,4 @@
--- 2801_import_column_samples.sql
+-- 5801_import_column_samples.sql
 -- P3 Rundown and guest list import (RRR-217, gap G-84): the column-mapping preview. While a person maps the columns of
 -- an import, the wizard shows up to three sample values under each column and a preview of the first rows laid out by
 -- the current choices.

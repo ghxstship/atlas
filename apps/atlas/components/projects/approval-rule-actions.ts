@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import {
   APPROVAL_RULE_SUBJECTS,
   deleteApprovalRule,
@@ -130,7 +131,7 @@ export async function transitionApprovalRuleAction(
   form: FormData,
 ): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
-  const state = z.enum(["Draft", "Active", "Retired"]);
+  const state = z.enum(Constants.app.Enums.approval_policy_state);
   const parsed = z
     .object({
       id: z.uuid(),

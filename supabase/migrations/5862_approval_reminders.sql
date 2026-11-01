@@ -1,4 +1,4 @@
--- 2862_approval_reminders.sql
+-- 5862_approval_reminders.sql
 -- P9 Approval reminders (RRR-223, gap G-261, ADR 0138). An approval that waits reminds the approvers of the step it
 -- waits on, and its requester may nudge them, within a rate limit:
 --
