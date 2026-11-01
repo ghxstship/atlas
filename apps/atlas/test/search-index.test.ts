@@ -6,13 +6,18 @@ import enWork from "../../../packages/i18n/messages/en-US/work.json" with { type
 import esWork from "../../../packages/i18n/messages/es-US/work.json" with { type: "json" };
 import enIncidents from "../../../packages/i18n/messages/en-US/incidents.json" with { type: "json" };
 import enNav from "../../../packages/i18n/messages/en-US/nav.json" with { type: "json" };
+import { parseSearchQuery, searchRequest } from "@xos/data/search-query";
+import { isNodeVisible, type NavContext } from "@xos/ia";
 import { sitemap } from "../ia/sitemap.generated";
 import {
+  hiddenInventoryTypes,
+  inventoryEntry,
   matchesWords,
   queryVector,
   resolveKinds,
   resolveStatuses,
   settingEntries,
+  withHiddenInventory,
 } from "../lib/shell/search-index";
 
 /** A87 (RRR-132, finding A65-005): the command menu's server-side index. */
@@ -132,6 +137,90 @@ describe("settingEntries (Section 11.11: any setting reached in 1 search)", () =
       key: "search.semantic_enabled",
       href: "/acme/settings/ai-features?setting=search.semantic_enabled",
     });
+  });
+});
+
+describe("inventory hits (P7)", () => {
+  const visibleFor = (nav: NavContext) => (node: string) => isNodeVisible(sitemap, node, nav);
+  const owner = visibleFor({ role: "owner", conditions: ["desktop"] });
+  const unit = { type: "asset" as const, id: "u1", key: "MH-002", title: "Spot Fixture" };
+  const assetClass = {
+    type: "asset_class" as const,
+    id: "01920000-0000-7000-8000-000000112102",
+    key: null,
+    title: "Digital Two-Way Radio",
+  };
+
+  it("opens a unit in the units peek by its encoded tag, with the tag as its code", () => {
+    expect(inventoryEntry(unit, { org: "acme", visible: owner, noun: "Asset" })).toEqual({
+      label: "Spot Fixture · Asset",
+      code: "MH-002",
+      href: "/acme/assets/units?peek=MH-002",
+    });
+    expect(
+      inventoryEntry(
+        { ...unit, key: "RAD 1/A", title: "Radio" },
+        { org: "acme", visible: owner, noun: "Asset" },
+      )?.href,
+    ).toBe("/acme/assets/units?peek=RAD%201%2FA");
+  });
+
+  it("opens a class in the asset classes peek by its id", () => {
+    expect(
+      inventoryEntry(assetClass, { org: "acme", visible: owner, noun: "Asset class" }),
+    ).toEqual({
+      label: "Digital Two-Way Radio · Asset class",
+      href: "/acme/assets/asset-classes?peek=01920000-0000-7000-8000-000000112102",
+    });
+  });
+
+  it("titles a unit whose class the person cannot read by its tag, without the tag again as a code", () => {
+    expect(
+      inventoryEntry({ ...unit, title: "MH-002" }, { org: "acme", visible: owner, noun: "Asset" }),
+    ).toEqual({ label: "MH-002 · Asset", href: "/acme/assets/units?peek=MH-002" });
+  });
+
+  it("returns null when the node is not visible, and leaves that type out of the search", () => {
+    const noUnits = (node: string) => node !== "assets.units";
+    const noClasses = (node: string) => node !== "assets.asset-classes";
+    expect(inventoryEntry(unit, { org: "acme", visible: noUnits, noun: "Asset" })).toBeNull();
+    expect(
+      inventoryEntry(assetClass, { org: "acme", visible: noClasses, noun: "Asset class" }),
+    ).toBeNull();
+    expect(inventoryEntry({ ...unit, key: null }, { org: "acme", visible: owner, noun: "Asset" }))
+      .toBeNull();
+    expect(hiddenInventoryTypes(owner)).toEqual([]);
+    expect(hiddenInventoryTypes(noUnits)).toEqual(["asset"]);
+    expect(hiddenInventoryTypes(noClasses)).toEqual(["asset_class"]);
+    const assetsOff = visibleFor({
+      role: "owner",
+      conditions: ["desktop"],
+      disabledModules: ["assets"],
+    });
+    expect(hiddenInventoryTypes(assetsOff)).toEqual(["asset", "asset_class"]);
+  });
+
+  it("omits hidden types without excluding them, so a query with nothing to look for stays empty", () => {
+    const assetsOff = visibleFor({
+      role: "owner",
+      conditions: ["desktop"],
+      disabledModules: ["assets"],
+    });
+    // A minus word alone, and a word with nothing the search can read: global_search returns nothing for
+    // both while every criterion is empty, and exclude_types is one.
+    for (const query of ["-radio", "##"]) {
+      const request = withHiddenInventory(searchRequest(parseSearchQuery(query)), assetsOff);
+      expect(request.exclude_types).toEqual([]);
+      expect(request.omit_types).toEqual(["asset", "asset_class"]);
+    }
+    const typed = withHiddenInventory(
+      searchRequest(parseSearchQuery("radio -type:asset")),
+      (node) => node !== "assets.asset-classes",
+    );
+    expect(typed.exclude_types).toEqual(["asset"]);
+    expect(typed.omit_types).toEqual(["asset_class"]);
+    const shown = searchRequest(parseSearchQuery("radio"));
+    expect(withHiddenInventory(shown, owner)).toBe(shown);
   });
 });
 

@@ -77,6 +77,69 @@ describe("globalSearch", () => {
     ]);
   });
 
+  it("maps asset units and asset classes (P7)", async () => {
+    const { db } = fakeClient({
+      "rpc:global_search": [
+        okResponse([
+          {
+            result_type: "asset",
+            result_id: "u1",
+            result_key: "MH-002",
+            title: "Spot Fixture",
+            record_kind: null,
+            state: "Deployed",
+            project_key: null,
+            dated_at: "2026-10-27T12:00:00Z",
+            rank: 1,
+            matched: "key",
+          },
+          {
+            result_type: "asset_class",
+            result_id: "c1",
+            result_key: null,
+            title: "Digital Two-Way Radio",
+            record_kind: null,
+            state: null,
+            project_key: null,
+            dated_at: "2026-10-20T12:00:00Z",
+            rank: 0.4,
+            matched: "text",
+          },
+        ]),
+      ],
+    });
+    const result = await globalSearch(db, {
+      orgId: "o1",
+      request: searchRequest(parseSearchQuery("MH-002")),
+    });
+    expect(result.ok && result.data).toEqual([
+      {
+        type: "asset",
+        id: "u1",
+        key: "MH-002",
+        title: "Spot Fixture",
+        recordKind: null,
+        state: "Deployed",
+        projectKey: null,
+        datedAt: "2026-10-27T12:00:00Z",
+        rank: 1,
+        matched: "key",
+      },
+      {
+        type: "asset_class",
+        id: "c1",
+        key: null,
+        title: "Digital Two-Way Radio",
+        recordKind: null,
+        state: null,
+        projectKey: null,
+        datedAt: "2026-10-20T12:00:00Z",
+        rank: 0.4,
+        matched: "text",
+      },
+    ]);
+  });
+
   it("passes the query vector and its model", async () => {
     const { db, calls } = fakeClient({ "rpc:global_search": [okResponse(null)] });
     const request = searchRequest(parseSearchQuery("harness"));
@@ -129,7 +192,7 @@ describe("globalSearch", () => {
 });
 
 describe("recent views", () => {
-  it("lists recent items and skips rows it cannot place", async () => {
+  it("lists recent items and skips rows it cannot place, people and assets among them", async () => {
     const { db, calls } = fakeClient({
       "rpc:recent_items": [
         okResponse([
@@ -144,6 +207,8 @@ describe("recent views", () => {
             viewed_at: "2026-10-21T12:00:00Z",
           },
           { result_type: "person", result_id: "p1", viewed_at: "2026-10-21T12:00:00Z" },
+          { result_type: "asset", result_id: "u1", viewed_at: "2026-10-21T12:00:00Z" },
+          { result_type: "asset_class", result_id: "c1", viewed_at: "2026-10-21T12:00:00Z" },
           { result_type: "sop", result_id: "s1", viewed_at: null },
         ]),
       ],
