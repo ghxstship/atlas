@@ -35,7 +35,8 @@
       "show": {
         "runOfShow": "Run of Show",
         "daySheets": "Day Sheets",
-        "callSheets": "Call Sheets"
+        "callSheets": "Call Sheets",
+        "showDay": "Show Day"
       },
       "advancing": {
         "packets": "Packets",

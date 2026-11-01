@@ -363,6 +363,14 @@
       "label": "Solicitudes por encima de la asignación permitida",
       "help": "Rechazar no admite una solicitud por encima del límite de una oferta. Revisar la admite como solicitada; aprobarla, o asignar por encima del límite, requiere entonces un motivo que se guarda con la asignación."
     },
+    "todayLayout": {
+      "help": "Ensancha o estrecha un mosaico de Inicio > Hoy arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado.",
+      "label": "Diseño de Hoy"
+    },
+    "showDayLayout": {
+      "help": "Ensancha o estrecha un mosaico de Show > Día del show arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado.",
+      "label": "Diseño del día del show"
+    },
     "transferTurnaroundMinutes": {
       "label": "Margen entre traslados (minutos)",
       "help": "Tiempo que necesita un conductor entre una llegada y la siguiente recogida. Los traslados avisan Margen corto cuando es menor. 0 desactiva el aviso."
