@@ -97,6 +97,7 @@ interface EngagementRow {
   readonly engagement_state: unknown;
   readonly roster_entry_id?: unknown;
   readonly lead_name?: unknown;
+  readonly areas?: unknown;
 }
 
 /**
@@ -121,6 +122,7 @@ export function engagementSummaries(
       state: e.engagement_state as EngagementState,
       via: "engagement",
       rosterEntryId: null,
+      areas: Array.isArray(e.areas) ? e.areas.map(String) : [],
     });
   }
   const seen = new Set(summaries.map((s) => s.id));
@@ -138,6 +140,7 @@ export function engagementSummaries(
       via: "roster",
       rosterEntryId: String(e.roster_entry_id),
       leadName: e.lead_name ? String(e.lead_name) : null,
+      partyRoleType: e.role_type ? String(e.role_type) : null,
     });
   }
   return summaries;
@@ -462,7 +465,7 @@ export async function resolveIdentity(
   const engagements = await client
     .schema("api_external")
     .from("engagements")
-    .select("id, org_id, org_name, project_id, project_name, role_type, engagement_state");
+    .select("id, org_id, org_name, project_id, project_name, role_type, engagement_state, areas");
   // A member whose engagement read fails still opens their own orgs; only an external sign-in needs it.
   if (engagements.error && members.length === 0)
     throw new IdentityError("engagements", engagements.error.message);

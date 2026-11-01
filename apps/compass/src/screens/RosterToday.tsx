@@ -17,6 +17,7 @@ import {
   type CustodyRow,
   type ParkingPassRow,
   type RosterEntryRow,
+  type ShiftRow,
 } from "../domain/rosterToday";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { Button, Card, EmptyState, ListRow, Text } from "../ui";
@@ -45,6 +46,10 @@ export function RosterToday(): ReactElement {
   const { rows: custody } = useRows<CustodyRow & Row>("asset_custody", (c) =>
     entryIds.includes(String(c.roster_entry_id)),
   );
+  // The shifts a staffing agency placed the person on (R12), from their roster entries' bucket.
+  const { rows: shifts } = useRows<
+    ShiftRow & Row & { roster_entry_id?: string | null; shift_state?: string }
+  >("shifts", (s) => entryIds.includes(String(s.roster_entry_id)) && s.shift_state !== "Canceled");
   const { rows: projectRows } = useRows<Row & { time_zone?: string | null }>(
     "projects",
     (p) => p.id === projectId,
@@ -55,7 +60,7 @@ export function RosterToday(): ReactElement {
     allocations,
     passes,
     custody,
-    shifts: [],
+    shifts,
     projectTimeZone: zone,
     today: todayIn(zone),
   });

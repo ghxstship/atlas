@@ -805,3 +805,21 @@ nodes:
           artist: full
           artist-representative: full
           sponsor: full
+      # R12 (G-126): a supervisor clocks a whole team in or out. Internal field supervisors open it from the Crew tab,
+      # and a staffing agency's lead from Today; Compass's clock.team access decides who reaches it at runtime: an
+      # operational Staff engagement whose roster area is open to them, or crew.shift.write on the project.
+      - id: clock-team
+        kind: page
+        label: nav.compass.routes.clockTeam
+        route: /clock-team
+        visibility:
+          field: hidden
+          field-supervisor: full
+          client: hidden
+          vendor: hidden
+          contractor: hidden
+          crew: hidden
+          staff: full
+          artist: hidden
+          artist-representative: hidden
+          sponsor: hidden

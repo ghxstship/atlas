@@ -44,7 +44,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "shifts",
     select:
-      "id,org_id,project_id,membership_id,engagement_id,role_code,starts_at,ends_at,time_zone,shift_state,scope_node_id",
+      "id,org_id,project_id,membership_id,engagement_id,roster_entry_id,role_code,starts_at,ends_at,time_zone,shift_state,scope_node_id",
     projectColumn: "project_id",
   },
   {
@@ -52,7 +52,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "clock_punches",
     select:
-      "id,org_id,project_id,membership_id,engagement_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
+      "id,org_id,project_id,membership_id,engagement_id,roster_entry_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
     projectColumn: "project_id",
   },
   {
@@ -60,7 +60,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "time_entries",
     select:
-      "id,org_id,project_id,membership_id,engagement_id,shift_id,clock_in,clock_out,break_minutes,needs_review,auto_closed_at",
+      "id,org_id,project_id,membership_id,engagement_id,roster_entry_id,shift_id,clock_in,clock_out,break_minutes,needs_review,auto_closed_at",
     projectColumn: "project_id",
   },
   {
@@ -262,7 +262,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "clock_punches",
     select:
-      "id,engagement_id,project_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
+      "id,engagement_id,roster_entry_id,project_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
     projectColumn: "project_id",
   },
   {
@@ -334,15 +334,18 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     table: "shifts",
     schema: "api_external",
     relation: "shifts",
+    // Agency staff's own roster shifts, and for a staffing agency's lead its slots and its roster's shifts with the
+    // holder's name (R12), so the lead clocks the team in offline.
     select:
-      "id,engagement_id,project_id,project_name,role_code,job_title,starts_at,ends_at,time_zone,shift_state",
+      "id,engagement_id,roster_entry_id,holder_name,is_agency_slot,project_id,project_name,role_code,job_title,starts_at,ends_at,time_zone,shift_state",
     projectColumn: "project_id",
   },
   {
     table: "time_entries",
     schema: "api_external",
     relation: "time_entries",
-    select: "id,engagement_id,project_id,shift_id,clock_in,clock_out,break_minutes,source",
+    select:
+      "id,engagement_id,roster_entry_id,project_id,shift_id,clock_in,clock_out,break_minutes,source",
     projectColumn: "project_id",
   },
   {

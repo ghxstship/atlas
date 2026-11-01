@@ -31,6 +31,16 @@ export interface EngagementSummary {
   readonly rosterEntryId: string | null;
   /** Whom to ask on the party side, for a roster engagement: its Advancing Lead, else its Account Owner. */
   readonly leadName?: string | null;
+  /**
+   * The areas of the engagement open to the person now (api_external.engagements.areas, Section 8.7), such as
+   * roster for the Account Owner or Advancing Lead of the company that supplies it. Absent for roster engagements.
+   */
+  readonly areas?: readonly string[];
+  /**
+   * The engagement's own role type, for a roster engagement: Staff when the person works for a staffing agency,
+   * who clocks their own time on its shifts (R12).
+   */
+  readonly partyRoleType?: string | null;
 }
 
 export interface CompassIdentity {
@@ -47,6 +57,7 @@ export interface CompassIdentity {
 
 export type Feature =
   | "clock"
+  | "clock.team"
   | "kiosk.operate"
   | "shifts.swap"
   | "incidents.report"
@@ -94,6 +105,8 @@ const deny = (reason: Denial): Access => ({ allowed: false, reason });
 /** Capability each internal feature needs on the project (canon capability codes, Section 8). */
 const INTERNAL_CAPABILITY: Readonly<Record<Feature, CapabilityCode | null>> = {
   clock: "crew.time_entry.write",
+  // A supervisor clocks a team in or out (R12, G-126): app.record_supervisor_punches needs crew.shift.write.
+  "clock.team": "crew.shift.write",
   "kiosk.operate": "org.time_attendance.write",
   "shifts.swap": "crew.swap.request",
   "incidents.report": "safety.incident.write",
@@ -122,6 +135,8 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, CapabilityCode | null>> = {
 /** External role types per feature (Section 4.5.7 role table and the sitemap's scan modes). */
 const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   clock: ["crew", "staff", "contractor"],
+  // A staffing agency's lead clocks its roster staff; the database decides lead standing (R12).
+  "clock.team": ["staff"],
   "kiosk.operate": [],
   "shifts.swap": [],
   "incidents.report": [],
@@ -156,6 +171,7 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
 
 /** Internal-only features that also need the supervisor audience (Section 4.5.7 supervisor mode). */
 const SUPERVISOR_ONLY = new Set<Feature>([
+  "clock.team",
   "crew.board",
   "timesheets.approve",
   "incidents.dispatch",
@@ -194,6 +210,16 @@ export function operationalEngagements(
   );
 }
 
+/**
+ * True when the person works the project on a staffing agency's roster (R12): agency staff clock their own time on
+ * the shifts the agency placed them on, which R8's other roster members leave to their party.
+ */
+export function agencyStaff(identity: CompassIdentity, projectId: string | null): boolean {
+  return operationalEngagements(identity, projectId).some(
+    (e) => e.via === "roster" && e.partyRoleType === "Staff",
+  );
+}
+
 export function access(
   identity: CompassIdentity,
   feature: Feature,
@@ -206,7 +232,16 @@ export function access(
     if (capability === null) return ALLOW;
     return identity.capabilities.includes(capability) ? ALLOW : deny("capability");
   }
+  if (feature === "clock" && agencyStaff(identity, projectId)) return ALLOW;
   if (ROSTER_DENIED.has(feature) && rosterOnly(identity, projectId)) return deny("roster-member");
+  if (feature === "clock.team") {
+    // Only a lead of the agency's Staff engagement: its roster area is open to them (R12, review correction 28c).
+    if (!EXTERNAL_ROLES[feature].includes(identity.audience)) return deny("role");
+    const lead = operationalEngagements(identity, projectId).some(
+      (e) => e.via === "engagement" && e.roleType === "staff" && (e.areas ?? []).includes("roster"),
+    );
+    return lead ? ALLOW : deny("role");
+  }
   if (!EXTERNAL_ROLES[feature].includes(identity.audience)) return deny("role");
   const onProject = identity.engagements.filter(
     (e) => projectId === null || e.projectId === projectId,

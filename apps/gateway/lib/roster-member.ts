@@ -42,15 +42,16 @@ export async function resolveEngagement(
 }
 
 /**
- * The tab set a viewer sees (Section 4.5.8): roster-member for a person who reaches the engagement
- * only through the roster, artist-representative for a live representation, else the engagement's
- * role type.
+ * The tab set a viewer sees (Section 4.5.8): roster-staff for a person on a staffing agency's roster (R12),
+ * roster-member for anyone else who reaches the engagement only through the roster, artist-representative for a
+ * live representation, else the engagement's role type.
  */
 export function engagementTabSet(
   reach: EngagementReach,
   representation: Representation | null,
 ): EngagementTabSetKey {
-  if (reach.via === "roster") return "roster-member";
+  if (reach.via === "roster")
+    return reach.engagement.roleType === "Staff" ? "roster-staff" : "roster-member";
   return representation ? "artist-representative" : sitemapRoleType(reach.engagement.roleType);
 }
 
@@ -133,4 +134,9 @@ export function allocationTone(status: DisplayStatus): Tone {
     default:
       return "warning";
   }
+}
+
+/** True for a viewer who reaches the engagement only through their own roster entry (R8 and R12). */
+export function onRoster(view: { readonly roleType: EngagementTabSetKey }): boolean {
+  return view.roleType === "roster-member" || view.roleType === "roster-staff";
 }

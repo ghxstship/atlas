@@ -1,3 +1,5 @@
+import pg from "pg";
+import { DEMO_ORG, signInAs } from "./a36-support";
 import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
 import {
   createOrganization,
@@ -17,7 +19,8 @@ import {
  * and Restricted), and 66 (crew claim a published open shift under the org's claiming rule: approval by
  * default, so a supervisor approves the claim). Each run signs up a new owner in a new
  * org with a project and a Field member, so runs never collide on the shared stack. Every page is
- * checked with axe in both themes.
+ * checked with axe in both themes. R12's agency staff run in the demo org, on the staffing agency of
+ * seed 1080, as the last test.
  */
 
 test.use({ reducedMotion: "reduce" });
@@ -329,4 +332,222 @@ test("journeys 12 and 31: pay rates by role, a posted period never reopens, expo
   await field.goto(`/${slug}/crew/rate-cards`);
   await expect(field.getByRole("grid", { name: "Pay rate ledger" })).toContainText("$32.50");
   await expectAccessibleInBothThemes(field);
+});
+
+// R12 agency staff on shifts (RRR-190) ---------------------------------------------------------------------------------
+
+const DEMO_ORG_ID = "01920000-0000-7000-8000-000000000001";
+const DEMO_OWNER = "01920000-0000-7000-8000-000000000101";
+const DEMO_PROJECT_ID = "01920000-0000-7000-8000-000000001001";
+const AGENCY = {
+  owner: "01920000-0000-7000-8000-000010800101",
+  staffOne: "01920000-0000-7000-8000-000010800102",
+  staffTwo: "01920000-0000-7000-8000-000010800103",
+  account: "01920000-0000-7000-8000-000010800301",
+} as const;
+/** Inside the demo project's Pier Site geofence (seed 0109): the project requires it on phone punches. */
+const PIER = { latitude: 25.7752, longitude: -80.1855, accuracy: 10 };
+
+/** One statement as postgres against the local stack only, under `person`'s claims when given. */
+async function localSql<T extends Record<string, unknown>>(
+  text: string,
+  args: unknown[] = [],
+  person?: string,
+): Promise<T[]> {
+  const url =
+    process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
+  if (!/@(127\.0\.0\.1|localhost):/.test(url)) {
+    throw new Error("The agency staff journey builds its roster only on a local Supabase stack.");
+  }
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    await client.query("begin");
+    if (person) {
+      await client.query("select set_config('request.jwt.claims', $1, true)", [
+        JSON.stringify({ sub: person, role: "authenticated" }),
+      ]);
+    }
+    const result = await client.query(text, args);
+    await client.query("commit");
+    return result.rows as T[];
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * The staffing agency's Staff company engagement on the demo project (it names no person, so shifts naming it are
+ * agency slots), with Staff One and Two on its roster: the agency submits, each accepts, the demo Owner accepts both
+ * entries, and the engagement is Active. Returns the engagement and the two entry ids.
+ */
+async function agencyOnProject(): Promise<{ engagement: string; one: string; two: string }> {
+  const [row] = await localSql<{ id: string }>(
+    `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
+       pay_basis, arrangement, agreed_rate_minor, currency_code, start_date, end_date)
+     values ($1, null,
+       (select c.id from app.counterparties c where c.org_id = $2 and c.organization_id = $3 and c.deleted_at is null limit 1),
+       'Staff', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', 30000, 'USD', current_date - 1, current_date + 7)
+     returning id`,
+    [DEMO_PROJECT_ID, DEMO_ORG_ID, AGENCY.account],
+    DEMO_OWNER,
+  );
+  const engagement = row?.id as string;
+  const ids: string[] = [];
+  for (const person of [AGENCY.staffOne, AGENCY.staffTwo]) {
+    const [entry] = await localSql<{ id: string }>(
+      "select app.add_roster_entry($1, $2) as id",
+      [engagement, person],
+      AGENCY.owner,
+    );
+    ids.push(entry?.id as string);
+  }
+  await localSql("select app.submit_roster($1)", [engagement], AGENCY.owner);
+  for (const [index, person] of [AGENCY.staffOne, AGENCY.staffTwo].entries()) {
+    await localSql("select app.respond_roster_entry($1, 'Accepted')", [ids[index]], person);
+    await localSql("select app.review_roster_entry($1, 'Accepted')", [ids[index]], DEMO_OWNER);
+  }
+  await localSql(
+    `select private.transition_lifecycle('engagement', 'app.engagements', 'engagement_state',
+       'app.engagement_state_transitions', 'engagement_id', $1::uuid, 'Onboarding', 'Active', 'Roster accepted.')`,
+    [engagement],
+  );
+  return { engagement, one: ids[0] as string, two: ids[1] as string };
+}
+
+/** The demo project's local date, in which the shift editor takes its times. */
+function projectDay(): string {
+  return todayIn(NEW_PROJECT_TIME_ZONE);
+}
+
+test("R12: allocate an agency slot, drag agency staff onto an open shift, and the punching supervisor never approves", async ({
+  page,
+}) => {
+  const [names] = await localSql<{ two: string; owner: string; party: string }>(
+    `select (select full_name from app.people where id = $1) as two,
+            (select full_name from app.people where id = $2) as owner,
+            (select name from app.organizations where id = $3) as party`,
+    [AGENCY.staffTwo, DEMO_OWNER, AGENCY.account],
+  );
+  const staffTwo = names?.two ?? "";
+  const party = names?.party ?? "";
+  const agency = await agencyOnProject();
+  try {
+    await signInAs(page, "owner@example.com", DEMO_ORG);
+
+    // Allocate an agency slot: the shift editor's Person field lists the agency, loaded as the editor opens.
+    await page.goto(`/${DEMO_ORG}/p/NWS/crew?create=1`);
+    const drawer = page.getByRole("dialog", { name: "New shift" });
+    await expect(drawer).toBeVisible();
+    await drawer.getByLabel("Person").selectOption(`agency:${agency.engagement}`);
+    await drawer.getByLabel(/^Starts/).fill(`${projectDay()}T19:00`);
+    await drawer.getByLabel(/^Ends/).fill(`${projectDay()}T23:00`);
+    await drawer.getByRole("button", { name: "New shift" }).click();
+    await expect(drawer).toBeHidden();
+    await expect
+      .poll(async () => {
+        const [slot] = await localSql<{ n: number }>(
+          `select count(*)::int as n from app.shifts where engagement_id = $1 and roster_entry_id is null
+             and deleted_at is null`,
+          [agency.engagement],
+        );
+        return slot?.n ?? 0;
+      })
+      .toBe(1);
+    await expect(page.getByText(`Agency slot: ${party}`, { exact: false }).first()).toBeVisible();
+    await page.waitForTimeout(400);
+    await expectAccessible(page);
+
+    // The drag board ranks the agency's accepted people beside the members; Staff Two dropped on an open shift
+    // fills it, and the meter moves.
+    const [open] = await localSql<{ id: string }>(
+      `insert into app.shifts (project_id, role_code, starts_at, ends_at, time_zone)
+       values ($1, '5000.51.02', ($2::date + time '05:17') at time zone $3, ($2::date + time '06:43') at time zone $3, $3)
+       returning id`,
+      [DEMO_PROJECT_ID, projectDay(), NEW_PROJECT_TIME_ZONE],
+      DEMO_OWNER,
+    );
+    await page.goto(`/${DEMO_ORG}/crew/schedule`);
+    const board = page.getByTestId("scheduling-board");
+    const meter = board.getByRole("meter", { name: "Fill rate" });
+    const target = board.getByTestId("board-open-shift").filter({ hasText: /5:17/ });
+    await expect(target).toHaveCount(1);
+    await target.getByRole("button").click();
+    const before = /^(\d+) of (\d+)/.exec((await meter.getAttribute("aria-valuetext")) ?? "");
+    const filled = Number(before?.[1] ?? 0);
+    const total = Number(before?.[2] ?? 0);
+    const candidate = board
+      .getByTestId("board-candidate")
+      .filter({ hasText: staffTwo })
+      .and(board.locator('[data-kind="staff"]'));
+    await expect(candidate).toContainText(`Agency staff, ${party}`);
+    await settle(page);
+    await expectAccessible(page);
+    await candidate.dragTo(target);
+    await expect(board.getByTestId("board-announcement")).toContainText(`${staffTwo} is on`);
+    await expect(meter).toHaveAttribute(
+      "aria-valuetext",
+      new RegExp(`^${filled + 1} of ${total} shifts filled`),
+    );
+    await expect
+      .poll(async () => {
+        const [held] = await localSql<{ entry: string | null }>(
+          "select roster_entry_id as entry from app.shifts where id = $1",
+          [open?.id],
+        );
+        return held?.entry ?? null;
+      })
+      .toBe(agency.two);
+
+    // The demo Owner clocks Staff One in and out as their supervisor (Compass's team punch), so they are kept
+    // from approving the timesheet holding that time (sod_supervisor_punch).
+    const [now] = await localSql<{ id: string }>(
+      `insert into app.shifts (project_id, engagement_id, role_code, starts_at, ends_at, time_zone)
+       values ($1, $2, '5000.51.02', now() - interval '1 hour', now() + interval '6 hours', $3) returning id`,
+      [DEMO_PROJECT_ID, agency.engagement, NEW_PROJECT_TIME_ZONE],
+      DEMO_OWNER,
+    );
+    await localSql("select app.assign_roster_shift($1, $2)", [now?.id, agency.one], DEMO_OWNER);
+    for (const [kind, ago] of [
+      ["In", "30 minutes"],
+      ["Out", "0 minutes"],
+    ] as const) {
+      const [punched] = await localSql<{ outcome: string }>(
+        `select app.record_supervisor_punches(gen_random_uuid(), $1, $2::app.punch_kind, now() - $3::interval,
+           jsonb_build_array(jsonb_build_object('punch_id', gen_random_uuid(), 'shift_id', $4::uuid)),
+           null, $5, $6, $7, null) -> 'results' -> 0 ->> 'outcome' as outcome`,
+        [DEMO_PROJECT_ID, kind, ago, now?.id, PIER.latitude, PIER.longitude, PIER.accuracy],
+        DEMO_OWNER,
+      );
+      expect(punched?.outcome).toBe("applied");
+    }
+    const [sheet] = await localSql<{ id: string }>(
+      `insert into app.timesheets (project_id, roster_entry_id, period_start, period_end)
+       values ($1, $2, $3::date - 1, $3::date + 1) returning id`,
+      [DEMO_PROJECT_ID, agency.one, projectDay()],
+      DEMO_OWNER,
+    );
+    await localSql("select app.submit_timesheet($1)", [sheet?.id], AGENCY.staffOne);
+    await page.goto(`/${DEMO_ORG}/crew/timesheets?state=Submitted&peek=${sheet?.id}`);
+    const detail = page.getByRole("dialog").first();
+    await expect(detail).toContainText(`Clocked by ${names?.owner ?? ""}`);
+    await expect(detail).toContainText(
+      "You punched this person in or out, so someone else approves this timesheet.",
+    );
+    await expect(detail.getByRole("button", { name: "Approve", exact: true })).toHaveCount(0);
+    await page.waitForTimeout(400);
+    await expectAccessible(page);
+  } finally {
+    for (const statement of [
+      "update app.timesheets set deleted_at = now() where roster_entry_id in (select id from app.engagement_roster_entries where engagement_id = $1) and deleted_at is null",
+      "update app.shifts set deleted_at = now() where (engagement_id = $1 or roster_entry_id in (select id from app.engagement_roster_entries where engagement_id = $1)) and deleted_at is null",
+      "update app.engagement_roster_entries set deleted_at = now() where engagement_id = $1 and deleted_at is null",
+      "update app.engagements set deleted_at = now() where id = $1",
+    ]) {
+      await localSql(statement, [agency.engagement]).catch(() => undefined);
+    }
+  }
 });
