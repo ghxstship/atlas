@@ -750,6 +750,9 @@
       "content": {
         "removed": "Your content removed"
       },
+      "credential_photo": {
+        "requested": "Badge photo requested"
+      },
       "roster_entry": {
         "invited": "Put on a crew roster",
         "returned": "Roster entry returned",

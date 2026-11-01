@@ -49,8 +49,9 @@ function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = 
           calls.push(`remove:${bucket}:${paths.join(",")}`);
           if (failRemove)
             return Promise.resolve({ data: null, error: { message: "storage down" } });
-          for (const p of paths) stored.delete(key(bucket, p));
-          return Promise.resolve({ data: paths.map((name) => ({ name })), error: null });
+          // Storage answers a delete the caller may not make, or of an object that is gone, with nothing removed.
+          const gone = paths.filter((p) => stored.delete(key(bucket, p)));
+          return Promise.resolve({ data: gone.map((name) => ({ name })), error: null });
         },
       }),
     },
@@ -104,6 +105,7 @@ describe("account deletion", () => {
     const { client, calls, stored } = fake(
       {
         account_deletion_preview: [preview()],
+        withdraw_my_credential_photos: [{ data: [], error: null }],
         delete_my_account: [
           {
             data: {
@@ -198,13 +200,80 @@ describe("account deletion", () => {
 
   it("stops before the deletion when media cannot be removed", async () => {
     const { client, calls } = fake(
-      { account_deletion_preview: [preview()] },
+      {
+        account_deletion_preview: [preview()],
+        withdraw_my_credential_photos: [{ data: [], error: null }],
+      },
       ["p1/photo.jpg"],
       true,
     );
     const result = await deleteMyAccount(client, "tech@example.com");
     expect(result).toEqual({ ok: false, error: { kind: "unexpected", message: "storage down" } });
     expect(calls.some((c) => c.startsWith("rpc:delete_my_account"))).toBe(false);
+  });
+
+  it("withdraws badge photos after the blocker and email checks, then removes their objects (P5)", async () => {
+    const photos = [
+      { org_id: "o1", photo_path: "o1/p1/a.jpg" },
+      { org_id: "o2", photo_path: "o2/p1/b.png" },
+    ];
+    const { client, calls, stored } = fake(
+      {
+        account_deletion_preview: [preview()],
+        withdraw_my_credential_photos: [{ data: photos, error: null }],
+        delete_my_account: [{ data: { deleted_at: "2026-10-17T12:00:00Z" }, error: null }],
+      },
+      ["credential-photos:o1/p1/a.jpg", "credential-photos:o2/p1/b.png", "p1/photo.jpg"],
+    );
+    expect((await deleteMyAccount(client, "tech@example.com")).ok).toBe(true);
+    expect(stored.size).toBe(0);
+    const order = calls.map((c) => c.split(":").slice(0, 2).join(":"));
+    expect(order.indexOf("rpc:withdraw_my_credential_photos")).toBeGreaterThan(
+      order.indexOf("rpc:account_deletion_preview"),
+    );
+    expect(order.indexOf("remove:credential-photos")).toBeGreaterThan(
+      order.indexOf("rpc:withdraw_my_credential_photos"),
+    );
+    expect(order.indexOf("rpc:delete_my_account")).toBeGreaterThan(
+      order.indexOf("remove:credential-photos"),
+    );
+    expect(calls).toContain("rpc:withdraw_my_credential_photos:{}");
+  });
+
+  it("withdraws no badge photo while a blocker stands or the email is wrong", async () => {
+    for (const [blockers, email] of [
+      [
+        [{ code: "account_delete_on_shift", org_id: "o1", org_name: "Demo Org" }],
+        "tech@example.com",
+      ],
+      [[], "wrong@example.com"],
+    ] as const) {
+      const { client, calls } = fake({
+        account_deletion_preview: [preview([...blockers])],
+        delete_my_account: [{ data: null, error: { code: "XR001", message: "x: no.", hint: "x" } }],
+      });
+      await deleteMyAccount(client, email);
+      expect(calls.some((c) => c.startsWith("rpc:withdraw_my_credential_photos"))).toBe(false);
+    }
+  });
+
+  it("stops before the deletion when a badge photo object stays behind", async () => {
+    const { client, calls } = fake(
+      {
+        account_deletion_preview: [preview()],
+        withdraw_my_credential_photos: [
+          { data: [{ org_id: "o1", photo_path: "o1/p1/kept.jpg" }], error: null },
+        ],
+      },
+      ["p1/photo.jpg"],
+    );
+    const result = await deleteMyAccount(client, "tech@example.com");
+    expect(result).toEqual({
+      ok: false,
+      error: { kind: "unexpected", message: "1 badge photo object(s) could not be removed." },
+    });
+    expect(calls.some((c) => c.startsWith("rpc:delete_my_account"))).toBe(false);
+    expect(calls.some((c) => c.startsWith("list:profile-media"))).toBe(false);
   });
 
   it("removes uploads still staged for the folder too (1265)", async () => {

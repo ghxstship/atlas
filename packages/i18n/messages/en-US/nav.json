@@ -451,6 +451,9 @@
       "companyProfile": "Company Profile",
       "advanceForm": "Advance Form",
       "agreementSigning": "Agreement Signing"
+    },
+    "profile": {
+      "badgePhotos": "Badge Photos"
     }
   },
   "compass": {

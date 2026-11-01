@@ -23,6 +23,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "message.received": "fyi.kinds.messageReceived",
   // A company entered project details for the person (R5): they open their details here and correct them.
   "roster_entry.project_facts_entered": "updates.kinds.projectFactsEntered",
+  // P5: an org asks for a badge photo (5822); the item opens Profile, Badge photos.
+  "credential_photo.requested": "updates.kinds.badgePhotoRequested",
 };
 
 /** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin. */
