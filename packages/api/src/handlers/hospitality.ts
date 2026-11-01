@@ -8,6 +8,7 @@
 import { conflict } from "../problem.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
 import type { HandlerSet } from "../runtime/handler.ts";
+import { groundTransportHandlers } from "./parts/ground-transport-and-lodging.ts";
 import { rpc, run, tableResource } from "./support/table.ts";
 
 const fulfillments = tableResource("fulfillments");
@@ -24,6 +25,9 @@ const tables = {
 
 export const handlers = defineHandlers("Hospitality", {
   ...tables,
+  // Flights, transfers, vehicles, space bookings, local contacts and blocks by night (B5): see
+  // ./parts/ground-transport-and-lodging.ts.
+  ...groundTransportHandlers,
 
   "fulfillments.transition": async ({ params, body }, context) => {
     const current = await fulfillments.read(context, params.id, ["id", "fulfillment_state"]);

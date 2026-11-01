@@ -20,4 +20,12 @@ Tu hotel o bloque de habitaciones, con las fechas de entrada y salida y el nombr
 
 Otros viajes que organizó la organización, con su hora y proveedor.
 
+## Transporte terrestre
+
+Tus recogidas y otros recorridos en auto o van: dónde y cuándo te recogen, el destino, el conductor y el vehículo, el vuelo que recibe y quién viaja contigo. Si conduces, aparecen todos los pasajeros.
+
+## Contactos locales
+
+Los contactos que la producción comparte para el proyecto, primero los de hoy, con un número para llamar y un correo.
+
 Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Si necesitas viaje o habitación, escribe a la organización. Las entradas al hotel también aparecen en Próximos.

@@ -297,7 +297,8 @@ function DialogShell({
   description?: string;
   open: boolean;
   setOpen: (open: boolean) => void;
-  trigger: ReactElement;
+  /** The button that opens the dialog; none when the caller controls `open` (IssueAllocationDialog). */
+  trigger?: ReactElement;
   formId: string;
   pending: boolean;
   submitLabel: string;
@@ -314,7 +315,7 @@ function DialogShell({
       {...(description ? { description } : {})}
       open={open}
       onOpenChange={setOpen}
-      trigger={trigger}
+      {...(trigger ? { trigger } : {})}
       actions={
         <>
           <Button variant="secondary" type="button" onClick={() => setOpen(false)}>
@@ -792,9 +793,47 @@ function SplitDialog({ org, row }: { org: string; row: AllocationRowProps }) {
   );
 }
 
-function IssueDialog({ org, row }: { org: string; row: AllocationRowProps }) {
+/** Values an Issue dialog opened from elsewhere starts with, such as the suggested stay of the rooming list (B5). */
+export interface IssuePrefill {
+  readonly checkIn?: string;
+  readonly checkOut?: string;
+  readonly departsFrom?: string;
+  readonly departsAt?: string;
+  readonly arrivesAtPlace?: string;
+}
+
+/**
+ * R7's Issue dialog opened by another page (B5: Assign room on the rooming list, Add pickup on the travel party), with
+ * the caller's open state and prefilled values and no button of its own. Load it with next/dynamic.
+ */
+export function IssueAllocationDialog(props: {
+  org: string;
+  row: AllocationRowProps;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  prefill?: IssuePrefill;
+}) {
+  return <IssueDialog {...props} />;
+}
+
+function IssueDialog({
+  org,
+  row,
+  open: controlledOpen,
+  onOpenChange,
+  prefill,
+}: {
+  org: string;
+  row: AllocationRowProps;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  prefill?: IssuePrefill;
+}) {
   const t = useCopy("advancing.allocations");
-  const [open, setOpen] = useState(false);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const controlled = controlledOpen !== undefined;
+  const open = controlled ? controlledOpen : ownOpen;
+  const setOpen = (next: boolean) => (controlled ? onOpenChange?.(next) : setOwnOpen(next));
   const formId = useId();
   const [eventId, setEventId] = useState(() => crypto.randomUUID());
   const { state, pending, submit } = useDialogAction(issueAllocationAction, () => {
@@ -823,11 +862,15 @@ function IssueDialog({ org, row }: { org: string; row: AllocationRowProps }) {
       })}
       open={open}
       setOpen={setOpen}
-      trigger={
-        <Button type="button" size="sm" variant="secondary">
-          {t("actions.issue")}
-        </Button>
-      }
+      {...(controlled
+        ? {}
+        : {
+            trigger: (
+              <Button type="button" size="sm" variant="secondary">
+                {t("actions.issue")}
+              </Button>
+            ),
+          })}
       formId={formId}
       pending={pending}
       submitLabel={t("issueDialog.submit")}
@@ -879,8 +922,18 @@ function IssueDialog({ org, row }: { org: string; row: AllocationRowProps }) {
           </>
         ) : row.kind === "Lodging" ? (
           <>
-            {field("checkIn", t("issueDialog.checkIn"), "date")}
-            {field("checkOut", t("issueDialog.checkOut"), "date")}
+            {field(
+              "checkIn",
+              t("issueDialog.checkIn"),
+              "date",
+              prefill?.checkIn ? { defaultValue: prefill.checkIn } : {},
+            )}
+            {field(
+              "checkOut",
+              t("issueDialog.checkOut"),
+              "date",
+              prefill?.checkOut ? { defaultValue: prefill.checkOut } : {},
+            )}
           </>
         ) : row.kind === "Travel" ? (
           <>
@@ -892,9 +945,18 @@ function IssueDialog({ org, row }: { org: string; row: AllocationRowProps }) {
                 { value: "Ground", label: t("issueDialog.ground") },
               ]}
             />
-            {field("departsFrom", t("issueDialog.departsFrom"), "text", { required: true })}
-            {field("departsAt", t("issueDialog.departsAt"), "datetime-local", { required: true })}
-            {field("arrivesAtPlace", t("issueDialog.arrivesAtPlace"), "text", { required: true })}
+            {field("departsFrom", t("issueDialog.departsFrom"), "text", {
+              required: true,
+              ...(prefill?.departsFrom ? { defaultValue: prefill.departsFrom } : {}),
+            })}
+            {field("departsAt", t("issueDialog.departsAt"), "datetime-local", {
+              required: true,
+              ...(prefill?.departsAt ? { defaultValue: prefill.departsAt } : {}),
+            })}
+            {field("arrivesAtPlace", t("issueDialog.arrivesAtPlace"), "text", {
+              required: true,
+              ...(prefill?.arrivesAtPlace ? { defaultValue: prefill.arrivesAtPlace } : {}),
+            })}
             {field("arrivesAt", t("issueDialog.arrivesAt"), "datetime-local")}
           </>
         ) : (

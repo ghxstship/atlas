@@ -462,6 +462,215 @@ export const BeoLine = defineResource({
   },
 });
 
+// Travel, lodging, ground transport and local contacts (B5, ADR 0144). Read-only views; writes go through Atlas.
+
+const nullable = <T extends z.ZodType>(schema: T) => schema.nullable();
+const word = (description: string, example: string) => z.string().meta({ description, example });
+const oneOf = (values: readonly [string, ...string[]], description: string) =>
+  z.enum(values).meta({ description, example: values[0] });
+
+export const Flight = defineResource({
+  name: "Flight",
+  table: "app.travel_grid",
+  description:
+    "A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears.",
+  base: "view",
+  key: "id",
+  fields: {
+    id: f.uuid("Identifier of the travel segment."),
+    org_id: f.ref("owning org"),
+    project_id: f.ref("project"),
+    person_id: f.ref("traveller"),
+    traveler_name: nullable(word("Traveller's name, when the caller may know it.", "Kai Morgan")),
+    engagement_id: nullable(f.ref("engagement travelled under")),
+    fulfillment_id: nullable(f.ref("Travel fulfillment")),
+    operator_name: nullable(word("Airline.", "Northwind Air")),
+    service_identifier: nullable(f.code("Flight number.", "NW101")),
+    confirmation_identifier: nullable(f.code("Booking confirmation code.", "QX7Y2B")),
+    departs_from: word("Departure airport.", "LHR"),
+    departs_at: f.instant("Departure instant."),
+    departs_time_zone: f.timeZone("IANA zone of the departure time."),
+    arrives_at_place: word("Arrival airport.", "MIA"),
+    arrives_at: nullable(f.instant("Arrival instant, when known.")),
+    arrives_time_zone: f.timeZone("IANA zone of the arrival time."),
+    phase: oneOf(
+      ["Upcoming", "In Flight", "Departed", "Landed"],
+      "Phase now: Upcoming, In Flight, Departed (no arrival time) or Landed.",
+    ),
+    journey_id: f.uuid("First leg of the journey."),
+    leg_number: f.int("Position in the journey, from 1.", 1, 1),
+    leg_count: f.int("Legs in the journey.", 2, 1),
+    final_arrival_at: nullable(f.instant("Arrival of the journey's last leg.")),
+    final_arrival_place: nullable(word("Arrival place of the journey's last leg.", "MIA")),
+    final_arrival_time_zone: nullable(f.timeZone("IANA zone of the last arrival.")),
+  },
+});
+
+export const Transfer = defineResource({
+  name: "Transfer",
+  table: "app.transfer_board",
+  description:
+    "A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed.",
+  base: "view",
+  key: "id",
+  fields: {
+    id: f.uuid("Identifier of the transfer."),
+    org_id: f.ref("owning org"),
+    project_id: f.ref("project"),
+    transfer_number: f.int("Number within the project.", 3, 1),
+    transfer_key: nullable(f.code("Display key {project_key}-{transfer_number}.", "NWL-3")),
+    fulfillment_id: nullable(f.ref("Travel fulfillment")),
+    vehicle_id: nullable(f.ref("vehicle")),
+    vehicle_label: nullable(word("Vehicle label.", "Van 1")),
+    vehicle_type: nullable(
+      oneOf(["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"], "Vehicle type."),
+    ),
+    seats: nullable(f.int("Passenger seats; the driver is not counted.", 7, 1)),
+    driver_person_id: nullable(f.ref("driver")),
+    driver_name: nullable(word("Driver's name.", "Dave Lindqvist")),
+    pickup_place: word("Pickup place.", "Miami International Airport (MIA)"),
+    pickup_at: f.instant("Pickup instant."),
+    pickup_time_zone: f.timeZone("IANA zone of the pickup time."),
+    dropoff_place: word("Drop-off place.", "Crew Hotel"),
+    dropoff_at: f.instant("Drop-off instant, the planner's estimate."),
+    dropoff_time_zone: f.timeZone("IANA zone of the drop-off time."),
+    meets_travel_segment_id: nullable(f.ref("flight the pickup meets")),
+    meets_service_identifier: nullable(f.code("Flight number of the met flight.", "NW101")),
+    meets_flight_arrives_at: nullable(f.instant("Arrival of the met flight.")),
+    meets_flight_after_pickup: f.bool("The met flight lands after the pickup time.", false),
+    passenger_count: f.int("Live passengers.", 2),
+    primary_passenger_id: nullable(f.ref("primary passenger")),
+    primary_passenger_name: nullable(word("Primary passenger's name.", "Kai Morgan")),
+    tight_turnaround: f.bool(
+      "The driver's previous drop-off plus the turnaround is after this pickup.",
+      false,
+    ),
+    status: oneOf(["Unassigned", "Assigned", "Underway", "Done"], "Status now."),
+    notes: nullable(word("Notes for the desk.", "Meet at door 4.")),
+  },
+});
+
+export const TransferVehicle = defineResource({
+  name: "TransferVehicle",
+  table: "app.transfer_vehicles",
+  description: "A vehicle a project's ground transfers run in. No plate is stored.",
+  base: "view",
+  key: "id",
+  fields: {
+    id: f.uuid("Identifier of the vehicle."),
+    org_id: f.ref("owning org"),
+    project_id: f.ref("project"),
+    counterparty_id: nullable(f.ref("car service")),
+    label: word("Label the desk and drivers know it by.", "Van 1"),
+    vehicle_type: oneOf(
+      ["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"],
+      "Vehicle type.",
+    ),
+    seats: f.int("Passenger seats; the driver is not counted.", 7, 1),
+  },
+});
+
+export const SpaceBooking = defineResource({
+  name: "SpaceBooking",
+  table: "app.space_booking_board",
+  description:
+    "A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read.",
+  base: "view",
+  key: "id",
+  fields: {
+    id: f.uuid("Identifier of the booking."),
+    org_id: f.ref("owning org"),
+    project_id: f.ref("project"),
+    space_id: f.ref("space"),
+    space_name: nullable(word("Space name.", "Green Room A")),
+    space_capacity: nullable(f.int("Occupant capacity of the space.", 10, 1)),
+    venue_name: nullable(word("Venue name.", "Northwind Pier Pavilion")),
+    engagement_id: nullable(f.ref("engagement")),
+    engagement_cue_id: nullable(f.ref("set time")),
+    purpose: oneOf(
+      ["Green Room", "Dressing Room", "Production Office", "Hospitality Suite", "Other"],
+      "What the space is booked as.",
+    ),
+    booking_mode: oneOf(
+      ["Exclusive", "Shared"],
+      "Exclusive holds the space alone; Shared bookings may overlap.",
+    ),
+    party_size: nullable(f.int("People expected.", 6, 1)),
+    starts_at: f.instant("In."),
+    ends_at: f.instant("Out."),
+    act_name: nullable(word("Act the space is for.", "Arturo Bell")),
+    set_label: nullable(word("Set time label.", "Arturo Bell set")),
+    set_planned_at: nullable(f.instant("Planned start of the set.")),
+    set_moved: f.bool("The set's planned time falls outside the booking.", false),
+    conflict_group: nullable(f.ref("first booking of the overlapping cluster")),
+    group_size: f.int("Bookings in the cluster.", 1, 1),
+    group_peak_party: f.int("Peak party at one instant in the cluster.", 6),
+    over_capacity: nullable(f.bool("The peak party exceeds the space's capacity.", false)),
+  },
+});
+
+export const LocalContact = defineResource({
+  name: "LocalContact",
+  table: "app.project_local_contacts",
+  description:
+    "A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live.",
+  base: "view",
+  key: "id",
+  fields: {
+    id: f.uuid("Identifier of the local contact."),
+    org_id: f.ref("owning org"),
+    project_id: f.ref("project the row is listed for"),
+    venue_id: nullable(f.ref("venue of a venue contact")),
+    day: nullable(f.date("Project day the contact serves; null for every day.")),
+    contact_role: oneOf(
+      [
+        "Promoter",
+        "Venue",
+        "Production",
+        "Security",
+        "Transport",
+        "Hospitality",
+        "Medical",
+        "Other",
+      ],
+      "What the contact is called for.",
+    ),
+    contact_title: nullable(word("Title or job.", "Production Manager")),
+    source: oneOf(["Member", "Contact"], "Member (read live) or Contact (typed)."),
+    display_name: nullable(word("Name.", "Pier Pavilion Desk")),
+    organization_name: nullable(word("Organization.", "Northwind Pier Pavilion")),
+    phone: nullable(word("Phone, E.164 for a typed contact.", "+13055550100")),
+    email: nullable(f.email("Business email of a typed contact.")),
+    audience: oneOf(
+      ["Internal", "Shared"],
+      "Internal stays inside the org; Shared also reaches the people engaged or rostered on the project.",
+    ),
+    member_active: f.bool("False once a member contact's membership has ended.", true),
+  },
+});
+
+export const AccommodationNight = defineResource({
+  name: "AccommodationNight",
+  table: "app.accommodation_block_nights",
+  description:
+    "One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard.",
+  base: "view",
+  fields: {
+    block_id: f.ref("accommodation block"),
+    org_id: f.ref("owning org"),
+    project_id: f.ref("project"),
+    block_number: f.int("Number of the block within the project.", 6, 1),
+    title: word("Block name.", "Harborview Crew Block"),
+    night: f.date("Night held."),
+    rooms_held: f.int("Rooms held each night.", 10, 1),
+    assigned: f.int("Rooms assigned on the night.", 4),
+    free: f.int("Rooms free on the night.", 6),
+    release_on: nullable(f.date("Release date.")),
+    nightly_rate_minor: nullable(f.money("Nightly rate in minor units; null is unpriced.", 18900)),
+    currency_code: nullable(f.currency("ISO 4217 currency of the rate.")),
+  },
+});
+
 // Assets
 
 export const AssetClass = defineResource({

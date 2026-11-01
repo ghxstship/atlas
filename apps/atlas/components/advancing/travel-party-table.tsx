@@ -21,6 +21,8 @@ export interface TravelPartyRow {
   readonly pass: TravelChip;
   readonly assignHref: string;
   readonly pickupHref: string;
+  /** Books the pickup as a ground transfer (B5); absent while an Approved Travel allocation waits to be issued. */
+  readonly transferHref?: string;
 }
 
 const FILTERS = ["all", "needsRoom", "needsPickup", "travelMissing"] as const;
@@ -116,6 +118,11 @@ export function TravelPartyTable({
                     {r.pickup === "missing" ? (
                       <Link href={r.pickupHref as Route} className="text-text-link">
                         {t("actions.addPickup")}
+                      </Link>
+                    ) : null}
+                    {r.pickup === "missing" && r.transferHref ? (
+                      <Link href={r.transferHref as Route} className="text-text-link">
+                        {t("addToTransfer")}
                       </Link>
                     ) : null}
                   </span>

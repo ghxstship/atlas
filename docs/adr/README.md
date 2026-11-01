@@ -109,7 +109,9 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0138](0138-approval-rules-signed-out-decisions-and-reminders.md)   | Approval Rules, Signed-Out Decisions by Emailed Code, and Approval Reminders     | Proposed |
 | [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)        | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place | Proposed |
 | [0140](0140-site-plan-states-drawings-annotations-and-signage.md)   | Site Plan States, Drawings, Annotations and the Signage Register                 | Accepted |
+| [0144][adr-0144]                                                    | Travel, Lodging, Ground Transport and Local Contacts                             | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 
 [adr-0105]: 0105-allergies-restricted-and-workforce-role-capabilities.md
+[adr-0144]: 0144-travel-lodging-ground-transport-and-local-contacts.md

@@ -345,11 +345,17 @@ describe("the external More screens are native (A65-011 part 2)", () => {
     for (const audience of EXTERNAL_AUDIENCES) {
       for (const entry of moreMenu(audience)) {
         expect(NATIVE_MORE.has(entry.id), `${audience} ${entry.id}`).toBe(true);
-        // Project details (R5) reads online only, so it is a screen of its own and never an offline external page.
+        // Project details (R5) reads online only, so it is a screen of its own and never an offline external page;
+        // Drives (B5) is a screen of its own for drivers inside and outside the org.
         if (
-          ["offline-queue", "profile", "settings", "run-of-show", "project-details"].includes(
-            entry.id,
-          )
+          [
+            "offline-queue",
+            "profile",
+            "settings",
+            "run-of-show",
+            "project-details",
+            "drives",
+          ].includes(entry.id)
         )
           continue;
         expect(isExternalPage(entry.id), entry.id).toBe(true);

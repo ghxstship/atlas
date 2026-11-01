@@ -4,7 +4,7 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 11 email templates, 15 categories, 71 kinds (276 kind and channel rows),
+-- 11 email templates, 15 categories, 73 kinds (284 kind and channel rows),
 -- 8 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
 -- drift test (6059_notification_kind_seed.test.sql); a kind that names its own channels loses the rows of
@@ -336,7 +336,15 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('allocation.withdrawn', 'In App'::app.notification_channel, 'assignments', null),
   ('allocation.withdrawn', 'Email'::app.notification_channel, 'assignments', 'notification'),
   ('allocation.withdrawn', 'SMS'::app.notification_channel, 'assignments', null),
-  ('allocation.withdrawn', 'Push'::app.notification_channel, 'assignments', null)
+  ('allocation.withdrawn', 'Push'::app.notification_channel, 'assignments', null),
+  ('accommodation_block.release_due', 'In App'::app.notification_channel, 'expiry_reminders', null),
+  ('accommodation_block.release_due', 'Email'::app.notification_channel, 'expiry_reminders', 'notification'),
+  ('accommodation_block.release_due', 'SMS'::app.notification_channel, 'expiry_reminders', null),
+  ('accommodation_block.release_due', 'Push'::app.notification_channel, 'expiry_reminders', null),
+  ('transfer.assigned', 'In App'::app.notification_channel, 'assignments', null),
+  ('transfer.assigned', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('transfer.assigned', 'SMS'::app.notification_channel, 'assignments', null),
+  ('transfer.assigned', 'Push'::app.notification_channel, 'assignments', null)
 on conflict (kind, channel) do update
   set category_code = excluded.category_code, email_template_code = excluded.email_template_code;
 

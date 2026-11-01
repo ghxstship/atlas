@@ -32,6 +32,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "shift.assigned": ["startsAt"],
   "shift.changed": ["startsAt"],
   "event.invited": ["startsAt"],
+  // B5 (5947): the pickup time of a transfer to drive.
+  "transfer.assigned": ["startsAt"],
   "occupancy.threshold": ["percent", "count", "permitted_load"],
   "weather.alert": ["level", "hazard", "reading"],
   // 2050: which sign-in setting changed (password, email, phone, a second factor, a passkey or the recovery codes).
@@ -182,6 +184,8 @@ function values(
     "skipped",
     "reminderNumber",
     "reminderLimit",
+    "freeRoomNights",
+    "passengerCount",
   ]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }

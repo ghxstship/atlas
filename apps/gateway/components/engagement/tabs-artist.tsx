@@ -19,6 +19,12 @@ import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { engagementTitle } from "@/lib/engagement-state";
 import { toneFor, type Tone } from "@/lib/states";
+import {
+  ContactLinks,
+  GroundTransport,
+  readSharedContacts,
+  YourRooms,
+} from "./ground-and-contacts";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
 import { DocumentsTab } from "./tabs-common";
@@ -96,7 +102,14 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
     }),
   ]);
   if (!cues.ok || !sheets.ok) return <RegionError />;
-  if (cues.data.length === 0 && sheets.data.length === 0) {
+  // The act's rooms and each day's Shared local contacts (B5).
+  const [rooms, contacts] = await Promise.all([
+    YourRooms({ view, t, locale }),
+    readSharedContacts(view, locale),
+  ]);
+  const contactsFor = (day: string | null) =>
+    (contacts ?? []).filter((c) => c.day === null || c.day === day);
+  if (cues.data.length === 0 && sheets.data.length === 0 && rooms === null) {
     return (
       <TabEmpty
         icon="Clock"
@@ -145,13 +158,37 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
             items={sheets.data.map((d) => ({
               id: d.id ?? "",
               title: d.day ? formatDate(locale, d.day) : "",
-              detail: d.body ? (
-                <p className="m-0 whitespace-pre-line text-text-13">{d.body}</p>
-              ) : undefined,
+              detail:
+                d.body || contactsFor(d.day).length > 0 ? (
+                  <div className="flex flex-col gap-8">
+                    {d.body ? (
+                      <p className="m-0 whitespace-pre-line text-text-13">{d.body}</p>
+                    ) : null}
+                    {contactsFor(d.day).length > 0 ? (
+                      <ul
+                        aria-label={t("gateway.engagement.localContacts.title")}
+                        className="m-0 flex list-none flex-col gap-4 p-0"
+                      >
+                        {contactsFor(d.day).map((c) => (
+                          <li key={c.id} className="flex flex-col gap-2 text-text-13">
+                            <span>
+                              {t("gateway.engagement.localContacts.line", {
+                                role: t(enumLabelKey("localContactRole", c.role)),
+                                name: c.name,
+                              })}
+                            </span>
+                            <ContactLinks contact={c} />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ) : undefined,
             }))}
           />
         </Section>
       ) : null}
+      {rooms}
     </div>
   );
 }
@@ -176,6 +213,8 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
     }),
   ]);
   if (!hospitality.ok || !lodging.ok || !travel.ok) return <RegionError />;
+  // Transfers carrying the artist or the people the caller answers for (B5).
+  const ground = await GroundTransport({ view, t, locale, roles: ["Passenger", "Party"] });
   const rows = [
     ...travel.data.map((s) => ({
       id: `travel-${s.id}`,
@@ -220,7 +259,7 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       ],
     })),
   ];
-  if (rows.length === 0) {
+  if (rows.length === 0 && ground === null) {
     return (
       <TabEmpty
         icon="UtensilsCrossed"
@@ -230,7 +269,14 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       />
     );
   }
-  return <RowList label={t("nav.gateway.engagementTabs.hospitality")} items={rows} />;
+  return (
+    <div className="flex flex-col gap-16">
+      {rows.length > 0 ? (
+        <RowList label={t("nav.gateway.engagementTabs.hospitality")} items={rows} />
+      ) : null}
+      {ground}
+    </div>
+  );
 }
 
 /**

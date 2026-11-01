@@ -195,6 +195,12 @@ derived:
     refresh: Rewritten each time `app.provide_place_specs` runs; never automatically (5903)
     reason: Reconciliation joins capability statements by URID; the copy is what a person added, and a computed tag shows when the spec changed or the document expired
     adr: "0140"
+  - objects:
+      - app.space_bookings.engagement_id
+    source: "`app.engagement_cues.engagement_id` of the booking's set time, when `engagement_cue_id` is set"
+    refresh: Copied by `private.guard_space_booking` on insert and update; a different engagement is refused (space_booking_set_engagement, migration 5943, B5)
+    reason: A booking for an engagement without a set time names the engagement directly, so the board, Gateway and the act's filter read one column either way
+    adr: "0144"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
@@ -983,6 +989,10 @@ restated:
     parent: app.run_of_show.project_id
     kind: registered
     note: Stamped from the running order for a Display link by `private.stamp_live_link_project` (derived entry); for a View link it is the creator's choice of project.
+  - column: app.local_contacts.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: A venue contact names the venue and no project, a project contact the project and no venue (`local_contacts_one_home`, migration 5944).
   - column: app.marshalling_log.project_id
     parent: app.shipments.project_id
     kind: own
@@ -1475,6 +1485,14 @@ restated:
     parent: app.venue_levels.venue_id
     kind: own
     note: The space's venue; its level is a level of that venue (`space_level_venue`, 5900).
+  - column: app.space_bookings.engagement_id
+    parent: app.engagement_cues.engagement_id
+    kind: registered
+    note: Copied from the set time by `private.guard_space_booking` (derived entry).
+  - column: app.space_bookings.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project of the booking; `t39_space_booking_project` and the guard require the engagement's (migration 5943).
   - column: app.spend_approvals.currency_code
     parent: app.spend_authorities.currency_code
     kind: fact
@@ -1574,6 +1592,22 @@ restated:
     parent: app.engagements.project_id
     kind: own
     note: Project of the timesheet; the engagement link is optional.
+  - column: app.transfers.fulfillment_id
+    parent: app.travel_segments.fulfillment_id
+    kind: own
+    note: Travel fulfillment the transfer belongs to; the flight it meets may belong to another or none.
+  - column: app.transfers.project_id
+    parent: app.fulfillments.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the fulfillment's (migration 5941).
+  - column: app.transfers.project_id
+    parent: app.transfer_vehicles.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the vehicle's (migration 5941).
+  - column: app.transfers.project_id
+    parent: app.travel_segments.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the met flight's (migration 5941).
   - column: app.travel_segments.currency_code
     parent: app.engagements.currency_code
     kind: own
@@ -1750,6 +1784,10 @@ restated:
     kind: finding
     note: The factor is required and belongs to one sign-in, so the label's sign-in is the factor's.
     finding: A108-003
+  - column: private.block_release_reminders_sent.release_on
+    parent: app.accommodation_blocks.release_on
+    kind: fact
+    note: The release date reminded, kept as it was, so a block given a new date is reminded again (migration 5947).
   - column: private.file_download_tickets.attachment_version_id
     parent: app.share_links.attachment_version_id
     kind: fact

@@ -22,6 +22,7 @@ import {
 } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
+import { GroundTransport, LocalContactsSection } from "./ground-and-contacts";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -441,7 +442,18 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
     }),
   ]);
   if (!lodging.ok || !segments.ok || !travel.ok) return <RegionError />;
-  if (lodging.data.length === 0 && segments.data.length === 0 && travel.data.length === 0) {
+  // Ground transport and Shared local contacts (B5): the caller's transfers and the project's contacts.
+  const [ground, contacts] = await Promise.all([
+    GroundTransport({ view, t, locale }),
+    LocalContactsSection({ view, t, locale }),
+  ]);
+  if (
+    lodging.data.length === 0 &&
+    segments.data.length === 0 &&
+    travel.data.length === 0 &&
+    ground === null &&
+    contacts === null
+  ) {
     return (
       <TabEmpty
         icon="BedDouble"
@@ -453,6 +465,7 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
   }
   return (
     <div className="flex flex-col gap-16">
+      {ground}
       {segments.data.length > 0 ? (
         <Section title={t("gateway.engagement.travel.itinerary")}>
           <RowList
@@ -517,6 +530,7 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
           />
         </Section>
       ) : null}
+      {contacts}
     </div>
   );
 }

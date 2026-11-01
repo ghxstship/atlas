@@ -577,6 +577,22 @@ nodes:
               artist-representative: hidden
               sponsor: hidden
             list: { views: [list], default: list }
+          - id: drives
+            kind: page
+            label: nav.compass.more.drives
+            route: /drives
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: full
+              contractor: full
+              crew: full
+              staff: full
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
           - id: expenses
             kind: page
             label: nav.compass.more.expenses

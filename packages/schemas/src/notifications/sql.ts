@@ -21,7 +21,8 @@ import type { NotificationKindRegistry } from "./model.ts";
  * 5829 adds P5's badge photo request (credential_photo.requested, G-144) and carries 5201's. 5869 adds P9's
  * approval.reminder and approval.link_code with its approval_link_code email (ADR 0138) and carries 5829's. 6059 adds
  * B16's subscription pause notices billing.paused and billing.resumed (6051) and agent.change_proposed (6052), which
- * reaches only the Inbox and a push (ADR 0155), and carries 5869's.
+ * reaches only the Inbox and a push (ADR 0155), and carries 5869's; train 7 adds B5's accommodation_block.release_due
+ * and transfer.assigned (5947) to it.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
   "supabase/migrations/6059_notification_kind_seed.sql";

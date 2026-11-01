@@ -46,6 +46,7 @@ import { PlaceSpecForm } from "./place-spec-form";
 import { VenueForm } from "./venue-form";
 import { ArchivedFilter } from "@/components/archive/archived-filter";
 import { archiveOf, legacyArchiveChanges } from "./archive-param";
+import { VenueContacts } from "@/components/local-contacts/venue-contacts";
 
 const NODE = "places.venues";
 const MAP = { width: 800, height: 480, margin: 40 } as const;
@@ -516,6 +517,7 @@ async function VenueDetail(props: DetailProps & { openFullHref: string }) {
         venueId={venue.id}
         held={props.held}
       />
+      <VenueContacts db={props.db} org={org} venueId={venue.id} canWrite={canWrite} />
       {canWrite ? (
         <RecordSection id="venue-edit" title={t("places.kit.edit")}>
           <VenueForm

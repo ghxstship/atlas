@@ -491,6 +491,16 @@
     "xyzCategory": "From the category",
     "xyzDeclare": "Disciplines need a declared tag.",
     "xyzFromCategory": "The category's tag is {tag}; choose another only to declare a different one.",
+    "lodging": {
+      "title": "Lodging on these lines",
+      "load": "Show lodging on linked lines",
+      "failed": "Lodging could not be read. Try again.",
+      "empty": "No accommodation block draws on these lines.",
+      "unpriced": "unpriced",
+      "lodgingHeld": "Lodging held {amount} ({nights} room nights)",
+      "lodgingAssigned": "Lodging assigned {amount} ({nights} room nights)",
+      "otherCurrency": "{count, plural, one {# block in another currency} other {# blocks in another currency}}, not added"
+    },
     "lineFields": "Line fields",
     "lineFieldsSentence": "Tags and other fields your organization adds to budget lines in Settings, Custom fields. Choose a line, then edit its fields.",
     "lineFieldsLine": "Line",
