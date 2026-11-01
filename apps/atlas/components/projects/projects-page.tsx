@@ -14,7 +14,7 @@ import {
 } from "@xos/data/projects";
 import { getTranslations } from "next-intl/server";
 import type { BulkConfig, BulkField } from "@/components/bulk/types";
-import { PROJECT_STATE_ORDER } from "@/lib/projects/format";
+import { PROJECT_STATE_ORDER } from "@/lib/projects/state-order";
 import { requireNode } from "@/lib/shell/require-node";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
