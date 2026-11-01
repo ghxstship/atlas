@@ -1,4 +1,4 @@
--- 2872_budget_line_custom_fields.sql
+-- 3872_budget_line_custom_fields.sql
 -- P10 (RRR-224), gap G-217, Section 4.5.6 org settings item 16 and Section 4.6.3: budget lines become the tenth built-in
 -- table an org may add custom fields to, so a line carries the org's own tags (for example a Choice field Tag with
 -- Rental, Overtime and Client billable, marked filterable) and the budget grid filters by them (A117's filter builder).

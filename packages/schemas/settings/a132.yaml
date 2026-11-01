@@ -13,8 +13,8 @@ settings:
     help: settings.fields.availabilityRequired.help
     pages: { org: settings.scheduling }
     enforced_by:
-      - consumer: supabase/migrations/2251_member_availability.sql#private.availability_rule
-        test: supabase/tests/2251_member_availability.test.sql
+      - consumer: supabase/migrations/3251_member_availability.sql#private.availability_rule
+        test: supabase/tests/3251_member_availability.test.sql
   - key: scheduling.availability_notice_days
     type: integer
     min: 0
@@ -26,8 +26,8 @@ settings:
     help: settings.fields.availabilityNoticeDays.help
     pages: { org: settings.scheduling }
     enforced_by:
-      - consumer: supabase/migrations/2251_member_availability.sql#private.availability_rule
-        test: supabase/tests/2251_member_availability.test.sql
+      - consumer: supabase/migrations/3251_member_availability.sql#private.availability_rule
+        test: supabase/tests/3251_member_availability.test.sql
   - key: scheduling.availability_horizon_days
     type: integer
     min: 7
@@ -39,5 +39,5 @@ settings:
     help: settings.fields.availabilityHorizonDays.help
     pages: { org: settings.scheduling }
     enforced_by:
-      - consumer: supabase/migrations/2251_member_availability.sql#private.availability_rule
-        test: supabase/tests/2251_member_availability.test.sql
+      - consumer: supabase/migrations/3251_member_availability.sql#private.availability_rule
+        test: supabase/tests/3251_member_availability.test.sql

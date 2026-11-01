@@ -1,4 +1,4 @@
--- 2271_holiday_pay.sql
+-- 3271_holiday_pay.sql
 --
 -- A134 (RRR-196), trace S4.5.6-26, ADR 0112: a payroll run pays holiday pay through an earning code. This restates
 -- app.calculate_payroll_run from its latest definition, 1399 (which joined 1384's state rules to 1398's org week; 0461 and

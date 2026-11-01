@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decider: A136 (RRR-199), under ADR 0022's post-4.0 migration blocks
-- Migrations: `2290_opportunity_templates_and_defaults.sql`
+- Migrations: `3290_opportunity_templates_and_defaults.sql`
 
 ## Context
 

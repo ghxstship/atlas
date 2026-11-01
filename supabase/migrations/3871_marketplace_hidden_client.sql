@@ -1,4 +1,4 @@
--- 2871_marketplace_hidden_client.sql
+-- 3871_marketplace_hidden_client.sql
 -- P10 (RRR-224), gap G-128, Section 4.4.3 Discovery: the external projections of a listing whose client and event are
 -- hidden until booking (3870). Until private.opportunity_disclosed_to_me answers true, the venue name is NULL and the
 -- venue point is rounded to 1 decimal (about 11 km); the locality, jurisdiction, dates, pay, org name and verified

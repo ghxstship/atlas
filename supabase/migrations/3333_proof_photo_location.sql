@@ -1,4 +1,4 @@
--- 2333_proof_photo_location.sql
+-- 3333_proof_photo_location.sql
 --
 -- A140 (RRR-204; ADR 0117 decision 1): the org's media.keep_photo_location (3330) applies to a sponsor's
 -- proof-of-performance photos too. Compass resolves settings for the person in the org they are a member of, and a

@@ -1,4 +1,4 @@
--- 2210_role_lens.sql
+-- 3210_role_lens.sql
 -- A128 (RRR-173, S4.8.1-06, ADR 0107): the role lens of the context switcher. A person who holds several roles in
 -- an org can narrow Atlas, Gateway and Compass to one of them. The lens only shapes what the shells show; row
 -- level security and every RPC still decide with the person's full standing.

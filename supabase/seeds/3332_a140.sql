@@ -1,4 +1,4 @@
--- 2332_a140.sql
+-- 3332_a140.sql
 -- A140 (RRR-204) Compass fixture for sponsors' proof-of-performance photos (migration 3332, Maestro
 -- sponsor-proof-photo): a sponsor whose engagement on the demo project is Active, with one entitlement to photograph.
 -- Builds on 0010 (demo org) and 0107 (the NWS project); loads cleanly without them. A new person and account, so

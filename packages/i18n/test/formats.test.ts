@@ -179,7 +179,7 @@ describe("postal codes as each country writes them (A139)", () => {
 
   it("holds the same patterns as the database check (migration 3320)", () => {
     const sql = readFileSync(
-      new URL("../../../supabase/migrations/2320_postal_codes_by_country.sql", import.meta.url),
+      new URL("../../../supabase/migrations/3320_postal_codes_by_country.sql", import.meta.url),
       "utf8",
     );
     const inSql = Object.fromEntries(

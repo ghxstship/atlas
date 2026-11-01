@@ -1,4 +1,4 @@
--- 2290_opportunity_templates_and_defaults.sql
+-- 3290_opportunity_templates_and_defaults.sql
 -- A136 (RRR-199, ADR 0113), Section 4.5.6 item 27 (Settings, Gateway and Marketplace) and Section 4.4.3. An org sets
 -- once how its new opportunities start, and every posting starts there instead of from blank:
 --   * app.application_question_templates and app.application_template_questions: reusable sets of application

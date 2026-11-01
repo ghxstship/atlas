@@ -1,4 +1,4 @@
--- 2070_over_limit_objects.sql
+-- 3070_over_limit_objects.sql
 -- A107 (RRR-152), S16-07, finding A65-015, Section 16: "Downgrades never delete data. They make over-limit objects
 -- read-only with a clear explanation." Terms of Service 5.2: at the end of a trial, "Objects over the Access limits
 -- become read-only." ADR 0081 records the rules.

@@ -1,4 +1,4 @@
--- 2782_live_link_channels.sql
+-- 3782_live_link_channels.sql
 -- P1 (RRR-215, ADR 0130). Live links update while they are open. The publication route of 1450 cannot carry them:
 -- Realtime checks each change against the subscriber's own JWT, and an anonymous visitor reads no row. Instead each
 -- link has a private broadcast channel, xlink:<channel key>, that only the database sends to, as 2161 does for

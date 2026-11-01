@@ -1,4 +1,4 @@
--- 2272_retired_holiday_calendar_venues.sql
+-- 3272_retired_holiday_calendar_venues.sql
 --
 -- A134 (RRR-196), trace S4.5.6-26, ADR 0112. Retiring a holiday calendar ends its venue assignments with it. Until now
 -- only app.holiday_calendars.deleted_at was set, so the calendar's live rows in app.holiday_calendar_venues still held

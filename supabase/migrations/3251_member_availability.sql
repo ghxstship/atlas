@@ -1,4 +1,4 @@
--- 2251_member_availability.sql
+-- 3251_member_availability.sql
 --
 -- Members' availability and the availability window (ADR 0022, 3250-2259), A132, RRR-194, ADR 0063. Section 4.5.6
 -- item 25 lists availability among the Scheduling settings. Availability calendars (0740) were Gateway people's:

@@ -1,4 +1,4 @@
--- 2870_opportunity_hidden_client.sql
+-- 3870_opportunity_hidden_client.sql
 -- P10 (RRR-224), gap G-128, Section 4.4.3 and Section 4.5.6 item 27: a posting can keep its client and event hidden from
 -- crew until they are booked.
 --   * app.opportunities.hide_client_until_booked: the org's choice. "Booked" is computed, never stored: the viewer's

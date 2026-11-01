@@ -1,4 +1,4 @@
--- 2781_live_link_reads.sql
+-- 3781_live_link_reads.sql
 -- P1 (RRR-215, ADR 0130). The anonymous side of live links (3780): token RPCs in the sense of Section 7.5 invariant
 -- 8, as ADR 0033 decision 56 words it. Each needs the token and, to open, the access code; links expire; failures are
 -- rate limited; and each answers only the fields the page renders. Execute is granted to anon.

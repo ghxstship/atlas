@@ -1,4 +1,4 @@
--- 2071_over_limit_surfaces.sql
+-- 3071_over_limit_surfaces.sql
 -- A107 (RRR-152), S16-07, Section 16: what Atlas shows of the read-only objects of 3070, and the Owner's choice of what
 -- stays writable (ADR 0081).
 --   * app.plan_limit_usage: for each object limit, the plan in force, the limit, how many objects it counts and how
