@@ -76,6 +76,8 @@ $$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_vers
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
   ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
   ('invite_token_open'), ('live_channel_open'), ('live_display'), ('live_view'), ('open_live_link'),
+  ('advance_roster'), ('advance_upload_ticket_open'), ('begin_advance_upload'), ('finish_advance_upload'), ('invite_advance_roster_member'),
+  ('request_advance_guest'), ('submit_advance_roster'), ('submit_advance_typed'),
   ('submit_advance'), ('subscribe_subprocessor_notices'), ('token_document'), ('token_sign_document'),
   ('unsubscribe_subprocessor_notices'), ('verify_certification')$$,
   'anon reaches exactly the reviewed api_public token, profile and consent RPCs');
@@ -97,7 +99,7 @@ select set_eq($$
   select c.relname::text from pg_class c join pg_namespace n on n.oid = c.relnamespace
   where c.relkind in ('v', 'm') and n.nspname = 'app'
     and not coalesce(c.reloptions::text[] && array['security_invoker=true', 'security_invoker=on'], false)
-$$, $$values ('ai_never_send'), ('application_board'), ('bid_totals'), ('brand_fonts'), ('column_classifications'),
+$$, $$values ('advance_allocation_status'), ('ai_never_send'), ('allocation_holders'), ('application_board'), ('asset_reservation_conflicts'), ('asset_unit_hire'), ('bid_totals'), ('brand_fonts'), ('column_classifications'),
   ('comment_subjects'), ('consent_purposes'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'),
   ('employment_statuses'), ('engagement_board'), ('engagement_resolved'), ('expense_budget_lines'), ('feature_flags'), ('flsa_statuses'),
   ('import_target_fields'), ('import_targets'), ('integration_providers'), ('lifecycle_transition_rules'),

@@ -101,6 +101,14 @@ export const EXTERNAL_ROLE_TYPES = [
 ] as const;
 export type ExternalRoleType = (typeof EXTERNAL_ROLE_TYPES)[number];
 
+/**
+ * Gateway engagement tab sets: one per external role type, then roster-member (R8, ADR 0100) for a
+ * person who reaches an engagement only through an Accepted roster entry. Not a role type: it never
+ * appears in audience.roleTypes or the Compass audiences.
+ */
+export const ENGAGEMENT_TAB_SET_KEYS = [...EXTERNAL_ROLE_TYPES, "roster-member"] as const;
+export type EngagementTabSetKey = (typeof ENGAGEMENT_TAB_SET_KEYS)[number];
+
 /** Gateway visibility keys: a person without a company account, then the four account roles. */
 export const GATEWAY_ACCOUNT_ROLES = [
   "individual",
@@ -209,6 +217,9 @@ export const CONDITIONS = [
   "offered-per-diem",
   "offered-hospitality",
   "offered-guest-list",
+  // Gateway, per engagement (R5, ADR 0100): the producing org offers travel, uniforms or parking on the engagement, so
+  // the person enters project facts for it.
+  "offered-project-facts",
   // Gateway, per engagement (R4, ADR 0101): the caller manages the engagement's crew roster: its roster area is open to
   // them (the artist on an Artist engagement, the account's Owner or Admin, an Advancing Lead, an Advance
   // representative; never the worker a company engagement names) and it is rosterable.

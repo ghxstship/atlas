@@ -1,0 +1,24 @@
+# Settings registry: R7 (advance allocations, RRR-187). ADR 0104, parity gap G-174.
+# Field reference: see a30.yaml.
+#
+# What happens to a request above the remaining allowance of an offering (the cap per engagement or per person of
+# R3's audience rules). Refuse, the default, refuses it. Review lets the request in as Requested; approving it, or
+# assigning above the cap, then needs a reason, which goes in the allocation's ledger. A split above the cap per
+# person is always refused. The project value appears on R3's project settings panel with the other advancing.*
+# settings.
+contributor: r7
+settings:
+  # Gateway and marketplace -----------------------------------------------------------------------------------------
+  - key: advancing.allowance_overflow
+    type: choice
+    choices: [refuse, review]
+    default: refuse
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.advancingAllowanceOverflow.label
+    help: settings.fields.advancingAllowanceOverflow.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2693_allocation_rpcs.sql#private.check_allocation_caps
+        test: supabase/tests/2697_allocation_parity.test.sql

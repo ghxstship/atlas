@@ -542,6 +542,13 @@ export const sitemap: Sitemap = {
               route: "/{org}/advancing/crew",
               list: { views: ["list", "table"], default: "list" },
             },
+            {
+              id: "advancing.allocations",
+              kind: "page",
+              label: "nav.atlas.pages.advancing.allocations",
+              route: "/{org}/advancing/allocations",
+              list: { views: ["list", "table", "matrix"], default: "list" },
+            },
           ],
         },
       ],

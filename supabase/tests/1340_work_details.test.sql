@@ -57,9 +57,9 @@ select results_eq($$select classification::text, read_capability from private.co
 select pg_temp.as_user('ivy');
 insert into world select 'wd_ivy', app.ensure_my_work_details();
 select is(app.ensure_my_work_details(), pg_temp.id('wd_ivy'), 'ensure_my_work_details returns the same row');
-select lives_ok($$update app.person_work_details set shirt_size = 'M', shoe_size = 'US 9', dietary_needs = '{Vegan,Nut Free,Vegan}',
-  allergies = 'Peanuts, severe', accessibility_needs = '{Seating}', seat_preference = 'Aisle', home_airport = 'MIA',
-  passport_issuing_country = 'IT', passport_expires_on = '2031-04-30', passport_name = 'IVY MARCHETTI'
+-- Uniform sizes and travel preferences are entered per roster entry since R6a (2664).
+select lives_ok($$update app.person_work_details set dietary_needs = '{Vegan,Nut Free,Vegan}',
+  allergies = 'Peanuts, severe', accessibility_needs = '{Seating}', passport_issuing_country = 'IT', passport_expires_on = '2031-04-30', passport_name = 'IVY MARCHETTI'
   where id = (select id from world where key = 'wd_ivy')$$, 'the owner fills in her work details');
 select is((select dietary_needs::text from app.person_work_details where id = pg_temp.id('wd_ivy')), '{Vegan,"Nut Free"}',
   'each dietary need is kept once, in enum order');
@@ -95,7 +95,7 @@ select is(app.reveal_my_passport_number(), 'YA0000TEST', 'the owner''s explicit 
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('ivy') and action = 'passport.revealed' and org_id is null),
   1, 'the owner''s reveal is written to her access log');
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('ivy') and action = 'person_work_details.update'
-  and changed_columns @> array['allergies', 'shirt_size']), 1, 'owner changes are logged with the changed column names');
+  and changed_columns @> array['allergies', 'dietary_needs']), 1, 'owner changes are logged with the changed column names');
 
 -- Owner-only reads -------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('quinn');
@@ -133,6 +133,7 @@ select is((select count(*)::int from app.my_work_detail_sharing() where work_det
 select pg_temp.as_user('alice');
 select is((select d -> 'readable' from app.shared_work_details(pg_temp.id('eng_ivy_a')) d),
   '["Emergency Contacts", "Dietary Needs", "Passport"]'::jsonb, 'the Owner reads every shared category');
+-- The Owner holds data.restricted.read.medical org-wide, so the Restricted allergies reach her (R6a, 2663).
 select is((select d -> 'dietary' ->> 'allergies' from app.shared_work_details(pg_temp.id('eng_ivy_a')) d), 'Peanuts, severe',
   'the shared dietary needs reach the org');
 select is((select jsonb_array_length(d -> 'emergency_contacts') from app.shared_work_details(pg_temp.id('eng_ivy_a')) d), 1,
@@ -195,10 +196,10 @@ select throws_ok(format($$select app.reveal_shared_passport_number('%s', 'Bookin
 
 -- A closed engagement shares nothing.
 select pg_temp.as_user('ivy');
-insert into world select 'share_a2', app.share_work_details(pg_temp.id('eng_ivy_a'), '{Uniform Sizes}');
+insert into world select 'share_a2', app.share_work_details(pg_temp.id('eng_ivy_a'), '{Accessibility Needs}');
 select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Canceled');
 select pg_temp.as_user('alice');
-select ok((select d -> 'uniform' = 'null'::jsonb and not (d ->> 'sharing_open')::boolean
+select ok((select d -> 'accessibility' = 'null'::jsonb and not (d ->> 'sharing_open')::boolean
   from app.shared_work_details(pg_temp.id('eng_ivy_a')) d), 'a canceled engagement reads nothing, share or not');
 select pg_temp.as_user('ivy');
 select throws_ok(format($$select app.share_work_details('%s', '{Passport}')$$, pg_temp.id('eng_ivy_a')), 'XR001',

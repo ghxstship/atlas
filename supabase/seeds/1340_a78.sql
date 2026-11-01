@@ -1,8 +1,9 @@
 -- 1340_a78.sql
 -- A78 Work Details (RRR-123, migration 1340, finding A65-003): the demo crew person's work details, emergency contact
 -- and loyalty program, shared with their crew engagement (0228's ...228401) under work_details_sharing consent, so
--- Atlas's engagement record shows the org side; the demo Owner's own sizes and contact for Atlas Settings, Work Details;
--- and the crew person's given and family names (Section 15). Every value is fictional: phones in the 555-01xx range,
+-- Atlas's engagement record shows the org side; the demo Owner's own dietary needs and contact for Atlas Settings, Work
+-- Details; and the crew person's given and family names (Section 15). Uniform sizes and travel preferences are entered per
+-- roster entry since R6a (2664), so nothing here writes them. Every value is fictional: phones in the 555-01xx range,
 -- addresses on example.com, and a passport number that reads TEST.
 -- Builds on 0010 and 0228 and loads cleanly without them. Idempotent: fixed ids in the 1340 block with
 -- `on conflict do nothing`, and the share is written only when it does not exist yet. Extra fixed ids:
@@ -23,18 +24,17 @@ declare
   v_consent constant uuid := '01920000-0000-7000-8000-000001340301';
   v_share constant uuid := '01920000-0000-7000-8000-000001340401';
   v_categories constant app.work_detail_category[] :=
-    array['Emergency Contacts', 'Uniform Sizes', 'Dietary Needs', 'Passport']::app.work_detail_category[];
+    array['Emergency Contacts', 'Dietary Needs', 'Passport']::app.work_detail_category[];
 begin
   if exists (select 1 from app.people where id = v_crew) then
     update app.people set given_name = 'Demo', family_name = 'Crew Member'
     where id = v_crew and given_name is null and family_name is null;
 
     perform private.begin_trusted_operation('passport_number_write');
-    insert into app.person_work_details (id, person_id, shirt_size, jacket_size, pants_size, shoe_size, glove_size,
-      dietary_needs, allergies, seat_preference, meal_preference, home_airport, passport_number, passport_number_last4,
+    insert into app.person_work_details (id, person_id, dietary_needs, allergies, passport_number, passport_number_last4,
       passport_issuing_country, passport_expires_on, passport_name)
-    values (v_crew_details, v_crew, 'L', 'L', '34x32', 'US 11', 'L', '{Vegetarian}', 'Shellfish, mild', 'Aisle',
-      'Vegetarian (VGML)', 'MIA', extensions.pgp_sym_encrypt('TEST000000', private.passport_number_key()), '0000',
+    values (v_crew_details, v_crew, '{Vegetarian}', 'Shellfish, mild',
+      extensions.pgp_sym_encrypt('TEST000000', private.passport_number_key()), '0000',
       'US', '2031-04-30', 'DEMO CREW MEMBER')
     on conflict (id) do nothing;
     perform private.end_trusted_operation('passport_number_write');
@@ -49,8 +49,8 @@ begin
   end if;
 
   if exists (select 1 from app.people where id = v_owner) then
-    insert into app.person_work_details (id, person_id, shirt_size, jacket_size, shoe_size, seat_preference, home_airport)
-    values (v_owner_details, v_owner, 'M', 'M', 'US 9', 'Window', 'FLL')
+    insert into app.person_work_details (id, person_id, dietary_needs)
+    values (v_owner_details, v_owner, '{Pescatarian}')
     on conflict (id) do nothing;
 
     insert into app.person_emergency_contacts (id, person_id, full_name, relationship, phone_e164, sort_order)

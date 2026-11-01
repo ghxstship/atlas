@@ -85,6 +85,10 @@
       "session_signed_out": {
         "subject": "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
         "body": "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones."
+      },
+      "work_details_moved": {
+        "subject": "Las tallas de uniforme y las preferencias de viaje pasaron a cada proyecto",
+        "body": "{moved, select, uniform {Tus tallas de uniforme se quitaron} travel {Tus preferencias de asiento, comida y aeropuerto de origen se quitaron} other {Tus tallas de uniforme y tus preferencias de viaje se quitaron}} de tu perfil. Ahora las producciones te las piden en cada proyecto en cuya lista estás, y las guardan solo para ese proyecto. Tus demás datos de trabajo no cambiaron."
       }
     },
     "report": {
@@ -307,6 +311,34 @@
       "declined": {
         "subject": "{personName} rechazó la lista de {projectName}",
         "body": "Agrega a otra persona o retira la entrada."
+      },
+      "project_facts_entered": {
+        "subject": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "body": "{actorName} los ingresó para {projectName}. Revísalos y corrige lo que esté mal."
+      }
+    },
+    "engagement": {
+      "roster_lock_changed": {
+        "subject": "Cambió el cierre de nombres de {projectName}",
+        "body": "Abre la lista del equipo para ver cuándo se cierran los nombres. Después, pide a la organización productora que cambie la lista."
+      }
+    },
+    "allocation": {
+      "decided": {
+        "subject": "Tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName} fue {decision, select, approved {aprobada} declined {rechazada} other {decidida}}",
+        "body": "{decision, select, declined {Motivo: {reason}} other {{quantity} para {personName}, a través de {partyName}.}}"
+      },
+      "assigned": {
+        "subject": "Recibiste {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{partyName} te pasó {quantity}."
+      },
+      "issued": {
+        "subject": "Te entregaron tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "Ahora está a tu nombre. Devuélvelo cuando termine el trabajo."
+      },
+      "withdrawn": {
+        "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
       }
     }
   },

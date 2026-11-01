@@ -1,0 +1,9 @@
+# Gate 20 exceptions recorded by ADR 0104 (owner decision 8, 2026-10-27): the asset lifecycle gains a tenth
+# state, Returned, so app.asset_state and every response that carries a unit's asset_state list it. Read by
+# infra/ci/oasdiff.sh (oasdiff --err-ignore); one line per exception, lines starting with # are comments.
+GET /asset-units added the new `Returned` enum value to the `data/items/asset_state` response property for the response status `200`
+POST /asset-units added the new `Returned` enum value to the `asset_state` response property for the response status `201`
+POST /asset-units/scan added the new `Returned` enum value to the `asset_state` response property for the response status `200`
+GET /asset-units/{id} added the new `Returned` enum value to the `asset_state` response property for the response status `200`
+PATCH /asset-units/{id} added the new `Returned` enum value to the `asset_state` response property for the response status `200`
+POST /asset-units/{id}/transitions added the new `Returned` enum value to the `asset_state` response property for the response status `200`

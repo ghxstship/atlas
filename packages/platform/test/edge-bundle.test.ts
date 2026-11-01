@@ -106,16 +106,20 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-worker": 290,
   "kiosk-punch": 64,
   // A138: the email sender reads the org's branding, and its accent check brings the token contrast ratio to
-  // boot; 182.3 KB on 2026-10-31 (merge train 2). About 10 percent above that, as for A89 and A90.
+  // boot; 182.3 KB on 2026-10-31 (merge train 2). About 10 percent above that, as for A89 and A90. R5 (2650) and
+  // R7 (2698) add their notification kinds in both locales (181.6 KB and 186.9 KB on their own branches).
   "notification-dispatch": 200,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. A138's email branding in the shared stores
-  // brought it to 215.9 KB on 2026-10-31 (merge train 2); about 10 percent above that.
+  // brought it to 215.9 KB on 2026-10-31 (merge train 2); about 10 percent above that. R7: the radio hand-out's
+  // document copy in both locales and the four allocation kinds in the shared stores chunk (218.6 KB on its branch).
   "org-lifecycle": 237,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  // A138's email branding in the shared platform stores brought it to 145.1 KB on 2026-10-31 (merge train 2).
+  // A138's email branding in the shared platform stores brought it to 145.1 KB on 2026-10-31 (merge train 2). R6a
+  // (2660, account.work_details_moved) and R7 (2698, the four allocation kinds) add their notices in both locales
+  // (150.1 KB on their branch).
   "sms-webhook": 160,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,

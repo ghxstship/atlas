@@ -42,7 +42,8 @@
         "submissions": "Respuestas recibidas",
         "riders": "Riders",
         "reconciliation": "Conciliación",
-        "crew": "Lista del equipo"
+        "crew": "Lista del equipo",
+        "allocations": "Asignaciones"
       },
       "places": {
         "venues": "Recintos",
@@ -400,7 +401,8 @@
       "invoices": "Facturas",
       "documents": "Documentos",
       "messages": "Mensajes",
-      "crew": "Equipo"
+      "crew": "Equipo",
+      "projectDetails": "Datos del proyecto"
     },
     "avatar": {
       "settings": "Configuración",
@@ -476,7 +478,8 @@
       "reference": "Referencia",
       "offlineQueue": "Cola sin conexión",
       "profile": "Perfil y certificaciones",
-      "settings": "Configuración"
+      "settings": "Configuración",
+      "projectDetails": "Datos del proyecto"
     },
     "reference": {
       "emergencyCodes": "Códigos de emergencia",

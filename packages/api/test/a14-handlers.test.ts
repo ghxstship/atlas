@@ -140,7 +140,13 @@ describe("Credentials contract", () => {
     const rCredentialCategories = await crud({
       path: "/credential-categories",
       table: "credential_categories",
-      row: { ...audit(1), project_id: id(100), code: "ALL-ACCESS", name: "All Access" },
+      row: {
+        ...audit(1),
+        project_id: id(100),
+        code: "ALL-ACCESS",
+        name: "All Access",
+        category_kind: "Access",
+      },
       create: { project_id: id(100), code: "ALL-ACCESS", name: "All Access" },
       update: { name: "All Areas" },
       remove: true,

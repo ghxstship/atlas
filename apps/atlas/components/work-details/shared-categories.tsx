@@ -9,7 +9,8 @@ import type { ReactNode } from "react";
  * One shared work details category as the engaging org or a roster reviewer reads it (Section 4.5.6
  * item 10). Shared by the engagement's work details section (server) and the crew roster peek
  * (client, R4), so it holds no hooks and no phone metadata: the caller formats phone numbers. `t` is
- * scoped to the workDetails namespace.
+ * scoped to the workDetails namespace. Since R6a allergies are Restricted: a reader without the
+ * medical capability sees a locked notice, and a medical reader also gets the Medical block.
  */
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -49,6 +50,37 @@ function Hidden({ t }: { t: Translate }) {
   return <p className="m-0 text-text-secondary">{t("org.hidden")}</p>;
 }
 
+function AllergiesLocked({ t }: { t: Translate }) {
+  return (
+    <p className="m-0 text-text-secondary">
+      <span className="text-text-secondary">{t("org.allergies")}: </span>
+      {t("org.allergiesMasked")}
+    </p>
+  );
+}
+
+/** The Restricted medical read (R6a): the allergies, for a holder of the medical capability. */
+export function MedicalBlock({
+  d,
+  t,
+  heading = "h3",
+}: {
+  d: SharedWorkDetails;
+  t: Translate;
+  heading?: "h3" | "h4";
+}) {
+  if (d.medical === null) return null;
+  return (
+    <CategoryBlock title={t("org.medical.title")} heading={heading}>
+      <p className="m-0 text-text-secondary">{t("org.medical.description")}</p>
+      <Line label={t("org.allergies")} value={d.medical.allergies} />
+      {d.medical.allergies === null ? (
+        <p className="m-0 text-text-secondary">{t("org.medical.none")}</p>
+      ) : null}
+    </CategoryBlock>
+  );
+}
+
 export function categoryBody(
   c: WorkDetailCategory,
   d: SharedWorkDetails,
@@ -74,29 +106,24 @@ export function categoryBody(
           ))}
         </ol>
       );
-    case "Uniform Sizes": {
-      if (d.uniform === null) return <Hidden t={t} />;
-      const u = d.uniform;
-      const sizes: [string, string | null][] = [
-        [t("uniform.shirt"), u.shirtSize],
-        [t("uniform.jacket"), u.jacketSize],
-        [t("uniform.pants"), u.pantsSize],
-        [t("uniform.shoe"), u.shoeSize],
-        [t("uniform.gloves"), u.gloveSize],
-        [t("uniform.hat"), u.hatSize],
-      ];
-      return (
+    case "Contact":
+      return d.contact === null ? (
+        <Hidden t={t} />
+      ) : (
         <>
-          <p className="m-0">
-            {sizes
-              .filter(([, size]) => size)
-              .map(([garment, size]) => t("org.sizes", { garment, size: size ?? "" }))
-              .join(" · ")}
-          </p>
-          <Line label={t("org.notes")} value={u.uniformNotes} />
+          <Line label={t("org.contactEmail")} value={d.contact.email} />
+          <Line
+            label={t("org.contactPhone")}
+            value={d.contact.phone ? phone(d.contact.phone) : null}
+          />
+          {d.contact.email === null && d.contact.phone === null ? (
+            <p className="m-0 text-text-secondary">{t("org.contactNone")}</p>
+          ) : null}
         </>
       );
-    }
+    // Retired in R6a (2664): no live share names it, and sizes are read per roster entry.
+    case "Uniform Sizes":
+      return null;
     case "Dietary Needs":
       return d.dietary === null ? (
         <Hidden t={t} />
@@ -109,10 +136,8 @@ export function categoryBody(
               .join(", ")}
           />
           <Line label={t("org.allergies")} value={d.dietary.allergies} />
-          {/* R4: allergies masked for this reader are on file, never shown. */}
-          {d.dietary.allergies === null && d.dietary.allergiesOnFile ? (
-            <p className="m-0 text-text-secondary">{t("allergiesMasked")}</p>
-          ) : null}
+          {/* R6a: allergies are Restricted; a reader without the medical capability sees them locked. */}
+          {d.dietary.allergiesMasked ? <AllergiesLocked t={t} /> : null}
           <Line label={t("org.notes")} value={d.dietary.dietaryNotes} />
         </>
       );
@@ -135,16 +160,6 @@ export function categoryBody(
         <Hidden t={t} />
       ) : (
         <>
-          <Line
-            label={t("org.seat")}
-            value={
-              d.travel.seatPreference
-                ? workDetailLabel(t, "seatPreferences", d.travel.seatPreference)
-                : null
-            }
-          />
-          <Line label={t("org.meal")} value={d.travel.mealPreference} />
-          <Line label={t("org.airport")} value={d.travel.homeAirport} />
           <Line
             label={t("org.loyalty")}
             value={d.travel.loyaltyPrograms
@@ -179,7 +194,10 @@ export function categoryBody(
 
 /** Every phone number in a read, so a server caller can format them for a client one. */
 export function sharedPhones(d: SharedWorkDetails): string[] {
-  return (d.emergencyContacts ?? []).flatMap((e) =>
-    e.alternatePhoneE164 ? [e.phoneE164, e.alternatePhoneE164] : [e.phoneE164],
-  );
+  return [
+    ...(d.emergencyContacts ?? []).flatMap((e) =>
+      e.alternatePhoneE164 ? [e.phoneE164, e.alternatePhoneE164] : [e.phoneE164],
+    ),
+    ...(d.contact?.phone ? [d.contact.phone] : []),
+  ];
 }

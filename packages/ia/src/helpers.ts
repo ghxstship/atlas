@@ -1,7 +1,7 @@
 import { LIST_QUERY_PARAMS } from "./constants";
 import type {
   AuthMode,
-  ExternalRoleType,
+  EngagementTabSetKey,
   NodeKind,
   Shell,
   Sitemap,
@@ -249,10 +249,10 @@ export function expandedGroups(sitemap: Sitemap, persona: string): readonly stri
   return sitemap.personas?.[persona] ?? [];
 }
 
-/** The ordered engagement tabs for a role type (Section 4.5.8). */
+/** The ordered engagement tabs for a tab set: a role type or roster-member (Section 4.5.8, R8). */
 export function engagementTabs(
   sitemap: Sitemap,
-  roleType: ExternalRoleType,
+  roleType: EngagementTabSetKey,
   representationScopes?: Iterable<string>,
 ): SitemapNode[] {
   return engagementTabIds(sitemap, roleType, representationScopes).map(

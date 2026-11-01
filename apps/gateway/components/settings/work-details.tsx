@@ -1,10 +1,8 @@
 import {
   ACCESSIBILITY_NEEDS,
   DIETARY_NEEDS,
-  GARMENT_LETTER_SIZES,
   LOYALTY_PROGRAM_KINDS,
-  SEAT_PREFERENCES,
-  WORK_DETAIL_CATEGORIES,
+  SHAREABLE_WORK_DETAIL_CATEGORIES,
   getMyNameParts,
   getMyWorkDetails,
   listMyEmergencyContacts,
@@ -16,7 +14,9 @@ import {
   type WorkDetails,
 } from "@xos/data/work-details";
 import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
+import type { Route } from "next";
 import { getLocale } from "next-intl/server";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { InlineAlert } from "@/components/ui";
 import type { GatewayContext } from "@/lib/shell/context";
@@ -33,16 +33,15 @@ import {
   saveDietaryAction,
   saveNamePartsAction,
   savePassportAction,
-  saveTravelAction,
-  saveUniformAction,
   shareAction,
 } from "@/lib/actions/work-details";
 import { WorkDetailsForm, type WorkDetailsField } from "./work-details-form";
 
 /**
  * The person's own Work Details in Gateway (Section 4.5.6 item 10, Section 4.5.8, A65-003): emergency contacts,
- * uniform sizes, dietary and accessibility needs, the travel profile and passport, which
- * engagements see what, and the access log. Everything reads with the viewer's client, so only
+ * dietary and accessibility needs, loyalty programs and passport, which engagements see what, and
+ * the access log. Uniform sizes and travel preferences are asked per project since R6a (2664): a
+ * notice at the top links to the person's engagements, whose Project details tab holds them. Everything reads with the viewer's client, so only
  * the person's own rows appear. Phones show in national format for the viewer's region and in
  * international format otherwise (Section 15).
  */
@@ -79,13 +78,6 @@ function Muted({ children }: { children: string }) {
 
 function loadFailed(t: Translate) {
   return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
-}
-
-function sizeOptions(t: Translate) {
-  return [
-    { value: "", label: t(`${P}.notSet`) },
-    ...GARMENT_LETTER_SIZES.map((s) => ({ value: s, label: s })),
-  ];
 }
 
 function labelled(t: Translate, group: string, value: string) {
@@ -186,75 +178,6 @@ async function ContactsSection({
   );
 }
 
-function UniformSection({ t, d }: { t: Translate; d: WorkDetails | null }) {
-  return (
-    <Section
-      id="work-details-uniform"
-      title={t(`${P}.uniform.title`)}
-      description={t(`${P}.uniform.description`)}
-    >
-      <WorkDetailsForm
-        action={saveUniformAction}
-        hidden={hidden}
-        label={t(`${P}.uniform.title`)}
-        submitLabel={t(`${P}.uniform.save`)}
-        fields={[
-          {
-            kind: "select",
-            name: "shirtSize",
-            label: t(`${P}.uniform.shirt`),
-            defaultValue: d?.shirtSize ?? "",
-            options: sizeOptions(t),
-          },
-          {
-            kind: "select",
-            name: "jacketSize",
-            label: t(`${P}.uniform.jacket`),
-            defaultValue: d?.jacketSize ?? "",
-            options: sizeOptions(t),
-          },
-          {
-            kind: "text",
-            name: "pantsSize",
-            label: t(`${P}.uniform.pants`),
-            help: t(`${P}.uniform.pantsHelp`),
-            defaultValue: d?.pantsSize ?? "",
-            width: 160,
-          },
-          {
-            kind: "text",
-            name: "shoeSize",
-            label: t(`${P}.uniform.shoe`),
-            help: t(`${P}.uniform.shoeHelp`),
-            defaultValue: d?.shoeSize ?? "",
-            width: 160,
-          },
-          {
-            kind: "select",
-            name: "gloveSize",
-            label: t(`${P}.uniform.gloves`),
-            defaultValue: d?.gloveSize ?? "",
-            options: sizeOptions(t),
-          },
-          {
-            kind: "text",
-            name: "hatSize",
-            label: t(`${P}.uniform.hat`),
-            defaultValue: d?.hatSize ?? "",
-            width: 160,
-          },
-          {
-            kind: "textarea",
-            name: "uniformNotes",
-            label: t(`${P}.uniform.notes`),
-            defaultValue: d?.uniformNotes ?? "",
-          },
-        ]}
-      />
-    </Section>
-  );
-}
-
 function NeedsSections({ t, d }: { t: Translate; d: WorkDetails | null }) {
   const dietary = d?.dietaryNeeds ?? [];
   const access = d?.accessibilityNeeds ?? [];
@@ -333,15 +256,8 @@ function NeedsSections({ t, d }: { t: Translate; d: WorkDetails | null }) {
   );
 }
 
-async function TravelSection({
-  ctx,
-  t,
-  d,
-}: {
-  ctx: GatewayContext;
-  t: Translate;
-  d: WorkDetails | null;
-}) {
+/** The travel profile is the loyalty programs since R6a; seat, meal and airport are asked per project. */
+async function LoyaltySection({ ctx, t }: { ctx: GatewayContext; t: Translate }) {
   const programs = await listMyLoyaltyPrograms(ctx.db);
   if (!programs.ok) return loadFailed(t);
   return (
@@ -350,43 +266,6 @@ async function TravelSection({
       title={t(`${P}.travel.title`)}
       description={t(`${P}.travel.description`)}
     >
-      <WorkDetailsForm
-        action={saveTravelAction}
-        hidden={hidden}
-        label={t(`${P}.travel.title`)}
-        submitLabel={t(`${P}.travel.save`)}
-        fields={[
-          {
-            kind: "select",
-            name: "seatPreference",
-            label: t(`${P}.travel.seat`),
-            defaultValue: d?.seatPreference ?? "",
-            options: [
-              { value: "", label: t(`${P}.notSet`) },
-              ...SEAT_PREFERENCES.map((s) => ({
-                value: s,
-                label: labelled(t, "seatPreferences", s),
-              })),
-            ],
-          },
-          {
-            kind: "text",
-            name: "mealPreference",
-            label: t(`${P}.travel.meal`),
-            help: t(`${P}.travel.mealHelp`),
-            defaultValue: d?.mealPreference ?? "",
-          },
-          {
-            kind: "text",
-            name: "homeAirport",
-            label: t(`${P}.travel.airport`),
-            help: t(`${P}.travel.airportHelp`),
-            defaultValue: d?.homeAirport ?? "",
-            width: 120,
-          },
-        ]}
-      />
-      <h3 className="m-0 text-heading-14 font-semibold">{t(`${P}.loyalty.title`)}</h3>
       {programs.data.length === 0 ? (
         <Muted>{t(`${P}.loyalty.none`)}</Muted>
       ) : (
@@ -533,10 +412,19 @@ export async function MyWorkDetailsPanel({ ctx }: { ctx: GatewayContext }) {
   const d = details.data;
   return (
     <div className="flex flex-col gap-32">
+      <div className="max-w-layout-form">
+        <InlineAlert tone="info" title={t(`${P}.notice.title`)}>
+          <span className="flex flex-col gap-4">
+            <span>{t(`${P}.notice.body`)}</span>
+            <Link href={"/work/engagements" as Route} className="text-accent-text underline">
+              {t(`${P}.notice.link`)}
+            </Link>
+          </span>
+        </InlineAlert>
+      </div>
       <ContactsSection ctx={ctx} t={t} region={region} />
-      <UniformSection t={t} d={d} />
       <NeedsSections t={t} d={d} />
-      <TravelSection ctx={ctx} t={t} d={d} />
+      <LoyaltySection ctx={ctx} t={t} />
       <PassportSection t={t} d={d} />
     </div>
   );
@@ -602,7 +490,7 @@ export async function MySharingPanel({
                         label: t(`${P}.sharing.categoriesLabel`, { org: s.orgName }),
                         summary: t(`${P}.dietary.chosen`, { count: s.categories.length }),
                         open: s.shareId === null,
-                        options: WORK_DETAIL_CATEGORIES.map((c) => ({
+                        options: SHAREABLE_WORK_DETAIL_CATEGORIES.map((c) => ({
                           value: c,
                           label: labelled(t, "categories", c),
                           checked: s.categories.includes(c),
