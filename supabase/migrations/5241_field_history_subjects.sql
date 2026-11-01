@@ -1,4 +1,4 @@
--- 2241_field_history_subjects.sql
+-- 5241_field_history_subjects.sql
 --
 -- A131 (RRR-177, S4.10-04, ADR 0090). Section 4.10: "a history tab on every record". 1452 offered field history for
 -- eight tables (records, shifts, invoices, asset units, SOPs, documents, purchase orders and vendors) and 2100 added

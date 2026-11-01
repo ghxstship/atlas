@@ -8,7 +8,7 @@ import { expectAccessible } from "./support";
  * producer, who reads assets org-wide, finds a unit by its tag or serial and a class by its name under the
  * Inventory group, and Enter opens the page's peek. The field lead reads assets at assigned reach (1111): they
  * find the unit checked out to them, but not a unit that is not theirs, nor anything by a class name. pgTAP
- * covers the database side (supabase/tests/2840_inventory_search.test.sql).
+ * covers the database side (supabase/tests/5840_inventory_search.test.sql).
  */
 test.use({ reducedMotion: "reduce" });
 // Each journey opens pages a development server may compile on first visit.

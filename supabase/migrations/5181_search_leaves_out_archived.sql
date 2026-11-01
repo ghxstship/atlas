@@ -1,4 +1,4 @@
--- 2181_search_leaves_out_archived.sql
+-- 5181_search_leaves_out_archived.sql
 -- A124 (RRR-169), trace row S4.10-02. Global search (1440) and the command menu's recent items leave archived records
 -- and documents out (5180). The filter is:archived (es: archivado) searches only the archived ones, so an archived row
 -- can still be found and unarchived; an exact key (NWL-12) finds its record either way. Both functions restate their

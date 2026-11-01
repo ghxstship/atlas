@@ -1,4 +1,4 @@
--- 2800_import_destinations.sql
+-- 5800_import_destinations.sql
 -- P3 Rundown and guest list import (RRR-217, gaps G-84 and G-72, Section 4.6.2). Every import target so far was
 -- org-wide and authorized by an org-wide write capability. Cues and guest list entries are project rows, so their
 -- imports name where the rows go: a running order (cues) or a project (guest list entries), authorized by the

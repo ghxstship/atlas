@@ -1,4 +1,4 @@
--- 2240_kind_attribute_history.sql
+-- 5240_kind_attribute_history.sql
 --
 -- A131 (RRR-177, S4.10-04, ADR 0090, ADR 0022 block 5240-2249). Section 4.10 gives every record a history tab built on
 -- the DiffViewer. A record's own columns had one since 1452, but the attributes of its kind live in its 1:1 extension

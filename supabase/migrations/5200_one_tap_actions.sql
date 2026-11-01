@@ -1,4 +1,4 @@
--- 2200_one_tap_actions.sql
+-- 5200_one_tap_actions.sql
 -- A127 (RRR-172), Section 11.10 rule 5 ("act where notifications arrive"), trace row S11.10-06, ADR 0106.
 --   * private.notification_action_tokens and the Vault key xos_notification_action_key: signed, single-use links an
 --     email carries for the actions its Inbox item offers (approve, reject with a reason, accept). Only a SHA-256 hash

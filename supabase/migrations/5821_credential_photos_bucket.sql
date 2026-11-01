@@ -1,4 +1,4 @@
--- 2821_credential_photos_bucket.sql
+-- 5821_credential_photos_bucket.sql
 -- P5 Printable photo badges (RRR-219, gap G-144). The private credential-photos bucket holds badge photos, one folder per
 -- org and holder: <org_id>/<holder_person_id>/<uuid>.jpg or .png, at most 2 MiB, JPEG or PNG. Names start with the org
 -- id, so an org purge removes them through private.org_storage_objects (1351).

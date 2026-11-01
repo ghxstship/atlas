@@ -1,4 +1,4 @@
--- 2802_cue_and_guest_import_targets.sql
+-- 5802_cue_and_guest_import_targets.sql
 -- P3 Rundown and guest list import (RRR-217, gaps G-84 and G-72, Section 4.6.2): cues and guest list entries become
 -- import wizard targets.
 --   * cues import into a running order (destination run_of_show_id) under show.run_of_show.write; guest list entries

@@ -1,4 +1,4 @@
--- 2184_calendar_feeds_leave_out_archived.sql
+-- 5184_calendar_feeds_leave_out_archived.sql
 -- A124 (RRR-169), trace row S4.10-02. A member or project calendar feed (1410) read app.records on deleted_at only, so
 -- an archived meeting, milestone or deadline (5180) stayed in every subscribed calendar, while a party's person feed
 -- dropped it through api_external.records (5183). It restates the feed's latest definition (1410) with archived records

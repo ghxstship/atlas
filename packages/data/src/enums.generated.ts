@@ -119,6 +119,8 @@ export const applicationState = [
 export const approvalDecision = ["Approved", "Rejected"] as const;
 /** app.approval_policy_state */
 export const approvalPolicyState = ["Draft", "Active", "Retired"] as const;
+/** app.approval_rule_subject */
+export const approvalRuleSubject = ["Pass", "Delivery", "Equipment"] as const;
 /** app.approval_state */
 export const approvalState = ["In Review", "Approved", "Rejected", "Canceled"] as const;
 /** app.asset_lot_movement_kind */
@@ -246,6 +248,17 @@ export const coverageMedium = ["Online", "Print", "Broadcast", "Podcast", "Socia
 export const coverageTone = ["Positive", "Neutral", "Negative"] as const;
 /** app.credential_category_kind */
 export const credentialCategoryKind = ["Access", "Parking"] as const;
+/** app.credential_photo_source */
+export const credentialPhotoSource = ["Holder Upload", "Holder Profile Photo"] as const;
+/** app.credential_photo_state */
+export const credentialPhotoState = [
+  "Provided",
+  "Scanning",
+  "Refused",
+  "Profile",
+  "Requested",
+  "Missing",
+] as const;
 /** app.cue_call_kind */
 export const cueCallKind = ["Audio", "Lighting", "Video", "Special Effects", "Stage"] as const;
 /** app.custom_data_type */

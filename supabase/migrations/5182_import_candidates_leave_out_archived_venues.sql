@@ -1,4 +1,4 @@
--- 2182_import_candidates_leave_out_archived_venues.sql
+-- 5182_import_candidates_leave_out_archived_venues.sql
 -- A124 (RRR-169), trace row S4.10-02. 5180 moved venues archived through deleted_at to archived_at, and a live venue may
 -- now share an archived venue's name. Import duplicate review (private.fuzzy_candidates, 0530) filtered venues on
 -- deleted_at only, so archived venues would come back as candidates to merge an import row into. It restates its

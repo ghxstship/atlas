@@ -1,4 +1,4 @@
--- 2860_approval_rules.sql
+-- 5860_approval_rules.sql
 -- P9 Approval rules (RRR-223, gap G-31, ADR 0138). A project names who approves a pass, a dock booking or an
 -- equipment request before it takes effect, in ordered steps, and an outside approver on an engagement step decides
 -- too. The spend approval engine of 1030 is keyed to spend documents and their amounts, so this is a second, smaller

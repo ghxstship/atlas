@@ -16,8 +16,8 @@ settings:
     help: workflow.settings.remindersEnabled.help
     pages: { org: settings.approval-policies }
     enforced_by:
-      - consumer: supabase/migrations/2862_approval_reminders.sql#private.approval_reminder_settings
-        test: supabase/tests/2862_approval_reminders.test.sql
+      - consumer: supabase/migrations/5862_approval_reminders.sql#private.approval_reminder_settings
+        test: supabase/tests/5862_approval_reminders.test.sql
   - key: approvals.reminder_interval_hours
     type: integer
     min: 4
@@ -29,8 +29,8 @@ settings:
     help: workflow.settings.reminderIntervalHours.help
     pages: { org: settings.approval-policies }
     enforced_by:
-      - consumer: supabase/migrations/2862_approval_reminders.sql#private.approval_reminder_settings
-        test: supabase/tests/2862_approval_reminders.test.sql
+      - consumer: supabase/migrations/5862_approval_reminders.sql#private.approval_reminder_settings
+        test: supabase/tests/5862_approval_reminders.test.sql
   - key: approvals.reminder_limit
     type: integer
     min: 1
@@ -42,5 +42,5 @@ settings:
     help: workflow.settings.reminderLimit.help
     pages: { org: settings.approval-policies }
     enforced_by:
-      - consumer: supabase/migrations/2862_approval_reminders.sql#private.approval_reminder_settings
-        test: supabase/tests/2862_approval_reminders.test.sql
+      - consumer: supabase/migrations/5862_approval_reminders.sql#private.approval_reminder_settings
+        test: supabase/tests/5862_approval_reminders.test.sql
