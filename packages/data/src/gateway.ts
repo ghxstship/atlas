@@ -641,6 +641,8 @@ export interface AccountMember {
   readonly fullName: string | null;
   readonly validFrom: string;
   readonly roles: readonly AccountRole[];
+  /** When the member confirmed (R4); null while not confirmed. */
+  readonly acceptedAt: string | null;
 }
 
 /** The roster of one account the caller belongs to, by name. */
@@ -650,7 +652,9 @@ export async function listAccountMembers(
 ): Promise<Result<AccountMember[]>> {
   const { data, error } = await external(db)
     .from("account_members")
-    .select("account_membership_id, account_id, person_id, full_name, valid_from, valid_to, roles")
+    .select(
+      "account_membership_id, account_id, person_id, full_name, valid_from, valid_to, roles, accepted_at",
+    )
     .eq("account_id", accountId);
   if (error) return fail(toDataError(error));
   const members = data.map((row) => ({
@@ -659,6 +663,7 @@ export async function listAccountMembers(
     personId: req(row.person_id, "account_members.person_id"),
     fullName: row.full_name,
     validFrom: req(row.valid_from, "account_members.valid_from"),
+    acceptedAt: row.accepted_at ?? null,
     roles: ACCOUNT_ROLE_ORDER.filter((r) => (row.roles ?? []).includes(r)),
   }));
   return ok(members.sort((a, b) => (a.fullName ?? "").localeCompare(b.fullName ?? "")));

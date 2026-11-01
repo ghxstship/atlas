@@ -71,7 +71,9 @@ select coalesce(json_agg(json_build_object(
         join pg_catalog.pg_namespace fn on fn.oid = fc.relnamespace
         join pg_catalog.pg_attribute fa
           on fa.attrelid = con.confrelid and fa.attnum = con.confkey[array_position(con.conkey, a.attnum)]
-        where con.conrelid = r.oid and con.contype = 'f' and a.attnum = any (con.conkey)
+        -- A key into a partitioned table also has a clone per partition (conparentid set), named after the
+        -- month the partition covers; only the key itself, on the parent, keeps the dictionary the same every month.
+        where con.conrelid = r.oid and con.contype = 'f' and con.conparentid = 0 and a.attnum = any (con.conkey)
         order by con.conname
         limit 1)
     ) order by a.attnum)

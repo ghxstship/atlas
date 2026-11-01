@@ -15,12 +15,15 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useCopy } from "./action-ui";
 import { formatWhen, stateToken, withQuery } from "./format";
 import { shiftMonth } from "./record-collection";
 import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { CollectionViews } from "@/components/views/collection-views";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 
 export interface RecurringItem {
   readonly record: RecordSummary;
@@ -32,6 +35,8 @@ export interface RecurringItem {
 /**
  * Work > Recurring (Section 4.5.5): records that repeat, with their rule and next occurrences, as a
  * list, table or calendar of occurrences. The rule is edited on the record, so rows open its peek.
+ * The table selects records for the record collections' bulk changes, and each row's menu offers
+ * the same (Section 11.7).
  */
 export function RecurringCollection({
   org,
@@ -42,6 +47,7 @@ export function RecurringCollection({
   month,
   today,
   peek,
+  bulk,
 }: {
   org: string;
   title: string;
@@ -51,6 +57,8 @@ export function RecurringCollection({
   month: string;
   today: string;
   peek: ReactNode;
+  /** Bulk edit of the table view's selection, for people who may change records. */
+  bulk?: BulkConfig | null;
 }) {
   const t = useCopy("work");
   const router = useRouter();
@@ -62,6 +70,12 @@ export function RecurringCollection({
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const open = (key: string) =>
     router.push(withQuery(pathname, params, { peek: key }) as Route, { scroll: false });
+  const bulkRows = useMemo(
+    () => items.map((i) => ({ id: i.record.id, label: i.record.key })),
+    [items],
+  );
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const rowMenu = useRowMenu();
   const upcoming = (i: RecurringItem) =>
     i.next
       .filter((n) => n.at >= `${today}T00:00:00`)
@@ -98,25 +112,45 @@ export function RecurringCollection({
     );
   } else if (view === "table") {
     body = (
-      <DataTable
-        caption={title}
-        columns={[
-          { key: "key", label: t("columns.key"), type: "code" },
-          { key: "title", label: t("columns.title"), wrap: true },
-          { key: "state", label: t("columns.state"), type: "state" },
-          { key: "rule", label: t("columns.rule") },
-          { key: "next", label: t("columns.next"), wrap: true },
-        ]}
-        rows={items.map((i) => ({
-          id: i.record.key,
-          key: i.record.key,
-          title: i.record.title,
-          state: { state: stateToken(i.record.state), label: t(`states.${i.record.state}`) },
-          rule: i.rule,
-          next: upcoming(i) || t("values.noDate"),
-        }))}
-        onRowActivate={(row) => open(String(row["key"]))}
-      />
+      <>
+        <DataTable
+          caption={title}
+          columns={[
+            { key: "key", label: t("columns.key"), type: "code" },
+            { key: "title", label: t("columns.title"), wrap: true },
+            { key: "state", label: t("columns.state"), type: "state" },
+            { key: "rule", label: t("columns.rule") },
+            { key: "next", label: t("columns.next"), wrap: true },
+          ]}
+          rows={items.map((i) => ({
+            id: i.record.id,
+            key: i.record.key,
+            title: i.record.title,
+            state: { state: stateToken(i.record.state), label: t(`states.${i.record.state}`) },
+            rule: i.rule,
+            next: upcoming(i) || t("values.noDate"),
+          }))}
+          onRowActivate={(row) => open(String(row["key"]))}
+          onRowContextMenu={(_row, index, at, cell) => {
+            const i = items[index];
+            if (!i) return;
+            rowMenu.open(
+              {
+                id: i.record.id,
+                label: i.record.key,
+                open: () => open(i.record.key),
+                href: `/${org}/r/${encodeURIComponent(i.record.key)}`,
+                bulk: bulkKit,
+              },
+              at,
+              cell,
+            );
+          }}
+          {...(bulkKit.selection ? { selection: bulkKit.selection } : {})}
+        />
+        {bulkKit.bar}
+        {rowMenu.menu}
+      </>
     );
   } else if (view === "calendar") {
     const byLabel = new Map<string, string>();

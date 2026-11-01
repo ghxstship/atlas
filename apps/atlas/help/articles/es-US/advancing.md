@@ -9,6 +9,7 @@ nodes:
     advancing.submissions,
     advancing.riders,
     advancing.reconciliation,
+    advancing.crew,
     project.advancing,
   ]
 order: 42
@@ -25,3 +26,7 @@ Los paquetes completados llegan como respuestas. Los riders indican los requisit
 ## Conciliación
 
 Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.
+
+## Lista del equipo
+
+Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.

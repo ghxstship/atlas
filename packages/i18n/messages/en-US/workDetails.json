@@ -221,5 +221,7 @@
     "offline": "Your work details load when you are online.",
     "failed": "Your work details did not load. Open your profile again to retry.",
     "noSizes": "No uniform sizes yet."
-  }
+  },
+  "allergiesOnFile": "On file",
+  "allergiesMasked": "Allergies are on file. They are not shown to you."
 }

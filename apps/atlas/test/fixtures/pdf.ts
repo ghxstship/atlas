@@ -35,16 +35,29 @@ export function twoPagePdf(options: { readonly encrypted?: boolean } = {}): Uint
   return new TextEncoder().encode(body);
 }
 
-/** The content of every stream in a PDF, inflated when compressed, lowercased. */
+/**
+ * The content of every stream in a PDF, inflated when compressed, lowercased. Each stream is read by
+ * its dictionary's direct /Length: compressed data may end in a carriage return, which a match on
+ * the "\r\nendstream" delimiter would take as part of the delimiter, leaving a stream that no longer
+ * inflates. A stream without a direct length is read up to the delimiter.
+ */
 export function pdfStreams(bytes: Uint8Array): string {
   const text = Buffer.from(bytes).toString("latin1");
   const out: string[] = [];
-  for (const m of text.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
-    const raw = Buffer.from(m[1] ?? "", "latin1");
+  for (const m of text.matchAll(/(?<![a-z])stream\r?\n/g)) {
+    const at = m.index ?? 0;
+    const start = at + m[0].length;
+    const dict = text.slice(text.lastIndexOf(" obj", at), at);
+    const length = /\/Length (\d+)(?! \d+ R)/.exec(dict);
+    let raw = length
+      ? text.slice(start, start + Number(length[1]))
+      : text.slice(start, text.indexOf("endstream", start));
+    if (!length) raw = raw.replace(/\r?\n$/, "");
+    const data = Buffer.from(raw, "latin1");
     try {
-      out.push(inflateSync(raw).toString("latin1"));
+      out.push(inflateSync(data).toString("latin1"));
     } catch {
-      out.push(raw.toString("latin1"));
+      out.push(data.toString("latin1"));
     }
   }
   return out.join("\n").toLowerCase();

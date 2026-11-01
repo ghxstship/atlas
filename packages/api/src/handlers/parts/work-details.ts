@@ -161,20 +161,30 @@ export const workDetailHandlers = {
     await run(rpc(context.db, "revoke_work_detail_share", { p_work_detail_share_id: params.id }));
     return ok((await shares.read(context, params.id)) as WorkDetailShare);
   },
+  // Shares key on a roster entry since R4 (2638); a share from before then reads by its engagement.
   "workDetailShares.details": async ({ params }, context) => {
-    const share = await shares.read(context, params.id, ["id", "engagement_id"]);
+    const share = await shares.read(context, params.id, ["id", "engagement_id", "roster_entry_id"]);
     const details = await run<Components["SharedWorkDetails"]>(
-      rpc(context.db, "shared_work_details", { p_engagement_id: share["engagement_id"] }),
+      share["roster_entry_id"]
+        ? rpc(context.db, "roster_shared_work_details", {
+            p_roster_entry_id: share["roster_entry_id"],
+          })
+        : rpc(context.db, "shared_work_details", { p_engagement_id: share["engagement_id"] }),
     );
     return ok(details);
   },
   "workDetailShares.revealPassport": async ({ params, body }, context) => {
-    const share = await shares.read(context, params.id, ["id", "engagement_id"]);
+    const share = await shares.read(context, params.id, ["id", "engagement_id", "roster_entry_id"]);
     const value = await run<string>(
-      rpc(context.db, "reveal_shared_passport_number", {
-        p_engagement_id: share["engagement_id"],
-        p_reason: body.reason,
-      }),
+      share["roster_entry_id"]
+        ? rpc(context.db, "reveal_roster_passport_number", {
+            p_roster_entry_id: share["roster_entry_id"],
+            p_reason: body.reason,
+          })
+        : rpc(context.db, "reveal_shared_passport_number", {
+            p_engagement_id: share["engagement_id"],
+            p_reason: body.reason,
+          }),
     );
     return ok({ passport_number: value });
   },

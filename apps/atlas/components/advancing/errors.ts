@@ -31,4 +31,9 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   // R2: a rider belongs to a live Artist engagement of its own project (migration 2611).
   "rider_engagement_artist",
   "same_project",
+  // R4: crew roster review (migration 2635).
+  "sod_roster_reviewer",
+  "roster_entry_not_submitted",
+  "roster_review_reason",
+  "roster_review_outcome",
 ]);

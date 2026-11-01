@@ -252,6 +252,7 @@ describe("Identity: work detail shares and the access log", () => {
   const SHARE = id(31);
   const ENGAGEMENT = id(41);
   const CONSENT = id(51);
+  const ENTRY = id(81);
 
   function world() {
     const shares: Row[] = [
@@ -262,8 +263,39 @@ describe("Identity: work detail shares and the access log", () => {
         categories: ["Dietary Needs", "Passport"],
         shared_at: "2026-10-01T12:00:00.000Z",
         revoked_at: null,
+        roster_entry_id: ENTRY,
       }),
     ];
+    const details = (rosterEntryId: unknown) => ({
+      engagement_id: ENGAGEMENT,
+      person_id: ME,
+      org_id: ORG,
+      roster_entry_id: rosterEntryId,
+      reader: "org",
+      work_detail_share_id: SHARE,
+      shared_at: "2026-10-01T12:00:00.000Z",
+      sharing_open: true,
+      categories: ["Dietary Needs", "Passport"],
+      readable: ["Dietary Needs", "Passport"],
+      emergency_contacts: null,
+      uniform: null,
+      dietary: {
+        dietary_needs: ["Vegan"],
+        allergies: "Peanuts, severe",
+        allergies_on_file: true,
+        dietary_notes: null,
+      },
+      accessibility: null,
+      travel: null,
+      passport: {
+        passport_number: null,
+        passport_number_last4: "TEST",
+        passport_number_masked: true,
+        passport_issuing_country: "IT",
+        passport_expires_on: "2031-04-30",
+        passport_name: "IVY MARCHETTI",
+      },
+    });
     const db = memoryDb(
       {
         work_detail_shares: shares,
@@ -307,29 +339,14 @@ describe("Identity: work detail shares and the access log", () => {
           row["revoked_at"] = "2026-10-04T12:00:00.000Z";
           return null;
         },
-        shared_work_details: (args) => ({
-          engagement_id: args["p_engagement_id"],
-          person_id: ME,
-          org_id: ORG,
-          work_detail_share_id: SHARE,
-          shared_at: "2026-10-01T12:00:00.000Z",
-          sharing_open: true,
-          categories: ["Dietary Needs", "Passport"],
-          readable: ["Dietary Needs", "Passport"],
-          emergency_contacts: null,
-          uniform: null,
-          dietary: { dietary_needs: ["Vegan"], allergies: "Peanuts, severe", dietary_notes: null },
-          accessibility: null,
-          travel: null,
-          passport: {
-            passport_number: null,
-            passport_number_last4: "TEST",
-            passport_number_masked: true,
-            passport_issuing_country: "IT",
-            passport_expires_on: "2031-04-30",
-            passport_name: "IVY MARCHETTI",
-          },
-        }),
+        // A share made before roster entries reads by its engagement (shared_work_details).
+        shared_work_details: () => details(null),
+        roster_shared_work_details: (args) => details(args["p_roster_entry_id"]),
+        reveal_roster_passport_number: (args) => {
+          if (args["p_roster_entry_id"] !== ENTRY) throw refusal("work_detail_not_shared");
+          if (String(args["p_reason"]).length < 10) throw refusal("passport_reveal_reason");
+          return "YA0000TEST";
+        },
         reveal_shared_passport_number: (args) => {
           if (String(args["p_reason"]).length < 10) throw refusal("passport_reveal_reason");
           return "YA0000TEST";
@@ -383,6 +400,8 @@ describe("Identity: work detail shares and the access log", () => {
     )) as { passport: { passport_number: null; passport_number_masked: boolean } };
     expect(details.passport.passport_number).toBeNull();
     expect(details.passport.passport_number_masked).toBe(true);
+    // The share keys on a roster entry (R4), so the read and the reveal go through it.
+    expect((details as unknown as { roster_entry_id: string }).roster_entry_id).toBe(ENTRY);
     expect(
       (await http.post(`/work-detail-shares/${SHARE}/reveal-passport`, { reason: "Flights" }))
         .status,

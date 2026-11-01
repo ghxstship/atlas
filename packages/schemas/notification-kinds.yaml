@@ -80,6 +80,9 @@ email_templates:
   - code: subprocessor_notice
     transactional: false
     description: Announces a Subprocessor List change at least 30 days before it applies.
+  - code: party_invitation
+    transactional: true
+    description: Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.
 
 categories:
   - code: mentions
@@ -457,3 +460,19 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1463_expiry_reminders.sql#private.send_expiry_reminders
         test: supabase/tests/1463_expiry_reminders.test.sql
+  # Crew roster (R4: 2642)
+  - kind: roster_entry.invited
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_person
+        test: supabase/tests/2642_roster_notifications.test.sql
+  - kind: roster_entry.returned
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_returned
+        test: supabase/tests/2642_roster_notifications.test.sql
+  - kind: roster_entry.declined
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_declined
+        test: supabase/tests/2642_roster_notifications.test.sql

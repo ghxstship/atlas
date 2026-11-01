@@ -692,6 +692,11 @@
       },
       "content": {
         "removed": "Your content removed"
+      },
+      "roster_entry": {
+        "invited": "Put on a crew roster",
+        "returned": "Roster entry returned",
+        "declined": "Roster entry declined"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

@@ -41,7 +41,8 @@
         "packets": "Paquetes",
         "submissions": "Respuestas recibidas",
         "riders": "Riders",
-        "reconciliation": "Conciliación"
+        "reconciliation": "Conciliación",
+        "crew": "Lista del equipo"
       },
       "places": {
         "venues": "Recintos",
@@ -398,7 +399,8 @@
       "reports": "Informes",
       "invoices": "Facturas",
       "documents": "Documentos",
-      "messages": "Mensajes"
+      "messages": "Mensajes",
+      "crew": "Equipo"
     },
     "avatar": {
       "settings": "Configuración",
