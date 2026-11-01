@@ -1065,7 +1065,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hospitality is for artists. It starts with your stay, day by day: your flights and ground transport, your hotel's check-in and check-out and your set times. Anything the production changed since you last looked carries a tag that names what changed, such as a new set time, and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them.",
+            v: "Hospitality is for artists. It starts with your stay, day by day: your flights, your hotel's check-in and check-out, the pickups and runs that carry you or the people you answer for (with the driver, vehicle and times), the rooms booked for you and your set times. Anything the production changed since you last looked carries a tag that names what changed, such as a new set time, and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them. Pickups and booked rooms are placed on their day but never tagged.",
           },
         ],
       },
@@ -1075,15 +1075,6 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Below your stay come catering and the other items the production arranged, with their time and supplier.",
-          },
-        ],
-      },
-      {
-        t: "p",
-        c: [
-          {
-            t: "text",
-            v: "Ground transport lists the pickups and runs that carry you or the people you answer for, with the driver, vehicle and times.",
           },
         ],
       },
@@ -2054,7 +2045,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Your whole stay, day by day: each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel, and your hotel's check-in and check-out on their dates. A leg sits on the day it departs, in the time zone of its departure.",
+            v: "Your whole stay, day by day: each leg from one place to another, with the carrier and service number, departure and arrival times, the confirmation code and the mode of travel, your hotel's check-in and check-out on their dates, and your ground transport: where and when you are picked up, the drop-off, the driver and vehicle, the flight it meets, and who rides with you (if you drive, every passenger is listed). A leg sits on the day it departs and a pickup on its day, each in its own time zone.",
           },
         ],
       },
@@ -2063,7 +2054,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: 'Anything the organization changed since you last looked carries a tag that names what changed, such as "Changed since you last looked: Departure", and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them. The tags start from your second visit.',
+            v: 'Anything the organization changed since you last looked carries a tag that names what changed, such as "Changed since you last looked: Departure", and anything it removed is listed under Removed since you last looked. A visit lasts 30 minutes, so refreshing the page keeps the tags; Mark all as seen clears them. The tags start from your second visit. Ground transport is placed on its day but never tagged.',
           },
         ],
       },
@@ -2072,16 +2063,6 @@ export const HELP_BODIES: HelpBodies = {
         t: "p",
         c: [
           { t: "text", v: "Other travel the organization arranged, with its time and supplier." },
-        ],
-      },
-      { t: "h2", v: "Ground transport" },
-      {
-        t: "p",
-        c: [
-          {
-            t: "text",
-            v: "Your pickups and other runs by car or van: where and when you are picked up, the drop-off, the driver and vehicle, the flight it meets, and who rides with you. If you drive, every passenger is listed.",
-          },
         ],
       },
       { t: "h2", v: "Local contacts" },
@@ -5141,7 +5122,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hospitalidad es para artistas. Empieza con tu estadía, día por día: tus vuelos y traslados, la entrada y salida de tu hotel y tus horarios de presentación. Lo que la producción cambió desde tu última visita lleva una etiqueta que dice qué cambió, como un nuevo horario de presentación, y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita.",
+            v: "Hospitalidad es para artistas. Empieza con tu estadía, día por día: tus vuelos, la entrada y salida de tu hotel, las recogidas y los recorridos que te llevan a ti o a las personas por las que respondes (con el conductor, el vehículo y los horarios), las salas reservadas para ti y tus horarios de presentación. Lo que la producción cambió desde tu última visita lleva una etiqueta que dice qué cambió, como un nuevo horario de presentación, y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita. Las recogidas y las salas reservadas aparecen en su día pero nunca llevan etiqueta.",
           },
         ],
       },
@@ -5151,15 +5132,6 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Debajo de tu estadía aparecen la comida y los demás elementos que organizó la producción, con su hora y proveedor.",
-          },
-        ],
-      },
-      {
-        t: "p",
-        c: [
-          {
-            t: "text",
-            v: "Transporte terrestre muestra las recogidas y los recorridos que te llevan a ti o a las personas por las que respondes, con el conductor, el vehículo y los horarios.",
           },
         ],
       },
@@ -6148,7 +6120,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Toda tu estadía, día por día: cada tramo de un lugar a otro, con la empresa y el número de servicio, las horas de salida y llegada, el código de confirmación y el medio de transporte, y la entrada y salida de tu hotel en sus fechas. Un tramo aparece el día en que sale, en la zona horaria de su salida.",
+            v: "Toda tu estadía, día por día: cada tramo de un lugar a otro, con la empresa y el número de servicio, las horas de salida y llegada, el código de confirmación y el medio de transporte, la entrada y salida de tu hotel en sus fechas, y tu transporte terrestre: dónde y cuándo te recogen, el destino, el conductor y el vehículo, el vuelo que recibe y quién viaja contigo (si conduces, aparecen todos los pasajeros). Un tramo aparece el día en que sale y una recogida en su día, cada uno en su propia zona horaria.",
           },
         ],
       },
@@ -6157,7 +6129,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: 'Lo que la organización cambió desde tu última visita lleva una etiqueta que dice qué cambió, como "Cambió desde tu última visita: Salida", y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita. Las etiquetas empiezan a partir de tu segunda visita.',
+            v: 'Lo que la organización cambió desde tu última visita lleva una etiqueta que dice qué cambió, como "Cambió desde tu última visita: Salida", y lo que eliminó aparece en Eliminado desde tu última visita. Una visita dura 30 minutos, así que al actualizar la página las etiquetas se mantienen; Marcar todo como visto las quita. Las etiquetas empiezan a partir de tu segunda visita. El transporte terrestre aparece en su día pero nunca lleva etiqueta.',
           },
         ],
       },
@@ -6166,16 +6138,6 @@ export const HELP_BODIES: HelpBodies = {
         t: "p",
         c: [
           { t: "text", v: "Otros viajes que organizó la organización, con su hora y proveedor." },
-        ],
-      },
-      { t: "h2", v: "Transporte terrestre" },
-      {
-        t: "p",
-        c: [
-          {
-            t: "text",
-            v: "Tus recogidas y otros recorridos en auto o van: dónde y cuándo te recogen, el destino, el conductor y el vehículo, el vuelo que recibe y quién viaja contigo. Si conduces, aparecen todos los pasajeros.",
-          },
         ],
       },
       { t: "h2", v: "Contactos locales" },
