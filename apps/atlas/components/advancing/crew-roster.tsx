@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { CollectionPage } from "@/components/platform/collection-page";
 import {
   crewBulkConfig,
   groupByParty,
@@ -80,12 +81,16 @@ export async function CrewRoster({
   if (peekId && isRowId(peekId) && !peek) notFound();
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={rows.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={rows.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+        />
+      }
+    >
       <p className="m-0 text-text-13 text-text-secondary">{t("advancing.crew.sentence")}</p>
       <SelectFilter
         id="crew-state"
@@ -196,6 +201,6 @@ export async function CrewRoster({
       <LiveRefresh
         topics={[{ table: "engagement_roster_entries", filter: `org_id=eq.${ctx.org.id}` }]}
       />
-    </div>
+    </CollectionPage>
   );
 }
