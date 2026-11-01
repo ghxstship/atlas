@@ -279,7 +279,7 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
                   value:
                     formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate"),
                 },
-                // A hidden client's listing names only its city until the caller is booked (2871).
+                // A hidden client's listing names only its city until the caller is booked (3871).
                 ...((o.venueName ?? (o.clientHidden ? o.venueLocality : null))
                   ? [
                       {

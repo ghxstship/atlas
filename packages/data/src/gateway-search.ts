@@ -7,7 +7,7 @@ import type { ParsedSearch } from "./search-query.ts";
 /**
  * Gateway search (Section 11.10 item 1, trace S11.10-02, A126, ADR 0088): the command menu and the phone
  * Home search the signed-in person's own engagements, engagement documents, conversations and
- * opportunities through app.gateway_search (migration 2190). The function is SECURITY DEFINER and applies
+ * opportunities through app.gateway_search (migration 3190). The function is SECURITY DEFINER and applies
  * the Section 8.7 helpers the api_external projections apply, so it returns only what the person reads in
  * Gateway. Words, quoted phrases and exclusions come from the same grammar as Atlas's command menu
  * (`@xos/data/search-query`); Atlas's record operators do not apply to Gateway and are left out.

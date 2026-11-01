@@ -113,7 +113,7 @@ export const additions = defineAdditions("Opportunities", {
       change:
         "Adds `hide_client_until_booked`, optional on create and update; it can be turned on only while the opportunity is Draft or Pending Approval.",
       reason:
-        "app.opportunities.hide_client_until_booked (2870, P10): crew see the org, the city, the dates and the pay until they are booked, and the title and description cannot name the project, its client or the venue (opportunity_hidden_client_named, opportunity_hidden_client_published).",
+        "app.opportunities.hide_client_until_booked (3870, P10): crew see the org, the city, the dates and the pay until they are booked, and the title and description cannot name the project, its client or the venue (opportunity_hidden_client_named, opportunity_hidden_client_published).",
       apply: editShape({
         add: {
           hide_client_until_booked: {

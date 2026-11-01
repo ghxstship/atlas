@@ -57,7 +57,7 @@ export interface Opportunity {
   readonly state: OpportunityState;
   readonly positionCount: number;
   /**
-   * The org hides the client and event until the caller is booked (2871): the venue name is null and the venue point is
+   * The org hides the client and event until the caller is booked (3871): the venue name is null and the venue point is
    * rounded to 1 decimal, so show the locality instead.
    */
   readonly clientHidden: boolean;

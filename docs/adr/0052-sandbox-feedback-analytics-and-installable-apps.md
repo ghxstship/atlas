@@ -3,8 +3,8 @@
 - Status: Accepted
 - Date: 2026-10-21
 - Decider: A96 (RRR-141), within the work package; the owner steps at the end need the owner
-- Amended: 2026-10-28, A146 (RRR-178): workflow funnels and regression alerts (section 6, migration 2340)
-- Related: findings A65-022 and A65-023; Sections 4.10, 7.3, 11.7 and 11.14; ADR 0011, ADR 0027, ADR 0030, ADR 0033 (decisions 1 and 35); migrations 1034, 1270, 1361, 1367, 1530 to 1533 and 2340
+- Amended: 2026-10-28, A146 (RRR-178): workflow funnels and regression alerts (section 6, migration 3340)
+- Related: findings A65-022 and A65-023; Sections 4.10, 7.3, 11.7 and 11.14; ADR 0011, ADR 0027, ADR 0030, ADR 0033 (decisions 1 and 35); migrations 1034, 1270, 1361, 1367, 1530 to 1533 and 3340
 
 ## Context
 
@@ -86,12 +86,12 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
   - 429 and server errors are retried.
 - The Edge Function reads `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` with `XOS_WEB_PUSH_TRANSPORT=vapid`, and records pushes otherwise. The apps read the same `VAPID_PUBLIC_KEY`; unset, the setting says browser notifications are not set up yet. Tests generate every key at runtime.
 
-### 6. Workflow funnels and regression alerts (A146, 2340)
+### 6. Workflow funnels and regression alerts (A146, 3340)
 
 - **One registry.** `packages/data/src/product-workflows.ts` names every workflow funnel: its app, owning team, steps
   and target completion rate. Every workflow event name comes from it.
   - A funnel is Workflow Started, Workflow Step 1 to n, then Workflow Completed.
-  - Migration 2340 holds the same funnels in `private.product_funnels`, and a unit test keeps the two equal.
+  - Migration 3340 holds the same funnels in `private.product_funnels`, and a unit test keeps the two equal.
 - **Signals.** Pages send `<workflow>:start`, `<workflow>:step<n>` or `<workflow>:done` in three ways:
   - a page view of a route template the registry lists, with no code in the page;
   - a `data-workflow` attribute (`workflowMarker`). On a link, button or form it signals when clicked or submitted.
@@ -152,7 +152,7 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
 3. **Push services review.** Browsers deliver through their vendor's push service (Google, Apple, Mozilla, Microsoft), which carries only an encrypted payload. Counsel decides whether `legal/subprocessors.md` lists them, as it lists Expo for Compass.
 4. **Platform staff.** Name the people who triage feedback: A90's roster once it lands, or rows in `private.platform_staff` until then.
 5. **App icons.** When the platform marks are set, replace the brand slots. A 1024 px PNG app icon serves iOS home screens better than the SVG slot.
-6. **Funnel targets and teams.** Review the starting completion targets and owning teams in `private.product_funnels` (2340) and the registry once production funnels have a few weeks of data.
+6. **Funnel targets and teams.** Review the starting completion targets and owning teams in `private.product_funnels` (3340) and the registry once production funnels have a few weeks of data.
 7. **Compass analytics consent.** Decide whether Compass asks for analytics consent, so its eight workflows can send funnel events.
 
 ## Consequences

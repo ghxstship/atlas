@@ -7,7 +7,7 @@ const obj = (v: unknown): Raw =>
   typeof v === "object" && v !== null && !Array.isArray(v) ? (v as Raw) : {};
 
 /**
- * The workflow funnels in the operator console (A146, migration 2340, ADR 0052): each Sections 11.11 to 11.13
+ * The workflow funnels in the operator console (A146, migration 3340, ADR 0052): each Sections 11.11 to 11.13
  * workflow's funnel over the last 24 hours against its target and the 7 days before, and the regression alerts the
  * hourly check raised for the owning team. Counts only, never a person, an org or a path. Every operator role reads
  * them (tenants.read) and may acknowledge an alert, which the console ledger records.

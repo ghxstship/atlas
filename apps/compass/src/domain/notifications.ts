@@ -177,7 +177,7 @@ export interface InboxNotificationRow {
   readonly orgSlug: string | null;
   /** The org the notification belongs to, for the role lens of the active org (A128). */
   readonly orgId?: string | null;
-  /** For an approval request, the role the step it waits on names (app.inbox_items, 2211), for the role lens. */
+  /** For an approval request, the role the step it waits on names (app.inbox_items, 3211), for the role lens. */
   readonly approverRoleId?: string | null;
   /** The record key read from the record and its project when the notification carries none. */
   readonly lookedUpRecordKey: string | null;

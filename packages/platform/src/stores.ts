@@ -358,7 +358,7 @@ export function notificationStore(
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? undefined;
       const slug = text(org, "slug");
       const name = text(org, "name");
-      // While white label is in force (2310), the org's brand name, sender name, support address,
+      // While white label is in force (3310), the org's brand name, sender name, support address,
       // logo and accent; platform notices keep the platform brand.
       const brand =
         kind !== undefined && isPlatformEmailKind(kind)

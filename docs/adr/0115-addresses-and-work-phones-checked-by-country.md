@@ -41,7 +41,7 @@ partial address, and a postal code alone is what a later process (tax filing, sh
 | Vendor           | New `country_code` beside the address | Vendor record, Mailing address                                               |
 | W-9 (tax form)   | Always US                             | Gateway Tax Documents                                                        |
 
-Vendors and legal entities gain address columns (2320); the legal entity address reads through
+Vendors and legal entities gain address columns (3320); the legal entity address reads through
 `app.org_legal_entities_masked`, appended so existing columns keep their places. A vendor's address fields need its
 country (`vendors_address_country`). The W-9 keeps the ZIP constraint of 1124.
 

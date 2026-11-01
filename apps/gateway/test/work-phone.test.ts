@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * A139: a work phone saved on Gateway's Preferences is read in the person's region with toE164 and stored in
- * E.164, the form the 2321 check requires; anything that is not a phone number is refused before it is sent.
+ * E.164, the form the 3321 check requires; anything that is not a phone number is refused before it is sent.
  */
 
 const request = vi.hoisted(() => ({

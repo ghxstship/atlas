@@ -302,7 +302,7 @@ export interface RescheduleMove {
 
 /**
  * Moves or resizes a record by whole days and pushes the successors its dependencies need moved
- * (app.reschedule_record, migration 2260, ADR 0111). Without `commit` it only previews: the same
+ * (app.reschedule_record, migration 3260, ADR 0111). Without `commit` it only previews: the same
  * rows, nothing written. Cycles, locked records and impossible windows come back as refusals.
  */
 export async function rescheduleRecord(

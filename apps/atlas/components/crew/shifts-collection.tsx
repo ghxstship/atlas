@@ -728,7 +728,7 @@ export async function ShiftsCollection(props: {
     // Crew fill (Section 11.11): planners get the drag board with its live meter; readers see the meter.
     const fill = fillRate(shifts.map((s) => ({ state: s.state, assigned: s.member !== null })));
     const fillText = t("crew.scheduling.fill.value", { ...fill });
-    // Open shifts on projects the planner may staff: crew.shift.write can reach some projects only (2252).
+    // Open shifts on projects the planner may staff: crew.shift.write can reach some projects only (3252).
     const staffableOpen = canWrite
       ? shifts.filter(
           (s) => s.member === null && s.state !== "Canceled" && staffable.has(s.projectId),

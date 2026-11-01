@@ -20,7 +20,7 @@ export interface InboxApproval {
   readonly currency: string | null;
   readonly state: string;
   readonly currentStep: number;
-  /** The role the step it waits on names, or null when the step names one member (2211, for the role lens). */
+  /** The role the step it waits on names, or null when the step names one member (3211, for the role lens). */
   readonly approverRoleId: string | null;
 }
 

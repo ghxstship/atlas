@@ -19,7 +19,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
- * A132's settings panels (RRR-194, migrations 2250 and 2251, ADR 0063):
+ * A132's settings panels (RRR-194, migrations 3250 and 3251, ADR 0063):
  *   Settings, Scheduling   the org's shift templates (role, call and wrap, headcount, break), which planners lay
  *                          onto days from the crew schedule; kept by holders of org.scheduling.write and read by
  *                          every member. The availability window is the registry settings above.

@@ -15,7 +15,7 @@
 //     quiet hours go out as one summary per member and org when the quiet hours end (ADR 0033 decision 35).
 // One channel failing never stops the others: its error is logged and reported in the answer.
 //   * A white-label org's email wears its logo, accent and sender name and replies go to its support address
-//     (A138, migration 2310); billing and plan notices stay platform-branded.
+//     (A138, migration 3310); billing and plan notices stay platform-branded.
 // React Email, the templates and Resend load only when an email is rendered or sent (A85), so the many runs
 // with nothing due boot without them.
 import {

@@ -11,7 +11,7 @@ import {
  * Postal addresses in Atlas forms (Section 15, A139): venue, vendor and legal entity addresses lay out
  * and validate by country from Google's address metadata (@xos/i18n/formats). The layout is computed on
  * the server and handed to the form, so no address metadata reaches the browser. The database checks
- * the postal code again with the same patterns (migration 2320).
+ * the postal code again with the same patterns (migration 3320).
  */
 
 /** The address fields Atlas records; recipient, organization and sorting code live elsewhere or nowhere. */

@@ -285,7 +285,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
     getOpportunityDefaults(ctx.viewer.db, ctx.org.id),
     listQuestionTemplates(ctx.viewer.db, ctx.org.id),
   ]);
-  // The org's opportunity defaults and question templates prefill the form (2290); every value stays editable.
+  // The org's opportunity defaults and question templates prefill the form (3290); every value stays editable.
   const defaults = savedDefaults.ok ? savedDefaults.data : NO_DEFAULTS;
   const templateRows = templates.ok ? templates.data : [];
   const deadline = defaultDeadline(new Date(), defaults.applicationWindowDays);
@@ -432,7 +432,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
 }
 
 /**
- * The hidden-client choice once a posting is past Pending Approval (2870): a listing that already showed its client and
+ * The hidden-client choice once a posting is past Pending Approval (3870): a listing that already showed its client and
  * event cannot hide them again, so the box is disabled while it is off; while it is on, it can still be turned off.
  */
 function PostedClientHidden({

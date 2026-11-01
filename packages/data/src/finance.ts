@@ -898,7 +898,7 @@ export interface BudgetLine {
   readonly drawnOutMinor: number;
   /**
    * What approved, sent and closed purchase orders commit against the line in the budget's currency
-   * (app.budget_line_commitments, 2810); null when withheld or when a counted line is unpriced.
+   * (app.budget_line_commitments, 3810); null when withheld or when a counted line is unpriced.
    */
   readonly committedMinor: number | null;
   /** True when the viewer cannot read the project's purchase orders, so Committed stays blank. */

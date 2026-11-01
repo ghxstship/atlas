@@ -1,6 +1,6 @@
 // Wallet passes for Compass (A93, RRR-138; Section 11.10 item 14): the signed-in person posts which of their
 // own passes they want (a credential or a shift), for which wallet, and its labels in their language. The
-// pass is read with the caller's own token through app.my_wallet_pass (1501, 2331), so nobody gets a pass for
+// pass is read with the caller's own token through app.my_wallet_pass (1501, 3331), so nobody gets a pass for
 // another person's badge; the answer is a signed .pkpass for Apple Wallet or a "Save to Google Wallet" link.
 // The pass art comes from the org's logo in the public org-brand bucket when it is a PNG (A140), else the accent.
 // The certificates and keys are owner secrets (APPLE_PASS_TYPE_ID, APPLE_TEAM_ID, APPLE_PASS_CERT_PEM,

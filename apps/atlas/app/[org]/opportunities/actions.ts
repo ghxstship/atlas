@@ -173,7 +173,7 @@ export const createOpportunityAction: Action = action(opportunitySchema, async (
     isRemote: v.isRemote,
     hideClientUntilBooked: v.hideClientUntilBooked,
   });
-  // The chosen question template is copied into the new draft (2290). The draft is already saved when the copy is
+  // The chosen question template is copied into the new draft (3290). The draft is already saved when the copy is
   // refused, so the form says so instead of offering to save it again.
   if (!created.ok || v.questionTemplateId === "") return created;
   const applied = await applyQuestionTemplate(ctx.viewer.db, created.data.id, v.questionTemplateId);
@@ -204,7 +204,7 @@ export const updateOpportunityAction: Action = action(
     }),
 );
 
-/** Turns the hidden client and event off on a posted listing; turning it on after publishing is refused (2870). */
+/** Turns the hidden client and event off on a posted listing; turning it on after publishing is refused (3870). */
 export const updateHiddenClientAction: Action = action(
   z.object({
     opportunityId: uuid,

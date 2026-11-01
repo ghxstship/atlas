@@ -13,7 +13,7 @@ import * as enums from "../enums.generated.ts";
  * Time off policies and requests (migration 0341). The requester never approves their own request
  * (sod_time_off_requester); the requester or an approver can cancel a proposed or approved request.
  * A request's day count skips holidays on the org's holiday calendar (computed field
- * app.time_off_day_count, 2270); policies are edited in Payroll and Time Off settings
+ * app.time_off_day_count, 3270); policies are edited in Payroll and Time Off settings
  * (./payroll-settings.ts).
  */
 

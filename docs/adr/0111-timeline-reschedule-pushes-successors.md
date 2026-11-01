@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decider: A133 (RRR-195), Section 11.11 (S11.11-01, timeline drag with a dependency preview)
-- Migrations: 2260
+- Migrations: 3260
 
 ## Context
 

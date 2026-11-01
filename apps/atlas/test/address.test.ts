@@ -4,7 +4,7 @@ import { addressFormat, addressLines, readAddress, VENUE_ADDRESS } from "@/lib/a
 /**
  * A139: venue, vendor and legal entity addresses lay out and validate by country (Section 15). The
  * server hands each form its country's rows and required fields, and reads a submitted address back
- * against the same country before the database checks the postal code again (migration 2320).
+ * against the same country before the database checks the postal code again (migration 3320).
  */
 
 function form(fields: Record<string, string>): FormData {

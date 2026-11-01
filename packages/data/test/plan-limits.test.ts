@@ -8,7 +8,7 @@ import {
 } from "../src/plan-limits.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
-/** A107 (migrations 2070 and 2071): the plan limit repository maps rows and refusals faithfully. */
+/** A107 (migrations 3070 and 3071): the plan limit repository maps rows and refusals faithfully. */
 
 describe("usage", () => {
   it("maps each object limit and drops any other", async () => {

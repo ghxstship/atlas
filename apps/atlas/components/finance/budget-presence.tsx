@@ -17,7 +17,7 @@ import {
  * Who else has this budget open, and which line each of them is editing (Section 11.7, gap G-216).
  * The grid joins the budget's presence channel presence:budgets:<id> on the tab's live hub, which
  * loads on demand (ADR 0027), and tracks the line of the cell this tab has open. Realtime admits only
- * readers of the budget (2811), and nothing shows while the person is alone or offline.
+ * readers of the budget (3811), and nothing shows while the person is alone or offline.
  */
 export function BudgetPresence({
   budgetId,

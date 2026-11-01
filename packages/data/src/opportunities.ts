@@ -140,7 +140,7 @@ export interface OpportunitySummary {
   readonly deadlineAt: string | null;
   readonly state: OpportunityState;
   readonly requisitionId: string | null;
-  /** The client and event stay hidden from crew until they are booked (2870). */
+  /** The client and event stay hidden from crew until they are booked (3870). */
   readonly hideClientUntilBooked: boolean;
   readonly positionCount: number;
   readonly applicationCount: number;
@@ -209,7 +209,7 @@ export interface OpportunityInput {
   readonly isRemote?: boolean;
   /**
    * Crew see the org, the city, the dates and the pay until they are booked; the venue stays hidden and the title and
-   * description cannot name the project, its client or the venue (2870). Turned on only before publishing.
+   * description cannot name the project, its client or the venue (3870). Turned on only before publishing.
    */
   readonly hideClientUntilBooked?: boolean;
 }

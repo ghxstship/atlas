@@ -489,7 +489,7 @@ export interface EarningCode {
   readonly code: string;
   readonly name: string;
   readonly isOvertime: boolean;
-  /** Holiday pay is paid under the code (migration 2270); never with isOvertime. */
+  /** Holiday pay is paid under the code (migration 3270); never with isOvertime. */
   readonly isHoliday: boolean;
 }
 

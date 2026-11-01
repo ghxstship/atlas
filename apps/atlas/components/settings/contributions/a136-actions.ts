@@ -12,7 +12,7 @@ import type { OrgContext } from "@/lib/shell/context";
 
 /**
  * A136's settings actions (Settings, Gateway and Marketplace): the org's application question templates and the
- * defaults new opportunities start from (migration 2290). Each resolves the viewer's org context again and writes as
+ * defaults new opportunities start from (migration 3290). Each resolves the viewer's org context again and writes as
  * the viewer, so row level security decides: opportunities.marketplace.manage. Answers are the Opportunities form
  * states, so the panel reuses its ActionForm and catalog keys.
  */

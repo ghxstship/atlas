@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-27
 - Decider: A128 (RRR-173), trace row S4.8.1-06, finding A65-024
-- Migrations: 2210 (`app.role_lens_capabilities`), 2211 (the step's approver on `app.inbox_items`,
+- Migrations: 3210 (`app.role_lens_capabilities`), 3211 (the step's approver on `app.inbox_items`,
   `app.role_lens_personal_capabilities`); seed 2210_a128
 
 ## Context
@@ -52,7 +52,7 @@ basis:
 
 - A spend approval request follows the step it waits on, as `private.step_approver_person_ids` (1395) picks
   approvers: everyone holding the role a step names, or the one member it names, with an away approver's
-  delegates asked in their place. Migration 2211 adds that step's `approver_role_id` and
+  delegates asked in their place. Migration 3211 adds that step's `approver_role_id` and
   `approver_membership_id` to `app.inbox_items`. A step naming a role the person holds shows under that role's
   lens only, even when the role lacks the document's approve capability, because the role is why it arrived
   (deciding still needs that capability, which `app.decide_approval` checks). A step naming a member is
@@ -64,7 +64,7 @@ basis:
   (trials included) by `org.billing.read`, which `private.billing_owner_ids` and the dunning run pick by, and
   so on. A capability the person holds through no role (a direct grant, an org-level record grant, a
   delegation or their own break-glass session, all of which `private.person_capability_reach` counts) is
-  addressed to them, so its notices show under every lens; `app.role_lens_personal_capabilities` (2211) lists
+  addressed to them, so its notices show under every lens; `app.role_lens_personal_capabilities` (3211) lists
   those capabilities per org.
 - Deletion and white-label notices go to the platform Owner role (`private.org_owner_ids`) and break-glass
   notices to the platform Owner and Admin roles, so only those roles' lenses keep them

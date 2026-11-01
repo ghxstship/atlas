@@ -16,7 +16,7 @@ import {
 import { fakeClient, okResponse } from "./fake-client.ts";
 
 /**
- * Crew scheduling (A132, migrations 2250 to 2253): shift templates and planning from one, the fill rate, the
+ * Crew scheduling (A132, migrations 3250 to 3253): shift templates and planning from one, the fill rate, the
  * member's availability window, the candidates ranked for a shift and assigning an open shift.
  */
 

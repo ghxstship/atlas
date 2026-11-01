@@ -60,7 +60,7 @@ import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
  * was read at; when someone else saved first, a conflict dialog shows both values and the person
  * chooses (Section 11.7, journey 33). Lines are added one at a time, from catalog elements at a
  * chosen grade with the grade's price or Unpriced (journey 3), or pasted from a spreadsheet as one
- * batch that Undo removes (journey 34). The org's filterable custom fields on budget lines (tags, 2872) show
+ * batch that Undo removes (journey 34). The org's filterable custom fields on budget lines (tags, 3872) show
  * as read-only columns, and Line fields edits one line's custom fields.
  *
  * The grid is live (Section 11.7, gap G-216): a line someone else saves, adds or removes appears

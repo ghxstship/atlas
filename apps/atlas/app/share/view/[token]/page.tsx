@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * A live view link (P1, ADR 0130): one saved view of one project, for someone with no account. The
  * device grant cookie carries the read; without one, or when the link asks again, the access code
- * form shows. The page reads through a session-less client as the link's creator (2781), shows only
+ * form shows. The page reads through a session-less client as the link's creator (3781), shows only
  * allowlisted columns and never the link's note, and rereads on every channel ping (PublicLive).
  */
 export default async function LiveViewPage({

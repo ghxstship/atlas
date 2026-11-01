@@ -5,7 +5,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 import { cueProgress } from "./show.ts";
 
 /**
- * Live links (P1, ADR 0130; migrations 2780 to 2782): a no-account link to one saved view of a
+ * Live links (P1, ADR 0130; migrations 3780 to 3782): a no-account link to one saved view of a
  * project, or to one running order on a display screen, that updates while it is open.
  *
  * - Members make links with {@link createViewLink} and {@link createDisplayLink}. The database

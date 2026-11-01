@@ -121,7 +121,7 @@ export function requiredAddressFields(country: string): AddressField[] {
 }
 
 /**
- * The countries with a postal code pattern. Migration 2320 (private.postal_code_pattern) holds the same patterns, so
+ * The countries with a postal code pattern. Migration 3320 (private.postal_code_pattern) holds the same patterns, so
  * the database refuses what these forms refuse; a test keeps the two lists equal.
  */
 export const POSTAL_CODE_COUNTRIES: readonly string[] = Object.keys(RULES)

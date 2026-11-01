@@ -1,8 +1,8 @@
 /**
- * Contract tests for the live link handlers (P1, ADR 0130, migrations 2780 to 2782). Requests run
+ * Contract tests for the live link handlers (P1, ADR 0130, migrations 3780 to 3782). Requests run
  * through `contractApp` against the in-memory client and every success is checked against
  * openapi/v1.json with `expectContract`. Who may make a link, the allowlist, the hashing and the
- * lockout are the database's (pgTAP 2780 and 2781); here the RPCs answer the way the database does,
+ * lockout are the database's (pgTAP 3780 and 3781); here the RPCs answer the way the database does,
  * and refusals stand in for its rules.
  */
 import { describe, expect, it } from "vitest";

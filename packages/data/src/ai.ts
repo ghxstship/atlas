@@ -300,7 +300,7 @@ export async function transitionAiSuggestion(
   return error ? fail(toDataError(error)) : ok(null);
 }
 
-// Drafted lists (P6, migration 2830) ---------------------------------------------------------
+// Drafted lists (P6, migration 3830) ---------------------------------------------------------
 
 export type DraftedListKind = "run_of_show" | "risk_assessment";
 

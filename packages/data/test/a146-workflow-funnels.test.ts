@@ -15,7 +15,7 @@ import { moduleClient } from "./module-client.ts";
 import { emitWorkflow, WORKFLOW_SIGNAL_EVENT, workflowMarker } from "../src/workflow-signal.ts";
 
 /**
- * The workflow funnels of Sections 11.11 to 11.13 (A146, migration 2340, ADR 0052): the registry the browser reads,
+ * The workflow funnels of Sections 11.11 to 11.13 (A146, migration 3340, ADR 0052): the registry the browser reads,
  * held to the funnels the hourly check judges, and every Atlas and Gateway funnel measured end to end by a signal in
  * the apps' code or a route.
  */

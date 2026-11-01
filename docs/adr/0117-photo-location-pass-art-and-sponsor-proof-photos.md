@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-28
 - Decider: A140 (RRR-204), trace row S13-10
-- Migrations: 2330, 2331, 2332, 2333
+- Migrations: 3330, 3331, 3332, 3333
 
 ## Context
 
@@ -22,11 +22,11 @@ Three gaps were left in Compass after A92 and A93 (finding A65-011):
 ### 1. Photo location is an org setting, off by default
 
 `media.keep_photo_location` (organization scope, edited with `data.classification.write` in Settings, Data and
-Privacy) is a registry setting (`packages/schemas/settings/a140.yaml`, 2330). The registry renders the field on that
+Privacy) is a registry setting (`packages/schemas/settings/a140.yaml`, 3330). The registry renders the field on that
 page in Atlas, so no contributed panel is needed. Compass downloads the value with its other settings.
 
 A sponsor is an external party with no membership, so Compass resolves no org values for them. For proof photos,
-`api_external.sponsor_entitlements` carries the entitlement's org's value as `keep_photo_location` (2333), and the
+`api_external.sponsor_entitlements` carries the entitlement's org's value as `keep_photo_location` (3333), and the
 proof-of-performance screen takes the photo with that rule in place of the person's resolved values
 (`proofPhotoSettings`). The entitlement's org decides, never the sponsor.
 
@@ -44,7 +44,7 @@ photos. Receipt photos (`runtime/receipts.ts`) are documents, not field photos, 
 
 ### 2. Pass art comes from the org's PNG logo
 
-`app.my_wallet_pass` returns `logo_path` (2331): the org's dark-theme logo, else its light one. It comes from
+`app.my_wallet_pass` returns `logo_path` (3331): the org's dark-theme logo, else its light one. It comes from
 `private.public_brand`, which is already public. The pass is the accent color with white labels, which is why the
 dark-theme logo comes first.
 
@@ -77,7 +77,7 @@ literals and the en-US catalog disagree.
 
 ### 4. Sponsors write proof photos under Section 8.7
 
-The write path fits the security model, so it is built (2332):
+The write path fits the security model, so it is built (3332):
 
 - **The engagement is the key.** Only someone who reaches the operational area of a Sponsor engagement may capture
   on it. That is the engaged person, or an Account Owner, Admin or Member of the sponsor's account, while the
@@ -110,5 +110,5 @@ fulfilled; the org still does both. Nothing in the app deletes a photo, so the t
 - An org whose logo is an SVG, WebP or icon file keeps the accent icon until it uploads a PNG.
 - The org has no Atlas page for sponsor proof photos yet: it reads the table and the files through the API and the
   storage policy. A review surface is left for later.
-- The Maestro flow `sponsor-proof-photo` uses the Demo Activation Sponsor of seed 2332. That sponsor is a new person
+- The Maestro flow `sponsor-proof-photo` uses the Demo Activation Sponsor of seed 3332. That sponsor is a new person
   and account, so `sponsor@` stays without an engagement, which Gateway journey 47 expects.

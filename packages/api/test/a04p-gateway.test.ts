@@ -50,7 +50,7 @@ function world(context = {}) {
           venue_longitude: null,
         },
         {
-          // The client and event are hidden until booking (2871): no venue name, a rounded point.
+          // The client and event are hidden until booking (3871): no venue name, a rounded point.
           ...sample("MarketplaceListing", { id: id(8005), title: "Confidential Audio Crew" }),
           venue_name: null,
           client_hidden: true,

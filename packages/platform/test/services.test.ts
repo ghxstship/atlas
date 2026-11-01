@@ -412,7 +412,7 @@ describe("stores", () => {
         recipient_setting: () => null,
         reply_address_local_part: () => "r-abc",
         record_notification_delivery: () => null,
-        // No white label in force (2310): the platform brand.
+        // No white label in force (3310): the platform brand.
         email_brand_for_org: () => [],
       },
       {

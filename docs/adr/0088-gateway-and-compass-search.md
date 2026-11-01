@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-27
 - Decider: A126 (RRR-171), trace row S11.10-02
-- Migrations: 2190
+- Migrations: 3190
 
 ## Context
 
@@ -78,7 +78,7 @@ counts the distance from now either way.
 ## Consequences
 
 - One person-scoped search to keep in step with the `api_external` projections. When a projection's
-  row filter changes, `app.gateway_search` changes with it; the pgTAP test (2190) pins the scoping.
+  row filter changes, `app.gateway_search` changes with it; the pgTAP test (3190) pins the scoping.
 - Gateway search has no semantic half. The documents an external party reads are titles, and
   gte-small adds little there.
 - Compass finds only what the device holds. A record that never synced to the device is not found

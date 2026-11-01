@@ -55,7 +55,7 @@ import { RecordCollab } from "./record";
  * of GL account by cost center. Totals are NULL-aware with the unpriced count beside them and are
  * revised by approved change orders; any figure can be shown in another currency at a recorded rate
  * with the rate date, and an unpriced figure stays Unpriced (journey 37). In the grid and the matrix the
- * org's filterable custom fields on budget lines (tags, 2872) show as columns and filter the lines through Add
+ * org's filterable custom fields on budget lines (tags, 3872) show as columns and filter the lines through Add
  * filter; the figures always cover the whole budget.
  */
 export async function BudgetsView({ page }: { page: FinancePage }) {

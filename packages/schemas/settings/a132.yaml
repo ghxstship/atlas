@@ -1,6 +1,6 @@
 # Settings registry: A132 (crew scheduling: availability windows; RRR-194). Section 4.5.6 item 25.
 # Field reference: see a30.yaml. The rule for when members state their availability for the org's schedules and how
-# far ahead (ADR 0063). Members keep their availability on an availability calendar kept for the org (0740, 2251).
+# far ahead (ADR 0063). Members keep their availability on an availability calendar kept for the org (0740, 3251).
 contributor: a132
 settings:
   # Scheduling --------------------------------------------------------------------------------------------------

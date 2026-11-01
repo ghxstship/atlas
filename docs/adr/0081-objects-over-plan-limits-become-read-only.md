@@ -4,7 +4,7 @@
 - Date: 2026-10-27
 - Decider: A107 (RRR-152), for the orchestrator's review
 - Addresses: requirement S16-07; finding A65-015 (downgrades); Section 16; Terms of Service 5.2 and 5.8
-- Migrations: 2070 and 2071 (range 2070 to 2079)
+- Migrations: 3070 and 3071 (range 3070 to 2079)
 
 ## Context
 
@@ -67,7 +67,7 @@ Plan limits are `seats`, `active_projects`, `field_members`, `active_external_en
 
 - `app.over_limit_objects` is a stored derived value and is listed in the denormalization register. It is rewritten on every change it depends on, so it cannot drift from the counts.
 - An org with nothing read-only whose counts are within every limit only counts on a role or membership change, without ranking. A bulk role import or SCIM sync then pays one count of the org's memberships per row, never a ranking.
-- On release, migration 2070 recomputes every org. A live org on Access that is already past a limit (after a trial, a cancellation or a reactivation) turns read-only when the migration applies, with the banners as its notice. The release owner counts those orgs first and decides on notice under Terms of Service 5.2. The count reads only objects 4.0 already has, so it runs on production before 2070 applies:
+- On release, migration 3070 recomputes every org. A live org on Access that is already past a limit (after a trial, a cancellation or a reactivation) turns read-only when the migration applies, with the banners as its notice. The release owner counts those orgs first and decides on notice under Terms of Service 5.2. The count reads only objects 4.0 already has, so it runs on production before 3070 applies:
 
   ```sql
   select o.slug, l.plan_code, l.limit_code, l.limit_value, c.used
@@ -88,6 +88,6 @@ Plan limits are `seats`, `active_projects`, `field_members`, `active_external_en
 
   Each row is an org that turns partly read-only. An org whose Owners alone exceed `seats` is listed but loses nothing, since Owners' seats are never read-only.
 
-- A downgrade can make most of an org read-only at once, Owners excepted. Nothing is deleted, and upgrading, archiving or ending memberships restores writes at once (pgTAP 2070).
-- Personal tables and the guard both sit in the database. Adding a personal app table later means adding it to the list in a migration, and pgTAP 2070 checks that every listed table exists and carries the guard.
+- A downgrade can make most of an org read-only at once, Owners excepted. Nothing is deleted, and upgrading, archiving or ending memberships restores writes at once (pgTAP 3070).
+- Personal tables and the guard both sit in the database. Adding a personal app table later means adding it to the list in a migration, and pgTAP 3070 checks that every listed table exists and carries the guard.
 - Public API v1 is unchanged. API writes meet the same refusal through the row guard, and the refusal shape is the existing one.

@@ -1,5 +1,5 @@
 /**
- * Live link handlers (P1, ADR 0130, migrations 2780 to 2782): list, get, createView, createDisplay,
+ * Live link handlers (P1, ADR 0130, migrations 3780 to 3782): list, get, createView, createDisplay,
  * regenerate and revoke. Every call runs as the caller: the live link policy shows links of projects
  * where the caller holds the collection's read capability, and the RPCs decide who may make,
  * regenerate or revoke a link. The token and the access code are answered once, by the create and

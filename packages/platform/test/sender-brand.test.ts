@@ -1,4 +1,4 @@
-/** A white-label org's sender and brand on its notification email (A138, migration 2310, Section 12). */
+/** A white-label org's sender and brand on its notification email (A138, migration 3310, Section 12). */
 import { describe, expect, it } from "vitest";
 import { RecordingTransport, type Sender } from "@xos/email";
 import {

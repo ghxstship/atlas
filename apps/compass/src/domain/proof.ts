@@ -3,7 +3,7 @@
  * journey 47: "entitlement fulfillment is captured with photos in Compass"). A sponsor photographs an entitlement
  * being delivered on their own engagement; the photo uploads to field-media under that engagement
  * (<org_id>/proof-of-performance/<engagement_id>/<photo id>.jpg), where upload-scan checks it before anyone else can
- * read it, and app.record_proof_of_performance_photo (2332) records it against the entitlement, once, through the
+ * read it, and app.record_proof_of_performance_photo (3332) records it against the entitlement, once, through the
  * outbox. Capture is open while the engagement's operational area is: Active or Closing (Section 8.7).
  */
 import { uuidv7, type MutationInput, type Row } from "@xos/sync";
@@ -35,7 +35,7 @@ export function proofEngagement(
   );
 }
 
-/** The field-media object a proof photo is stored as: under its org and the sponsor's engagement (2332). */
+/** The field-media object a proof photo is stored as: under its org and the sponsor's engagement (3332). */
 export function proofPhotoPath(
   engagement: Pick<EngagementSummary, "id" | "orgId">,
   photoId: string,
@@ -102,7 +102,7 @@ export function photoCounts(rows: readonly Row[]): ReadonlyMap<string, number> {
 /**
  * The settings a proof photo of an entitlement is taken with: the person's own (sounds), with the entitlement's org's
  * photo-location rule in place of theirs. A sponsor has no membership, so Compass resolves no org values for them;
- * api_external.sponsor_entitlements carries the org's media.keep_photo_location instead (2333). Off unless the row
+ * api_external.sponsor_entitlements carries the org's media.keep_photo_location instead (3333). Off unless the row
  * says on.
  */
 export function proofPhotoSettings(

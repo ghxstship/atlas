@@ -14,7 +14,7 @@ import {
 } from "../src/domain/proof";
 import { summarizeMutation } from "../src/domain/queue-summary";
 
-// Sponsors' proof-of-performance photos from Compass (A140, migration 2332).
+// Sponsors' proof-of-performance photos from Compass (A140, migration 3332).
 const ORG = "01920000-0000-7000-8000-00000000000a";
 const PROJECT = "01920000-0000-7000-8000-000000001001";
 const sponsor: EngagementSummary = {

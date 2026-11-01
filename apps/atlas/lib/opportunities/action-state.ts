@@ -74,7 +74,7 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "opportunity_hidden_client_published",
 ]);
 
-/** Refusals that point at fields, with each field's key under `opportunities.fieldErrors` (2870). */
+/** Refusals that point at fields, with each field's key under `opportunities.fieldErrors` (3870). */
 const RULE_FIELDS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   opportunity_hidden_client_named: {
     title: "hiddenClientNamed",

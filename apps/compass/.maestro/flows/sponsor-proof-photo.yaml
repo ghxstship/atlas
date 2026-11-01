@@ -1,7 +1,7 @@
 appId: pro.ghxstship.compass
 # A140 (Section 4.5.7 role table, journey 47): a sponsor photographs an entitlement being delivered, offline, and the
 # photo uploads to their engagement's folder and is recorded once on reconnect. The Demo Activation Sponsor (seed
-# 2332) holds an Active Sponsor engagement on the demo project with one entitlement, the LED wall logo.
+# 3332) holds an Active Sponsor engagement on the demo project with one entitlement, the LED wall logo.
 # Named after its file: config.yaml orders flows by name.
 name: sponsor-proof-photo
 # Goes offline: airplane mode on Android, the network helper on iOS (apps/compass/scripts/maestro-network.ts).

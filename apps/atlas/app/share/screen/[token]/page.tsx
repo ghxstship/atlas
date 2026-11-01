@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * A display screen link (P1, ADR 0130): a running order as a room clock, presenter timer or
  * backstage screen, on any TV or laptop with no sign-in. The device grant cookie carries the read;
- * without one the access code form shows. The cues come through a session-less client (2781), never
+ * without one the access code form shows. The cues come through a session-less client (3781), never
  * with who called them, and the page rereads on every channel ping, so a called cue shows within
  * seconds.
  */

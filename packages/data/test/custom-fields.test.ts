@@ -72,7 +72,7 @@ const EMPTY_ROW = {
 };
 
 describe("custom field tables", () => {
-  it("lists the ten built-in tables orgs may extend (0540, budget lines from 2872)", () => {
+  it("lists the ten built-in tables orgs may extend (0540, budget lines from 3872)", () => {
     expect(CUSTOM_FIELD_TABLES).toHaveLength(10);
     expect(isCustomFieldTable("app.budget_lines")).toBe(true);
     expect(isCustomFieldTable("app.asset_units")).toBe(true);

@@ -4,7 +4,7 @@ import { landed } from "./shared.ts";
 
 /**
  * What Settings, Payroll and Time Off edits (Section 4.5.6, A134): earning codes and time off policies (migration 0341)
- * and holiday calendars (2270). Every write is org.payroll.write under row level security; retiring soft deletes, so
+ * and holiday calendars (3270). Every write is org.payroll.write under row level security; retiring soft deletes, so
  * payroll lines and requests that name a retired code or policy keep it. Holidays on the calendar that governs the work
  * change time off day counts and holiday pay (ADR 0112).
  */
@@ -276,7 +276,7 @@ export async function updateHolidayCalendar(
 }
 
 /**
- * Retires a calendar; its holidays stop applying with it, and 2272 ends its venue assignments in the same update so
+ * Retires a calendar; its holidays stop applying with it, and 3272 ends its venue assignments in the same update so
  * those venues can take another calendar.
  */
 export async function retireHolidayCalendar(

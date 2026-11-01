@@ -162,7 +162,7 @@ describe("photo location (A140, media.keep_photo_location)", () => {
   });
 });
 
-describe("proof-of-performance photos follow the entitlement's org (A140, 2333)", () => {
+describe("proof-of-performance photos follow the entitlement's org (A140, 3333)", () => {
   // A sponsor has no membership, so the values Compass resolved for them hold no org rule, whatever it is.
   const SPONSOR = new Map<string, unknown>([["me.sounds", false]]);
 

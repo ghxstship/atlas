@@ -45,7 +45,7 @@ export async function listTransitionRules<S extends string>(
 // Vendors ------------------------------------------------------------------------------------------
 
 /**
- * A vendor's mailing address (migration 2320). Every field is null when none is recorded; the
+ * A vendor's mailing address (migration 3320). Every field is null when none is recorded; the
  * country is set whenever any other field is, and the postal code fits it.
  */
 export interface VendorAddress {

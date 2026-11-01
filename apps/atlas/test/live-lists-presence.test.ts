@@ -17,7 +17,7 @@ import {
 const atlas = fileURLToPath(new URL("../", import.meta.url));
 const migrations = join(atlas, "../../supabase/migrations");
 
-/** Every table any migration inserts into private.presence_subjects (2170, then 2811 and later). */
+/** Every table any migration inserts into private.presence_subjects (2170, then 3811 and later). */
 function presenceSubjects(): string[] {
   const listed: string[] = [];
   for (const file of readdirSync(migrations).filter((f) => f.endsWith(".sql"))) {

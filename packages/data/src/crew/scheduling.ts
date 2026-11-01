@@ -3,7 +3,7 @@ import { fail, ok, toDataError, type Result } from "../result.ts";
 import { landed } from "./shared.ts";
 
 /**
- * Crew scheduling (A132, migrations 2250 to 2253, ADR 0063): shift templates an org plans from, members'
+ * Crew scheduling (A132, migrations 3250 to 3253, ADR 0063): shift templates an org plans from, members'
  * availability on the calendar they keep for the org, the org's availability window, and the members ranked
  * for one shift for the schedule's drag list. Row level security and the RPCs decide every row: templates are
  * written with org.scheduling.write, shifts are planned and ranked with crew.shift.write on the project.
@@ -356,7 +356,7 @@ export async function rankShiftCandidates(
 }
 
 /**
- * The org's projects on which the viewer may plan and assign shifts (app.my_shift_planning_projects, 2252):
+ * The org's projects on which the viewer may plan and assign shifts (app.my_shift_planning_projects, 3252):
  * crew.shift.write can reach some projects and not others, so the drag board offers only shifts on these. For
  * showing controls only; the policies and RPCs still decide every write.
  */
@@ -391,7 +391,7 @@ export async function listShiftIdsWithWaitingClaims(
 }
 
 /**
- * Puts a member on a shift that is still open (app.assign_open_shift, 2253). The RPC locks the shift as the claim
+ * Puts a member on a shift that is still open (app.assign_open_shift, 3253). The RPC locks the shift as the claim
  * RPCs do and refuses a shift someone holds (`shift_already_filled`: a claim under the first-come rule or another
  * planner's assignment since the board was read is never overwritten) and a shift with claims waiting under the
  * approval or seniority rule (`shift_claims_waiting`: those are decided on the shift, so the 1322 rules hold). A shift

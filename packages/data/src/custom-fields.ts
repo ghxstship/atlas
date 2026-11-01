@@ -19,7 +19,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 export type { CustomDataType, CustomField, CustomFieldChoice } from "./governance.ts";
 
-/** The built-in tables orgs may add custom fields to (private.custom_field_targets, 0540; budget lines from 2872). */
+/** The built-in tables orgs may add custom fields to (private.custom_field_targets, 0540; budget lines from 3872). */
 export const CUSTOM_FIELD_TABLES = [
   "app.records",
   "app.projects",

@@ -170,7 +170,7 @@ export function isIsoDate(value: string): boolean {
 /**
  * Checks a value before it queues, as the 0850 guard will: a registered choice, a boolean for a switch, text no
  * longer than the registry allows, a real date, a known zone. Blank text is null, which clears the person's value.
- * A phone is read into E.164 with `toPhone` (toE164 in the person's region, A139), as the 2321 check requires.
+ * A phone is read into E.164 with `toPhone` (toE164 in the person's region, A139), as the 3321 check requires.
  */
 export function checkSettingValue(
   def: SettingDefinition,

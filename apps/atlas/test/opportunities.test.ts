@@ -101,7 +101,7 @@ describe("opportunities action state", () => {
     expect(errorState({ kind: "unexpected", message: "x" }).error).toBe("unexpected");
   });
 
-  it("points the hidden-client refusals at their fields (2870)", () => {
+  it("points the hidden-client refusals at their fields (3870)", () => {
     expect(
       errorState(
         { kind: "refusal", rule: "opportunity_hidden_client_named", message: "x" },

@@ -1,7 +1,7 @@
 /* global http, json, output, SUPABASE_URL, SUPABASE_ANON_KEY, EMAIL, XOS_DEMO_PASSWORD, ENTITLEMENT, SINCE */
 // A140 "see it recorded once": signs in as the sponsor over the auth API and counts the proof photos of ENTITLEMENT
 // recorded since SINCE (the flow's start, so a rerun on the same stack counts only its own) through the projection
-// Compass downloads (api_external.proof_of_performance_photos, 2332), and checks each one's path is in the
+// Compass downloads (api_external.proof_of_performance_photos, 3332), and checks each one's path is in the
 // engagement's folder. Leaves { status, photos, inFolder } in output.proof. Maestro runs scripts in Rhino, so this
 // file is ES5.
 var auth = http.post(SUPABASE_URL + "/auth/v1/token?grant_type=password", {

@@ -2,7 +2,7 @@ import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Application question templates and opportunity defaults (A136, migration 2290, Section 4.5.6 item 27): how an org's
+ * Application question templates and opportunity defaults (A136, migration 3290, Section 4.5.6 item 27): how an org's
  * new opportunities start. A template is a reusable set of application questions; applying it copies its questions
  * into a Draft opportunity (app.apply_question_template), so later edits to the template never change a posting. The
  * defaults are one row per org that the create form reads as editable prefill. Reads go through row level security;
@@ -35,7 +35,7 @@ export interface OpportunityDefaults {
   readonly applicationWindowDays: number | null;
   /** The default template, or null when none is set or the one set was deleted since. */
   readonly questionTemplateId: string | null;
-  /** New postings start with the client and event hidden until booking (2870). */
+  /** New postings start with the client and event hidden until booking (3870). */
   readonly hideClientUntilBooked: boolean;
 }
 

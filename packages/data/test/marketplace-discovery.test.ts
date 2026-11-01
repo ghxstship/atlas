@@ -116,7 +116,7 @@ describe("ranked marketplace search (A89, 1460)", () => {
     expect((await searchMarketplace(db)).ok).toBe(false);
   });
 
-  it("maps a hidden client's listing (2871): no venue name, the rounded point, whole kilometers", async () => {
+  it("maps a hidden client's listing (3871): no venue name, the rounded point, whole kilometers", async () => {
     const { db } = fakeClient({
       "rpc:search_marketplace": [
         okResponse([

@@ -25,7 +25,7 @@ import { getOrgContext } from "@/lib/shell/context";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 
 /**
- * Crew scheduling actions (A132, migrations 2250 and 2251, ADR 0063): plan shifts from a template, put a ranked
+ * Crew scheduling actions (A132, migrations 3250 and 3251, ADR 0063): plan shifts from a template, put a ranked
  * member on a shift from the schedule's drag list, keep the org's shift templates (Settings, Scheduling) and state
  * one's own availability (Me, Work details). Each resolves the viewer's org context again (404 when it is gone) and
  * writes as the viewer, so row level security, the RPCs and the notice lock decide.

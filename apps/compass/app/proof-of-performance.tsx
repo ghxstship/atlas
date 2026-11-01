@@ -58,7 +58,7 @@ export default function ProofOfPerformanceScreen(): ReactElement {
       ) : null}
       <PhotoSheet
         open={target !== null && chosen !== null}
-        // The entitlement's org decides whether its proof photos keep their location (2333, ADR 0117).
+        // The entitlement's org decides whether its proof photos keep their location (3333, ADR 0117).
         settings={proofPhotoSettings(
           orgSettings,
           entitlements.find((e) => e.id === target),

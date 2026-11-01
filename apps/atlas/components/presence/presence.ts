@@ -6,7 +6,7 @@
  */
 
 /**
- * Tables whose rows show presence: private.presence_subjects (2170, and app.budgets from 2811),
+ * Tables whose rows show presence: private.presence_subjects (2170, and app.budgets from 3811),
  * without the `app.` prefix.
  */
 export const PRESENCE_TABLES = [

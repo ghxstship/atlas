@@ -2,7 +2,7 @@
  * Docs site white label (A138, Section 12: the docs site wears an Enterprise org's brand, ADR 0066).
  * An org's docs live under /o/<org-slug>/… on the docs host, or on a host the deployment maps to the
  * org (XOS_DOCS_TENANT_HOSTS, after the owner points its DNS at the docs project). The proxy looks the
- * brand up through api_public.docs_brand_for_slug (migration 2310), which answers only for an
+ * brand up through api_public.docs_brand_for_slug (migration 3310), which answers only for an
  * Enterprise org with white label in force and returns only its name, logos and accent, and hands it
  * to the page in a cookie scoped to the org's docs. Every page stays prerendered: the script below
  * applies the accent before first paint, and the brand mark swaps in the logo and name.

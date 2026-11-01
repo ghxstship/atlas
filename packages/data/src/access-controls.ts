@@ -22,7 +22,7 @@ export interface LegalEntity {
   readonly fiscalYearStartMonth: number;
   readonly baseCurrency: string;
   readonly isPrimary: boolean;
-  /** The registered address in the format of `countryCode` (migration 2320); every field null when none. */
+  /** The registered address in the format of `countryCode` (migration 3320); every field null when none. */
   readonly address: LegalEntityAddress;
 }
 

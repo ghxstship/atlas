@@ -18,8 +18,8 @@ import { expiryFor } from "@/lib/live-links/expiry";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
- * Live links from a saved view's menu and a running order's peek (P1, ADR 0130; migrations 2780 to
- * 2782), following lib/files/share-actions.ts. Each action runs as the signed-in person in the org
+ * Live links from a saved view's menu and a running order's peek (P1, ADR 0130; migrations 3780 to
+ * 3782), following lib/files/share-actions.ts. Each action runs as the signed-in person in the org
  * named by the slug; the database applies every rule (who may share, the collections and fields a
  * link shows, the expiry, the limit of 20, a read-only org), and the actions only report its
  * refusals by rule. A new link's address and code come back once.

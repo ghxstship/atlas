@@ -30,7 +30,7 @@ const viewDialogs = onDemand(() => import("./view-dialogs"));
 /** The live link dialog (P1, ADR 0130) loads when someone shares a view live. */
 const liveLinkDialog = onDemand(() => import("./live-link-dialog"));
 
-/** Collections a saved view may share live; private.live_view_collections (2780) holds the same list. */
+/** Collections a saved view may share live; private.live_view_collections (3780) holds the same list. */
 const LIVE_COLLECTIONS: ReadonlySet<string> = new Set([
   "project/schedule",
   "project/show",

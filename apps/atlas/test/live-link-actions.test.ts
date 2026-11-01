@@ -4,7 +4,7 @@ import type { OrgContext } from "@/lib/shell/context";
 
 /**
  * P1 (RRR-215, ADR 0130): the live link server actions behind the saved view and display screen
- * dialogs. The database decides who may make a link and every rule (pgTAP 2780); the actions turn a
+ * dialogs. The database decides who may make a link and every rule (pgTAP 3780); the actions turn a
  * project key into its id, keep the expiry inside the 90 days, build the public address on the Atlas
  * origin, and report refusals by rule. A new link's address and code come back once.
  */

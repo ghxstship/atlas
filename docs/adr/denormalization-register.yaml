@@ -17,7 +17,7 @@ derived:
   - objects:
       - app.live_links.project_id
     source: "`app.run_of_show.project_id`"
-    refresh: Stamped by trigger for a Display link; a link never changes what it shows (2780)
+    refresh: Stamped by trigger for a Display link; a link never changes what it shows (3780)
     reason: Every live link names its project, so the read checks, the ping triggers and the list policy need no join
     adr: "0130"
   - objects:
@@ -142,7 +142,7 @@ derived:
   - objects:
       - app.over_limit_objects
     source: Objects each object limit counts, ranked against `private.org_plan_limits` and `app.plan_limit_choices`
-    refresh: Rewritten by `private.recompute_over_limit` from triggers on subscriptions, projects, memberships, roles and plan limits, by the Owner's choice and by the hourly lifecycle job; a row goes as soon as its object is writable (2070)
+    refresh: Rewritten by `private.recompute_over_limit` from triggers on subscriptions, projects, memberships, roles and plan limits, by the Owner's choice and by the hourly lifecycle job; a row goes as soon as its object is writable (3070)
     reason: The row guard runs on every write to every org table and asks one indexed question instead of ranking an org's projects and members per write; the banner call counts without ranking
     adr: "0081"
 
@@ -301,10 +301,10 @@ arrays:
     note: The set of work detail categories a share grants, read whole (migration 1340).
   - column: private.live_view_fields.source_columns
     kind: reviewed
-    note: The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 2780).
+    note: The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 3780).
   - column: private.realtime_channel_policies.roles
     kind: reviewed
-    note: The roles a Realtime channel policy is created for, anon or authenticated, read whole by the ensure function (migration 2782).
+    note: The roles a Realtime channel policy is created for, anon or authenticated, read whole by the ensure function (migration 3782).
 
 # Every column with the same name and type as a non-key column of the table one of its foreign keys references (own
 # names left out): registered (a derived entry above), fact (kept as it was when written while the parent can
@@ -1523,7 +1523,7 @@ stored:
     note: Memberships do not record the link they came from (A22 review).
   - column: app.live_links.open_count
     kind: fact
-    note: Successful opens with the access code; the anonymous open writes no other per-link record (migration 2781).
+    note: Successful opens with the access code; the anonymous open writes no other per-link record (migration 3781).
   - column: app.notification_deliveries.attempt_count
     kind: fact
     note: No attempts table exists, so the count is the only record (A22 review).
@@ -1708,7 +1708,7 @@ tenant_exceptions:
     note: Consent-gated product analytics events, which by design name no person and no org (A96, migration 1532).
   - table: app.product_funnel_alerts
     kind: platform
-    note: Regression alerts of the workflow funnels for the platform team, naming a workflow and counts, never an org (A146, migration 2340).
+    note: Regression alerts of the workflow funnels for the platform team, naming a workflow and counts, never an org (A146, migration 3340).
   - table: app.profile_section_visibility
     kind: person-owned
     note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).

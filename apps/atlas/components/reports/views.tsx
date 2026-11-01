@@ -433,7 +433,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
     t("reports.bva.variance"),
   ];
   // A row's committed amount is withheld, never partial, when any of its lines' purchase orders are
-  // hidden from the viewer (2810).
+  // hidden from the viewer (3810).
   const committedCell = (r: (typeof rows)[number]) =>
     r.committedWithheldCount > 0
       ? t("reports.bva.withheld")

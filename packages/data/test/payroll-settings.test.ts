@@ -22,7 +22,7 @@ import {
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 /**
- * The writes behind Settings, Payroll and Time Off (A134, migrations 0341 and 2270): earning codes by kind, time off
+ * The writes behind Settings, Payroll and Time Off (A134, migrations 0341 and 3270): earning codes by kind, time off
  * policies, holiday calendars with their holidays and venues, and a time off request's day count.
  */
 

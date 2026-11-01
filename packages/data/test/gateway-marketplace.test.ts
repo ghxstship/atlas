@@ -80,7 +80,7 @@ describe("search", () => {
     expect((await searchOpportunities(db)).ok).toBe(false);
   });
 
-  it("reads client_hidden, so a hidden client's listing shows its city (2871)", async () => {
+  it("reads client_hidden, so a hidden client's listing shows its city (3871)", async () => {
     const { db, calls } = gatewayClient({
       "from:api_external.opportunities": [
         okResponse([

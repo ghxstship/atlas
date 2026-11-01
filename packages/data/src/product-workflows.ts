@@ -4,7 +4,7 @@ import type { ProductApp } from "./product-analytics.ts";
  * The workflow funnels of Sections 11.11 to 11.13 (A146, Section 11.14, ADR 0052): the registry every workflow event
  * name comes from. Each workflow's funnel is Workflow Started, Workflow Step 1 to `steps`, then Workflow Completed,
  * judged against `targetCompletion` (the share of started sessions that complete) by the hourly check of migration
- * 2340, which holds the same funnels in private.product_funnels; a unit test keeps the two equal.
+ * 3340, which holds the same funnels in private.product_funnels; a unit test keeps the two equal.
  *
  * Pages emit signals, `<workflow>:start`, `<workflow>:step<n>` or `<workflow>:done`, three ways, none of which loads
  * anything until the person consented to analytics (the browser module stays unloaded otherwise):

@@ -88,7 +88,7 @@ export const additions = defineAdditions("Gateway", {
       change:
         "Adds `client_hidden`. While it is true, `venue_name` is null and the venue point the distance is measured from is rounded to 1 decimal.",
       reason:
-        "api_external.opportunities.client_hidden (2871, P10): an org can hide the client and event of a listing until the caller is booked (app.opportunities.hide_client_until_booked, 2870), and the view then withholds the venue name and rounds the venue point. The posting org stays named.",
+        "api_external.opportunities.client_hidden (3871, P10): an org can hide the client and event of a listing until the caller is booked (app.opportunities.hide_client_until_booked, 3870), and the view then withholds the venue name and rounds the venue point. The posting org stays named.",
       apply: editShape({
         add: {
           client_hidden: {

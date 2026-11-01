@@ -28,7 +28,7 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
  *   Holiday calendars    org and venue calendars, optionally for one subdivision, and their dated holidays; a holiday
  *                        takes its day out of time off day counts and pays its hours in payroll runs
  * Everyone in the org reads them; forms appear with org.payroll.write, and row level security decides each write
- * (migrations 0341 and 2270). Each form is the platform ActionForm, which keeps typed input after a refusal and names
+ * (migrations 0341 and 3270). Each form is the platform ActionForm, which keeps typed input after a refusal and names
  * a taken code, name or day from `platform.refusals`; edit forms sit in closed disclosures. The three panels are
  * peers, so their add buttons are secondary: one screen holds at most one primary action (gate 27).
  */
