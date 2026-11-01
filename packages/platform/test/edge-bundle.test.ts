@@ -126,7 +126,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // (about 1.4 KB; train 6).
   "sms-webhook": 160,
   "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // The Spanish email copy grew with the advancing notices of R5 to R7 (about 4.7 KB; 115.6 KB in merge train 5);
+  // about 10 percent above that.
+  "subprocessor-notices": 127,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
   "wallet-pass": 120,
