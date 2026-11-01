@@ -87,6 +87,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0102](0102-profile-facts-and-project-facts.md)                     | Profile Facts and Project Facts                                                  | Accepted |
 | [0103](0103-combined-statuses-are-computed.md)                      | Combined Statuses Are Computed                                                   | Accepted |
 | [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
+| [0107](0107-role-lens-in-the-context-switcher.md)                   | The Role Lens in the Context Switcher                                            | Accepted |
 | [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
 | [0111](0111-timeline-reschedule-pushes-successors.md)               | A Timeline Reschedule Pushes Successors by What It Adds                          | Accepted |
 | [0112](0112-holiday-calendars-for-time-off-and-payroll.md)          | Holiday Calendars for Time Off and Payroll                                       | Accepted |

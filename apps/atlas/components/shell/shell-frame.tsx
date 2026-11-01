@@ -87,6 +87,8 @@ export interface ShellFrameProps {
   readonly create: readonly CreateItem[];
   /** Quick add in the Create menu (Section 11.7), for people who may create records. */
   readonly quickAdd?: ShellQuickAdd | null;
+  /** The role lens under the org switcher (A128), rendered on the server: it adds no JavaScript here. */
+  readonly lens?: ReactNode;
   readonly children: ReactNode;
 }
 
@@ -278,6 +280,7 @@ export function ShellFrame(props: ShellFrameProps) {
 
   const sidebar = (
     <>
+      {props.lens}
       <Button
         variant="ghost"
         icon="Search"

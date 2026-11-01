@@ -10,12 +10,20 @@ type Params = Readonly<Record<string, string>>;
 /**
  * Route guard for a page (ADR 0006, Section 4.5.9): the org context must exist, the node must be
  * visible to the viewer's role, conditions and modules, and any data row the route names must
- * resolve. Anything else is 404, never 403. The proxy runs the same guard first.
+ * resolve. Anything else is 404, never 403. The proxy runs the same guard first, on the viewer's own roles, so a
+ * role lens (A128) narrows navigation without closing a page the viewer may open: a link to it still works.
  */
 export async function requireNode(node: string, params: Params): Promise<OrgContext> {
   const slug = params["org"] ?? params["partnerSlug"];
   const ctx = slug === undefined ? null : await getOrgContext(slug);
-  if (!ctx || !isNodeVisible(sitemap, node, ctx.nav)) notFound();
+  if (!ctx) notFound();
+  const lensed = ctx.lens.role !== null && ctx.preview === null;
+  if (
+    !isNodeVisible(sitemap, node, ctx.nav) &&
+    !(lensed && isNodeVisible(sitemap, node, ctx.lens.ownNav))
+  ) {
+    notFound();
+  }
   const route = getNode(sitemap, node).node.route ?? "";
   // Routes naming a project resolve it through A07's project context: a project the viewer may
   // not read answers 404 (invariant 2). Routes naming another data row belong to their module

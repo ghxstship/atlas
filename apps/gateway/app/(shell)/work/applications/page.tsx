@@ -22,6 +22,7 @@ import { decideApplicationAction } from "@/lib/actions/engagement";
 import { acceptOfferAction, declineOfferAction } from "@/lib/actions/offers";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { idsTopic, personTopic, topics } from "@/lib/live/topics";
+import { lensApplications } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { APPLICATION_STATE_STYLE, toneFor } from "@/lib/states";
@@ -161,7 +162,8 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/wor
   const offers = await readView(ctx.db, "offers", { in: ["application_id", appIds] });
   const offerIds = offers.ok ? offers.data.flatMap((o) => (o.id ? [o.id] : [])) : [];
   const versions = await readView(ctx.db, "offer_versions", { in: ["offer_id", offerIds] });
-  const apps = result.ok ? result.data : [];
+  // Under a role lens (A128) only applications for that role type's opportunities are listed.
+  const apps = result.ok ? lensApplications(ctx.lens, result.data) : [];
   const offerFor = (appId: string) =>
     offers.ok ? offers.data.find((o) => o.application_id === appId) : undefined;
 

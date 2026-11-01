@@ -14,6 +14,7 @@ import { docsSiteUrl, env } from "@/lib/env";
 import { buildNav } from "@/lib/shell/nav-model";
 import { buildGatewayKeys } from "@/lib/shell/shell-keys";
 import { requireContext } from "@/lib/shell/context";
+import { lensEngagements, lensSlug } from "@/lib/shell/role-lens";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 import { THEME_COOKIE, preferenceFromCookie } from "@/lib/theme";
@@ -54,7 +55,10 @@ export default async function ShellLayout({ children }: { children: ReactNode })
   const nav = buildNav(sitemap, ctx.nav);
   const label = <T extends { label: string }>(item: T): T => ({ ...item, label: t(item.label) });
   const orgs = new Map<string, string>();
-  if (engagements.ok) for (const e of engagements.data) orgs.set(e.orgId, e.orgName);
+  // The switcher lists the orgs of the engagements the role lens shows (A128).
+  if (engagements.ok) {
+    for (const e of lensEngagements(ctx.lens, engagements.data)) orgs.set(e.orgId, e.orgName);
+  }
   const brandName = ctx.brand.kind === "org" ? ctx.brand.org.name : t("shell.gateway.name");
   // Keyboard shortcuts open only what the person's navigation offers (G then a letter, Section 11.2).
   const keys = buildGatewayKeys(
@@ -88,6 +92,13 @@ export default async function ShellLayout({ children }: { children: ReactNode })
         role: a.roles[0] ? t(enumLabelKey("accountRole", a.roles[0])) : "",
       }))}
       actingId={ctx.acting?.id ?? null}
+      lens={{
+        current: ctx.lens.roleType ? lensSlug(ctx.lens.roleType) : null,
+        roles: ctx.lens.roleTypes.map((r) => ({
+          id: lensSlug(r),
+          label: t(enumLabelKey("externalRoleType", r)),
+        })),
+      }}
       orgs={[...orgs]
         .map(([id, name]) => ({ id, name }))
         .sort((a, b) => a.name.localeCompare(b.name))}
