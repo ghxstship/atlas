@@ -18,6 +18,7 @@ import {
 } from "@/components/collection-kit/kit";
 import type { KitRow, ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
+import { RecordHistory } from "@/components/history/record-history";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
@@ -120,6 +121,7 @@ export async function VerbiageSection({
         actions={controls(selected)}
       >
         {editForm(selected)}
+        <RecordHistory db={db} table="app.verbiage_terms" id={selected.id} />
       </RecordPage>
     );
   }
@@ -192,6 +194,7 @@ export async function VerbiageSection({
         actions={controls(selected)}
       >
         {editForm(selected)}
+        <RecordHistory db={db} table="app.verbiage_terms" id={selected.id} />
       </PeekDrawer>
     );
   }

@@ -3,6 +3,7 @@ import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
 import type { Transition } from "@xos/data/finance";
 import { cache } from "react";
+import { RecordHistory } from "@/components/history/record-history";
 import type { OrgContext } from "@/lib/shell/context";
 import { ActivityTimeline } from "./figures";
 // Comments and attachments render in a record's peek or page, not on a list (A24-009).
@@ -10,7 +11,7 @@ import { FinanceAttachments, FinanceComments } from "./lazy";
 
 /**
  * The shared lower half of every finance record (Section 11.2 rule 4): the activity built from the
- * document's transition ledger, then comments and attachments.
+ * document's transition ledger, then the field history (A131), comments and attachments.
  */
 
 export const getMemberNames = cache(async (ctx: OrgContext): Promise<Record<string, string>> => {
@@ -74,6 +75,7 @@ export async function RecordCollab({
     throw new Error(`Cannot load attachments: ${JSON.stringify(attachments.error)}`);
   return (
     <>
+      <RecordHistory db={db} table={table} id={id} />
       <FinanceComments
         org={ctx.org.slug}
         subjectTable={table}

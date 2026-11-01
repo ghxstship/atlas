@@ -7,6 +7,7 @@ import {
 } from "@xos/data/opportunity-templates";
 import { listProjects } from "@xos/data/projects";
 import { resolveSettings } from "@xos/data/settings";
+import { RecordHistory } from "@/components/history/record-history";
 import { allowedVisibilities } from "@/lib/shell/org-settings";
 import {
   getOpportunity,
@@ -836,6 +837,7 @@ async function PostingRecord({
           <Muted>{t("postings.noKnownParties")}</Muted>
         ) : null}
       </Section>
+      <RecordHistory db={ctx.viewer.db} table="app.opportunities" id={o.id} />
     </TemplateRecord>
   );
 }

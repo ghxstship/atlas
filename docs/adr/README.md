@@ -83,6 +83,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0085](0085-archive-and-unarchive.md)                               | Archive and Unarchive                                                            | Accepted |
 | [0087](0087-dashboard-template-and-template-roots.md)               | The Dashboard Template, Saved Spans and Template Roots                           | Accepted |
 | [0088](0088-gateway-and-compass-search.md)                          | Search in Gateway and on Compass Today                                           | Accepted |
+| [0090](0090-field-history-coverage.md)                              | Field History for Kind Attributes and Every Record Page                          | Accepted |
 | [0100](0100-crew-roster-and-production-advancing.md)                | Crew Roster and Production Advancing                                             | Accepted |
 | [0101](0101-roster-access-and-account-engagement-assignments.md)    | Roster Access and Account Engagement Assignments                                 | Accepted |
 | [0102](0102-profile-facts-and-project-facts.md)                     | Profile Facts and Project Facts                                                  | Accepted |

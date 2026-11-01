@@ -1,6 +1,5 @@
 import { getFieldHistory, type HistoryEvent } from "@xos/data/field-history";
 import { FieldHistoryList } from "@/components/history/field-history-list";
-import { historyItems } from "@/lib/history/items";
 import { getActual, type Actual, type Dependency } from "@xos/data/schedule";
 import { getPunchItemForRecord } from "@xos/data/work-orders";
 import {
@@ -56,6 +55,7 @@ import {
   WatchButton,
   type KindField,
 } from "./record-panels";
+import { recordHistoryItems } from "./record-history-items";
 import { RelatedRecords, type RecordRelations } from "./related-records";
 import { ArchiveControls } from "@/components/archive/archive-controls";
 
@@ -262,28 +262,6 @@ export async function recordPropertyItems(detail: RecordDetail) {
 }
 
 /**
- * Labels of the record fields its field history shows; keys, the kind, numbering and bookkeeping
- * columns are left out, and Trash is worded on its own.
- */
-const RECORD_FIELD_LABELS: Readonly<Record<string, string>> = {
-  title: "work.fields.title",
-  record_subtype: "work.fields.subtype",
-  record_state: "work.columns.state",
-  phase_code: "work.fields.phase",
-  urid: "work.fields.urid",
-  xyz: "work.fields.xyz",
-  owner_party_id: "work.fields.owner",
-  accountable_party_id: "work.fields.accountable",
-  scope_node_id: "work.fields.scope",
-  starts_at: "work.fields.starts",
-  ends_at: "work.fields.ends",
-  due_at: "work.fields.due",
-  time_zone: "work.fields.timeZone",
-  blocker_text: "work.record.blockedBy",
-  replan_reason: "work.fields.replanReason",
-};
-
-/**
  * The content column: state moves, editing, the kind's attributes, work, schedule and history. Each
  * panel below the record's own fields fails alone, with Retry in its place (Region, A143).
  */
@@ -346,28 +324,20 @@ export async function RecordBody({
   const { fieldHistory } = detail;
   const fieldItems = fieldHistory
     ? regionOf("record.field-history", () =>
-        historyItems(fieldHistory, {
+        recordHistoryItems(fieldHistory, {
           t,
-          when: (iso) =>
-            format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
-          label: (field) => {
-            const key = RECORD_FIELD_LABELS[field];
-            return field === "deleted_at" ? t("collab.history.trash") : key ? t(key) : null;
-          },
-          value: (field, v) => {
-            const text = typeof v === "string" ? v : JSON.stringify(v);
-            if (field === "owner_party_id" || field === "accountable_party_id") {
-              return names[text] ?? t("work.values.unnamed");
-            }
-            if (field === "record_state") return t(`work.states.${text}`);
-            if (field === "phase_code") {
-              return meta.phases.find((p) => p.value === text)?.label ?? text;
-            }
-            if (field === "deleted_at") return when(text);
-            if (field === "starts_at" || field === "ends_at" || field === "due_at")
-              return when(text);
-            return text;
-          },
+          locale,
+          when,
+          at: (iso) => format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
+          number: (n) => format.number(n),
+          day: (d) =>
+            format.dateTime(new Date(`${d}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" }),
+          names,
+          phases: meta.phases,
+          fields: detail.fields,
+          // The kind's attributes word their own changes; when they did not load, their changes show raw.
+          extension: detail.attributes.ok ? detail.attributes.data.values : {},
+          currencies: detail.attributes.ok ? detail.attributes.data.currencies : [],
         }),
       )
     : null;

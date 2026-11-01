@@ -15,17 +15,27 @@ export function historyItems(
   input: {
     readonly t: Translate;
     readonly label: (field: string) => string | null;
-    readonly value: (field: string, value: Json) => string;
+    /** `at` names the event and whether the value is the field's before or after. */
+    readonly value: (
+      field: string,
+      value: Json,
+      at: { readonly event: HistoryEvent; readonly side: "before" | "after" },
+    ) => string;
     readonly when: (iso: string) => string;
   },
 ): HistoryItem[] {
   const { t } = input;
-  const show = (field: string, v: Json | null, masked: boolean) =>
+  const show = (
+    field: string,
+    v: Json | null,
+    masked: boolean,
+    at: { readonly event: HistoryEvent; readonly side: "before" | "after" },
+  ) =>
     masked
       ? t("collab.history.masked")
       : v === null || v === ""
         ? t("collab.history.notSet")
-        : input.value(field, v);
+        : input.value(field, v, at);
   return events.flatMap((event): HistoryItem[] => {
     const name = event.actorName ?? t("collab.history.someone");
     const when = input.when(event.at);
@@ -41,8 +51,8 @@ export function historyItems(
         : [
             {
               field,
-              before: show(c.field, c.before, c.masked),
-              after: show(c.field, c.after, c.masked),
+              before: show(c.field, c.before, c.masked, { event, side: "before" }),
+              after: show(c.field, c.after, c.masked, { event, side: "after" }),
             },
           ];
     });
