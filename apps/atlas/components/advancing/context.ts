@@ -27,6 +27,8 @@ export interface AdvancingAbilities {
   readonly rider: boolean;
   /** advancing.reconciliation.write: run reconciliations. */
   readonly reconcile: boolean;
+  /** projects.scope.write: add the venue's specs as capabilities (B1, app.provide_place_specs). */
+  readonly scopeWrite: boolean;
 }
 
 export interface AdvancingContext {
@@ -51,6 +53,7 @@ async function abilities(ctx: OrgContext): Promise<AdvancingAbilities> {
     review: has("advancing.submission.review"),
     rider: has("advancing.rider.write"),
     reconcile: has("advancing.reconciliation.write"),
+    scopeWrite: has("projects.scope.write"),
   };
 }
 

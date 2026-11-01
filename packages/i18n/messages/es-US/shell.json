@@ -140,6 +140,10 @@
       "sitePlans": {
         "empty": "Aún no hay planos del sitio. Sube un plano para ubicar zonas, accesos y activos.",
         "action": "Subir plano"
+      },
+      "signage": {
+        "empty": "Todavía no hay letreros. Agrega los letreros que necesita este proyecto y colócalos en sus planos del sitio.",
+        "action": "Agregar letrero"
       }
     },
     "logistics": {

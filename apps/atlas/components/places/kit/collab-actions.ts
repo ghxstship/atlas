@@ -29,6 +29,9 @@ const SUBJECT_TABLES = [
   "app.inspections",
   "app.inspection_templates",
   "app.capability_statements",
+  "app.site_plan_pins",
+  "app.site_plan_shapes",
+  "app.signs",
 ] as const;
 
 const subjectSchema = z.object({ table: z.enum(SUBJECT_TABLES), id: z.uuid() });

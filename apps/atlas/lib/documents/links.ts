@@ -43,5 +43,9 @@ export function atlasRecordPath(
       return `${o}/people/agreements?peek=${id}`;
     case "radio-handout":
       return `${o}/advancing/allocations?project=${encodeURIComponent(record.projectKey ?? "")}&kind=Asset`;
+    case "site-plan":
+      return `${o}/places/site-plans?peek=${id}`;
+    case "signage-build-sheet":
+      return `${o}/places/signage?project=${id}`;
   }
 }

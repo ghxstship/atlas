@@ -247,6 +247,8 @@
       "purchase_orders": "Purchase orders",
       "invoices": "Invoices",
       "incidents": "Incidents",
+      "spaces": "Spaces",
+      "signs": "Signs",
       "budget_lines": "Budget lines"
     }
   },

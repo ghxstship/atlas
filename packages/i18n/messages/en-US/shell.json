@@ -140,6 +140,10 @@
       "sitePlans": {
         "empty": "No site plans yet. Upload a plan to place zones, gates and assets.",
         "action": "Upload site plan"
+      },
+      "signage": {
+        "empty": "No signs yet. Add the signs this project needs, then place them on its site plans.",
+        "action": "Add sign"
       }
     },
     "logistics": {

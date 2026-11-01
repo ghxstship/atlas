@@ -56,6 +56,8 @@ const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
   "components/places/documents/documents-page.tsx#DocumentsPage":
     "the drawer shows places.kit.peekMissing",
   "components/places/plans/plans-page.tsx#PlansPage": "the drawer shows places.kit.peekMissing",
+  "components/places/signage/signage-page.tsx#SignagePage":
+    "the drawer shows places.kit.peekMissing",
   "components/places/venues/venues-page.tsx#VenuesPage": "VenueDetail shows places.kit.peekMissing",
   "components/safety/inspections/inspections-page.tsx#InspectionsView":
     "the drawer shows places.kit.peekMissing",

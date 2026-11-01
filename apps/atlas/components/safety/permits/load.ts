@@ -1,5 +1,12 @@
 import type { XosClient } from "@xos/data";
-import { listProjectOptions, type ProjectOption } from "@xos/data/places";
+import {
+  listPermitRulePlaceFacts,
+  listProjectOptions,
+  listProjectPlaceFacts,
+  type PermitFactGroup,
+  type ProjectOption,
+  type ProjectPlaceFacts,
+} from "@xos/data/places";
 import {
   getPermitReadiness,
   listPermitRequirements,
@@ -15,6 +22,10 @@ import {
 export interface PermitRow extends PermitRequirement {
   readonly canon: PermitRule | null;
   readonly project: ProjectOption | null;
+  /** The venue fact groups a reviewer reads beside this rule (B1, app.permit_rule_place_facts); display only. */
+  readonly factGroups: readonly PermitFactGroup[];
+  /** The project venue's recorded facts; null when the project has no venue. */
+  readonly facts: ProjectPlaceFacts | null;
 }
 
 export interface PermitData {
@@ -32,14 +43,16 @@ export async function loadPermits(
   orgId: string,
   projectId: string | undefined,
 ): Promise<PermitData> {
-  const [requirements, rules, projects, states, transitions, readiness] = await Promise.all([
-    listPermitRequirements(db, { orgId, ...(projectId ? { projectId } : {}) }),
-    listPermitRules(db),
-    listProjectOptions(db, orgId),
-    listRecordStates(db),
-    listRecordTransitions(db),
-    projectId ? getPermitReadiness(db, projectId) : Promise.resolve(null),
-  ]);
+  const [requirements, rules, projects, states, transitions, readiness, factMap] =
+    await Promise.all([
+      listPermitRequirements(db, { orgId, ...(projectId ? { projectId } : {}) }),
+      listPermitRules(db),
+      listProjectOptions(db, orgId),
+      listRecordStates(db),
+      listRecordTransitions(db),
+      projectId ? getPermitReadiness(db, projectId) : Promise.resolve(null),
+      listPermitRulePlaceFacts(db),
+    ]);
   for (const r of [requirements, rules, projects, states, transitions]) {
     if (!r.ok) throw new Error(`Cannot load permits: ${JSON.stringify(r.error)}`);
   }
@@ -51,11 +64,18 @@ export async function loadPermits(
   }
   const ruleBy = new Map(rules.data.map((r) => [r.rule, r]));
   const projectBy = new Map(projects.data.map((p) => [p.id, p]));
+  const groups = factMap.ok ? factMap.data : new Map<string, readonly PermitFactGroup[]>();
+  const facts = await listProjectPlaceFacts(db, [
+    ...new Set(requirements.data.map((r) => r.projectId)),
+  ]);
+  const factsBy = new Map((facts.ok ? facts.data : []).map((f) => [f.projectId, f]));
   const rows = requirements.data
     .map((r) => ({
       ...r,
       canon: ruleBy.get(r.rule) ?? null,
       project: projectBy.get(r.projectId) ?? null,
+      factGroups: groups.get(r.rule) ?? [],
+      facts: factsBy.get(r.projectId) ?? null,
     }))
     .sort(
       (a, b) =>
