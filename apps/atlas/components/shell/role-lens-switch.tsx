@@ -1,4 +1,4 @@
-import { Check, ChevronRight, UserRoundSearch } from "lucide-react";
+import { Icon } from "@xos/ui";
 import type { OrgContext } from "@/lib/shell/context";
 import { setRoleLensAction } from "@/lib/shell/role-lens-actions";
 
@@ -27,13 +27,14 @@ export function RoleLensSwitch({ ctx, t }: { ctx: OrgContext; t: Translate }) {
         aria-label={t("shell.roleLens.summary", { role: current })}
         className="flex min-h-target-fine cursor-pointer list-none items-center gap-8 rounded-control px-8 text-text-13 text-text-secondary hover:bg-bg-hover focus-visible:outline-2 focus-visible:outline-focus-ring pointer-coarse:min-h-target-coarse [&::-webkit-details-marker]:hidden"
       >
-        <UserRoundSearch aria-hidden="true" className="size-14 shrink-0" />
+        <Icon name="UserRoundSearch" size={14} className="shrink-0" />
         <span className="min-w-0 flex-1 truncate">
           {t("shell.roleLens.label")}: <span className="text-text-primary">{current}</span>
         </span>
-        <ChevronRight
-          aria-hidden="true"
-          className="size-14 shrink-0 transition-transform duration-fast ease-standard group-open/lens:rotate-90 group-open/lens:rtl:-rotate-90"
+        <Icon
+          name="ChevronRight"
+          size={14}
+          className="shrink-0 transition-transform duration-fast ease-standard group-open/lens:rotate-90 group-open/lens:rtl:-rotate-90"
         />
       </summary>
       <form
@@ -54,7 +55,7 @@ export function RoleLensSwitch({ ctx, t }: { ctx: OrgContext; t: Translate }) {
             className="flex min-h-target-fine cursor-pointer items-center gap-8 rounded-control border-0 bg-transparent px-8 text-start text-text-13 text-text-primary hover:bg-bg-hover focus-visible:outline-2 focus-visible:outline-focus-ring pointer-coarse:min-h-target-coarse"
           >
             {o.active ? (
-              <Check aria-hidden="true" className="size-14 shrink-0" />
+              <Icon name="Check" size={14} className="shrink-0" />
             ) : (
               <span aria-hidden="true" className="size-14 shrink-0" />
             )}
