@@ -98,7 +98,10 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
-  "import-run": 120,
+  // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
+  // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
+  // above that.
+  "import-run": 134,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
   "inbound-email": 80,
@@ -130,8 +133,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // about 10 percent above that.
   "subprocessor-notices": 127,
   "upload-scan": 100,
-  // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
-  "wallet-pass": 120,
+  // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB). A127's
+  // action links in the shared stores (about 2 KB) bring it to 121.1 KB in merge train 6; about 10 percent above that.
+  "wallet-pass": 133,
   "webhook-dispatch": 70,
 };
 
