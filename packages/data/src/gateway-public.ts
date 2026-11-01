@@ -316,14 +316,7 @@ export async function signTokenDocument(
   return ok({ refused: false, signedAt: row.signed_at });
 }
 
-export type AdvanceSectionKind =
-  | "Text"
-  | "File"
-  | "Schedule Window"
-  | "Item Request"
-  | "Crew Roster"
-  | "Guest List"
-  | "Credential Request";
+export type AdvanceSectionKind = Database["app"]["Enums"]["advance_section_kind"];
 
 /** What an Item Request or Credential Request section offers (R9 choices, with names). */
 export interface AdvanceChoice {

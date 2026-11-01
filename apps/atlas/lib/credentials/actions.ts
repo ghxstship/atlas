@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import {
   archiveCredentialCategory,
   createCredentialCategory,
@@ -59,7 +60,7 @@ const Category = z.object({
     .pipe(z.string().regex(CATEGORY_CODE)),
   name: z.string().trim().min(1).max(100),
   // R7: a parking pass is a category of kind Parking.
-  kind: z.enum(["Access", "Parking"]).optional(),
+  kind: z.enum(Constants.app.Enums.credential_category_kind).optional(),
 });
 
 export async function createCategoryAction(_: ActionState, form: FormData): Promise<ActionState> {

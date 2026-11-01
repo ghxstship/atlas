@@ -1,5 +1,6 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import { Button, Dialog, IconButton, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { RiderLineProposal } from "@xos/data/advancing";
 import { emitWorkflow } from "@xos/data/workflow-signal";
@@ -57,15 +58,7 @@ const SectionChoicesEditor = dynamic(() =>
   import("./section-kind-fields").then((m) => m.SectionChoicesEditor),
 );
 
-const SECTION_KINDS = [
-  "Text",
-  "File",
-  "Schedule Window",
-  "Item Request",
-  "Crew Roster",
-  "Guest List",
-  "Credential Request",
-] as const;
+const SECTION_KINDS = enums.advanceSectionKind;
 
 /** The catalog segment of a section or window kind: Item Request is itemRequest. */
 function kindKey(value: string): string {

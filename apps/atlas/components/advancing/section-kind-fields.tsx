@@ -1,5 +1,6 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import { Checkbox, IconButton, Input, MultiSelect, Select } from "@xos/ui";
 import { useActionState, useId, useState } from "react";
 import { addSectionChoiceAction, removeSectionChoiceAction, type AdvancingState } from "./actions";
@@ -18,14 +19,7 @@ export interface ChoiceOption {
   readonly label: string;
 }
 
-const WINDOW_KINDS = [
-  "Load In",
-  "Load Out",
-  "Arrival",
-  "Soundcheck",
-  "Activation Setup",
-  "Activation Strike",
-] as const;
+const WINDOW_KINDS = enums.advanceWindowKind;
 const LIMITS: Readonly<Record<string, number>> = {
   File: 10,
   "Schedule Window": 5,

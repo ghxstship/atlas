@@ -30,7 +30,7 @@ export const additions = defineAdditions("Credentials", {
       apply: editShape({
         add: {
           category_kind: {
-            schema: z.enum(["Access", "Parking"]).meta({
+            schema: z.enum(Constants.app.Enums.credential_category_kind).meta({
               description: "Access badge or parking pass.",
               example: "Parking",
             }),

@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import type { Parsed } from "@xos/data/work-details-forms";
 import {
   clearRosterProjectFact,
@@ -48,7 +49,7 @@ async function db() {
 }
 
 const entryId = z.uuid();
-const kinds = z.enum(["Travel", "Uniform", "Vehicle"]);
+const kinds = z.enum(Constants.app.Enums.project_fact_kind);
 
 function rejected(parsed: Extract<Parsed<unknown>, { ok: false }>): RosterFactStepState {
   return { fieldErrors: Object.fromEntries(parsed.fields.map((f) => [f, parsed.code])) };

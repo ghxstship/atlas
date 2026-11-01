@@ -55,6 +55,8 @@ const engagement = (id: string, roleType: EngagementSummary["roleType"]): Engage
   projectName: "Harbor Fall Regatta",
   roleType,
   state: "Active",
+  via: "engagement",
+  rosterEntryId: null,
 });
 
 const engaged: LensContext = {

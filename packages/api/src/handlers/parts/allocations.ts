@@ -4,6 +4,7 @@
  * calls; refusals come back as 422 with the rule. An issue is one event: the handler mints the event id on the first
  * request and the runtime's Idempotency-Key ledger replays the stored response, so a retry never issues twice.
  */
+import type { Database } from "@xos/data/database.types";
 import {
   assignAllocation,
   decideAllocation,
@@ -86,7 +87,7 @@ type RequestBody = {
   asset_class_id?: string | undefined;
   fulfillment_id?: string | undefined;
   accommodation_block_id?: string | undefined;
-  service_kind?: "Travel" | "Per Diem" | undefined;
+  service_kind?: Database["app"]["Enums"]["allocation_service_kind"] | undefined;
   quantity: number;
   needed_from: string;
   needed_to: string;

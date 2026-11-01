@@ -13,6 +13,7 @@
  * The parking category kind and the asset class offering enter the frozen `credentialCategories` and `assetClasses`
  * through correction entries in their module files.
  */
+import { Constants } from "@xos/data/database.types";
 import { z } from "@hono/zod-openapi";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
@@ -35,19 +36,9 @@ const KINDS = [
   "Travel",
   "Per Diem",
 ] as const;
-const STATES = ["Requested", "Approved", "Declined", "Withdrawn"] as const;
-const ORIGINS = ["Requested", "Assigned", "Split"] as const;
-const OFFERINGS = [
-  "Travel",
-  "Lodging",
-  "Catering",
-  "Parking",
-  "Uniforms",
-  "Per Diem",
-  "Radios",
-  "Carts",
-  "Guest List",
-] as const;
+const STATES = Constants.app.Enums.allocation_state;
+const ORIGINS = Constants.app.Enums.allocation_origin;
+const OFFERINGS = Constants.app.Enums.offering_kind;
 export const DISPLAY_STATUSES = [
   "Requested",
   "Approved",
@@ -69,13 +60,7 @@ export const CONFLICTS = [
   "Lot Over Reserved",
   "Order Short",
 ] as const;
-const RELEASE_REASONS = [
-  "Withdrawn",
-  "Entry Removed",
-  "Engagement Ended",
-  "Split",
-  "Released By Reviewer",
-] as const;
+const RELEASE_REASONS = Constants.app.Enums.reservation_release_reason;
 const SOURCES = ["Class Stock", "Unit", "Lot", "Order Line"] as const;
 
 const qty = (description: string, example: number) => z.number().meta({ description, example });
@@ -227,7 +212,7 @@ const AllocationRequest = z
     fulfillment_id: fields.ref("catering fulfillment").optional(),
     accommodation_block_id: fields.ref("accommodation block").optional(),
     service_kind: z
-      .enum(["Travel", "Per Diem"])
+      .enum(Constants.app.Enums.allocation_service_kind)
       .optional()
       .meta({ description: "Travel or Per Diem.", example: "Travel" }),
     quantity: z.number().positive().meta({ description: "Quantity.", example: 6 }),
@@ -252,7 +237,7 @@ const AllocationAssign = AllocationRequest.extend({ sources }).meta({
 const Decision = z
   .object({
     decision: z
-      .enum(["Approved", "Rejected"])
+      .enum(Constants.app.Enums.approval_decision)
       .meta({ description: "Approve, or reject (decline).", example: "Approved" }),
     reason: reason(
       "Required to decline, and to approve above the allowance with overflow at review.",
@@ -340,7 +325,7 @@ const IssueItem = z
     check_in_on: fields.date("Lodging: first night.").optional(),
     check_out_on: fields.date("Lodging: departure date.").optional(),
     travel_mode: z
-      .enum(["Flight", "Ground"])
+      .enum(Constants.app.Enums.travel_mode)
       .optional()
       .meta({ description: "Travel: mode.", example: "Flight" }),
     operator_name: text("Travel: airline or operator.", "Delta").optional(),

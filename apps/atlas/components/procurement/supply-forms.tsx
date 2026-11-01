@@ -1,5 +1,6 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import type { HireWarning } from "@xos/data/procurement";
 import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 import { useRouter } from "next/navigation";
@@ -69,7 +70,7 @@ export function PoLineForm({
   const k = useCopy("procurement.kit");
   const [state, formAction, pending] = useActionState(action, INITIAL);
   const formRef = useResetOnSuccess(state);
-  const [kind, setKind] = useState<"Purchase" | "Rental">("Purchase");
+  const [kind, setKind] = useState<(typeof enums.acquisitionKind)[number]>("Purchase");
   const [hire, setHire] = useState({ from: "", to: "" });
   const [warnings, setWarnings] = useState<HireWarning[]>([]);
   const [, startCheck] = useTransition();
@@ -238,7 +239,7 @@ export function ReturnForm({
   const [eventId] = useState(() => crypto.randomUUID());
   useDone(state, successHref);
   const rental = lines.some((l) => l.rental);
-  const reasons = ["Off Hire", "Defective", "Wrong Item", "Over Delivery"] as const;
+  const reasons = enums.goodsReturnReason;
   return (
     <form
       action={formAction}

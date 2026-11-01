@@ -10,6 +10,7 @@
  * The section kind and the recipient's engagement and naming deadline enter the frozen `advanceSections` and
  * `advanceRecipients` through correction entries in catalog/modules/advancing.ts, with their actions.
  */
+import { Constants } from "@xos/data/database.types";
 import { z } from "@hono/zod-openapi";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
@@ -17,23 +18,8 @@ import { editDefinition, orNull } from "../../correct.ts";
 import { resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
 
-export const SECTION_KINDS = [
-  "Text",
-  "File",
-  "Schedule Window",
-  "Item Request",
-  "Crew Roster",
-  "Guest List",
-  "Credential Request",
-] as const;
-export const WINDOW_KINDS = [
-  "Load In",
-  "Load Out",
-  "Arrival",
-  "Soundcheck",
-  "Activation Setup",
-  "Activation Strike",
-] as const;
+export const SECTION_KINDS = Constants.app.Enums.advance_section_kind;
+export const WINDOW_KINDS = Constants.app.Enums.advance_window_kind;
 
 const AdvanceSectionChoice = editDefinition(
   defineResource({

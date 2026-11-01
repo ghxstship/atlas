@@ -148,7 +148,7 @@ export interface CredentialCategory {
   readonly activeCount: number;
 }
 
-export type CredentialCategoryKind = "Access" | "Parking";
+export type CredentialCategoryKind = Database["app"]["Enums"]["credential_category_kind"];
 
 interface CategoryRow {
   id: string;

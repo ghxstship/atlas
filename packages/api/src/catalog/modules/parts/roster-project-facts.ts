@@ -8,6 +8,7 @@
  * (the person, the company that rosters them, a producer by capability) and logs every read of a value by anyone
  * other than the person. The capabilities below gate API keys by group; the RPCs decide everything else.
  */
+import { Constants } from "@xos/data/database.types";
 import { z } from "@hono/zod-openapi";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
@@ -20,34 +21,34 @@ const label = (id: string, values: readonly [string, ...string[]], description: 
 
 export const ProjectFactKind = label(
   "ProjectFactKind",
-  ["Travel", "Uniform", "Vehicle"],
+  Constants.app.Enums.project_fact_kind,
   "A kind of project fact a rostered person enters on their roster entry, asked only while its offering (Travel, Uniforms, Parking) is on.",
 );
 const ShoeSizeSystem = label(
   "ShoeSizeSystem",
-  ["US Men", "US Women", "EU", "UK"],
+  Constants.app.Enums.shoe_size_system,
   "Sizing system of a shoe size.",
 );
 const RosterEntryState = label(
   "RosterEntryState",
-  ["Draft", "Submitted", "Accepted", "Returned", "Withdrawn"],
+  Constants.app.Enums.roster_entry_state,
   "Review state of a roster entry.",
 );
 const RosterPersonResponse = label(
   "RosterPersonResponse",
-  ["Pending", "Accepted", "Declined"],
+  Constants.app.Enums.roster_person_response,
   "The rostered person's own answer.",
 );
 const garment = () =>
   orNull(
     z
-      .enum(["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"])
+      .enum(Constants.app.Enums.garment_letter_size)
       .meta({ description: "Letter size.", example: "M" }),
   );
 const seat = () =>
   orNull(
     z
-      .enum(["Window", "Aisle", "No Preference"])
+      .enum(Constants.app.Enums.seat_preference)
       .meta({ description: "Preferred seat.", example: "Aisle" }),
   );
 const airportCode = (description: string) =>

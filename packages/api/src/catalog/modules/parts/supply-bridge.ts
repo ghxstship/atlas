@@ -14,14 +14,15 @@
  * The acquisition kind and hire period of an order line and a unit's receipt line enter the frozen `poLines` and
  * `assetUnits` through correction entries in the module files.
  */
+import { Constants } from "@xos/data/database.types";
 import { z } from "@hono/zod-openapi";
 import { defineResource, fields } from "@xos/schemas";
 import { orNull } from "../../correct.ts";
 import { collectionQuery, itemAction, resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
 
-const ACQUISITION_KINDS = ["Purchase", "Rental"] as const;
-const RETURN_REASONS = ["Off Hire", "Defective", "Wrong Item", "Over Delivery"] as const;
+const ACQUISITION_KINDS = Constants.app.Enums.acquisition_kind;
+const RETURN_REASONS = Constants.app.Enums.goods_return_reason;
 export const HIRE_WARNINGS = [
   "Delivery After Load In",
   "Return Before Load Out",

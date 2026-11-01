@@ -343,7 +343,7 @@ export async function decideAllocation(
   db: XosClient,
   input: {
     readonly allocationId: string;
-    readonly decision: "Approved" | "Rejected";
+    readonly decision: Database["app"]["Enums"]["approval_decision"];
     /** Required to decline, and to approve above the allowance with overflow at review. */
     readonly reason?: string | null;
     readonly sources?: readonly ReservationSource[] | null;

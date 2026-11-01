@@ -1,3 +1,4 @@
+import type { Database } from "@xos/data/database.types";
 import type { AssetState } from "@xos/data/assets";
 import type { RecordState } from "@xos/ui";
 import {
@@ -66,7 +67,7 @@ export type UnitFilterField = (typeof UNIT_FILTER_FIELDS)[number];
 /** What the units list's conditions read of a unit. */
 export interface UnitViewFacts {
   readonly state: AssetState;
-  readonly acquisitionKind: "Purchase" | "Rental";
+  readonly acquisitionKind: Database["app"]["Enums"]["acquisition_kind"];
 }
 
 /**

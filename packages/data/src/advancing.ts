@@ -307,26 +307,11 @@ export async function listPackets(
 }
 
 /** What a section asks for (app.advance_section_kind, R9). */
-export const ADVANCE_SECTION_KINDS = [
-  "Text",
-  "File",
-  "Schedule Window",
-  "Item Request",
-  "Crew Roster",
-  "Guest List",
-  "Credential Request",
-] as const;
+export const ADVANCE_SECTION_KINDS = enums.advanceSectionKind;
 export type AdvanceSectionKind = (typeof ADVANCE_SECTION_KINDS)[number];
 
 /** What a Schedule Window section asks the time of (app.advance_window_kind, R9). */
-export const ADVANCE_WINDOW_KINDS = [
-  "Load In",
-  "Load Out",
-  "Arrival",
-  "Soundcheck",
-  "Activation Setup",
-  "Activation Strike",
-] as const;
+export const ADVANCE_WINDOW_KINDS = enums.advanceWindowKind;
 export type AdvanceWindowKind = (typeof ADVANCE_WINDOW_KINDS)[number];
 
 /** The most lines each kind lets an answer hold, as advance_sections_kind_fields checks it. */

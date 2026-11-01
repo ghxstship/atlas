@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import type { DataError, Result } from "@xos/data";
 import {
   acceptShift,
@@ -245,7 +246,7 @@ export async function unassignRosterShiftAction(_: State, form: FormData): Promi
 export async function verifyRosterTrainingAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
   const parsed = z
-    .object({ recordId: uuid, outcome: z.enum(["Passed", "Failed"]) })
+    .object({ recordId: uuid, outcome: z.enum(Constants.app.Enums.verification_outcome) })
     .safeParse({ recordId: form.get("recordId"), outcome: form.get("outcome") });
   if (!parsed.success) return invalid(t, { outcome: "crew.errors.reason" });
   const result = await verifyRosterTraining(db, parsed.data.recordId, parsed.data.outcome);

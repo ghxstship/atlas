@@ -27,13 +27,8 @@ export type ApprovalDecision = Database["app"]["Enums"]["approval_decision"];
 export type AcquisitionKind = Database["app"]["Enums"]["acquisition_kind"];
 export type GoodsReturnReason = Database["app"]["Enums"]["goods_return_reason"];
 
-export const ACQUISITION_KINDS: readonly AcquisitionKind[] = ["Purchase", "Rental"];
-export const GOODS_RETURN_REASONS: readonly GoodsReturnReason[] = [
-  "Off Hire",
-  "Defective",
-  "Wrong Item",
-  "Over Delivery",
-];
+export const ACQUISITION_KINDS: readonly AcquisitionKind[] = enums.acquisitionKind;
+export const GOODS_RETURN_REASONS: readonly GoodsReturnReason[] = enums.goodsReturnReason;
 
 export const RFQ_STATES: readonly RfqState[] = enums.rfqState;
 export const PO_STATES: readonly PoState[] = enums.poState;

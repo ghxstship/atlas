@@ -12,6 +12,7 @@
  * No price, order number, vendor or plate appears. catalog/modules/gateway.ts spreads these into the Gateway
  * additions; the database decides who may do each and refuses with a named rule.
  */
+import { Constants } from "@xos/data/database.types";
 import { z } from "@hono/zod-openapi";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
@@ -29,18 +30,8 @@ const KINDS = [
   "Travel",
   "Per Diem",
 ] as const;
-const STATES = ["Requested", "Approved", "Declined", "Withdrawn"] as const;
-const OFFERINGS = [
-  "Travel",
-  "Lodging",
-  "Catering",
-  "Parking",
-  "Uniforms",
-  "Per Diem",
-  "Radios",
-  "Carts",
-  "Guest List",
-] as const;
+const STATES = Constants.app.Enums.allocation_state;
+const OFFERINGS = Constants.app.Enums.offering_kind;
 const ITEM_KINDS = [
   "credential_category",
   "asset_class",
@@ -154,7 +145,7 @@ const Request = z
       .meta({ description: "What is asked for.", example: "asset_class" }),
     item_id: fields.ref("category, class, fulfillment or block; left out for a service").optional(),
     service_kind: z
-      .enum(["Travel", "Per Diem"])
+      .enum(Constants.app.Enums.allocation_service_kind)
       .optional()
       .meta({ description: "Travel or Per Diem, for a service.", example: "Travel" }),
     quantity: z.number().positive().meta({ description: "Quantity.", example: 6 }),

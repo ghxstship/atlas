@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import type { DataError } from "@xos/data";
 import {
   assignAllocation,
@@ -179,7 +180,7 @@ export async function decideAllocationAction(
   const parsed = z
     .object({
       id: z.uuid(),
-      decision: z.enum(["Approved", "Rejected"]),
+      decision: z.enum(Constants.app.Enums.approval_decision),
       reason: z.string().trim().max(1000),
     })
     .safeParse({
