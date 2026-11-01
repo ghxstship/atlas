@@ -251,6 +251,8 @@ export const dietaryNeed = [
 ] as const;
 /** app.digest_frequency */
 export const digestFrequency = ["Off", "Daily", "Weekly"] as const;
+/** app.display_mode */
+export const displayMode = ["Room Clock", "Presenter Timer", "Backstage"] as const;
 /** app.domain_provisioning_status */
 export const domainProvisioningStatus = [
   "Not Started",
@@ -515,6 +517,8 @@ export const listingReportReason = [
   "Missing Pay Range",
   "Safety",
 ] as const;
+/** app.live_link_kind */
+export const liveLinkKind = ["View", "Display"] as const;
 /** app.lost_item_category */
 export const lostItemCategory = [
   "Bag",

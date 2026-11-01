@@ -11445,6 +11445,8 @@ class Opportunity(TypedDict):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class _OpportunityCreateRequired(TypedDict):
@@ -11487,6 +11489,8 @@ class OpportunityCreate(_OpportunityCreateRequired, total=False):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class OpportunityUpdate(TypedDict, total=False):
@@ -11526,6 +11530,8 @@ class OpportunityUpdate(TypedDict, total=False):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class _OpportunityTransitionRequestRequired(TypedDict):
@@ -12778,6 +12784,8 @@ class MarketplaceListing(TypedDict):
     opportunity_state: OpportunityState
     #: Number of open positions.
     position_count: int
+    #: True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.
+    client_hidden: bool
 
 
 class SavedSearchPage(TypedDict):

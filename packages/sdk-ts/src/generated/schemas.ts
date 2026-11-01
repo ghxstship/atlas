@@ -19398,6 +19398,10 @@ export interface Opportunity {
    * Whether the work can be done remotely.
    */
   readonly is_remote: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked: boolean;
 }
 
 /**
@@ -19490,6 +19494,10 @@ export interface OpportunityCreate {
    * Whether the work can be done remotely.
    */
   readonly is_remote?: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked?: boolean;
 }
 
 /**
@@ -19571,6 +19579,10 @@ export interface OpportunityUpdate {
    * Whether the work can be done remotely.
    */
   readonly is_remote?: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked?: boolean;
 }
 
 /**
@@ -22057,6 +22069,10 @@ export interface MarketplaceListing {
    * Range: 0 to unbounded.
    */
   readonly position_count: number;
+  /**
+   * True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.
+   */
+  readonly client_hidden: boolean;
 }
 
 /**

@@ -62988,6 +62988,7 @@ export type Database = {
         };
         Returns: boolean;
       };
+      apply_drafted_list: { Args: { p_items: Json; p_request_id: string }; Returns: Json };
       apply_question_template: {
         Args: { p_opportunity_id: string; p_template_id: string };
         Returns: number;
@@ -64333,6 +64334,7 @@ export type Database = {
           plus_ones_admitted: number;
         }[];
       };
+      drafted_list_is_empty: { Args: { p_kind: string; p_target_id: string }; Returns: boolean };
       edit_chat_message: { Args: { p_body: string; p_message_id: string }; Returns: string };
       effective_brand: {
         Args: { p_org_id: string };
