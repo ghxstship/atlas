@@ -10496,6 +10496,7 @@
               "Damaged",
               "Lost",
               "Retired",
+              "Returned",
               null
             ],
             "description": "Units: the state after the move.",
@@ -10666,7 +10667,8 @@
               "In Maintenance",
               "Damaged",
               "Lost",
-              "Retired"
+              "Retired",
+              "Returned"
             ],
             "description": "Asset lifecycle state.",
             "example": "In Maintenance"

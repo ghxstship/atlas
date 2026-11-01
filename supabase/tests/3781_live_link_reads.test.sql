@@ -294,7 +294,7 @@ select is((select array_agg(distinct key order by key) from jsonb_array_elements
   array['called_at', 'duration_seconds', 'label', 'planned_at', 'position', 'segment'],
   'each cue carries position, label, segment, planned_at, duration_seconds and called_at, never called_by or description');
 select results_eq($$select r -> 'meta' ->> 'name', r -> 'meta' ->> 'default_mode', (r -> 'cues' -> 1 ->> 'duration_seconds')::int from (select pg_temp.display('d') as r) x$$,
-  $$values ('Opening Night'::text, 'Backstage'::text, 4700)$$, 'with the running order''s name, the default mode and durations in seconds');
+  $$values ('Opening Night'::text, 'Backstage'::text, 2700)$$, 'with the running order''s name, the default mode and durations in seconds');
 select pg_temp.as_user('dave');
 update app.cues set called_at = now() where run_of_show_id = pg_temp.id('ros') and position = 1;
 select pg_temp.as_platform();

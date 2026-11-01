@@ -5524,7 +5524,7 @@ class AssetScanResult(TypedDict):
     #: The custody entry or lot movement, equal to the event id.
     ledger_id: str
     #: Units: the state after the move.
-    asset_state: Optional[Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired"]]
+    asset_state: Optional[Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired", "Returned"]]
     #: Lots: the quantity on hand after the move.
     on_hand: Optional[float]
 
@@ -5588,7 +5588,7 @@ class AssetUnitBulkValues(TypedDict, total=False):
     """Fields of one of the asset units in a bulk change. Only these fields change in bulk."""
 
     #: Asset lifecycle state.
-    asset_state: Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired"]
+    asset_state: Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired", "Returned"]
     #: Venue the unit returns to.
     home_venue_id: Optional[str]
     #: Condition: a row of the canon Asset Condition enumeration.

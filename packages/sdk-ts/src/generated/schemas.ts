@@ -7706,6 +7706,7 @@ export interface AssetScanResult {
     | "Damaged"
     | "Lost"
     | "Retired"
+    | "Returned"
     | null;
   /**
    * Lots: the quantity on hand after the move.
@@ -7823,7 +7824,8 @@ export interface AssetUnitBulkValues {
     | "In Maintenance"
     | "Damaged"
     | "Lost"
-    | "Retired";
+    | "Retired"
+    | "Returned";
   /**
    * Venue the unit returns to.
    * Format: `uuid`.

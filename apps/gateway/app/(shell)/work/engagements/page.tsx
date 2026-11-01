@@ -84,8 +84,8 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
   // Engagements the person works only on a party's roster list beside their own (R8); under a role lens (A128) only
   // that role type's engagements are listed.
   const all = result.ok
-    ? lensEngagements(ctx.lens, [...result.data, ...(rostered.ok ? rostered.data : [])]).filter((e) =>
-        inBrandScope(ctx.brand, e.orgId),
+    ? lensEngagements(ctx.lens, [...result.data, ...(rostered.ok ? rostered.data : [])]).filter(
+        (e) => inBrandScope(ctx.brand, e.orgId),
       )
     : [];
   const shown = orgFilter ? all.filter((e) => e.orgId === orgFilter) : all;
