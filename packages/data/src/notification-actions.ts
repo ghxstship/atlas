@@ -1,3 +1,4 @@
+import type { Database } from "./database.types.ts";
 import { isActionToken } from "@xos/schemas/notifications/action-token";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -20,7 +21,7 @@ export { isActionToken };
 export type ActionLinkState = "ready" | "used" | "expired" | "elsewhere" | "not_yours" | "invalid";
 export type LinkAction = "approve" | "reject" | "accept";
 /** The app whose confirm page reads or uses a link. */
-export type LinkApp = "Atlas" | "Gateway";
+export type LinkApp = Database["app"]["Enums"]["shortcut_shell"];
 
 export interface ActionLink {
   readonly state: ActionLinkState;
