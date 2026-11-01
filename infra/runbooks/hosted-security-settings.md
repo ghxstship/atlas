@@ -187,3 +187,21 @@ Schedule the `report-run` Edge Function every minute with the service key, as fo
 `webhook-dispatch`. It processes `report.run` jobs (migration 1050): until it is scheduled, report runs
 stay Queued. Result files go to the private `report-results` bucket, readable only by the person each
 run is for.
+
+## Hosted MCP endpoint (B16)
+
+`XOS_MCP_HOSTED=on` in Vercel (Atlas) turns on the hosted MCP endpoint at `/api/mcp`, and `/mcp` on the API host
+(ADR 0155 D1). Unset, both answer 404, and so does `/.well-known/oauth-protected-resource`.
+`/.well-known/oauth-authorization-server` is served either way. Before turning it on:
+
+1. In a test org on the hosted environment you choose, register a Claude connector and a ChatGPT connector from the
+   presets in Settings, Integrations (callbacks `https://claude.ai/api/mcp/auth_callback` and
+   `https://chatgpt.com/connector_platform_oauth_redirect`, kept in `apps/atlas/lib/mcp/connectors.ts`).
+2. In each client's custom connector, add the MCP server URL and paste the client ID into the advanced OAuth
+   settings. Confirm the callback, a public client with PKCE and no secret, the consent screen, `tools/list`, and
+   that one proposal appears in Personal settings, Connected apps.
+3. If a client needs another callback, a client secret or dynamic registration, record a follow-up decision; never
+   turn dynamic registration on.
+
+Every write the endpoint receives becomes a proposal the person confirms; the database also refuses a connector
+token's direct writes (`agent_write_needs_review`).

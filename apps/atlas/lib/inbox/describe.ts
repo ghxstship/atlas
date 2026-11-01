@@ -42,6 +42,9 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   // R6a (4664): which profile facts moved to each project (uniform, travel or both).
   "account.work_details_moved": ["moved"],
   "billing.payment_failed": ["days"],
+  // B16 (6051, 6052): when a pause resumes (or none), and which connected app proposed which operation.
+  "billing.paused": ["resumesOn"],
+  "agent.change_proposed": ["app", "operation"],
   // 2051: the rows of a validated or committed import.
   "import.finished": ["written", "refused", "skipped"],
   // Marketplace matches and expiry reminders (A89, migrations 1462 and 1463).
@@ -119,6 +122,8 @@ export function inboxTarget(
   }
   const path = item.subjectTable ? TARGETS[item.subjectTable] : undefined;
   if (path) return `/${org}/${path}`;
+  // A connected app's proposal (B16, 6052) waits in Personal settings, Connected apps.
+  if (item.kind === "agent.change_proposed") return `/${org}/me/connected-apps`;
   if (item.kind.startsWith("billing.")) return `/${org}/settings/billing-and-plan`;
   if (item.kind.startsWith("account.")) return `/${org}/me/security`;
   return null;

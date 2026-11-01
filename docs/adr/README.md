@@ -107,6 +107,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0123](0123-database-enums-have-one-home-in-code.md)                | Database Enums Have One Home in Code                                             | Accepted |
 | [0130](0130-live-share-links-and-display-screens.md)                | Live Share Links to Saved Views and Run-of-Show Display Screens                  | Accepted |
 | [0138](0138-approval-rules-signed-out-decisions-and-reminders.md)   | Approval Rules, Signed-Out Decisions by Emailed Code, and Approval Reminders     | Proposed |
+| [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)        | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 

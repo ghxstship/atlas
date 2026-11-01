@@ -1,0 +1,28 @@
+{
+  "title": "Cambios que propusieron sus aplicaciones conectadas",
+  "description": "Una aplicación conectada como Claude o ChatGPT nunca cambia nada por sí misma: cada cambio que propone te espera aquí. Al confirmarlo se ejecuta con tu propio acceso. Una propuesta vence a los 7 días.",
+  "empty": "No hay nada esperándote.",
+  "from": "De {app}",
+  "action": "Cambio",
+  "target": "Registro",
+  "fields": "Valores",
+  "noFields": "Sin valores.",
+  "clear": "(vacío)",
+  "note": "La nota de la aplicación: {note}",
+  "expires": "Vence el {date}",
+  "confirm": "Confirmar",
+  "reject": "Rechazar",
+  "confirmed": "Listo. Se hizo el cambio.",
+  "rejected": "Rechazado. Nada cambió.",
+  "refusals": {
+    "ai_suggestion_not_proposed": "Este cambio ya se confirmó, se rechazó o venció.",
+    "ai_suggestion_expired": "Esta propuesta venció. Vuelve a pedírsela a la aplicación.",
+    "agent_grant_revoked": "Ya no permites que esta aplicación actúe por ti, así que sus cambios no pueden confirmarse.",
+    "agent_outside_grant": "Este cambio está fuera de lo que permites que la aplicación alcance.",
+    "agent_operation_restricted": "Una aplicación conectada no puede proponer un cambio que alcance datos restringidos o el control de la organización.",
+    "agent_operation_unknown": "XOS ya no ofrece este tipo de cambio. Recházalo.",
+    "ai_suggestion_needs_person": "Una aplicación conectada no puede confirmar su propio cambio; confírmalo aquí.",
+    "stale": "El registro cambió después de que la aplicación lo leyó. Rechaza esta propuesta y vuelve a pedírsela a la aplicación.",
+    "other": "El cambio se rechazó: {detail}"
+  }
+}

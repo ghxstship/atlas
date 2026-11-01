@@ -71,6 +71,8 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
+  // B16: the storage providers and their OAuth renewal, plain fetch to Google and Microsoft.
+  "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
   "subprocessor-notices": {
     boot: ["intl-messageformat", "zod"],
@@ -123,8 +125,11 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // A138's email branding in the shared platform stores brought it to 145.1 KB on 2026-10-31 (merge train 2). R6a
   // (4660, account.work_details_moved) and R7 (4698, the four allocation kinds) add their notices in both locales
   // (150.1 KB on their branch). P9: every kind's copy grew by approval.reminder and approval.link_code in both locales
-  // (about 1.4 KB; train 6).
+  // (about 1.4 KB; train 6). B16 adds billing.paused, billing.resumed and agent.change_proposed (train 7).
   "sms-webhook": 160,
+  // B16, a new function (not a raise): the shared core, the three storage providers with their file metadata and
+  // folder walks, and the OAuth renewal; 98.5 KB on 2026-10-30, about 25 percent above that like the others.
+  "storage-browse": 125,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,

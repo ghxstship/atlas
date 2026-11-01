@@ -163,6 +163,7 @@ function subscriptionEvent(
     livemode?: boolean;
     id?: string;
     extraItems?: { lookupKey: string; quantity: number }[];
+    pauseCollection?: { behavior: string; resumes_at: number | null } | null;
   } = {},
 ) {
   return {
@@ -178,6 +179,7 @@ function subscriptionEvent(
         object: "subscription",
         customer: "cus_test_1",
         status: overrides.status ?? "active",
+        pause_collection: overrides.pauseCollection ?? null,
         metadata: overrides.orgId === null ? {} : { org_id: overrides.orgId ?? "org-1" },
         items: {
           data: [
@@ -453,6 +455,45 @@ describe("Stripe webhook", () => {
       eventId: "evt_test_1",
     });
     expect(syncs).toHaveLength(1);
+  });
+
+  it("passes Stripe's pause through with the event's created time (B16)", async () => {
+    const { store, syncs } = memoryStore();
+    const send = (event: unknown) =>
+      handleStripeWebhook({
+        ...signed(event),
+        webhookSecret: secret,
+        livemode: false,
+        registry,
+        store,
+      });
+    await send(subscriptionEvent());
+    expect(syncs[0]).toMatchObject({
+      pauseCollection: null,
+      eventCreatedAt: new Date(1_790_000_000 * 1000),
+    });
+    await send(
+      subscriptionEvent({
+        id: "evt_pause",
+        pauseCollection: { behavior: "void", resumes_at: 1_795_000_000 },
+      }),
+    );
+    expect(syncs[1]?.pauseCollection).toEqual({ resumesAt: new Date(1_795_000_000 * 1000) });
+    await send(
+      subscriptionEvent({
+        id: "evt_open",
+        pauseCollection: { behavior: "void", resumes_at: null },
+      }),
+    );
+    expect(syncs[2]?.pauseCollection).toEqual({ resumesAt: null });
+    await send(
+      subscriptionEvent({
+        id: "evt_paused",
+        type: "customer.subscription.paused",
+        status: "paused",
+      }),
+    );
+    expect(syncs[3]).toMatchObject({ status: "paused", pauseCollection: null });
   });
 
   it("treats a deleted subscription as canceled and resolves the org from the customer", async () => {

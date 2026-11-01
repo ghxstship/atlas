@@ -660,7 +660,9 @@
         "payment_failed": "Pago fallido",
         "read_only": "La organización está en modo de solo lectura",
         "trial_ending": "La prueba termina pronto",
-        "trial_ended": "La prueba terminó"
+        "trial_ended": "La prueba terminó",
+        "paused": "Organización en pausa",
+        "resumed": "Organización reanudada"
       },
       "comment": {
         "created": "Nuevo comentario"
@@ -757,6 +759,9 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "agent": {
+        "change_proposed": "Una aplicación conectada propuso un cambio"
       },
       "credential_photo": {
         "requested": "Foto de credencial solicitada"

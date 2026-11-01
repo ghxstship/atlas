@@ -1,0 +1,33 @@
+{
+  "title": "Blocklist",
+  "description": "Email addresses and domains that cannot join this organization. A domain also blocks its subdomains. Current members are never removed: end their memberships above if you need to.",
+  "blocked": "You cannot join this organization. Ask one of its administrators.",
+  "empty": "Nothing is blocked.",
+  "kind": "Type",
+  "kinds": {
+    "Email": "Email address",
+    "Domain": "Domain"
+  },
+  "value": "Address or domain",
+  "valueHelp": "For example name@example.com, or example.com to block the whole domain.",
+  "reason": "Reason (optional)",
+  "add": "Add to blocklist",
+  "remove": "Remove",
+  "removeTitle": "Remove {value} from the blocklist?",
+  "removeBody": "People at this address or domain can be invited and join again.",
+  "cancel": "Cancel",
+  "addedBy": "Added by {name} on {date}",
+  "addedOn": "Added on {date}",
+  "matching": "{count, plural, =0 {No current member matches} one {# current member matches} other {# current members match}}",
+  "added": "Added. Revoked {invites, plural, one {# invitation} other {# invitations}} and declined {requests, plural, one {# request} other {# requests}} to join.",
+  "removed": "Removed from the blocklist.",
+  "errors": {
+    "blocklist_value_invalid": "Enter an email address such as name@example.com, or a domain such as example.com.",
+    "blocklist_own_domain": "This domain is, or contains, one of the organization's verified domains. Block single addresses there instead.",
+    "blocklist_duplicate": "This address or domain is already on the blocklist.",
+    "blocklist_full": "A blocklist holds at most 1,000 entries. Remove some, or block a domain instead of its addresses.",
+    "org_read_only": "This organization is read-only, so the blocklist cannot change now.",
+    "denied": "You need permission to manage members to change the blocklist.",
+    "unexpected": "Something went wrong on our side. Try again in a moment."
+  }
+}

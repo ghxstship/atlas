@@ -44,6 +44,8 @@ const KNOWN = new Set([
   "certification_not_yours",
   "email_unconfirmed",
   "auto_join_unavailable",
+  // The org's blocklist (B16, 6050) refuses the join with a generic sentence.
+  "member_blocked",
 ]);
 
 function errorKey(error: Parameters<typeof settingErrorKey>[0]): string {

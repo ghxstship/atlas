@@ -59,9 +59,10 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473) and the four
     // reported content kinds of ADR 0033 decision 57 (1630), the three crew roster kinds of R4 (2642), and R5's
     // project facts and names lock kinds (4655, 4656), R6a's account.work_details_moved (4664), R7's four
-    // allocation kinds (4698), A127's offer.sent (5200), P5's badge photo request (5822), and P9's approval.reminder
-    // and approval.link_code (5862, 5861).
-    expect(registry.kinds).toHaveLength(68);
+    // allocation kinds (4698), A127's offer.sent (5200), P5's badge photo request (5822), P9's approval.reminder
+    // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
+    // (6051, 6052).
+    expect(registry.kinds).toHaveLength(71);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -100,10 +101,12 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       ["account.recovery_code_used", null],
       ["access.break_glass_started", null],
     ]);
-    // Billing notices wait until morning, although the account category is urgent.
+    // Billing notices wait until morning, although the account category is urgent; the pause notices too (B16).
     expect(
       registry.kinds.filter((k) => k.kind.startsWith("billing.")).map((k) => k.quietHoursBypass),
-    ).toEqual([null, null, null, null]);
+    ).toEqual([null, null, null, null, null, null]);
+    // B16 (ADR 0155 D2): a connected app's proposal reaches the Inbox and a push, never email.
+    expect(notificationKind("agent.change_proposed")?.channels).toEqual(["In App", "Push"]);
     // ADR 0033 decision 77: a delivered report reaches the Inbox and a push, never a second email.
     expect(notificationKind("report.delivered")?.channels).toEqual(["In App", "Push"]);
     expect(notificationKind("no.such_kind")).toBeUndefined();
@@ -140,7 +143,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // kind that names fewer channels. Kinds are never deleted.
     expect(sql.match(/\bdelete\b/g)).toHaveLength(2);
     expect(sql).toContain(
-      "delete from private.notification_templates\nwhere (kind = 'approval.link_code' and channel not in ('In App', 'Email'))\n   or (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'));",
+      "delete from private.notification_templates\nwhere (kind = 'agent.change_proposed' and channel not in ('In App', 'Push'))\n   or (kind = 'approval.link_code' and channel not in ('In App', 'Email'))\n   or (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'));",
     );
     const drift = renderNotificationDriftTest(registry);
     expect(drift).toContain("select plan(5);");

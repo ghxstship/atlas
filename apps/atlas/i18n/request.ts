@@ -55,6 +55,12 @@ const SERVER_ONLY_NAMESPACES: readonly Namespace[] = [
   "handoff",
   // A86's settings surfaces render their copy on the server and pass it to their forms as props.
   "settingsSurfaces",
+  // B16's panels and banners render their copy on the server and pass it to their forms as props.
+  "agentChanges",
+  "mcpConnectors",
+  "memberBlocklist",
+  "storageLinks",
+  "subscriptionPause",
   "ui",
 ];
 

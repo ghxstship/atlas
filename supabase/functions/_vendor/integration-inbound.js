@@ -5,11 +5,11 @@ import {
   handleSlashCommand,
   integrationsTranslator,
   mintChatSession,
-  sha256Hex,
   supabaseCommunicationSource,
   verifySlackRequest,
   verifyTeamsRequest,
 } from "./chunks/integrations-inbound-session.js";
+import { sha256Hex } from "./chunks/integrations-framework-connector.js";
 import { createHmac, timingSafeEqual } from "node:crypto";
 //#region ../integrations/src/inbound/verify.ts
 /**

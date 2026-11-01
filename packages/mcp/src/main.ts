@@ -6,7 +6,8 @@
  * --write (or XOS_MCP_WRITE) the server exposes read tools only.
  */
 import { parseArgs } from "node:util";
-import { createSession, optionsFromEnv, serveStdio } from "./server.ts";
+import { createSession, optionsFromEnv } from "./server.ts";
+import { serveStdio } from "./stdio.ts";
 
 try {
   const { values } = parseArgs({

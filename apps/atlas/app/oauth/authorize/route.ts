@@ -1,4 +1,5 @@
 import {
+  oauthDefaultScopes,
   parseAuthorizeRequest,
   readAuthorizeAnswer,
   recordOAuthRequest,
@@ -6,6 +7,7 @@ import {
 } from "@xos/data/oauth";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
+import { oauthResources } from "@/lib/mcp/connectors";
 import { securityHeaders } from "@/lib/security/headers";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -16,6 +18,10 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * Auth's own scope, records the groups for that authorization (app.record_oauth_request) and opens the consent page.
  * A request that is malformed, or that names an unknown client or redirect URI, is answered here and never redirected,
  * so it cannot be used to bounce a person to an arbitrary address (RFC 6749 section 4.1.2.1).
+ *
+ * B16 (ADR 0155 D1): an MCP connector may send no scope; its default capability groups (app.oauth_default_scopes)
+ * fill it, and a request still without one is refused. A `resource` (RFC 8707) must be one XOS serves, the MCP or the
+ * API URL on either host, and is never sent on to Supabase Auth.
  */
 
 export const dynamic = "force-dynamic";
@@ -43,18 +49,25 @@ function redirectTo(location: string): NextResponse {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const search = request.nextUrl.searchParams;
-  const parsed = parseAuthorizeRequest(search);
-  if (!parsed.ok) {
-    return problem(
+  const parsed = parseAuthorizeRequest(search, { resources: oauthResources(env()) });
+  const invalid = (reason: string) =>
+    problem(
       400,
-      `This authorization request is invalid (${parsed.problem}). XOS needs client_id, redirect_uri, response_type=code, a PKCE code_challenge with code_challenge_method=S256, and capability groups in scope.`,
+      `This authorization request is invalid (${reason}). XOS needs client_id, redirect_uri, response_type=code, a PKCE code_challenge with code_challenge_method=S256, capability groups in scope, and no resource other than XOS's own.`,
     );
-  }
+  if (!parsed.ok) return invalid(parsed.problem);
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
   if (!data.user) {
     const here = `${request.nextUrl.pathname}${request.nextUrl.search}`;
     return redirectTo(`/auth/sign-in?next=${encodeURIComponent(here)}`);
+  }
+
+  let scopes = parsed.request.scopes;
+  if (scopes.length === 0) {
+    const defaults = await oauthDefaultScopes(db, parsed.request.clientId);
+    scopes = defaults.ok ? defaults.data : [];
+    if (scopes.length === 0) return invalid("scope");
   }
 
   const answer = await fetch(supabaseAuthorizeUrl(env().SUPABASE_URL, parsed.request), {
@@ -70,7 +83,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (read.kind === "none") {
     return problem(400, "This app or its redirect URI is not registered with XOS.");
   }
-  const recorded = await recordOAuthRequest(db, read.authorizationId, parsed.request.scopes);
+  const recorded = await recordOAuthRequest(db, read.authorizationId, scopes);
   const consent = `/oauth/consent?authorization_id=${read.authorizationId}`;
   if (!recorded.ok) {
     const rule = recorded.error.kind === "refusal" ? recorded.error.rule : "oauth_request_expired";

@@ -1,0 +1,43 @@
+{
+  "title": "AI assistant connectors",
+  "description": "Connect Claude, ChatGPT or another MCP client to XOS. The assistant reads what each person lets it reach, and every change it asks for waits for that person to confirm in XOS.",
+  "off": "The hosted MCP endpoint is not turned on for this XOS yet. You can register a connector now; it works once the endpoint is on.",
+  "kind": "Assistant",
+  "kinds": {
+    "Claude": "Claude",
+    "ChatGPT": "ChatGPT",
+    "Other": "Another MCP client"
+  },
+  "name": "Name (optional)",
+  "redirect": "Callback URL",
+  "redirectHelp": "The https address the assistant asks you to register for OAuth.",
+  "scopes": "What it may reach by default",
+  "scopesHelp": "Each person still chooses on the consent screen. Groups that reach Restricted data or the organization's control are never a default.",
+  "register": "Register connector",
+  "registered": "Registered. Give the assistant these two values.",
+  "serverUrl": "MCP server URL",
+  "clientId": "OAuth client ID",
+  "copy": "Copy",
+  "copied": "Copied",
+  "steps": {
+    "Claude": "In Claude, open Settings, Connectors, Add custom connector. Paste the MCP server URL, open Advanced settings and paste the OAuth client ID. Leave the client secret empty.",
+    "ChatGPT": "In ChatGPT, open Settings, Connectors, Create. Paste the MCP server URL, choose OAuth, and paste the OAuth client ID with no client secret.",
+    "Other": "Give the MCP client the server URL, and register it as a public OAuth client with the client ID, PKCE S256 and no client secret."
+  },
+  "list": "Registered connectors",
+  "none": "No connector is registered.",
+  "remove": "Remove",
+  "removeTitle": "Remove {name}?",
+  "removeBody": "Everyone's access through it ends at once, and the changes it proposed expire.",
+  "errors": {
+    "mcp_scope_restricted": "A connector never gets a group that reaches Restricted data or the organization's control by default.",
+    "mcp_redirect_uri_invalid": "The callback is an https address without a fragment.",
+    "mcp_client_kind_required": "Choose Claude, ChatGPT or another MCP client.",
+    "oauth_scope_unknown": "One of the groups is not a capability group.",
+    "oauth_scope_missing": "Choose at least one group, and at most 40.",
+    "org_read_only": "This organization is read-only, so connectors cannot change now.",
+    "denied": "You need permission to manage integrations to register a connector.",
+    "unexpected": "Something went wrong on our side. Try again in a moment."
+  },
+  "connectorName": "{name} ({kind})"
+}

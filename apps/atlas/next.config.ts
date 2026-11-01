@@ -27,6 +27,7 @@ const config: NextConfig = {
     "@xos/icons",
     "@xos/infra",
     "@xos/integrations",
+    "@xos/mcp",
     "@xos/ui",
   ],
   typedRoutes: true,

@@ -1,4 +1,7 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+
+// lib/api/app.ts (B16) is server-only; vitest runs outside Next's server bundle.
+vi.mock("server-only", () => ({}));
 
 beforeAll(() => {
   process.env["SUPABASE_URL"] = "http://127.0.0.1:1";

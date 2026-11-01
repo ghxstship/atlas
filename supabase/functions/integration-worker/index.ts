@@ -6,7 +6,10 @@
 //
 // Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_ANON_KEY (provided by Supabase),
 // XOS_API_JWT_SIGNING_KEY (the project's JWT secret, for the one-minute sessions Slack unfurls read records with)
-// and XOS_APP_URL (Atlas, whose record links are unfurled).
+// and XOS_APP_URL (Atlas, whose record links are unfurled). Optional (B16, ADR 0155 D5): XOS_GOOGLE_STORAGE_CLIENT_ID
+// and XOS_GOOGLE_STORAGE_CLIENT_SECRET, XOS_MICROSOFT_STORAGE_CLIENT_ID and XOS_MICROSOFT_STORAGE_CLIENT_SECRET, the
+// platform OAuth apps that renew Google Drive and OneDrive sign-ins; a connection of a provider not set up keeps its
+// token until it expires.
 import { createClient } from "@supabase/supabase-js";
 import {
   asDbClient,
@@ -17,6 +20,13 @@ import {
   supabaseCommunicationSource,
 } from "../_vendor/integration-worker.js";
 import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
+
+/** A platform OAuth app's client pair from the function's secrets, or null when it is not set up. */
+function oauthPair(prefix: string): { clientId: string; clientSecret: string } | null {
+  const clientId = Deno.env.get(`${prefix}_CLIENT_ID`);
+  const clientSecret = Deno.env.get(`${prefix}_CLIENT_SECRET`);
+  return clientId && clientSecret ? { clientId, clientSecret } : null;
+}
 
 serve(async (request) => {
   const serviceKey = env("SUPABASE_SERVICE_ROLE_KEY");
@@ -41,6 +51,10 @@ serve(async (request) => {
         ...(await Deno.resolveDns(host, "AAAA").catch(() => [])),
       ],
       translate: integrationsTranslator("en-US"),
+      storageOAuth: {
+        google_drive: oauthPair("XOS_GOOGLE_STORAGE"),
+        onedrive_sharepoint: oauthPair("XOS_MICROSOFT_STORAGE"),
+      },
       atlasOrigin: new URL(env("XOS_APP_URL")).origin,
       chat: {
         source: supabaseCommunicationSource(db),
