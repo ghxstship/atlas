@@ -18,7 +18,6 @@ import { nextStates } from "@xos/data/commercial-common";
 import { regionFromLocale } from "@xos/i18n/formats";
 import { getFormatter, getLocale } from "next-intl/server";
 import { addressFormat, addressLines } from "@/lib/address";
-import { getFormatter } from "next-intl/server";
 import { vendorBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
