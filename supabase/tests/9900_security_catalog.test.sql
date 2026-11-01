@@ -79,7 +79,9 @@ $$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_vers
   ('advance_roster'), ('advance_upload_ticket_open'), ('begin_advance_upload'), ('finish_advance_upload'), ('invite_advance_roster_member'),
   ('request_advance_guest'), ('submit_advance_roster'), ('submit_advance_typed'),
   ('submit_advance'), ('subscribe_subprocessor_notices'), ('token_document'), ('token_sign_document'),
-  ('unsubscribe_subprocessor_notices'), ('verify_certification')$$,
+  ('unsubscribe_subprocessor_notices'), ('verify_certification'),
+  -- P9 (5861, ADR 0138): the signed-out approval link page, with its emailed access code.
+  ('read_approval_link'), ('request_approval_link_code'), ('preview_approval_link'), ('use_approval_link')$$,
   'anon reaches exactly the reviewed api_public token, profile and consent RPCs');
 
 select is_empty($$

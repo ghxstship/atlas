@@ -13,6 +13,9 @@ import { ActionForm, useWorkflowT } from "./kit";
 const DECIDED = ["atlas.finance:step1"] as const;
 const DECIDED_LAST = ["atlas.finance:step1", "atlas.finance:done"] as const;
 
+/** Which approval a form decides: a spend approval, or a pass, dock booking or equipment approval (P9). */
+export type ApprovalKind = "spend" | "subject";
+
 /**
  * Approve, or reject with a reason, the step an approval waits on. `last` marks the only approval left waiting on the
  * person.
@@ -20,10 +23,12 @@ const DECIDED_LAST = ["atlas.finance:step1", "atlas.finance:done"] as const;
 export function DecisionForm({
   org,
   id,
+  kind = "spend",
   last = false,
 }: {
   org: string;
   id: string;
+  kind?: ApprovalKind;
   last?: boolean;
 }) {
   const t = useWorkflowT();
@@ -32,7 +37,7 @@ export function DecisionForm({
   return (
     <ActionForm
       action={decideApprovalAction}
-      hidden={{ org, id, decision }}
+      hidden={{ org, id, decision, kind }}
       label={t("approvals.decide.label")}
       submitLabel={
         decision === "approve" ? t("approvals.decide.approve") : t("approvals.decide.reject")
@@ -80,7 +85,15 @@ export function DecisionForm({
 }
 
 /** Withdraw an approval in review, or an approved one the document has not used. */
-export function CancelForm({ org, id }: { org: string; id: string }) {
+export function CancelForm({
+  org,
+  id,
+  kind = "spend",
+}: {
+  org: string;
+  id: string;
+  kind?: ApprovalKind;
+}) {
   const t = useWorkflowT();
   const [open, setOpen] = useState(false);
   if (!open) {
@@ -93,7 +106,7 @@ export function CancelForm({ org, id }: { org: string; id: string }) {
   return (
     <ActionForm
       action={cancelApprovalAction}
-      hidden={{ org, id }}
+      hidden={{ org, id, kind }}
       label={t("approvals.cancel.label")}
       submitLabel={t("approvals.cancel.submit")}
       submitVariant="danger"

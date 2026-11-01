@@ -42,6 +42,7 @@ var importFinished = z.object({
   skipped: z.number().int().nonnegative(),
   url: z.url(),
 });
+var approvalLinkCode = z.object({ orgName: z.string() });
 var reportDelivery = z.object({
   reportName: z.string(),
   periodLabel: z.string(),
@@ -85,6 +86,19 @@ async function propsFor(claim, store) {
         code: "report_delivery",
         props: reportDelivery.parse(claim.messageArgs),
       };
+    case "approval_link_code": {
+      const code = (await store.mintApprovalLinkCodeFor?.(claim)) ?? null;
+      if (code === null || !/^[0-9]{6}$/.test(code))
+        throw new Error("The approval link is no longer ready, so no access code was sent");
+      return {
+        code: "approval_link_code",
+        props: {
+          code,
+          orgName: approvalLinkCode.parse(claim.messageArgs).orgName,
+          expiresInMinutes: 10,
+        },
+      };
+    }
     default:
       throw new Error(`The ${claim.emailTemplateCode} template is not sent for notifications`);
   }

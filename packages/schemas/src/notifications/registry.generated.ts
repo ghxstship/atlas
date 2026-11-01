@@ -162,6 +162,12 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
     description:
       "Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.",
   },
+  {
+    code: "approval_link_code",
+    transactional: true,
+    description:
+      "The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).",
+  },
 ];
 
 /** The templates index: every notification kind. */
@@ -212,6 +218,30 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.approval.decided.subject",
       body: "kinds.approval.decided.body",
+    },
+  },
+  {
+    kind: "approval.reminder",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: "approval_request",
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.approval.reminder.subject",
+      body: "kinds.approval.reminder.body",
+    },
+  },
+  {
+    kind: "approval.link_code",
+    category: "approvals",
+    emailTemplate: "approval_link_code",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email"],
+    copy: {
+      subject: "kinds.approval.link_code.subject",
+      body: "kinds.approval.link_code.body",
     },
   },
   {

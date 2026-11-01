@@ -114,13 +114,16 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. A138's email branding in the shared stores
   // brought it to 215.9 KB on 2026-10-31 (merge train 2); about 10 percent above that. R7: the radio hand-out's
   // document copy in both locales and the four allocation kinds in the shared stores chunk (218.6 KB on its branch).
+  // P9: the shared stores mint an approval link's access code, and the email copy chunks carry the access-code email
+  // and the approval reminder in both locales (about 1.5 KB at boot; train 6).
   "org-lifecycle": 237,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
   // A138's email branding in the shared platform stores brought it to 145.1 KB on 2026-10-31 (merge train 2). R6a
   // (4660, account.work_details_moved) and R7 (4698, the four allocation kinds) add their notices in both locales
-  // (150.1 KB on their branch).
+  // (150.1 KB on their branch). P9: every kind's copy grew by approval.reminder and approval.link_code in both locales
+  // (about 1.4 KB; train 6).
   "sms-webhook": 160,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,

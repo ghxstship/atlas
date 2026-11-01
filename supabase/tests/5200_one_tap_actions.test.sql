@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(75);
+select plan(77);
 
 create temporary table k (key text primary key, id uuid, token text);
 grant select, insert, update on k to public;
@@ -333,12 +333,16 @@ select lives_ok(format($$select app.act_on_notification(%L, 'done')$$, pg_temp.i
 select is((select count(*)::integer from app.inbox_items where id in (pg_temp.id('n_ivy'), pg_temp.id('n_ivy2'))), 0,
   'both leave their For Your Information list');
 
--- 5200 recreates two functions R12 (4750) also changed: a shift worked through a roster entry (agency staff) must keep
--- its worker in both, or its notices and its email's Accept link stop reaching that person.
+-- 5200 and 5861 (P9) recreate functions that must know a shift worked through a roster entry (agency staff, R12, 4750
+-- and 4752), or its notices, its email's Accept link and answering it from a notification stop reaching that person.
 select ok(pg_get_functiondef('private.notify_shift_change()'::regprocedure) like '%new.roster_entry_id%',
   'shift notices find the worker of a roster entry''s shift (R12)');
 select ok(pg_get_functiondef('private.notification_link_actions(uuid)'::regprocedure) like '%v_shift.roster_entry_id%',
   'a shift email offers Accept to the worker of a roster entry''s shift (R12)');
+select ok(pg_get_functiondef('app.act_on_notification(uuid, text, text)'::regprocedure) like '%v_shift.roster_entry_id is not null%',
+  'accepting a roster entry''s shift from a notification takes the external path (R12)');
+select ok(pg_get_functiondef('app.decline_shift(uuid, text)'::regprocedure) like '%my_roster_entry_ids(''operational'')%',
+  'agency staff decline their roster entry''s shift (R12)');
 
 select * from finish();
 rollback;

@@ -372,14 +372,18 @@ declare
   v_assigned boolean;
 begin
   select * into v_shift from app.shifts s where s.id = p_shift_id and s.deleted_at is null for update;
-  -- The shift's member, or its engaged worker while the operational area is open. Every test is written so it is never
+  -- The shift's member, its engaged worker while the operational area is open, or the agency staff member placed on it
+  -- through their roster entry (R12) while that entry's operational area is open. Every test is written so it is never
   -- null: an open or engaged shift has no membership, and `null in (...)` would let anyone through a negated check.
   v_assigned := v_shift.id is not null and (
     (v_shift.membership_id is not null
       and exists (select 1 from private.my_membership_ids() m (id) where m.id = v_shift.membership_id))
     or (v_shift.membership_id is null and v_shift.engagement_id is not null
       and exists (select 1 from app.engagements e where e.id = v_shift.engagement_id and e.person_id = v_person)
-      and exists (select 1 from private.my_engagement_ids('operational') x (id) where x.id = v_shift.engagement_id)));
+      and exists (select 1 from private.my_engagement_ids('operational') x (id) where x.id = v_shift.engagement_id))
+    or (v_shift.membership_id is null and v_shift.roster_entry_id is not null
+      and private.roster_entry_person(v_shift.roster_entry_id) is not distinct from v_person
+      and exists (select 1 from private.my_roster_entry_ids('operational') x (id) where x.id = v_shift.roster_entry_id)));
   if not coalesce(v_assigned, false) then
     raise exception using errcode = '42501', message = 'only the person assigned declines a shift';
   end if;
@@ -391,7 +395,7 @@ begin
 end;
 $$;
 
-comment on function app.decline_shift(uuid, text) is 'The person assigned to a Published shift (its member, or its engaged worker while the operational area is open) declines it: the shift returns to Draft with the reason in its ledger, for the scheduler to reassign and publish again. Returns the ledger entry id.';
+comment on function app.decline_shift(uuid, text) is 'The person assigned to a Published shift (its member, its engaged worker while the operational area is open, or the agency staff member placed on it through their roster entry, R12) declines it: the shift returns to Draft with the reason in its ledger, for the scheduler to reassign and publish again. Returns the ledger entry id.';
 revoke all on function app.decline_shift(uuid, text) from public, anon;
 grant execute on function app.decline_shift(uuid, text) to authenticated, service_role;
 
@@ -443,7 +447,8 @@ begin
       select * into v_shift from app.shifts s where s.id = v_note.subject_id;
       if p_action = 'decline' then
         perform app.decline_shift(v_note.subject_id, v_comment);
-      elsif v_shift.membership_id is null and v_shift.engagement_id is not null then
+      -- An engaged worker, or agency staff placed through a roster entry (R12), accepts as an external party.
+      elsif v_shift.membership_id is null and (v_shift.engagement_id is not null or v_shift.roster_entry_id is not null) then
         perform app.accept_engaged_shift(v_note.subject_id, 'Accepted from a notification.');
       else
         perform app.accept_shift(v_note.subject_id, 'Accepted from a notification.');

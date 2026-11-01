@@ -48,6 +48,15 @@ describe("the channels a category's kinds reach", () => {
     expect(notificationCategoryChannels("not-a-category")).toEqual([]);
   });
 
+  it("keeps every channel for approvals, though the access-code kind is sent by email only", () => {
+    // P9: approval.link_code reaches only In App and Email; the category's other kinds still text and push.
+    expect(NOTIFICATION_KINDS.find((k) => k.kind === "approval.link_code")?.channels).toEqual([
+      "In App",
+      "Email",
+    ]);
+    expect(notificationCategoryChannels("approvals")).toEqual(["In App", "Email", "SMS", "Push"]);
+  });
+
   it("reads the generated registry for every category, as the preference matrix does", () => {
     const matrix = preferenceMatrix({
       categories: NOTIFICATION_CATEGORIES,
