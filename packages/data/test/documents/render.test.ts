@@ -179,7 +179,7 @@ describe("credential badges on cards and in batches (P5)", () => {
     expect(card).not.toContain("/S /Table");
   }, 60_000);
 
-  it("prints the placeholder for a missing photo or one it cannot embed", async () => {
+  it("prints the empty photo frame for a missing photo or one it cannot embed", async () => {
     for (const bytes of [null, new TextEncoder().encode("RIFF....WEBP")]) {
       const data = { ...ascii, photo: bytes ? { bytes, source: "Profile" as const } : null };
       const pdf = text(await renderDocumentPdf(model("cr80", data), { paper: "cr80" }));

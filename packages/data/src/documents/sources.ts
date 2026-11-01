@@ -54,7 +54,7 @@ export async function documentProject(
 
 /**
  * The photo a badge prints, read as the caller (P5): the org's badge photo once Clean, else a profile photo the
- * caller may see. A credential that is no longer live, or a photo that cannot be read, prints the placeholder.
+ * caller may see. A credential that is no longer live, or a photo that cannot be read, prints the empty photo frame.
  */
 export async function credentialBadgePhoto(
   db: XosClient,

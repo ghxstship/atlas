@@ -452,7 +452,7 @@ export class TaggedWriter {
   /**
    * The holder's portrait in a fixed frame: the image fitted and centered, never cropped, as a Figure with its
    * alternative text. A missing photo, or one pdfkit cannot embed, draws a ruled frame as an artifact and the
-   * placeholder text inside it.
+   * empty-frame text inside it.
    */
   protected portrait(
     block: Extract<DocumentBlock, { kind: "portrait" }>,
@@ -460,7 +460,7 @@ export class TaggedWriter {
     y: number,
     width: number,
     height: number,
-    placeholderSize: number,
+    emptyTextSize: number,
   ): void {
     const { doc } = this;
     if (block.bytes && isEmbeddableImage(block.bytes)) {
@@ -469,7 +469,7 @@ export class TaggedWriter {
       try {
         opened = doc.openImage(buffer) as { width: number; height: number };
       } catch {
-        // A file with an image signature that pdfkit cannot read prints the placeholder.
+        // A file with an image signature that pdfkit cannot read prints the empty photo frame.
         opened = null;
       }
       if (opened && opened.width > 0 && opened.height > 0) {
@@ -487,10 +487,10 @@ export class TaggedWriter {
     this.artifact(() => {
       doc.rect(x, y, width, height).lineWidth(0.6).strokeColor(RULE).stroke();
     });
-    this.style("regular", placeholderSize, MUTED);
+    this.style("regular", emptyTextSize, MUTED);
     const pad = Math.max(3, width * 0.08);
-    const textHeight = doc.heightOfString(this.safe(block.placeholder), { width: width - pad * 2 });
-    this.text(this.root, "P", block.placeholder, {
+    const textHeight = doc.heightOfString(this.safe(block.emptyText), { width: width - pad * 2 });
+    this.text(this.root, "P", block.emptyText, {
       x: x + pad,
       y: y + Math.max(pad, (height - textHeight) / 2),
       width: width - pad * 2,
