@@ -1,3 +1,4 @@
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -8,7 +9,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * declines matching requests to join; current members are counted, never removed.
  */
 
-export type BlocklistEntryKind = "Email" | "Domain";
+export type BlocklistEntryKind = Database["app"]["Enums"]["blocklist_entry_kind"];
 
 export interface BlocklistEntry {
   readonly entryId: string;

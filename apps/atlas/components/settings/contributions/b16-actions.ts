@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import type { DataError } from "@xos/data";
 import { registerMcpConnector } from "@xos/data/agent-proposals";
 import {
@@ -54,7 +55,7 @@ function refusalKey(error: DataError, known: (rule: string) => boolean): string 
 // Blocklist ------------------------------------------------------------------------------------------------------
 
 const blocklistSchema = z.object({
-  kind: z.enum(["Email", "Domain"]),
+  kind: z.enum(Constants.app.Enums.blocklist_entry_kind),
   value: z.string().trim().min(1).max(320),
   reason: z.string().trim().max(500).optional(),
 });
@@ -124,7 +125,7 @@ export async function registerMcpConnectorAction(_: B16State, form: FormData): P
   const t = await copy("mcpConnectors");
   const parsed = z
     .object({
-      kind: z.enum(["Claude", "ChatGPT", "Other"]),
+      kind: z.enum(Constants.app.Enums.mcp_client_kind),
       name: z.string().trim().max(120).optional(),
       redirectUri: z.string().trim().max(2000).optional(),
       scopes: z

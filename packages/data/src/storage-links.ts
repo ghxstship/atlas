@@ -1,3 +1,4 @@
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -13,7 +14,7 @@ export type LinkProvider = "google_drive" | "onedrive_sharepoint" | "dropbox";
 export interface DocumentFileLink {
   readonly linkId: string;
   readonly provider: LinkProvider;
-  readonly mode: "Link" | "Import";
+  readonly mode: Database["app"]["Enums"]["file_link_mode"];
   readonly fileName: string;
   readonly mimeType: string | null;
   readonly sizeBytes: number | null;

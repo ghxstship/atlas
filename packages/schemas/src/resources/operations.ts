@@ -469,6 +469,42 @@ const word = (description: string, example: string) => z.string().meta({ descrip
 const oneOf = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
 
+// B5's lists of database enum values. @xos/data depends on this package, so they cannot read Constants (ADR 0123);
+// test/database-enums.test.ts holds each to its enum.
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
+export const VEHICLE_TYPES = [
+  "Sedan",
+  "SUV",
+  "Van",
+  "Sprinter",
+  "Minibus",
+  "Coach",
+  "Other",
+] as const;
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
+export const SPACE_BOOKING_PURPOSES = [
+  "Green Room",
+  "Dressing Room",
+  "Production Office",
+  "Hospitality Suite",
+  "Other",
+] as const;
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
+export const SPACE_BOOKING_MODES = ["Exclusive", "Shared"] as const;
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
+export const LOCAL_CONTACT_ROLES = [
+  "Promoter",
+  "Venue",
+  "Production",
+  "Security",
+  "Transport",
+  "Hospitality",
+  "Medical",
+  "Other",
+] as const;
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
+export const LOCAL_CONTACT_AUDIENCES = ["Internal", "Shared"] as const;
+
 export const Flight = defineResource({
   name: "Flight",
   table: "app.travel_grid",
@@ -522,9 +558,7 @@ export const Transfer = defineResource({
     fulfillment_id: nullable(f.ref("Travel fulfillment")),
     vehicle_id: nullable(f.ref("vehicle")),
     vehicle_label: nullable(word("Vehicle label.", "Van 1")),
-    vehicle_type: nullable(
-      oneOf(["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"], "Vehicle type."),
-    ),
+    vehicle_type: nullable(oneOf(VEHICLE_TYPES, "Vehicle type.")),
     seats: nullable(f.int("Passenger seats; the driver is not counted.", 7, 1)),
     driver_person_id: nullable(f.ref("driver")),
     driver_name: nullable(word("Driver's name.", "Dave Lindqvist")),
@@ -562,10 +596,7 @@ export const TransferVehicle = defineResource({
     project_id: f.ref("project"),
     counterparty_id: nullable(f.ref("car service")),
     label: word("Label the desk and drivers know it by.", "Van 1"),
-    vehicle_type: oneOf(
-      ["Sedan", "SUV", "Van", "Sprinter", "Minibus", "Coach", "Other"],
-      "Vehicle type.",
-    ),
+    vehicle_type: oneOf(VEHICLE_TYPES, "Vehicle type."),
     seats: f.int("Passenger seats; the driver is not counted.", 7, 1),
   },
 });
@@ -587,12 +618,9 @@ export const SpaceBooking = defineResource({
     venue_name: nullable(word("Venue name.", "Northwind Pier Pavilion")),
     engagement_id: nullable(f.ref("engagement")),
     engagement_cue_id: nullable(f.ref("set time")),
-    purpose: oneOf(
-      ["Green Room", "Dressing Room", "Production Office", "Hospitality Suite", "Other"],
-      "What the space is booked as.",
-    ),
+    purpose: oneOf(SPACE_BOOKING_PURPOSES, "What the space is booked as."),
     booking_mode: oneOf(
-      ["Exclusive", "Shared"],
+      SPACE_BOOKING_MODES,
       "Exclusive holds the space alone; Shared bookings may overlap.",
     ),
     party_size: nullable(f.int("People expected.", 6, 1)),
@@ -622,19 +650,7 @@ export const LocalContact = defineResource({
     project_id: f.ref("project the row is listed for"),
     venue_id: nullable(f.ref("venue of a venue contact")),
     day: nullable(f.date("Project day the contact serves; null for every day.")),
-    contact_role: oneOf(
-      [
-        "Promoter",
-        "Venue",
-        "Production",
-        "Security",
-        "Transport",
-        "Hospitality",
-        "Medical",
-        "Other",
-      ],
-      "What the contact is called for.",
-    ),
+    contact_role: oneOf(LOCAL_CONTACT_ROLES, "What the contact is called for."),
     contact_title: nullable(word("Title or job.", "Production Manager")),
     source: oneOf(["Member", "Contact"], "Member (read live) or Contact (typed)."),
     display_name: nullable(word("Name.", "Pier Pavilion Desk")),
@@ -642,7 +658,7 @@ export const LocalContact = defineResource({
     phone: nullable(word("Phone, E.164 for a typed contact.", "+13055550100")),
     email: nullable(f.email("Business email of a typed contact.")),
     audience: oneOf(
-      ["Internal", "Shared"],
+      LOCAL_CONTACT_AUDIENCES,
       "Internal stays inside the org; Shared also reaches the people engaged or rostered on the project.",
     ),
     member_active: f.bool("False once a member contact's membership has ended.", true),

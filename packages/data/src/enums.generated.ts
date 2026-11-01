@@ -193,6 +193,8 @@ export const backgroundCheckResult = [
 export const billingCheckoutState = ["Open", "Completed", "Expired"] as const;
 /** app.billing_interval */
 export const billingInterval = ["Monthly", "Annual"] as const;
+/** app.blocklist_entry_kind */
+export const blocklistEntryKind = ["Email", "Domain"] as const;
 /** app.brand_radius_scale */
 export const brandRadiusScale = ["Compact", "Default", "Rounded"] as const;
 /** app.budget_line_type */
@@ -577,6 +579,19 @@ export const listingReportReason = [
 ] as const;
 /** app.live_link_kind */
 export const liveLinkKind = ["View", "Display"] as const;
+/** app.local_contact_audience */
+export const localContactAudience = ["Internal", "Shared"] as const;
+/** app.local_contact_role */
+export const localContactRole = [
+  "Promoter",
+  "Venue",
+  "Production",
+  "Security",
+  "Transport",
+  "Hospitality",
+  "Medical",
+  "Other",
+] as const;
 /** app.lost_item_category */
 export const lostItemCategory = [
   "Bag",
@@ -592,6 +607,8 @@ export const lostItemCategory = [
 export const lostItemState = ["Logged", "Claimed", "Returned", "Disposed"] as const;
 /** app.loyalty_program_kind */
 export const loyaltyProgramKind = ["Airline", "Hotel", "Car Rental", "Rail"] as const;
+/** app.mcp_client_kind */
+export const mcpClientKind = ["Claude", "ChatGPT", "Other"] as const;
 /** app.measurement_correction_kind */
 export const measurementCorrectionKind = ["Corrected", "Withdrawn", "Restored"] as const;
 /** app.measurement_source */
@@ -931,10 +948,47 @@ export const shipmentDirection = ["Inbound", "Outbound"] as const;
 export const shoeSizeSystem = ["US Men", "US Women", "EU", "UK"] as const;
 /** app.shortcut_shell */
 export const shortcutShell = ["Atlas", "Gateway"] as const;
+/** app.sign_production_state */
+export const signProductionState = ["To Order", "Ordered", "Printed", "Placed"] as const;
+/** app.sign_step */
+export const signStep = ["Ordered", "Printed", "Placed"] as const;
+/** app.sign_type */
+export const signType = [
+  "Directional",
+  "Identification",
+  "Regulatory",
+  "Informational",
+  "Sponsor",
+  "Menu",
+  "Digital",
+] as const;
+/** app.site_plan_shape_kind */
+export const sitePlanShapeKind = ["Route", "Barrier", "Area", "Label"] as const;
+/** app.site_plan_shape_tone */
+export const sitePlanShapeTone = [
+  "Accent",
+  "Info",
+  "Success",
+  "Warning",
+  "Danger",
+  "Neutral",
+] as const;
+/** app.site_plan_state */
+export const sitePlanState = ["Draft", "Locked", "Live", "Archived"] as const;
 /** app.sms_consent_action */
 export const smsConsentAction = ["Opt In", "Opt Out", "Help"] as const;
 /** app.sort_direction */
 export const sortDirection = ["Ascending", "Descending"] as const;
+/** app.space_booking_mode */
+export const spaceBookingMode = ["Exclusive", "Shared"] as const;
+/** app.space_booking_purpose */
+export const spaceBookingPurpose = [
+  "Green Room",
+  "Dressing Room",
+  "Production Office",
+  "Hospitality Suite",
+  "Other",
+] as const;
 /** app.spend_document_type */
 export const spendDocumentType = [
   "Purchase Order",
@@ -960,6 +1014,15 @@ export const submittalKind = [
   "Certificate",
   "Other",
 ] as const;
+/** app.subscription_pause_end */
+export const subscriptionPauseEnd = [
+  "Resumed by Owner",
+  "Resumed on schedule",
+  "Resumed in Stripe",
+  "Canceled",
+] as const;
+/** app.subscription_pause_source */
+export const subscriptionPauseSource = ["Owner", "Stripe"] as const;
 /** app.subscription_state */
 export const subscriptionState = [
   "trialing",
@@ -1061,6 +1124,16 @@ export const trainingLessonKind = ["Reading", "Video", "Quiz"] as const;
 export const travelMode = ["Flight", "Ground"] as const;
 /** app.undo_outcome */
 export const undoOutcome = ["Reverted", "Kept"] as const;
+/** app.vehicle_type */
+export const vehicleType = [
+  "Sedan",
+  "SUV",
+  "Van",
+  "Sprinter",
+  "Minibus",
+  "Coach",
+  "Other",
+] as const;
 /** app.vendor_state */
 export const vendorState = ["Prospect", "Onboarded", "Active", "Blocked", "Canceled"] as const;
 /** app.verification_method */

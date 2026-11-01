@@ -1,3 +1,4 @@
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import type { Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -11,7 +12,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * (ai_suggestion_needs_person); suggestion transitions reuse transitionAiSuggestion from ./ai.ts.
  */
 
-export type McpClientKind = "Claude" | "ChatGPT" | "Other";
+export type McpClientKind = Database["app"]["Enums"]["mcp_client_kind"];
 
 export interface McpConnector {
   readonly oauthAppId: string;

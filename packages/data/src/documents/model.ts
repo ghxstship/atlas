@@ -203,7 +203,7 @@ export type DocumentBlock =
     };
 
 /** The design-token color roles a plan overlay is drawn in (site plan shape tones, 5901). */
-export type PlanTone = "Accent" | "Info" | "Success" | "Warning" | "Danger" | "Neutral";
+export type PlanTone = Database["app"]["Enums"]["site_plan_shape_tone"];
 
 export type PlanOverlay =
   /** A numbered pin. */

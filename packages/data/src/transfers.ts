@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import type { Database, XosClient } from "./client.ts";
 import type { OperationsScope } from "./logistics.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -16,15 +17,7 @@ type Tables = Database["app"]["Tables"];
 type Derived<T> = Omit<T, "org_id">;
 
 export type VehicleType = Database["app"]["Enums"]["vehicle_type"];
-export const VEHICLE_TYPES: readonly VehicleType[] = [
-  "Sedan",
-  "SUV",
-  "Van",
-  "Sprinter",
-  "Minibus",
-  "Coach",
-  "Other",
-];
+export const VEHICLE_TYPES: readonly VehicleType[] = enums.vehicleType;
 
 export type TransferStatus = "Unassigned" | "Assigned" | "Underway" | "Done";
 export const TRANSFER_STATUSES: readonly TransferStatus[] = [
