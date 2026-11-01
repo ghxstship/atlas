@@ -646,7 +646,15 @@
       "set_moved": "Cambió el horario",
       "group_size": "Reservas superpuestas",
       "group_peak_party": "Máximo de personas",
-      "over_capacity": "Sobre la capacidad"
+      "over_capacity": "Sobre la capacidad",
+      "calibration_ax": "Punto de escala A, x",
+      "calibration_ay": "Punto de escala A, y",
+      "calibration_bx": "Punto de escala B, x",
+      "calibration_feet": "Distancia de escala (ft)",
+      "drawing_page": "Página del PDF",
+      "image_height_px": "Alto de la imagen (px)",
+      "image_width_px": "Ancho de la imagen (px)",
+      "calibration_by": "Punto de escala B, y"
     }
   },
   "liveLink": {
