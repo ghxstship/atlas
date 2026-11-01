@@ -118,7 +118,10 @@ export interface VenueOption {
   readonly name: string;
 }
 
-/** Venues of the org by name, for home venues, lot places and check-in places. */
+/**
+ * Live venues of the org by name, for home venues, lot places and check-in places; archived venues
+ * are not offered (A124).
+ */
 export async function listAssetVenues(
   db: XosClient,
   orgId: string,
@@ -128,6 +131,7 @@ export async function listAssetVenues(
     .select("id, name")
     .eq("org_id", orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .order("name", { ascending: true });
   if (error) return fail(toDataError(error));
   return ok(data.map((r) => ({ id: r.id, name: r.name })));

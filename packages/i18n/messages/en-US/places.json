@@ -63,6 +63,7 @@
     "transition_reason_required": "Give a reason for the state change.",
     "production_closed": "This project's production is closed, so nothing new can be added to it.",
     "enumeration_domain": "That result is not one of the canon inspection results. Choose one from the list.",
+    "archive_name_taken": "A live venue already has this name. Rename one of them, then restore this one.",
     "commentRequired": "Write something before posting.",
     "fileRequired": "Choose a file to upload.",
     "fileTooLarge": "Files can be at most 50 MB. Choose a smaller file.",

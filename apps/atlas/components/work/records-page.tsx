@@ -1,4 +1,5 @@
 import { draftedListIsEmpty } from "@xos/data/ai";
+import { parseArchived } from "@xos/data/archive";
 import {
   buildTimeline,
   latestBaselinePlan,
@@ -104,6 +105,7 @@ export async function RecordsPage({
       ...(kinds.length > 0 ? { kinds } : {}),
       ...(states.length > 0 ? { states } : {}),
       ...(q ? { search: q } : {}),
+      archived: parseArchived(param(search, "archived")),
     }),
   ]);
   const records = sortRecords(

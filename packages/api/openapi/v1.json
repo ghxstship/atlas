@@ -70817,7 +70817,19 @@
           { "$ref": "#/components/parameters/Cursor" },
           { "$ref": "#/components/parameters/Fields" },
           { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
+          { "$ref": "#/components/parameters/Filter" },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["include", "only"],
+              "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+              "example": "include"
+            },
+            "required": false,
+            "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+            "name": "archived",
+            "in": "query"
+          }
         ],
         "responses": {
           "200": {
@@ -72264,7 +72276,19 @@
           { "$ref": "#/components/parameters/Cursor" },
           { "$ref": "#/components/parameters/Fields" },
           { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
+          { "$ref": "#/components/parameters/Filter" },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["include", "only"],
+              "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+              "example": "include"
+            },
+            "required": false,
+            "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+            "name": "archived",
+            "in": "query"
+          }
         ],
         "responses": {
           "200": {
@@ -74851,7 +74875,19 @@
           { "$ref": "#/components/parameters/Cursor" },
           { "$ref": "#/components/parameters/Fields" },
           { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
+          { "$ref": "#/components/parameters/Filter" },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["include", "only"],
+              "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+              "example": "include"
+            },
+            "required": false,
+            "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+            "name": "archived",
+            "in": "query"
+          }
         ],
         "responses": {
           "200": {
@@ -75676,7 +75712,19 @@
           { "$ref": "#/components/parameters/Cursor" },
           { "$ref": "#/components/parameters/Fields" },
           { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
+          { "$ref": "#/components/parameters/Filter" },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["include", "only"],
+              "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+              "example": "include"
+            },
+            "required": false,
+            "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+            "name": "archived",
+            "in": "query"
+          }
         ],
         "responses": {
           "200": {
@@ -103760,7 +103808,19 @@
           { "$ref": "#/components/parameters/Cursor" },
           { "$ref": "#/components/parameters/Fields" },
           { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
+          { "$ref": "#/components/parameters/Filter" },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["include", "only"],
+              "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+              "example": "include"
+            },
+            "required": false,
+            "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+            "name": "archived",
+            "in": "query"
+          }
         ],
         "responses": {
           "200": {
@@ -138327,7 +138387,19 @@
           { "$ref": "#/components/parameters/Cursor" },
           { "$ref": "#/components/parameters/Fields" },
           { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
+          { "$ref": "#/components/parameters/Filter" },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["include", "only"],
+              "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+              "example": "include"
+            },
+            "required": false,
+            "description": "Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.",
+            "name": "archived",
+            "in": "query"
+          }
         ],
         "responses": {
           "200": {

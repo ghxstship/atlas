@@ -43,6 +43,7 @@ import { useBulk } from "@/components/bulk/use-bulk";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
 import { CollectionViews } from "@/components/views/collection-views";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
 
 export interface BidderOption {
   readonly organizationId: string;
@@ -192,6 +193,7 @@ export function WorkOrderCollection({
         ]}
         onChange={(e) => go({ state: e.target.value || null })}
       />
+      <ArchivedFilter id="wo-archived" />
     </>
   );
 

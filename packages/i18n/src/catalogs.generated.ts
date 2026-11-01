@@ -3,6 +3,7 @@
 
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
 import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json" };
+import enUS_archive from "../messages/en-US/archive.json" with { type: "json" };
 import enUS_assets from "../messages/en-US/assets.json" with { type: "json" };
 import enUS_aurora from "../messages/en-US/aurora.json" with { type: "json" };
 import enUS_auroraCertificates from "../messages/en-US/auroraCertificates.json" with { type: "json" };
@@ -72,6 +73,7 @@ import enUS_workflow from "../messages/en-US/workflow.json" with { type: "json" 
 import enUS_workforce from "../messages/en-US/workforce.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
+import esUS_archive from "../messages/es-US/archive.json" with { type: "json" };
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
 import esUS_aurora from "../messages/es-US/aurora.json" with { type: "json" };
 import esUS_auroraCertificates from "../messages/es-US/auroraCertificates.json" with { type: "json" };
@@ -143,6 +145,7 @@ import esUS_workforce from "../messages/es-US/workforce.json" with { type: "json
 export const enUS = {
   activity: enUS_activity,
   advancing: enUS_advancing,
+  archive: enUS_archive,
   assets: enUS_assets,
   aurora: enUS_aurora,
   auroraCertificates: enUS_auroraCertificates,
@@ -215,6 +218,7 @@ export const enUS = {
 export const esUS = {
   activity: esUS_activity,
   advancing: esUS_advancing,
+  archive: esUS_archive,
   assets: esUS_assets,
   aurora: esUS_aurora,
   auroraCertificates: esUS_auroraCertificates,

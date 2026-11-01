@@ -257,7 +257,7 @@ describe("partner console repository", () => {
   });
 
   it("grants, lists and ends support sessions, and reads client venues under RLS", async () => {
-    const { db } = moduleClient({
+    const { db, calls } = moduleClient({
       "rpc:grant_support_session": [ok("s1")],
       "rpc:end_support_session": [ok("s1")],
       "from:support_sessions": [
@@ -296,6 +296,13 @@ describe("partner console repository", () => {
       data: [{ id: "v1", name: "Boathouse", locality: null }],
     });
     expect((await listClientVenues(db, "c1")).ok).toBe(false);
+    // A client's archived venues are left out (A124).
+    expect(
+      stepsOf(
+        calls.find((c) => c.target === "from:venues"),
+        "is",
+      ),
+    ).toContainEqual(["archived_at", null]);
   });
 });
 

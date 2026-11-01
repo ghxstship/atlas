@@ -153,6 +153,8 @@ export interface ListQuery {
   readonly fields?: string;
   readonly sort?: string;
   readonly filter?: Filter;
+  /** Archived rows of an archivable resource (A124): absent leaves them out. */
+  readonly archived?: "include" | "only";
 }
 
 /** Runs a list query and returns one cursor page, with sparse fieldsets applied. */

@@ -36,6 +36,7 @@ const KNOWN_REFUSALS = new Set([
   "production_closed",
   "enumeration_domain",
   "postal_code_invalid",
+  "archive_name_taken",
 ]);
 
 export function errorKey(error: DataError): string {

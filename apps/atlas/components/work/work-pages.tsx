@@ -1,3 +1,4 @@
+import { parseArchived } from "@xos/data/archive";
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
 import { Constants } from "@xos/data/database.types";
@@ -25,6 +26,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
+import { ArchiveControls } from "@/components/archive/archive-controls";
 import { CollabPanels } from "./collab";
 import { formatWhen } from "./format";
 import {
@@ -80,6 +82,7 @@ export async function WorkOrdersPage({
       ...(project ? { projectId: project.id } : {}),
       ...(state ? { states: [state] } : {}),
       ...(q ? { search: q } : {}),
+      archived: parseArchived(param(search, "archived")),
     }),
     listWorkOrderTransitions(db),
     listBidderOptions(db, ctx.org.id),
@@ -151,6 +154,13 @@ export async function WorkOrdersPage({
             names={names}
             me={me}
             canPost
+          />
+          <ArchiveControls
+            org={ctx.org.slug}
+            entity="work_orders"
+            id={order.data.id}
+            archivedAt={order.data.archivedAt}
+            canWrite={caps.has("work.work_order.write")}
           />
         </WorkOrderBody>
       );
@@ -241,7 +251,11 @@ export async function PunchListsPage({
     loadRecordMeta(ctx),
     capabilitySet(ctx),
     listPunchItems(db, { orgId: ctx.org.id }),
-    listPunchItems(db, { orgId: ctx.org.id, ...(states.length > 0 ? { states } : {}) }),
+    listPunchItems(db, {
+      orgId: ctx.org.id,
+      ...(states.length > 0 ? { states } : {}),
+      archived: parseArchived(param(search, "archived")),
+    }),
   ]);
   const items = must(filtered, "punch items");
   const allItems = must(all, "punch items");

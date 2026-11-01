@@ -466,7 +466,7 @@ begin
     select 'app.venues'::text, v.id, round(extensions.similarity(
       lower(btrim(v.name || ' ' || concat_ws(' ', v.street_address, v.locality, v.postal_code))), v_probe)::numeric, 3)
     from app.venues v
-    where v.org_id = p_org_id and v.deleted_at is null
+    where v.org_id = p_org_id and v.deleted_at is null and v.archived_at is null
       and extensions.similarity(lower(btrim(v.name || ' ' || concat_ws(' ', v.street_address, v.locality, v.postal_code))), v_probe) >= 0.85
     order by 3 desc;
   elsif p_target_code = 'counterparties' then
@@ -487,7 +487,7 @@ begin
 end;
 $$;
 
-comment on function private.fuzzy_candidates(uuid, text, text, text, uuid) is 'Existing rows of the org whose name plus address is at least 0.85 similar (pg_trgm) to an import row (Section 4.6.2 step 5); for a guest list import, live guests of the import''s project by name. Strong keys are matched exactly before this runs.';
+comment on function private.fuzzy_candidates(uuid, text, text, text, uuid) is 'Existing rows of the org whose name plus address is at least 0.85 similar (pg_trgm) to an import row (Section 4.6.2 step 5); for a guest list import, live guests of the import''s project by name. Strong keys are matched exactly before this runs. Archived venues are left out (A124, 5182).';
 revoke all on function private.fuzzy_candidates(uuid, text, text, text, uuid) from public, anon, authenticated;
 
 create or replace function app.record_import_row(

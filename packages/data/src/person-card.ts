@@ -48,6 +48,7 @@ export async function getPersonCard(
       .eq("org_id", orgId)
       .eq("owner_party_id", personId)
       .is("deleted_at", null)
+      .is("archived_at", null)
       .not("record_state", "in", "(Complete,Canceled)"),
   ]);
   if (membership.error) return fail(toDataError(membership.error));

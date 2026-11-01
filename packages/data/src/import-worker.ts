@@ -1165,11 +1165,13 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       return row ? text(row, "id") : null;
     },
     async venueId(orgId, idOrName) {
+      // Live venues only: an archived venue may share a live venue's name (A124, 5180).
       const query = app
         .from("venues")
         .select("id")
         .eq("org_id", orgId)
         .is("deleted_at", null)
+        .is("archived_at", null)
         .limit(1);
       const row = await one(
         UUID.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),
