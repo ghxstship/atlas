@@ -76,6 +76,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0076](0076-custom-fields-on-pages-and-the-filter-builder.md)       | Custom Fields on Pages, and the Add Filter Control                               | Accepted |
 | [0078](0078-bulk-edit-projects-work-orders-punch-documents.md)      | Bulk Edit of Projects, Work Orders, Punch and Documents, and Work Order Undo     | Accepted |
 | [0080](0080-operations-bulk-edit-and-undo.md)                       | Operations Bulk Edit, Undo for Their Deletes and Day Sheet Drafts                | Accepted |
+| [0081](0081-objects-over-plan-limits-become-read-only.md)           | Objects Over the Plan's Limits Become Read-Only                                  | Proposed |
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 | [0084](0084-record-and-view-shortcut-targets.md)                    | Record and View Shortcuts on Marked Controls, Help Lists from the Registry       | Accepted |
