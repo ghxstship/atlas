@@ -62,6 +62,10 @@ rules:
         - packages/data/src/csv.ts
         - packages/cli/src/csv.ts
         - "**/e2e/**"
+        # R5's airports snapshot is not an export: packages/schemas/src/airports/load.ts reads it back to write the
+        # seed, so a neutralizing apostrophe would change the airport names it holds (and @xos/schemas sits below
+        # @xos/data, whose csvField it cannot import).
+        - packages/schemas/src/airports/fetch.ts
     pattern-either:
       - pattern: $X.replace(/"/g, '""')
       - pattern: $X.replaceAll('"', '""')
