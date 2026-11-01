@@ -107,7 +107,8 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "kiosk-punch": 64,
   // A138: the email sender reads the org's branding, and its accent check brings the token contrast ratio to
   // boot; 182.3 KB on 2026-10-31 (merge train 2). About 10 percent above that, as for A89 and A90. R5 (4650) and
-  // R7 (4698) add their notification kinds in both locales (181.6 KB and 186.9 KB on their own branches).
+  // R7 (4698) add their notification kinds in both locales (181.6 KB and 186.9 KB on their own branches), and A127
+  // its one-tap email action links, push categories and action copy in both locales (about 3.5 KB; train 6).
   "notification-dispatch": 200,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. A138's email branding in the shared stores

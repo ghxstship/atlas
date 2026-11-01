@@ -21,4 +21,4 @@ Una factura pasa por cuatro pasos, cada uno con su fecha: **Enviada**, **Aprobad
 
 Envía facturas desde la [pestaña Facturas](help:engagement-invoices) de una contratación. Con la autofacturación, la organización las genera por ti a partir de las hojas de horas aprobadas.
 
-Cada paso también aparece en Novedades, en Inicio, y te llega por correo o aviso push según lo que elijas en [Configuración, Notificaciones](help:settings-notifications).
+Cada paso también aparece en Para tu información, en Inicio, y te llega por correo o aviso push según lo que elijas en [Configuración, Notificaciones](help:settings-notifications).
