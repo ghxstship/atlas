@@ -211,9 +211,10 @@ export async function TravelParty({
           </h2>
           <ol className="m-0 flex list-none gap-8 overflow-x-auto p-0">
             {counts.data.map((c) => (
+              // Each day keeps its 144 px from the space scale, so the row scrolls rather than squeezing the counts.
               <li
                 key={c.day}
-                className="flex min-w-[9rem] flex-col gap-2 rounded-card border border-border-subtle px-12 py-8 text-text-12"
+                className="flex min-w-[calc(var(--space-64)*2+var(--space-16))] flex-col gap-2 rounded-card border border-border-subtle px-12 py-8 text-text-12"
               >
                 <span className="font-semibold text-text-13">{day(c.day)}</span>
                 {(

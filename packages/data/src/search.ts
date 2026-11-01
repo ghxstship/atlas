@@ -15,14 +15,7 @@ import { untyped } from "./untyped.ts";
  */
 
 export type SearchResultType =
-  | "record"
-  | "incident"
-  | "person"
-  | "document"
-  | "sop"
-  | "article"
-  | "asset"
-  | "asset_class";
+  "record" | "incident" | "person" | "document" | "sop" | "article" | "asset" | "asset_class";
 
 /** How a result matched: a record key, words, meaning, both, or filters alone. */
 export type SearchMatch = "key" | "text" | "semantic" | "both" | "filter";

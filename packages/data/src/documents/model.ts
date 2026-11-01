@@ -160,13 +160,13 @@ export type DocumentBlock =
   | { readonly kind: "paragraph"; readonly text: string; readonly size?: "body" | "large" }
   /**
    * A holder's portrait (the credential badge, P5): a PNG or JPEG fitted into a fixed frame, never cropped, as a
-   * Figure with its alternative text; with no photo, a ruled frame and the placeholder text.
+   * Figure with its alternative text; with no photo, a ruled frame and the empty-frame text.
    */
   | {
       readonly kind: "portrait";
       readonly bytes: Uint8Array | null;
       readonly alt: string;
-      readonly placeholder: string;
+      readonly emptyText: string;
     }
   /** A code a scanner reads (the badge's gate code), drawn as a QR Figure with its alternative text and a caption. */
   | {

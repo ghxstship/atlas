@@ -3,6 +3,7 @@
 import * as enums from "@xos/data/enums";
 import { Checkbox, IconButton, Input, MultiSelect, Select } from "@xos/ui";
 import { useActionState, useId, useState } from "react";
+import { useKeepInput } from "@/components/collection-kit/keep-input";
 import { addSectionChoiceAction, removeSectionChoiceAction, type AdvancingState } from "./actions";
 import { useCopy } from "./use-copy";
 
@@ -133,6 +134,8 @@ export function SectionChoicesEditor({
     addSectionChoiceAction,
     {},
   );
+  // Keeps the picked choice when adding it is refused.
+  const keepAdd = useKeepInput(added, add, (s) => s.ok === true);
   const id = useId();
   const taken = new Set(choices.map((c) => c.value));
   const left = options.filter((o) => !taken.has(o.value));
@@ -159,7 +162,7 @@ export function SectionChoicesEditor({
         ))}
       </ul>
       {editable && left.length > 0 ? (
-        <form action={add} className="flex flex-wrap items-end gap-8">
+        <form action={add} {...keepAdd} className="flex flex-wrap items-end gap-8">
           <input type="hidden" name="org" value={org} />
           <input type="hidden" name="sectionId" value={sectionId} />
           <Select

@@ -752,7 +752,7 @@ export const TEMPLATES: TemplateRegistry = {
           kind: "portrait",
           bytes: photo?.bytes ?? null,
           alt: t("credentialBadge.photoAlt", { name }),
-          placeholder: t("credentialBadge.noPhoto"),
+          emptyText: t("credentialBadge.noPhoto"),
         };
         const scan: DocumentBlock = {
           kind: "scan-code",
