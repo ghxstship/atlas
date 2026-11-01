@@ -95,6 +95,15 @@ export function ProjectTabs({
   const count = shown?.key === labelsKey ? shown.count : null;
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
+  // A web font that loads after the first measure widens the tabs without resizing the bar.
+  const [fontsLoaded, setFontsLoaded] = useState(0);
+  useEffect(() => {
+    const fonts = typeof document === "undefined" ? undefined : document.fonts;
+    if (!fonts) return undefined;
+    const onLoad = () => setFontsLoaded((n) => n + 1);
+    fonts.addEventListener("loadingdone", onLoad);
+    return () => fonts.removeEventListener("loadingdone", onLoad);
+  }, []);
 
   useLayoutEffect(() => {
     const bar = nav.current;
@@ -130,6 +139,27 @@ export function ProjectTabs({
     observer.observe(bar);
     return () => observer.disconnect();
   }, [labelsKey, count, current]);
+
+  // The measured widths leave out what the bar renders around its tabs (group headings, a promoted tab's
+  // group) and text that grew after the measure, so after each render anything past the bar's clip edge is
+  // reserved like the More button and the tabs fit again. The reserve only grows, so this settles.
+  useLayoutEffect(() => {
+    const m = measured.current;
+    const bar = nav.current;
+    const row = list.current;
+    if (count === null || count === 0 || !m || m.key !== labelsKey || !bar || !row) return;
+    const rtl = getComputedStyle(row).direction === "rtl";
+    const edge = bar.getBoundingClientRect();
+    let over = 0;
+    for (const el of row.children) {
+      const r = el.getBoundingClientRect();
+      over = Math.max(over, rtl ? edge.left - r.left : r.right - edge.right);
+    }
+    if (over <= 0.5) return;
+    m.more += Math.ceil(over);
+    const next = fit(m.edges, m.widths, bar.clientWidth, m.more, current);
+    if (next !== count) setShown({ key: labelsKey, count: next });
+  }, [count, labelsKey, current, fontsLoaded]);
 
   useEffect(() => {
     if (!open) return undefined;
