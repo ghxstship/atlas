@@ -179,7 +179,8 @@ begin
   elsif v_note.kind in ('shift.assigned', 'shift.changed') and v_note.subject_table = 'app.shifts' then
     select * into v_shift from app.shifts s where s.id = v_note.subject_id and s.deleted_at is null;
     if v_shift.shift_state = 'Published'
-       and private.shift_worker_person_id(v_shift.membership_id, v_shift.engagement_id) = v_note.recipient_person_id then
+       and private.shift_worker_person_id(v_shift.membership_id, v_shift.engagement_id, v_shift.roster_entry_id)
+         = v_note.recipient_person_id then
       return query select 'accept'::text, (case when v_shift.membership_id is null then 'Gateway' else 'Atlas' end)::text;
     end if;
   elsif v_note.kind = 'offer.sent' and v_note.subject_table = 'app.offers' then
@@ -588,7 +589,7 @@ create trigger t92_notify_offer_sent after insert on app.offer_versions
   for each row when (new.proposed_side = 'Organization')
   execute function private.notify_offer_sent();
 
--- 9. Shift notices say whether the shift waits on its worker (from 1394) -------------------------------------------------------
+-- 9. Shift notices say whether the shift waits on its worker (from 4750, R12's agency slots, over 1394) -----------------------
 
 create or replace function private.notify_shift_change()
 returns trigger
@@ -603,12 +604,12 @@ begin
   if new.deleted_at is not null or new.shift_state not in ('Published', 'Accepted') or new.ends_at <= now() then
     return null;
   end if;
-  v_worker := private.shift_worker_person_id(new.membership_id, new.engagement_id);
+  v_worker := private.shift_worker_person_id(new.membership_id, new.engagement_id, new.roster_entry_id);
   if v_worker is null or v_worker is not distinct from private.current_person_id() then
     return null;
   end if;
   if old.shift_state not in ('Published', 'Accepted')
-     or v_worker is distinct from private.shift_worker_person_id(old.membership_id, old.engagement_id) then
+     or v_worker is distinct from private.shift_worker_person_id(old.membership_id, old.engagement_id, old.roster_entry_id) then
     v_kind := 'shift.assigned';
   elsif new.starts_at is distinct from old.starts_at or new.ends_at is distinct from old.ends_at then
     v_kind := 'shift.changed';
@@ -623,7 +624,7 @@ begin
   return null;
 end;
 $$;
-comment on function private.notify_shift_change() is 'Tells a shift''s worker about it (1394): shift.assigned when a shift is published with them or a published or accepted shift becomes theirs (a reassignment, an approved swap or an approved claim), shift.changed when a published or accepted shift''s times move. Arguments: title, startsAt and endsAt as ISO instants, so a change to a shift starting within 12 hours bypasses quiet hours, and shiftState (A127), so a push offers Accept and Decline only on a shift still Published. Draft, canceled, deleted and finished shifts tell nobody, nor does a person''s own act, such as claiming an open shift first-come.';
+comment on function private.notify_shift_change() is 'Tells a shift''s worker about it (1394): shift.assigned when a shift is published with them or a published or accepted shift becomes theirs (a reassignment, an approved swap, an approved claim or an agency placing its roster staff, R12), shift.changed when a published or accepted shift''s times move. Arguments: title, startsAt and endsAt as ISO instants, so a change to a shift starting within 12 hours bypasses quiet hours, and shiftState (A127), so a push offers Accept and Decline only on a shift still Published. Draft, canceled, deleted and finished shifts tell nobody, nor does a person''s own act, such as claiming an open shift first-come. An agency slot tells nobody until it is assigned.';
 revoke all on function private.notify_shift_change() from public, anon, authenticated;
 
 -- 10. Snoozes are the recipient's own (from 1064) -------------------------------------------------------------------------------

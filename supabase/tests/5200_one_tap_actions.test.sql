@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(73);
+select plan(75);
 
 create temporary table k (key text primary key, id uuid, token text);
 grant select, insert, update on k to public;
@@ -332,6 +332,13 @@ select lives_ok(format($$insert into app.inbox_snoozes (notification_id, notific
 select lives_ok(format($$select app.act_on_notification(%L, 'done')$$, pg_temp.id('n_ivy2')), 'and marks another Done');
 select is((select count(*)::integer from app.inbox_items where id in (pg_temp.id('n_ivy'), pg_temp.id('n_ivy2'))), 0,
   'both leave their For Your Information list');
+
+-- 5200 recreates two functions R12 (4750) also changed: a shift worked through a roster entry (agency staff) must keep
+-- its worker in both, or its notices and its email's Accept link stop reaching that person.
+select ok(pg_get_functiondef('private.notify_shift_change()'::regprocedure) like '%new.roster_entry_id%',
+  'shift notices find the worker of a roster entry''s shift (R12)');
+select ok(pg_get_functiondef('private.notification_link_actions(uuid)'::regprocedure) like '%v_shift.roster_entry_id%',
+  'a shift email offers Accept to the worker of a roster entry''s shift (R12)');
 
 select * from finish();
 rollback;
