@@ -198,6 +198,7 @@
     "kb": "{n} KB",
     "orBrowse": "or browse",
     "page": "Page {n}",
+    "previewArea": "Preview of {name}",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out"
   },

@@ -70,8 +70,14 @@ export function FilePreviewer({
             ))}
           </div>
         ) : null}
-        {/* Safe centering keeps a zoomed page scrollable to its start edge. */}
-        <div className="flex flex-1 justify-center-safe p-24 overflow-auto bg-bg-surface">
+        {/* Safe centering keeps a zoomed page scrollable to its start edge. The region takes focus so a
+            keyboard can scroll a page larger than the frame. */}
+        <div
+          role="region"
+          aria-label={t("file.previewArea", { name })}
+          tabIndex={0}
+          className="flex flex-1 justify-center-safe p-24 overflow-auto bg-bg-surface"
+        >
           {children}
         </div>
       </div>
