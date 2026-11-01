@@ -20,6 +20,7 @@ var TEMPLATE_CODES = [
   "subprocessor_confirm",
   "subprocessor_notice",
   "party_invitation",
+  "approval_link_code",
 ];
 //#endregion
 //#region ../email/src/render.ts
