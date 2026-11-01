@@ -591,7 +591,14 @@
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "offering": "Oferta",
+      "category_kind": "Tipo de categoría",
+      "roster_locks_at": "Cierre de nombres",
+      "hide_client_until_booked": "Cliente oculto hasta la contratación",
+      "time_off_day_count": "Días de tiempo libre",
+      "administrative_area": "Estado o provincia",
+      "country_code": "País"
     }
   },
   "liveLink": {

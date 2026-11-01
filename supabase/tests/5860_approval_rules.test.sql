@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(65);
+select plan(66);
 
 create function pg_temp.approval_of(p_credential text) returns uuid language sql as $$
   select a.id from app.subject_approvals a where a.credential_id = pg_temp.id(p_credential) and a.canceled_at is null
@@ -101,6 +101,10 @@ select throws_ok($$select app.transition_approval_rule((select id from world whe
 select pg_temp.as_user('gina');
 select throws_ok($$select app.transition_approval_rule((select id from world where key = 'rule_dup'), 'Draft', 'Retired', 'No.')$$,
   '42501', null, 'a Viewer does not change a rule''s state');
+-- The rules hold no move back to Draft, so the lifecycle refuses it by its code.
+select pg_temp.as_user('alice');
+select throws_like($$select app.transition_approval_rule((select id from world where key = 'rule_all'), 'Active', 'Draft', 'Back.')$$,
+  'approval_rule_transition_not_allowed:%', 'an Active rule never returns to Draft');
 
 -- 1. A pass opens one approval ------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
