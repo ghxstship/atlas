@@ -9,6 +9,7 @@ import {
   listProjectZones,
   listSectionChoiceOptions,
   PACKET_STATES,
+  type AdvanceParty,
   type PacketDetail,
   type PacketState,
   type PacketSummary,
@@ -382,8 +383,24 @@ async function PacketPage({
   const when = (iso: string | null) =>
     iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : null;
   const taken = new Set(packet.recipients.map((r) => `${r.party.kind}:${r.party.id}`));
-  const partyOptions = (parties?.ok ? parties.data : [])
-    .filter((p) => !taken.has(`${p.kind}:${p.id}`))
+  const listed = parties?.ok ? parties.data : [];
+  // People engaged on the project who are outside the org: row level security leaves them out of the org's people, yet
+  // they are who an advance goes to (R9).
+  const engaged = parties?.ok
+    ? engagementList.flatMap((e): AdvanceParty[] =>
+        e.personId && e.personName
+          ? [{ kind: "person", id: e.personId, name: e.personName, counterpartyType: null }]
+          : [],
+      )
+    : [];
+  const seen = new Set<string>();
+  const partyOptions = [...listed, ...engaged]
+    .filter((p) => {
+      const key = `${p.kind}:${p.id}`;
+      if (taken.has(key) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .map((p) => ({
       value: `${p.kind}:${p.id}`,
       label: `${partyLabel(p, t)} · ${t(p.kind === "person" ? "advancing.common.person" : "advancing.common.counterparty")}`,

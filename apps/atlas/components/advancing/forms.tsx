@@ -73,7 +73,8 @@ function kindKey(value: string): string {
 /**
  * Submits a form to a server action in a transition instead of through the form action, so a
  * refused submit keeps what the person typed (React resets a form after a form action). The
- * submitter is included, so a button's name and value reach the action.
+ * submitter is included, so a button's name and value reach the action. Each form also keeps `action`, so one sent
+ * before the page hydrates still posts to its server action rather than loading the page with its fields in the URL.
  */
 function submitWith(run: (form: FormData) => void) {
   return (event: FormEvent<HTMLFormElement>) => {
@@ -188,7 +189,12 @@ function ActButton({
     </Button>
   );
   return (
-    <form id={formId} onSubmit={submitWith(formAction)} className="inline-flex flex-col gap-8">
+    <form
+      id={formId}
+      action={formAction}
+      onSubmit={submitWith(formAction)}
+      className="inline-flex flex-col gap-8"
+    >
       {hidden}
       {confirm ? (
         <Dialog
@@ -271,7 +277,13 @@ export function CreatePacketDialog({
         </>
       }
     >
-      <form id={formId} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
+      <form
+        id={formId}
+        action={action}
+        onSubmit={submitWith(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <TzOffset />
         <ErrorNotice state={state} />
@@ -326,7 +338,7 @@ export function PacketDetailsForm({
   const [state, action, pending] = useActionState(updatePacketAction, INITIAL);
   const id = useId();
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <TzOffset />
@@ -416,7 +428,7 @@ export function ArchivePacketButton({
     if (state.ok) router.push(backHref as Route);
   }, [state, router, backHref]);
   return (
-    <form id={formId} onSubmit={submitWith(action)}>
+    <form id={formId} action={action} onSubmit={submitWith(action)}>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <Dialog
@@ -510,7 +522,7 @@ function SectionEdit({
   }, INITIAL);
   const id = useId();
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="sectionId" value={section.id} />
       <ErrorNotice state={state} />
@@ -691,7 +703,13 @@ function AddSectionForm({
   const [kind, setKind] = useState<string>("Text");
   const id = useId();
   return (
-    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form
+      key={key}
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-col gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <ErrorNotice state={state} />
@@ -778,7 +796,12 @@ export function AddRecipientForm({
   }
   const own = engagements.filter((e) => e.party === party);
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-wrap items-end gap-8" noValidate>
+    <form
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-wrap items-end gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <input type="hidden" name="timeZone" value={timeZone} />
@@ -866,7 +889,7 @@ export function IssueLinkForm({
   const id = useId();
   const path = state.issued ? state.issued.url : null;
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="recipientId" value={recipientId} />
       <ErrorNotice state={state} />
@@ -973,7 +996,7 @@ export function ReviewForm({
   const [returning, setReturning] = useState(false);
   const id = useId();
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="submissionId" value={submissionId} />
       <ErrorNotice state={state} />
@@ -1036,7 +1059,13 @@ export function RecordAnswerForm({
   const [state, action, pending, key] = useResettingAction(recordSubmissionAction);
   const id = useId();
   return (
-    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form
+      key={key}
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-col gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <ErrorNotice state={state} />
       <div className="flex flex-wrap gap-8">
@@ -1131,7 +1160,13 @@ export function CreateRiderDialog({
         </>
       }
     >
-      <form id={formId} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
+      <form
+        id={formId}
+        action={action}
+        onSubmit={submitWith(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <ErrorNotice state={state} />
         <Select
@@ -1189,7 +1224,7 @@ export function RiderDetailsForm({
   const [state, action, pending] = useActionState(updateRiderAction, INITIAL);
   const id = useId();
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <ErrorNotice state={state} />
@@ -1250,7 +1285,7 @@ export function ArchiveRiderButton({
     if (state.ok) router.push(backHref as Route);
   }, [state, router, backHref]);
   return (
-    <form id={formId} onSubmit={submitWith(action)}>
+    <form id={formId} action={action} onSubmit={submitWith(action)}>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <Dialog
@@ -1336,7 +1371,13 @@ export function AddRiderLineForm({ org, riderId }: { org: string; riderId: strin
   const [state, action, pending, key] = useResettingAction(addRiderLineAction);
   const id = useId();
   return (
-    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form
+      key={key}
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-col gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <ErrorNotice state={state} />
@@ -1372,7 +1413,12 @@ export function RiderLineRow({
   const id = useId();
   if (editing) {
     return (
-      <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+      <form
+        action={action}
+        onSubmit={submitWith(action)}
+        className="flex flex-col gap-8"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="lineId" value={line.id} />
         <ErrorNotice state={state} />
@@ -1512,7 +1558,12 @@ export function RunReconciliationForm({
     if (state.ok && state.id) router.push(href({ peek: state.id, full: "1" }));
   }, [state, router, href]);
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-wrap items-end gap-8" noValidate>
+    <form
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-wrap items-end gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       {defaultProjectId ? (
         <input type="hidden" name="projectId" value={defaultProjectId} />
