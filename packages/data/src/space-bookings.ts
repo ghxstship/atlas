@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import type { Database, XosClient } from "./client.ts";
 import type { OperationsScope } from "./logistics.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -15,15 +16,9 @@ type Tables = Database["app"]["Tables"];
 type Derived<T> = Omit<T, "org_id">;
 
 export type SpaceBookingPurpose = Database["app"]["Enums"]["space_booking_purpose"];
-export const SPACE_BOOKING_PURPOSES: readonly SpaceBookingPurpose[] = [
-  "Green Room",
-  "Dressing Room",
-  "Production Office",
-  "Hospitality Suite",
-  "Other",
-];
+export const SPACE_BOOKING_PURPOSES: readonly SpaceBookingPurpose[] = enums.spaceBookingPurpose;
 export type SpaceBookingMode = Database["app"]["Enums"]["space_booking_mode"];
-export const SPACE_BOOKING_MODES: readonly SpaceBookingMode[] = ["Exclusive", "Shared"];
+export const SPACE_BOOKING_MODES: readonly SpaceBookingMode[] = enums.spaceBookingMode;
 
 export interface SpaceBooking {
   readonly id: string;

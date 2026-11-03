@@ -1,3 +1,4 @@
+import * as enums from "../enums.generated.ts";
 import { feetToMeters, sqFtToSqM } from "../places-geometry.ts";
 import type { SitePlan, SitePlanShape, SitePlanShapeKind } from "../places.ts";
 import type { Sign, SignProductionState } from "../signage.ts";
@@ -200,7 +201,7 @@ export function buildSitePlan(d: SitePlanDocumentData, ctx: TemplateContext): Te
     ),
   ];
   if (options.legend === "kinds") {
-    const kinds: SitePlanShapeKind[] = ["Route", "Barrier", "Area", "Label"];
+    const kinds: readonly SitePlanShapeKind[] = enums.sitePlanShapeKind;
     const rows: string[][] = [];
     if (plan.pins.length > 0)
       rows.push([t("sitePlan.kinds.Pin"), f.number(plan.pins.length), "", ""]);

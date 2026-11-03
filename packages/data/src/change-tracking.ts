@@ -1,3 +1,4 @@
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -12,7 +13,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  */
 
 /** A page whose changes are marked since the person last looked (app.seen_surface). */
-export type SeenSurface = "Today" | "Itinerary" | "Show Day";
+export type SeenSurface = Database["app"]["Enums"]["seen_surface"];
 
 export type ChangeKind = "added" | "changed" | "removed";
 

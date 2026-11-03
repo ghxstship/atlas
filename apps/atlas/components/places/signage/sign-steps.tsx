@@ -1,5 +1,6 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import type { Attachment } from "@xos/data/attachments";
 import type { Sign, SignStep } from "@xos/data/signage";
 import { Tag } from "@xos/ui";
@@ -23,7 +24,7 @@ const STAMP: Readonly<Record<SignStep, keyof Sign>> = {
  */
 export function SignSteps({ org, sign }: { org: string; sign: Sign }) {
   const t = useCopy("places");
-  const steps: SignStep[] = ["Ordered", "Printed", "Placed"];
+  const steps: readonly SignStep[] = enums.signStep;
   return (
     <section aria-labelledby={`sign-steps-${sign.id}`} className="flex flex-col gap-8">
       <h3 id={`sign-steps-${sign.id}`} className="m-0 text-text-14 font-semibold">

@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import { uploadAttachment } from "@xos/data/attachments";
 import { addSitePlanPin } from "@xos/data/places";
 import {
@@ -37,7 +38,7 @@ function refresh(slug: string) {
 }
 
 const uuid = z.uuid();
-const STEPS: readonly SignStep[] = ["Ordered", "Printed", "Placed"];
+const STEPS: readonly SignStep[] = Constants.app.Enums.sign_step;
 const ARTWORK_TYPES = new Set(["image/png", "image/jpeg", "application/pdf"]);
 
 function size(form: FormData, key: string, metric: boolean): number | null | "invalid" {

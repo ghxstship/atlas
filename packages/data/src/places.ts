@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import { setArchived } from "./archive.ts";
 import { ATTACHMENTS_BUCKET } from "./attachments.ts";
 import type { Database, XosClient } from "./client.ts";
@@ -589,9 +590,9 @@ export async function freezeCapabilityDocument(
 // Site plans ------------------------------------------------------------------------------------------
 
 /** A site plan's lifecycle state (ADR 0140 D1); only a Draft plan takes layout writes. */
-export type SitePlanState = "Draft" | "Locked" | "Live" | "Archived";
+export type SitePlanState = Database["app"]["Enums"]["site_plan_state"];
 
-export const SITE_PLAN_STATES: readonly SitePlanState[] = ["Draft", "Locked", "Live", "Archived"];
+export const SITE_PLAN_STATES: readonly SitePlanState[] = enums.sitePlanState;
 
 /** The image_uri of a plan created to receive an upload, before its drawing is set (ADR 0140 D3). */
 export const PENDING_DRAWING_URI = "attachments/pending";
@@ -1045,18 +1046,11 @@ export async function moveSitePlanPin(
 
 // Site plan shapes -------------------------------------------------------------------------------------
 
-export type SitePlanShapeKind = "Route" | "Barrier" | "Area" | "Label";
-export type SitePlanShapeTone = "Accent" | "Info" | "Success" | "Warning" | "Danger" | "Neutral";
+export type SitePlanShapeKind = Database["app"]["Enums"]["site_plan_shape_kind"];
+export type SitePlanShapeTone = Database["app"]["Enums"]["site_plan_shape_tone"];
 
-export const SHAPE_KINDS: readonly SitePlanShapeKind[] = ["Route", "Barrier", "Area", "Label"];
-export const SHAPE_TONES: readonly SitePlanShapeTone[] = [
-  "Accent",
-  "Info",
-  "Success",
-  "Warning",
-  "Danger",
-  "Neutral",
-];
+export const SHAPE_KINDS: readonly SitePlanShapeKind[] = enums.sitePlanShapeKind;
+export const SHAPE_TONES: readonly SitePlanShapeTone[] = enums.sitePlanShapeTone;
 
 /** The tone a shape takes when none is chosen, as the database defaults it (5901). */
 export const DEFAULT_SHAPE_TONE: Readonly<Record<SitePlanShapeKind, SitePlanShapeTone>> = {

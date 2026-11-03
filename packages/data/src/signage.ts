@@ -1,3 +1,5 @@
+import * as enums from "./enums.generated.ts";
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { callRpc, writeResult } from "./places.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -10,34 +12,14 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * and write with places.site_plan.write; order lines are listed only to procurement readers, through their own policy.
  */
 
-export type SignType =
-  | "Directional"
-  | "Identification"
-  | "Regulatory"
-  | "Informational"
-  | "Sponsor"
-  | "Menu"
-  | "Digital";
+export type SignType = Database["app"]["Enums"]["sign_type"];
 
-export const SIGN_TYPES: readonly SignType[] = [
-  "Directional",
-  "Identification",
-  "Regulatory",
-  "Informational",
-  "Sponsor",
-  "Menu",
-  "Digital",
-];
+export const SIGN_TYPES: readonly SignType[] = enums.signType;
 
-export type SignStep = "Ordered" | "Printed" | "Placed";
-export type SignProductionState = "To Order" | "Ordered" | "Printed" | "Placed";
+export type SignStep = Database["app"]["Enums"]["sign_step"];
+export type SignProductionState = Database["app"]["Enums"]["sign_production_state"];
 
-export const SIGN_PRODUCTION_STATES: readonly SignProductionState[] = [
-  "To Order",
-  "Ordered",
-  "Printed",
-  "Placed",
-];
+export const SIGN_PRODUCTION_STATES: readonly SignProductionState[] = enums.signProductionState;
 
 /** The signage categories of canon a sign may key to (signs_urid_signage). */
 export type SignUrid = "4000.05.01" | "4000.05.02" | "9000.09.01";

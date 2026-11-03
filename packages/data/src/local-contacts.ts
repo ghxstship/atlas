@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -13,18 +14,9 @@ type Tables = Database["app"]["Tables"];
 type Derived<T> = Omit<T, "org_id">;
 
 export type LocalContactRole = Database["app"]["Enums"]["local_contact_role"];
-export const LOCAL_CONTACT_ROLES: readonly LocalContactRole[] = [
-  "Promoter",
-  "Venue",
-  "Production",
-  "Security",
-  "Transport",
-  "Hospitality",
-  "Medical",
-  "Other",
-];
+export const LOCAL_CONTACT_ROLES: readonly LocalContactRole[] = enums.localContactRole;
 export type LocalContactAudience = Database["app"]["Enums"]["local_contact_audience"];
-export const LOCAL_CONTACT_AUDIENCES: readonly LocalContactAudience[] = ["Internal", "Shared"];
+export const LOCAL_CONTACT_AUDIENCES: readonly LocalContactAudience[] = enums.localContactAudience;
 
 export interface LocalContact {
   readonly id: string;

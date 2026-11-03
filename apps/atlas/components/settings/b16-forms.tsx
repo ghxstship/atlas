@@ -1,5 +1,6 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import { Button, Checkbox, Dialog, InlineAlert, Input, Select } from "@xos/ui";
 import { useActionState, useRef, useState } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
@@ -321,7 +322,7 @@ export function McpConnectorForm({
   };
 }) {
   const [state, dispatch, pending] = useActionState(registerMcpConnectorAction, {});
-  const [kind, setKind] = useState<"Claude" | "ChatGPT" | "Other">("Claude");
+  const [kind, setKind] = useState<(typeof enums.mcpClientKind)[number]>("Claude");
   return (
     <form action={dispatch} className="flex flex-col gap-12" data-testid="mcp-connector-form">
       <input type="hidden" name="org" value={org} />
@@ -330,11 +331,11 @@ export function McpConnectorForm({
           name="kind"
           label={labels.kind}
           value="Claude"
-          options={(["Claude", "ChatGPT", "Other"] as const).map((k) => ({
+          options={enums.mcpClientKind.map((k) => ({
             value: k,
             label: labels.kinds[k],
           }))}
-          onChange={(e) => setKind(e.target.value as "Claude" | "ChatGPT" | "Other")}
+          onChange={(e) => setKind(e.target.value as (typeof enums.mcpClientKind)[number])}
         />
         <Input name="name" label={labels.name} maxLength={120} />
         {kind === "Other" ? (
@@ -378,7 +379,7 @@ export function McpConnectorForm({
             copiedLabel={labels.copied}
           />
           <p className="m-0 text-text-13">
-            {labels.steps[state.connector.kind as "Claude" | "ChatGPT" | "Other"] ??
+            {labels.steps[state.connector.kind as (typeof enums.mcpClientKind)[number]] ??
               labels.steps.Other}
           </p>
         </div>

@@ -212,7 +212,7 @@ export async function recordSubscriptionResume(
 /** The org's open subscription pause, as Billing and Plan shows it. */
 export interface SubscriptionPause {
   readonly pauseId: string;
-  readonly source: "Owner" | "Stripe";
+  readonly source: Database["app"]["Enums"]["subscription_pause_source"];
   /** Whole months, or null for an open-ended pause set in Stripe. */
   readonly months: number | null;
   readonly startsAt: string;
