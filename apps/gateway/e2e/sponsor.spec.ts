@@ -186,7 +186,7 @@ test("journey 47: the sponsor supplies a logo, the org returns it, the sponsor r
   await supply.getByLabel("Kind", { exact: true }).selectOption({ label: "Logo" });
   await supply.getByLabel("What it is", { exact: true }).fill(title);
   await supply
-    .getByLabel("Files", { exact: true })
+    .locator('input[type="file"]')
     .setInputFiles({ name: "logo-dark.png", mimeType: "image/png", buffer: PIXEL });
   await expectAccessible(page);
   await supply.getByRole("button", { name: "Send for approval" }).click();
@@ -220,7 +220,7 @@ test("journey 47: the sponsor supplies a logo, the org returns it, the sponsor r
   await expect(row.getByText("Returned", { exact: true })).toBeVisible();
   const resubmit = row.getByRole("form", { name: title });
   await resubmit
-    .getByLabel("Files", { exact: true })
+    .locator('input[type="file"]')
     .setInputFiles({ name: "logo-white.png", mimeType: "image/png", buffer: PIXEL });
   await expectAccessibleInBothThemes(page);
   await resubmit.getByRole("button", { name: "Resubmit with new files" }).click();

@@ -158,7 +158,7 @@ Migrations 4680 to 4683 build section 4. Where the build differs from the text a
 - **API.** `poLines` and `assetUnits` take the new fields through correction entries (`po-line-rental`,
   `asset-unit-receipt-line`); `purchaseOrders.receive`, `purchaseOrders.returnGoods`, `poLines.hireWindowWarnings`,
   `goodsReturns`, `returnLines`, `poLineHireWarnings` and `assetUnitHire` are additions.
-- **Gate 20 exception (awaiting the owner's confirmation).** Returned also enters the `asset_state` enum of every
+- **Gate 20 exception (confirmed by the owner, 2026-11-01).** Returned also enters the `asset_state` enum of every
   `assetUnits` response and of the scan result, which oasdiff reports against v4.0.0 as six response-enum additions
   (response-property-enum-value-added). Decision 8 approved the state; it did not separately approve this change to
   the v1 contract, so R7a records it as a one-off exception under ADR 0014 and asks the owner to confirm it before
@@ -167,7 +167,9 @@ Migrations 4680 to 4683 build section 4. Where the build differs from the text a
   reviewed change to the gate script and never a file that appears on its own. Any other breaking change still
   fails the gate. Clients typed from v4.0.0 (the `sdk-ts` union, the `sdk-python` `Literal` of a `TypedDict`) do
   not list Returned; neither validates at run time, so a returned unit reads as an unlisted string until the client
-  regenerates. Without the confirmation, the alternative is to keep Returned out of v1 responses until `/v2`.
+  regenerates. The owner confirmed the exception on 2026-11-01, with Returned in every v1 response that carries a
+  unit's asset_state, including those added since: bulk edit of asset units (A119) and R7's scans, five more
+  entries in the same file.
 
 ## Amendment: R7 as built (RRR-187, 2026-10-30)
 

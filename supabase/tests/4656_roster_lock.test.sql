@@ -24,6 +24,10 @@ create function pg_temp.state(p_key text) returns text
 language sql as $$ select r.entry_state::text from app.engagement_roster_entries r where r.id = pg_temp.id(p_key) $$;
 
 select has_column('app', 'engagements', 'roster_locks_at', 'engagements carry the names lock');
+select ok(has_column_privilege('authenticated', 'app.engagements', 'roster_locks_at', 'select'),
+  'signed-in readers of an engagement read its lock, as Atlas''s crew roster does');
+select ok(not has_column_privilege('authenticated', 'app.engagements', 'roster_locks_at', 'update'),
+  'and only app.set_roster_lock writes it');
 select is((select column_name::text from information_schema.columns
   where table_schema = 'api_external' and table_name = 'engagements' order by ordinal_position desc limit 1),
   'roster_locks_at', 'api_external.engagements ends with roster_locks_at');

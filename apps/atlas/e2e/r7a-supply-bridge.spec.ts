@@ -173,7 +173,8 @@ test("R7a: a rental line is received into stock, shows its provenance and goes b
   await page.waitForURL(/f\.acquisition=Rental/);
   await expect(page.getByRole("grid").getByText(tag)).toBeVisible();
   await expect(async () => {
-    await page.getByRole("button", { name: "Hired in" }).click();
+    // The saved view's own menu button, not the filter chip "Acquisition is Hired in" beside it.
+    await page.getByRole("button", { name: "Hired in", exact: true }).click();
     await expect(page.getByRole("menuitem", { name: "Save a copy of Hired in" })).toBeVisible({
       timeout: 5_000,
     });
