@@ -416,7 +416,7 @@ describe("the credential badge on four sizes (P5)", () => {
       kind: "portrait",
       bytes: PHOTO_JPEG,
       alt: `Photo of ${BADGE_V2.credential.holderName}, the credential holder`,
-      placeholder: "No photo on file",
+      emptyText: "No photo on file",
     });
     expect(model.blocks[2]).toMatchObject({
       kind: "scan-code",
@@ -450,15 +450,15 @@ describe("the credential badge on four sizes (P5)", () => {
     expect(card.title).toBe(badge(BADGE_V2, "letter").title);
   });
 
-  it("prints the placeholder when the holder has no photo, in both languages", () => {
+  it("prints the empty photo frame when the holder has no photo, in both languages", () => {
     const none = { ...BADGE_V2, photo: null };
     expect(badge(none, "cr80").blocks[0]).toMatchObject({
       bytes: null,
-      placeholder: "No photo on file",
+      emptyText: "No photo on file",
     });
     expect(badge(none, "cr80", "es-US").blocks[0]).toMatchObject({
       bytes: null,
-      placeholder: "No hay foto registrada",
+      emptyText: "No hay foto registrada",
     });
   });
 

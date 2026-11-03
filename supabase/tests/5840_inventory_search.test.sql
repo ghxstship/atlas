@@ -75,7 +75,10 @@ insert into app.asset_identifiers (asset_unit_id, scheme, value) values
   (pg_temp.id('mh3'), 'serial', 'SPX-48812'),
   (pg_temp.id('mh4'), 'serial', 'DEL-77001'),
   (pg_temp.id('rad1'), 'gtin14', '09501101530003');
+-- Custody rows come from a scan since R7 (4692); the fixture writes one directly, as the platform.
+select pg_temp.as_platform();
 insert into app.asset_custody (asset_unit_id, custodian_membership_id) values (pg_temp.id('mh2'), pg_temp.id('frank@org_a'));
+select pg_temp.as_user('carol');
 select pg_temp.as_user('xavier');
 with x as (insert into app.asset_classes (org_id, element_id, name) values (pg_temp.id('org_b'), '9000.03.01-XPMS-003', 'Digital Two-Way Radio') returning id) insert into world select 'radio_b', id from x;
 insert into app.asset_units (asset_class_id, asset_tag) values (pg_temp.id('radio_b'), 'HL-RAD-01');

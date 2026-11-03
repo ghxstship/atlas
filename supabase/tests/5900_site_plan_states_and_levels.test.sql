@@ -26,7 +26,8 @@ select throws_ok($$select app.transition_site_plan(pg_temp.id('plan_a'), 'Draft'
 select pg_temp.as_platform();
 update app.site_plans set image_uri = 'https://example.test/ground.png' where id = pg_temp.id('plan_a');
 select pg_temp.as_user('dave');
-select throws_ok($$select app.transition_site_plan(pg_temp.id('plan_a'), 'Draft', 'Live', 'Skip ahead.')$$, 'XR001', null, 'Draft cannot go straight to Live');
+select throws_like($$select app.transition_site_plan(pg_temp.id('plan_a'), 'Draft', 'Live', 'Skip ahead.')$$,
+  'site_plan_transition_not_allowed:%', 'Draft cannot go straight to Live');
 select throws_ok($$select app.transition_site_plan(pg_temp.id('plan_a'), 'Draft', 'Locked', '')$$, 'XR001', null, 'every move carries a reason');
 select lives_ok($$select app.transition_site_plan(pg_temp.id('plan_a'), 'Draft', 'Locked', 'Layout done.')$$, 'Draft to Locked');
 select throws_ok($$select app.transition_site_plan(pg_temp.id('plan_a'), 'Draft', 'Locked', 'Again.')$$, 'XR001', null, 'compare-and-set on the expected state');

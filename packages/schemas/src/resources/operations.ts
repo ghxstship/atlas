@@ -469,7 +469,8 @@ const word = (description: string, example: string) => z.string().meta({ descrip
 const oneOf = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
 
-/** Values of B5's database enums (ADR 0144), which @xos/data reads from the enums module. */
+// B5's lists of database enum values. @xos/data depends on this package, so they cannot read Constants (ADR 0123);
+// test/database-enums.test.ts holds each to its enum.
 // eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export const VEHICLE_TYPES = [
   "Sedan",

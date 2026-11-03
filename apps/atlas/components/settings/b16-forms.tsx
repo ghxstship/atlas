@@ -4,6 +4,7 @@ import * as enums from "@xos/data/enums";
 import { Button, Checkbox, Dialog, InlineAlert, Input, Select } from "@xos/ui";
 import { useActionState, useRef, useState } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
+import { keepInputOnSubmit, useKeepInput } from "@/components/collection-kit/keep-input";
 import { pauseSubscriptionAction, resumeSubscriptionAction } from "@/lib/billing/actions";
 import { INITIAL_PLATFORM_STATE, type PlatformActionState } from "@/lib/platform/state";
 import {
@@ -49,8 +50,15 @@ export function BlocklistAddForm({
   };
 }) {
   const [state, dispatch, pending] = useActionState(addBlocklistEntryAction, {});
+  // Keeps the typed address or domain when the database refuses it.
+  const keep = useKeepInput(state, dispatch, (s: B16State) => s.ok === true);
   return (
-    <form action={dispatch} className="flex flex-col gap-12" data-testid="blocklist-add-form">
+    <form
+      action={dispatch}
+      {...keep}
+      className="flex flex-col gap-12"
+      data-testid="blocklist-add-form"
+    >
       <input type="hidden" name="org" value={org} />
       <div className="flex flex-wrap items-end gap-12">
         <Select
@@ -193,7 +201,14 @@ export function PauseForm({
   const stepUp = useStepUpForm(state, stepUpRefused, ref);
   return (
     <>
-      <form ref={ref} action={dispatch} className="flex flex-col gap-12" data-testid="pause-form">
+      <form
+        ref={ref}
+        action={dispatch}
+        // Keeps the chosen length when the pause is refused; the ref stays for the step-up's resubmit.
+        onSubmit={keepInputOnSubmit(dispatch)}
+        className="flex flex-col gap-12"
+        data-testid="pause-form"
+      >
         <input type="hidden" name="org" value={org} />
         <Select
           name="months"
@@ -322,9 +337,15 @@ export function McpConnectorForm({
   };
 }) {
   const [state, dispatch, pending] = useActionState(registerMcpConnectorAction, {});
+  const keep = useKeepInput(state, dispatch, (s: B16State) => s.ok === true);
   const [kind, setKind] = useState<(typeof enums.mcpClientKind)[number]>("Claude");
   return (
-    <form action={dispatch} className="flex flex-col gap-12" data-testid="mcp-connector-form">
+    <form
+      action={dispatch}
+      {...keep}
+      className="flex flex-col gap-12"
+      data-testid="mcp-connector-form"
+    >
       <input type="hidden" name="org" value={org} />
       <div className="flex flex-wrap items-end gap-12">
         <Select

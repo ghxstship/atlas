@@ -22,9 +22,10 @@ const label = (id: string) => labelOf(indexSitemap(gateway).byId.get(id)?.node.l
 
 /**
  * Section 4.5.8 engagement tabs by role type, in order. Crew and Staff add Invoices after Timesheets
- * (A43, finding A38-007), where an individual agrees to self-billing and follows pay. The crew roster tab
- * Crew (R4, ADR 0100) follows Advance, Deliverables, Onboarding or Activation Schedule; it renders only for
- * roster managers (condition roster-manager).
+ * (A43, finding A38-007), where an individual agrees to self-billing and follows pay. Every party with an
+ * advance packet has the typed Advance tab (R9), contractors after Deliverables and sponsors after Activation
+ * Schedule. The crew roster tab Crew (R4, ADR 0100) follows Advance, Onboarding or Project Details; it renders
+ * only for roster managers (condition roster-manager).
  */
 const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, string[]> = {
   client: [
@@ -56,6 +57,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Overview",
     "Scope",
     "Deliverables",
+    "Advance",
     "Crew",
     "Time",
     "Invoices",
@@ -111,6 +113,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Entitlements",
     "Asset Approvals",
     "Activation Schedule",
+    "Advance",
     "Crew",
     "Proof of Performance",
     "Invoices",

@@ -187,8 +187,9 @@ describe("inventory hits (P7)", () => {
     expect(
       inventoryEntry(assetClass, { org: "acme", visible: noClasses, noun: "Asset class" }),
     ).toBeNull();
-    expect(inventoryEntry({ ...unit, key: null }, { org: "acme", visible: owner, noun: "Asset" }))
-      .toBeNull();
+    expect(
+      inventoryEntry({ ...unit, key: null }, { org: "acme", visible: owner, noun: "Asset" }),
+    ).toBeNull();
     expect(hiddenInventoryTypes(owner)).toEqual([]);
     expect(hiddenInventoryTypes(noUnits)).toEqual(["asset"]);
     expect(hiddenInventoryTypes(noClasses)).toEqual(["asset_class"]);

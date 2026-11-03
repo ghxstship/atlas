@@ -606,7 +606,11 @@
       "planned_at": "Planned time",
       "position": "Position",
       "segment": "Segment",
-      "roster_locks_at": "Roster locks",
+      "roster_locks_at": "Names lock",
+      "hide_client_until_booked": "Client hidden until booked",
+      "time_off_day_count": "Time off days",
+      "administrative_area": "State or province",
+      "country_code": "Country",
       "traveler_name": "Traveler",
       "service_identifier": "Flight or service number",
       "travel_mode": "Mode",
@@ -648,7 +652,15 @@
       "set_moved": "Set moved",
       "group_size": "Overlapping bookings",
       "group_peak_party": "Peak people",
-      "over_capacity": "Over capacity"
+      "over_capacity": "Over capacity",
+      "calibration_ax": "Scale point A, x",
+      "calibration_ay": "Scale point A, y",
+      "calibration_bx": "Scale point B, x",
+      "calibration_feet": "Scale distance (ft)",
+      "drawing_page": "PDF page",
+      "image_height_px": "Image height (px)",
+      "image_width_px": "Image width (px)",
+      "calibration_by": "Scale point B, y"
     }
   },
   "liveLink": {

@@ -308,7 +308,7 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           createdAt: c.valid_from,
           updatedAt: c.valid_from,
         },
-        // The holder sees their own photo; anyone else reading the badge (an account principal) gets the placeholder,
+        // The holder sees their own photo; anyone else reading the badge (an account principal) gets the empty photo frame,
         // since app.credential_badge_photos answers only the holder and the org's credential readers.
         photo: await credentialBadgePhoto(db, id),
       },

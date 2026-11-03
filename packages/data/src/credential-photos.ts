@@ -101,7 +101,7 @@ export async function credentialPhotoStates(
 
 /**
  * Bytes a badge may embed: a JPEG or PNG (its signature, not its declared type) of at most 2 MiB. Anything else
- * prints the placeholder.
+ * prints the empty photo frame.
  */
 export function isBadgePhotoBytes(bytes: Uint8Array): boolean {
   return bytes.length > 0 && bytes.length <= BADGE_PHOTO_MAX_BYTES && isEmbeddableImage(bytes);
@@ -180,7 +180,7 @@ async function photoBytes(
 
 /**
  * The photo bytes of each row that has one, by credential id, eight downloads at a time. A row whose photo cannot
- * be read or is not an embeddable image is left out, so its badge prints the placeholder.
+ * be read or is not an embeddable image is left out, so its badge prints the empty photo frame.
  */
 export async function loadBadgePhotoBytes(
   db: XosClient,
