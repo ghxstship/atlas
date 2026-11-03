@@ -73,8 +73,8 @@ export async function ScheduleGrid(props: {
         href={props.peekHref(s.id) as Route}
         className={
           live
-            ? "mb-2 flex items-center gap-4 rounded-chip bg-bg-hover px-6 py-2 text-text-12 text-text-primary hover:bg-bg-surface"
-            : "mb-2 flex items-center gap-4 rounded-chip px-6 py-2 text-text-12 text-text-tertiary line-through"
+            ? "mb-2 flex min-h-target-fine items-center gap-4 rounded-chip bg-bg-hover px-6 py-2 text-text-12 text-text-primary hover:bg-bg-surface"
+            : "mb-2 flex min-h-target-fine items-center gap-4 rounded-chip px-6 py-2 text-text-12 text-text-tertiary line-through"
         }
       >
         <StateIcon state={stateIcon("shift", s.state)} size={12} />

@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { IntentLink } from "@/components/shell/intent-link";
+import { fit } from "./tab-fit";
 
 export interface ProjectTabGroup {
   readonly id: string;
@@ -20,34 +21,12 @@ interface FlatTab {
   readonly index: number;
 }
 
-/** Space between the last visible tab and the More button, and around a promoted tab. */
-const GAP = 16;
-
 const tabClass = (current: boolean) =>
   `flex min-h-row-default items-center whitespace-nowrap border-b-2 px-8 text-text-13 hover:text-text-primary ${
     current
       ? "border-accent font-medium text-text-primary"
       : "border-transparent text-text-secondary"
   }`;
-
-/** How many leading tabs fit, keeping room for More and for the current tab when it would overflow. */
-function fit(
-  edges: readonly number[],
-  widths: readonly number[],
-  available: number,
-  more: number,
-  current: number,
-): number {
-  const n = edges.length;
-  if (n === 0 || (edges[n - 1] ?? 0) <= available) return n;
-  let k = n - 1;
-  while (k > 0 && (edges[k - 1] ?? 0) + GAP + more > available) k -= 1;
-  if (current >= k) {
-    const promoted = (widths[current] ?? 0) + GAP;
-    while (k > 0 && (edges[k - 1] ?? 0) + promoted + GAP + more > available) k -= 1;
-  }
-  return k;
-}
 
 /**
  * The project tab bar (Section 4.5.4): tabs in sitemap order, grouped by act. The current tab is
@@ -88,21 +67,36 @@ export function ProjectTabs({
   const labelsKey = flat.map((tab) => tab.label).join("|");
 
   // Widths measured once per set of labels with every tab rendered; resizes reuse them.
-  const measured = useRef<{ key: string; edges: number[]; widths: number[]; more: number } | null>(
-    null,
-  );
+  const measured = useRef<{
+    key: string;
+    edges: number[];
+    widths: number[];
+    more: number;
+    /** What the rendered bar needed beyond its measured widths. */
+    reserve: number;
+  } | null>(null);
   const [shown, setShown] = useState<{ key: string; count: number } | null>(null);
   const count = shown?.key === labelsKey ? shown.count : null;
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
-  // A web font that loads after the first measure widens the tabs without resizing the bar.
-  const [fontsLoaded, setFontsLoaded] = useState(0);
+  // A web font that arrives after the first measure widens the tabs without resizing the bar, so its widths are stale:
+  // they measure again, with every tab rendered, before the next paint.
   useEffect(() => {
     const fonts = typeof document === "undefined" ? undefined : document.fonts;
     if (!fonts) return undefined;
-    const onLoad = () => setFontsLoaded((n) => n + 1);
-    fonts.addEventListener("loadingdone", onLoad);
-    return () => fonts.removeEventListener("loadingdone", onLoad);
+    let live = true;
+    const again = () => {
+      if (!live) return;
+      measured.current = null;
+      setShown(null);
+    };
+    fonts.addEventListener("loadingdone", again);
+    // A font can finish between the first measure and this effect, which no event would report.
+    void fonts.ready.then(again);
+    return () => {
+      live = false;
+      fonts.removeEventListener("loadingdone", again);
+    };
   }, []);
 
   useLayoutEffect(() => {
@@ -124,11 +118,12 @@ export function ProjectTabs({
           }),
           widths: tabs.map((el) => el.getBoundingClientRect().width),
           more: moreButton.current?.getBoundingClientRect().width ?? 0,
+          reserve: 0,
         };
       }
       const m = measured.current;
       if (!m) return;
-      const next = fit(m.edges, m.widths, bar.clientWidth, m.more, current);
+      const next = fit(m.edges, m.widths, bar.clientWidth - m.reserve, m.more, current);
       setShown((old) =>
         old?.key === labelsKey && old.count === next ? old : { key: labelsKey, count: next },
       );
@@ -140,9 +135,9 @@ export function ProjectTabs({
     return () => observer.disconnect();
   }, [labelsKey, count, current]);
 
-  // The measured widths leave out what the bar renders around its tabs (group headings, a promoted tab's
-  // group) and text that grew after the measure, so after each render anything past the bar's clip edge is
-  // reserved like the More button and the tabs fit again. The reserve only grows, so this settles.
+  // The measured widths leave out what the bar renders around its tabs (group headings, a promoted tab's group), so
+  // after each fit anything past the bar's clip edge is reserved and the tabs fit again. The reserve only grows until
+  // the next measure, so this settles.
   useLayoutEffect(() => {
     const m = measured.current;
     const bar = nav.current;
@@ -156,10 +151,10 @@ export function ProjectTabs({
       over = Math.max(over, rtl ? edge.left - r.left : r.right - edge.right);
     }
     if (over <= 0.5) return;
-    m.more += Math.ceil(over);
-    const next = fit(m.edges, m.widths, bar.clientWidth, m.more, current);
+    m.reserve += Math.ceil(over);
+    const next = fit(m.edges, m.widths, bar.clientWidth - m.reserve, m.more, current);
     if (next !== count) setShown({ key: labelsKey, count: next });
-  }, [count, labelsKey, current, fontsLoaded]);
+  }, [count, labelsKey, current]);
 
   useEffect(() => {
     if (!open) return undefined;
