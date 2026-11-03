@@ -75,8 +75,13 @@ async function newCrew(page: Page, browser: Browser): Promise<Crew> {
   await page.goto(`/${slug}/settings/localization`);
   const settings = page.getByRole("form", { name: "Settings on this page" });
   const zone = settings.locator("li").filter({ has: page.getByLabel("Time zone") });
-  await zone.getByLabel("Time zone").selectOption(NEW_PROJECT_TIME_ZONE);
-  await settings.getByRole("button", { name: "Save", exact: true }).click();
+  // Save shows once a field has changed, which a choice made before the form hydrates does not count as.
+  const save = settings.getByRole("button", { name: "Save", exact: true });
+  await expect(async () => {
+    await zone.getByLabel("Time zone").selectOption(NEW_PROJECT_TIME_ZONE);
+    await expect(save).toBeVisible({ timeout: 3_000 });
+  }).toPass();
+  await save.click();
   await expect(zone.getByText(/Set for the organization/)).toBeVisible();
   await page.goto(`/${slug}/settings/members`);
   await page.getByLabel("Email", { exact: true }).fill(fieldEmail);
@@ -107,11 +112,19 @@ function today(): string {
 }
 
 async function confirm(page: Page, button: string, confirmLabel = button) {
-  await page.getByRole("button", { name: button, exact: true }).first().click();
   const dialog = page
     .getByRole("dialog")
     .filter({ has: page.getByRole("button", { name: "Cancel", exact: true }) });
-  await expect(dialog).toBeVisible();
+  // The schedule view loads its board lazily, so a click can land before the button has hydrated.
+  await expect(async () => {
+    if (!(await dialog.isVisible())) {
+      await page
+        .getByRole("button", { name: button, exact: true })
+        .first()
+        .click({ timeout: 5_000 });
+    }
+    await expect(dialog).toBeVisible({ timeout: 5_000 });
+  }).toPass();
   // Let the dialog's entrance fade settle before axe measures contrast.
   await page.waitForTimeout(400);
   await expectAccessible(page);
