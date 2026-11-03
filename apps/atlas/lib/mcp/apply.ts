@@ -9,7 +9,6 @@ import type { XosClient } from "@xos/data";
 import { bodyFromFields, getProposalForApply } from "@xos/data/agent-proposals";
 import { transitionAiSuggestion } from "@xos/data/ai";
 import { CAPABILITY_CODES } from "@xos/schemas/capabilities/codes";
-import { inProcessSessionFetch } from "@/lib/api/in-process";
 import { env } from "@/lib/env";
 import { observability } from "@/lib/observability";
 
@@ -95,6 +94,8 @@ export async function applyAgentProposal(
   }
 
   const site = env().ATLAS_SITE_URL.replace(/\/$/, "");
+  // Loaded here so the settings pages that import this file do not evaluate the whole API app with them.
+  const { inProcessSessionFetch } = await import("@/lib/api/in-process");
   const client = new ApiClient({
     baseUrl: `${site}/api/v1`,
     maxRetries: 0,

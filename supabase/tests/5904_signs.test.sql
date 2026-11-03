@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-\ir 2681_supply_world.psql
+\ir 4681_supply_world.psql
 \ir 5900_places_parts.psql
 
 select * from no_plan();
