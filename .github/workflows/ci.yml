@@ -308,10 +308,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { app: atlas, shard: 1, shards: 4 }
-          - { app: atlas, shard: 2, shards: 4 }
-          - { app: atlas, shard: 3, shards: 4 }
-          - { app: atlas, shard: 4, shards: 4 }
+          - { app: atlas, shard: 1, shards: 6 }
+          - { app: atlas, shard: 2, shards: 6 }
+          - { app: atlas, shard: 3, shards: 6 }
+          - { app: atlas, shard: 4, shards: 6 }
+          - { app: atlas, shard: 5, shards: 6 }
+          - { app: atlas, shard: 6, shards: 6 }
           - { app: gateway, shard: 1, shards: 2 }
           - { app: gateway, shard: 2, shards: 2 }
     env:

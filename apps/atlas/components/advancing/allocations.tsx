@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { CollectionPage } from "@/components/platform/collection-page";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import {
   ALLOCATION_RECORD_STATE,
@@ -104,7 +105,9 @@ export async function AllocationsCollection({
   const timeZone = (projectRow.data as { time_zone?: string | null } | null)?.time_zone ?? "UTC";
 
   const projectIds = [...new Set(rows.data.map((a) => a.projectId))];
-  const holderLists = await Promise.all(projectIds.map((id) => listAllocationHolders(db, id)));
+  const holderLists = await Promise.all(
+    projectIds.map((id) => listAllocationHolders(db, id, { includeClosed: true })),
+  );
   const holders: AllocationHolder[] = holderLists.flatMap((r) => (r.ok ? r.data : []));
 
   const shown = visibleAllocations(rows.data, holders, {
@@ -210,25 +213,29 @@ export async function AllocationsCollection({
   };
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={shown.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-        {...(project && (can.write || can.review)
-          ? {
-              actions: (
-                <AllocationAssignDialog
-                  org={ctx.org.slug}
-                  projectId={project.id}
-                  timeZone={timeZone}
-                  canAssign={can.review}
-                  canRequest={can.write}
-                />
-              ),
-            }
-          : {})}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={shown.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+          {...(project && (can.write || can.review)
+            ? {
+                actions: (
+                  <AllocationAssignDialog
+                    org={ctx.org.slug}
+                    projectId={project.id}
+                    timeZone={timeZone}
+                    canAssign={can.review}
+                    canRequest={can.write}
+                  />
+                ),
+              }
+            : {})}
+        />
+      }
+    >
       <p className="m-0 text-text-13 text-text-secondary">
         {can.write || can.review
           ? t("advancing.allocations.sentence")
@@ -473,6 +480,6 @@ export async function AllocationsCollection({
         ) : null,
       )}
       <LiveRefresh topics={[{ table: "advance_allocations", filter: `org_id=eq.${ctx.org.id}` }]} />
-    </div>
+    </CollectionPage>
   );
 }
