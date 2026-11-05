@@ -34,8 +34,8 @@ derived:
     adr: "0022"
   - objects:
       - app.subject_approvals.project_id
-    source: "`app.credentials.project_id` or `app.dock_slots.project_id`, whichever subject the approval has"
-    refresh: Stamped by trigger on insert; changing it is refused (2860)
+    source: "`app.credentials.project_id`, `app.dock_slots.project_id` or `app.advance_allocations.project_id`, whichever subject the approval has"
+    refresh: Stamped by trigger on insert; changing it is refused (2860, 2863)
     reason: Approvals, the reminder status and the dock schedule filter subject approvals by project without a join to their subject
     adr: "0138"
   - objects:
@@ -1357,9 +1357,13 @@ restated:
     kind: own
     note: When the asset is needed; the entitlement's date is when it is owed.
   - column: app.subject_approvals.project_id
+    parent: app.advance_allocations.project_id
+    kind: registered
+    note: Copied from the allocation by `private.copy_parent_project` (derived entry, 2863).
+  - column: app.subject_approvals.project_id
     parent: app.approval_rules.project_id
     kind: registered
-    note: Copied from the pass or dock slot by `private.copy_parent_project` (derived entry); the rule matched that project.
+    note: Copied from the pass, dock slot or allocation by `private.copy_parent_project` (derived entry); the rule matched that project.
   - column: app.subject_approvals.project_id
     parent: app.credentials.project_id
     kind: registered

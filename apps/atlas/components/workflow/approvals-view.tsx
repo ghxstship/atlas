@@ -432,10 +432,11 @@ export async function ApprovalsView({
   );
 }
 
-/** Where a pass or dock booking opens in Atlas (P9); equipment requests open from their advance. */
+/** Where a pass, dock booking or equipment request (an allocation, 2863) opens in Atlas (P9). */
 function subjectHref(org: string, a: SubjectApproval): string | null {
   if (a.credentialId) return `/${org}/credentials/issued?peek=${a.credentialId}`;
   if (a.dockSlotId) return `/${org}/logistics/dock-schedule?peek=${a.dockSlotId}`;
+  if (a.advanceAllocationId) return `/${org}/advancing/allocations?peek=${a.advanceAllocationId}`;
   return null;
 }
 

@@ -11,6 +11,7 @@ import {
   type AllocationAllowance,
   type AllocationHolder,
 } from "@xos/data/allocations";
+import { approvalBySubject, listSubjectApprovals } from "@xos/data/workflow";
 import Link from "next/link";
 import type { Route } from "next";
 import dynamic from "next/dynamic";
@@ -138,6 +139,17 @@ export async function AllocationsCollection({
       ? await db.from("advance_allocations").select("id, asset_class_id").in("id", assetIds)
       : { data: [] as { id: string; asset_class_id: string | null }[] };
   const classOf = new Map((classes.data ?? []).map((c) => [c.id, c.asset_class_id]));
+  // P9b: a radio or cart request an Equipment rule holds shows Awaiting approval, Approved or Rejected (2863). The
+  // reviewer approves it here once the rule has; there is no second approval screen.
+  const approvals = await listSubjectApprovals(db, { advanceAllocationIds: assetIds });
+  const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
+  const approvalLabel = (id: string): string | null => {
+    const a = approvalOf.get(id);
+    if (!a || a.state === "Canceled") return null;
+    return t(
+      `advancing.allocations.approval.${a.state === "In Review" ? "waiting" : a.state === "Approved" ? "approved" : "rejected"}`,
+    );
+  };
   const radioProjects = [
     ...new Set(shown.filter((a) => a.offering === "Radios").map((a) => a.projectId)),
   ];
@@ -425,6 +437,7 @@ export async function AllocationsCollection({
                             })
                           : "",
                         channelsLabel(a),
+                        approvalLabel(a.id) ?? "",
                       ]
                         .filter(Boolean)
                         .join(" · ")}
@@ -463,6 +476,14 @@ export async function AllocationsCollection({
                     {
                       label: t("advancing.allocations.columns.channels"),
                       value: channelsLabel(peek),
+                    },
+                  ]
+                : []),
+              ...(approvalLabel(peek.id)
+                ? [
+                    {
+                      label: t("advancing.allocations.approval.label"),
+                      value: approvalLabel(peek.id) ?? "",
                     },
                   ]
                 : []),

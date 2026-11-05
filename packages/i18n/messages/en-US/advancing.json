@@ -111,6 +111,7 @@
     "allocation_target_project": "Choose an item of this project.",
     "allocation_target_required": "Choose one item.",
     "allocation_window": "The window ends after it starts.",
+    "approval_rule_pending": "This request waits on its project's approval rule. Approve it once every step of the rule has approved it.",
     "asset_class_held_for_reservations": "The units left are held for others now. Issue against a hold instead.",
     "asset_reserved_for_other": "This unit is held for someone else now.",
     "availability_window": "Choose dates from a start to a later end, at most 400 days apart.",
@@ -798,6 +799,12 @@
       "unit": "unit {tag}",
       "lot": "lot",
       "line": "order line {line}"
+    },
+    "approval": {
+      "label": "Approval rule",
+      "waiting": "Awaiting approval",
+      "approved": "Approved",
+      "rejected": "Rejected"
     }
   }
 }

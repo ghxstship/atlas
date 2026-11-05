@@ -84,12 +84,22 @@ false` only when the recipient answers through such a step and has no active mem
    4 hours from the last notice, counts toward the limit and names the next allowed time when it refuses.
    `app.approval_reminder_status` shows, per pending approval and step, when it began to wait, when its approvers
    were last notified, the reminders of the limit and the next automatic one.
-9. **Equipment waits for R7 and R9.** An Equipment rule can be written but stays a Draft
-   (`approval_rule_equipment_pending`) until R7's allocations and R9's answer review merge. That follow-up (planned as
-   2863, or the next free number above every applied migration then) gates `app.decide_allocation` with
-   `approval_rule_pending`, makes R9's answer-review trigger treat that refusal as it treats R7's own, and does not
-   approve an allocation when its subject approval is approved: a reviewer still does. There is no second
-   allocation-approval screen.
+9. **Equipment gates R7's requests, and a reviewer still approves them.** 2860 kept Equipment rules Drafts
+   (`approval_rule_equipment_pending`) until R7's allocations were on the branch; 2863 (P9b) lifts that. A Requested
+   allocation (origin Requested) of an asset class that carries an offering (Radios or Carts) opens the matching
+   Active Equipment rule's approval, with `private.allocation_requester` (R7, as R10 extends it) as the requester and
+   the person it is for as the beneficiary. Assigned allocations and shares split from an approved pool open none: a
+   reviewer already decided them. `app.decide_allocation` refuses `approval_rule_pending` until the approval is
+   Approved, and an Approved approval does not approve the allocation: a reviewer still does, with the sources they
+   choose. Inside R9's answer review (the trusted operation `advance_answer_review`) the gate returns false instead of
+   refusing, so the review commits and the allocation stays Requested for the Allocations queue. This reaches what
+   the review asked of R9's trigger without redefining it, so it holds whichever of R9 and 2863 is applied last.
+   A rejected step declines the allocation with "Rejected at {step}: {comment}", inside the trusted operation
+   `subject_approval_decline`, since the rule, not `advancing.submission.review`, named the approver. Withdrawing,
+   declining or deleting the allocation withdraws an approval still In Review; a decided one is kept as decided.
+   Readers of allocations (`advancing.packet.read`, R7's read rule) read the approval as `assets.asset.read` does, and
+   `advancing.packet.write` is the subject's writer. Allocations show the approval's state as a chip; there is no
+   second allocation-approval screen.
 
 ## Consequences
 

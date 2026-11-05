@@ -111,6 +111,7 @@
     "allocation_target_project": "Elige un artículo de este proyecto.",
     "allocation_target_required": "Elige un artículo.",
     "allocation_window": "Las fechas terminan después de empezar.",
+    "approval_rule_pending": "Esta solicitud espera la regla de aprobación de su proyecto. Apruébala cuando todos los pasos de la regla la hayan aprobado.",
     "asset_class_held_for_reservations": "Las unidades que quedan están reservadas para otros ahora. Entrega contra una reserva.",
     "asset_reserved_for_other": "Esta unidad está reservada para otra persona ahora.",
     "availability_window": "Elige fechas de un inicio a un fin posterior, con un máximo de 400 días.",
@@ -798,6 +799,12 @@
       "unit": "unidad {tag}",
       "lot": "lote",
       "line": "línea de pedido {line}"
+    },
+    "approval": {
+      "label": "Regla de aprobación",
+      "waiting": "En espera de aprobación",
+      "approved": "Aprobada",
+      "rejected": "Rechazada"
     }
   }
 }

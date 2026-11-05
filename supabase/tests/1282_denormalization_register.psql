@@ -319,6 +319,7 @@ insert into register_restated values
   ('app.spend_authorities.valid_from', 'app.memberships.valid_from', 'own'),
   ('app.spend_authorities.valid_to', 'app.memberships.valid_to', 'own'),
   ('app.sponsor_assets.due_on', 'app.sponsor_entitlements.due_on', 'own'),
+  ('app.subject_approvals.project_id', 'app.advance_allocations.project_id', 'registered'),
   ('app.subject_approvals.project_id', 'app.approval_rules.project_id', 'registered'),
   ('app.subject_approvals.project_id', 'app.credentials.project_id', 'registered'),
   ('app.subject_approvals.project_id', 'app.dock_slots.project_id', 'registered'),

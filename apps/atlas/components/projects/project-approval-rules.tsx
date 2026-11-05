@@ -60,7 +60,10 @@ export async function ProjectApprovalRules({ ctx }: { ctx: ProjectContext }) {
     Delivery: zones.ok
       ? zones.data.map((z) => ({ value: z.id, label: `${z.code} ${z.name}` }))
       : [],
-    Equipment: classes.ok ? classes.data.map((c) => ({ value: c.id, label: c.name })) : [],
+    // Equipment rules gate radio and cart requests (2863), so only classes that carry an offering are offered.
+    Equipment: classes.ok
+      ? classes.data.filter((c) => c.offering).map((c) => ({ value: c.id, label: c.name }))
+      : [],
   };
   const roleChoices: Choice[] = roles.ok
     ? roles.data.map((r) => ({

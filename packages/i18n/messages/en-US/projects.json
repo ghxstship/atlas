@@ -401,7 +401,7 @@
       },
       "fields": {
         "subject": "Applies to",
-        "subjectHelp": "Equipment rules stay Drafts until equipment requests come from advances.",
+        "subjectHelp": "Equipment rules hold radio and cart requests from advances. A reviewer approves a request once every step has approved it.",
         "filter": {
           "Pass": "Credential category",
           "Delivery": "Dock",
