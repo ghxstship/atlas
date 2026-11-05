@@ -183,7 +183,8 @@ test("Today counts down to doors, counts approvals and names what changed since 
       .insert({
         project_id: DEMO_PROJECT,
         record_kind: "Event",
-        title: `Doors Test Night ${id}`,
+        // An Event title is in Title Case, so the id is capitalized.
+        title: `Doors Test Night ${id.toUpperCase()}`,
         xyz: "Y",
         xyz_basis: "Declared",
       })
@@ -223,12 +224,12 @@ test("Today counts down to doors, counts approvals and names what changed since 
   // Doors in 1 h 29 min (or 30, by the time the page renders).
   const doors = page.getByRole("region", { name: "Doors" });
   await expect(doors.getByText(/^Doors in 1 h (29|30) min$/)).toBeVisible();
-  await expect(doors.getByText(`Doors Test Night ${id}`)).toBeVisible();
+  await expect(doors.getByText(`Doors Test Night ${id.toUpperCase()}`)).toBeVisible();
 
   // The approvals tile counts what the lead's Inbox can decide.
   const lead = await as("field@example.com");
-  const inbox = await listInbox(lead as unknown as XosClient, DEMO_ORG_ID);
-  expect(inbox.ok).toBe(true);
+  const inbox = await listInbox(app(lead) as unknown as XosClient, DEMO_ORG_ID);
+  expect(inbox.ok, JSON.stringify(inbox)).toBe(true);
   const actionable = inbox.ok ? inbox.data.filter(isActionableApproval).length : -1;
   const approvals = page.getByRole("region", { name: "Waiting for your approval" });
   if (actionable === 0) {

@@ -17,8 +17,9 @@ import { expectAccessible, signIn, sql } from "./support";
  * B6 (RRR-230, G-65): Travel and Lodging and the artist's Hospitality tab show the whole stay by day, and a row an
  * Atlas writer changed after the person last looked carries a tag naming what changed. A crew person new to the org
  * looks once and marks it all as seen; the demo Owner, signed in as an Atlas writer would be, moves their flight
- * under row level security; on reload the flight reads "Changed since you last looked: Departure" and the check-in
- * sits on its own date. The artist's Hospitality tab places their set time inside the itinerary.
+ * under row level security; on reload the flight reads "Changed since you last looked: Arrival, Departure" and the check-in
+ * sits on its own date. The artist's Hospitality tab places their set time, their ground transfer and their booked
+ * room (B5) inside the itinerary, each on its own day.
  */
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
@@ -41,6 +42,12 @@ test("B6: a crew traveller's itinerary marks the flight an Atlas writer moved", 
     PEOPLE.owner,
   );
   const engagementId = engagement?.id as string;
+  await sql(
+    `insert into app.onboarding_verifications (onboarding_item_id, org_id, outcome)
+     select i.id, i.org_id, 'Passed' from app.onboarding_items i where i.engagement_id = $1 and i.deleted_at is null`,
+    [engagementId],
+    PEOPLE.owner,
+  );
   await transition("engagement", engagementId, "Onboarding", "Active", "Crew confirmed.");
   const [flight] = await asPerson<{ id: string }>(
     PEOPLE.owner,
@@ -84,7 +91,9 @@ test("B6: a crew traveller's itinerary marks the flight an Atlas writer moved", 
   );
   await page.reload();
   const flightRow = page.getByRole("listitem").filter({ hasText: "LAX to MIA" });
-  await expect(flightRow.getByText("Changed since you last looked: Departure")).toBeVisible();
+  await expect(
+    flightRow.getByText("Changed since you last looked: Arrival, Departure"),
+  ).toBeVisible();
   const checkInDay = page.getByRole("list", { name: "Jun 3, 2027" });
   await expect(checkInDay.getByRole("listitem").filter({ hasText: "Check-in" })).toBeVisible();
   await expect(
@@ -103,7 +112,7 @@ test("B6: a crew traveller's itinerary marks the flight an Atlas writer moved", 
   );
 });
 
-test("B6: the artist's Hospitality tab shows their set time inside the itinerary", async ({
+test("B6: the artist's Hospitality tab shows their set, transfer and room inside the itinerary", async ({
   page,
 }) => {
   await offer("offerings.travel");
@@ -126,14 +135,60 @@ test("B6: the artist's Hospitality tab shows their set time inside the itinerary
     `insert into app.engagement_cues (engagement_id, cue_id) values ($1, $2)`,
     [engagement.id, cue?.id],
   );
-  await signIn(page, "artist@example.com", `/work/engagements/${engagement.key}/hospitality`);
-  await expect(page.getByRole("heading", { name: "Your stay" })).toBeVisible();
-  // 01:00 UTC on June 6 is 21:00 on June 5 in the project's zone, so the set sits on June 5.
-  const setDay = page.getByRole("list", { name: "Jun 5, 2027" });
-  await expect(setDay.getByRole("listitem").filter({ hasText: label })).toBeVisible();
-  await expect(setDay.getByText("Set", { exact: false }).first()).toBeVisible();
-  await expectAccessible(page);
-  await asPerson(PEOPLE.owner, `update app.run_of_show set deleted_at = now() where id = $1`, [
-    ros?.id,
-  ]);
+  // B5's rows on the same stay: a run from the airport the day before, and a green room on the show day.
+  const roomName = `Green Room ${engagement.key.slice(-4)}`;
+  const pickupPlace = `Airport ${engagement.key.slice(-4)}`;
+  const [transfer] = await asPerson<{ id: string }>(
+    PEOPLE.owner,
+    `insert into app.transfers (project_id, pickup_place, pickup_at, pickup_time_zone, dropoff_place, dropoff_at,
+       dropoff_time_zone)
+     values ($1, $2, '2027-06-04T15:00:00Z', 'America/New_York', 'Harbor Inn', '2027-06-04T16:00:00Z', 'America/New_York')
+     returning id`,
+    [PROJECT, pickupPlace],
+  );
+  await asPerson(
+    PEOPLE.owner,
+    `insert into app.transfer_passengers (transfer_id, person_id, is_primary) values ($1, $2, true)`,
+    [transfer?.id, ROLE_PEOPLE.artist],
+  );
+  const [venue] = await asPerson<{ id: string }>(
+    PEOPLE.owner,
+    `select venue_id as id from app.spaces where deleted_at is null limit 1`,
+  );
+  const [space] = await asPerson<{ id: string }>(
+    PEOPLE.owner,
+    `insert into app.spaces (venue_id, name) values ($1, $2) returning id`,
+    [venue?.id, roomName],
+  );
+  const [room] = await asPerson<{ id: string }>(
+    PEOPLE.owner,
+    `insert into app.space_bookings (project_id, space_id, engagement_id, purpose, starts_at, ends_at)
+     values ($1, $2, $3, 'Green Room', '2027-06-05T22:00:00Z', '2027-06-06T03:00:00Z') returning id`,
+    [PROJECT, space?.id, engagement.id],
+  );
+  try {
+    await signIn(page, "artist@example.com", `/work/engagements/${engagement.key}/hospitality`);
+    await expect(page.getByRole("heading", { name: "Your stay" })).toBeVisible();
+    // 01:00 UTC on June 6 is 21:00 on June 5 in the project's zone, so the set sits on June 5.
+    const setDay = page.getByRole("list", { name: "Jun 5, 2027" });
+    await expect(setDay.getByRole("listitem").filter({ hasText: label })).toBeVisible();
+    await expect(setDay.getByText("Set", { exact: false }).first()).toBeVisible();
+    await expect(setDay.getByRole("listitem").filter({ hasText: roomName })).toBeVisible();
+    const pickupDay = page.getByRole("list", { name: "Jun 4, 2027" });
+    await expect(
+      pickupDay.getByRole("listitem").filter({ hasText: `${pickupPlace} to Harbor Inn` }),
+    ).toContainText("Ground transport");
+    await expectAccessible(page);
+  } finally {
+    // A retry books the same person again, so the transfer always leaves.
+    await asPerson(PEOPLE.owner, `update app.space_bookings set deleted_at = now() where id = $1`, [
+      room?.id,
+    ]);
+    await asPerson(PEOPLE.owner, `update app.transfers set deleted_at = now() where id = $1`, [
+      transfer?.id,
+    ]);
+    await asPerson(PEOPLE.owner, `update app.run_of_show set deleted_at = now() where id = $1`, [
+      ros?.id,
+    ]);
+  }
 });
