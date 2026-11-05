@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { formattingLocale } from "@/i18n/negotiate";
 import { negotiatedLocale } from "@/i18n/request";
 
 /** Translator over the `console` namespace with keys built at runtime (enum values, refusal rules). */
@@ -20,7 +21,8 @@ export interface ConsoleFormat {
 }
 
 export async function getConsoleFormat(): Promise<ConsoleFormat> {
-  const [raw, locale] = await Promise.all([getTranslations("console"), negotiatedLocale()]);
+  const [raw, negotiated] = await Promise.all([getTranslations("console"), negotiatedLocale()]);
+  const locale = formattingLocale(negotiated);
   const t: ConsoleT = (key, values) => (raw as unknown as ConsoleT)(key, values);
   const has = (key: string) => (raw as unknown as { has: (k: string) => boolean }).has(key);
   const instantFormat = new Intl.DateTimeFormat(locale, {

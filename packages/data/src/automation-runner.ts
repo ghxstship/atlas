@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AUTOMATION_LIMITS, renderField } from "@xos/schemas/automations";
+import type { Database } from "./database.types.ts";
 
 /**
  * The automation worker (A91, ADR 0047; migration 1481): one pass over the queued automation.run jobs, the logic the
@@ -66,7 +67,7 @@ export type BeginOutcome =
       readonly error_code?: string;
     };
 
-export type StepStatus = "Succeeded" | "Failed" | "Skipped";
+export type StepStatus = Database["app"]["Enums"]["automation_step_status"];
 export type FinishOutcome = "succeeded" | "retry" | "failed" | "refused";
 
 export interface StepRecord {

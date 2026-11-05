@@ -15,6 +15,7 @@ import { all, editShape, orNull, putActions, setOrder } from "../correct.ts";
 import { collectionAction, collectionQuery, itemAction, resource, transition } from "../define.ts";
 import { financeFieldHomes } from "./parts/playbook-field-homes.ts";
 import { financeFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -33,10 +34,10 @@ const minor = (description: string, example: number, min = 0) =>
 const currencyCode = fields.currency("ISO 4217 currency code of every money field on the row.");
 const quantity = z.number().meta({ description: "Quantity; defaults to 1.", example: 24 });
 
-const EXPENSE_STATES = ["Proposed", "Approved", "Rejected", "Paid", "Canceled"] as const;
-const CHANGE_ORDER_STATES = ["Proposed", "Priced", "Approved", "Rejected", "Canceled"] as const;
-const INVOICE_STATES = ["Proposed", "Issued", "Approved", "Disputed", "Canceled"] as const;
-const JOURNAL_STATES = ["Proposed", "Posted", "Canceled"] as const;
+const EXPENSE_STATES = Constants.app.Enums.expense_state;
+const CHANGE_ORDER_STATES = Constants.app.Enums.change_order_state;
+const INVOICE_STATES = Constants.app.Enums.invoice_state;
+const JOURNAL_STATES = Constants.app.Enums.journal_state;
 const UPL_TARGETS = ["xero", "quickbooks", "netsuite", "ramp"] as const;
 
 const SINCE = "1.0.0-draft.2";
@@ -428,7 +429,10 @@ export const additions = defineAdditions("Finance", {
               create: "required",
             },
             direction: {
-              schema: label(["Payable", "Receivable"], "Whether the invoice is owed or owing."),
+              schema: label(
+                Constants.app.Enums.money_direction,
+                "Whether the invoice is owed or owing.",
+              ),
               create: "required",
               update: false,
             },
@@ -552,7 +556,7 @@ export const additions = defineAdditions("Finance", {
         rename: { cost_center_id: "code" },
         add: {
           kind: {
-            schema: label(["Standing", "Overhead", "Event"], "Cost center kind."),
+            schema: label(Constants.app.Enums.cost_center_kind, "Cost center kind."),
             create: "required",
           },
           template_id: { schema: orNull(fields.code("Canon cost center template.", "CC-VENUE")) },

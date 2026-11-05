@@ -8,6 +8,7 @@ import {
   type RfqState,
 } from "@xos/data/procurement";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { getFormatter } from "next-intl/server";
 import {
@@ -38,6 +39,7 @@ import {
 import { recordStateOf, type KitRow, type ViewKind } from "@/components/collection-kit/types";
 import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
+import { rfqBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   collectionState,
@@ -48,11 +50,12 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { ResponseForm } from "./forms";
+import * as enums from "@xos/data/enums";
 import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
-const STATES: readonly RfqState[] = ["Proposed", "Issued", "Closed", "Awarded", "Canceled"];
+const STATES: readonly RfqState[] = enums.rfqState;
 
 /** Which capability each RFQ move needs (app.transition_rfq). */
 const MOVE_CAPABILITY: Record<RfqState, CapabilityCode> = {
@@ -236,6 +239,7 @@ export async function RfqsSection({
         ) : null
       }
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "rfqs")}
+      bulk={rfqBulk(ctx.org.slug, ctx.capabilities, t)}
     >
       {drawer}
     </CollectionView>
@@ -366,6 +370,8 @@ async function RfqRecord({
           <p className="m-0 text-text-13 text-text-secondary">{t("rfqs.noResponses")}</p>
         ) : (
           <>
+            {/* The quotes side by side are the Procurement funnel's step (A146). */}
+            <span hidden {...workflowMarker("atlas.procurement:step1")} />
             <DataTable
               caption={t("rfqs.comparison")}
               columns={[
@@ -405,6 +411,7 @@ async function RfqRecord({
                     variant="primary"
                     confirm={{ title: t("rfqs.orderTitle"), body: t("rfqs.orderBody") }}
                     refusals={REFUSALS}
+                    signal="atlas.procurement:done"
                   />
                 ))}
                 <KitLink href={purchaseOrdersPath} size="sm">

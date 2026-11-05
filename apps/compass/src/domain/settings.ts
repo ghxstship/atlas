@@ -29,6 +29,7 @@ export const COMPASS_SETTING_KEYS: readonly string[] = [
   "time.kiosk_enabled",
   "time.photo_on_punch",
   "scheduling.open_shift_claiming",
+  "media.keep_photo_location",
 ];
 
 /** Rows of app.resolve_settings as values by key. */
@@ -143,6 +144,14 @@ export function soundsOn(values: ResolvedValues): boolean {
  */
 export function requiresGeofence(values: ResolvedValues, geofences: number): boolean {
   return geofences > 0 && values.get("time.geofence_required") !== false;
+}
+
+/**
+ * Whether a field photo keeps where it was taken (media.keep_photo_location, A140): off unless the org turns it on,
+ * so a resized photo leaves the device without its location by default.
+ */
+export function keepsPhotoLocation(values: ResolvedValues): boolean {
+  return values.get("media.keep_photo_location") === true;
 }
 
 /** The kiosk's rules: kiosks on (time.kiosk_enabled) and a photo on every punch (time.photo_on_punch). */

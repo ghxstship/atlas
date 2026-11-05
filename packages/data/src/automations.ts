@@ -1,5 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Automations (A91, ADR 0047; migrations 1480 and 1481; Section 4.5.6 item 20): what Settings, Automations reads and
@@ -43,14 +45,7 @@ export interface AutomationInput {
   readonly expectedUpdatedAt?: string | null | undefined;
 }
 
-export const AUTOMATION_RUN_STATUSES = [
-  "Queued",
-  "Running",
-  "Retrying",
-  "Succeeded",
-  "Failed",
-  "Skipped",
-] as const;
+export const AUTOMATION_RUN_STATUSES = enums.automationRunStatus;
 export type AutomationRunStatus = (typeof AUTOMATION_RUN_STATUSES)[number];
 
 export interface AutomationRunRow {
@@ -75,7 +70,7 @@ export interface AutomationStepRow {
   readonly position: number;
   readonly actionType: string;
   readonly operationId: string | null;
-  readonly status: "Succeeded" | "Failed" | "Skipped";
+  readonly status: Database["app"]["Enums"]["automation_step_status"];
   readonly httpStatus: number | null;
   readonly errorCode: string | null;
   readonly errorMessage: string | null;

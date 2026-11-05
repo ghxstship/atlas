@@ -11,6 +11,12 @@
  * Restricted masking, so Aurora can never see more than the caller. What comes back is scrubbed of
  * Restricted columns, masked values and excluded tables (app.ai_never_send) before any prompt.
  *
+ * A run of show or risk assessment (P6) is drafted only into an empty list: the database answers
+ * whether it is empty (app.drafted_list_is_empty) before any model call or metering, the draft reads
+ * the list's own records through `listDraftItems` (which the preview shares, so the panel lists
+ * exactly what is sent), and `aurora.applyDraft` writes the kept lines in one transaction
+ * (app.apply_drafted_list), again only while the list is empty.
+ *
  * The model client is the Anthropic client unless a test passes another; the API key stays in the
  * server environment, read only by the SDK.
  */
@@ -19,6 +25,8 @@ import {
   askAssistant,
   buildFilter,
   draft,
+  draftList,
+  isListDraftKind,
   extractDocument,
   loadModelConfig,
   NeverSendList,
@@ -29,10 +37,13 @@ import {
   type AuroraContext,
   type FilterCollection,
   type CatalogField,
+  type ListDraftKind,
   type VocabularyTerm,
 } from "@xos/ai";
 import {
+  applyDraftedList,
   createAuroraStore,
+  draftedListIsEmpty,
   getAiAllowance,
   listAiNeverSend,
   listEnabledAiFeatures,
@@ -43,7 +54,13 @@ import { todayIn } from "@xos/data/calendar";
 import { readOrgTimeZone } from "@xos/data/settings";
 import { z } from "zod";
 import type { ResourceSpec } from "../../catalog/types.ts";
-import { ApiProblem, fromDatabaseError, isDatabaseError, refused } from "../../problem.ts";
+import {
+  ApiProblem,
+  fromDatabaseError,
+  isDatabaseError,
+  notFound,
+  refused,
+} from "../../problem.ts";
 import type { RequestContext } from "../../runtime/context.ts";
 import { requireOrg, requirePerson } from "../../runtime/context.ts";
 import {
@@ -281,6 +298,111 @@ async function readItems(
   return out;
 }
 
+// Drafted lists (P6) ---------------------------------------------------------------------------
+
+/** The collection and table of the list each kind fills. */
+const LIST_TARGETS: Readonly<Record<ListDraftKind, { collection: string; table: string }>> = {
+  run_of_show: { collection: "run-of-show", table: "app.run_of_show" },
+  risk_assessment: { collection: "projects", table: "app.projects" },
+};
+
+/** The refusal sentence for a list that already has entries, as app.apply_drafted_list words it. */
+const NOT_EMPTY: Readonly<Record<ListDraftKind, string>> = {
+  run_of_show: "This running order already has cues. Aurora only drafts into an empty list.",
+  risk_assessment:
+    "This list already has entries, including archived or canceled ones. Aurora only drafts into an empty list.",
+};
+
+/** The list a drafted run of show or risk assessment fills, refused when absent or of another kind. */
+export function listTarget(
+  kind: ListDraftKind,
+  target: { collection: string; id: string } | undefined,
+): { collection: string; id: string } {
+  if (!target) {
+    throw refused(
+      "REFUSE",
+      "Name the list to draft into: a running order for a run of show, a project for a risk assessment.",
+      "aurora_draft_target_required",
+    );
+  }
+  if (target.collection !== LIST_TARGETS[kind].collection) {
+    throw refused(
+      "REFUSE",
+      `A ${kind === "run_of_show" ? "run of show" : "risk assessment"} is drafted into ${LIST_TARGETS[kind].collection}, not ${target.collection}.`,
+      "aurora_draft_target_mismatch",
+    );
+  }
+  return target;
+}
+
+export interface DraftItem {
+  readonly collection: string;
+  readonly id: string;
+  readonly table: string;
+  readonly data: Row;
+}
+
+/**
+ * Everything a drafted list sends, read with the caller's permissions: the list's record (the
+ * running order, or the project), for a run of show its project and its schedule record (usually the
+ * Event, whose subtype is the event type), for a risk assessment up to 10 Event records of the
+ * project, then the context the request names (at most 20), each record once. `aurora.draft` and
+ * `aurora.preview` both read through it, so the preview lists exactly what is sent.
+ */
+export async function listDraftItems(
+  api: PublicApi,
+  specs: readonly ResourceSpec[],
+  kind: ListDraftKind,
+  target: { collection: string; id: string },
+  context: readonly { collection: string; id: string }[],
+): Promise<DraftItem[]> {
+  const out: DraftItem[] = [];
+  const add = (collection: string, id: string, data: unknown) => {
+    const spec = specs.find((s) => s.path === `/${collection}`);
+    if (!spec || typeof data !== "object" || data === null) return;
+    if (out.some((r) => r.collection === collection && r.id === id)) return;
+    out.push({ collection, id, table: spec.def.table, data: data as Row });
+  };
+  const read = async (collection: string, id: unknown) => {
+    if (typeof id !== "string") return null;
+    const response = await api.get(`/${collection}/${id}`, {});
+    if (response.status !== 200) return null;
+    add(collection, id, response.body);
+    return response.body as Row;
+  };
+  const listed = await read(target.collection, target.id);
+  if (kind === "run_of_show" && listed) {
+    await read("projects", listed["project_id"]);
+    await read("records", listed["record_id"]);
+  }
+  if (kind === "risk_assessment" && listed) {
+    const events = await api.get("/records", {
+      "filter[project_id][eq]": target.id,
+      "filter[record_kind][eq]": "Event",
+      limit: "10",
+    });
+    const rows = (events.body as { data?: unknown } | null)?.data;
+    if (events.status === 200 && Array.isArray(rows)) {
+      for (const row of rows as Row[]) {
+        if (typeof row["id"] === "string") add("records", row["id"], row);
+      }
+    }
+  }
+  for (const item of context.slice(0, 20)) await read(item.collection, item.id);
+  return out;
+}
+
+/** The canon Risk subtypes, in canon order, read as the caller (xpms is readable by every member). */
+async function readRiskCategories(context: RequestContext): Promise<string[]> {
+  const rows = await run<{ record_subtype: string }[]>(
+    from(context.db, "dim_record_subtype", "xpms")
+      .select("record_subtype, ordinal")
+      .eq("record_kind", "Risk")
+      .order("ordinal", { ascending: true }),
+  );
+  return rows.map((r) => String(r.record_subtype));
+}
+
 type SummaryKind = "record_activity" | "project_week" | "gate_readiness";
 
 /**
@@ -453,17 +575,82 @@ export function auroraHandlers(
     return { neverSend, specs, api };
   };
 
+  /** The request context a feature runs with: the model, the store over the caller's session. */
+  const modelSetup = async (context: RequestContext): Promise<AuroraContext> => ({
+    orgId: requireOrg(context).id,
+    client: await deps.model(),
+    store: createAuroraStore(context.db),
+    config: deps.config(),
+    today: await deps.today(context),
+  });
+
   const setup = async (context: RequestContext) => {
-    const org = requireOrg(context);
     const read = await readSetup(context);
-    const ctx: AuroraContext = {
-      orgId: org.id,
-      client: await deps.model(),
-      store: createAuroraStore(context.db),
-      config: deps.config(),
-      today: await deps.today(context),
-    };
-    return { ctx, ...read };
+    return { ctx: await modelSetup(context), ...read };
+  };
+
+  /** A run of show or risk assessment, drafted only into an empty list (P6). */
+  const draftIntoList = async (
+    context: RequestContext,
+    kind: ListDraftKind,
+    body: {
+      instructions: string;
+      target?: { collection: string; id: string };
+      context?: { collection: string; id: string }[];
+      verbiage?: { term: string; preferred: string }[];
+    },
+  ) => {
+    const target = listTarget(kind, body.target);
+    const { neverSend, specs, api } = await readSetup(context);
+    // Before any model call or metering: a caller who may not write to the list gets 404, and a
+    // list with entries (also ones the caller cannot see) is refused.
+    if (!unwrap(await draftedListIsEmpty(context.db, kind, target.id))) {
+      throw refused("REFUSE", NOT_EMPTY[kind], "aurora_draft_list_not_empty");
+    }
+    const [records, vocabulary, categories] = await Promise.all([
+      listDraftItems(api, specs, kind, target, body.context ?? []),
+      readVocabulary(api),
+      kind === "risk_assessment" ? readRiskCategories(context) : Promise.resolve([]),
+    ]);
+    const listed = records.find((r) => r.collection === target.collection && r.id === target.id);
+    if (!listed) throw notFound("The list to draft into is not visible to you.");
+    let runOfShow: { runOfShowId: string; showDate: string; timeZone: string } | undefined;
+    if (kind === "run_of_show") {
+      const project = records.find(
+        (r) => r.collection === "projects" && r.id === listed.data["project_id"],
+      );
+      const zone = project?.data["time_zone"];
+      runOfShow = {
+        runOfShowId: target.id,
+        showDate: String(listed.data["show_date"]),
+        timeZone: typeof zone === "string" && zone !== "" ? zone : await deps.timeZone(context),
+      };
+    }
+    const result = await draftList(await modelSetup(context), {
+      kind,
+      instructions: body.instructions,
+      target: { table: LIST_TARGETS[kind].table, id: target.id },
+      context: records,
+      verbiage: body.verbiage ?? [],
+      vocabulary,
+      neverSend,
+      ...(runOfShow ? { runOfShow } : {}),
+      ...(kind === "risk_assessment" ? { risks: { projectId: target.id, categories } } : {}),
+    });
+    if (result.kind !== "answer") return toResponse(result);
+    // Each line carries the suggestion that holds it; proposals come in line order.
+    const items = (result.value.items as readonly object[]).map((item, i) => ({
+      suggestion_id: result.proposals[i]?.suggestionId ?? null,
+      ...item,
+    }));
+    return toResponse({
+      ...result,
+      value: {
+        ...result.value,
+        items,
+        ...(kind === "risk_assessment" ? { categories } : {}),
+      },
+    });
   };
 
   const handlers: Record<string, ErasedHandler> = {
@@ -579,11 +766,20 @@ export function auroraHandlers(
 
     "aurora.draft": async (request, context) => {
       const body = request.body as {
-        kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+        kind:
+          | "sop"
+          | "advance_packet"
+          | "email"
+          | "day_sheet"
+          | "change_order_description"
+          | ListDraftKind;
         instructions: string;
+        target?: { collection: string; id: string };
         context?: { collection: string; id: string }[];
         verbiage?: { term: string; preferred: string }[];
       };
+      if (isListDraftKind(body.kind)) return draftIntoList(context, body.kind, body);
+      const kind = body.kind;
       const { ctx, neverSend, specs, api } = await setup(context);
       const [records, vocabulary] = await Promise.all([
         readItems(api, specs, body.context ?? []),
@@ -591,7 +787,7 @@ export function auroraHandlers(
       ]);
       return toResponse(
         await draft(ctx, {
-          kind: body.kind,
+          kind,
           instructions: body.instructions,
           context: records,
           verbiage: body.verbiage ?? [],
@@ -605,6 +801,8 @@ export function auroraHandlers(
     "aurora.preview": async (request, context) => {
       const body = request.body as {
         feature: "drafting" | "summaries";
+        draft_kind?: ListDraftKind;
+        target?: { collection: string; id: string };
         kind?: SummaryKind;
         subject_collection?: string;
         subject_id?: string;
@@ -612,6 +810,26 @@ export function auroraHandlers(
       };
       const { neverSend, specs, api } = await readSetup(context);
       const drafting = body.feature === "drafting";
+      if (drafting && body.draft_kind) {
+        // Exactly what the drafted list reads and sends (P6, S4.7, A95).
+        const kind = body.draft_kind;
+        const target = listTarget(kind, body.target);
+        const [read, vocabulary, categories] = await Promise.all([
+          listDraftItems(api, specs, kind, target, body.items),
+          readVocabulary(api),
+          kind === "risk_assessment" ? readRiskCategories(context) : Promise.resolve(null),
+        ]);
+        return ok({
+          records: previewRecords(
+            read.map((r) => ({ collection: r.collection, id: r.id })),
+            read,
+            specs,
+            neverSend,
+          ),
+          vocabulary_terms: vocabulary.length,
+          ...(categories ? { categories } : {}),
+        });
+      }
       const [read, vocabulary] = await Promise.all([
         drafting ? readItems(api, specs, body.items) : summaryItems(api, specs, body),
         drafting ? readVocabulary(api) : Promise.resolve([]),
@@ -639,6 +857,20 @@ export function auroraHandlers(
           items,
           neverSend,
         }),
+      );
+    },
+
+    "aurora.applyDraft": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as {
+        request_id: string;
+        items: { suggestion_id: string; values?: Record<string, unknown> }[];
+      };
+      return ok(
+        unwrap(
+          await applyDraftedList(context.db, { requestId: body.request_id, items: body.items }),
+        ),
       );
     },
 

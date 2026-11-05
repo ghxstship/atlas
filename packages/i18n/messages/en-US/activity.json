@@ -46,7 +46,7 @@
     "systemActor": "System",
     "older": "Show older entries",
     "newest": "Back to newest",
-    "changedFields": "{count, plural, one {# field} other {# fields}}",
+    "changedFieldList": "{count, plural, one {# field} other {# fields}}: {fields}",
     "ops": {
       "insert": "Created",
       "update": "Updated",

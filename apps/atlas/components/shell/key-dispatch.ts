@@ -1,5 +1,6 @@
 import { chordOf } from "@xos/schemas/shortcuts/keys";
 import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
+import { regionScope, runShortcut, shortcutRegion } from "@xos/ui/shortcut-targets";
 import type { ShellKeys } from "@/lib/shell/shell-keys";
 
 /**
@@ -12,9 +13,14 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
  *   (modifier chords such as Mod+K).
  * - Single keys (no Mod, Ctrl or Alt) obey me.shortcuts_enabled, read as the shell applies it to the
  *   document (singleKeyShortcutsEnabled, @xos/ui/preferences), and stay quiet inside dialogs and
- *   menus, so they never act behind an open panel or clash with a screen reader's dialog keys.
+ *   menus, so they never act behind an open panel or clash with a screen reader's dialog keys. A
+ *   region's own keys still answer in the region, such as a record's in the side peek.
  * - G, then a letter, goes to a section: the first key shows the hint, the next key either goes or
  *   cancels, Esc cancels, and the hint closes after four seconds.
+ * - Record and view shortcuts answer in the region around focus (a record or collection template,
+ *   or data-shortcut-scope): they click or focus the region's control marked with their id
+ *   (@xos/ui/shortcut-targets). A region without that control leaves the key alone, except Copy
+ *   link, which copies the address on screen: it opens the record, as a page or in its peek.
  * - A key a component already handled (preventDefault) and keys pressed while composing text are
  *   left alone.
  */
@@ -38,25 +44,70 @@ const OVERLAY =
   '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [aria-modal="true"]';
 const MODIFIER = /(?:^|\+)(?:Mod|Ctrl|Alt)\+/;
 
+/**
+ * Copy link in a record region that shows no Copy link control of its own (a record full page): the
+ * address on screen is the record's.
+ */
+function copyAddress(region: Element, id: string): boolean {
+  if (id !== "record.copy-link" || regionScope(region) !== "record") return false;
+  void navigator.clipboard?.writeText(window.location.href);
+  return true;
+}
+
 function typing(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
 }
 
 interface Table {
-  readonly byKeys: ReadonlyMap<string, string>;
+  /** Global keys, by binding. */
+  readonly global: ReadonlyMap<string, string>;
+  /** First steps of global sequences. */
   readonly prefixes: ReadonlySet<string>;
+  /** Each region scope's keys and sequence first steps. */
+  readonly scoped: ReadonlyMap<
+    string,
+    { readonly byKeys: ReadonlyMap<string, string>; readonly prefixes: ReadonlySet<string> }
+  >;
+}
+
+function firstStep(binding: string): string | null {
+  const space = binding.indexOf(" ");
+  return space > 0 ? binding.slice(0, space) : null;
 }
 
 function compile(keys: ShellKeys): Table {
-  const byKeys = new Map<string, string>();
+  const global = new Map<string, string>();
   const prefixes = new Set<string>();
   for (const [id, binding] of Object.entries(keys.global)) {
-    byKeys.set(binding, id);
-    const space = binding.indexOf(" ");
-    if (space > 0) prefixes.add(binding.slice(0, space));
+    global.set(binding, id);
+    const step = firstStep(binding);
+    if (step !== null) prefixes.add(step);
   }
-  return { byKeys, prefixes };
+  const scoped = new Map<string, { byKeys: Map<string, string>; prefixes: Set<string> }>();
+  for (const [id, binding] of Object.entries(keys.scoped)) {
+    const scope = keys.scopes[id];
+    if (scope === undefined) continue;
+    let entry = scoped.get(scope);
+    if (entry === undefined) {
+      entry = { byKeys: new Map(), prefixes: new Set() };
+      scoped.set(scope, entry);
+    }
+    entry.byKeys.set(binding, id);
+    const step = firstStep(binding);
+    if (step !== null) entry.prefixes.add(step);
+  }
+  return { global, prefixes, scoped };
+}
+
+/** A sequence waiting for its second key: where it started and which keys may complete it. */
+interface Pending {
+  readonly prefix: string;
+  /** Global shortcuts may complete it (and the G hint shows). */
+  readonly global: boolean;
+  /** The region whose shortcuts may complete it, or null. */
+  readonly region: Element | null;
+  readonly scope: string | null;
 }
 
 /**
@@ -64,7 +115,7 @@ function compile(keys: ShellKeys): Table {
  * keys act on as of the latest render; nothing answers while it is empty.
  */
 export function installShellKeys(state: { readonly current: KeyState | null }): () => void {
-  let pending: string | null = null;
+  let pending: Pending | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let compiled: { readonly from: ShellKeys; readonly table: Table } | null = null;
 
@@ -72,13 +123,23 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
     if (compiled?.from !== keys) compiled = { from: keys, table: compile(keys) };
     return compiled.table;
   };
-  const wait = (next: string | null) => {
+  const wait = (next: Pending | null) => {
     clearTimeout(timer);
+    const hinted = pending?.global ?? false;
     pending = next;
-    state.current?.handlers.pending(next);
+    // Only a global sequence has a hint; a region's own sequence waits quietly.
+    if (next?.global) state.current?.handlers.pending(next.prefix);
+    else if (hinted) state.current?.handlers.pending(null);
     if (next !== null) timer = setTimeout(() => wait(null), PENDING_MS);
   };
-  const run = (event: KeyboardEvent, id: string, { keys, handlers }: KeyState) => {
+  const run = (event: KeyboardEvent, id: string, now: KeyState, region: Element | null) => {
+    const { keys, handlers } = now;
+    if (keys.scopes[id] !== undefined) {
+      if (region !== null && (runShortcut(region, id) || copyAddress(region, id))) {
+        event.preventDefault();
+      }
+      return;
+    }
     event.preventDefault();
     const target = keys.go[id];
     if (target) handlers.go(target.href);
@@ -94,12 +155,18 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
     if (pending === null || now === null || event.isComposing) return;
     const chord = chordOf(event, now.keys.platform);
     if (chord === null) return;
-    const id = typing(event.target) ? undefined : table(now.keys).byKeys.get(`${pending} ${chord}`);
+    const waiting = pending;
+    const keys = `${waiting.prefix} ${chord}`;
+    const t = table(now.keys);
+    const id = typing(event.target)
+      ? undefined
+      : ((waiting.scope === null ? undefined : t.scoped.get(waiting.scope)?.byKeys.get(keys)) ??
+        (waiting.global ? t.global.get(keys) : undefined));
     wait(null);
     ended = event;
     if (id !== undefined) {
       event.stopPropagation();
-      run(event, id, now);
+      run(event, id, now, waiting.region);
     }
   };
 
@@ -110,23 +177,39 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
     const { keys } = now;
     const chord = chordOf(event, keys.platform);
     if (chord === null) return;
-    const { byKeys, prefixes } = table(keys);
+    const t = table(keys);
     const single = !MODIFIER.test(chord);
-    const id = byKeys.get(chord);
     if (typing(event.target)) {
-      if (id !== undefined && !single && keys.fields.includes(id)) run(event, id, now);
+      const id = t.global.get(chord);
+      if (id !== undefined && !single && keys.fields.includes(id)) run(event, id, now, null);
       return;
     }
-    if (single) {
-      if (!singleKeyShortcutsEnabled()) return;
-      if (event.target instanceof Element && event.target.closest(OVERLAY)) return;
-    }
-    if (prefixes.has(chord)) {
+    if (single && !singleKeyShortcutsEnabled()) return;
+    // A single key inside a dialog or menu reaches only the region focus is in, when that region is
+    // the overlay itself (the side peek) or sits inside it, never a menu open within the region.
+    const overlay =
+      single && event.target instanceof Element ? event.target.closest(OVERLAY) : null;
+    const found = shortcutRegion(event.target);
+    const inRegion =
+      found !== null && (overlay === null || overlay === found || !found.contains(overlay));
+    const region = inRegion ? found : null;
+    const scope = regionScope(region);
+    const own = scope === null ? undefined : t.scoped.get(scope);
+    const global = overlay === null;
+    const startsGlobal = global && t.prefixes.has(chord);
+    const startsOwn = own?.prefixes.has(chord) ?? false;
+    if (startsGlobal || startsOwn) {
       event.preventDefault();
-      wait(chord);
-    } else if (id !== undefined) {
-      run(event, id, now);
+      wait({
+        prefix: chord,
+        global: startsGlobal,
+        region: startsOwn ? region : null,
+        scope: startsOwn ? scope : null,
+      });
+      return;
     }
+    const id = own?.byKeys.get(chord) ?? (global ? t.global.get(chord) : undefined);
+    if (id !== undefined) run(event, id, now, region);
   };
 
   window.addEventListener("keydown", onSequence, true);

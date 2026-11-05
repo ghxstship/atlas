@@ -19,6 +19,7 @@ import { contextFor } from "@/lib/platform/action-context";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * Billing and Plan's actions (ADR 0033 decision 59): open Stripe Checkout to move the org from a
@@ -55,7 +56,7 @@ export async function startCheckoutAction(
   const parsed = z
     .object({
       plan: z.string().regex(/^[a-z][a-z0-9_]*$/),
-      interval: z.enum(["Monthly", "Annual"]),
+      interval: z.enum(enums.billingInterval),
     })
     .safeParse({ plan: field(form, "plan"), interval: field(form, "interval") });
   if (!parsed.success) return inputError();

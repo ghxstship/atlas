@@ -891,6 +891,11 @@ export interface Components {
     redacted_at: string | null;
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
+  AuroraAppliedDraft: { written: Array<{ suggestion_id: string; id: string }>; rejected: number };
+  AuroraApplyDraftRequest: {
+    request_id: string;
+    items: Array<{ suggestion_id: string; values?: Record<string, unknown> }>;
+  };
   AuroraAskRequest: { question: string; history?: Array<{ question: string; answer: string }> };
   AuroraBindCodeRequest: {
     code: string;
@@ -898,8 +903,16 @@ export interface Components {
     candidates: Array<{ element_id: string; name: string; urid: string }>;
   };
   AuroraDraftRequest: {
-    kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+    kind:
+      | "sop"
+      | "advance_packet"
+      | "email"
+      | "day_sheet"
+      | "change_order_description"
+      | "run_of_show"
+      | "risk_assessment";
     instructions: string;
+    target?: { collection: string; id: string };
     context?: Array<{ collection: string; id: string }>;
     verbiage?: Array<{ term: string; preferred: string }>;
   };
@@ -927,7 +940,11 @@ export interface Components {
     columns: Array<{ header: string; samples: Array<string> }>;
     fields: Array<{ name: string; description: string }>;
   };
-  AuroraPreview: { records: Array<Components["AuroraPreviewRecord"]>; vocabulary_terms: number };
+  AuroraPreview: {
+    records: Array<Components["AuroraPreviewRecord"]>;
+    vocabulary_terms: number;
+    categories?: Array<string>;
+  };
   AuroraPreviewRecord: {
     collection: string;
     id: string;
@@ -938,6 +955,8 @@ export interface Components {
   };
   AuroraPreviewRequest: {
     feature: "drafting" | "summaries";
+    draft_kind?: "run_of_show" | "risk_assessment";
+    target?: { collection: string; id: string };
     kind?: "record_activity" | "project_week" | "gate_readiness";
     subject_collection?: string;
     subject_id?: string;
@@ -3592,7 +3611,7 @@ export interface Components {
     ticket_number: string;
     help_desk_team_id: string;
     category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
-    severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+    severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
     subject: string;
     body: string;
     ticket_state: "Open" | "Waiting" | "Resolved" | "Closed";
@@ -3604,7 +3623,7 @@ export interface Components {
   HelpDeskRequestCreate: {
     help_desk_team_id: string;
     category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
-    severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+    severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
     subject: string;
     body: string;
   };
@@ -4405,6 +4424,54 @@ export interface Components {
     details?: string | null;
   };
   ListingReportPage: { data: Array<Components["ListingReport"]>; next_cursor: string | null };
+  LiveDisplayLinkRequest: {
+    run_of_show_id: string;
+    expires_at?: string;
+    default_mode?: "Room Clock" | "Presenter Timer" | "Backstage";
+    note?: string;
+  };
+  LiveDisplayLinkToken: {
+    live_link_id: string;
+    token: string;
+    access_code: string;
+    expires_at: string;
+  };
+  LiveLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    link_kind: "View" | "Display";
+    saved_view_id: string | null;
+    run_of_show_id: string | null;
+    default_mode: "Room Clock" | "Presenter Timer" | "Backstage" | null;
+    token_hint: string;
+    note: string | null;
+    expires_at: string;
+    failed_attempts: number;
+    open_count: number;
+    last_opened_at: string | null;
+    rotated_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  LiveLinkPage: { data: Array<Components["LiveLink"]>; next_cursor: string | null };
+  LiveLinkRegenerated: { token: string; access_code: string; expires_at: string };
+  LiveViewLinkRequest: {
+    saved_view_id: string;
+    project_id: string;
+    expires_at: string;
+    note?: string;
+  };
+  LiveViewLinkToken: {
+    live_link_id: string;
+    token: string;
+    access_code: string;
+    expires_at: string;
+  };
   LostFoundClaim: {
     id: string;
     org_id: string;
@@ -4433,7 +4500,7 @@ export interface Components {
     project_id: string;
     item_number: string;
     category:
-      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+      "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
     description: string;
     found_at: string;
     found_location: string;
@@ -4444,7 +4511,7 @@ export interface Components {
   LostFoundItemCreate: {
     project_id: string;
     category:
-      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+      "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
     description: string;
     found_at: string;
     found_location: string;
@@ -4453,7 +4520,7 @@ export interface Components {
   LostFoundItemPage: { data: Array<Components["LostFoundItem"]>; next_cursor: string | null };
   LostFoundItemUpdate: {
     category?:
-      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+      "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
     description?: string;
     storage_location?: string | null;
   };
@@ -4514,6 +4581,7 @@ export interface Components {
     minimum_age: number | null;
     opportunity_state: Components["OpportunityState"];
     position_count: number;
+    client_hidden: boolean;
   };
   MarketplaceListingPage: {
     data: Array<Components["MarketplaceListing"]>;
@@ -4742,7 +4810,7 @@ export interface Components {
     project_id: string;
     space_id: string | null;
     name: string;
-    load_basis: "Occupant Load Factor" | "Space Capacity" | "Permit";
+    load_basis: "Space Capacity" | "Occupant Load Factor" | "Permit";
     metric_domain: string | null;
     metric_item: string | null;
     permitted_load: number;
@@ -4962,6 +5030,7 @@ export interface Components {
     deadline_at: string | null;
     minimum_age: number | null;
     is_remote: boolean;
+    hide_client_until_booked: boolean;
   };
   OpportunityAlert: {
     id: string;
@@ -4994,6 +5063,7 @@ export interface Components {
     deadline_at?: string | null;
     minimum_age?: number | null;
     is_remote?: boolean;
+    hide_client_until_booked?: boolean;
   };
   OpportunityPage: { data: Array<Components["Opportunity"]>; next_cursor: string | null };
   OpportunityPosition: {
@@ -5105,6 +5175,7 @@ export interface Components {
     deadline_at?: string | null;
     minimum_age?: number | null;
     is_remote?: boolean;
+    hide_client_until_booked?: boolean;
   };
   OpportunityVisibility: "Invited" | "Pool" | "Network" | "Public";
   OrgBranding: {
@@ -6939,13 +7010,13 @@ export interface Components {
     scope_node_id: string | null;
     budget_line_id: string | null;
     role_type:
-      | "Crew"
-      | "Contractor"
-      | "Staff"
+      | "Client"
       | "Vendor"
+      | "Contractor"
+      | "Crew"
+      | "Staff"
       | "Artist"
       | "Artist Representative"
-      | "Client"
       | "Sponsor"
       | null;
     worker_classification: string | null;
@@ -6966,13 +7037,13 @@ export interface Components {
     scope_node_id?: string | null;
     budget_line_id?: string | null;
     role_type?:
-      | "Crew"
-      | "Contractor"
-      | "Staff"
+      | "Client"
       | "Vendor"
+      | "Contractor"
+      | "Crew"
+      | "Staff"
       | "Artist"
       | "Artist Representative"
-      | "Client"
       | "Sponsor"
       | null;
     worker_classification?: string | null;
@@ -6993,13 +7064,13 @@ export interface Components {
     scope_node_id?: string | null;
     budget_line_id?: string | null;
     role_type?:
-      | "Crew"
-      | "Contractor"
-      | "Staff"
+      | "Client"
       | "Vendor"
+      | "Contractor"
+      | "Crew"
+      | "Staff"
       | "Artist"
       | "Artist Representative"
-      | "Client"
       | "Sponsor"
       | null;
     worker_classification?: string | null;
@@ -7182,7 +7253,7 @@ export interface Components {
     scope_node_id: string | null;
     person_id: string;
     requisition_id: string | null;
-    staffing_basis: "Declared" | "Ratio" | "Fixed";
+    staffing_basis: "Ratio" | "Fixed" | "Declared";
     starts_on: string | null;
     ends_on: string | null;
     assignment_state: "Proposed" | "Active" | "Complete" | "Canceled";
@@ -7193,7 +7264,7 @@ export interface Components {
     scope_node_id?: string | null;
     person_id: string;
     requisition_id?: string | null;
-    staffing_basis?: "Declared" | "Ratio" | "Fixed";
+    staffing_basis?: "Ratio" | "Fixed" | "Declared";
     starts_on?: string | null;
     ends_on?: string | null;
   };
@@ -7203,7 +7274,7 @@ export interface Components {
     scope_node_id?: string | null;
     person_id?: string;
     requisition_id?: string | null;
-    staffing_basis?: "Declared" | "Ratio" | "Fixed";
+    staffing_basis?: "Ratio" | "Fixed" | "Declared";
     starts_on?: string | null;
     ends_on?: string | null;
   };
@@ -9658,12 +9729,12 @@ export interface Components {
     updated_by: string | null;
     group_id: string;
     membership_id: string;
-    group_role: "Member" | "Owner";
+    group_role: "Owner" | "Member";
   };
   WorkforceGroupMemberCreate: {
     group_id: string;
     membership_id: string;
-    group_role: "Member" | "Owner";
+    group_role: "Owner" | "Member";
   };
   WorkforceGroupMemberPage: {
     data: Array<Components["WorkforceGroupMember"]>;
@@ -24060,6 +24131,15 @@ export interface Operations {
     body: Components["AuroraDraftRequest"];
     responses: { 200: Components["AuroraResult"] };
   };
+  "aurora.applyDraft": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-draft";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyDraftRequest"];
+    responses: { 200: Components["AuroraAppliedDraft"] };
+  };
   "aurora.summarize": {
     module: "Settings";
     method: "post";
@@ -25154,6 +25234,66 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["ShareLink"] };
+  };
+  "liveLinks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/live-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["LiveLinkPage"] };
+  };
+  "liveLinks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/live-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["LiveLink"] };
+  };
+  "liveLinks.createView": {
+    module: "Platform";
+    method: "post";
+    path: "/live-links/view";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LiveViewLinkRequest"];
+    responses: { 201: Components["LiveViewLinkToken"] };
+  };
+  "liveLinks.createDisplay": {
+    module: "Platform";
+    method: "post";
+    path: "/live-links/display";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LiveDisplayLinkRequest"];
+    responses: { 201: Components["LiveDisplayLinkToken"] };
+  };
+  "liveLinks.regenerate": {
+    module: "Platform";
+    method: "post";
+    path: "/live-links/{id}/regenerate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["LiveLinkRegenerated"] };
+  };
+  "liveLinks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/live-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["LiveLink"] };
   };
   "personCalendarFeeds.list": {
     module: "Platform";
@@ -28149,6 +28289,7 @@ export interface ModuleOperations {
     | "aurora.filter"
     | "aurora.extract"
     | "aurora.draft"
+    | "aurora.applyDraft"
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"
@@ -28498,6 +28639,12 @@ export interface ModuleOperations {
     | "shareLinks.create"
     | "shareLinks.get"
     | "shareLinks.revoke"
+    | "liveLinks.list"
+    | "liveLinks.get"
+    | "liveLinks.createView"
+    | "liveLinks.createDisplay"
+    | "liveLinks.regenerate"
+    | "liveLinks.revoke"
     | "personCalendarFeeds.list"
     | "personCalendarFeeds.create"
     | "personCalendarFeeds.get"

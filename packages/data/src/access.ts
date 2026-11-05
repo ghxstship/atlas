@@ -2,6 +2,7 @@ import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { XosClient } from "./client.ts";
 import type { Result } from "./result.ts";
 import { rpc, str, strOrNull, type Raw } from "./platform-common.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Access transparency (A36, migration 1062; Section 8.4): View as role and Why can I see this. A
@@ -9,7 +10,7 @@ import { rpc, str, strOrNull, type Raw } from "./platform-common.ts";
  * signed-in person to a record they can already read.
  */
 
-export type Reach = "own" | "assigned" | "organization";
+export type Reach = Database["app"]["Enums"]["capability_reach"];
 
 export interface PreviewCapability {
   readonly capability: CapabilityCode;

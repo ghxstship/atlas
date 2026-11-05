@@ -15,6 +15,7 @@ import { DashboardGrid } from "@/components/dashboard/dashboard-grid";
 import { formatAlert } from "@/components/home/format-alert";
 import { ActivityTile, AlertsTile, ReadinessTile } from "@/components/home/home-tiles";
 import { StatTile } from "@/components/platform/client/stat-tile";
+import { RegionFailed } from "@/components/shell/region";
 import { savedLayout } from "@/lib/dashboard/layout";
 import { loadHomeTiles } from "@/lib/home/data";
 
@@ -23,7 +24,8 @@ import { loadHomeTiles } from "@/lib/home/data";
  * (brand, members, first project, jurisdiction, budget, schedule, Compass invite, integration) and
  * its plan. A step shows Done only when the data proves it. Below them, A07's tiles: project counts,
  * gate readiness, alerts and recent activity (Section 4.2 Home). Every block is a tile on the
- * 12-column grid, at the spans the person saved in me.dashboard_layout.home (A129).
+ * 12-column grid, at the spans the person saved in me.dashboard_layout.home (A129). Each tile reads
+ * on its own: one whose read failed shows Retry and the others render (ADR 0118).
  */
 const STEPS = [
   { key: "brand", node: "settings.white-label" },
@@ -83,7 +85,7 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   const tileText = projectTiles
     ? {
         alerts: Object.fromEntries(
-          projectTiles.alerts.map((a) => [
+          (projectTiles.alerts.ok ? projectTiles.alerts.data : []).map((a) => [
             a.id,
             formatAlert(
               alertT,
@@ -94,7 +96,10 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
           ]),
         ),
         times: Object.fromEntries(
-          projectTiles.activity.map((e) => [e.id, format.relativeTime(new Date(e.at), now)]),
+          (projectTiles.activity.ok ? projectTiles.activity.data : []).map((e) => [
+            e.id,
+            format.relativeTime(new Date(e.at), now),
+          ]),
         ),
       }
     : null;
@@ -234,48 +239,56 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
         id: "active",
         label: dashboard("dashboard.activeProjects"),
         span: 3,
-        content: (
+        content: projectTiles.active.ok ? (
           <StatTile
             label={dashboard("dashboard.activeProjects")}
-            value={projectTiles.active}
+            value={projectTiles.active.data}
             caption={dashboard("dashboard.activeCaption")}
           />
+        ) : (
+          <RegionFailed />
         ),
       },
       {
         id: "blocked",
         label: dashboard("dashboard.blockedProjects"),
         span: 3,
-        content: (
+        content: projectTiles.blocked.ok ? (
           <StatTile
             label={dashboard("dashboard.blockedProjects")}
-            value={projectTiles.blocked}
+            value={projectTiles.blocked.data}
             caption={dashboard("dashboard.blockedCaption")}
           />
+        ) : (
+          <RegionFailed />
         ),
       },
       {
         id: "due-today",
         label: dashboard("dashboard.dueToday"),
         span: 3,
-        content: (
+        content: projectTiles.dueToday.ok ? (
           <StatTile
             label={dashboard("dashboard.dueToday")}
-            value={projectTiles.dueToday}
+            value={projectTiles.dueToday.data}
             caption={dashboard("dashboard.dueCaption")}
           />
+        ) : (
+          <RegionFailed />
         ),
       },
       {
         id: "open-blockers",
         label: dashboard("dashboard.openBlockers"),
         span: 3,
-        content: (
+        content: projectTiles.openBlockers.ok ? (
           <StatTile
             label={dashboard("dashboard.openBlockers")}
-            value={projectTiles.openBlockers}
+            value={projectTiles.openBlockers.data}
             caption={dashboard("dashboard.openCaption")}
           />
+        ) : (
+          <RegionFailed />
         ),
       },
       {

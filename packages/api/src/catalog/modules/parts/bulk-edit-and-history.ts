@@ -18,6 +18,7 @@
 import { z } from "@hono/zod-openapi";
 import { canonCodes, fields, RecordState } from "@xos/schemas";
 import { orNull } from "../../correct.ts";
+import { Constants } from "@xos/data/database.types";
 import { collectionAction, itemQuery } from "../../define.ts";
 import type { ActionSpec } from "../../types.ts";
 
@@ -172,7 +173,7 @@ export const shiftBulkActions = bulkActions({
   does: "Publishes, returns to draft or cancels shifts, or assigns or opens them (Section 11.7). A reassigned accepted shift returns to Published, as a single reassignment does.",
   values: {
     shift_state: z
-      .enum(["Draft", "Published", "Accepted", "Canceled"])
+      .enum(Constants.app.Enums.shift_state)
       .meta({ description: "Shift state.", example: "Published" }),
     membership_id: uuidOrNull("Member the shift is assigned to; null opens the shift."),
   },
@@ -186,7 +187,7 @@ export const invoiceBulkActions = bulkActions({
   does: "Approves, disputes or cancels invoices (Section 11.7). An approval keeps every rule of a single approval (finance.invoice.approve, separation of duties, spend authority); one that needs another approver is refused (bulk_needs_further_approval). Invoices are issued one at a time.",
   values: {
     invoice_state: z
-      .enum(["Proposed", "Issued", "Approved", "Disputed", "Canceled"])
+      .enum(Constants.app.Enums.invoice_state)
       .meta({ description: "Invoice state.", example: "Approved" }),
   },
   example: { set: { invoice_state: "Approved" }, expect: { invoice_state: "Proposed" } },
@@ -199,17 +200,7 @@ export const assetUnitBulkActions = bulkActions({
   does: "Moves asset units along their lifecycle or changes their home venue or condition (Section 11.7). Retiring needs assets.write_off.approve, as a single retirement does.",
   values: {
     asset_state: z
-      .enum([
-        "Proposed",
-        "Received",
-        "Available",
-        "Reserved",
-        "Deployed",
-        "In Maintenance",
-        "Damaged",
-        "Lost",
-        "Retired",
-      ])
+      .enum(Constants.app.Enums.asset_state)
       .meta({ description: "Asset lifecycle state.", example: "In Maintenance" }),
     home_venue_id: uuidOrNull("Venue the unit returns to."),
     condition_enum_id: orNull(

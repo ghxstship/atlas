@@ -75,7 +75,9 @@
     "ip_allowlist_self_lockout": "Su dirección actual está fuera de todas las redes de la lista. Agréguela primero o perderá el acceso.",
     "ip_allowlist_empty": "Agregue al menos una red antes de activar la lista de IP permitidas.",
     "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
-    "setting_fixed": "Esta configuración es fija y no se puede cambiar."
+    "setting_fixed": "Esta configuración es fija y no se puede cambiar.",
+    "phone": "Ingrese un número de teléfono con su código de área. Agregue el código de país, como +44, para un número fuera de su país.",
+    "work_phone_e164": "Ingrese el teléfono de trabajo con su código de país, por ejemplo +1 305 555 0199."
   },
   "fields": {
     "legalName": {
@@ -289,6 +291,22 @@
       "label": "Programa de diversidad de proveedores",
       "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
     },
+    "keepPhotoLocation": {
+      "label": "Conservar la ubicación de las fotos",
+      "help": "Conservar en el archivo de la foto dónde se tomó en Compass. Si está desactivado, Compass quita la ubicación al reducir la foto."
+    },
+    "availabilityRequired": {
+      "label": "Los miembros indican su disponibilidad",
+      "help": "Los miembros indican cuándo pueden trabajar en los próximos días, y su disponibilidad dentro del plazo de aviso queda bloqueada para que los planificadores puedan contar con ella."
+    },
+    "availabilityNoticeDays": {
+      "label": "Aviso de disponibilidad (días)",
+      "help": "Mientras la disponibilidad sea obligatoria, nadie puede cambiar la disponibilidad de un miembro para esta cantidad de días hacia adelante. La disponibilidad sigue siendo del miembro: los planificadores la consultan y reasignan turnos, pero no pueden editarla."
+    },
+    "availabilityHorizonDays": {
+      "label": "Horizonte de disponibilidad (días)",
+      "help": "Cuántos días hacia adelante indican los miembros su disponibilidad. Los planificadores ven quién no la indicó para un turno dentro de este periodo."
+    },
     "offeringsTravel": {
       "label": "Viajes",
       "help": "Vuelos y transporte terrestre para las personas que contratas. Si se ofrece, las pestañas Viajes y alojamiento y Hospitalidad aparecen en sus contrataciones de Gateway."
@@ -483,11 +501,19 @@
     "displayName": "Nombre de marca",
     "displayNameHelp": "Se muestra en lugar del nombre de la organización en las páginas con marca. Déjalo vacío para usar el nombre de la organización.",
     "accent": "Color de acento",
-    "accentHelp": "Un color hexadecimal de seis dígitos, por ejemplo #5B63E8.",
-    "invalidColor": "Escribe un color hexadecimal de seis dígitos, por ejemplo #5B63E8.",
-    "passes": "Cumple WCAG 2.2 AA en todos los temas.",
-    "fails": "No cumple WCAG 2.2 AA en {count, plural, one {# par} other {# pares}}. Elige un acento más oscuro o saturado.",
-    "failure": "{rule}, tema {theme}: {ratio}:1, necesita {min}:1",
+    "accentHelp": "Un color hexadecimal, por ejemplo #5B63E8. Se puede guardar cuando todos los pares de abajo cumplen.",
+    "check": "{theme}: {pair}",
+    "themeDark": "Tema oscuro",
+    "themeLight": "Tema claro",
+    "themeSunlight": "Tema solar",
+    "pairLabel": "etiqueta sobre el acento",
+    "pairLabelHover": "etiqueta sobre el acento, al pasar el cursor",
+    "pairLabelPressed": "etiqueta sobre el acento, al presionar",
+    "pairCanvas": "acento sobre la página",
+    "pairSurface": "acento sobre una superficie",
+    "pairRaised": "acento sobre una superficie elevada",
+    "pairHover": "acento sobre una fila resaltada",
+    "pairOther": "{rule}, {token}",
     "preview": "Vista previa",
     "previewAction": "Acción principal",
     "neutralTint": "Tono neutro",
@@ -604,7 +630,10 @@
     "fieldErrors": {
       "invalid": "Revise este valor e inténtelo de nuevo.",
       "cidr": "Escriba una dirección o una red como 203.0.113.0/24.",
-      "reason": "Escriba por qué necesita acceso de emergencia, con al menos 20 caracteres."
+      "reason": "Escriba por qué necesita acceso de emergencia, con al menos 20 caracteres.",
+      "addressRequired": "Las direcciones de este país lo necesitan. Complételo o borre toda la dirección.",
+      "postalCode": "Ese no es un código postal de este país. Compárelo con la dirección.",
+      "addressTooLong": "Acorte esta parte de la dirección."
     },
     "errors": {
       "legal_entity_primary": "Marque primero otra entidad legal como principal. La organización siempre conserva una entidad principal.",
@@ -634,7 +663,8 @@
       "project_member_ended": "Esta persona ya no está en el proyecto.",
       "sod_self_grant": "No puede asignarse un rol a sí mismo.",
       "project_share_own_org": "Un proyecto se comparte con otra organización, nunca con la suya.",
-      "project_share_deleted_project": "Un proyecto eliminado no se puede compartir."
+      "project_share_deleted_project": "Un proyecto eliminado no se puede compartir.",
+      "postal_code_invalid": "Ese código postal no corresponde al país de la entidad. Compárelo con la dirección."
     },
     "legalEntities": {
       "title": "Entidades legales",
@@ -657,7 +687,16 @@
       "makePrimary": "Hacer principal",
       "makePrimaryNamed": "Hacer de {name} la entidad legal principal",
       "remove": "Quitar",
-      "removeNamed": "Quitar {name}"
+      "removeNamed": "Quitar {name}",
+      "addressNone": "Sin domicilio registrado",
+      "addAddress": "Agregar domicilio registrado",
+      "editAddress": "Editar domicilio registrado",
+      "addressLabel": "Domicilio registrado de {name}",
+      "streetAddress": "Dirección",
+      "locality": "Ciudad",
+      "administrativeArea": "Estado o provincia",
+      "postalCode": "Código postal",
+      "saveAddress": "Guardar dirección"
     },
     "network": {
       "title": "Redes permitidas",
@@ -787,7 +826,8 @@
     "resetAll": "Restablecer todos los atajos",
     "resetAllDone": "Todos los atajos vuelven a usar sus teclas predeterminadas.",
     "singleKeysOff": "Los atajos de una sola tecla están desactivados, así que los atajos sin Ctrl, Cmd o Alt no hacen nada. Activa Atajos de teclado arriba para usarlos.",
-    "fixed": "Esc, Intro y las teclas de lista J, K y X pertenecen a todas las listas y diálogos, así que no cambian. La Ayuda muestra todos los atajos.",
+    "fixed": "Esc, Enter y las teclas de lista J, K y X pertenecen a todas las listas y diálogos, así que no cambian. La Ayuda muestra todos los atajos.",
+    "dropped": "Algunos de tus atajos vuelven a usar sus teclas predeterminadas, porque las teclas que elegiste ahora pertenecen a otros atajos o ya no se permiten: {actions}.",
     "problems": {
       "conflict": "{keys} ya hace {action}. Cambia primero ese atajo o elige otras teclas.",
       "browser": "{keys} pertenece a tu navegador o computadora. Elige otras teclas.",

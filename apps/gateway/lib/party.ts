@@ -1,5 +1,6 @@
 import type { XosClient } from "@xos/data/client";
 import { fail, ok, toDataError, type Result } from "@xos/data/result";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The party's own halves of three engagement features (A32): the guest list kept through A10's RPCs
@@ -8,7 +9,7 @@ import { fail, ok, toDataError, type Result } from "@xos/data/result";
  * person outside it gets not-found, never someone else's list.
  */
 
-export type GuestEntryState = "Requested" | "Approved" | "Declined" | "Checked In";
+export type GuestEntryState = Database["app"]["Enums"]["guest_entry_state"];
 
 export interface EngagedGuest {
   readonly id: string;

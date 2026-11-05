@@ -22,6 +22,48 @@ function editable(c: GridColumn): boolean {
   return Boolean(c.editable) && !c.derive;
 }
 
+function sameRow(a: Row, b: Row): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const k of keys) if ((a[k] ?? null) !== (b[k] ?? null)) return false;
+  return true;
+}
+
+interface Received {
+  readonly rows: readonly Row[];
+  /** The last row received for each key, which a new `rows` is compared against. */
+  readonly byKey: ReadonlyMap<string, Row>;
+}
+
+/**
+ * Merges new `rows` into the grid's rows by key. A row takes the incoming values only when they
+ * differ from the last ones received for it, never because they differ from what the person typed:
+ * a refresh carrying the version from before this tab's own save leaves the typed value in place.
+ * The row with an open cell keeps its values, and its last received row stays as it was, so the
+ * difference applies with the next rows after the cell closes.
+ */
+function reconcile(
+  incoming: readonly Row[],
+  local: readonly Row[],
+  received: ReadonlyMap<string, Row>,
+  keyOf: (row: Row) => string,
+  editingKey: string | null,
+): { rows: Row[]; byKey: Map<string, Row> } {
+  const mine = new Map(local.map((r) => [keyOf(r), r]));
+  const byKey = new Map<string, Row>();
+  const rows = incoming.map((row) => {
+    const key = keyOf(row);
+    const current = mine.get(key);
+    const before = received.get(key);
+    if (current && key === editingKey) {
+      byKey.set(key, before ?? row);
+      return current;
+    }
+    byKey.set(key, row);
+    return current && before && sameRow(before, row) ? current : { ...row };
+  });
+  return { rows, byKey };
+}
+
 /**
  * Spreadsheet-speed editing as an ARIA grid (the accessible model a Glide Data Grid surface keeps):
  * arrows and Tab move, Enter or typing edits, Escape cancels, Delete clears to Unpriced, and a paste
@@ -33,6 +75,8 @@ export function SpreadsheetGrid({
   rows: given,
   totalsLabel,
   onChange,
+  rowKey,
+  onEditingChange,
 }: SpreadsheetGridProps): ReactElement {
   const t = useT();
   const fmt = useFormat();
@@ -42,6 +86,36 @@ export function SpreadsheetGrid({
   const [editing, setEditing] = useState<{ draft: string } | null>(null);
   const cells = useRef(new Map<string, HTMLTableCellElement>());
   const input = useRef<HTMLInputElement>(null);
+  const keyOf = (row: Row | undefined) => (row && rowKey ? String(row[rowKey] ?? "") : "");
+  const [received, setReceived] = useState<Received>(() => ({
+    rows: given,
+    byKey: new Map(given.map((r) => [rowKey ? String(r[rowKey] ?? "") : "", r])),
+  }));
+
+  // New rows from the page, merged by key while the selection and the open cell follow their row.
+  if (rowKey && given !== received.rows) {
+    const selectedKey = keyOf(rows[sel[0]]);
+    const merged = reconcile(given, rows, received.byKey, keyOf, editing ? selectedKey : null);
+    const at = merged.rows.findIndex((r) => keyOf(r) === selectedKey);
+    setReceived({ rows: given, byKey: merged.byKey });
+    setRows(merged.rows);
+    if (at < 0) {
+      setSel([Math.max(0, Math.min(sel[0], merged.rows.length - 1)), sel[1]]);
+      if (editing) setEditing(null);
+    } else if (at !== sel[0]) {
+      setSel([at, sel[1]]);
+    }
+  }
+
+  const editingKey = rowKey && editing ? keyOf(rows[sel[0]]) : null;
+  const reportEditing = useRef(onEditingChange);
+  reportEditing.current = onEditingChange;
+  const reported = useRef<string | null>(null);
+  useEffect(() => {
+    if (reported.current === editingKey) return;
+    reported.current = editingKey;
+    reportEditing.current?.(editingKey);
+  }, [editingKey]);
 
   useEffect(() => {
     if (editing) input.current?.focus();
@@ -193,7 +267,7 @@ export function SpreadsheetGrid({
           </thead>
           <tbody>
             {rows.map((row, ri) => (
-              <tr key={ri} aria-rowindex={ri + 2}>
+              <tr key={rowKey ? `k:${keyOf(row)}` : ri} aria-rowindex={ri + 2}>
                 <td
                   className={cx(
                     td,

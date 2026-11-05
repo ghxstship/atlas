@@ -1272,6 +1272,8 @@ __all__ = [
     "AuroraFilterRequest",
     "AuroraExtractRequest",
     "AuroraDraftRequest",
+    "AuroraAppliedDraft",
+    "AuroraApplyDraftRequest",
     "AuroraSummarizeRequest",
     "AuroraMapColumnsRequest",
     "AuroraBindCodeRequest",
@@ -1380,6 +1382,13 @@ __all__ = [
     "ShareLink",
     "ShareLinkToken",
     "ShareLinkCreate",
+    "LiveLinkPage",
+    "LiveLink",
+    "LiveViewLinkToken",
+    "LiveViewLinkRequest",
+    "LiveDisplayLinkToken",
+    "LiveDisplayLinkRequest",
+    "LiveLinkRegenerated",
     "PersonCalendarFeedPage",
     "PersonCalendarFeed",
     "ProjectInboxPage",
@@ -5745,7 +5754,7 @@ class RoleAssignment(TypedDict):
     #: Identifier of the requisition the assignment fills.
     requisition_id: Optional[str]
     #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
-    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    staffing_basis: Literal["Ratio", "Fixed", "Declared"]
     #: First day of the assignment.
     starts_on: Optional[str]
     #: Last day of the assignment.
@@ -5770,7 +5779,7 @@ class RoleAssignmentCreate(_RoleAssignmentCreateRequired, total=False):
     #: Identifier of the requisition the assignment fills.
     requisition_id: Optional[str]
     #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
-    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    staffing_basis: Literal["Ratio", "Fixed", "Declared"]
     #: First day of the assignment.
     starts_on: Optional[str]
     #: Last day of the assignment.
@@ -5788,7 +5797,7 @@ class RoleAssignmentUpdate(TypedDict, total=False):
     #: Identifier of the requisition the assignment fills.
     requisition_id: Optional[str]
     #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
-    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    staffing_basis: Literal["Ratio", "Fixed", "Declared"]
     #: First day of the assignment.
     starts_on: Optional[str]
     #: Last day of the assignment.
@@ -5829,7 +5838,7 @@ class Requisition(TypedDict):
     #: Identifier of the budget line the cost is charged to.
     budget_line_id: Optional[str]
     #: External role type an opportunity published from the requisition seeks; null when filled internally.
-    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    role_type: Optional[Literal["Client", "Vendor", "Contractor", "Crew", "Staff", "Artist", "Artist Representative", "Sponsor"]]
     #: Worker classification, from xpms.worker_classification.
     worker_classification: Optional[str]
     #: Pay basis; set with the arrangement.
@@ -5872,7 +5881,7 @@ class RequisitionCreate(_RequisitionCreateRequired, total=False):
     #: Identifier of the budget line the cost is charged to.
     budget_line_id: Optional[str]
     #: External role type an opportunity published from the requisition seeks; null when filled internally.
-    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    role_type: Optional[Literal["Client", "Vendor", "Contractor", "Crew", "Staff", "Artist", "Artist Representative", "Sponsor"]]
     #: Worker classification, from xpms.worker_classification.
     worker_classification: Optional[str]
     #: Pay basis; set with the arrangement.
@@ -5900,7 +5909,7 @@ class RequisitionUpdate(TypedDict, total=False):
     #: Identifier of the budget line the cost is charged to.
     budget_line_id: Optional[str]
     #: External role type an opportunity published from the requisition seeks; null when filled internally.
-    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    role_type: Optional[Literal["Client", "Vendor", "Contractor", "Crew", "Staff", "Artist", "Artist Representative", "Sponsor"]]
     #: Worker classification, from xpms.worker_classification.
     worker_classification: Optional[str]
     #: Pay basis; set with the arrangement.
@@ -11436,6 +11445,8 @@ class Opportunity(TypedDict):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class _OpportunityCreateRequired(TypedDict):
@@ -11478,6 +11489,8 @@ class OpportunityCreate(_OpportunityCreateRequired, total=False):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class OpportunityUpdate(TypedDict, total=False):
@@ -11517,6 +11530,8 @@ class OpportunityUpdate(TypedDict, total=False):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class _OpportunityTransitionRequestRequired(TypedDict):
@@ -12769,6 +12784,8 @@ class MarketplaceListing(TypedDict):
     opportunity_state: OpportunityState
     #: Number of open positions.
     position_count: int
+    #: True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.
+    client_hidden: bool
 
 
 class SavedSearchPage(TypedDict):
@@ -20937,7 +20954,7 @@ class AuroraExtractRequest(_AuroraExtractRequestRequired, total=False):
 
 class _AuroraDraftRequestRequired(TypedDict):
     #: What to draft.
-    kind: Literal["sop", "advance_packet", "email", "day_sheet", "change_order_description"]
+    kind: Literal["sop", "advance_packet", "email", "day_sheet", "change_order_description", "run_of_show", "risk_assessment"]
     #: What the draft should say.
     instructions: str
 
@@ -20945,10 +20962,30 @@ class _AuroraDraftRequestRequired(TypedDict):
 class AuroraDraftRequest(_AuroraDraftRequestRequired, total=False):
     """Instructions for a draft."""
 
+    #: The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+    target: Dict[str, Any]
     #: Records to draft from, read with the caller's permissions.
     context: List[Dict[str, Any]]
     #: The org's verbiage library entries to apply.
     verbiage: List[Dict[str, Any]]
+
+
+class AuroraAppliedDraft(TypedDict):
+    """What a confirmed drafted list wrote."""
+
+    #: Each kept line with the row it wrote, in list order.
+    written: List[Dict[str, Any]]
+    #: Lines of the draft left out and rejected.
+    rejected: int
+
+
+class AuroraApplyDraftRequest(TypedDict):
+    """The lines of a drafted list to add."""
+
+    #: Identifier of the drafting request whose list is confirmed.
+    request_id: str
+    #: The kept lines in list order: at most 60 cues or 40 risks.
+    items: List[Dict[str, Any]]
 
 
 class AuroraSummarizeRequest(TypedDict):
@@ -20986,13 +21023,18 @@ class AuroraBindCodeRequest(TypedDict):
     candidates: List[Dict[str, Any]]
 
 
-class AuroraPreview(TypedDict):
-    """What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."""
-
+class _AuroraPreviewRequired(TypedDict):
     #: Each record the request names, in order, with the gate readiness a gate summary adds.
     records: List[AuroraPreviewRecord]
     #: Verbiage library terms a draft follows.
     vocabulary_terms: int
+
+
+class AuroraPreview(_AuroraPreviewRequired, total=False):
+    """What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."""
+
+    #: For a risk assessment, the canon Risk categories the draft may use.
+    categories: List[str]
 
 
 class AuroraPreviewRecord(TypedDict):
@@ -21022,6 +21064,10 @@ class _AuroraPreviewRequestRequired(TypedDict):
 class AuroraPreviewRequest(_AuroraPreviewRequestRequired, total=False):
     """A drafting or summary request to preview before it is sent."""
 
+    #: For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.
+    draft_kind: Literal["run_of_show", "risk_assessment"]
+    #: The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+    target: Dict[str, Any]
     #: For summaries, what is summarized.
     kind: Literal["record_activity", "project_week", "gate_readiness"]
     #: For summaries, the collection summarized.
@@ -22653,6 +22699,129 @@ class ShareLinkCreate(_ShareLinkCreateRequired, total=False):
     expires_at: Optional[str]
 
 
+class LiveLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[LiveLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class LiveLink(TypedDict):
+    """A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens)."""
+
+    #: Identifier of the live link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the link shows.
+    project_id: str
+    #: View, a saved view; Display, a running order on a screen.
+    link_kind: Literal["View", "Display"]
+    #: Saved view a View link shows.
+    saved_view_id: Optional[str]
+    #: Running order a Display link shows.
+    run_of_show_id: Optional[str]
+    #: Mode a display screen opens in.
+    default_mode: Optional[Literal["Room Clock", "Presenter Timer", "Backstage"]]
+    #: Last four characters of the token, to tell links apart.
+    token_hint: str
+    #: What the link is for. Never shown on the public page.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days of when it was made.
+    expires_at: str
+    #: Wrong access codes since the link was made or regenerated; it locks at 5.
+    failed_attempts: int
+    #: Successful opens with the access code.
+    open_count: int
+    #: When the link was last opened.
+    last_opened_at: Optional[str]
+    #: When the link was last regenerated.
+    rotated_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class LiveViewLinkToken(TypedDict):
+    """A new live link with its token and access code, shown once."""
+
+    #: The new link.
+    live_link_id: str
+    #: The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _LiveViewLinkRequestRequired(TypedDict):
+    #: Identifier of the saved view to share.
+    saved_view_id: str
+    #: Identifier of the project the link shows.
+    project_id: str
+    #: When the link stops opening: after now and within 90 days.
+    expires_at: str
+
+
+class LiveViewLinkRequest(_LiveViewLinkRequestRequired, total=False):
+    """A live link to a saved view."""
+
+    #: What the link is for. Never shown on the public page.
+    note: str
+
+
+class LiveDisplayLinkToken(TypedDict):
+    """A new live link with its token and access code, shown once."""
+
+    #: The new link.
+    live_link_id: str
+    #: The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _LiveDisplayLinkRequestRequired(TypedDict):
+    #: Identifier of the running order to show.
+    run_of_show_id: str
+
+
+class LiveDisplayLinkRequest(_LiveDisplayLinkRequestRequired, total=False):
+    """A display screen link to a running order."""
+
+    #: When the link stops opening; by default the end of the day after the show.
+    expires_at: str
+    #: Mode a display screen opens in.
+    default_mode: Literal["Room Clock", "Presenter Timer", "Backstage"]
+    #: What the link is for. Never shown on the public page.
+    note: str
+
+
+class LiveLinkRegenerated(TypedDict):
+    """A regenerated live link's new token and access code, shown once."""
+
+    #: The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link.
+    access_code: str
+    #: When the link stops opening; regenerating keeps the expiry.
+    expires_at: str
+
+
 class PersonCalendarFeedPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -23136,7 +23305,7 @@ class WorkforceGroupMember(TypedDict):
     #: Identifier of the member of the org in the group.
     membership_id: str
     #: Owners add and remove members.
-    group_role: Literal["Member", "Owner"]
+    group_role: Literal["Owner", "Member"]
 
 
 class WorkforceGroupMemberCreate(TypedDict):
@@ -23147,7 +23316,7 @@ class WorkforceGroupMemberCreate(TypedDict):
     #: Identifier of the member of the org in the group.
     membership_id: str
     #: Owners add and remove members.
-    group_role: Literal["Member", "Owner"]
+    group_role: Literal["Owner", "Member"]
 
 
 class ConversationPage(TypedDict):
@@ -24898,7 +25067,7 @@ class HelpDeskRequest(TypedDict):
     #: What it is about.
     category: Literal["Question", "Problem", "Access", "Billing", "Account", "Feature Request"]
     #: Severity.
-    severity: Literal["Severity 3", "Severity 1", "Severity 2", "Severity 4"]
+    severity: Literal["Severity 1", "Severity 2", "Severity 3", "Severity 4"]
     #: One-line summary.
     subject: str
     #: What happened and what is needed.
@@ -24923,7 +25092,7 @@ class HelpDeskRequestCreate(TypedDict):
     #: What it is about.
     category: Literal["Question", "Problem", "Access", "Billing", "Account", "Feature Request"]
     #: Severity.
-    severity: Literal["Severity 3", "Severity 1", "Severity 2", "Severity 4"]
+    severity: Literal["Severity 1", "Severity 2", "Severity 3", "Severity 4"]
     #: One-line summary.
     subject: str
     #: What happened and what is needed.
@@ -24998,7 +25167,7 @@ class OccupancyCounter(TypedDict):
     #: Counter name.
     name: str
     #: Where the permitted load comes from.
-    load_basis: Literal["Occupant Load Factor", "Space Capacity", "Permit"]
+    load_basis: Literal["Space Capacity", "Occupant Load Factor", "Permit"]
     #: Bible metric domain of the load factor.
     metric_domain: Optional[str]
     #: Bible occupant load factor.
@@ -25350,7 +25519,7 @@ class LostFoundItem(TypedDict):
     #: Display number.
     item_number: str
     #: Category.
-    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    category: Literal["Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Wallet", "Other"]
     #: Description a claimant is checked against.
     description: str
     #: When it was found.
@@ -25369,7 +25538,7 @@ class _LostFoundItemCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
     #: Category.
-    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    category: Literal["Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Wallet", "Other"]
     #: Description a claimant is checked against.
     description: str
     #: When it was found.
@@ -25389,7 +25558,7 @@ class LostFoundItemUpdate(TypedDict, total=False):
     """Fields accepted when updating a LostFoundItem. Omitted fields are unchanged."""
 
     #: Category.
-    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    category: Literal["Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Wallet", "Other"]
     #: Description a claimant is checked against.
     description: str
     #: Where it is held.

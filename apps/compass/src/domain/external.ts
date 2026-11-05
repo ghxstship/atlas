@@ -14,6 +14,7 @@
 import type { Audience, Row } from "@xos/sync";
 import type { EngagementSummary } from "./access";
 import { dayIn, daysUntil } from "./dates";
+import { photoCounts, PROOF_PHOTOS_TABLE } from "./proof";
 
 export type ExternalPageId =
   | "timesheets"
@@ -131,12 +132,25 @@ function engagementProject(input: PageInput, engagementId: string | null): strin
   return input.engagements.find((e) => e.id === engagementId)?.projectId ?? null;
 }
 
-/** Rows of the current project: by their project, or by their engagement's project. */
-function onProject(input: PageInput, table: string): Row[] {
-  return input.rows(table).filter((r) => {
-    const project = str(r, "project_id") ?? engagementProject(input, str(r, "engagement_id"));
-    return input.projectId === null || project === input.projectId;
+/**
+ * Rows of the current project: by their project, or by their engagement's project. Every project when none is chosen.
+ * Today's search (src/domain/searchDocs.ts) reads the same rows, so a result opens a page that lists it.
+ */
+export function rowsOnProject(
+  rows: readonly Row[],
+  projectId: string | null,
+  engagements: readonly EngagementSummary[],
+): Row[] {
+  return rows.filter((r) => {
+    const engagement = str(r, "engagement_id");
+    const project =
+      str(r, "project_id") ?? engagements.find((e) => e.id === engagement)?.projectId ?? null;
+    return projectId === null || project === projectId;
   });
+}
+
+function onProject(input: PageInput, table: string): Row[] {
+  return rowsOnProject(input.rows(table), input.projectId, input.engagements);
 }
 
 const byKey =
@@ -846,6 +860,8 @@ function reports(input: PageInput): ExternalSection[] {
 }
 
 function proofOfPerformance(input: PageInput): ExternalSection[] {
+  // Proof photos of the sponsor's engagements on the device, queued or downloaded (A140).
+  const photos = photoCounts(input.rows(PROOF_PHOTOS_TABLE));
   const entitlements = onProject(input, "sponsor_entitlements")
     .sort(byKey("due_on"))
     .map((r): ExternalItem => {
@@ -853,11 +869,24 @@ function proofOfPerformance(input: PageInput): ExternalSection[] {
       const fulfilled = str(r, "fulfilled_at");
       const overdue = !fulfilled && due !== null && due < input.todayOf(str(r, "project_id"));
       const quantity = num(r, "quantity");
+      const photoCount = photos.get(r.id) ?? 0;
       return {
         id: r.id,
         icon: "megaphone",
         title: str(r, "description") ?? "",
         facts: [
+          ...(photoCount > 0
+            ? [
+                {
+                  kind: "label",
+                  key:
+                    photoCount === 1
+                      ? "compassExternal.proof.photosOne"
+                      : "compassExternal.proof.photosOther",
+                  values: { count: photoCount },
+                } as const,
+              ]
+            : []),
           ...(quantity !== null
             ? [
                 {
@@ -1034,7 +1063,7 @@ export const EXTERNAL_PAGES: Readonly<Record<ExternalPageId, ExternalPage>> = {
   "proof-of-performance": {
     id: "proof-of-performance",
     audiences: ["sponsor"],
-    tables: ["sponsor_entitlements", "engagement_documents"],
+    tables: ["sponsor_entitlements", "engagement_documents", PROOF_PHOTOS_TABLE],
     gatewayTab: "proof-of-performance",
     icon: "megaphone",
     emptyKey: "compassExternal.proof.empty",

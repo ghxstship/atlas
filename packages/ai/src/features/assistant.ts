@@ -18,6 +18,7 @@ import {
   type AuroraResult,
   type ProposedChange,
 } from "../session.ts";
+import { FILTER_OPERATORS } from "./filters.ts";
 import { dataBlock, GUARDRAILS, promptLog } from "./shared.ts";
 
 /**
@@ -98,7 +99,7 @@ const AnswerInput = z.union([
   z.object({ no_answer: z.object({ missing: z.string().min(1).max(500) }) }),
 ]);
 
-const OPERATORS = new Set(["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"]);
+const OPERATORS = new Set<string>(FILTER_OPERATORS);
 
 function tools(): ModelTool[] {
   const schema = (s: z.ZodType) => z.toJSONSchema(s) as Record<string, unknown>;

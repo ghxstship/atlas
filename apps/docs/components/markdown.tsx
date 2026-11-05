@@ -66,8 +66,10 @@ export function Markdown({
   helpBase?: string;
 }): ReactElement {
   const links: LinkContext = { locale, helpBase };
+  // `contents` keeps the blocks in the page's own layout; the attribute marks them as content files
+  // for the pseudo-locale checks, which take any run of an article as known text only in here.
   return (
-    <>
+    <div data-pseudo-content className="contents">
       {body.map((block, i) => {
         switch (block.t) {
           case "h2":
@@ -159,7 +161,7 @@ export function Markdown({
             return null;
         }
       })}
-    </>
+    </div>
   );
 }
 

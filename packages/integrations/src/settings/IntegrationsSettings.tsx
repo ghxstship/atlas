@@ -2,6 +2,7 @@
 
 import { Button, EmptyState, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import { useActionState, useId } from "react";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The connector settings of Atlas Settings > Integrations (Section 17), contributed to A30's settings
@@ -34,7 +35,7 @@ export interface ConnectionView {
   readonly providerCode: string;
   readonly providerLabel: string;
   readonly displayName: string;
-  readonly state: "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+  readonly state: Database["app"]["Enums"]["integration_connection_state"];
   readonly stateLabel: string;
   readonly lastSynced: string | null;
   readonly lastError: string | null;

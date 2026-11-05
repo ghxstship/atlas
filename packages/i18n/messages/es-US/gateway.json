@@ -1184,12 +1184,14 @@
       "removed": "Se quitó {title}.",
       "undo": "Deshacer",
       "failed": "No se completó. Vuelva a cargar la página e inténtelo de nuevo."
+    },
+    "clientHidden": {
+      "tag": "Cliente confidencial",
+      "notice": "El cliente y el evento se comparten cuando te contratan."
     }
   },
   "home": {
     "greeting": "Hola, {name}",
-    "searchLabel": "Buscar oportunidades",
-    "searchHint": "Busca roles, habilidades u organizaciones",
     "upNext": {
       "title": "A continuación",
       "empty": "Aún no tienes nada programado. Encuentra una oportunidad para llenar tu calendario.",
@@ -1769,7 +1771,6 @@
   "shell": {
     "skip": "Saltar al contenido",
     "search": "Buscar",
-    "searchHint": "Busca páginas, contrataciones y oportunidades",
     "commandGroup": "Ir a",
     "openAccount": "Abrir el menú de la cuenta de {name}",
     "account": "Cuenta",
@@ -1802,6 +1803,12 @@
       "body": "Elige la organización en la que quieres enfocarte. Todas las organizaciones con las que trabajas siguen en Trabajo y Mensajes.",
       "all": "Todas las organizaciones",
       "empty": "Aún no trabajas con ninguna organización. Explora oportunidades para empezar."
+    },
+    "roleLens": {
+      "title": "Rol",
+      "hint": "Limita Inicio, Trabajo y la navegación a uno de tus roles. Tu acceso no cambia.",
+      "all": "Todos los roles",
+      "failed": "No se pudo elegir ese rol. Vuelve a cargar la página e inténtalo de nuevo."
     }
   },
   "system": {

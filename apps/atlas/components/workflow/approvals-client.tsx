@@ -9,8 +9,23 @@ import {
 } from "@/app/[org]/approvals/actions";
 import { ActionForm, useWorkflowT } from "./kit";
 
-/** Approve, or reject with a reason, the step an approval waits on. */
-export function DecisionForm({ org, id }: { org: string; id: string }) {
+// Each decision is the Finance funnel's step; the one that empties the person's queue completes it (A146).
+const DECIDED = ["atlas.finance:step1"] as const;
+const DECIDED_LAST = ["atlas.finance:step1", "atlas.finance:done"] as const;
+
+/**
+ * Approve, or reject with a reason, the step an approval waits on. `last` marks the only approval left waiting on the
+ * person.
+ */
+export function DecisionForm({
+  org,
+  id,
+  last = false,
+}: {
+  org: string;
+  id: string;
+  last?: boolean;
+}) {
   const t = useWorkflowT();
   const fieldId = useId();
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
@@ -25,6 +40,7 @@ export function DecisionForm({ org, id }: { org: string; id: string }) {
       submitVariant={decision === "approve" ? "primary" : "danger"}
       success={t("approvals.decide.done")}
       announce
+      signals={last ? DECIDED_LAST : DECIDED}
     >
       <fieldset className="m-0 flex flex-wrap gap-12 border-0 p-0">
         <legend className="mb-4 text-text-13 font-medium">{t("approvals.decide.legend")}</legend>

@@ -99,9 +99,9 @@ async function dispatchEmail(store, transport, limit = 50) {
     try {
       const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       const locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
-      const sender = await store.senderFor(claim.orgId, claim.recipientPersonId);
+      const sender = await store.senderFor(claim.orgId, claim.recipientPersonId, claim.kind);
       const { code, props } = await propsFor(claim, store);
-      const replyTo = await store.replyAddressFor(claim);
+      const replyTo = (await store.replyAddressFor(claim)) ?? sender.replyTo ?? null;
       const result = await sendEmail({
         transport,
         template: code,

@@ -23,6 +23,7 @@ export const TEXT_INPUTS = [
   "currency",
   "date",
   "workspace",
+  "phone",
   // Arranged in place, such as a dashboard's tile spans: settings pages offer only Reset, never a field.
   "layout",
 ] as const;
@@ -81,6 +82,7 @@ export type SettingEnforcement =
   | { readonly kind: "deferred"; readonly deferral: SettingDeferral };
 
 /** The database enum value of a registry type. */
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export function dbValueType(type: SettingType): "Text" | "Boolean" | "Integer" | "Choice" {
   return type === "text"
     ? "Text"

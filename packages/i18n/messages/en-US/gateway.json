@@ -1184,12 +1184,14 @@
       "removed": "Removed {title}.",
       "undo": "Undo",
       "failed": "That did not go through. Reload the page and try again."
+    },
+    "clientHidden": {
+      "tag": "Client confidential",
+      "notice": "The client and event are shared once you're booked."
     }
   },
   "home": {
     "greeting": "Hi, {name}",
-    "searchLabel": "Search opportunities",
-    "searchHint": "Search roles, skills or organizations",
     "upNext": {
       "title": "Up next",
       "empty": "Nothing is scheduled for you yet. Find an opportunity to fill your calendar.",
@@ -1769,7 +1771,6 @@
   "shell": {
     "skip": "Skip to content",
     "search": "Search",
-    "searchHint": "Search pages, engagements and opportunities",
     "commandGroup": "Go to",
     "openAccount": "Open the account menu for {name}",
     "account": "Account",
@@ -1802,6 +1803,12 @@
       "body": "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
       "all": "All organizations",
       "empty": "You do not work with any organization yet. Explore opportunities to start."
+    },
+    "roleLens": {
+      "title": "Role",
+      "hint": "Narrow Home, Work and navigation to one of your roles. Your access does not change.",
+      "all": "All roles",
+      "failed": "That role could not be chosen. Reload the page and try again."
     }
   },
   "system": {

@@ -12,20 +12,12 @@ import type { CorrectionInput } from "../../corrections.ts";
 import { all, editShape, orNull, setTable } from "../../correct.ts";
 import { itemAction } from "../../define.ts";
 import type { ActionSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
-const CONNECTION_STATES = ["Pending", "Connected", "Error", "Paused", "Disconnected"] as const;
-const SYNC_SCOPES = [
-  "Ledger Export",
-  "Payment Sync",
-  "Calendar Sync",
-  "File Import",
-  "Notification Delivery",
-  "Payroll Export",
-  "Tracking Refresh",
-  "Attendance Import",
-] as const;
+const CONNECTION_STATES = Constants.app.Enums.integration_connection_state;
+const SYNC_SCOPES = Constants.app.Enums.integration_sync_scope;
 
 const connectionState = (description: string) =>
   z.enum(CONNECTION_STATES).meta({ description, example: "Connected" });
@@ -68,7 +60,7 @@ export const integrationCorrections: readonly CorrectionInput[] = [
           },
           credential_kind: {
             schema: orNull(
-              z.enum(["OAuth Token", "API Key", "Service Account"]).meta({
+              z.enum(Constants.app.Enums.integration_credential_kind).meta({
                 description: "Kind of the stored Vault credential.",
                 example: "OAuth Token",
               }),
@@ -139,7 +131,7 @@ const CredentialBody = z
       example: '{"access_token":"..."}',
     }),
     kind: z
-      .enum(["OAuth Token", "API Key", "Service Account"])
+      .enum(Constants.app.Enums.integration_credential_kind)
       .meta({ description: "Kind of secret.", example: "OAuth Token" }),
     expires_at: orNull(
       fields.instant("When the secret expires, when the provider says."),
@@ -157,7 +149,7 @@ const SyncBody = z
       example: "Ledger Export",
     }),
     direction: z
-      .enum(["Inbound", "Outbound", "Two Way"])
+      .enum(Constants.app.Enums.integration_sync_direction)
       .meta({ description: "Direction of the sync.", example: "Outbound" }),
     project_id: orNull(fields.ref("project")).optional(),
   })

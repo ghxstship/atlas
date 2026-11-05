@@ -22,6 +22,7 @@ import { ongoingContent, type Translate } from "../../src/domain/glance";
 import { itemZone } from "../../src/domain/orgs";
 import { useHomeWidgets, useOngoingNotification } from "../../src/runtime/glance";
 import { CombinedToday } from "../../src/screens/CombinedToday";
+import { TodaySearch } from "../../src/screens/TodaySearch";
 import { useTodayGlance, type TodayGlance } from "../../src/screens/useTodayGlance";
 import { formatDistance, hapticsOn, scheduleZone } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
@@ -402,6 +403,7 @@ export default function TodayScreen(): ReactElement {
       }}
     >
       <ProjectPicker />
+      <TodaySearch />
       <StorageResetNotice />
       <SyncBanner />
       {canClock && projectId ? (

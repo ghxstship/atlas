@@ -1,4 +1,10 @@
-import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
+import { draftedListIsEmpty } from "@xos/data/ai";
+import {
+  buildTimeline,
+  latestBaselinePlan,
+  listDependencies,
+  lockedRecordIds,
+} from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
 import { todayIn } from "@xos/data/calendar";
 import { getNode } from "@xos/ia";
@@ -11,6 +17,7 @@ import type { BulkConfig } from "@/components/bulk/types";
 import { LiveRefresh } from "@/components/live/live-refresh";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CustomFieldList } from "@/components/custom-fields/list";
+import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
 import { customFieldList } from "@/lib/custom-fields/server";
 import { CreateRecordDialog } from "./create-record";
 import {
@@ -108,20 +115,28 @@ export async function RecordsPage({
 
   const timeZone =
     project?.timeZone ?? records[0]?.projectTimeZone ?? meta.projects[0]?.timeZone ?? "UTC";
+  // People who may change the timeline drag its bars to reschedule (A133).
+  const canReschedule = view === "timeline" && caps.has("schedule.timeline.write");
   let timeline = null;
   if (view === "timeline" && records.length > 0) {
     const ids = records.map((r) => r.id);
-    const [deps, plan] = await Promise.all([
+    const [deps, plan, locked] = await Promise.all([
       listDependencies(db, ids),
       projectId
         ? latestBaselinePlan(db, projectId)
         : Promise.resolve({ ok: true as const, data: new Map() }),
+      canReschedule
+        ? lockedRecordIds(db, records)
+        : Promise.resolve({ ok: true as const, data: new Set<string>() }),
     ]);
     timeline = buildTimeline({
       records,
       dependencies: must(deps, "dependencies"),
       baseline: must(plan, "baseline"),
+      locked: must(locked, "locked records"),
       timeZone,
+      // A week of room on each side to drag bars into.
+      ...(canReschedule ? { pad: 7 } : {}),
     });
   }
 
@@ -164,6 +179,20 @@ export async function RecordsPage({
         }
       : null;
 
+  // Aurora's risk assessment (P6): on a project tab filtered to exactly Risk, with no other filter
+  // and no Risk record shown. The database answers whether the viewer may write the project's
+  // records and whether its risk list is truly empty (Risk records the viewer cannot see, and
+  // Canceled ones, count), so an assigned-reach member never sees a button that ends in a refusal.
+  const riskList =
+    project &&
+    kinds.length === 1 &&
+    kinds[0] === "Risk" &&
+    states.length === 0 &&
+    q === "" &&
+    records.length === 0
+      ? await draftedListIsEmpty(db, "risk_assessment", project.id).then((r) => r.ok && r.data)
+      : false;
+
   // Records update live (Section 11.7, ADR 0044): the project's when on a project tab, else the org's.
   const live = [
     {
@@ -199,6 +228,7 @@ export async function RecordsPage({
         today={today}
         timeZone={timeZone}
         timeline={timeline}
+        canReschedule={canReschedule}
         canCreate={canCreate}
         bulk={bulk}
         quickAdd={quickAdd}
@@ -218,6 +248,17 @@ export async function RecordsPage({
           />
         }
         peek={collectionPeek(peekKey, peek)}
+        {...(riskList && project
+          ? {
+              emptyAction: (
+                <ListDraftEntry
+                  kind="risk_assessment"
+                  target={{ collection: "projects", id: project.id, label: project.key }}
+                  context={[]}
+                />
+              ),
+            }
+          : {})}
       />
     </CustomFieldList>
   );

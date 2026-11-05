@@ -1,7 +1,9 @@
-import base, { expoRoutes } from "@xos/config/eslint";
+import base, { copyLiterals, expoRoutes } from "@xos/config/eslint";
 
+/** Compass labels come from the @xos/i18n catalogs, so JSX holds no string literals (Section 15). */
 export default [
   ...base,
+  ...copyLiterals,
   ...expoRoutes(import.meta.url),
   {
     ignores: ["ios/**", "android/**", ".expo/**", "dist/**"],

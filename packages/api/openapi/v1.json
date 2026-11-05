@@ -11275,9 +11275,9 @@
           },
           "staffing_basis": {
             "type": "string",
-            "enum": ["Declared", "Ratio", "Fixed"],
+            "enum": ["Ratio", "Fixed", "Declared"],
             "description": "How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.",
-            "example": "Declared"
+            "example": "Ratio"
           },
           "starts_on": {
             "type": ["string", "null"],
@@ -11353,9 +11353,9 @@
           },
           "staffing_basis": {
             "type": "string",
-            "enum": ["Declared", "Ratio", "Fixed"],
+            "enum": ["Ratio", "Fixed", "Declared"],
             "description": "How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.",
-            "example": "Declared"
+            "example": "Ratio"
           },
           "starts_on": {
             "type": ["string", "null"],
@@ -11397,9 +11397,9 @@
           },
           "staffing_basis": {
             "type": "string",
-            "enum": ["Declared", "Ratio", "Fixed"],
+            "enum": ["Ratio", "Fixed", "Declared"],
             "description": "How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.",
-            "example": "Declared"
+            "example": "Ratio"
           },
           "starts_on": {
             "type": ["string", "null"],
@@ -11500,18 +11500,18 @@
           "role_type": {
             "type": ["string", "null"],
             "enum": [
-              "Crew",
-              "Contractor",
-              "Staff",
+              "Client",
               "Vendor",
+              "Contractor",
+              "Crew",
+              "Staff",
               "Artist",
               "Artist Representative",
-              "Client",
               "Sponsor",
               null
             ],
             "description": "External role type an opportunity published from the requisition seeks; null when filled internally.",
-            "example": "Crew"
+            "example": "Client"
           },
           "worker_classification": {
             "type": ["string", "null"],
@@ -11634,18 +11634,18 @@
           "role_type": {
             "type": ["string", "null"],
             "enum": [
-              "Crew",
-              "Contractor",
-              "Staff",
+              "Client",
               "Vendor",
+              "Contractor",
+              "Crew",
+              "Staff",
               "Artist",
               "Artist Representative",
-              "Client",
               "Sponsor",
               null
             ],
             "description": "External role type an opportunity published from the requisition seeks; null when filled internally.",
-            "example": "Crew"
+            "example": "Client"
           },
           "worker_classification": {
             "type": ["string", "null"],
@@ -11732,18 +11732,18 @@
           "role_type": {
             "type": ["string", "null"],
             "enum": [
-              "Crew",
-              "Contractor",
-              "Staff",
+              "Client",
               "Vendor",
+              "Contractor",
+              "Crew",
+              "Staff",
               "Artist",
               "Artist Representative",
-              "Client",
               "Sponsor",
               null
             ],
             "description": "External role type an opportunity published from the requisition seeks; null when filled internally.",
-            "example": "Crew"
+            "example": "Client"
           },
           "worker_classification": {
             "type": ["string", "null"],
@@ -26053,6 +26053,11 @@
             "type": "boolean",
             "description": "Whether the work can be done remotely.",
             "example": false
+          },
+          "hide_client_until_booked": {
+            "type": "boolean",
+            "description": "Whether the client and event stay hidden from crew until they are booked.",
+            "example": false
           }
         },
         "required": [
@@ -26082,7 +26087,8 @@
           "currency_code",
           "deadline_at",
           "minimum_age",
-          "is_remote"
+          "is_remote",
+          "hide_client_until_booked"
         ],
         "description": "An opportunity published from an approved requisition. Without posted compensation it shows Rate on Request, never zero."
       },
@@ -26205,6 +26211,11 @@
             "type": "boolean",
             "description": "Whether the work can be done remotely.",
             "example": false
+          },
+          "hide_client_until_booked": {
+            "type": "boolean",
+            "description": "Whether the client and event stay hidden from crew until they are booked.",
+            "example": false
           }
         },
         "required": ["project_id", "title", "role_type"],
@@ -26308,6 +26319,11 @@
           "is_remote": {
             "type": "boolean",
             "description": "Whether the work can be done remotely.",
+            "example": false
+          },
+          "hide_client_until_booked": {
+            "type": "boolean",
+            "description": "Whether the client and event stay hidden from crew until they are booked.",
             "example": false
           }
         },
@@ -29605,6 +29621,11 @@
             "minimum": 0,
             "description": "Number of open positions.",
             "example": 4
+          },
+          "client_hidden": {
+            "type": "boolean",
+            "description": "True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.",
+            "example": false
           }
         },
         "required": [
@@ -29632,7 +29653,8 @@
           "deadline_at",
           "minimum_age",
           "opportunity_state",
-          "position_count"
+          "position_count",
+          "client_hidden"
         ],
         "description": "A marketplace view of an opportunity the caller may see. Internal columns never appear. Unposted compensation reads Rate on Request."
       },
@@ -50918,7 +50940,15 @@
         "properties": {
           "kind": {
             "type": "string",
-            "enum": ["sop", "advance_packet", "email", "day_sheet", "change_order_description"],
+            "enum": [
+              "sop",
+              "advance_packet",
+              "email",
+              "day_sheet",
+              "change_order_description",
+              "run_of_show",
+              "risk_assessment"
+            ],
             "description": "What to draft.",
             "example": "sop"
           },
@@ -50928,6 +50958,26 @@
             "maxLength": 4000,
             "description": "What the draft should say.",
             "example": "Write the load-in SOP for the main stage."
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "collection": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$",
+                "description": "Collection of the list's record.",
+                "example": "run-of-show"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The running order or project.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              }
+            },
+            "required": ["collection", "id"],
+            "description": "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.",
+            "example": { "collection": "run-of-show", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
           },
           "context": {
             "type": "array",
@@ -50962,6 +51012,85 @@
         },
         "required": ["kind", "instructions"],
         "description": "Instructions for a draft."
+      },
+      "AuroraAppliedDraft": {
+        "type": "object",
+        "properties": {
+          "written": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the suggestion applied.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the cue or Risk record written.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                }
+              },
+              "required": ["suggestion_id", "id"]
+            },
+            "description": "Each kept line with the row it wrote, in list order.",
+            "example": [
+              {
+                "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e70"
+              }
+            ]
+          },
+          "rejected": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Lines of the draft left out and rejected.",
+            "example": 2
+          }
+        },
+        "required": ["written", "rejected"],
+        "description": "What a confirmed drafted list wrote."
+      },
+      "AuroraApplyDraftRequest": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the drafting request whose list is confirmed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the suggestion holding the line.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "values": {
+                  "type": "object",
+                  "additionalProperties": {},
+                  "description": "Values the person changed, overriding the proposed ones key by key. Cues take label, planned_at, duration, segment and description; risks take record_subtype, title, risk.likelihood, risk.impact and risk.mitigation.",
+                  "example": { "label": "Doors Open" }
+                }
+              },
+              "required": ["suggestion_id"]
+            },
+            "minItems": 1,
+            "maxItems": 60,
+            "description": "The kept lines in list order: at most 60 cues or 40 risks.",
+            "example": [{ "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+          }
+        },
+        "required": ["request_id", "items"],
+        "description": "The lines of a drafted list to add."
       },
       "AuroraSummarizeRequest": {
         "type": "object",
@@ -51108,6 +51237,12 @@
             "minimum": 0,
             "description": "Verbiage library terms a draft follows.",
             "example": 12
+          },
+          "categories": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "For a risk assessment, the canon Risk categories the draft may use.",
+            "example": ["Operational", "Commercial", "Safety", "Reputational", "Schedule"]
           }
         },
         "required": ["records", "vocabulary_terms"],
@@ -51162,6 +51297,32 @@
             "enum": ["drafting", "summaries"],
             "description": "The feature whose request is previewed.",
             "example": "drafting"
+          },
+          "draft_kind": {
+            "type": "string",
+            "enum": ["run_of_show", "risk_assessment"],
+            "description": "For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.",
+            "example": "run_of_show"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "collection": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$",
+                "description": "Collection of the list's record.",
+                "example": "run-of-show"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The running order or project.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              }
+            },
+            "required": ["collection", "id"],
+            "description": "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.",
+            "example": { "collection": "run-of-show", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
           },
           "kind": {
             "type": "string",
@@ -55751,6 +55912,324 @@
         "required": ["attachment_id"],
         "description": "Fields accepted when creating a ShareLink."
       },
+      "LiveLinkPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LiveLink" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "LiveLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the live link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the link shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "link_kind": {
+            "type": "string",
+            "enum": ["View", "Display"],
+            "description": "View, a saved view; Display, a running order on a screen.",
+            "example": "View"
+          },
+          "saved_view_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Saved view a View link shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "run_of_show_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Running order a Display link shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "default_mode": {
+            "type": ["string", "null"],
+            "enum": ["Room Clock", "Presenter Timer", "Backstage", null],
+            "description": "Mode a display screen opens in.",
+            "example": "Backstage"
+          },
+          "token_hint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4,
+            "description": "Last four characters of the token, to tell links apart.",
+            "example": "3f9a"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for. Never shown on the public page.",
+            "example": "Venue screens"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening: within 90 days of when it was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "failed_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Wrong access codes since the link was made or regenerated; it locks at 5.",
+            "example": 0
+          },
+          "open_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Successful opens with the access code.",
+            "example": 3
+          },
+          "last_opened_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last opened.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "rotated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last regenerated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was revoked; it never opens again.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "link_kind",
+          "saved_view_id",
+          "run_of_show_id",
+          "default_mode",
+          "token_hint",
+          "note",
+          "expires_at",
+          "failed_attempts",
+          "open_count",
+          "last_opened_at",
+          "rotated_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens)."
+      },
+      "LiveViewLinkToken": {
+        "type": "object",
+        "properties": {
+          "live_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xshv_[0-9a-f]{64}$",
+            "description": "The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.",
+            "example": "xshv_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["live_link_id", "token", "access_code", "expires_at"],
+        "description": "A new live link with its token and access code, shown once."
+      },
+      "LiveViewLinkRequest": {
+        "type": "object",
+        "properties": {
+          "saved_view_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved view to share.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the link shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening: after now and within 90 days.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for. Never shown on the public page.",
+            "example": "Venue screens"
+          }
+        },
+        "required": ["saved_view_id", "project_id", "expires_at"],
+        "description": "A live link to a saved view."
+      },
+      "LiveDisplayLinkToken": {
+        "type": "object",
+        "properties": {
+          "live_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xscr_[0-9a-f]{64}$",
+            "description": "The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.",
+            "example": "xscr_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["live_link_id", "token", "access_code", "expires_at"],
+        "description": "A new live link with its token and access code, shown once."
+      },
+      "LiveDisplayLinkRequest": {
+        "type": "object",
+        "properties": {
+          "run_of_show_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the running order to show.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening; by default the end of the day after the show.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "default_mode": {
+            "type": "string",
+            "enum": ["Room Clock", "Presenter Timer", "Backstage"],
+            "description": "Mode a display screen opens in.",
+            "example": "Backstage"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for. Never shown on the public page.",
+            "example": "Venue screens"
+          }
+        },
+        "required": ["run_of_show_id"],
+        "description": "A display screen link to a running order."
+      },
+      "LiveLinkRegenerated": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^xs(hv|cr)_[0-9a-f]{64}$",
+            "description": "The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.",
+            "example": "xshv_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening; regenerating keeps the expiry.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["token", "access_code", "expires_at"],
+        "description": "A regenerated live link's new token and access code, shown once."
+      },
       "PersonCalendarFeedPage": {
         "type": "object",
         "properties": {
@@ -57494,9 +57973,9 @@
           },
           "group_role": {
             "type": "string",
-            "enum": ["Member", "Owner"],
+            "enum": ["Owner", "Member"],
             "description": "Owners add and remove members.",
-            "example": "Member"
+            "example": "Owner"
           }
         },
         "required": [
@@ -57529,9 +58008,9 @@
           },
           "group_role": {
             "type": "string",
-            "enum": ["Member", "Owner"],
+            "enum": ["Owner", "Member"],
             "description": "Owners add and remove members.",
-            "example": "Member"
+            "example": "Owner"
           }
         },
         "required": ["group_id", "membership_id", "group_role"],
@@ -62221,9 +62700,9 @@
           },
           "severity": {
             "type": "string",
-            "enum": ["Severity 3", "Severity 1", "Severity 2", "Severity 4"],
+            "enum": ["Severity 1", "Severity 2", "Severity 3", "Severity 4"],
             "description": "Severity.",
-            "example": "Severity 3"
+            "example": "Severity 1"
           },
           "subject": {
             "type": "string",
@@ -62308,9 +62787,9 @@
           },
           "severity": {
             "type": "string",
-            "enum": ["Severity 3", "Severity 1", "Severity 2", "Severity 4"],
+            "enum": ["Severity 1", "Severity 2", "Severity 3", "Severity 4"],
             "description": "Severity.",
-            "example": "Severity 3"
+            "example": "Severity 1"
           },
           "subject": {
             "type": "string",
@@ -62479,9 +62958,9 @@
           },
           "load_basis": {
             "type": "string",
-            "enum": ["Occupant Load Factor", "Space Capacity", "Permit"],
+            "enum": ["Space Capacity", "Occupant Load Factor", "Permit"],
             "description": "Where the permitted load comes from.",
-            "example": "Occupant Load Factor"
+            "example": "Space Capacity"
           },
           "metric_domain": {
             "type": ["string", "null"],
@@ -63430,17 +63909,17 @@
           "category": {
             "type": "string",
             "enum": [
-              "Wallet",
               "Bag",
               "Clothing",
               "Electronics",
               "Jewelry",
               "Keys",
               "Documents",
+              "Wallet",
               "Other"
             ],
             "description": "Category.",
-            "example": "Wallet"
+            "example": "Bag"
           },
           "description": {
             "type": "string",
@@ -63513,17 +63992,17 @@
           "category": {
             "type": "string",
             "enum": [
-              "Wallet",
               "Bag",
               "Clothing",
               "Electronics",
               "Jewelry",
               "Keys",
               "Documents",
+              "Wallet",
               "Other"
             ],
             "description": "Category.",
-            "example": "Wallet"
+            "example": "Bag"
           },
           "description": {
             "type": "string",
@@ -63562,17 +64041,17 @@
           "category": {
             "type": "string",
             "enum": [
-              "Wallet",
               "Bag",
               "Clothing",
               "Electronics",
               "Jewelry",
               "Keys",
               "Documents",
+              "Wallet",
               "Other"
             ],
             "description": "Category.",
-            "example": "Wallet"
+            "example": "Bag"
           },
           "description": {
             "type": "string",
@@ -80616,7 +81095,7 @@
                       "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "staffing_basis": "Declared",
+                      "staffing_basis": "Ratio",
                       "starts_on": "2026-10-08",
                       "ends_on": "2026-10-08",
                       "assignment_state": "Proposed"
@@ -80652,7 +81131,7 @@
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "staffing_basis": "Declared",
+                "staffing_basis": "Ratio",
                 "starts_on": "2026-10-08",
                 "ends_on": "2026-10-08"
               },
@@ -80683,7 +81162,7 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "staffing_basis": "Declared",
+                  "staffing_basis": "Ratio",
                   "starts_on": "2026-10-08",
                   "ends_on": "2026-10-08",
                   "assignment_state": "Proposed"
@@ -80747,7 +81226,7 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "staffing_basis": "Declared",
+                  "staffing_basis": "Ratio",
                   "starts_on": "2026-10-08",
                   "ends_on": "2026-10-08",
                   "assignment_state": "Proposed"
@@ -80794,7 +81273,7 @@
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "staffing_basis": "Declared",
+                "staffing_basis": "Ratio",
                 "starts_on": "2026-10-08",
                 "ends_on": "2026-10-08"
               },
@@ -80825,7 +81304,7 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requisition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "staffing_basis": "Declared",
+                  "staffing_basis": "Ratio",
                   "starts_on": "2026-10-08",
                   "ends_on": "2026-10-08",
                   "assignment_state": "Proposed"
@@ -80915,7 +81394,7 @@
                       "requisition_state": "Proposed",
                       "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "role_type": "Crew",
+                      "role_type": "Client",
                       "worker_classification": "EMPLOYEE",
                       "pay_basis": "Hourly",
                       "arrangement": "Per Engagement",
@@ -80958,7 +81437,7 @@
                 "role_code": "5000.50.01",
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "role_type": "Crew",
+                "role_type": "Client",
                 "worker_classification": "EMPLOYEE",
                 "pay_basis": "Hourly",
                 "arrangement": "Per Engagement",
@@ -80997,7 +81476,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -81069,7 +81548,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -81123,7 +81602,7 @@
                 "role_code": "5000.50.01",
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "role_type": "Crew",
+                "role_type": "Client",
                 "worker_classification": "EMPLOYEE",
                 "pay_basis": "Hourly",
                 "arrangement": "Per Engagement",
@@ -81162,7 +81641,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -81279,7 +81758,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -81352,7 +81831,7 @@
                   "requisition_state": "Proposed",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "budget_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role_type": "Crew",
+                  "role_type": "Client",
                   "worker_classification": "EMPLOYEE",
                   "pay_basis": "Hourly",
                   "arrangement": "Per Engagement",
@@ -104573,7 +105052,8 @@
                       "currency_code": "USD",
                       "deadline_at": "2026-10-08T14:30:00Z",
                       "minimum_age": 18,
-                      "is_remote": false
+                      "is_remote": false,
+                      "hide_client_until_booked": false
                     }
                   ],
                   "next_cursor": null
@@ -104620,7 +105100,8 @@
                 "currency_code": "USD",
                 "deadline_at": "2026-10-08T14:30:00Z",
                 "minimum_age": 18,
-                "is_remote": false
+                "is_remote": false,
+                "hide_client_until_booked": false
               },
               "schema": { "$ref": "#/components/schemas/OpportunityCreate" }
             }
@@ -104664,7 +105145,8 @@
                   "currency_code": "USD",
                   "deadline_at": "2026-10-08T14:30:00Z",
                   "minimum_age": 18,
-                  "is_remote": false
+                  "is_remote": false,
+                  "hide_client_until_booked": false
                 },
                 "schema": { "$ref": "#/components/schemas/Opportunity" }
               }
@@ -104740,7 +105222,8 @@
                   "currency_code": "USD",
                   "deadline_at": "2026-10-08T14:30:00Z",
                   "minimum_age": 18,
-                  "is_remote": false
+                  "is_remote": false,
+                  "hide_client_until_booked": false
                 },
                 "schema": { "$ref": "#/components/schemas/Opportunity" }
               }
@@ -104799,7 +105282,8 @@
                 "currency_code": "USD",
                 "deadline_at": "2026-10-08T14:30:00Z",
                 "minimum_age": 18,
-                "is_remote": false
+                "is_remote": false,
+                "hide_client_until_booked": false
               },
               "schema": { "$ref": "#/components/schemas/OpportunityUpdate" }
             }
@@ -104843,7 +105327,8 @@
                   "currency_code": "USD",
                   "deadline_at": "2026-10-08T14:30:00Z",
                   "minimum_age": 18,
-                  "is_remote": false
+                  "is_remote": false,
+                  "hide_client_until_booked": false
                 },
                 "schema": { "$ref": "#/components/schemas/Opportunity" }
               }
@@ -104964,7 +105449,8 @@
                   "currency_code": "USD",
                   "deadline_at": "2026-10-08T14:30:00Z",
                   "minimum_age": 18,
-                  "is_remote": false
+                  "is_remote": false,
+                  "hide_client_until_booked": false
                 },
                 "schema": { "$ref": "#/components/schemas/Opportunity" }
               }
@@ -109745,7 +110231,8 @@
                       "deadline_at": "2026-10-08T14:30:00Z",
                       "minimum_age": 18,
                       "opportunity_state": "Published",
-                      "position_count": 4
+                      "position_count": 4,
+                      "client_hidden": false
                     }
                   ],
                   "next_cursor": null
@@ -142168,7 +142655,7 @@
         "x-xos-capability": "home.dashboard.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
         "summary": "Draft text",
-        "description": "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -142177,6 +142664,10 @@
               "example": {
                 "kind": "sop",
                 "instructions": "Write the load-in SOP for the main stage.",
+                "target": {
+                  "collection": "run-of-show",
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
                 "context": [
                   { "collection": "venues", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
                 ],
@@ -142216,6 +142707,59 @@
                   ]
                 },
                 "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/apply-draft": {
+      "post": {
+        "operationId": "aurora.applyDraft",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Add a drafted list",
+        "description": "Adds the kept lines of a drafted run of show or risk assessment in one transaction, with the values the person changed, only while the list is still empty (aurora_draft_list_not_empty otherwise, with nothing written). Every other line of the draft is rejected. A line the database refuses names its line number and nothing is written. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "items": [{ "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraApplyDraftRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "written": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e70"
+                    }
+                  ],
+                  "rejected": 2
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraAppliedDraft" }
               }
             }
           },
@@ -142444,6 +142988,11 @@
             "application/json": {
               "example": {
                 "feature": "drafting",
+                "draft_kind": "run_of_show",
+                "target": {
+                  "collection": "run-of-show",
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
                 "kind": "gate_readiness",
                 "subject_collection": "projects",
                 "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -142463,7 +143012,11 @@
             },
             "content": {
               "application/json": {
-                "example": { "records": [], "vocabulary_terms": 12 },
+                "example": {
+                  "records": [],
+                  "vocabulary_terms": 12,
+                  "categories": ["Operational", "Commercial", "Safety", "Reputational", "Schedule"]
+                },
                 "schema": { "$ref": "#/components/schemas/AuroraPreview" }
               }
             }
@@ -148604,6 +149157,367 @@
         }
       }
     },
+    "/live-links": {
+      "get": {
+        "operationId": "liveLinks.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List live link rows",
+        "description": "A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns a cursor page of live link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of live link rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "link_kind": "View",
+                      "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "default_mode": "Backstage",
+                      "token_hint": "3f9a",
+                      "note": "Venue screens",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "failed_attempts": 0,
+                      "open_count": 3,
+                      "last_opened_at": "2026-10-08T14:30:00Z",
+                      "rotated_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/LiveLinkPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/{id}": {
+      "get": {
+        "operationId": "liveLinks.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a live link",
+        "description": "A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens). Returns one live link with its `ETag`. A live link the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the live link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the live link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The live link.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "link_kind": "View",
+                  "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "default_mode": "Backstage",
+                  "token_hint": "3f9a",
+                  "note": "Venue screens",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 3,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/view": {
+      "post": {
+        "operationId": "liveLinks.createView",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "create_view_link",
+        "summary": "Create a live link to a saved view",
+        "description": "Makes a no-account link to a saved view the caller can read, on one project of its org, through app.create_view_link. The caller must be a member of the project's org and hold the collection's share capability on the project (schedule.timeline.export for the Schedule, show.run_of_show.write for running orders, show.day_sheet.write for day sheets; 422 `live_link_capability`). The view's page and every filter, sort and grouping must be ones a live link shows (422 `live_link_view_unsupported`). `expires_at` is required, after now and within 90 days (422 `live_link_expiry`, `live_link_expiry_range`); a view holds at most 20 live links (422 `live_link_limit`); a read-only org makes none (422 `org_read_only`). Every link has an access code. Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "note": "Venue screens"
+              },
+              "schema": { "$ref": "#/components/schemas/LiveViewLinkRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "live_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xshv_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveViewLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/display": {
+      "post": {
+        "operationId": "liveLinks.createDisplay",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "create_display_link",
+        "summary": "Create a display screen link to a running order",
+        "description": "Makes a no-account display screen link (room clock, presenter timer, backstage) to a running order through app.create_display_link. The caller must be a member of its org and hold show.run_of_show.write on the project (422 `live_link_capability`). `expires_at` defaults to the end of the day after the show in the project's zone, at most 90 days ahead; when given it must be after now and within 90 days (422 `live_link_expiry_range`). A running order holds at most 20 live links (422 `live_link_limit`); a read-only org makes none (422 `org_read_only`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "default_mode": "Backstage",
+                "note": "Venue screens"
+              },
+              "schema": { "$ref": "#/components/schemas/LiveDisplayLinkRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "live_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xscr_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveDisplayLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/{id}/regenerate": {
+      "post": {
+        "operationId": "liveLinks.regenerate",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "regenerate_live_link",
+        "summary": "Regenerate a live link",
+        "description": "Draws a new token and access code through app.regenerate_live_link: the old address answers that the link is no longer available, wrong-code attempts reset and every device that opened the link must enter the new code. Its creator, or a holder of the collection's share capability on the project, may. A revoked link (422 `live_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers the new token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the live link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the live link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "xshv_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveLinkRegenerated" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/live-links/{id}/revoke": {
+      "post": {
+        "operationId": "liveLinks.revoke",
+        "tags": ["Platform"],
+        "x-xos-table": "app.live_links",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "revoke_live_link",
+        "summary": "Revoke a live link",
+        "description": "Revokes the link through app.revoke_live_link so it never opens again and every open page stops on its next update. Its creator, or a holder of the collection's share capability on the project, may, also in a read-only org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the live link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the live link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "link_kind": "View",
+                  "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "default_mode": "Backstage",
+                  "token_hint": "3f9a",
+                  "note": "Venue screens",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 3,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/LiveLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/person-calendar-feeds": {
       "get": {
         "operationId": "personCalendarFeeds.list",
@@ -150607,7 +151521,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "group_role": "Member"
+                      "group_role": "Owner"
                     }
                   ],
                   "next_cursor": null
@@ -150637,7 +151551,7 @@
               "example": {
                 "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "group_role": "Member"
+                "group_role": "Owner"
               },
               "schema": { "$ref": "#/components/schemas/WorkforceGroupMemberCreate" }
             }
@@ -150663,7 +151577,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "group_role": "Member"
+                  "group_role": "Owner"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkforceGroupMember" }
               }
@@ -150721,7 +151635,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "group_role": "Member"
+                  "group_role": "Owner"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkforceGroupMember" }
               }
@@ -157549,7 +158463,7 @@
                       "ticket_number": "SUP-0001",
                       "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "category": "Question",
-                      "severity": "Severity 3",
+                      "severity": "Severity 1",
                       "subject": "Tablet will not sign in",
                       "body": "The dock tablet shows a blank screen.",
                       "ticket_state": "Open",
@@ -157586,7 +158500,7 @@
               "example": {
                 "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "category": "Question",
-                "severity": "Severity 3",
+                "severity": "Severity 1",
                 "subject": "Tablet will not sign in",
                 "body": "The dock tablet shows a blank screen."
               },
@@ -157615,7 +158529,7 @@
                   "ticket_number": "SUP-0001",
                   "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "category": "Question",
-                  "severity": "Severity 3",
+                  "severity": "Severity 1",
                   "subject": "Tablet will not sign in",
                   "body": "The dock tablet shows a blank screen.",
                   "ticket_state": "Open",
@@ -157681,7 +158595,7 @@
                   "ticket_number": "SUP-0001",
                   "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "category": "Question",
-                  "severity": "Severity 3",
+                  "severity": "Severity 1",
                   "subject": "Tablet will not sign in",
                   "body": "The dock tablet shows a blank screen.",
                   "ticket_state": "Open",
@@ -157759,7 +158673,7 @@
                   "ticket_number": "SUP-0001",
                   "help_desk_team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "category": "Question",
-                  "severity": "Severity 3",
+                  "severity": "Severity 1",
                   "subject": "Tablet will not sign in",
                   "body": "The dock tablet shows a blank screen.",
                   "ticket_state": "Open",
@@ -157940,7 +158854,7 @@
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Main Floor",
-                      "load_basis": "Occupant Load Factor",
+                      "load_basis": "Space Capacity",
                       "metric_domain": "capacity",
                       "metric_item": "Assembly - standing space",
                       "permitted_load": 100,
@@ -158006,7 +158920,7 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Main Floor",
-                  "load_basis": "Occupant Load Factor",
+                  "load_basis": "Space Capacity",
                   "metric_domain": "capacity",
                   "metric_item": "Assembly - standing space",
                   "permitted_load": 100,
@@ -158072,7 +158986,7 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Main Floor",
-                  "load_basis": "Occupant Load Factor",
+                  "load_basis": "Space Capacity",
                   "metric_domain": "capacity",
                   "metric_item": "Assembly - standing space",
                   "permitted_load": 100,
@@ -158147,7 +159061,7 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Main Floor",
-                  "load_basis": "Occupant Load Factor",
+                  "load_basis": "Space Capacity",
                   "metric_domain": "capacity",
                   "metric_item": "Assembly - standing space",
                   "permitted_load": 100,
@@ -158214,7 +159128,7 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Main Floor",
-                  "load_basis": "Occupant Load Factor",
+                  "load_basis": "Space Capacity",
                   "metric_domain": "capacity",
                   "metric_item": "Assembly - standing space",
                   "permitted_load": 100,
@@ -159251,7 +160165,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "item_number": "LF-0001",
-                      "category": "Wallet",
+                      "category": "Bag",
                       "description": "Brown leather wallet.",
                       "found_at": "2026-10-08T14:30:00Z",
                       "found_location": "Bar 2",
@@ -159286,7 +160200,7 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "category": "Wallet",
+                "category": "Bag",
                 "description": "Brown leather wallet.",
                 "found_at": "2026-10-08T14:30:00Z",
                 "found_location": "Bar 2",
@@ -159316,7 +160230,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "item_number": "LF-0001",
-                  "category": "Wallet",
+                  "category": "Bag",
                   "description": "Brown leather wallet.",
                   "found_at": "2026-10-08T14:30:00Z",
                   "found_location": "Bar 2",
@@ -159380,7 +160294,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "item_number": "LF-0001",
-                  "category": "Wallet",
+                  "category": "Bag",
                   "description": "Brown leather wallet.",
                   "found_at": "2026-10-08T14:30:00Z",
                   "found_location": "Bar 2",
@@ -159426,7 +160340,7 @@
           "content": {
             "application/json": {
               "example": {
-                "category": "Wallet",
+                "category": "Bag",
                 "description": "Brown leather wallet.",
                 "storage_location": "Security office locker 4"
               },
@@ -159454,7 +160368,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "item_number": "LF-0001",
-                  "category": "Wallet",
+                  "category": "Bag",
                   "description": "Brown leather wallet.",
                   "found_at": "2026-10-08T14:30:00Z",
                   "found_location": "Bar 2",
@@ -159608,7 +160522,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "item_number": "LF-0001",
-                  "category": "Wallet",
+                  "category": "Bag",
                   "description": "Brown leather wallet.",
                   "found_at": "2026-10-08T14:30:00Z",
                   "found_location": "Bar 2",

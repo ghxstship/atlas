@@ -539,7 +539,7 @@ export interface RecordInput {
 export function resolveXyz(
   categoryXyz: string | null,
   declared: string | null | undefined,
-): { xyz: string; basis: "Category" | "Declared" } | null {
+): { xyz: string; basis: Database["app"]["Enums"]["xyz_basis"] } | null {
   if (categoryXyz && (!declared || declared === categoryXyz)) {
     return { xyz: categoryXyz, basis: "Category" };
   }

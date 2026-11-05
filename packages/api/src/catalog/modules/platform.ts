@@ -16,6 +16,7 @@ import {
 import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./parts/a36.ts";
 import { a79Capabilities, a79Resources } from "./parts/a79.ts";
 import { shareLinkCapabilities, shareLinkResources } from "./parts/share-links.ts";
+import { liveLinkCapabilities, liveLinkResources } from "./parts/live-links.ts";
 import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
 import {
   automationActions,
@@ -28,6 +29,7 @@ import {
   workflowCorrections,
   workflowResources,
 } from "./parts/workflow.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -66,6 +68,7 @@ export const additions = defineAdditions("Platform", {
     ...a36Resources,
     ...a79Resources,
     ...shareLinkResources,
+    ...liveLinkResources,
     ...a84Resources,
     ...automationResources,
   ],
@@ -76,6 +79,7 @@ export const additions = defineAdditions("Platform", {
     ...a36Capabilities,
     ...a79Capabilities,
     ...shareLinkCapabilities,
+    ...liveLinkCapabilities,
     ...a84Capabilities,
     ...automationCapabilities,
   },
@@ -216,7 +220,7 @@ export const additions = defineAdditions("Platform", {
             create: "required",
           },
           source: {
-            schema: label(["CSV", "XLSX", "XLS", "Google Sheets"], "Source format."),
+            schema: label(Constants.app.Enums.import_source, "Source format."),
             create: "required",
           },
           original_filename: {
@@ -232,20 +236,7 @@ export const additions = defineAdditions("Platform", {
             create: "required",
           },
           import_status: {
-            schema: label(
-              [
-                "Uploaded",
-                "Detected",
-                "Mapped",
-                "Validated",
-                "Committing",
-                "Committed",
-                "Undone",
-                "Failed",
-                "Canceled",
-              ],
-              "Wizard progress.",
-            ),
+            schema: label(Constants.app.Enums.import_status, "Wizard progress."),
           },
           mapping_confirmed_at: {
             schema: orNull(
@@ -297,7 +288,7 @@ export const additions = defineAdditions("Platform", {
           target_table: { schema: orNull(tableName("Table the row was written to.")) },
           target_id: { schema: orNull(fields.ref("row written, created, updated or merged into")) },
           write_action: {
-            schema: orNull(label(["Created", "Updated", "Merged"], "What the write did.")),
+            schema: orNull(label(Constants.app.Enums.import_write_action, "What the write did.")),
           },
           before_image: {
             schema: orNull(
@@ -307,7 +298,9 @@ export const additions = defineAdditions("Platform", {
             ),
           },
           undo_outcome: {
-            schema: orNull(label(["Reverted", "Kept"], "Outcome when the batch was undone.")),
+            schema: orNull(
+              label(Constants.app.Enums.undo_outcome, "Outcome when the batch was undone."),
+            ),
           },
           undo_reason: {
             schema: orNull(
@@ -377,10 +370,7 @@ export const additions = defineAdditions("Platform", {
             ),
           },
           export_status: {
-            schema: label(
-              ["Queued", "Rendering", "Ready", "Failed", "Expired"],
-              "Export progress.",
-            ),
+            schema: label(Constants.app.Enums.export_status, "Export progress."),
           },
           storage_object_path: {
             schema: orNull(
@@ -485,7 +475,9 @@ export const additions = defineAdditions("Platform", {
             ),
             create: "required",
           },
-          source: optional(label(["App", "Email", "API"], "Where the comment came from.")),
+          source: optional(
+            label(Constants.app.Enums.comment_source, "Where the comment came from."),
+          ),
           edited_at: { schema: orNull(fields.instant("When the text was last edited.")) },
         },
       }),
@@ -545,7 +537,7 @@ export const additions = defineAdditions("Platform", {
             update: false,
           },
           channel: {
-            schema: label(["In App", "Email", "SMS", "Push"], "Delivery channel."),
+            schema: label(Constants.app.Enums.notification_channel, "Delivery channel."),
             create: "required",
             update: false,
           },

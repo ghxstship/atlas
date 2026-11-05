@@ -48,6 +48,7 @@ export const KNOWN_SETTING_ERRORS = new Set([
   "ip_allowlist_empty",
   "plan_feature_ip_allowlist",
   "setting_fixed",
+  "work_phone_e164",
 ]);
 
 /** The `settings.errors.*` key for a repository error. */
@@ -69,6 +70,8 @@ const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const CURRENCY = /^[A-Z]{3}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+/** A phone setting arrives here already read into E.164 by the saving action (toE164, A139). */
+const E164 = /^\+[1-9]\d{7,14}$/;
 
 function validUrl(value: string): boolean {
   try {
@@ -124,7 +127,9 @@ export function parseSettingValue(def: SettingDefinition, raw: string | null): P
                   ? validTimeZone(text)
                   : def.input === "workspace"
                     ? UUID.test(text)
-                    : true;
+                    : def.input === "phone"
+                      ? E164.test(text)
+                      : true;
       return valid ? { ok: true, value: text } : { ok: false, error: def.input };
     }
   }

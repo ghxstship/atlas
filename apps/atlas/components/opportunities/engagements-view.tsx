@@ -62,6 +62,7 @@ import {
   type EngagementProperty,
 } from "@/lib/opportunities/format";
 import { must, type PageSetup } from "@/lib/opportunities/page";
+import * as enums from "@xos/data/enums";
 
 /**
  * Engagements (Section 4.4.4 stages 6 to 9) for the org page and the project Engagements tab: the list in table, list or
@@ -360,27 +361,30 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
             items={engagementProperties(e.roleType).map((key) => properties[key])}
           />
           {canWrite && moves.length > 0 ? (
-            <ActionForm
-              action={transitionEngagementAction}
-              hidden={{ org: ctx.org.slug, engagementId: e.id, expected: e.state }}
-              title={t("transitions.title")}
-              fields={[
-                {
-                  name: "next",
-                  label: t("transitions.next"),
-                  kind: "select",
-                  defaultValue: moves[0] ?? "",
-                  options: moves.map((m) => ({
-                    value: m,
-                    label: t(`engagementMoves.${enumKey(m)}`),
-                  })),
-                },
-                { name: "reason", label: t("transitions.reason"), kind: "text", required: true },
-              ]}
-              submitLabel={t("transitions.submit")}
-              variant="primary"
-              successLabel={t("transitions.done")}
-            />
+            // The move form is the record's Change state shortcut target: the key opens the moves.
+            <div data-shortcut="record.state" className="contents">
+              <ActionForm
+                action={transitionEngagementAction}
+                hidden={{ org: ctx.org.slug, engagementId: e.id, expected: e.state }}
+                title={t("transitions.title")}
+                fields={[
+                  {
+                    name: "next",
+                    label: t("transitions.next"),
+                    kind: "select",
+                    defaultValue: moves[0] ?? "",
+                    options: moves.map((m) => ({
+                      value: m,
+                      label: t(`engagementMoves.${enumKey(m)}`),
+                    })),
+                  },
+                  { name: "reason", label: t("transitions.reason"), kind: "text", required: true },
+                ]}
+                submitLabel={t("transitions.submit")}
+                variant="primary"
+                successLabel={t("transitions.done")}
+              />
+            </div>
           ) : null}
           <div className="flex flex-col gap-8">
             <h2 className="m-0 text-heading-14 font-semibold">{t("engagements.stages")}</h2>
@@ -439,7 +443,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                       label: t("onboarding.outcome"),
                       kind: "select",
                       defaultValue: "Passed",
-                      options: (["Passed", "Failed"] as const).map((o) => ({
+                      options: enums.verificationOutcome.map((o) => ({
                         value: o,
                         label: t(`outcomes.${enumKey(o)}`),
                       })),
@@ -716,7 +720,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                 label: t("fields.standing"),
                 kind: "select",
                 defaultValue: "Preferred",
-                options: (["Preferred", "Approved", "Do Not Engage"] as const).map((s) => ({
+                options: enums.poolStanding.map((s) => ({
                   value: s,
                   label: t(`standings.${enumKey(s)}`),
                 })),

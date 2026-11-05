@@ -45,6 +45,8 @@ export function buildCsp({ nonce, development, supabaseOrigin, secureSite }: Csp
     "style-src": ["'self'", development ? "'unsafe-inline'" : `'nonce-${nonce}'`],
     "style-src-attr": ["'unsafe-inline'"],
     "img-src": ["'self'", "blob:", "data:"],
+    // The file previewer (A142) plays a video from the bytes the delivery route answered, as a blob URL.
+    "media-src": ["'self'", "blob:"],
     "font-src": ["'self'", "data:"],
     "connect-src": [
       "'self'",

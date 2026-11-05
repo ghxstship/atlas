@@ -876,7 +876,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you.",
+            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you. The lists below show the default keys; Mod is Cmd on a Mac and Ctrl elsewhere.",
           },
         ],
       },
@@ -886,66 +886,140 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            { t: "text", v: " or " },
+            { t: "text", v: ": Open the command menu" },
+          ],
+          [
             { t: "strong", v: "/" },
-            {
-              t: "text",
-              v: " opens the command menu. It shows the keys for each section next to its name.",
-            },
+            { t: "text", v: ": Search pages and settings" },
           ],
           [
             { t: "strong", v: "C" },
-            {
-              t: "text",
-              v: " opens the Create menu. What you create on the page you are on comes first, so ",
-            },
-            { t: "strong", v: "C" },
-            { t: "text", v: " then " },
-            { t: "strong", v: "Enter" },
-            { t: "text", v: " starts it." },
-          ],
-          [
-            { t: "strong", v: "G" },
-            { t: "text", v: ", then a letter, goes to a section: " },
-            { t: "strong", v: "G H" },
-            { t: "text", v: " Home, " },
-            { t: "strong", v: "G I" },
-            { t: "text", v: " Inbox, " },
-            { t: "strong", v: "G M" },
-            { t: "text", v: " My Work, " },
-            { t: "strong", v: "G P" },
-            { t: "text", v: " Projects, " },
-            { t: "strong", v: "G F" },
-            { t: "text", v: " Finance and more. After " },
-            { t: "strong", v: "G" },
-            { t: "text", v: ", a hint lists the letters; " },
-            { t: "strong", v: "Esc" },
-            { t: "text", v: " cancels." },
+            { t: "text", v: ": Create something new" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: " opens help for the page you are on." },
-          ],
-          [
-            { t: "strong", v: "Mod+J" },
-            { t: "text", v: " asks Aurora, when your organization has turned it on." },
+            { t: "text", v: ": Open help for this page" },
           ],
           [
             { t: "strong", v: "Mod+." },
-            { t: "text", v: " turns focus mode on and off." },
+            { t: "text", v: ": Turn focus mode on or off" },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: ": Ask Aurora" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: " closes the open menu, dialog or side peek." },
+            { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
           ],
         ],
       },
       {
         t: "p",
         c: [
-          { t: "text", v: "Shortcuts never act while you type in a field, except the ones with " },
+          {
+            t: "text",
+            v: "The command menu shows the keys for each section next to its name, and the Create menu puts what you create on the page you are on first, so Enter starts it. Shortcuts never act while you type in a field, except the ones with ",
+          },
           { t: "strong", v: "Mod" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Go to a section" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each is two keys, one after the other. After the first, a hint lists the keys that can follow; ",
+          },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cancels." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Go to Inbox" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Go to My Work" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Go to Projects" },
+          ],
+          [
+            { t: "strong", v: "G S" },
+            { t: "text", v: ": Go to Schedule" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Go to Work" },
+          ],
+          [
+            { t: "strong", v: "G O" },
+            { t: "text", v: ": Go to Show" },
+          ],
+          [
+            { t: "strong", v: "G A" },
+            { t: "text", v: ": Go to Advancing" },
+          ],
+          [
+            { t: "strong", v: "G L" },
+            { t: "text", v: ": Go to Logistics" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Go to People" },
+          ],
+          [
+            { t: "strong", v: "G C" },
+            { t: "text", v: ": Go to Crew" },
+          ],
+          [
+            { t: "strong", v: "G F" },
+            { t: "text", v: ": Go to Finance" },
+          ],
+          [
+            { t: "strong", v: "G B" },
+            { t: "text", v: ": Go to Procurement" },
+          ],
+          [
+            { t: "strong", v: "G V" },
+            { t: "text", v: ": Go to Vendors" },
+          ],
+          [
+            { t: "strong", v: "G K" },
+            { t: "text", v: ": Go to Knowledge" },
+          ],
+          [
+            { t: "strong", v: "G R" },
+            { t: "text", v: ": Go to Reports" },
+          ],
+          [
+            { t: "strong", v: "G Y" },
+            { t: "text", v: ": Go to Activity" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Go to Settings" },
+          ],
         ],
       },
       { t: "h2", v: "In lists and tables" },
@@ -954,26 +1028,146 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "J" },
-            { t: "text", v: " and " },
+            { t: "text", v: ": Next row" },
+          ],
+          [
             { t: "strong", v: "K" },
-            { t: "text", v: ", or the arrow keys, move between rows." },
+            { t: "text", v: ": Previous row" },
           ],
           [
             { t: "strong", v: "Enter" },
-            { t: "text", v: " opens the focused record in the side peek." },
+            { t: "text", v: ": Open the focused record" },
           ],
           [
             { t: "strong", v: "X" },
-            {
-              t: "text",
-              v: " selects the focused row. The bulk action bar appears with the actions every selected row allows.",
-            },
+            { t: "text", v: ": Select the focused row" },
           ],
           [
-            { t: "strong", v: "Home" },
-            { t: "text", v: " and " },
-            { t: "strong", v: "End" },
-            { t: "text", v: " jump to the first and last row." },
+            { t: "strong", v: "Shift+X" },
+            { t: "text", v: ": Select the rows from the last selected one to the focused one" },
+          ],
+          [
+            { t: "strong", v: "Mod+A" },
+            { t: "text", v: ": Select every loaded row" },
+          ],
+          [
+            { t: "strong", v: "Shift+F10" },
+            { t: "text", v: ": Open the focused row's actions" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The arrow keys also move between rows, and " },
+          { t: "strong", v: "Home" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "End" },
+          {
+            t: "text",
+            v: " jump to the first and last row. Selecting rows shows the bulk action bar with the actions every selected row allows.",
+          },
+        ],
+      },
+      { t: "h2", v: "On a record" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work on a record's full page and in the side peek, while focus is in the record.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Change the state" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Assign an owner" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Add a comment" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Edit the title" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Open the full page" },
+          ],
+          [
+            { t: "strong", v: "L" },
+            { t: "text", v: ": Copy the link" },
+          ],
+          [
+            { t: "strong", v: "Mod+Backspace" },
+            { t: "text", v: ": Move to Trash" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A key does nothing on a record that does not offer its action to you." },
+        ],
+      },
+      { t: "h2", v: "In a view" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work on a collection while focus is in it: its view switcher, its filters, your saved views and export.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "V" },
+            { t: "text", v: ": Switch the view" },
+          ],
+          [
+            { t: "strong", v: "F" },
+            { t: "text", v: ": Open the filters" },
+          ],
+          [
+            { t: "strong", v: "Shift+S" },
+            { t: "text", v: ": Save the view" },
+          ],
+          [
+            { t: "strong", v: "Shift+E" },
+            { t: "text", v: ": Export the view" },
+          ],
+        ],
+      },
+      { t: "h2", v: "In the Inbox" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Approve the focused item" },
+          ],
+          [
+            { t: "strong", v: "R" },
+            { t: "text", v: ": Reject the focused item with a reason" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Mark the focused item done" },
+          ],
+          [
+            { t: "strong", v: "H" },
+            { t: "text", v: ": Snooze the focused item until tomorrow" },
           ],
         ],
       },
@@ -1680,6 +1874,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Share a view live" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A saved Schedule, Show, Run of show or Day sheets view can be shared with people who have no account, such as a venue or a vendor.",
+          },
+        ],
+      },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Open the saved view, then choose " },
+            { t: "strong", v: "Share live" },
+            { t: "text", v: " in the Saved views menu." },
+          ],
+          [
+            {
+              t: "text",
+              v: "On an organization page, pick the project the link shows. Pick when the link expires, at most 90 days ahead, and add a note for your team if you like.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Copy the link and the 6-digit access code. They are shown only once; send the code separately from the link.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The person opens the link, enters the code once on their device, and sees the view update while they watch. The page shows only the columns a public page may show: never owners, accountable people, blockers, notes, costs or custom fields. A view that filters, sorts or groups by anything else cannot be shared live, and a link stops when its view is deleted or changed that way, or when you lose access to the project.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Regenerate" },
+          {
+            t: "text",
+            v: " gives the link a new address and code, and every device must enter the new code. ",
+          },
+          { t: "strong", v: "Revoke" },
+          {
+            t: "text",
+            v: " stops it for good. Five wrong codes lock a link; regenerate it to open it again.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1978,6 +2228,59 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "The run of show is the ordered list of segments and cues for a show. Build it ahead of time, then run it live: the current cue advances in real time for everyone watching, in Atlas and in Compass.",
+          },
+        ],
+      },
+      { t: "h3", v: "Display screens" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Put the running order on any TV or laptop with no sign-in. Open the running order, choose ",
+          },
+          { t: "strong", v: "Display screens" },
+          {
+            t: "text",
+            v: ", pick the mode the screen opens in and when the link expires (by default the end of the day after the show), and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Room clock" },
+            { t: "text", v: " shows the local time, the running cue and its time left." },
+          ],
+          [
+            { t: "strong", v: "Presenter timer" },
+            { t: "text", v: " counts the current cue down, or up when it has no duration." },
+          ],
+          [
+            { t: "strong", v: "Backstage" },
+            {
+              t: "text",
+              v: " shows the cue on now, the next cue with its planned time, the three after it, and whether the show is running late.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When a cue runs past its duration the timer turns red and reads " },
+          { t: "strong", v: "Over by" },
+          {
+            t: "text",
+            v: " the time, until the next cue is called. On the screen, keys 1, 2 and 3 switch modes, ",
+          },
+          { t: "strong", v: "Open in new window" },
+          { t: "text", v: " pops the screen out to a second display, and " },
+          { t: "strong", v: "Fullscreen" },
+          {
+            t: "text",
+            v: " fills the screen. The screen follows cues within a few seconds of them being called. Revoke the link to take it off every screen.",
           },
         ],
       },
@@ -3108,7 +3411,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted.",
+            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted. Las listas siguientes muestran las teclas predeterminadas; Mod es Cmd en una Mac y Ctrl en los demás equipos.",
           },
         ],
       },
@@ -3118,57 +3421,39 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            { t: "text", v: " o " },
+            { t: "text", v: ": Abrir el menú de comandos" },
+          ],
+          [
             { t: "strong", v: "/" },
-            {
-              t: "text",
-              v: " abre el menú de comandos. Junto al nombre de cada sección muestra sus teclas.",
-            },
+            { t: "text", v: ": Buscar páginas y ajustes" },
           ],
           [
             { t: "strong", v: "C" },
-            {
-              t: "text",
-              v: " abre el menú Crear. Lo que se crea en la página actual aparece primero, así que ",
-            },
-            { t: "strong", v: "C" },
-            { t: "text", v: " y luego " },
-            { t: "strong", v: "Enter" },
-            { t: "text", v: " lo inicia." },
-          ],
-          [
-            { t: "strong", v: "G" },
-            { t: "text", v: " y luego una letra lleva a una sección: " },
-            { t: "strong", v: "G H" },
-            { t: "text", v: " Inicio, " },
-            { t: "strong", v: "G I" },
-            { t: "text", v: " Bandeja de entrada, " },
-            { t: "strong", v: "G M" },
-            { t: "text", v: " Mi trabajo, " },
-            { t: "strong", v: "G P" },
-            { t: "text", v: " Proyectos, " },
-            { t: "strong", v: "G F" },
-            { t: "text", v: " Finanzas y más. Después de " },
-            { t: "strong", v: "G" },
-            { t: "text", v: ", una indicación muestra las letras; " },
-            { t: "strong", v: "Esc" },
-            { t: "text", v: " cancela." },
+            { t: "text", v: ": Crear algo nuevo" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: " abre la ayuda de la página actual." },
-          ],
-          [
-            { t: "strong", v: "Mod+J" },
-            { t: "text", v: " pregunta a Aurora, si su organización la activó." },
+            { t: "text", v: ": Abrir la ayuda de esta página" },
           ],
           [
             { t: "strong", v: "Mod+." },
-            { t: "text", v: " activa y desactiva el modo de enfoque." },
+            { t: "text", v: ": Activar o desactivar el modo de enfoque" },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: ": Preguntar a Aurora" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: " cierra el menú, el diálogo o el panel lateral abierto." },
+            { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
           ],
         ],
       },
@@ -3177,10 +3462,99 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
+            v: "El menú de comandos muestra las teclas de cada sección junto a su nombre, y el menú Crear pone primero lo que se crea en la página actual, así que Enter lo inicia. Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
           },
           { t: "strong", v: "Mod" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Ir a una sección" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada uno son dos teclas, una después de la otra. Después de la primera, una indicación muestra las teclas que pueden seguir; ",
+          },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cancela." },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Ir a Inicio" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Ir a la Bandeja de entrada" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Ir a Mi trabajo" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Ir a Proyectos" },
+          ],
+          [
+            { t: "strong", v: "G S" },
+            { t: "text", v: ": Ir a Cronograma" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Ir a Trabajo" },
+          ],
+          [
+            { t: "strong", v: "G O" },
+            { t: "text", v: ": Ir a Show" },
+          ],
+          [
+            { t: "strong", v: "G A" },
+            { t: "text", v: ": Ir a Coordinación previa" },
+          ],
+          [
+            { t: "strong", v: "G L" },
+            { t: "text", v: ": Ir a Logística" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Ir a Personas" },
+          ],
+          [
+            { t: "strong", v: "G C" },
+            { t: "text", v: ": Ir a Equipo técnico" },
+          ],
+          [
+            { t: "strong", v: "G F" },
+            { t: "text", v: ": Ir a Finanzas" },
+          ],
+          [
+            { t: "strong", v: "G B" },
+            { t: "text", v: ": Ir a Compras" },
+          ],
+          [
+            { t: "strong", v: "G V" },
+            { t: "text", v: ": Ir a Proveedores" },
+          ],
+          [
+            { t: "strong", v: "G K" },
+            { t: "text", v: ": Ir a Conocimiento" },
+          ],
+          [
+            { t: "strong", v: "G R" },
+            { t: "text", v: ": Ir a Informes" },
+          ],
+          [
+            { t: "strong", v: "G Y" },
+            { t: "text", v: ": Ir a Actividad" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Ir a Configuración" },
+          ],
         ],
       },
       { t: "h2", v: "En listas y tablas" },
@@ -3189,26 +3563,147 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "J" },
-            { t: "text", v: " y " },
+            { t: "text", v: ": Fila siguiente" },
+          ],
+          [
             { t: "strong", v: "K" },
-            { t: "text", v: ", o las flechas, se mueven entre filas." },
+            { t: "text", v: ": Fila anterior" },
           ],
           [
             { t: "strong", v: "Enter" },
-            { t: "text", v: " abre el registro enfocado en el panel lateral." },
+            { t: "text", v: ": Abrir el registro enfocado" },
           ],
           [
             { t: "strong", v: "X" },
+            { t: "text", v: ": Seleccionar la fila enfocada" },
+          ],
+          [
+            { t: "strong", v: "Shift+X" },
             {
               t: "text",
-              v: " selecciona la fila enfocada y aparece la barra de acciones masivas.",
+              v: ": Seleccionar las filas desde la última seleccionada hasta la enfocada",
             },
           ],
           [
-            { t: "strong", v: "Inicio" },
-            { t: "text", v: " y " },
-            { t: "strong", v: "Fin" },
-            { t: "text", v: " saltan a la primera y la última fila." },
+            { t: "strong", v: "Mod+A" },
+            { t: "text", v: ": Seleccionar todas las filas cargadas" },
+          ],
+          [
+            { t: "strong", v: "Shift+F10" },
+            { t: "text", v: ": Abrir las acciones de la fila enfocada" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las flechas también se mueven entre filas, e " },
+          { t: "strong", v: "Inicio" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Fin" },
+          {
+            t: "text",
+            v: " saltan a la primera y la última fila. Al seleccionar filas aparece la barra de acciones masivas con las acciones que permiten todas las filas seleccionadas.",
+          },
+        ],
+      },
+      { t: "h2", v: "En un registro" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en la página completa de un registro y en el panel lateral, mientras el foco está en el registro.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "S" },
+            { t: "text", v: ": Cambiar el estado" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Asignar un responsable" },
+          ],
+          [
+            { t: "strong", v: "M" },
+            { t: "text", v: ": Agregar un comentario" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Editar el título" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Abrir la página completa" },
+          ],
+          [
+            { t: "strong", v: "L" },
+            { t: "text", v: ": Copiar el enlace" },
+          ],
+          [
+            { t: "strong", v: "Mod+Retroceso" },
+            { t: "text", v: ": Mover a la papelera" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [{ t: "text", v: "Una tecla no hace nada en un registro que no le ofrece esa acción." }],
+      },
+      { t: "h2", v: "En una vista" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en una colección mientras el foco está en ella: su selector de vista, sus filtros, sus vistas guardadas y la exportación.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "V" },
+            { t: "text", v: ": Cambiar de vista" },
+          ],
+          [
+            { t: "strong", v: "F" },
+            { t: "text", v: ": Abrir los filtros" },
+          ],
+          [
+            { t: "strong", v: "Shift+S" },
+            { t: "text", v: ": Guardar la vista" },
+          ],
+          [
+            { t: "strong", v: "Shift+E" },
+            { t: "text", v: ": Exportar la vista" },
+          ],
+        ],
+      },
+      { t: "h2", v: "En la Bandeja de entrada" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Aprobar el elemento enfocado" },
+          ],
+          [
+            { t: "strong", v: "R" },
+            { t: "text", v: ": Rechazar el elemento enfocado con un motivo" },
+          ],
+          [
+            { t: "strong", v: "E" },
+            { t: "text", v: ": Marcar como hecho el elemento enfocado" },
+          ],
+          [
+            { t: "strong", v: "H" },
+            { t: "text", v: ": Posponer el elemento enfocado hasta mañana" },
           ],
         ],
       },
@@ -3872,6 +4367,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Comparta una vista en vivo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una vista guardada de Calendario, Espectáculo, Guion del espectáculo u Hojas del día se puede compartir con personas sin cuenta, como un recinto o un proveedor.",
+          },
+        ],
+      },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Abra la vista guardada y elija " },
+            { t: "strong", v: "Compartir en vivo" },
+            { t: "text", v: " en el menú de vistas guardadas." },
+          ],
+          [
+            {
+              t: "text",
+              v: "En una página de la organización, elija el proyecto que muestra el enlace. Elija cuándo vence el enlace, como máximo en 90 días, y agregue una nota para su equipo si lo desea.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Copie el enlace y el código de acceso de 6 dígitos. Se muestran una sola vez; envíe el código por separado del enlace.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La persona abre el enlace, escribe el código una vez en su dispositivo y ve la vista actualizarse mientras la mira. La página muestra solo las columnas que una página pública puede mostrar: nunca responsables, personas a cargo, bloqueos, notas, costos ni campos personalizados. Una vista que filtra, ordena o agrupa por otra cosa no se puede compartir en vivo, y un enlace se detiene cuando su vista se elimina o cambia así, o cuando usted pierde acceso al proyecto.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Regenerar" },
+          {
+            t: "text",
+            v: " da al enlace una dirección y un código nuevos, y cada dispositivo debe escribir el código nuevo. ",
+          },
+          { t: "strong", v: "Revocar" },
+          {
+            t: "text",
+            v: " lo detiene para siempre. Cinco códigos incorrectos bloquean un enlace; regenérelo para abrirlo de nuevo.",
+          },
+        ],
+      },
     ],
     schedule: [
       { t: "h2", v: "Línea de tiempo" },
@@ -4165,6 +4716,65 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Es la lista ordenada de segmentos y señales de un espectáculo. Prepárela con anticipación y ejecútela en vivo: la señal actual avanza en tiempo real para todos, en Atlas y en Compass.",
+          },
+        ],
+      },
+      { t: "h3", v: "Pantallas" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Muestre el guion en cualquier televisor o laptop sin iniciar sesión. Abra el guion, elija ",
+          },
+          { t: "strong", v: "Pantallas" },
+          {
+            t: "text",
+            v: ", elija el modo con el que abre la pantalla y cuándo vence el enlace (por defecto, al final del día siguiente al espectáculo), y copie el enlace y su código de acceso de 6 dígitos, que se muestran una sola vez. Necesita permiso para editar el guion.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Reloj de sala" },
+            { t: "text", v: " muestra la hora local, la señal en curso y el tiempo que le queda." },
+          ],
+          [
+            { t: "strong", v: "Temporizador de presentador" },
+            {
+              t: "text",
+              v: " cuenta hacia atrás la señal actual, o hacia adelante cuando no tiene duración.",
+            },
+          ],
+          [
+            { t: "strong", v: "Backstage" },
+            {
+              t: "text",
+              v: " muestra la señal en curso, la siguiente con su hora prevista, las tres que siguen y si el espectáculo va atrasado.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una señal excede su duración, el temporizador se pone rojo y dice ",
+          },
+          { t: "strong", v: "Excedido por" },
+          {
+            t: "text",
+            v: " el tiempo, hasta que se llama la siguiente señal. En la pantalla, las teclas 1, 2 y 3 cambian de modo, ",
+          },
+          { t: "strong", v: "Abrir en una ventana nueva" },
+          { t: "text", v: " lleva la pantalla a un segundo monitor y " },
+          { t: "strong", v: "Pantalla completa" },
+          {
+            t: "text",
+            v: " la llena. La pantalla sigue las señales a los pocos segundos de llamarse. Revoque el enlace para quitarlo de todas las pantallas.",
           },
         ],
       },

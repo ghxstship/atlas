@@ -1,7 +1,4 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { toDisplayKey } from "@xos/data/gateway-keys";
-import { fillRoute, flattenRoutes, isNodeVisible } from "@xos/ia";
-import { sitemap } from "../../ia/sitemap.generated";
 import { issueAdvanceLink, issueSigningLink } from "../fixtures";
 import {
   axeProblems,
@@ -14,30 +11,13 @@ import {
 } from "./checks";
 import { triage } from "./known";
 import { PEOPLE, storageStatePath } from "./roles";
+import { PUBLIC_PAGES, sweepRoutesFor } from "./routes";
 
 /**
- * Every Gateway sitemap route each external person may open (standing and engagement role type,
- * Section 4.5.8), the public profile pages, and both token flows, checked like the Atlas sweep.
+ * Every Gateway sitemap route each external person may open (Section 4.5.8), the public profile
+ * pages, and both token flows (routes.ts), checked like the Atlas sweep.
  */
 const THEMES: readonly Theme[] = ["dark", "light"];
-
-const SHARED_PARAMS: Readonly<Record<string, string>> = {
-  handle: "demo-crew",
-  companyHandle: "demo-productions",
-};
-
-/**
- * Rows each person can see in the seed: the published opportunity is invited to the crew member and
- * the seeded thread sits on the crew engagement. The vendor has neither, so its opportunity detail
- * and thread routes are left to the manual audit.
- */
-const PERSON_PARAMS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
-  crew: {
-    opportunityKey: toDisplayKey("opportunity", "01920000-0000-7000-8000-000000228101"),
-    threadKey: toDisplayKey("thread", "01920000-0000-7000-8000-000000227002"),
-  },
-  vendor: {},
-};
 
 async function checkPage(
   page: Page,
@@ -61,30 +41,13 @@ async function checkPage(
   expect(result.open).toEqual([]);
 }
 
-const sessionRoutes = flattenRoutes(sitemap).filter((r) => r.auth === "session");
-
 for (const person of PEOPLE) {
   test.describe(person.person, () => {
     test.use({ storageState: storageStatePath(person.person) });
-    const ctx = {
-      role: person.standing,
-      roleType: person.roleType,
-      // Both sweep people are paid (crew and vendor), so the paid-work pages are theirs (A59-033).
-      conditions: ["desktop" as const, "paid-work" as const],
-    };
-    const params = {
-      ...SHARED_PARAMS,
-      ...PERSON_PARAMS[person.person],
-      engagementKey: person.engagementKey,
-    };
-    const visible = sessionRoutes.filter(
-      (r) => isNodeVisible(sitemap, r.id, ctx) && r.params.every((p) => p in params),
-    );
-    for (const route of visible) {
-      const path = fillRoute(route.route, params);
-      test(`${route.id} ${path}`, async ({ page }, info) => {
-        const response = await page.goto(path);
-        expect(response?.status(), `${path} answered ${response?.status()}`).toBe(200);
+    for (const route of sweepRoutesFor(person)) {
+      test(`${route.id} ${route.path}`, async ({ page }, info) => {
+        const response = await page.goto(route.path);
+        expect(response?.status(), `${route.path} answered ${response?.status()}`).toBe(200);
         await checkPage(page, info, route.id, person.person);
       });
     }
@@ -92,7 +55,7 @@ for (const person of PEOPLE) {
 }
 
 test.describe("anonymous", () => {
-  for (const path of ["/auth/sign-in", "/auth/sign-up", "/u/demo-crew", "/c/demo-productions"]) {
+  for (const path of PUBLIC_PAGES) {
     test(`public ${path}`, async ({ page }, info) => {
       const response = await page.goto(path);
       expect(response?.status()).toBe(200);

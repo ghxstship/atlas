@@ -6,7 +6,8 @@ import type { PhaseCode, RecordState } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { phaseCode, PROJECT_STATE_ORDER, stateIcon } from "@/lib/projects/format";
+import { phaseCode, stateIcon } from "@/lib/projects/format";
+import { PROJECT_STATE_ORDER } from "@/lib/projects/state-order";
 import { Board } from "@/components/lazy-ui/board";
 import { Calendar } from "@/components/lazy-ui/calendar";
 import { Drawer } from "@/components/lazy-ui/drawer";
@@ -190,6 +191,7 @@ export function ProjectPeek({ peek, h }: { peek: ProjectSummary; h: ProjectViewH
   return (
     <Drawer
       open
+      shortcutScope="record"
       onOpenChange={(open) => (open ? undefined : setPeekKey(null))}
       title={t("peek.title", { key: peek.key, name: peek.name })}
       footer={
@@ -197,7 +199,11 @@ export function ProjectPeek({ peek, h }: { peek: ProjectSummary; h: ProjectViewH
           <Button onClick={() => router.push(projectHref(h.org, peek.key, "gates"))}>
             {t("peek.gates")}
           </Button>
-          <Button variant="primary" onClick={() => router.push(projectHref(h.org, peek.key))}>
+          <Button
+            variant="primary"
+            data-shortcut="record.open"
+            onClick={() => router.push(projectHref(h.org, peek.key))}
+          >
             {t("peek.openProject")}
           </Button>
         </>

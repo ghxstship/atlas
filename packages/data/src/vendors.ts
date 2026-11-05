@@ -10,6 +10,7 @@ import {
   type Transition,
 } from "./commercial-common.ts";
 import { fail, ok, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Vendors repository (Section 4.2 Vendors, Section 7.4): the vendor facet of a counterparty with
@@ -22,13 +23,7 @@ type Tables = Database["app"]["Tables"];
 export type VendorState = Database["app"]["Enums"]["vendor_state"];
 export type ApprovalDecision = Database["app"]["Enums"]["approval_decision"];
 
-export const VENDOR_STATES: readonly VendorState[] = [
-  "Prospect",
-  "Onboarded",
-  "Active",
-  "Blocked",
-  "Canceled",
-];
+export const VENDOR_STATES: readonly VendorState[] = enums.vendorState;
 
 /** A lifecycle rule as the database states it. */
 export interface TransitionRule<S extends string = string> {
@@ -49,6 +44,18 @@ export async function listTransitionRules<S extends string>(
 
 // Vendors ------------------------------------------------------------------------------------------
 
+/**
+ * A vendor's mailing address (migration 3320). Every field is null when none is recorded; the
+ * country is set whenever any other field is, and the postal code fits it.
+ */
+export interface VendorAddress {
+  readonly countryCode: string | null;
+  readonly streetAddress: string | null;
+  readonly locality: string | null;
+  readonly administrativeArea: string | null;
+  readonly postalCode: string | null;
+}
+
 export interface Vendor {
   readonly id: string;
   readonly counterpartyId: string;
@@ -58,13 +65,14 @@ export interface Vendor {
   readonly state: VendorState;
   readonly paymentTermsDays: number | null;
   readonly defaultCurrencyCode: string | null;
+  readonly address: VendorAddress;
   readonly classIds: readonly string[];
   readonly createdAt: string;
   readonly createdBy: string | null;
 }
 
 const VENDOR_COLUMNS =
-  "id, counterparty_id, vendor_state, payment_terms_days, default_currency_code, created_at, created_by, counterparty:counterparties!inner(counterparty_name, counterparty_type), vendor_class_assignments(vendor_class_id, deleted_at)" as const;
+  "id, counterparty_id, vendor_state, payment_terms_days, default_currency_code, country_code, street_address, locality, administrative_area, postal_code, created_at, created_by, counterparty:counterparties!inner(counterparty_name, counterparty_type), vendor_class_assignments(vendor_class_id, deleted_at)" as const;
 
 interface VendorRow {
   id: string;
@@ -72,6 +80,11 @@ interface VendorRow {
   vendor_state: VendorState;
   payment_terms_days: number | null;
   default_currency_code: string | null;
+  country_code: string | null;
+  street_address: string | null;
+  locality: string | null;
+  administrative_area: string | null;
+  postal_code: string | null;
   created_at: string;
   created_by: string | null;
   counterparty: { counterparty_name: string | null; counterparty_type: string | null } | null;
@@ -87,6 +100,13 @@ function toVendor(row: VendorRow): Vendor {
     state: row.vendor_state,
     paymentTermsDays: row.payment_terms_days,
     defaultCurrencyCode: row.default_currency_code,
+    address: {
+      countryCode: row.country_code,
+      streetAddress: row.street_address,
+      locality: row.locality,
+      administrativeArea: row.administrative_area,
+      postalCode: row.postal_code,
+    },
     classIds: (row.vendor_class_assignments ?? [])
       .filter((a) => a.deleted_at === null)
       .map((a) => a.vendor_class_id),
@@ -194,6 +214,30 @@ export async function updateVendor(
       .update({
         payment_terms_days: input.paymentTermsDays,
         default_currency_code: blankToNull(input.defaultCurrencyCode),
+      })
+      .eq("id", id)
+      .select("id"),
+  );
+}
+
+/**
+ * Records or clears a vendor's mailing address. The database refuses a postal code that does not fit
+ * the country (postal_code_invalid) and address fields without a country.
+ */
+export async function updateVendorAddress(
+  db: XosClient,
+  id: string,
+  address: VendorAddress,
+): Promise<Result<null>> {
+  return touched(
+    db
+      .from("vendors")
+      .update({
+        country_code: blankToNull(address.countryCode),
+        street_address: blankToNull(address.streetAddress),
+        locality: blankToNull(address.locality),
+        administrative_area: blankToNull(address.administrativeArea),
+        postal_code: blankToNull(address.postalCode),
       })
       .eq("id", id)
       .select("id"),
@@ -845,13 +889,7 @@ export async function addVendorBankAccount(
 export type SponsorAssetKind = Database["app"]["Enums"]["sponsor_asset_kind"];
 export type ReviewState = Database["app"]["Enums"]["review_state"];
 
-export const SPONSOR_ASSET_KINDS: readonly SponsorAssetKind[] = [
-  "Logo",
-  "Artwork",
-  "Copy",
-  "Video",
-  "Other",
-];
+export const SPONSOR_ASSET_KINDS: readonly SponsorAssetKind[] = enums.sponsorAssetKind;
 
 export interface SponsorAsset {
   readonly id: string;

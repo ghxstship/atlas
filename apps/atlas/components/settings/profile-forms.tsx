@@ -22,6 +22,7 @@ import {
 } from "@/app/[org]/settings/people-actions";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import * as enums from "@xos/data/enums";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Catalog lookups with keys built at run time (refusal rules, sections); next-intl types only literals. */
@@ -173,7 +174,7 @@ export function ProfileForm(props: ProfileFormProps) {
             name="rateUnit"
             label={t("fields.rateUnit")}
             value={p.rateUnit || "Day"}
-            options={(["Hour", "Day", "Week", "Project"] as const).map((u) => ({
+            options={enums.rateUnit.map((u) => ({
               value: u,
               label: t(`rateUnits.${u}`),
             }))}
@@ -206,7 +207,7 @@ export function PrivacyForm(props: PrivacyFormProps) {
   const t = useCopy("profiles");
   const [state, action, pending] = useActionState(savePrivacyAction, INITIAL);
   const [visibility, setVisibility] = useState(props.visibility);
-  const levels = ["Private", "Network", "Public"] as const;
+  const levels = enums.profileVisibility;
   const sectionSelect = (s: PrivacyFormProps["sections"][number]) => (
     <Select
       key={s.section}
@@ -473,7 +474,7 @@ export function OrgProfileForm(props: OrgProfileFormProps) {
         help={t(`privacy.orgVisibilityHelp.${visibility}`)}
         value={props.profile.visibility}
         disabled={disabled}
-        options={(["Private", "Network", "Public"] as const).map((v) => ({
+        options={enums.profileVisibility.map((v) => ({
           value: v,
           label: t(`visibility.${v}`),
         }))}

@@ -1,4 +1,5 @@
 import {
+  budgetCommittedTotal,
   convertMinor,
   findFxRate,
   fxRateAgeDays,
@@ -11,6 +12,7 @@ import {
   listGrades,
   listUridOptions,
   nullAwareSum,
+  type BudgetLine,
   type BudgetSummary,
 } from "@xos/data/finance";
 import { getNode } from "@xos/ia";
@@ -18,7 +20,11 @@ import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter, getLocale } from "next-intl/server";
 import { PageHeader, TemplateCollection, TemplateGridEditor } from "./ui";
+import { CustomFieldList } from "@/components/custom-fields/list";
 import { collectionPeek } from "@/components/shell/collection-peek";
+import { customFieldList, hasCustomFields } from "@/lib/custom-fields/server";
+import type { CustomFieldListView } from "@/lib/custom-fields/types";
+import { clearConditions, filterBudgetLines, hasConditions } from "@/lib/finance/filtered-lines";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { exponentOf, getExponents, moneyFormatter } from "@/lib/finance/money";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -48,7 +54,9 @@ import { RecordCollab } from "./record";
  * budget's lines in the spreadsheet grid (the default view, Section 11.15), and the budget as a matrix
  * of GL account by cost center. Totals are NULL-aware with the unpriced count beside them and are
  * revised by approved change orders; any figure can be shown in another currency at a recorded rate
- * with the rate date, and an unpriced figure stays Unpriced (journey 37).
+ * with the rate date, and an unpriced figure stays Unpriced (journey 37). In the grid and the matrix the
+ * org's filterable custom fields on budget lines (tags, 3872) show as columns and filter the lines through Add
+ * filter; the figures always cover the whole budget.
  */
 export async function BudgetsView({ page }: { page: FinancePage }) {
   const { ctx, access, query } = page;
@@ -114,13 +122,22 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
     />
   );
 
-  const totalsFigures = (b: BudgetSummary, target: string | null, rate: number | null) => {
+  const totalsFigures = (
+    b: BudgetSummary,
+    lines: readonly BudgetLine[],
+    target: string | null,
+    rate: number | null,
+  ) => {
     const cur = target ?? b.currency;
     const conv = (v: number | null) =>
       rate === null || target === null
         ? v
         : convertMinor(v, rate, exponentOf(exponents, b.currency), exponentOf(exponents, target));
     const variance = b.revisedTotalMinor === null ? null : b.revisedTotalMinor - b.actualMinor;
+    // Committed is withheld, never partial, when any line's purchase orders are hidden from the viewer,
+    // and Unpriced when a counted order line has no price (approval refuses those, so it is rare).
+    const committed = budgetCommittedTotal(lines);
+    const committedWithheld = lines.some((l) => l.committedWithheld);
     return [
       {
         label: t("finance.budgets.figures.total"),
@@ -141,6 +158,22 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
       },
       { label: t("finance.budgets.figures.revised"), value: money(conv(b.revisedTotalMinor), cur) },
       {
+        label: t("finance.budgets.figures.committed"),
+        value: committed
+          ? money(conv(committed.totalMinor), cur)
+          : committedWithheld
+            ? t("finance.budgets.figures.withheld")
+            : t("finance.budgets.figures.unpriced"),
+        caption: committed
+          ? t("finance.budgets.figures.committedCaption", {
+              count: committed.committedLineCount,
+              other: committed.otherCurrencyLineCount,
+            })
+          : committedWithheld
+            ? t("finance.budgets.committedWithheld")
+            : t("finance.budgets.figures.committedUnpricedCaption"),
+      },
+      {
         label: t("finance.budgets.figures.actual"),
         value: money(conv(b.actualMinor), cur),
         caption:
@@ -153,6 +186,8 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
   };
 
   let body;
+  // The budget lines' custom fields, for the grid and the matrix only; the table lists budgets, not lines.
+  let lineFieldView: CustomFieldListView | null = null;
   if (shown.length === 0) {
     body = (
       <EmptyPanel
@@ -218,18 +253,35 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
       </Section>
     );
   } else {
-    const [detail, urids, accounts, centers, grades, rates] = await Promise.all([
-      getBudget(db, ctx.org.id, selected.id),
-      listUridOptions(db),
-      listGlAccounts(db),
-      listCostCenters(db, ctx.org.id),
-      listGrades(db),
-      listFxRates(db, ctx.org.id),
-    ]);
+    const [detail, urids, accounts, centers, grades, rates, custom, lineFields] = await Promise.all(
+      [
+        getBudget(db, ctx.org.id, selected.id),
+        listUridOptions(db),
+        listGlAccounts(db),
+        listCostCenters(db, ctx.org.id),
+        listGrades(db),
+        listFxRates(db, ctx.org.id),
+        customFieldList(ctx, "app.budget_lines", query.extra),
+        canWrite ? hasCustomFields(ctx, "app.budget_lines") : Promise.resolve(false),
+      ],
+    );
     if (!detail.ok || !urids.ok || !accounts.ok || !centers.ok || !grades.ok || !rates.ok) {
       body = <ErrorPanel sentence={t("finance.budgets.loadError")} />;
     } else {
       const b = detail.data.budget;
+      const lines = filterBudgetLines(detail.data.lines, custom.keep, hasConditions(query.extra));
+      lineFieldView = await custom.view(lines.shown.map((l) => l.id));
+      const filteredNote = lines.filtered ? (
+        <p role="status" className="m-0 flex flex-wrap items-center gap-8 text-text-13">
+          {t("finance.budgets.filteredLines", { shown: lines.shown.length, total: lines.total })}
+          <Link
+            className="text-accent-text underline"
+            href={withQuery(page, clearConditions(query.extra)) as Route}
+          >
+            {t("finance.common.clearFilters")}
+          </Link>
+        </p>
+      ) : null;
       const target =
         query.extra["in"] && query.extra["in"] !== b.currency ? query.extra["in"] : null;
       const today = await orgToday(ctx);
@@ -275,7 +327,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
           <>
             <Figures
               label={t("finance.budgets.figures.label")}
-              items={totalsFigures(b, target, fx?.rate ?? null)}
+              items={totalsFigures(b, detail.data.lines, target, fx?.rate ?? null)}
             />
             {fx && target ? (
               <p className="m-0 text-text-12 text-text-secondary">
@@ -302,15 +354,13 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
         const centerCode = new Map(centers.data.map((c) => [c.id, c.code]));
         const cols = [
           ...new Set(
-            detail.data.lines.map((l) =>
-              l.costCenterId ? (centerCode.get(l.costCenterId) ?? "") : "",
-            ),
+            lines.shown.map((l) => (l.costCenterId ? (centerCode.get(l.costCenterId) ?? "") : "")),
           ),
         ].sort();
-        const accts = [...new Set(detail.data.lines.map((l) => l.accountCode ?? ""))].sort();
+        const accts = [...new Set(lines.shown.map((l) => l.accountCode ?? ""))].sort();
         const cell = (account: string, center: string) =>
           nullAwareSum(
-            detail.data.lines
+            lines.shown
               .filter(
                 (l) =>
                   (l.accountCode ?? "") === account &&
@@ -323,6 +373,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
           <div className="flex flex-col gap-12">
             {switcher}
             {figures}
+            {filteredNote}
             <SimpleTable
               caption={t("finance.budgets.matrixCaption", { budget: b.name })}
               head={[
@@ -341,7 +392,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
                 }),
                 money(
                   nullAwareSum(
-                    detail.data.lines
+                    lines.shown
                       .filter((l) => (l.accountCode ?? "") === a)
                       .map((l) => l.extendedMinor),
                   ).total,
@@ -353,7 +404,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
                 ...cols.map((c) =>
                   money(
                     nullAwareSum(
-                      detail.data.lines
+                      lines.shown
                         .filter(
                           (l) =>
                             (l.costCenterId ? (centerCode.get(l.costCenterId) ?? "") : "") === c,
@@ -363,7 +414,8 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
                     b.currency,
                   ),
                 ),
-                money(b.totalMinor, b.currency),
+                // While conditions apply the footer adds up the shown lines; the figures stay whole-budget.
+                money(lines.filtered ? lines.subtotal.total : b.totalMinor, b.currency),
               ]}
             />
           </div>
@@ -382,15 +434,27 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
                 </h2>
                 {switcher}
                 {figures}
+                {filteredNote}
               </div>
             }
           >
             <BudgetEditor
               org={ctx.org.slug}
               budgetId={b.id}
+              projectId={b.projectId}
+              me={
+                ctx.viewer.person
+                  ? {
+                      key: ctx.viewer.person.id,
+                      name: ctx.viewer.person.fullName ?? t("collab.history.someone"),
+                    }
+                  : null
+              }
               currency={b.currency}
               exponent={exponentOf(exponents, b.currency)}
-              lines={detail.data.lines}
+              lines={lines.shown}
+              allLines={detail.data.lines}
+              lineFields={lineFields}
               urids={urids.data}
               accounts={accounts.data}
               costCenters={centers.data.map((c) => ({ id: c.id, code: c.code, name: c.name }))}
@@ -403,93 +467,96 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
     }
   }
 
+  // The grid's Add filter and its custom field columns read the budget lines' fields (A117 CollectionViews).
   return (
-    <TemplateCollection
-      header={header}
-      filters={filters}
-      // The full page (`&full=1`) shows the `?peek` budget's grid; a key with no budget goes to the
-      // shell's peek.
-      peek={collectionPeek(
-        query.full ? null : query.peek,
-        peek && !query.full ? (
-          <RecordPeek
-            kindLabel={t("finance.budgets.kind")}
-            recordKey={peek.projectKey ?? ""}
-            title={peek.name}
-            state={peek.isBaseline ? "complete" : "active"}
-            stateLabel={
-              peek.isBaseline ? t("finance.budgets.baseline") : t("finance.budgets.working")
-            }
-            properties={[
-              {
-                label: t("finance.common.project"),
-                value: `${peek.projectKey ?? ""} · ${peek.projectName ?? ""}`,
-              },
-              { label: t("finance.common.currency"), value: peek.currency },
-              {
-                label: t("finance.budgets.figures.total"),
-                value: money(peek.totalMinor, peek.currency),
-              },
-              { label: t("finance.budgets.columns.unpriced"), value: String(peek.unpricedCount) },
-              {
-                label: t("finance.budgets.figures.revised"),
-                value: money(peek.revisedTotalMinor, peek.currency),
-              },
-              {
-                label: t("finance.budgets.figures.actual"),
-                value: money(peek.actualMinor, peek.currency),
-              },
-            ]}
-          >
-            <div className="flex flex-wrap gap-8">
-              <Link
-                className="text-text-13 text-accent-text underline"
-                href={
-                  withQuery(page, { view: "spreadsheet", budget: peek.id, peek: null }) as Route
-                }
-              >
-                {t("finance.budgets.openGrid")}
-              </Link>
-              {canWrite ? <EditButton label={t("finance.common.edit")} /> : null}
-              {canWrite ? (
-                <InlineActionButton
-                  action={deleteBudgetAction}
-                  fields={{ org: ctx.org.slug, id: peek.id }}
-                  label={t("finance.budgets.delete")}
-                  variant="danger"
-                  icon="Trash2"
-                />
-              ) : null}
-            </div>
-            <RecordCollab ctx={ctx} table="app.budgets" id={peek.id} canUpload={canWrite} />
-          </RecordPeek>
-        ) : null,
-      )}
-    >
-      {body}
-      {query.create && canWrite ? (
-        <FormSheet title={t("finance.budgets.create")} flag="create">
-          <BudgetForm
-            org={ctx.org.slug}
-            projects={page.projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
-            projectId={page.project?.id ?? null}
-            currencies={currencies}
-            defaultCurrency={page.project?.currency || "USD"}
-          />
-        </FormSheet>
-      ) : null}
-      {query.edit && peek && canWrite ? (
-        <FormSheet title={t("finance.budgets.edit")} flag="edit">
-          <BudgetForm
-            org={ctx.org.slug}
-            projects={[]}
-            projectId={peek.projectId}
-            currencies={currencies}
-            defaultCurrency={peek.currency}
-            budget={{ id: peek.id, name: peek.name, isBaseline: peek.isBaseline }}
-          />
-        </FormSheet>
-      ) : null}
-    </TemplateCollection>
+    <CustomFieldList value={lineFieldView}>
+      <TemplateCollection
+        header={header}
+        filters={filters}
+        // The full page (`&full=1`) shows the `?peek` budget's grid; a key with no budget goes to the
+        // shell's peek.
+        peek={collectionPeek(
+          query.full ? null : query.peek,
+          peek && !query.full ? (
+            <RecordPeek
+              kindLabel={t("finance.budgets.kind")}
+              recordKey={peek.projectKey ?? ""}
+              title={peek.name}
+              state={peek.isBaseline ? "complete" : "active"}
+              stateLabel={
+                peek.isBaseline ? t("finance.budgets.baseline") : t("finance.budgets.working")
+              }
+              properties={[
+                {
+                  label: t("finance.common.project"),
+                  value: `${peek.projectKey ?? ""} · ${peek.projectName ?? ""}`,
+                },
+                { label: t("finance.common.currency"), value: peek.currency },
+                {
+                  label: t("finance.budgets.figures.total"),
+                  value: money(peek.totalMinor, peek.currency),
+                },
+                { label: t("finance.budgets.columns.unpriced"), value: String(peek.unpricedCount) },
+                {
+                  label: t("finance.budgets.figures.revised"),
+                  value: money(peek.revisedTotalMinor, peek.currency),
+                },
+                {
+                  label: t("finance.budgets.figures.actual"),
+                  value: money(peek.actualMinor, peek.currency),
+                },
+              ]}
+            >
+              <div className="flex flex-wrap gap-8">
+                <Link
+                  className="text-text-13 text-accent-text underline"
+                  href={
+                    withQuery(page, { view: "spreadsheet", budget: peek.id, peek: null }) as Route
+                  }
+                >
+                  {t("finance.budgets.openGrid")}
+                </Link>
+                {canWrite ? <EditButton label={t("finance.common.edit")} /> : null}
+                {canWrite ? (
+                  <InlineActionButton
+                    action={deleteBudgetAction}
+                    fields={{ org: ctx.org.slug, id: peek.id }}
+                    label={t("finance.budgets.delete")}
+                    variant="danger"
+                    icon="Trash2"
+                  />
+                ) : null}
+              </div>
+              <RecordCollab ctx={ctx} table="app.budgets" id={peek.id} canUpload={canWrite} />
+            </RecordPeek>
+          ) : null,
+        )}
+      >
+        {body}
+        {query.create && canWrite ? (
+          <FormSheet title={t("finance.budgets.create")} flag="create">
+            <BudgetForm
+              org={ctx.org.slug}
+              projects={page.projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+              projectId={page.project?.id ?? null}
+              currencies={currencies}
+              defaultCurrency={page.project?.currency || "USD"}
+            />
+          </FormSheet>
+        ) : null}
+        {query.edit && peek && canWrite ? (
+          <FormSheet title={t("finance.budgets.edit")} flag="edit">
+            <BudgetForm
+              org={ctx.org.slug}
+              projects={[]}
+              projectId={peek.projectId}
+              currencies={currencies}
+              defaultCurrency={peek.currency}
+              budget={{ id: peek.id, name: peek.name, isBaseline: peek.isBaseline }}
+            />
+          </FormSheet>
+        ) : null}
+      </TemplateCollection>
+    </CustomFieldList>
   );
 }

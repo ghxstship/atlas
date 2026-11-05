@@ -1,5 +1,6 @@
 import { unwrap, type DbClient } from "../../framework/db.ts";
 import { IntegrationError } from "../../framework/errors.ts";
+import type { Database } from "@xos/data/database.types";
 
 /** One Universal Posting Line waiting for export (app.integration_ledger_queue, migration 0610). */
 export interface LedgerLine {
@@ -31,7 +32,7 @@ export interface QueuedPayment {
   readonly paymentId: string;
   readonly counterpartyId: string;
   readonly counterpartyExternalId: string | null;
-  readonly direction: "Payable" | "Receivable";
+  readonly direction: Database["app"]["Enums"]["money_direction"];
   readonly amountMinor: bigint;
   readonly currencyCode: string;
   readonly exponent: number;
@@ -49,7 +50,7 @@ export interface PaymentApplication {
 export interface ProviderPayment {
   readonly externalId: string;
   readonly counterpartyExternalId: string;
-  readonly direction: "Payable" | "Receivable";
+  readonly direction: Database["app"]["Enums"]["money_direction"];
   readonly amountMinor: bigint;
   readonly currencyCode: string;
   readonly paidOn: string;
@@ -95,7 +96,7 @@ interface PaymentRow {
   payment_id: string;
   counterparty_id: string;
   counterparty_external_id: string | null;
-  direction: "Payable" | "Receivable";
+  direction: Database["app"]["Enums"]["money_direction"];
   amount_minor: number | string;
   currency_code: string;
   minor_unit_exponent: number;

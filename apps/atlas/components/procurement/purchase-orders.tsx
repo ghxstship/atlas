@@ -1,4 +1,5 @@
 import { nextStates } from "@xos/data/commercial-common";
+import { listBudgetLineRefs } from "@xos/data/finance";
 import {
   getPoAcknowledgment,
   getPurchaseOrderTotals,
@@ -45,6 +46,7 @@ import {
 import { recordStateOf, type KitRow, type ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
+import { purchaseOrderBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   collectionState,
@@ -55,11 +57,12 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { DocumentActions } from "@/components/documents/document-actions";
+import * as enums from "@xos/data/enums";
 import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
-const STATES: readonly PoState[] = ["Proposed", "Approved", "Sent", "Closed", "Canceled"];
+const STATES: readonly PoState[] = enums.poState;
 
 /**
  * Procurement > Purchase orders (journeys 4, 5 and 30): orders with NULL-aware totals, lines that
@@ -268,6 +271,7 @@ export async function PurchaseOrdersSection({
         ) : null
       }
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "orders")}
+      bulk={purchaseOrderBulk(ctx.org.slug, ctx.capabilities, t)}
     >
       {drawer}
     </CollectionView>
@@ -296,7 +300,7 @@ async function PurchaseOrderRecord({
   canWrite: boolean;
 }) {
   const db = ctx.viewer.db;
-  const [format, lines, totals, ack, changes, receipts, submittals] = await Promise.all([
+  const [format, lines, totals, ack, changes, receipts, submittals, refs] = await Promise.all([
     getFormatter(),
     listPoLines(db, order.id),
     getPurchaseOrderTotals(db, order.id),
@@ -304,6 +308,7 @@ async function PurchaseOrderRecord({
     listPoChangeOrders(db, order.id),
     listGoodsReceipts(db, ctx.org.id, order.id),
     listSubmittals(db, ctx.org.id, { purchaseOrderId: order.id }),
+    listBudgetLineRefs(db, { orgId: ctx.org.id, projectId: order.projectId }),
   ]);
   if (!lines.ok || !totals.ok || !ack.ok || !changes.ok || !receipts.ok || !submittals.ok) {
     return <ErrorPanel what={t("orders.what")} />;
@@ -312,6 +317,15 @@ async function PurchaseOrderRecord({
   const date = (d: string) =>
     format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
   const receivable = order.state === "Approved" || order.state === "Sent";
+  // Budget lines of the order's project a line can commit (Section 4.2, gap G-204). Row level security
+  // returns none to a viewer without finance.budget.read, and the field and column then stay hidden.
+  const budgetLines = refs.ok ? refs.data : [];
+  const budgetLineLabel = new Map(
+    budgetLines.map((b) => [
+      b.id,
+      `${b.budgetName} · ${b.lineNumber} · ${b.description} (${b.currency})`,
+    ]),
+  );
   return (
     <RecordPage
       backHref={backHref}
@@ -347,6 +361,9 @@ async function PurchaseOrderRecord({
               { key: "unit", label: t("lines.unitPrice") },
               { key: "extended", label: t("lines.extended") },
               { key: "received", label: t("lines.received"), type: "number" },
+              ...(budgetLines.length > 0
+                ? [{ key: "budgetLine", label: t("orders.commitsLine"), wrap: true }]
+                : []),
             ]}
             rows={lines.data.map((l) => ({
               n: l.lineNumber,
@@ -355,6 +372,7 @@ async function PurchaseOrderRecord({
               unit: money(l.unitPriceMinor, order.currencyCode),
               extended: money(l.extendedMinor, order.currencyCode),
               received: l.receivedQuantity,
+              budgetLine: l.budgetLineId ? (budgetLineLabel.get(l.budgetLineId) ?? "") : "",
             }))}
             totals={{
               description: t("orders.total"),
@@ -411,6 +429,30 @@ async function PurchaseOrderRecord({
                   label: t("lines.unitPrice"),
                   unit: order.currencyCode,
                 },
+                ...(budgetLines.length > 0
+                  ? [
+                      {
+                        kind: "select" as const,
+                        name: "budgetLineId",
+                        label: t("lines.budgetLine"),
+                        defaultValue: "",
+                        options: [
+                          { value: "", label: t("lines.budgetLineNone") },
+                          ...budgetLines.map((b) => {
+                            const label = budgetLineLabel.get(b.id) ?? b.description;
+                            return {
+                              value: b.id,
+                              // An order in another currency is counted, never summed, into Committed.
+                              label:
+                                b.currency === order.currencyCode
+                                  ? label
+                                  : t("lines.budgetLineOtherCurrency", { label }),
+                            };
+                          }),
+                        ],
+                      },
+                    ]
+                  : []),
               ]}
             />
           </>
@@ -449,7 +491,7 @@ async function PurchaseOrderRecord({
                       />
                     ) : null}
                     {ctx.capabilities.has("finance.po.approve")
-                      ? (["Approved", "Rejected"] as const).map((decision) => (
+                      ? enums.approvalDecision.map((decision) => (
                           <ActionButton
                             key={decision}
                             action={decideChangeOrderAction}

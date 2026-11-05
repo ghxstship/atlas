@@ -185,6 +185,34 @@ function webhookStore(db) {
     },
   };
 }
+/**
+ * Kinds sent as the platform rather than the org (A138, Section 12): a person's sign-in security
+ * notices (account.*, which 2050 sends in whichever org they chose last), the org's XOS billing, trial
+ * and white label plan notices, and XOS deleting or recovering the org. Their email keeps the
+ * platform brand, sender and no org reply-to while white label is in force.
+ */
+var PLATFORM_KIND_PREFIXES = [
+  "account.",
+  "billing.",
+  "organization.white_label_",
+  "organization.deletion_",
+];
+function isPlatformEmailKind(kind) {
+  return PLATFORM_KIND_PREFIXES.some((prefix) => kind.startsWith(prefix));
+}
+/**
+ * A From header: the display name without control characters, quoted when it holds a character
+ * RFC 5322 reserves (an org's sender name may hold a comma or a parenthesis).
+ */
+function mailbox(name, address) {
+  const clean = Array.from(name, (c) => {
+    const code = c.charCodeAt(0);
+    return code < 32 || code === 127 ? " " : c;
+  })
+    .join("")
+    .trim();
+  return `${/[()<>[\]:;@\\,."]/.test(clean) ? `"${clean.replace(/["\\]/g, "\\$&")}"` : clean} <${address}>`;
+}
 /** The Gateway link of a notification for an external party, or null. */
 function gatewayLink(claim, gatewayUrl) {
   const path = claim.messageArgs["gatewayPath"];
@@ -238,16 +266,37 @@ function notificationStore(db, options) {
         subjectId: optionalText(row, "subject_id"),
       }));
     },
-    async senderFor(orgId, personId) {
+    async senderFor(orgId, personId, kind) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
       const slug = text(org, "slug");
       const name = text(org, "name");
+      const brand =
+        kind !== void 0 && isPlatformEmailKind(kind)
+          ? void 0
+          : rows(await db.rpc("email_brand_for_org", { p_org_id: orgId }))[0];
+      const logoPath = optionalText(brand, "logo_path");
+      const accentHex = optionalText(brand, "accent_hex");
+      const replyTo = optionalText(brand, "reply_to");
+      const assets = options.brandAssetUrl?.replace(/\/$/, "");
       return {
-        orgName: name,
+        orgName: optionalText(brand, "brand_name") ?? name,
         postalAddress: options.postalAddress,
         preferencesUrl: `${options.appUrl}/${slug}/me/notifications`,
         unsubscribeUrl: await options.unsubscribeUrl(orgId, personId, "notification"),
-        from: `${name} <${options.fromAddress}>`,
+        from: mailbox(optionalText(brand, "sender_name") ?? name, options.fromAddress),
+        ...(replyTo === null ? {} : { replyTo }),
+        ...(brand === void 0
+          ? {}
+          : {
+              brand: {
+                ...(logoPath === null || !assets
+                  ? {}
+                  : {
+                      logoUrl: `${assets}/${logoPath.split("/").map(encodeURIComponent).join("/")}`,
+                    }),
+                ...(accentHex === null ? {} : { accentHex }),
+              },
+            }),
       };
     },
     recipient: (personId, orgId) => recipientProfile(db, personId, orgId),

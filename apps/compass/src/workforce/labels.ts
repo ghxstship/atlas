@@ -30,6 +30,7 @@ import {
   type UnitSystem,
 } from "@xos/i18n/units";
 import { countKey } from "../runtime/i18n";
+import { Constants } from "@xos/data/database.types";
 
 export type T = (key: string, values?: Record<string, string | number>) => string;
 
@@ -89,7 +90,7 @@ export function feedLabels(t: T): FeedScreenLabels {
     vote: t(`${C}.feed.vote`),
     voted: t(`${C}.feed.voted`),
     comments: t(`${C}.feed.comments`),
-    kinds: record(["Announcement", "Update", "Poll", "Recognition"], t, `${C}.feed.kinds`),
+    kinds: record(Constants.app.Enums.feed_post_kind, t, `${C}.feed.kinds`),
     reaction: (code, count, mine) =>
       t(mine ? `${C}.feed.reactionMine` : `${C}.feed.reaction`, {
         name: t(`${C}.feed.reactions.${code}`),
@@ -163,8 +164,8 @@ export function eventsLabels(t: T): EventsScreenLabels {
     failed: t(`${C}.common.failed`),
     checkIn: t(`${C}.events.checkIn`),
     checkedIn: t(`${C}.events.checkedIn`),
-    kinds: record(["Briefing", "Crew Call", "Meeting"], t, `${C}.events.kinds`),
-    responses: record(["Going", "Maybe", "Declined"], t, `${C}.events.responses`),
+    kinds: record(Constants.app.Enums.workforce_event_kind, t, `${C}.events.kinds`),
+    responses: record(Constants.app.Enums.rsvp_response, t, `${C}.events.responses`),
     phases: {
       canceled: t(`${C}.events.phases.canceled`),
       past: t(`${C}.events.phases.past`),
@@ -292,12 +293,8 @@ export function helpDeskLabels(t: T): HelpDeskScreenLabels {
     body: t(`${C}.helpDesk.body`),
     send: t(`${C}.helpDesk.send`),
     overdue: t(`${C}.helpDesk.overdue`),
-    states: record(["Open", "Waiting", "Resolved", "Closed"], t, `${C}.helpDesk.states`),
-    categories: record(
-      ["Question", "Problem", "Access", "Billing", "Account", "Feature Request"],
-      t,
-      `${C}.helpDesk.categories`,
-    ),
+    states: record(Constants.app.Enums.support_ticket_state, t, `${C}.helpDesk.states`),
+    categories: record(Constants.app.Enums.support_category, t, `${C}.helpDesk.categories`),
     meta: (number, assignee, createdAt) =>
       t(assignee ? `${C}.helpDesk.metaAssigned` : `${C}.helpDesk.meta`, {
         number,
@@ -362,8 +359,8 @@ export function weatherLabels(t: T, units: WeatherUnits = STORED_IMPERIAL): Weat
     value: (unit) => t(`${C}.weather.value`, { unit: symbol(unit) }),
     valueError: t(`${C}.weather.valueError`),
     save: t(`${C}.weather.save`),
-    hazards: record(["Wind", "Lightning", "Heat"], t, `${C}.weather.hazards`),
-    levels: record(["Monitor", "Restrict", "Evacuate"], t, `${C}.weather.levels`),
+    hazards: record(Constants.app.Enums.weather_hazard, t, `${C}.weather.hazards`),
+    levels: record(Constants.app.Enums.weather_alert_level, t, `${C}.weather.levels`),
     alertLine: (hazard, level, issuedAt) =>
       t(`${C}.weather.alertLine`, { hazard, level, time: when(issuedAt) }),
     readingLine: (value, unit, observedAt) =>
@@ -421,12 +418,8 @@ export function lostFoundLabels(t: T): LostFoundScreenLabels {
     foundLocation: t(`${C}.lostFound.foundLocation`),
     storageLocation: t(`${C}.lostFound.storageLocation`),
     save: t(`${C}.lostFound.save`),
-    categories: record(
-      ["Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Wallet", "Other"],
-      t,
-      `${C}.lostFound.categories`,
-    ),
-    states: record(["Logged", "Claimed", "Returned", "Disposed"], t, `${C}.lostFound.states`),
+    categories: record(Constants.app.Enums.lost_item_category, t, `${C}.lostFound.categories`),
+    states: record(Constants.app.Enums.lost_item_state, t, `${C}.lostFound.states`),
     itemTitle: (category, description) => t(`${C}.lostFound.itemTitle`, { category, description }),
     meta: (number, foundLocation, openClaims) =>
       t(`${C}.lostFound.meta`, { number, place: foundLocation, count: openClaims }),

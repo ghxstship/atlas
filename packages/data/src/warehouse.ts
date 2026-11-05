@@ -12,6 +12,7 @@ import {
   type Raw,
 } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Settings, Integrations: warehouse delivery and provider webhooks, as the signed-in person (A83, RRR-128;
@@ -20,10 +21,9 @@ import { untyped } from "./untyped.ts";
  * events and webhook secrets need org.integrations.manage.
  */
 
-export type WarehouseProvider =
-  "S3" | "Google Cloud Storage" | "Azure Blob" | "BigQuery" | "Snowflake";
-export type WarehouseFormat = "Parquet" | "CSV";
-export type WarehouseDeliveryState = "Queued" | "Running" | "Delivered" | "Retrying" | "Failed";
+export type WarehouseProvider = Database["app"]["Enums"]["warehouse_provider"];
+export type WarehouseFormat = Database["app"]["Enums"]["warehouse_file_format"];
+export type WarehouseDeliveryState = Database["app"]["Enums"]["warehouse_delivery_state"];
 
 export interface WarehouseProviderOption {
   readonly provider: WarehouseProvider;
@@ -41,7 +41,7 @@ export interface WarehouseDestination {
   readonly fileFormat: WarehouseFormat;
   readonly includeConfidential: boolean;
   readonly deliveryHour: number;
-  readonly state: "Active" | "Paused";
+  readonly state: Database["app"]["Enums"]["warehouse_destination_state"];
   readonly nextDeliveryAt: string | null;
   readonly credentialStoredAt: string | null;
   readonly lastDeliveredAt: string | null;
@@ -211,7 +211,9 @@ export function createWarehouseDestination(
 export function changeWarehouseDestination(
   db: XosClient,
   id: string,
-  change: { readonly state: "Active" | "Paused" } | { readonly deleted: true },
+  change:
+    | { readonly state: Database["app"]["Enums"]["warehouse_destination_state"] }
+    | { readonly deleted: true },
 ): Promise<Result<string>> {
   const values =
     "deleted" in change
@@ -247,7 +249,7 @@ export function requestWarehouseDelivery(
 export interface DeadLetter {
   readonly id: string;
   readonly providerCode: string;
-  readonly kind: "Link Unfurl" | "Change Notice";
+  readonly kind: Database["app"]["Enums"]["integration_inbound_kind"];
   readonly receivedAt: string;
   readonly attempts: number;
   readonly errorMessage: string | null;

@@ -15,8 +15,9 @@ import {
   removeDependencyAction,
   setActualAction,
 } from "./actions";
+import * as enums from "@xos/data/enums";
 
-const TYPES = ["Finish to Start", "Start to Start", "Finish to Finish", "Start to Finish"] as const;
+const TYPES = enums.dependencyType;
 
 /**
  * A record's predecessors and successors, with a form to add a predecessor of the same project. Each

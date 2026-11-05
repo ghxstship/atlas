@@ -28,19 +28,28 @@ type View =
   | { readonly kind: "contact" }
   | { readonly kind: "feedback" };
 
-/**
- * The shortcuts Gateway answers everywhere (search, help, closing what is open), from the shortcut
- * registry (packages/schemas/shortcuts.yaml), written for the person's platform.
- */
-function gatewayShortcuts(): {
+interface SheetGroup {
   readonly id: string;
   readonly label: string;
-  readonly keys: string;
-}[] {
+  readonly rows: readonly { readonly id: string; readonly label: string; readonly keys: string }[];
+}
+
+/**
+ * The shortcuts Gateway answers for the person (search, help, the account keys, G then a letter for
+ * the destinations they may open, closing what is open), by sheet group, from the shortcut registry
+ * (packages/schemas/shortcuts.yaml), written for the person's platform. `shown` holds the ids the
+ * frame answers (lib/shell/shell-keys.ts).
+ */
+function gatewayShortcuts(shown: readonly string[]): SheetGroup[] {
   const platform = typeof navigator === "undefined" ? "other" : platformOf(navigator);
-  return SHORTCUT_REGISTRY.shells.gateway.shortcuts.flatMap((s) => {
-    const keys = platform === "mac" && s.mac !== null ? s.mac : s.keys;
-    return keys === null ? [] : [{ id: s.id, label: s.label, keys: displayKeys(keys, platform) }];
+  const shell = SHORTCUT_REGISTRY.shells.gateway;
+  return shell.groups.flatMap((group) => {
+    const rows = shell.shortcuts.flatMap((s) => {
+      const keys = platform === "mac" && s.mac !== null ? s.mac : s.keys;
+      if (s.group !== group.id || keys === null || !shown.includes(s.id)) return [];
+      return [{ id: s.id, label: s.label, keys: displayKeys(keys, platform) }];
+    });
+    return rows.length === 0 ? [] : [{ id: group.id, label: group.label, rows }];
   });
 }
 
@@ -54,11 +63,14 @@ export function HelpPanel({
   open,
   onOpenChange,
   docsUrl,
+  shortcuts,
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   /** The docs site origin (RRR-119); null hides the help center links. */
   readonly docsUrl: string | null;
+  /** Registry ids of the shortcuts the frame answers for the person. */
+  readonly shortcuts: readonly string[];
 }) {
   const t = useTranslations("help") as unknown as Translate;
   const tRoot = useTranslations() as unknown as Translate;
@@ -212,16 +224,32 @@ export function HelpPanel({
           )}
           {section(
             t("shortcuts.title"),
-            <dl className="m-0 flex flex-col gap-4">
-              {gatewayShortcuts().map((s) => (
-                <div key={s.id} className="flex items-center justify-between gap-8">
-                  <dt>{tRoot(s.label)}</dt>
-                  <dd className="m-0">
-                    <Keys keys={s.keys} />
-                  </dd>
-                </div>
+            <div className="flex flex-col gap-12">
+              {gatewayShortcuts(shortcuts).map((group) => (
+                <section
+                  key={group.id}
+                  aria-labelledby={`help-shortcuts-${group.id}`}
+                  className="flex flex-col gap-4"
+                >
+                  <h4
+                    id={`help-shortcuts-${group.id}`}
+                    className="m-0 text-text-11 font-medium text-text-secondary"
+                  >
+                    {tRoot(group.label)}
+                  </h4>
+                  <dl className="m-0 flex flex-col gap-4">
+                    {group.rows.map((s) => (
+                      <div key={s.id} className="flex items-center justify-between gap-8">
+                        <dt>{tRoot(s.label)}</dt>
+                        <dd className="m-0">
+                          <Keys keys={s.keys} />
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
               ))}
-            </dl>,
+            </div>,
           )}
           {section(
             t("whatsNew.title"),

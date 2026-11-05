@@ -10,6 +10,7 @@ import type {
   Recurrence,
   ScopeNodeRef,
 } from "@xos/data/work";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import {
   Button,
   Checkbox,
@@ -74,7 +75,8 @@ export function TransitionControls({
   return (
     <div className="flex flex-col gap-8">
       <h3 className="m-0 text-label-13 font-semibold">{t("transition.title")}</h3>
-      <div className="flex flex-wrap gap-6">
+      {/* The record.state shortcut focuses the first move, so the next Enter or Tab picks one. */}
+      <div data-shortcut="record.state" data-shortcut-focus="" className="flex flex-wrap gap-6">
         {next.map((state) => (
           <Button key={state} size="sm" onClick={() => setTarget(state)}>
             {t("transition.to", { state: t(`states.${state}`) })}
@@ -230,6 +232,8 @@ export function EditRecordForm({
           starts !== toLocalInput(record.startsAt, tz) ||
           ends !== toLocalInput(record.endsAt, tz) ||
           due !== toLocalInput(record.dueAt, tz);
+        // A date change is the Schedule funnel's step, and its save completes it (A146).
+        if (datesChanged) emitWorkflow("atlas.schedule:step1");
         run(
           () =>
             updateRecordAction(org, record.id, {
@@ -249,6 +253,7 @@ export function EditRecordForm({
           () => {
             setSaved(true);
             setReplan("");
+            if (datesChanged) emitWorkflow("atlas.schedule:done");
           },
         );
       }}
@@ -257,6 +262,7 @@ export function EditRecordForm({
       <ActionErrorAlert error={error} />
       <Input
         id="edit-title"
+        data-shortcut="record.edit-title"
         label={t("fields.title")}
         help={t("fields.titleHelp", { kind: t(`kinds.${record.kind}`) })}
         value={title}
@@ -276,13 +282,15 @@ export function EditRecordForm({
         />
       ) : null}
       <div className="grid grid-cols-2 gap-12 max-sm:grid-cols-1">
-        <Select
-          id="edit-owner"
-          label={t("fields.owner")}
-          value={owner}
-          options={personOptions}
-          onChange={(e) => setOwner(e.target.value)}
-        />
+        <div data-shortcut="record.assign" className="contents">
+          <Select
+            id="edit-owner"
+            label={t("fields.owner")}
+            value={owner}
+            options={personOptions}
+            onChange={(e) => setOwner(e.target.value)}
+          />
+        </div>
         <Select
           id="edit-phase"
           label={t("fields.phase")}
@@ -976,6 +984,7 @@ export function TrashControls({
             variant="ghost"
             icon="Trash2"
             loading={pending}
+            data-shortcut="record.trash"
             onClick={() => run(() => trashRecordAction(org, record.id), trashed)}
           >
             {t("trash.move")}

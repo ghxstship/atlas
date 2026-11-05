@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyDraftedList,
   createAuroraStore,
+  draftedListIsEmpty,
   getAiAllowance,
   getAiSettings,
   getAiSuggestion,
@@ -338,5 +340,81 @@ describe("request log", () => {
     expect(log.ok && log.data.map((r) => r.inputTokens)).toEqual([10, 3, null]);
     expect(calls[0]?.steps.find(([m]) => m === "limit")?.[1]).toEqual([200]);
     expect((await listAiRequests(db, "o1")).ok).toBe(false);
+  });
+});
+
+describe("drafted lists", () => {
+  it("asks whether a list is empty, with not-found for a caller who may not write to it", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:drafted_list_is_empty": [
+        okResponse(true),
+        okResponse(false),
+        errorResponse("42501", "drafting a run of show needs show.run_of_show.write"),
+      ],
+    });
+    expect(await draftedListIsEmpty(db, "run_of_show", "r1")).toEqual({ ok: true, data: true });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([{ p_kind: "run_of_show", p_target_id: "r1" }]);
+    expect(await draftedListIsEmpty(db, "risk_assessment", "p1")).toEqual({
+      ok: true,
+      data: false,
+    });
+    expect(await draftedListIsEmpty(db, "run_of_show", "r2")).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
+  });
+
+  it("applies the kept lines and maps line refusals", async () => {
+    const written = { written: [{ suggestion_id: "s1", id: "c1" }], rejected: 2 };
+    const { db, calls } = fakeClient({
+      "rpc:apply_drafted_list": [
+        okResponse(written),
+        errorResponse(
+          "XR001",
+          "aurora_draft_list_not_empty: This running order already has cues. Aurora only drafts into an empty list.",
+          "aurora_draft_list_not_empty",
+        ),
+        errorResponse(
+          "XR001",
+          "record_title_grammar: Line 2: A Risk title is a noun phrase naming the thing.",
+          "record_title_grammar",
+        ),
+        errorResponse(
+          "22007",
+          'Line 1: invalid input syntax for type timestamp with time zone: "7pm"',
+        ),
+      ],
+    });
+    expect(
+      await applyDraftedList(db, {
+        requestId: "q1",
+        items: [{ suggestion_id: "s1", values: { label: "Doors" } }, { suggestion_id: "s2" }],
+      }),
+    ).toEqual({ ok: true, data: written });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([
+      {
+        p_request_id: "q1",
+        p_items: [
+          { suggestion_id: "s1", values: { label: "Doors" } },
+          { suggestion_id: "s2", values: {} },
+        ],
+      },
+    ]);
+    expect(await applyDraftedList(db, { requestId: "q1", items: [] })).toMatchObject({
+      ok: false,
+      error: { kind: "refusal", rule: "aurora_draft_list_not_empty" },
+    });
+    expect(await applyDraftedList(db, { requestId: "q1", items: [] })).toEqual({
+      ok: false,
+      error: {
+        kind: "refusal",
+        rule: "record_title_grammar",
+        message: "Line 2: A Risk title is a noun phrase naming the thing.",
+      },
+    });
+    expect(await applyDraftedList(db, { requestId: "q1", items: [] })).toMatchObject({
+      ok: false,
+      error: { kind: "invalid", message: expect.stringMatching(/^Line 1: /) },
+    });
   });
 });

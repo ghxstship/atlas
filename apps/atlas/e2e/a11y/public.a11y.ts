@@ -1,17 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { triage } from "./known";
 import { axeProblems, focusProblems, overflowProblems, setTheme, type Theme } from "./checks";
+import { PUBLIC_PAGES } from "./routes";
 
-/**
- * Pages anyone may open: the Auth template (sign in, sign up) and public legal documents, which
- * the sitemap marks `auth: public`. No session.
- */
-const PAGES = [
-  "/auth/sign-in",
-  "/auth/sign-up",
-  "/legal/accessibility-statement",
-  "/legal/privacy-policy",
-];
+/** Pages anyone may open (routes.ts). No session. */
+const PAGES = PUBLIC_PAGES;
 
 const THEMES: readonly Theme[] = ["dark", "light"];
 

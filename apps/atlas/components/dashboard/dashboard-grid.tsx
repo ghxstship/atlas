@@ -2,7 +2,8 @@
 
 import { Button, TemplateDashboard, type DashboardSpans, type DashboardTile } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Region } from "@/components/shell/region";
 import type { DashboardId } from "@/lib/dashboard/layout";
 import {
   resetDashboardLayoutAction,
@@ -16,7 +17,8 @@ const SAVE_AFTER_MS = 600;
  * Home and the partner console on the Dashboard template (Section 11.6, A129): tiles on the
  * 12-column grid at the person's saved spans. Resizing a tile, by drag or by keyboard, saves every
  * span as their own setting once the changes settle; Reset layout appears once the layout differs from
- * the default and brings the default spans back.
+ * the default and brings the default spans back. Every tile is its own Region (ADR 0118): one that
+ * fails shows Retry in its place and the other tiles stay.
  */
 export function DashboardGrid({
   dashboard,
@@ -40,6 +42,10 @@ export function DashboardGrid({
   // A reset remounts the template so the spans it changed in place go back too.
   const [version, setVersion] = useState(0);
   const [failed, setFailed] = useState(false);
+  const regions = useMemo(
+    () => tiles.map((tile) => ({ ...tile, content: <Region>{tile.content}</Region> })),
+    [tiles],
+  );
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -88,7 +94,7 @@ export function DashboardGrid({
           </>
         ) : undefined
       }
-      tiles={tiles}
+      tiles={regions}
       spans={spans}
       label={label}
       resize={{

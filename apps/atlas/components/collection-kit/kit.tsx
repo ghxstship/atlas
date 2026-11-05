@@ -16,6 +16,8 @@ import {
   buttonClass,
   type ButtonProps,
 } from "@xos/ui";
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { keepInputOnSubmit, useResetOnSuccess } from "./keep-input";
@@ -49,15 +51,22 @@ export function KitLink({
   href,
   variant = "secondary",
   size = "md",
+  shortcut,
   children,
 }: {
   href: string;
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
+  /** The registry id of the shortcut the link answers (data-shortcut, @xos/ui/shortcut-targets). */
+  shortcut?: string;
   children: ReactNode;
 }) {
   return (
-    <NextLink href={href as Route} className={buttonClass(variant ?? "secondary", size ?? "md")}>
+    <NextLink
+      href={href as Route}
+      data-shortcut={shortcut}
+      className={buttonClass(variant ?? "secondary", size ?? "md")}
+    >
       {children}
     </NextLink>
   );
@@ -102,7 +111,12 @@ function familyOf(rule: string): string {
 
 // Peek and record page ----------------------------------------------------------------------------
 
-/** The side peek of a domain entity (Section 11.6 Record anatomy in a drawer; full screen below md). */
+/**
+ * The side peek of a domain entity (Section 11.6 Record anatomy in a drawer; full screen below md).
+ * The drawer is a record region for the shell's record shortcuts (@xos/ui/shortcut-targets): Open
+ * full is the Open full page target, and the module's `actions`, such as its state moves, carry
+ * their own ids.
+ */
 export function PeekDrawer({
   recordKey,
   title,
@@ -128,10 +142,15 @@ export function PeekDrawer({
     <Drawer
       title={`${recordKey} ${title}`}
       open
+      shortcutScope="record"
       onOpenChange={(open) => {
         if (!open) router.push(closeHref as Route, { scroll: false });
       }}
-      footer={<KitLink href={fullHref}>{t("openFull")}</KitLink>}
+      footer={
+        <KitLink href={fullHref} shortcut="record.open">
+          {t("openFull")}
+        </KitLink>
+      }
     >
       <div className="flex flex-wrap items-center gap-8">
         {state ? <StateChip state={state.state} label={state.label} /> : null}
@@ -549,6 +568,7 @@ export function ActionButton({
   confirm,
   refusals,
   extraFields,
+  signal,
 }: {
   action: ServerAction;
   hidden: Readonly<Record<string, string>>;
@@ -561,6 +581,8 @@ export function ActionButton({
   refusals: string;
   /** Extra fields shown in the dialog, for example a validity date. */
   extraFields?: FieldSpec[];
+  /** Workflow funnel signal sent when the act succeeds (A146). */
+  signal?: WorkflowSignal;
 }) {
   const t = useCopy("procurement.kit");
   const router = useRouter();
@@ -570,10 +592,11 @@ export function ActionButton({
   useEffect(() => {
     if (state.ok && done.current !== state) {
       done.current = state;
+      if (signal) emitWorkflow(signal);
       setOpen(false);
       router.refresh();
     }
-  }, [state, router]);
+  }, [state, router, signal]);
   const formId = `action-${label.replace(/[^a-z0-9]+/gi, "-")}-${Object.values(hidden).join("-")}`;
   const needsDialog = Boolean(reason || confirm || extraFields?.length);
   const form = (
@@ -671,7 +694,11 @@ export function ActionButton({
   );
 }
 
-/** The lifecycle moves the database allows from the current state, each asking for a reason. */
+/**
+ * The lifecycle moves the database allows from the current state, each asking for a reason. The
+ * group is the record's Change state shortcut target (data-shortcut="record.state"): the key focuses
+ * the first move.
+ */
 export function TransitionButtons({
   action,
   org,
@@ -690,7 +717,13 @@ export function TransitionButtons({
   const t = useCopy("procurement.kit");
   if (moves.length === 0) return null;
   return (
-    <div className="flex flex-wrap items-center gap-8" role="group" aria-label={t("moves")}>
+    <div
+      className="flex flex-wrap items-center gap-8"
+      role="group"
+      aria-label={t("moves")}
+      data-shortcut="record.state"
+      data-shortcut-focus=""
+    >
       {moves.map((m) => (
         <ActionButton
           key={m.next}

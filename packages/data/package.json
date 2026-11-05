@@ -8,15 +8,17 @@
   "exports": {
     ".": "./src/index.ts",
     "./database.types": "./src/database.types.ts",
+    "./enums": "./src/enums.generated.ts",
     "./slug": "./src/slug.ts",
     "./*": "./src/*.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --no-warnings scripts/generate-document-fonts.ts --check && vitest run --coverage",
-    "types:generate": "node --experimental-strip-types --no-warnings scripts/generate-types.ts",
+    "test": "node --experimental-strip-types --no-warnings scripts/generate-document-fonts.ts --check && node --experimental-strip-types --no-warnings scripts/generate-enums.ts --check && vitest run --coverage",
+    "types:generate": "node --experimental-strip-types --no-warnings scripts/generate-types.ts && node --experimental-strip-types --no-warnings scripts/generate-enums.ts",
     "types:check": "node --experimental-strip-types --no-warnings scripts/generate-types.ts --check",
+    "enums:generate": "node --experimental-strip-types --no-warnings scripts/generate-enums.ts",
     "documents:fonts": "node --experimental-strip-types --no-warnings scripts/generate-document-fonts.ts",
     "documents:verapdf": "node --experimental-strip-types --no-warnings scripts/verapdf-documents.ts"
   },

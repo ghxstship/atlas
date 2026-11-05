@@ -14,8 +14,10 @@ import { cache } from "react";
 import { orgAuthRedirect, PATH_HEADER, secondFactorRedirect } from "@/lib/auth/assurance";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { VIEW_AS_COOKIE } from "@xos/data/access";
+import { lensCapabilities, ROLE_LENS_COOKIE } from "@xos/data/role-lens";
 import { applyViewAs, type ViewAsPreview } from "@/lib/access/view-as";
 import { resolveMembership, type Membership } from "./membership";
+import { applyRoleLens, type RoleLens } from "./role-lens";
 
 /**
  * Who is looking, resolved once per request (React cache) for layouts, pages and actions.
@@ -38,6 +40,8 @@ export interface OrgContext extends Membership {
   readonly viewer: Viewer;
   /** The role the viewer previews with View as role (A36, Section 8.4), or null. */
   readonly preview: ViewAsPreview | null;
+  /** The role lens of the org switcher (A128, Section 4.8.1): All roles, or one role the viewer holds. */
+  readonly lens: RoleLens;
 }
 
 /** The signed-in viewer, or null when there is no valid session. */
@@ -111,10 +115,17 @@ export const getOrgContext = cache(async (slug: string): Promise<OrgContext | nu
     if (to !== null) redirect(to as Route);
   }
   if (!membership) return null;
-  const previewed = await applyViewAs(
+  const cookieStore = await cookies();
+  // The role lens narrows first; View as then previews within it and never past it.
+  const lensed = await applyRoleLens(
     viewer.db,
     membership,
-    (await cookies()).get(VIEW_AS_COOKIE)?.value,
+    cookieStore.get(ROLE_LENS_COOKIE)?.value,
   );
-  return { ...previewed, viewer };
+  const previewed = await applyViewAs(viewer.db, lensed, cookieStore.get(VIEW_AS_COOKIE)?.value);
+  const capabilities =
+    previewed.preview && lensed.lens.role
+      ? lensCapabilities(lensed.capabilities, previewed.capabilities)
+      : previewed.capabilities;
+  return { ...previewed, capabilities, lens: lensed.lens, viewer };
 });

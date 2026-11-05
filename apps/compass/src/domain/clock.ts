@@ -8,8 +8,9 @@
  */
 import { needsReview, uuidv7, type EventTime, type MutationInput } from "@xos/sync";
 import { evaluateGeofence, type Geofence, type GeofenceStatus, type LocationFix } from "./geo";
+import type { Database } from "@xos/data/database.types";
 
-export type PunchKind = "In" | "Break Start" | "Break End" | "Out";
+export type PunchKind = Database["app"]["Enums"]["punch_kind"];
 
 export interface Punch {
   readonly id: string;
@@ -19,7 +20,7 @@ export interface Punch {
   readonly shift_id: string | null;
   readonly membership_id: string | null;
   readonly engagement_id: string | null;
-  readonly source: "Mobile" | "Kiosk";
+  readonly source: Database["app"]["Enums"]["punch_source"];
 }
 
 export type ClockState = "out" | "on" | "break";
@@ -224,7 +225,7 @@ export interface PunchContext {
   /** Internal users punch as their membership; external users as their engagement (never both). */
   readonly membershipId: string | null;
   readonly engagementId: string | null;
-  readonly source: "Mobile" | "Kiosk";
+  readonly source: Database["app"]["Enums"]["punch_source"];
   readonly kioskDeviceId?: string | null;
   readonly photoUri?: string | null;
 }

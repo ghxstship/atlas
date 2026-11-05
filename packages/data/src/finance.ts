@@ -3,6 +3,7 @@ import type { Database, XosClient } from "./client.ts";
 import { csvField } from "./csv.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Finance repository (Sections 3.7, 3.11, 7.4 and 8.1 to 8.2): budgets and budget lines, expenses,
@@ -25,39 +26,14 @@ export type CostCenterKind = Enums["cost_center_kind"];
 export type MoneyDirection = Enums["money_direction"];
 export type XyzTag = "X" | "Y" | "Z";
 
-export const EXPENSE_STATES: readonly ExpenseState[] = [
-  "Proposed",
-  "Approved",
-  "Rejected",
-  "Paid",
-  "Canceled",
-];
-export const CHANGE_ORDER_STATES: readonly ChangeOrderState[] = [
-  "Proposed",
-  "Priced",
-  "Approved",
-  "Rejected",
-  "Canceled",
-];
-export const INVOICE_STATES: readonly InvoiceState[] = [
-  "Proposed",
-  "Issued",
-  "Approved",
-  "Disputed",
-  "Canceled",
-];
-export const PAYMENT_STATES: readonly PaymentState[] = ["Proposed", "Approved", "Canceled"];
-export const JOURNAL_STATES: readonly JournalState[] = ["Proposed", "Posted", "Canceled"];
-export const PERIOD_STATES: readonly PeriodState[] = [
-  "Open",
-  "In Period",
-  "Closing",
-  "Closed",
-  "Audited",
-  "Archived",
-];
-export const BUDGET_LINE_TYPES: readonly BudgetLineType[] = ["Cost", "Labor", "Fee", "Contingency"];
-export const COST_CENTER_KINDS: readonly CostCenterKind[] = ["Standing", "Overhead", "Event"];
+export const EXPENSE_STATES: readonly ExpenseState[] = enums.expenseState;
+export const CHANGE_ORDER_STATES: readonly ChangeOrderState[] = enums.changeOrderState;
+export const INVOICE_STATES: readonly InvoiceState[] = enums.invoiceState;
+export const PAYMENT_STATES: readonly PaymentState[] = enums.paymentState;
+export const JOURNAL_STATES: readonly JournalState[] = enums.journalState;
+export const PERIOD_STATES: readonly PeriodState[] = enums.accountingPeriodState;
+export const BUDGET_LINE_TYPES: readonly BudgetLineType[] = enums.budgetLineType;
+export const COST_CENTER_KINDS: readonly CostCenterKind[] = enums.costCenterKind;
 
 /**
  * The next states a lifecycle allows from a state, as A03's transition rules declare them (0320,
@@ -73,6 +49,8 @@ export const NEXT_STATES = {
   },
   change_order: {
     Proposed: ["Priced", "Canceled"],
+    // The moves out of Priced, which happen to be every po_change_order_state value; not that enum.
+    // eslint-disable-next-line xos/no-restated-enums
     Priced: ["Proposed", "Approved", "Rejected", "Canceled"],
     Rejected: ["Proposed"],
     Approved: [],
@@ -912,12 +890,23 @@ export interface BudgetLine {
   readonly unitBasis: string | null;
   readonly unitPriceMinor: number | null;
   readonly xyz: XyzTag;
-  readonly xyzBasis: "Category" | "Declared";
+  readonly xyzBasis: Database["app"]["Enums"]["xyz_basis"];
   readonly extendedMinor: number | null;
   readonly accountCode: string | null;
   readonly actualMinor: number;
   readonly drawnInMinor: number;
   readonly drawnOutMinor: number;
+  /**
+   * What approved, sent and closed purchase orders commit against the line in the budget's currency
+   * (app.budget_line_commitments, 3810); null when withheld or when a counted line is unpriced.
+   */
+  readonly committedMinor: number | null;
+  /** True when the viewer cannot read the project's purchase orders, so Committed stays blank. */
+  readonly committedWithheld: boolean;
+  /** Purchase order lines counted in committedMinor. */
+  readonly poLineCount: number;
+  /** Lines of approved orders in another currency drawing on the line: counted, never summed. */
+  readonly otherCurrencyPoLineCount: number;
   /** The version the row was read at, for conflict checks on save. */
   readonly updatedAt: string;
 }
@@ -925,7 +914,7 @@ export interface BudgetLine {
 const LINE_COLUMNS =
   "id, budget_id, line_number, description, line_type, urid, cost_center_id, grade_code, element_id, quantity, unit_basis, unit_price_minor, xyz, xyz_basis, updated_at";
 
-function toLine(r: Raw, amounts?: Raw): BudgetLine {
+function toLine(r: Raw, amounts?: Raw, commitment?: Raw): BudgetLine {
   const quantity = num(r["quantity"]);
   const unitPrice = numOrNull(r["unit_price_minor"]);
   return {
@@ -942,7 +931,7 @@ function toLine(r: Raw, amounts?: Raw): BudgetLine {
     unitBasis: strOrNull(r["unit_basis"]),
     unitPriceMinor: unitPrice,
     xyz: str(r["xyz"]).trim() as XyzTag,
-    xyzBasis: str(r["xyz_basis"]) as "Category" | "Declared",
+    xyzBasis: str(r["xyz_basis"]) as Database["app"]["Enums"]["xyz_basis"],
     extendedMinor: amounts
       ? numOrNull(amounts["extended_minor"])
       : extendedMinor(quantity, unitPrice),
@@ -950,8 +939,62 @@ function toLine(r: Raw, amounts?: Raw): BudgetLine {
     actualMinor: amounts ? num(amounts["actual_minor"]) : 0,
     drawnInMinor: amounts ? num(amounts["drawn_in_minor"]) : 0,
     drawnOutMinor: amounts ? num(amounts["drawn_out_minor"]) : 0,
+    committedMinor: commitment ? numOrNull(commitment["committed_minor"]) : null,
+    committedWithheld: commitment ? commitment["is_committed_withheld"] === true : false,
+    poLineCount: commitment ? num(commitment["po_line_count"]) : 0,
+    otherCurrencyPoLineCount: commitment ? num(commitment["other_currency_po_line_count"]) : 0,
     updatedAt: str(r["updated_at"]),
   };
+}
+
+/**
+ * A line as saved (updateBudgetLine returns only stored columns) merged onto the line it replaces:
+ * the stored fields and version come from the save, the extended amount is recomputed from them, and
+ * the derived account, actual and committed amounts are kept until the page rereads them.
+ */
+export function mergeSavedLine(previous: BudgetLine, saved: BudgetLine): BudgetLine {
+  return {
+    ...previous,
+    description: saved.description,
+    lineType: saved.lineType,
+    urid: saved.urid,
+    costCenterId: saved.costCenterId,
+    gradeCode: saved.gradeCode,
+    elementId: saved.elementId,
+    quantity: saved.quantity,
+    unitBasis: saved.unitBasis,
+    unitPriceMinor: saved.unitPriceMinor,
+    xyz: saved.xyz,
+    xyzBasis: saved.xyzBasis,
+    lineNumber: saved.lineNumber,
+    extendedMinor: extendedMinor(saved.quantity, saved.unitPriceMinor),
+    updatedAt: saved.updatedAt,
+  };
+}
+
+export interface BudgetCommittedTotal {
+  readonly totalMinor: number;
+  /** Budget lines with at least one purchase order line counted. */
+  readonly committedLineCount: number;
+  /** Purchase order lines in another currency, left out of the total. */
+  readonly otherCurrencyLineCount: number;
+}
+
+/**
+ * The budget's committed total, or null by the silence rule when any line is withheld or blank, so
+ * the figure is never a partial sum. An empty budget commits zero.
+ */
+export function budgetCommittedTotal(lines: readonly BudgetLine[]): BudgetCommittedTotal | null {
+  let totalMinor = 0;
+  let committedLineCount = 0;
+  let otherCurrencyLineCount = 0;
+  for (const line of lines) {
+    if (line.committedWithheld || line.committedMinor === null) return null;
+    totalMinor += line.committedMinor;
+    if (line.poLineCount > 0) committedLineCount += 1;
+    otherCurrencyLineCount += line.otherCurrencyPoLineCount;
+  }
+  return { totalMinor, committedLineCount, otherCurrencyLineCount };
 }
 
 export interface BudgetDetail {
@@ -976,7 +1019,7 @@ export async function getBudget(
     (r) => r,
   );
   if (!head.ok) return head;
-  const [summaries, lines, amounts] = await Promise.all([
+  const [summaries, lines, amounts, commitments] = await Promise.all([
     listBudgets(db, { orgId, projectId: str(head.data["project_id"]) }),
     rows(
       db
@@ -988,14 +1031,30 @@ export async function getBudget(
       (r) => r,
     ),
     rows(db.from("budget_line_amounts").select("*").eq("budget_id", budgetId), (r) => r),
+    rows(
+      db
+        .from("budget_line_commitments")
+        .select(
+          "budget_line_id, committed_minor, po_line_count, other_currency_po_line_count, is_committed_withheld",
+        )
+        .eq("budget_id", budgetId),
+      (r) => r,
+    ),
   ]);
   if (!summaries.ok) return summaries;
   if (!lines.ok) return lines;
   if (!amounts.ok) return amounts;
+  if (!commitments.ok) return commitments;
   const budget = summaries.data.find((b) => b.id === budgetId);
   if (!budget) return fail({ kind: "not-found" });
   const byLine = new Map(amounts.data.map((a) => [str(a["budget_line_id"]), a]));
-  return ok({ budget, lines: lines.data.map((l) => toLine(l, byLine.get(str(l["id"])))) });
+  const committedBy = new Map(commitments.data.map((c) => [str(c["budget_line_id"]), c]));
+  return ok({
+    budget,
+    lines: lines.data.map((l) =>
+      toLine(l, byLine.get(str(l["id"])), committedBy.get(str(l["id"]))),
+    ),
+  });
 }
 
 export interface BudgetInput {
@@ -1056,7 +1115,7 @@ export interface BudgetLineInput {
   /** Minor units; null is unpriced and is stored as NULL. */
   readonly unitPriceMinor: number | null;
   readonly xyz: XyzTag;
-  readonly xyzBasis: "Category" | "Declared";
+  readonly xyzBasis: Database["app"]["Enums"]["xyz_basis"];
 }
 
 /**
@@ -1067,7 +1126,7 @@ export function xyzFor(
   urid: string,
   options: readonly UridOption[],
   declared: XyzTag | null,
-): { xyz: XyzTag; xyzBasis: "Category" | "Declared" } | null {
+): { xyz: XyzTag; xyzBasis: Database["app"]["Enums"]["xyz_basis"] } | null {
   const option = options.find((o) => o.urid === urid);
   if (option?.xyz && (declared === null || declared === option.xyz))
     return { xyz: option.xyz, xyzBasis: "Category" };

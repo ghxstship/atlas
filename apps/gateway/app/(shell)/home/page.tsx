@@ -22,6 +22,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
+import { HomeSearch } from "@/components/page/home-search";
 import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import { PageTitle, RegionError, Section, pickView, ViewSwitcher } from "@/components/page/page";
 import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/components/ui";
@@ -52,6 +53,7 @@ import {
   type UpNextDetails,
 } from "@/lib/home";
 import type { GatewayContext } from "@/lib/shell/context";
+import { lensApplications, lensEngagements, lensRepresentations } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
@@ -96,7 +98,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       </>
     );
   }
-  const engagements = engagementsResult.data;
+  // Under a role lens (A128) Home shows that role type's engagements and what they ask of the person.
+  const engagements = lensEngagements(ctx.lens, engagementsResult.data);
   const current = engagements.filter(isCurrentEngagement);
   const [
     records,
@@ -131,8 +134,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     engagements,
     documents: documents.ok ? documents.data : [],
     onboarding: onboarding.ok ? onboarding.data : [],
-    applications: applications.ok ? applications.data : [],
-    representations: representations.ok ? representations.data : [],
+    applications: applications.ok ? lensApplications(ctx.lens, applications.data) : [],
+    representations: representations.ok ? lensRepresentations(ctx.lens, representations.data) : [],
     invitations: invitations.ok ? invitations.data : [],
     memberships: memberships.ok ? memberships.data : [],
     rosterEntries: rosterEntries.ok ? rosterEntries.data : [],
@@ -160,20 +163,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
         }
         action={<ViewSwitcher views={views} current={view} path="/home" query={query} />}
       />
-      <form action="/explore" method="get" role="search" className="flex">
-        <label className="flex min-h-touch-min w-full items-center gap-8 rounded-control border border-border-control bg-bg-surface ps-12 pe-8 focus-within:outline-solid focus-within:outline-stroke-focus focus-within:outline-focus-ring">
-          <span className="text-text-secondary">
-            <Icon name="Search" />
-          </span>
-          <span className="sr-only">{t("gateway.home.searchLabel")}</span>
-          <input
-            name="q"
-            type="search"
-            placeholder={t("gateway.home.searchHint")}
-            className="min-w-0 flex-1 border-0 bg-transparent text-text-14 text-text-primary outline-none placeholder:text-text-tertiary"
-          />
-        </label>
-      </form>
+      <HomeSearch />
 
       {view === "feed" ? (
         <Section title={t("gateway.home.upNext.title")}>

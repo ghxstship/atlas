@@ -38,7 +38,8 @@
     "booked": "Booked"
   },
   "avatar": {
-    "more": "{n} more"
+    "more": "{n} more",
+    "overflow": "+{n}"
   },
   "badge": {
     "brightness": "Raise brightness",
@@ -197,6 +198,7 @@
     "kb": "{n} KB",
     "orBrowse": "or browse",
     "page": "Page {n}",
+    "previewArea": "Preview of {name}",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out"
   },
@@ -252,6 +254,7 @@
     "whatFailed": "What failed?"
   },
   "key": {
+    "enter": "↵",
     "esc": "Esc",
     "space": "Space"
   },
@@ -329,6 +332,7 @@
     "account": "Account Number",
     "accountHelp": "Encrypted on entry. Only the last four digits are shown after saving.",
     "checking": "Checking",
+    "masked": "•••• {last4}",
     "routing": "Routing Number",
     "routingHint": "9 digits",
     "save": "Save Securely",
@@ -357,6 +361,9 @@
   "profile": {
     "complete": "{n}% complete",
     "title": "Profile"
+  },
+  "progress": {
+    "percent": "{n}%"
   },
   "provenance": {
     "rank": "Provenance rank {rank}",
@@ -388,6 +395,10 @@
   },
   "record": {
     "untitled": "Untitled"
+  },
+  "region": {
+    "title": "This section did not load",
+    "body": "The rest of the page still works. Retry to load this section again."
   },
   "resource": {
     "doubleBooked": "Double-booked",
@@ -485,11 +496,35 @@
     "selectRow": "Select {row}"
   },
   "timeline": {
+    "bar": "{key} {title}, {start} to {end}",
+    "controls": "Reschedule {label}",
     "critical": "critical path",
     "dependsOn": "Depends on",
     "end": "End",
     "key": "Key",
+    "locked": "locked",
     "milestone": "milestone",
+    "moveHint": "Arrow keys move the bar a day. Shift with an arrow key moves its end. Enter applies the change, Escape cancels it.",
+    "preview": {
+      "applied": "{key} rescheduled.",
+      "apply": "Apply",
+      "cancel": "Cancel",
+      "canceled": "Change canceled.",
+      "change": "{key} moves to {start} through {end}.",
+      "checking": "Checking every dependency before the change can be applied.",
+      "criticalChanges": "The critical path changes.",
+      "criticalSame": "The critical path stays the same.",
+      "cycle": "The dependencies are circular, so this change cannot be made.",
+      "finishEarlierMany": "The last finish moves {count} days earlier.",
+      "finishEarlierOne": "The last finish moves 1 day earlier.",
+      "finishLaterMany": "The last finish moves {count} days later.",
+      "finishLaterOne": "The last finish moves 1 day later.",
+      "label": "Reschedule preview",
+      "locked": "{keys} cannot move: locked.",
+      "movesMany": "{count} successors move: {keys}.",
+      "movesNone": "No other record moves.",
+      "movesOne": "1 successor moves: {keys}."
+    },
     "record": "Record",
     "scroll": "{label}, days",
     "start": "Start",
@@ -542,5 +577,16 @@
       "owner": "Owner",
       "action": "Action"
     }
+  },
+  "recordStates": {
+    "proposed": "Proposed",
+    "ready": "Ready",
+    "scheduled": "Scheduled",
+    "active": "Active",
+    "blocked": "Blocked",
+    "inReview": "In Review",
+    "complete": "Complete",
+    "deferred": "Deferred",
+    "canceled": "Canceled"
   }
 }

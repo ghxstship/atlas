@@ -1,6 +1,8 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Settlements and self-billing repository (A15, migrations 0991 and 0992). A settlement settles one
@@ -10,27 +12,11 @@ import { untyped } from "./untyped.ts";
  * Money is minor units; a blank amount is unpriced and the net stays NULL (Section 3.7).
  */
 
-export type SettlementState =
-  "Proposed" | "Submitted" | "Accepted" | "Disputed" | "Paid" | "Canceled";
-export type SettlementLineKind =
-  "Guarantee" | "Bonus" | "Split" | "Expense" | "Deduction" | "Withholding";
+export type SettlementState = Database["app"]["Enums"]["settlement_state"];
+export type SettlementLineKind = Database["app"]["Enums"]["settlement_line_kind"];
 
-export const SETTLEMENT_STATES: readonly SettlementState[] = [
-  "Proposed",
-  "Submitted",
-  "Accepted",
-  "Disputed",
-  "Paid",
-  "Canceled",
-];
-export const SETTLEMENT_LINE_KINDS: readonly SettlementLineKind[] = [
-  "Guarantee",
-  "Bonus",
-  "Split",
-  "Expense",
-  "Deduction",
-  "Withholding",
-];
+export const SETTLEMENT_STATES: readonly SettlementState[] = enums.settlementState;
+export const SETTLEMENT_LINE_KINDS: readonly SettlementLineKind[] = enums.settlementLineKind;
 
 /** Org-side moves of a settlement; Accepted and Disputed belong to the party. */
 export const SETTLEMENT_ORG_NEXT: Readonly<Record<SettlementState, readonly SettlementState[]>> = {

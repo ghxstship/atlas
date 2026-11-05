@@ -49,6 +49,7 @@
     "@xos/config": "workspace:*",
     "@xos/email": "workspace:*",
     "@xos/platform": "workspace:*",
+    "@xos/testing": "workspace:*",
     "eslint": "10.12.0",
     "eslint-config-next": "16.4.2",
     "pg": "8.23.1",

@@ -31,6 +31,7 @@ import { z } from "zod";
 import { gatewayUrl } from "@/lib/gateway-url";
 import { getOrgContext } from "@/lib/shell/context";
 import { KNOWN_ERRORS } from "./errors";
+import * as enums from "@xos/data/enums";
 
 /**
  * Advancing actions. Each resolves the viewer's org context again (404 when it is gone), validates
@@ -325,7 +326,7 @@ export async function reviewSubmissionAction(
   const parsed = z
     .object({
       submissionId: id,
-      outcome: z.enum(["Accepted", "Returned"]),
+      outcome: z.enum(enums.advanceReviewOutcome),
       returnReason: optionalText(1000),
     })
     .refine((v) => v.outcome === "Accepted" || v.returnReason !== null, {

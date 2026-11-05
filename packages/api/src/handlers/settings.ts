@@ -17,6 +17,7 @@ import { a52SettingsHandlers } from "./parts/a52.ts";
 import { auroraHandlers } from "./parts/aurora.ts";
 import { integrationHandlers } from "./parts/settings-integrations.ts";
 import { settingsParity } from "./settings/parity.ts";
+import { Constants, type Database } from "@xos/data/database.types";
 
 type SettingValue = Components["SettingValue"];
 type SettingLock = Components["SettingLock"];
@@ -33,7 +34,7 @@ interface ValueRow {
   updated_at: string;
   updated_by: string | null;
   setting_key: string;
-  scope_kind: "Organization" | "Workspace" | "Team" | "Project";
+  scope_kind: Database["app"]["Enums"]["setting_scope"];
   scope_id: string;
   value_text: string | null;
   value_boolean: boolean | null;
@@ -75,7 +76,7 @@ function valueArgs(value: string | number | boolean) {
   return { p_value_integer: value };
 }
 
-const SHARED_SCOPES = ["Organization", "Workspace", "Team", "Project"] as const;
+const SHARED_SCOPES = Constants.app.Enums.setting_scope;
 type SharedScope = (typeof SHARED_SCOPES)[number];
 
 function sharedScope(scope: Components["SettingScope"]): SharedScope {

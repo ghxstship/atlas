@@ -12,7 +12,8 @@ const dateOf = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
 /**
  * Moves the Permit record to one of the states the record lifecycle allows from its current state
  * (app.lifecycle_transition_rules). Blocked asks for the blocker and Deferred for a replan reason,
- * which the database also requires.
+ * which the database also requires. The next-state field is the record's Change state shortcut
+ * target (data-shortcut="record.state").
  */
 export function PermitTransitionForm({
   org,
@@ -38,15 +39,17 @@ export function PermitTransitionForm({
     >
       {(error) => (
         <>
-          <Select
-            id={`permit-next-${record.id}`}
-            name="next"
-            label={t("permits.nextState")}
-            value={next}
-            options={nextStates.map((s) => ({ value: s, label: t(`states.${s}`) }))}
-            onChange={(e) => setNext(e.target.value)}
-            error={error("next")}
-          />
+          <div data-shortcut="record.state" className="contents">
+            <Select
+              id={`permit-next-${record.id}`}
+              name="next"
+              label={t("permits.nextState")}
+              value={next}
+              options={nextStates.map((s) => ({ value: s, label: t(`states.${s}`) }))}
+              onChange={(e) => setNext(e.target.value)}
+              error={error("next")}
+            />
+          </div>
           <Input
             id={`permit-reason-${record.id}`}
             name="reason"

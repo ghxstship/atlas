@@ -51,6 +51,11 @@ const definitions = cache(
   },
 );
 
+/** Whether the org has any live field on the table, so a page offers to edit them (the budget grid's Line fields). */
+export async function hasCustomFields(ctx: OrgContext, table: CustomFieldTable): Promise<boolean> {
+  return (await definitions(ctx, table)).length > 0;
+}
+
 const currencies = cache(async (ctx: OrgContext): Promise<CustomFieldCurrency[]> => {
   const result = await listCurrencies(ctx.viewer.db);
   return result.ok ? result.data.map((c) => ({ code: c.code, exponent: c.minorUnits })) : [];

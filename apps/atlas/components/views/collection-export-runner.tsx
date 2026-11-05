@@ -11,11 +11,12 @@ import {
   requestCollectionExportAction,
   type ExportError,
 } from "@/lib/views/export-actions";
+import type { Database } from "@xos/data/database.types";
 
 /** Copy lookups take built keys (`export.errors.denied`), so the catalog type is widened. */
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-export type Format = "CSV" | "XLSX" | "PDF";
+export type Format = Database["app"]["Enums"]["export_format"];
 
 /** How often the menu asks after a queued export, and after how many asks it says it is slow. */
 const POLL_MS = 2_000;

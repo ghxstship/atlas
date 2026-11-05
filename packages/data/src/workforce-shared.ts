@@ -1,6 +1,8 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Shared plumbing of the workforce suite repositories (A29, Section 4.9, migrations 0800 to 0807
@@ -73,7 +75,7 @@ export function args(values: Readonly<Record<string, unknown>>): Raw {
  * Who a feed post, survey or event reaches (app.audience_kind). Department, a canon department code
  * (1365), reaches feed posts only; surveys and events take the other kinds.
  */
-export type AudienceKind = "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
+export type AudienceKind = Database["app"]["Enums"]["audience_kind"];
 export const AUDIENCE_KINDS: readonly AudienceKind[] = [
   "Organization",
   "Project",
@@ -82,14 +84,7 @@ export const AUDIENCE_KINDS: readonly AudienceKind[] = [
   "Group",
 ];
 /** The audience kinds of a feed post, in app.audience_kind order. */
-export const FEED_AUDIENCE_KINDS: readonly AudienceKind[] = [
-  "Organization",
-  "Project",
-  "Team",
-  "Department",
-  "Role",
-  "Group",
-];
+export const FEED_AUDIENCE_KINDS: readonly AudienceKind[] = enums.audienceKind;
 
 export interface Audience {
   readonly kind: AudienceKind;

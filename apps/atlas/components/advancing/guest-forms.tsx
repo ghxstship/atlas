@@ -10,6 +10,7 @@ import {
   updateGuestAction,
 } from "./guest-actions";
 import { useCopy } from "./use-copy";
+import type { Database } from "@xos/data/database.types";
 
 type Action = (state: AdvancingState, form: FormData) => Promise<AdvancingState>;
 
@@ -197,7 +198,7 @@ export function GuestActions({
 }: {
   org: string;
   guest: GuestItem;
-  state: "Requested" | "Approved" | "Declined" | "Checked In";
+  state: Database["app"]["Enums"]["guest_entry_state"];
   scopes: readonly ScopeChoice[];
   canEdit: boolean;
   canReview: boolean;

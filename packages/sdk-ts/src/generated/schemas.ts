@@ -8300,7 +8300,7 @@ export interface RoleAssignment {
   /**
    * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly staffing_basis: "Declared" | "Ratio" | "Fixed";
+  readonly staffing_basis: "Ratio" | "Fixed" | "Declared";
   /**
    * First day of the assignment.
    * Format: `date`.
@@ -8350,7 +8350,7 @@ export interface RoleAssignmentCreate {
   /**
    * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly staffing_basis?: "Declared" | "Ratio" | "Fixed";
+  readonly staffing_basis?: "Ratio" | "Fixed" | "Declared";
   /**
    * First day of the assignment.
    * Format: `date`.
@@ -8386,7 +8386,7 @@ export interface RoleAssignmentUpdate {
   /**
    * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly staffing_basis?: "Declared" | "Ratio" | "Fixed";
+  readonly staffing_basis?: "Ratio" | "Fixed" | "Declared";
   /**
    * First day of the assignment.
    * Format: `date`.
@@ -8471,13 +8471,13 @@ export interface Requisition {
    * External role type an opportunity published from the requisition seeks; null when filled internally.
    */
   readonly role_type:
-    | "Crew"
-    | "Contractor"
-    | "Staff"
+    | "Client"
     | "Vendor"
+    | "Contractor"
+    | "Crew"
+    | "Staff"
     | "Artist"
     | "Artist Representative"
-    | "Client"
     | "Sponsor"
     | null;
   /**
@@ -8560,13 +8560,13 @@ export interface RequisitionCreate {
    * External role type an opportunity published from the requisition seeks; null when filled internally.
    */
   readonly role_type?:
-    | "Crew"
-    | "Contractor"
-    | "Staff"
+    | "Client"
     | "Vendor"
+    | "Contractor"
+    | "Crew"
+    | "Staff"
     | "Artist"
     | "Artist Representative"
-    | "Client"
     | "Sponsor"
     | null;
   /**
@@ -8639,13 +8639,13 @@ export interface RequisitionUpdate {
    * External role type an opportunity published from the requisition seeks; null when filled internally.
    */
   readonly role_type?:
-    | "Crew"
-    | "Contractor"
-    | "Staff"
+    | "Client"
     | "Vendor"
+    | "Contractor"
+    | "Crew"
+    | "Staff"
     | "Artist"
     | "Artist Representative"
-    | "Client"
     | "Sponsor"
     | null;
   /**
@@ -19398,6 +19398,10 @@ export interface Opportunity {
    * Whether the work can be done remotely.
    */
   readonly is_remote: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked: boolean;
 }
 
 /**
@@ -19490,6 +19494,10 @@ export interface OpportunityCreate {
    * Whether the work can be done remotely.
    */
   readonly is_remote?: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked?: boolean;
 }
 
 /**
@@ -19571,6 +19579,10 @@ export interface OpportunityUpdate {
    * Whether the work can be done remotely.
    */
   readonly is_remote?: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked?: boolean;
 }
 
 /**
@@ -22057,6 +22069,10 @@ export interface MarketplaceListing {
    * Range: 0 to unbounded.
    */
   readonly position_count: number;
+  /**
+   * True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.
+   */
+  readonly client_hidden: boolean;
 }
 
 /**
@@ -37906,12 +37922,34 @@ export interface AuroraDraftRequest {
   /**
    * What to draft.
    */
-  readonly kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+  readonly kind:
+    | "sop"
+    | "advance_packet"
+    | "email"
+    | "day_sheet"
+    | "change_order_description"
+    | "run_of_show"
+    | "risk_assessment";
   /**
    * What the draft should say.
    * Length: 1 to 4000.
    */
   readonly instructions: string;
+  /**
+   * The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+   */
+  readonly target?: {
+    /**
+     * Collection of the list's record.
+     * Pattern: `^[a-z][a-z0-9-]*$`.
+     */
+    readonly collection: string;
+    /**
+     * The running order or project.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  };
   /**
    * Records to draft from, read with the caller's permissions.
    */
@@ -37937,6 +37975,57 @@ export interface AuroraDraftRequest {
      * Length: 1 to 200.
      */
     readonly preferred: string;
+  }>;
+}
+
+/**
+ * What a confirmed drafted list wrote.
+ */
+export interface AuroraAppliedDraft {
+  /**
+   * Each kept line with the row it wrote, in list order.
+   */
+  readonly written: ReadonlyArray<{
+    /**
+     * Identifier of the suggestion applied.
+     * Format: `uuid`.
+     */
+    readonly suggestion_id: string;
+    /**
+     * Identifier of the cue or Risk record written.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  }>;
+  /**
+   * Lines of the draft left out and rejected.
+   * Range: 0 to unbounded.
+   */
+  readonly rejected: number;
+}
+
+/**
+ * The lines of a drafted list to add.
+ */
+export interface AuroraApplyDraftRequest {
+  /**
+   * Identifier of the drafting request whose list is confirmed.
+   * Format: `uuid`.
+   */
+  readonly request_id: string;
+  /**
+   * The kept lines in list order: at most 60 cues or 40 risks.
+   */
+  readonly items: ReadonlyArray<{
+    /**
+     * Identifier of the suggestion holding the line.
+     * Format: `uuid`.
+     */
+    readonly suggestion_id: string;
+    /**
+     * Values the person changed, overriding the proposed ones key by key. Cues take label, planned_at, duration, segment and description; risks take record_subtype, title, risk.likelihood, risk.impact and risk.mitigation.
+     */
+    readonly values?: { readonly [key: string]: unknown };
   }>;
 }
 
@@ -38053,6 +38142,10 @@ export interface AuroraPreview {
    * Range: 0 to unbounded.
    */
   readonly vocabulary_terms: number;
+  /**
+   * For a risk assessment, the canon Risk categories the draft may use.
+   */
+  readonly categories?: ReadonlyArray<string>;
 }
 
 /**
@@ -38094,6 +38187,25 @@ export interface AuroraPreviewRequest {
    * The feature whose request is previewed.
    */
   readonly feature: "drafting" | "summaries";
+  /**
+   * For a drafted list, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.
+   */
+  readonly draft_kind?: "run_of_show" | "risk_assessment";
+  /**
+   * The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Required for those kinds.
+   */
+  readonly target?: {
+    /**
+     * Collection of the list's record.
+     * Pattern: `^[a-z][a-z0-9-]*$`.
+     */
+    readonly collection: string;
+    /**
+     * The running order or project.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  };
   /**
    * For summaries, what is summarized.
    */
@@ -41416,6 +41528,248 @@ export interface ShareLinkCreate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface LiveLinkPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<LiveLink>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A no-account link to one saved view of a project, or to one running order on a display screen, that updates while it is open (ADR 0130). Every link expires within 90 days and asks for a 6-digit access code; the token and the code are returned once by `liveLinks.createView`, `liveLinks.createDisplay` or `liveLinks.regenerate` and stored only as hashes, so they never appear here. Members read the links of projects where they hold the collection's read capability (show.run_of_show.read for display screens).
+ */
+export interface LiveLink {
+  /**
+   * Identifier of the live link.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project the link shows.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * View, a saved view; Display, a running order on a screen.
+   */
+  readonly link_kind: "View" | "Display";
+  /**
+   * Saved view a View link shows.
+   * Format: `uuid`.
+   */
+  readonly saved_view_id: string | null;
+  /**
+   * Running order a Display link shows.
+   * Format: `uuid`.
+   */
+  readonly run_of_show_id: string | null;
+  /**
+   * Mode a display screen opens in.
+   */
+  readonly default_mode: "Room Clock" | "Presenter Timer" | "Backstage" | null;
+  /**
+   * Last four characters of the token, to tell links apart.
+   * Length: 1 to 4.
+   */
+  readonly token_hint: string;
+  /**
+   * What the link is for. Never shown on the public page.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+  /**
+   * When the link stops opening: within 90 days of when it was made.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Wrong access codes since the link was made or regenerated; it locks at 5.
+   * Range: 0 to unbounded.
+   */
+  readonly failed_attempts: number;
+  /**
+   * Successful opens with the access code.
+   * Range: 0 to unbounded.
+   */
+  readonly open_count: number;
+  /**
+   * When the link was last opened.
+   * Format: `date-time`.
+   */
+  readonly last_opened_at: string | null;
+  /**
+   * When the link was last regenerated.
+   * Format: `date-time`.
+   */
+  readonly rotated_at: string | null;
+  /**
+   * When the link was revoked; it never opens again.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the link.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new live link with its token and access code, shown once.
+ */
+export interface LiveViewLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly live_link_id: string;
+  /**
+   * The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+   * Pattern: `^xshv_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * A live link to a saved view.
+ */
+export interface LiveViewLinkRequest {
+  /**
+   * Identifier of the saved view to share.
+   * Format: `uuid`.
+   */
+  readonly saved_view_id: string;
+  /**
+   * Identifier of the project the link shows.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * When the link stops opening: after now and within 90 days.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * What the link is for. Never shown on the public page.
+   * Length: 1 to 200.
+   */
+  readonly note?: string;
+}
+
+/**
+ * A new live link with its token and access code, shown once.
+ */
+export interface LiveDisplayLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly live_link_id: string;
+  /**
+   * The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+   * Pattern: `^xscr_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * A display screen link to a running order.
+ */
+export interface LiveDisplayLinkRequest {
+  /**
+   * Identifier of the running order to show.
+   * Format: `uuid`.
+   */
+  readonly run_of_show_id: string;
+  /**
+   * When the link stops opening; by default the end of the day after the show.
+   * Format: `date-time`.
+   */
+  readonly expires_at?: string;
+  /**
+   * Mode a display screen opens in.
+   */
+  readonly default_mode?: "Room Clock" | "Presenter Timer" | "Backstage";
+  /**
+   * What the link is for. Never shown on the public page.
+   * Length: 1 to 200.
+   */
+  readonly note?: string;
+}
+
+/**
+ * A regenerated live link's new token and access code, shown once.
+ */
+export interface LiveLinkRegenerated {
+  /**
+   * The link token. A saved view link is `{Atlas origin}/share/view/{token}` (xshv_), a display screen `{Atlas origin}/share/screen/{token}` (xscr_). Shown once; only its hash is stored.
+   * Pattern: `^xs(hv|cr)_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening; regenerating keeps the expiry.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface PersonCalendarFeedPage {
   /**
    * Items on this page, in the documented default order.
@@ -42599,7 +42953,7 @@ export interface WorkforceGroupMember {
   /**
    * Owners add and remove members.
    */
-  readonly group_role: "Member" | "Owner";
+  readonly group_role: "Owner" | "Member";
 }
 
 /**
@@ -42619,7 +42973,7 @@ export interface WorkforceGroupMemberCreate {
   /**
    * Owners add and remove members.
    */
-  readonly group_role: "Member" | "Owner";
+  readonly group_role: "Owner" | "Member";
 }
 
 /**
@@ -46102,7 +46456,7 @@ export interface HelpDeskRequest {
   /**
    * Severity.
    */
-  readonly severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+  readonly severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
   /**
    * One-line summary.
    * Length: 1 to 200.
@@ -46155,7 +46509,7 @@ export interface HelpDeskRequestCreate {
   /**
    * Severity.
    */
-  readonly severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+  readonly severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
   /**
    * One-line summary.
    * Length: 1 to 200.
@@ -46291,7 +46645,7 @@ export interface OccupancyCounter {
   /**
    * Where the permitted load comes from.
    */
-  readonly load_basis: "Occupant Load Factor" | "Space Capacity" | "Permit";
+  readonly load_basis: "Space Capacity" | "Occupant Load Factor" | "Permit";
   /**
    * Bible metric domain of the load factor.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -46981,7 +47335,7 @@ export interface LostFoundItem {
    * Category.
    */
   readonly category:
-    "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
   /**
    * Description a claimant is checked against.
    * Length: 1 to 1000.
@@ -47026,7 +47380,7 @@ export interface LostFoundItemCreate {
    * Category.
    */
   readonly category:
-    "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
   /**
    * Description a claimant is checked against.
    * Length: 1 to 1000.
@@ -47057,7 +47411,7 @@ export interface LostFoundItemUpdate {
    * Category.
    */
   readonly category?:
-    "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
   /**
    * Description a claimant is checked against.
    * Length: 1 to 1000.

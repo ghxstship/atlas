@@ -1,5 +1,7 @@
 "use client";
 
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, EmptyState, ErrorState, InlineAlert, Skeleton } from "@xos/ui";
 import { RefusalNotice } from "@/components/refusal-notice";
 import type { ButtonProps } from "@xos/ui";
@@ -112,6 +114,7 @@ export function ActionForm({
   children,
   inline = false,
   announce = false,
+  signals,
 }: {
   action: ServerAction;
   hidden?: Readonly<Record<string, string>>;
@@ -124,6 +127,8 @@ export function ActionForm({
   inline?: boolean;
   /** Success is announced in the page's PageStatus, for a form whose row leaves on success. */
   announce?: boolean;
+  /** Workflow funnel signals sent on success (A146), from the action like the announcement. */
+  signals?: readonly WorkflowSignal[];
 }) {
   const pageStatus = usePageStatus();
   const toPage = announce && pageStatus !== null;
@@ -133,9 +138,10 @@ export function ActionForm({
     async (previous, form) => {
       const next = await action(previous, form);
       if (toPage && next.ok && success) pageStatus(success);
+      if (next.ok) for (const s of signals ?? []) emitWorkflow(s);
       return next;
     },
-    [action, toPage, pageStatus, success],
+    [action, toPage, pageStatus, success, signals],
   );
   const [state, formAction, pending] = useActionState(announcing, INITIAL_STATE);
   const ref = useRef<HTMLFormElement>(null);

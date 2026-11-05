@@ -1,3 +1,4 @@
+import { draftedListIsEmpty } from "@xos/data/ai";
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
 import {
@@ -32,6 +33,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import { CreateRunDialog, RunBody, RunCollection, RunPeek } from "./runs";
 import { CallSheetPeek, DaySheetPeek, SheetCollection } from "./sheets";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { DisplayScreensAction } from "./display-screens-action";
 
 type Subject = { table: "app.run_of_show" | "app.day_sheets" | "app.call_sheets"; id: string };
 
@@ -113,6 +115,12 @@ export async function RunsPage({
     if (run.ok) {
       const cueList = must(cues, "cues");
       const canEdit = caps.has("show.run_of_show.write");
+      // Aurora drafts only into an empty running order the viewer may write to (P6); the database
+      // answers both, counting cues the viewer cannot see.
+      const draftable =
+        canEdit && cueList.length === 0
+          ? await draftedListIsEmpty(db, "run_of_show", run.data.id).then((r) => r.ok && r.data)
+          : false;
       // Set for: the run's project's Artist engagements (R1), only where the viewer edits cues.
       const artists = canEdit
         ? (await engagementOptions(ctx, run.data.projectId))
@@ -129,12 +137,21 @@ export async function RunsPage({
             live={param(search, "live") === "1"}
             canEdit={canEdit}
             canCall={caps.has("show.cue.call")}
+            draftable={draftable}
             setTimes={setTimes.ok ? setTimes.data : []}
             artists={artists}
           >
             {param(search, "live") === "1" ? null : (
               <>
-                <DocumentActions org={ctx.org.slug} kind="run-of-show" id={run.data.id} />
+                <span className="inline-flex flex-wrap items-center gap-8">
+                  <DocumentActions org={ctx.org.slug} kind="run-of-show" id={run.data.id} />
+                  {canEdit ? (
+                    <DisplayScreensAction
+                      org={ctx.org.slug}
+                      run={{ id: run.data.id, name: run.data.name }}
+                    />
+                  ) : null}
+                </span>
                 {await collab(ctx, meta, { table: "app.run_of_show", id: run.data.id })}
               </>
             )}

@@ -1,5 +1,7 @@
 "use client";
 
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, InlineAlert, Textarea } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -25,6 +27,8 @@ export function ConfirmButton(props: {
   /** Ask for a reason; acts without one say only what will happen. */
   reason?: boolean;
   confirmLabel?: string;
+  /** Workflow funnel signal sent when the act succeeds (A146). */
+  signal?: WorkflowSignal;
 }) {
   const t = useTranslations("crew.form");
   const router = useRouter();
@@ -32,6 +36,7 @@ export function ConfirmButton(props: {
   const [state, action, pending] = useActionState(async (prev: CrewActionState, form: FormData) => {
     const next = await props.action(prev, form);
     if (next.ok) {
+      if (props.signal) emitWorkflow(props.signal);
       setOpen(false);
       router.refresh();
     }

@@ -84,7 +84,10 @@
     "unitBasisHelp": "Un alias de unidad del canon, como ea, day o m.",
     "extended": "Importe",
     "received": "Recibido",
-    "addRow": "Agregar otra línea"
+    "addRow": "Agregar otra línea",
+    "budgetLine": "Línea de presupuesto",
+    "budgetLineNone": "Ninguna",
+    "budgetLineOtherCurrency": "{label} (no se cuenta en Comprometido)"
   },
   "rfqs": {
     "title": "Solicitudes de cotización",
@@ -141,6 +144,7 @@
     "notAcknowledged": "Aún no",
     "lines": "Líneas",
     "noLines": "Aún no hay líneas. Agregue lo que se pide; una línea sin precio queda sin precio.",
+    "commitsLine": "Línea de presupuesto",
     "addLine": "Agregar línea",
     "removeLine": "Quitar línea {n}",
     "linesLocked": "Las líneas se bloquean tras la aprobación. Use una orden de cambio para modificar la orden.",
@@ -411,7 +415,12 @@
       "sopCode": "Use SOP- y de tres a cinco dígitos, por ejemplo SOP-007.",
       "lineFormat": "Revisa el formato: una entrada por línea, como indica la ayuda debajo del campo.",
       "quizCorrect": "Escribe el número de la opción correcta, del 1 a la cantidad de opciones.",
-      "httpsUrl": "Escribe una dirección web que empiece con https://."
+      "httpsUrl": "Escribe una dirección web que empiece con https://.",
+      "addressRequired": "Las direcciones de este país lo necesitan. Complételo o borre toda la dirección.",
+      "postalCode": "Ese no es un código postal de este país. Compárelo con la dirección.",
+      "addressTooLong": "Acorte esta parte de la dirección.",
+      "country": "Ingrese un código de país de dos letras, por ejemplo US.",
+      "countryNeeded": "Ingrese el país de esta dirección."
     },
     "loadError": {
       "title": "No se pudo cargar",

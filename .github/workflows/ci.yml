@@ -240,11 +240,13 @@ jobs:
           if-no-files-found: ignore
 
   # Gate 16: pseudo-locales exist only on next dev, which the configs start themselves. Atlas runs the
-  # ar-XB journey, and both apps check en-XA strings and truncation (A53).
+  # ar-XB journey, and both apps check en-XA strings and truncation on the core screens (A53) and on
+  # every route the a11y sweep visits per role; the docs site and the operator console check every
+  # route too (A149). The checks are shared in packages/testing/src/pseudo.ts.
   e2e-pseudo-locales:
     name: Pseudo-locale journeys on next dev (gate 16)
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 150
     env:
       E2E_ENGINES: chromium
     steps:
@@ -270,7 +272,7 @@ jobs:
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
           echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
           echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
-      - run: pnpm turbo run build --filter=@xos/atlas^... --filter=@xos/gateway^...
+      - run: pnpm turbo run build --filter=@xos/atlas^... --filter=@xos/gateway^... --filter=@xos/docs^... --filter=@xos/console^...
       - name: Atlas (ar-XB journey, en-XA strings, truncation)
         run: pnpm exec playwright test views-help.spec.ts pseudo-locales.spec.ts -g "right to left|en-XA|ar-XB"
         working-directory: apps/atlas
@@ -279,11 +281,76 @@ jobs:
       - name: Gateway (en-XA strings, truncation)
         run: pnpm exec playwright test pseudo-locales.spec.ts
         working-directory: apps/gateway
+      - name: Docs every route (en-XA strings, truncation)
+        run: pnpm exec playwright test pseudo-locales.spec.ts --project=chromium
+        working-directory: apps/docs
+        env:
+          E2E_NEXT_DEV: "1"
+      - name: Console every route (en-XA strings, truncation)
+        run: pnpm exec playwright test pseudo-locales.spec.ts
+        working-directory: apps/console
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-pseudo-locales
           path: apps/*/node_modules/.cache/playwright
+          if-no-files-found: ignore
+
+  # A149's every-route checks visit each route the a11y sweep visits per role (Atlas) or per person
+  # (Gateway) in both pseudo-locales on next dev, which compiles each route on its first visit; in one
+  # job with the other pseudo-locale checks they ran past 150 minutes (merge train 3, 2026-11-01), so
+  # they run here in shards, each with its own stack and server.
+  e2e-pseudo-locale-routes:
+    name: Pseudo-locale routes (${{ matrix.app }}, ${{ matrix.shard }}/${{ matrix.shards }}) (gate 16)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { app: atlas, shard: 1, shards: 6 }
+          - { app: atlas, shard: 2, shards: 6 }
+          - { app: atlas, shard: 3, shards: 6 }
+          - { app: atlas, shard: 4, shards: 6 }
+          - { app: atlas, shard: 5, shards: 6 }
+          - { app: atlas, shard: 6, shards: 6 }
+          - { app: gateway, shard: 1, shards: 2 }
+          - { app: gateway, shard: 2, shards: 2 }
+    env:
+      E2E_ENGINES: chromium
+      E2E_SKIP_AURORA: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/${{ matrix.app }}
+      # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+      - run: infra/ci/supabase-images.sh start
+      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      - name: Write the app environments from the stack
+        run: |
+          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
+          echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
+          echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
+      - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}^...
+      - name: Every route (en-XA strings, truncation)
+        run: pnpm exec playwright test pseudo-locales-routes.spec.ts --workers=2 --shard=${{ matrix.shard }}/${{ matrix.shards }}
+        working-directory: apps/${{ matrix.app }}
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-pseudo-routes-${{ matrix.app }}-${{ matrix.shard }}
+          path: apps/${{ matrix.app }}/node_modules/.cache/playwright
           if-no-files-found: ignore
 
   # Gate 19: every Section 11.9 template, both paper sizes and both locales, passes PDF/UA-1.

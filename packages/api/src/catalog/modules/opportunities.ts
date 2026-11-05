@@ -17,6 +17,7 @@ import {
 } from "../correct.ts";
 import { itemAction } from "../define.ts";
 import { opportunitiesFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -106,6 +107,26 @@ export const additions = defineAdditions("Opportunities", {
       }),
     },
     {
+      id: "opportunity-hidden-client",
+      since: "1.0.0-draft.2",
+      resources: ["opportunities"],
+      change:
+        "Adds `hide_client_until_booked`, optional on create and update; it can be turned on only while the opportunity is Draft or Pending Approval.",
+      reason:
+        "app.opportunities.hide_client_until_booked (3870, P10): crew see the org, the city, the dates and the pay until they are booked, and the title and description cannot name the project, its client or the venue (opportunity_hidden_client_named, opportunity_hidden_client_published).",
+      apply: editShape({
+        add: {
+          hide_client_until_booked: {
+            schema: fields.bool(
+              "Whether the client and event stay hidden from crew until they are booked.",
+              false,
+            ),
+            create: "optional",
+          },
+        },
+      }),
+    },
+    {
       id: "opportunity-positions-are-rows",
       since: "1.0.0-draft.2",
       resources: ["opportunityPositions"],
@@ -140,7 +161,7 @@ export const additions = defineAdditions("Opportunities", {
         remove: ["tag_id", "statement", "currency"],
         add: {
           requirement_kind: {
-            schema: label(["Certification", "Insurance", "Equipment"], "Kind of requirement."),
+            schema: label(Constants.app.Enums.opportunity_requirement_kind, "Kind of requirement."),
             create: "required",
           },
           description: {
@@ -245,7 +266,7 @@ export const additions = defineAdditions("Opportunities", {
         remove: ["meeting_url", "outcome_notes"],
         add: {
           interview_kind: {
-            schema: label(["Interview", "Audition"], "Interview or Audition."),
+            schema: label(Constants.app.Enums.interview_kind, "Interview or Audition."),
             create: "required",
           },
           duration_minutes: {
@@ -279,22 +300,7 @@ export const additions = defineAdditions("Opportunities", {
         nullable: ["document_id"],
         add: {
           document_kind: {
-            schema: label(
-              [
-                "Offer",
-                "Agreement",
-                "Statement of Work",
-                "Non-Disclosure Agreement",
-                "Rider",
-                "Advance Packet",
-                "Insurance Certificate",
-                "Lien Waiver",
-                "Settlement",
-                "Proof of Performance",
-                "Content Consent",
-              ],
-              "Kind of document.",
-            ),
+            schema: label(Constants.app.Enums.engagement_document_kind, "Kind of document."),
             create: "required",
             update: false,
           },
@@ -327,20 +333,7 @@ export const additions = defineAdditions("Opportunities", {
             create: "required",
           },
           item_kind: {
-            schema: label(
-              [
-                "Document Upload",
-                "Electronic Signature",
-                "Form",
-                "Certification",
-                "Training",
-                "Acknowledgment",
-                "Background Check",
-                "Tax Form",
-                "Payout Details",
-              ],
-              "Kind of onboarding item.",
-            ),
+            schema: label(Constants.app.Enums.onboarding_item_kind, "Kind of onboarding item."),
             create: "required",
           },
           is_blocking: {
@@ -383,7 +376,10 @@ export const additions = defineAdditions("Opportunities", {
         remove: ["role_type"],
         add: {
           pool_kind: {
-            schema: label(["Talent", "Vendor"], "Talent (people) or Vendor (external accounts)."),
+            schema: label(
+              Constants.app.Enums.pool_kind,
+              "Talent (people) or Vendor (external accounts).",
+            ),
             create: "required",
             update: false,
           },

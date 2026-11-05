@@ -75,7 +75,9 @@
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
     "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    "setting_fixed": "This setting is fixed and cannot be changed."
+    "setting_fixed": "This setting is fixed and cannot be changed.",
+    "phone": "Enter a phone number with its area code. Add the country code, such as +44, for a number outside your country.",
+    "work_phone_e164": "Enter the work phone with its country code, for example +1 305 555 0199."
   },
   "fields": {
     "legalName": {
@@ -289,6 +291,22 @@
       "label": "Supplier diversity program",
       "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
     },
+    "keepPhotoLocation": {
+      "label": "Keep photo location",
+      "help": "Keep where a Compass photo was taken in the photo's file. When off, Compass removes the location as it resizes the photo."
+    },
+    "availabilityRequired": {
+      "label": "Members state their availability",
+      "help": "Members state when they can work for the days ahead, and their availability inside the notice period is locked so planners can rely on it."
+    },
+    "availabilityNoticeDays": {
+      "label": "Availability notice (days)",
+      "help": "While availability is required, nobody can change a member's availability for this many days ahead. Availability stays the member's own: planners read it and reassign shifts, but cannot edit it."
+    },
+    "availabilityHorizonDays": {
+      "label": "Availability horizon (days)",
+      "help": "How many days ahead members state their availability. Planners see who has not stated it for a shift inside this window."
+    },
     "offeringsTravel": {
       "label": "Travel",
       "help": "Flights and ground transport for the people you engage. Offered, the Travel and lodging and Hospitality tabs appear on their Gateway engagements."
@@ -483,11 +501,19 @@
     "displayName": "Brand name",
     "displayNameHelp": "Shown instead of the organization name on branded pages. Leave empty to use the organization name.",
     "accent": "Brand accent",
-    "accentHelp": "A six-digit hex color, for example #5B63E8.",
-    "invalidColor": "Enter a six-digit hex color, for example #5B63E8.",
-    "passes": "Passes WCAG 2.2 AA in every theme.",
-    "fails": "Fails WCAG 2.2 AA in {count, plural, one {# pair} other {# pairs}}. Choose a darker or more saturated accent.",
-    "failure": "{rule}, {theme} theme: {ratio}:1, needs {min}:1",
+    "accentHelp": "A hex color, for example #5B63E8. It can be saved once every pair below passes.",
+    "check": "{theme}: {pair}",
+    "themeDark": "Dark theme",
+    "themeLight": "Light theme",
+    "themeSunlight": "Sunlight theme",
+    "pairLabel": "label on accent",
+    "pairLabelHover": "label on accent, hovered",
+    "pairLabelPressed": "label on accent, pressed",
+    "pairCanvas": "accent on the page",
+    "pairSurface": "accent on a surface",
+    "pairRaised": "accent on a raised surface",
+    "pairHover": "accent on a hovered row",
+    "pairOther": "{rule}, {token}",
     "preview": "Preview",
     "previewAction": "Primary action",
     "neutralTint": "Neutral tint",
@@ -604,7 +630,10 @@
     "fieldErrors": {
       "invalid": "Check this value and try again.",
       "cidr": "Enter an address or a network like 203.0.113.0/24.",
-      "reason": "Write why you need emergency access, in at least 20 characters."
+      "reason": "Write why you need emergency access, in at least 20 characters.",
+      "addressRequired": "Addresses in this country need this. Fill it in, or clear the whole address.",
+      "postalCode": "That is not a postal code in this country. Check it against the address.",
+      "addressTooLong": "Shorten this part of the address."
     },
     "errors": {
       "legal_entity_primary": "Mark another legal entity primary first. The organization always keeps one primary entity.",
@@ -634,7 +663,8 @@
       "project_member_ended": "This person is no longer on the project.",
       "sod_self_grant": "You cannot give yourself a role.",
       "project_share_own_org": "A project is shared with another organization, never your own.",
-      "project_share_deleted_project": "A deleted project cannot be shared."
+      "project_share_deleted_project": "A deleted project cannot be shared.",
+      "postal_code_invalid": "That postal code does not fit the entity's country. Check it against the address."
     },
     "legalEntities": {
       "title": "Legal entities",
@@ -657,7 +687,16 @@
       "makePrimary": "Make primary",
       "makePrimaryNamed": "Make {name} the primary legal entity",
       "remove": "Remove",
-      "removeNamed": "Remove {name}"
+      "removeNamed": "Remove {name}",
+      "addressNone": "No registered address",
+      "addAddress": "Add registered address",
+      "editAddress": "Edit registered address",
+      "addressLabel": "Registered address of {name}",
+      "streetAddress": "Street address",
+      "locality": "City",
+      "administrativeArea": "State or province",
+      "postalCode": "Postal code",
+      "saveAddress": "Save address"
     },
     "network": {
       "title": "Allowed networks",
@@ -788,6 +827,7 @@
     "resetAllDone": "Every shortcut uses its default keys again.",
     "singleKeysOff": "Single-key shortcuts are off, so shortcuts without Ctrl, Cmd or Alt do nothing. Turn on Keyboard shortcuts above to use them.",
     "fixed": "Esc, Enter and the list keys J, K and X belong to every list and dialog, so they stay as they are. Help lists every shortcut.",
+    "dropped": "Some of your shortcuts use their default keys again, because the keys you chose now belong to other shortcuts or are no longer allowed: {actions}.",
     "problems": {
       "conflict": "{keys} already does {action}. Change that shortcut first, or choose other keys.",
       "browser": "{keys} belongs to your browser or computer. Choose other keys.",

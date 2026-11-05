@@ -59,7 +59,7 @@ export function AvatarStack({ names, max = 3 }: AvatarStackProps): ReactElement 
             "size-(--ui-avatar) text-text-11 bg-bg-surface text-text-secondary tabular-nums",
           )}
         >
-          +{extra}
+          {t("avatar.overflow", { n: extra })}
         </span>
       ) : null}
     </span>

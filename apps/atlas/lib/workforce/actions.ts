@@ -122,6 +122,8 @@ import { parseFieldList, parseSurveyQuestions } from "./parse";
 import { uploadFormMedia } from "./media";
 import { storedHazardValue, UNIT_SYSTEMS } from "./units";
 import type { UnitSystem } from "@xos/ui/preferences";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
 
 /**
  * Workforce suite actions (A29, Section 4.9). Row level security and the 0800 to 0808 RPCs decide
@@ -138,7 +140,7 @@ function audienceOf(form: FormData) {
   const target = uuid(form, "audienceTarget");
   const department = text(form, "audienceTarget");
   return {
-    kind: kind as "Organization" | "Project" | "Team" | "Department" | "Role" | "Group",
+    kind: kind as Database["app"]["Enums"]["audience_kind"],
     projectId: kind === "Project" ? target : null,
     teamId: kind === "Team" ? target : null,
     roleId: kind === "Role" ? target : null,
@@ -386,8 +388,8 @@ export async function createSurveyAction(_: ActionState, form: FormData): Promis
 export async function transitionSurveyAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
-  const expected = of<SurveyState>(text(form, "expected"), ["Draft", "Open", "Closed"]);
-  const next = of<SurveyState>(text(form, "next"), ["Draft", "Open", "Closed"]);
+  const expected = of<SurveyState>(text(form, "expected"), enums.surveyState);
+  const next = of<SurveyState>(text(form, "next"), enums.surveyState);
   const reason = reasonOf(form);
   if (id === null || expected === null || next === null) return { error: "notFound" };
   if (reason === null) return { fieldErrors: { reason: "required" } };
@@ -934,7 +936,7 @@ export async function transitionRequestAction(
 ): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
-  const states: SupportTicketState[] = ["Open", "Waiting", "Resolved", "Closed"];
+  const states: readonly SupportTicketState[] = enums.supportTicketState;
   const expected = of(text(form, "expected"), states);
   const next = of(text(form, "next"), states);
   const reason = reasonOf(form);

@@ -205,6 +205,7 @@ export const registeredIconNames = [
   "UserMinus",
   "UserPlus",
   "UserRound",
+  "UserRoundSearch",
   "Users",
   "UtensilsCrossed",
   "Wallet",

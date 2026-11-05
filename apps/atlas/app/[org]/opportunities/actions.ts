@@ -2,6 +2,7 @@
 
 import type { Result } from "@xos/data";
 import * as repo from "@xos/data/opportunities";
+import { applyQuestionTemplate } from "@xos/data/opportunity-templates";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import { gatewayUrl } from "@/lib/gateway-url";
 import { parseMoney } from "@/lib/opportunities/format";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * Opportunities server actions. Each one resolves the viewer's org context again (404 when it is gone), validates the
@@ -133,6 +135,11 @@ const opportunitySchema = z
       .string()
       .default("")
       .transform((s) => s === "true"),
+    hideClientUntilBooked: z
+      .string()
+      .default("")
+      .transform((s) => s === "true"),
+    questionTemplateId: z.union([uuid, z.literal("")]).default(""),
   })
   .transform((v, ctx) => {
     const min = parseMoney(v.payMin, v.currencyCode);
@@ -146,9 +153,9 @@ const opportunitySchema = z
     return { ...v, min, max };
   });
 
-export const createOpportunityAction: Action = action(opportunitySchema, (ctx, v) => {
+export const createOpportunityAction: Action = action(opportunitySchema, async (ctx, v) => {
   const posted = v.min !== null || v.max !== null;
-  return repo.createOpportunity(ctx.viewer.db, {
+  const created = await repo.createOpportunity(ctx.viewer.db, {
     projectId: v.projectId,
     title: v.title,
     roleType: v.roleType as repo.ExternalRoleType,
@@ -164,7 +171,13 @@ export const createOpportunityAction: Action = action(opportunitySchema, (ctx, v
     endsOn: v.endsOn,
     deadlineAt: v.deadlineAt,
     isRemote: v.isRemote,
+    hideClientUntilBooked: v.hideClientUntilBooked,
   });
+  // The chosen question template is copied into the new draft (3290). The draft is already saved when the copy is
+  // refused, so the form says so instead of offering to save it again.
+  if (!created.ok || v.questionTemplateId === "") return created;
+  const applied = await applyQuestionTemplate(ctx.viewer.db, created.data.id, v.questionTemplateId);
+  return applied.ok ? created : { error: "questionsNotApplied" };
 });
 
 export const updateOpportunityAction: Action = action(
@@ -175,6 +188,10 @@ export const updateOpportunityAction: Action = action(
     startsOn: optionalDate,
     endsOn: optionalDate,
     deadlineAt: optionalInstant,
+    hideClientUntilBooked: z
+      .string()
+      .default("")
+      .transform((s) => s === "true"),
   }),
   (ctx, v) =>
     repo.updateOpportunity(ctx.viewer.db, v.opportunityId, {
@@ -183,6 +200,22 @@ export const updateOpportunityAction: Action = action(
       startsOn: v.startsOn,
       endsOn: v.endsOn,
       deadlineAt: v.deadlineAt,
+      hideClientUntilBooked: v.hideClientUntilBooked,
+    }),
+);
+
+/** Turns the hidden client and event off on a posted listing; turning it on after publishing is refused (3870). */
+export const updateHiddenClientAction: Action = action(
+  z.object({
+    opportunityId: uuid,
+    hideClientUntilBooked: z
+      .string()
+      .default("")
+      .transform((s) => s === "true"),
+  }),
+  (ctx, v) =>
+    repo.updateOpportunity(ctx.viewer.db, v.opportunityId, {
+      hideClientUntilBooked: v.hideClientUntilBooked,
     }),
 );
 
@@ -320,7 +353,7 @@ export const shortlistAction: Action = action(
 export const scheduleInterviewAction: Action = action(
   z.object({
     applicationId: uuid,
-    kind: z.enum(["Interview", "Audition"]),
+    kind: z.enum(enums.interviewKind),
     scheduledAt: z
       .string()
       .trim()
@@ -448,15 +481,7 @@ export const createDocumentAction: Action = action(
     }),
 );
 
-const documentStates = [
-  "Proposed",
-  "Sent",
-  "Signed",
-  "Executed",
-  "Expired",
-  "Superseded",
-  "Canceled",
-] as const;
+const documentStates = enums.engagementDocumentState;
 
 export const transitionDocumentAction: Action = action(
   z.object({
@@ -491,7 +516,7 @@ export const issueSigningLinkAction: Action = action(
 );
 
 export const verifyItemAction: Action = action(
-  z.object({ itemId: uuid, outcome: z.enum(["Passed", "Failed"]), note: optionalText(2000) }),
+  z.object({ itemId: uuid, outcome: z.enum(enums.verificationOutcome), note: optionalText(2000) }),
   (ctx, v) =>
     repo.verifyOnboardingItem(ctx.viewer.db, {
       itemId: v.itemId,
@@ -503,7 +528,7 @@ export const verifyItemAction: Action = action(
 export const decideDeliverableAction: Action = action(
   z.object({
     deliverableId: uuid,
-    decision: z.enum(["Approved", "Rejected"]),
+    decision: z.enum(enums.approvalDecision),
     reason: optionalText(2000),
   }),
   (ctx, v) => repo.decideDeliverable(ctx.viewer.db, v.deliverableId, v.decision, v.reason),
@@ -553,7 +578,7 @@ export const createRequirementAction: Action = action(
     roleType: z
       .union([z.enum(repo.ROLE_TYPES as unknown as [string, ...string[]]), z.literal("")])
       .default(""),
-    method: z.enum(["Reviewer", "Automatic"]),
+    method: z.enum(enums.verificationMethod),
     blocking: z
       .string()
       .default("")
@@ -579,13 +604,13 @@ export const createRequirementAction: Action = action(
 // Pools -----------------------------------------------------------------------------------------------------------------------------
 
 export const createPoolAction: Action = action(
-  z.object({ name: text(200), kind: z.enum(["Talent", "Vendor"]) }),
+  z.object({ name: text(200), kind: z.enum(enums.poolKind) }),
   (ctx, v) => repo.createPool(ctx.viewer.db, { orgId: ctx.org.id, name: v.name, kind: v.kind }),
 );
 
 const standingSchema = z
   .object({
-    standing: z.enum(["Preferred", "Approved", "Do Not Engage"]),
+    standing: z.enum(enums.poolStanding),
     reason: optionalText(1000),
     reviewOn: optionalDate,
   })

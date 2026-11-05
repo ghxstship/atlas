@@ -106,7 +106,7 @@
       },
       "drafting": {
         "label": "Drafting",
-        "description": "Drafts SOPs, advance packets, emails, day sheets and change order descriptions in your verbiage."
+        "description": "Drafts SOPs, advance packets, emails, day sheets, change order descriptions, running orders and risk assessments in your verbiage."
       },
       "summaries": {
         "label": "Summaries",
@@ -166,6 +166,7 @@
       "notConfigured": "Aurora is not set up on this deployment. Ask your platform operator to connect the model provider.",
       "offline": "Aurora could not be reached. Check your connection and try again. Nothing was changed.",
       "forbidden": "You do not have access to do this. Nothing was changed.",
+      "listNotEmpty": "This list already has entries. Aurora only drafts into an empty list.",
       "refused": "Aurora could not do this: {detail}",
       "unexpected": "Something went wrong and nothing was changed. Try again.",
       "failed": "The model did not answer, and nothing was changed. Try again in a moment."
@@ -187,7 +188,9 @@
         "sop": "Draft an SOP with Aurora",
         "advance_packet": "Draft a section with Aurora",
         "change_order_description": "Draft a description with Aurora",
-        "day_sheet": "Draft a day sheet with Aurora"
+        "day_sheet": "Draft a day sheet with Aurora",
+        "run_of_show": "Draft a run of show with Aurora",
+        "risk_assessment": "Draft a risk assessment with Aurora"
       },
       "instructions": "What should the draft say?",
       "instructionsHelp": {
@@ -200,7 +203,9 @@
         "sop": "Standard operating procedure",
         "advance_packet": "Advance packet section",
         "change_order_description": "Change order description",
-        "day_sheet": "Day sheet"
+        "day_sheet": "Day sheet",
+        "run_of_show": "Run of show",
+        "risk_assessment": "Risk assessment"
       },
       "sentKind": "Draft",
       "sentInstructions": "Your instructions",
@@ -214,6 +219,86 @@
       "used": "The draft is in the form. Review it, then save.",
       "ready": "Aurora's draft is ready. Review and edit it before you use it.",
       "tooLong": "The form takes at most {max, number} characters. Shorten the draft before you use it."
+    },
+    "listDraft": {
+      "button": {
+        "run_of_show": "Draft run of show with Aurora",
+        "risk_assessment": "Draft risk assessment with Aurora"
+      },
+      "title": {
+        "run_of_show": "Draft a run of show with Aurora",
+        "risk_assessment": "Draft a risk assessment with Aurora"
+      },
+      "instructions": "What should Aurora draft?",
+      "instructionsHelp": {
+        "run_of_show": "For example: doors at 18:00, two support acts, the headliner at 21:00 and curfew at 23:00. Aurora leaves a time empty when the records do not give it.",
+        "risk_assessment": "For example: an outdoor festival on a riverbank in August, two stages and 8,000 guests a day."
+      },
+      "defaultInstructions": {
+        "run_of_show": "Draft the running order for {name}.",
+        "risk_assessment": "Draft the risk assessment for {name}."
+      },
+      "kind": {
+        "run_of_show": "Run of show",
+        "risk_assessment": "Risk assessment"
+      },
+      "sentKind": "Draft",
+      "sentTarget": "The list it fills",
+      "sentCategories": "Categories",
+      "ready": "Aurora's draft is ready. Review each line before you add it.",
+      "review": "Nothing is saved until you add the lines you keep. Discard rejects every line; if you close the panel instead, the lines expire in 7 days.",
+      "qualified": "Review each risk with a qualified person before you rely on it.",
+      "rowsLabel": {
+        "run_of_show": "Drafted cues",
+        "risk_assessment": "Drafted risks"
+      },
+      "include": "Include line {n}",
+      "columns": {
+        "label": "Label",
+        "time": "Time ({zone})",
+        "duration": "Length in Minutes",
+        "segment": "Segment",
+        "description": "Description",
+        "title": "Title",
+        "category": "Category",
+        "likelihood": "Likelihood",
+        "impact": "Impact",
+        "mitigation": "Mitigation"
+      },
+      "unrated": "Not rated",
+      "required": "Required.",
+      "minutesInvalid": "Enter whole minutes, up to 1,440.",
+      "flags": {
+        "overlap": "Overlaps the cue before by {minutes, plural, one {# minute} other {# minutes}}.",
+        "gap": "{minutes, plural, one {# minute} other {# minutes}} idle before this cue.",
+        "untimed": "No time yet.",
+        "outOfOrder": "Earlier than the cue before it."
+      },
+      "gapsTitle": "Aurora left gaps it could not fill",
+      "droppedTitle": "Lines left out because they broke a rule of the list",
+      "dropped": "Line {line}: {reason}",
+      "dropReason": {
+        "label": "the label is empty or longer than 200 characters.",
+        "title": "the title is empty or longer than 200 characters.",
+        "segment": "the segment is longer than 200 characters.",
+        "description": "the description is longer than 2,000 characters.",
+        "mitigation": "the mitigation is empty or longer than 2,000 characters.",
+        "category": "the category is not one of the canon Risk categories.",
+        "rating": "a rating is not a whole number from 1 to 5.",
+        "time": "the time falls outside the show day and 06:00 the next morning.",
+        "duration": "the length is not whole minutes up to 24 hours.",
+        "too_many": "the draft passed the most lines one list takes."
+      },
+      "verbiage": "Check these terms against your verbiage library: {terms}",
+      "add": {
+        "run_of_show": "Add {count, plural, one {# cue} other {# cues}}",
+        "risk_assessment": "Add {count, plural, one {# risk} other {# risks}}"
+      },
+      "added": {
+        "run_of_show": "Added {count, plural, one {# cue} other {# cues}} to the running order.",
+        "risk_assessment": "Added {count, plural, one {# risk} other {# risks}} to the project."
+      },
+      "discarded": "The drafted lines were discarded. Nothing was added."
     },
     "summary": {
       "button": "Summarize",

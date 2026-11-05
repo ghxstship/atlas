@@ -6,6 +6,7 @@ import { useActionState, useEffect, useMemo, useRef } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { openBillingPortalAction, startCheckoutAction } from "@/lib/billing/actions";
 import { INITIAL_PLATFORM_STATE, type PlatformActionState } from "@/lib/platform/state";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * Billing and Plan's buttons (ADR 0033 decision 59): one opens Stripe Checkout for a plan, the other
@@ -105,7 +106,7 @@ export function CheckoutButton({
 }: {
   org: string;
   plan: string;
-  interval: "Monthly" | "Annual";
+  interval: Database["app"]["Enums"]["billing_interval"];
   label: string;
   variant?: ButtonProps["variant"];
 }) {

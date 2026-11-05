@@ -4,6 +4,7 @@ import { StoreError, unwrap, type DbClient } from "../../framework/db.ts";
 import { errorForStatus, IntegrationError } from "../../framework/errors.ts";
 import { callJson, type HttpRequest } from "../../framework/http.ts";
 import { sha256Hex } from "../../framework/support.ts";
+import type { Database } from "@xos/data/database.types";
 
 /** The attachments bucket cap (migration 0590): imports larger than this are refused before download. */
 export const MAX_IMPORT_BYTES = 52_428_800;
@@ -11,7 +12,7 @@ export const MAX_IMPORT_BYTES = 52_428_800;
 export interface FileLink {
   readonly id: string;
   readonly documentId: string;
-  readonly mode: "Link" | "Import";
+  readonly mode: Database["app"]["Enums"]["file_link_mode"];
   readonly externalFileId: string;
   readonly externalVersion: string | null;
   readonly importedVersion: string | null;
@@ -436,7 +437,7 @@ export function storageConnectors(source: StorageSource, blobs: BlobStore): Conn
 interface LinkRow {
   id: string;
   document_id: string;
-  link_mode: "Link" | "Import";
+  link_mode: Database["app"]["Enums"]["file_link_mode"];
   external_file_id: string;
   external_version: string | null;
   imported_version: string | null;

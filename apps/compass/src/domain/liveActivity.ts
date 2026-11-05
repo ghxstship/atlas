@@ -11,6 +11,7 @@
  */
 import type { EventTime, MutationInput } from "@xos/sync";
 import { buildPunch, type ClockSnapshot, type PunchContext, type PunchKind } from "./clock";
+import { Constants } from "@xos/data/database.types";
 
 /**
  * The next cue the activity shows beside the shift timer (Section 13 Platform features: "the running shift
@@ -125,7 +126,7 @@ export interface QueuedPunch {
   readonly context: string;
 }
 
-const KINDS: readonly PunchKind[] = ["In", "Break Start", "Break End", "Out"];
+const KINDS: readonly PunchKind[] = Constants.app.Enums.punch_kind;
 
 /** Parses the stored context, or null when it is missing or malformed. */
 export function parseContext(raw: string): PunchContext | null {

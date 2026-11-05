@@ -62,6 +62,7 @@ import { zonedToIso } from "@/lib/crew/time";
 import { getOrgContext } from "@/lib/shell/context";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { planHasFeature } from "@/lib/crew/plan";
+import * as enums from "@xos/data/enums";
 
 /**
  * Crew server actions. Each resolves the viewer's org context again (404 when it is gone), validates
@@ -160,7 +161,7 @@ export async function updateShiftAction(_: State, form: FormData): Promise<State
   return done(ctx.org.slug, result, t);
 }
 
-const SHIFT_STATE = z.enum(["Draft", "Published", "Accepted", "Canceled"]);
+const SHIFT_STATE = z.enum(enums.shiftState);
 
 export async function transitionShiftAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -268,7 +269,7 @@ export async function requestSwapAction(_: State, form: FormData): Promise<State
   );
 }
 
-const DECISION = z.enum(["Approved", "Rejected"]);
+const DECISION = z.enum(enums.approvalDecision);
 
 export async function decideSwapAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -676,7 +677,7 @@ export async function updatePayPeriodAction(_: State, form: FormData): Promise<S
   return done(ctx.org.slug, await updatePayPeriod(db, parsed.data.id, parsed.data), t);
 }
 
-const PERIOD_STATE = z.enum(["Open", "Closed", "Posted"]);
+const PERIOD_STATE = z.enum(enums.payPeriodState);
 
 export async function transitionPayPeriodAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -726,7 +727,7 @@ export async function approveRunAction(_: State, form: FormData): Promise<State>
     : { ok: true, error: t("crew.payroll.secondApprover") };
 }
 
-const RUN_STATE = z.enum(["Draft", "Calculated", "Approved", "Exported", "Accepted", "Canceled"]);
+const RUN_STATE = z.enum(enums.payrollRunState);
 
 export async function transitionRunAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
@@ -804,7 +805,7 @@ export async function decideTimeOffAction(_: State, form: FormData): Promise<Sta
   );
 }
 
-const OFF_STATE = z.enum(["Proposed", "Approved", "Rejected", "Canceled"]);
+const OFF_STATE = z.enum(enums.timeOffState);
 
 export async function cancelTimeOffAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);

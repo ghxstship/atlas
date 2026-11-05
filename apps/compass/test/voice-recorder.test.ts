@@ -10,6 +10,9 @@ vi.mock("expo-audio", () => ({
   useAudioRecorderState: vi.fn(),
 }));
 vi.mock("expo-image-manipulator", () => ({ ImageManipulator: {}, SaveFormat: {} }));
+// media.ts writes a kept photo location with expo-file-system and expo-location (A140); unused here.
+vi.mock("expo-file-system", () => ({ File: vi.fn() }));
+vi.mock("expo-location", () => ({}));
 
 const { FakeVoiceRecorder, SILENT_M4A_URI, fakeRecorderRequested, useVoiceRecorder } =
   await import("../src/runtime/voiceRecorder");

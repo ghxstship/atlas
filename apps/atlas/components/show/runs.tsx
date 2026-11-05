@@ -2,6 +2,7 @@
 
 import type { Cue, CueEngagement, CueProgress, RunOfShow } from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
+import { emitWorkflow, workflowMarker } from "@xos/data/workflow-signal";
 import {
   Button,
   DataTable,
@@ -39,7 +40,11 @@ import {
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
+import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+
+/** A called cue is the Show funnel's step (A146). */
+const cueCalled = () => emitWorkflow("atlas.show:step1");
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -479,6 +484,7 @@ export function RunBody({
   live,
   canEdit,
   canCall,
+  draftable = false,
   setTimes = [],
   artists = [],
   children,
@@ -490,6 +496,11 @@ export function RunBody({
   live: boolean;
   canEdit: boolean;
   canCall: boolean;
+  /**
+   * Whether Aurora may draft into this running order (P6): it has no cue, also none the viewer
+   * cannot see, and the viewer may write to its project (app.drafted_list_is_empty).
+   */
+  draftable?: boolean;
   /** Cues marked as an artist's set time (app.engagement_cues), for the Set for control. */
   setTimes?: readonly CueEngagement[];
   /** The run's project's Artist engagements a cue can be set for. */
@@ -557,15 +568,19 @@ export function RunBody({
               showMode
               onGo={(index) => {
                 const cue = cues[index];
-                if (cue && !cue.calledAt) calls.run(() => callCueAction(org, cue.id));
+                if (cue && !cue.calledAt) calls.run(() => callCueAction(org, cue.id), cueCalled);
               }}
             />
+            {/* Every cue called completes the Show funnel (A146). */}
+            {!next && cues.length > 0 ? (
+              <span hidden {...workflowMarker("atlas.show:done")} />
+            ) : null}
             {next ? (
               <div>
                 <Button
                   variant="primary"
                   loading={calls.pending}
-                  onClick={() => calls.run(() => callCueAction(org, next.id))}
+                  onClick={() => calls.run(() => callCueAction(org, next.id), cueCalled)}
                 >
                   {t("live.callNext")}
                 </Button>
@@ -611,9 +626,12 @@ export function RunBody({
           <Button
             variant="primary"
             icon="Play"
-            onClick={() =>
-              router.replace(withQuery(pathname, params, { live: "1" }) as Route, { scroll: false })
-            }
+            onClick={() => {
+              emitWorkflow("atlas.show:start");
+              router.replace(withQuery(pathname, params, { live: "1" }) as Route, {
+                scroll: false,
+              });
+            }}
           >
             {t("live.start")}
           </Button>
@@ -626,9 +644,26 @@ export function RunBody({
         </h3>
         <ActionErrorAlert error={cueAction.error} />
         {cues.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">
-            {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
-          </p>
+          <div className="flex flex-col gap-8">
+            <p className="m-0 text-text-13 text-text-secondary">
+              {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
+            </p>
+            {canEdit && draftable ? (
+              <ListDraftEntry
+                kind="run_of_show"
+                target={{ collection: "run-of-show", id: runOfShow.id, label: runOfShow.name }}
+                context={[
+                  {
+                    collection: "projects",
+                    id: runOfShow.projectId,
+                    label: runOfShow.projectKey,
+                  },
+                ]}
+                timeZone={tz}
+                showDate={runOfShow.showDate}
+              />
+            ) : null}
+          </div>
         ) : (
           <ol
             aria-label={t("cues.listLabel", { name: runOfShow.name })}
@@ -841,6 +876,7 @@ export function RunPeek({ title, children }: { title: string; children: ReactNod
     <Drawer
       title={title}
       open
+      shortcutScope="record"
       onOpenChange={(v) => {
         if (!v)
           router.replace(withQuery(pathname, params, { peek: null, live: null }) as Route, {

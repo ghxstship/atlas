@@ -431,7 +431,7 @@ const person = (over: Partial<DirectoryPerson> = {}): DirectoryPerson => ({
   onSite: true,
   onSiteProjectId: "prj",
   onSiteSince: "2026-10-01T06:00:00Z",
-  workPhone: "+1 (305) 555-0100",
+  workPhone: "+13055550100",
   recognitionCount: 2,
   ...over,
 });
@@ -443,7 +443,8 @@ describe("DirectoryScreen", () => {
     const onCall = vi.fn();
     const onMessage = vi.fn();
     const dl = labels<DirectoryScreenLabels>(["call", "message", "recognitions"]);
-    const props = { onSearch, onScopeChange, onCall, onMessage };
+    const formatPhone = (e164: string) => `national(${e164})`;
+    const props = { onSearch, onScopeChange, onCall, onMessage, formatPhone };
     const { container, rerender } = render(
       <DirectoryScreen
         status="ready"
@@ -468,6 +469,7 @@ describe("DirectoryScreen", () => {
     );
     expect(screen.getByText("onSite")).toBeTruthy();
     expect(screen.getByText("recognitions(2)")).toBeTruthy();
+    expect(screen.getByText("national(+13055550100)")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("search"), { target: { value: "sa" } });
     expect(onSearch).toHaveBeenCalledWith("sa");
     fireEvent.click(screen.getByRole("radio", { name: "onSiteNow" }));

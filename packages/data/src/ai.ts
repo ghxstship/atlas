@@ -1,6 +1,7 @@
 import type { Database, Json } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Aurora AI repository (Section 4.7, migration 0650). Every call runs with the signed-in person's
@@ -12,14 +13,7 @@ export type AiFeature = Database["app"]["Enums"]["ai_feature"];
 export type AiSuggestionState = Database["app"]["Enums"]["ai_suggestion_state"];
 
 /** The features in settings order (Section 4.7 table order). */
-export const AI_FEATURE_ORDER: readonly AiFeature[] = [
-  "assistant",
-  "plain_language",
-  "extraction",
-  "drafting",
-  "summaries",
-  "mapping",
-];
+export const AI_FEATURE_ORDER: readonly AiFeature[] = enums.aiFeature;
 
 export type AiSettings = Readonly<Record<AiFeature, boolean>>;
 
@@ -304,6 +298,73 @@ export async function transitionAiSuggestion(
     ...(input.appliedId ? { p_applied_id: input.appliedId } : {}),
   });
   return error ? fail(toDataError(error)) : ok(null);
+}
+
+// Drafted lists (P6, migration 3830) ---------------------------------------------------------
+
+export type DraftedListKind = "run_of_show" | "risk_assessment";
+
+/**
+ * Whether a running order (run_of_show) or a project's risk list (risk_assessment) has no entry yet,
+ * counting entries the caller cannot see. A caller who may not write to the list gets not-found.
+ */
+export async function draftedListIsEmpty(
+  db: XosClient,
+  kind: DraftedListKind,
+  targetId: string,
+): Promise<Result<boolean>> {
+  const { data, error } = await db.rpc("drafted_list_is_empty", {
+    p_kind: kind,
+    p_target_id: targetId,
+  });
+  return error ? fail(toDataError(error)) : ok(data === true);
+}
+
+export interface AppliedDraftedList {
+  readonly written: readonly { readonly suggestion_id: string; readonly id: string }[];
+  readonly rejected: number;
+}
+
+/**
+ * Writes the kept lines of a drafted list in one transaction (app.apply_drafted_list), only while
+ * the list is still empty. A line the database refuses names its line number; a value of the wrong
+ * type or format (a malformed time, a missing value) is an invalid value like a broken check.
+ */
+export async function applyDraftedList(
+  db: XosClient,
+  input: {
+    readonly requestId: string;
+    readonly items: readonly {
+      readonly suggestion_id: string;
+      readonly values?: Readonly<Record<string, unknown>>;
+    }[];
+  },
+): Promise<Result<AppliedDraftedList>> {
+  const { data, error } = await db.rpc("apply_drafted_list", {
+    p_request_id: input.requestId,
+    p_items: input.items.map((i) => ({
+      suggestion_id: i.suggestion_id,
+      values: i.values ?? {},
+    })) as unknown as Json,
+  });
+  if (error) {
+    if (
+      error.code === "22007" ||
+      error.code === "22008" ||
+      error.code === "23502" ||
+      error.code === "22003"
+    ) {
+      return fail({ kind: "invalid", message: error.message });
+    }
+    return fail(toDataError(error));
+  }
+  const value = (data ?? {}) as { written?: unknown; rejected?: unknown };
+  return ok({
+    written: Array.isArray(value.written)
+      ? (value.written as { suggestion_id: string; id: string }[])
+      : [],
+    rejected: typeof value.rejected === "number" ? value.rejected : 0,
+  });
 }
 
 // Request log --------------------------------------------------------------------------------

@@ -37,6 +37,7 @@
     "slug_reserved": "Esa dirección web está reservada por la plataforma. Elija otra.",
     "plan_unknown": "Ese plan no existe.",
     "plan_limit_exceeded": "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    "plan_limit_read_only": "Esto es de solo lectura porque la organización supera los límites de su plan. El aviso en la parte superior de la página indica qué límite y cómo levantarlo.",
     "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
     "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     "plan_feature_required": "Su plan no incluye esto. Mejore el plan para usarlo.",
@@ -122,7 +123,13 @@
     "integration_disconnected": "Esa conexión está desconectada y no puede cambiar.",
     "moderation_appeal_window": "Las apelaciones se aceptan durante seis meses después de una decisión; esta es más antigua.",
     "moderation_appeal_grounds": "Explica por qué la decisión es incorrecta, en hasta 4,000 caracteres.",
-    "moderation_appeal_exists": "Esta decisión ya se apeló."
+    "moderation_appeal_exists": "Esta decisión ya se apeló.",
+    "earning_code_taken": "Otro código de ingreso ya usa este código. Elija un código diferente.",
+    "time_off_policy_taken": "Otra política de tiempo libre ya tiene este nombre. Elija un nombre diferente.",
+    "holiday_calendar_taken": "Otro calendario de feriados ya tiene este nombre. Elija un nombre diferente.",
+    "holiday_calendar_applies_taken": "Otro calendario ya se aplica en toda la organización para este estado, o sin estado. Cambie ese, o deje sin marcar Se aplica en toda la organización.",
+    "holiday_day_taken": "Este calendario ya tiene un feriado ese día. Quítelo primero o elija otro día.",
+    "holiday_venue_taken": "Ese recinto ya tiene un calendario de feriados. Desasígnelo allí primero."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",

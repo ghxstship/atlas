@@ -1,21 +1,32 @@
 import { listMembers } from "@xos/data";
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
+import { Region } from "@/components/shell/region";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import type { OrgContext } from "@/lib/shell/context";
 import { CollabClient } from "./collab-client";
 import { ErrorPanel } from "./kit";
 
-/** Loads the comments and attachments of one A16 row and renders their panels. */
-export async function CollabPanels({
-  ctx,
-  table,
-  id,
-}: {
+interface CollabPanelsProps {
   ctx: OrgContext;
   table: string;
   id: string;
-}) {
+}
+
+/**
+ * The comments and attachments of one A16 row. They fail alone (A143): an error while they load or
+ * render, a read that throws included, shows Retry in their place and leaves the record's panel.
+ */
+export function CollabPanels(props: CollabPanelsProps) {
+  return (
+    <Region>
+      <LoadedCollabPanels {...props} />
+    </Region>
+  );
+}
+
+/** Loads the comments and attachments of one A16 row and renders their panels. */
+async function LoadedCollabPanels({ ctx, table, id }: CollabPanelsProps) {
   const db = ctx.viewer.db;
   const subject = { table, id };
   const [threads, attachments, members, t] = await Promise.all([
@@ -44,6 +55,8 @@ export async function CollabPanels({
     title: a.title,
     filename: a.current?.filename ?? null,
     sizeBytes: a.current?.sizeBytes ?? null,
+    versionId: a.current?.id ?? null,
+    contentType: a.current?.contentType ?? null,
     ready: a.current !== null,
     mine: a.createdBy === me,
     classification: a.classification,

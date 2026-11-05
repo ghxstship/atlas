@@ -17,6 +17,8 @@ import {
   type Audience,
   type Raw,
 } from "./workforce-shared.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Briefings, crew calls and meetings with RSVP, location, agenda and check-in (Section 4.9 Events;
@@ -25,16 +27,12 @@ import {
  * the organizer checks anyone in the audience in by hand or from a scan.
  */
 
-export type WorkforceEventKind = "Briefing" | "Crew Call" | "Meeting";
-export type RsvpResponse = "Going" | "Maybe" | "Declined";
-export type CheckInMethod = "Self" | "Organizer" | "Scan";
+export type WorkforceEventKind = Database["app"]["Enums"]["workforce_event_kind"];
+export type RsvpResponse = Database["app"]["Enums"]["rsvp_response"];
+export type CheckInMethod = Database["app"]["Enums"]["check_in_method"];
 
-export const WORKFORCE_EVENT_KINDS: readonly WorkforceEventKind[] = [
-  "Briefing",
-  "Crew Call",
-  "Meeting",
-];
-export const RSVP_RESPONSES: readonly RsvpResponse[] = ["Going", "Maybe", "Declined"];
+export const WORKFORCE_EVENT_KINDS: readonly WorkforceEventKind[] = enums.workforceEventKind;
+export const RSVP_RESPONSES: readonly RsvpResponse[] = enums.rsvpResponse;
 
 export interface WorkforceEvent {
   readonly id: string;

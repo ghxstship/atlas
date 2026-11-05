@@ -10,6 +10,8 @@ import { useQueryHref } from "./views.shared";
 /**
  * The side peek (Section 11.2, rule 4): non-modal, so the list stays usable; Esc closes; full screen
  * below md. Closing removes `peek` from the URL. The record anatomy inside is rendered on the server.
+ * The panel is a record region for the shell's record shortcuts (@xos/ui/shortcut-targets), with
+ * Open full and Copy link as their targets.
  */
 export function PeekPanel(props: {
   kindLabel: string;
@@ -35,6 +37,7 @@ export function PeekPanel(props: {
       <RDialog.Portal>
         <RDialog.Content
           aria-describedby={undefined}
+          data-shortcut-scope="record"
           onInteractOutside={(e) => e.preventDefault()}
           className="xos-anim-peek fixed inset-y-0 end-0 z-peek flex w-(--layout-peek) max-w-full flex-col overflow-y-auto border-s border-border-subtle bg-bg-raised text-text-primary shadow-dialog max-md:w-full"
         >
@@ -48,10 +51,12 @@ export function PeekPanel(props: {
                 icon="Maximize2"
                 label={t("openFull")}
                 onClick={() => router.push(href({ full: "1" }))}
+                data-shortcut="record.open"
               />
               <IconButton
                 icon="Link2"
                 label={t("copyLink")}
+                data-shortcut="record.copy-link"
                 onClick={() => {
                   void navigator.clipboard
                     .writeText(window.location.href)

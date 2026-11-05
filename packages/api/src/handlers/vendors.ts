@@ -14,6 +14,7 @@ import { defineHandlers, ok } from "../runtime/handler.ts";
 import { fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { mergeBy } from "./support/enrich.ts";
 import { from, groupBy, handlersFor, keysOf, run, tableResource, unwrap } from "./support/table.ts";
+import type { Database } from "@xos/data/database.types";
 
 const vendors = tableResource("vendors", {
   derived: ["counterparty_type", "bank_account_last4"],
@@ -74,7 +75,10 @@ export const handlers = defineHandlers("Vendors", {
 
   "prequalifications.decide": async ({ params, body }, context) => {
     await prequalifications.read(context, params.id, ["id"]);
-    const b = body as { decision: "Approved" | "Rejected"; valid_to?: string };
+    const b = body as {
+      decision: Database["app"]["Enums"]["approval_decision"];
+      valid_to?: string;
+    };
     unwrap(
       await decidePrequalification(context.db, {
         id: params.id,

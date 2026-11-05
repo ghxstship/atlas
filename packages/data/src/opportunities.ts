@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Opportunities repository (Section 4.2 Opportunities, Section 4.4.3 and 4.4.4): the org side of the engagement
@@ -32,77 +33,17 @@ export type DeliverableState = Enums["deliverable_state"];
 export type ApprovalDecision = Enums["approval_decision"];
 
 /** Every opportunity state in lifecycle order (Section 4.4.4). */
-export const OPPORTUNITY_STATES: readonly OpportunityState[] = [
-  "Draft",
-  "Pending Approval",
-  "Published",
-  "Paused",
-  "Filled",
-  "Closed",
-  "Canceled",
-];
+export const OPPORTUNITY_STATES: readonly OpportunityState[] = enums.opportunityState;
 /** Every application state in pipeline order: the columns of the Pipeline board. */
-export const APPLICATION_STATES: readonly ApplicationState[] = [
-  "Submitted",
-  "In Review",
-  "Shortlisted",
-  "Offered",
-  "Accepted",
-  "Declined",
-  "Withdrawn",
-  "Not Selected",
-];
-export const ENGAGEMENT_STATES: readonly EngagementState[] = [
-  "Onboarding",
-  "Blocked",
-  "Active",
-  "Closing",
-  "Complete",
-  "Canceled",
-];
-export const ROLE_TYPES: readonly ExternalRoleType[] = [
-  "Client",
-  "Vendor",
-  "Contractor",
-  "Crew",
-  "Staff",
-  "Artist",
-  "Artist Representative",
-  "Sponsor",
-];
+export const APPLICATION_STATES: readonly ApplicationState[] = enums.applicationState;
+export const ENGAGEMENT_STATES: readonly EngagementState[] = enums.engagementState;
+export const ROLE_TYPES: readonly ExternalRoleType[] = enums.externalRoleType;
 /** Role types that publish only from an Approved requisition (migration 0774). */
 export const REQUISITION_ROLE_TYPES: readonly ExternalRoleType[] = ["Contractor", "Crew", "Staff"];
-export const VISIBILITIES: readonly OpportunityVisibility[] = [
-  "Invited",
-  "Pool",
-  "Network",
-  "Public",
-];
-export const RATE_TYPES: readonly RateType[] = ["Hourly", "Day", "Flat", "Milestone", "Bid"];
-export const DOCUMENT_KINDS: readonly EngagementDocumentKind[] = [
-  "Offer",
-  "Agreement",
-  "Statement of Work",
-  "Non-Disclosure Agreement",
-  "Rider",
-  "Advance Packet",
-  "Insurance Certificate",
-  "Lien Waiver",
-  "Settlement",
-  "Proof of Performance",
-  "Content Consent",
-];
-export const ONBOARDING_ITEM_KINDS: readonly OnboardingItemKind[] = [
-  "Document Upload",
-  "Electronic Signature",
-  "Form",
-  "Certification",
-  "Training",
-  "Acknowledgment",
-  "Background Check",
-  "Tax Form",
-  "Payout Details",
-];
+export const VISIBILITIES: readonly OpportunityVisibility[] = enums.opportunityVisibility;
+export const RATE_TYPES: readonly RateType[] = enums.rateType;
+export const DOCUMENT_KINDS: readonly EngagementDocumentKind[] = enums.engagementDocumentKind;
+export const ONBOARDING_ITEM_KINDS: readonly OnboardingItemKind[] = enums.onboardingItemKind;
 
 /**
  * The moves each lifecycle allows from a state, mirroring private.lifecycle_transition_rules. The database still
@@ -199,6 +140,8 @@ export interface OpportunitySummary {
   readonly deadlineAt: string | null;
   readonly state: OpportunityState;
   readonly requisitionId: string | null;
+  /** The client and event stay hidden from crew until they are booked (3870). */
+  readonly hideClientUntilBooked: boolean;
   readonly positionCount: number;
   readonly applicationCount: number;
   readonly updatedAt: string;
@@ -264,6 +207,11 @@ export interface OpportunityInput {
   readonly minimumAge?: number | null;
   /** Remote work follows the pay transparency rules that cover remote roles (1125). */
   readonly isRemote?: boolean;
+  /**
+   * Crew see the org, the city, the dates and the pay until they are booked; the venue stays hidden and the title and
+   * description cannot name the project, its client or the venue (3870). Turned on only before publishing.
+   */
+  readonly hideClientUntilBooked?: boolean;
 }
 
 export type OpportunityPatch = Partial<Omit<OpportunityInput, "projectId" | "roleType">>;
@@ -571,7 +519,7 @@ export async function jobTitles(
 // Postings ---------------------------------------------------------------------------------------------------------------
 
 const OPPORTUNITY_COLUMNS =
-  "id, project_id, title, role_type, role_code, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, starts_on, ends_on, deadline_at, opportunity_state, requisition_id, updated_at, description, scope_node_id, venue_id, jurisdiction_id, minimum_age, project:projects(project_key, name), positions:opportunity_positions(id, label, call_at, ends_at, deleted_at), applications(id, deleted_at)";
+  "id, project_id, title, role_type, role_code, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, starts_on, ends_on, deadline_at, opportunity_state, requisition_id, hide_client_until_booked, updated_at, description, scope_node_id, venue_id, jurisdiction_id, minimum_age, project:projects(project_key, name), positions:opportunity_positions(id, label, call_at, ends_at, deleted_at), applications(id, deleted_at)";
 
 interface OpportunityRow {
   id: string;
@@ -589,6 +537,7 @@ interface OpportunityRow {
   deadline_at: string | null;
   opportunity_state: OpportunityState;
   requisition_id: string | null;
+  hide_client_until_booked: boolean;
   updated_at: string;
   description: string | null;
   scope_node_id: string | null;
@@ -627,6 +576,7 @@ function toSummary(r: OpportunityRow): OpportunitySummary {
     deadlineAt: r.deadline_at,
     state: r.opportunity_state,
     requisitionId: r.requisition_id,
+    hideClientUntilBooked: r.hide_client_until_booked,
     positionCount: (r.positions ?? []).filter((p) => p.deleted_at === null).length,
     applicationCount: (r.applications ?? []).filter((a) => a.deleted_at === null).length,
     updatedAt: r.updated_at,
@@ -738,6 +688,7 @@ function opportunityColumns(input: OpportunityPatch) {
     ["deadlineAt", "deadline_at"],
     ["minimumAge", "minimum_age"],
     ["isRemote", "is_remote"],
+    ["hideClientUntilBooked", "hide_client_until_booked"],
   ];
   for (const [key, column] of map) if (input[key] !== undefined) row[column] = input[key];
   return row;

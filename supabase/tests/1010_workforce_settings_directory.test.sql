@@ -41,7 +41,7 @@ select pg_temp.as_anon();
 select throws_ok($$select * from app.workforce_directory(pg_temp.id('org_a'))$$, '42501', null, 'anon has no directory');
 
 select pg_temp.as_user('frank');
-select app.set_personal_setting('workforce.work_phone', p_value_text => '+1 305 555 0199', p_org_id => pg_temp.id('org_a'));
+select app.set_personal_setting('workforce.work_phone', p_value_text => '+13055550199', p_org_id => pg_temp.id('org_a'));
 select pg_temp.as_platform();
 insert into app.geofences (venue_id, name, boundary)
 values (pg_temp.id('venue_a'), 'Pier gate', 'SRID=4326;POLYGON((-80.20 25.76, -80.18 25.76, -80.18 25.78, -80.20 25.78, -80.20 25.76))'::extensions.geography);
@@ -51,7 +51,7 @@ insert into app.clock_punches (id, project_id, membership_id, time_entry_id, pun
 values (gen_random_uuid(), pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), (select id from k where key = 'entry'), 'In', now() - interval '2 hours', now() - interval '2 hours', 'Mobile',
   (select id from app.geofences where name = 'Pier gate'), true);
 select pg_temp.as_user('carol');
-select is((select on_site_now::text || ' ' || work_phone from app.workforce_directory(pg_temp.id('org_a'), 'frank')), 'true +1 305 555 0199',
+select is((select on_site_now::text || ' ' || work_phone from app.workforce_directory(pg_temp.id('org_a'), 'frank')), 'true +13055550199',
   'the directory shows who is on site now and the work phone they shared');
 select is((select count(*)::integer from app.workforce_directory(pg_temp.id('org_a'), null, true)), 1, 'filtering to on site lists only them');
 select is((select full_name from app.workforce_directory(pg_temp.id('org_a')) limit 1), 'Frank Adeyemi', 'on-site members come first');

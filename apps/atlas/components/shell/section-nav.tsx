@@ -36,7 +36,9 @@ export function SectionNav({
           onClick={() => setOpenOn(open ? null : pathname)}
           className="flex h-control-md w-full cursor-pointer items-center justify-between gap-8 rounded-control border border-border-subtle bg-bg-surface px-12 text-start text-text-13 font-medium text-text-primary hover:bg-bg-hover md:hidden pointer-coarse:min-h-target-coarse"
         >
-          <span className="truncate">{current.label}</span>
+          <span className="truncate" title={current.label}>
+            {current.label}
+          </span>
           <span className={`inline-flex ${open ? "rotate-180" : ""}`}>
             <Icon name="ChevronDown" size={14} />
           </span>

@@ -8,6 +8,9 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * dispatcher sends it the Push deliveries, under A80's quiet hours and preferences.
  */
 
+// The push_subscriptions_web_app check of migration 1533, which equals app.shortcut_shell by
+// coincidence; not that enum.
+// eslint-disable-next-line xos/no-restated-enums
 export type WebPushApp = "Atlas" | "Gateway";
 
 /** A browser's PushSubscription as PushSubscription.toJSON() gives it. */
