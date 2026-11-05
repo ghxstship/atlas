@@ -1,14 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { expectAccessibleInBothThemes } from "./a16-support";
-import {
-  DEMO_ORG,
-  hydrated,
-  leaveStep,
-  reloadUntil,
-  runImportWorker,
-  signInAs,
-  workUntil,
-} from "./a36-support";
+import { DEMO_ORG, hydrated, leaveStep, signInAs, workUntil } from "./a36-support";
 import { describe, hardCodedText } from "./pseudo-checks";
 import { expectAccessible, uniqueId } from "./support";
 

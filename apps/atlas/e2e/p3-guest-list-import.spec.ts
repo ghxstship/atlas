@@ -1,13 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { expectAccessibleInBothThemes } from "./a16-support";
-import {
-  DEMO_ORG,
-  leaveStep,
-  reloadUntil,
-  runImportWorker,
-  signInAs,
-  workUntil,
-} from "./a36-support";
+import { DEMO_ORG, leaveStep, signInAs, workUntil } from "./a36-support";
 import { describe, hardCodedText } from "./pseudo-checks";
 import { uniqueId } from "./support";
 
