@@ -39,7 +39,6 @@ import type { Route } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useFormatter, useLocale } from "next-intl";
-import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";

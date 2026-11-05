@@ -121,7 +121,12 @@ const fieldsSchema = z.object({
   ownerId: optionalId,
   accountableId: optionalId,
   startsAt: instant,
-  startTbc: z.enum(["true", "false"]).optional(),
+  // Text, as every versioned property is: saveRecordFields writes the boolean.
+  startTbc: z
+    .string()
+    .regex(/^(true|false)$/)
+    .nullable()
+    .optional(),
   endsAt: instant,
   dueAt: instant,
 });

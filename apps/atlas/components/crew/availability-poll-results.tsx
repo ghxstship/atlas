@@ -63,7 +63,7 @@ export function AvailabilityPollResults({
           {t("listTitle")}
         </h2>
         {projects.length > 0 ? (
-          <Button variant="primary" size="sm" onClick={() => setAsking(true)}>
+          <Button size="sm" onClick={() => setAsking(true)}>
             {t("open")}
           </Button>
         ) : null}

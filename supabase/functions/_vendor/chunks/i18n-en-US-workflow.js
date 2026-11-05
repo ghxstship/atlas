@@ -296,6 +296,7 @@ var templates = {
     project: "Project",
     submit: "Save as template",
     done: "Template saved from the project.",
+    keepDates: "Keep due dates",
   },
   detail: {
     none: "Create a template to see it here.",
@@ -380,6 +381,7 @@ var templates = {
     done: "Project {key} created.",
     open: "Open the project",
     needsCapability: "Creating projects needs projects.project.create. Ask an Owner or Admin.",
+    withoutDates: "Leave records undated (they wait in the schedule's Unscheduled list)",
   },
   delete: {
     label: "Delete this template",

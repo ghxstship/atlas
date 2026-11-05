@@ -859,6 +859,7 @@ export type Database = {
           position: number | null;
           project_id: string | null;
           run_of_show_id: string | null;
+          start_tbc: boolean | null;
         };
         ComputedFields: never;
         Relationships: [
@@ -1274,6 +1275,7 @@ export type Database = {
           engagement_id: string | null;
           next_call_at: string | null;
           next_call_kind: string | null;
+          next_call_tbc: boolean | null;
           next_call_time_zone: string | null;
           project_id: string | null;
           venue_locality: string | null;
@@ -2972,6 +2974,7 @@ export type Database = {
           record_kind: string | null;
           record_state: string | null;
           record_subtype: string | null;
+          start_tbc: boolean | null;
           starts_at: string | null;
           time_zone: string | null;
           title: string | null;
@@ -2985,6 +2988,7 @@ export type Database = {
           record_kind?: string | null;
           record_state?: string | null;
           record_subtype?: string | null;
+          start_tbc?: boolean | null;
           starts_at?: string | null;
           time_zone?: string | null;
           title?: string | null;
@@ -2997,6 +3001,7 @@ export type Database = {
           record_kind?: string | null;
           record_state?: string | null;
           record_subtype?: string | null;
+          start_tbc?: boolean | null;
           starts_at?: string | null;
           time_zone?: string | null;
           title?: string | null;
@@ -11312,6 +11317,7 @@ export type Database = {
         Row: {
           availability_calendar_id: string;
           availability_kind: Database["app"]["Enums"]["availability_kind"];
+          availability_poll_id: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -11327,6 +11333,7 @@ export type Database = {
         Insert: {
           availability_calendar_id: string;
           availability_kind: Database["app"]["Enums"]["availability_kind"];
+          availability_poll_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -11341,6 +11348,7 @@ export type Database = {
         Update: {
           availability_calendar_id?: string;
           availability_kind?: Database["app"]["Enums"]["availability_kind"];
+          availability_poll_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -11358,6 +11366,13 @@ export type Database = {
             columns: ["availability_calendar_id"];
             isOneToOne: false;
             referencedRelation: "availability_calendars";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_blocks_availability_poll_id_fkey";
+            columns: ["availability_poll_id"];
+            isOneToOne: false;
+            referencedRelation: "availability_polls";
             referencedColumns: ["id"];
           },
           {
@@ -11445,6 +11460,245 @@ export type Database = {
           },
           {
             foreignKeyName: "availability_calendars_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      availability_poll_days: {
+        Row: {
+          availability_poll_id: string;
+          created_at: string;
+          created_by: string | null;
+          day: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          availability_poll_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          day: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          availability_poll_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          day?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "availability_poll_days_availability_poll_id_fkey";
+            columns: ["availability_poll_id"];
+            isOneToOne: false;
+            referencedRelation: "availability_polls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_poll_days_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_poll_days_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_poll_days_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      availability_poll_recipients: {
+        Row: {
+          availability_poll_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          person_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          availability_poll_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          person_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          availability_poll_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "availability_poll_recipients_availability_poll_id_fkey";
+            columns: ["availability_poll_id"];
+            isOneToOne: false;
+            referencedRelation: "availability_polls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_poll_recipients_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_poll_recipients_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_poll_recipients_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_poll_recipients_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      availability_polls: {
+        Row: {
+          closes_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          message: string | null;
+          org_id: string;
+          project_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          closes_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          message?: string | null;
+          org_id: string;
+          project_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          closes_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          message?: string | null;
+          org_id?: string;
+          project_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "availability_polls_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_polls_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_polls_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "availability_polls_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "availability_polls_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "availability_polls_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_place_facts";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "availability_polls_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "availability_polls_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -16837,6 +17091,8 @@ export type Database = {
           run_of_show_id: string;
           segment: string | null;
           space_id: string | null;
+          standby_at: string | null;
+          start_tbc: boolean;
           updated_at: string;
           updated_by: string | null;
         };
@@ -16858,6 +17114,8 @@ export type Database = {
           run_of_show_id: string;
           segment?: string | null;
           space_id?: string | null;
+          standby_at?: string | null;
+          start_tbc?: boolean;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -16878,6 +17136,8 @@ export type Database = {
           run_of_show_id?: string;
           segment?: string | null;
           space_id?: string | null;
+          standby_at?: string | null;
+          start_tbc?: boolean;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -24654,6 +24914,7 @@ export type Database = {
           subdivision_code: string | null;
           updated_at: string;
           updated_by: string | null;
+          worked_holiday_multiplier: number | null;
         };
         ComputedFields: never;
         Insert: {
@@ -24667,6 +24928,7 @@ export type Database = {
           subdivision_code?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          worked_holiday_multiplier?: number | null;
         };
         Update: {
           applies_to_org?: boolean;
@@ -24679,6 +24941,7 @@ export type Database = {
           subdivision_code?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          worked_holiday_multiplier?: number | null;
         };
         Relationships: [
           {
@@ -46979,6 +47242,7 @@ export type Database = {
           replan_reason: string | null;
           scope_node_id: string | null;
           sop_id: string | null;
+          start_tbc: boolean;
           starts_at: string | null;
           team_code: string | null;
           time_zone: string | null;
@@ -47017,6 +47281,7 @@ export type Database = {
           replan_reason?: string | null;
           scope_node_id?: string | null;
           sop_id?: string | null;
+          start_tbc?: boolean;
           starts_at?: string | null;
           team_code?: string | null;
           time_zone?: string | null;
@@ -47052,6 +47317,7 @@ export type Database = {
           replan_reason?: string | null;
           scope_node_id?: string | null;
           sop_id?: string | null;
+          start_tbc?: boolean;
           starts_at?: string | null;
           team_code?: string | null;
           time_zone?: string | null;
@@ -50148,6 +50414,7 @@ export type Database = {
         Row: {
           created_at: string;
           created_by: string | null;
+          curfew_at: string | null;
           deleted_at: string | null;
           id: string;
           name: string;
@@ -50163,6 +50430,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           created_by?: string | null;
+          curfew_at?: string | null;
           deleted_at?: string | null;
           id?: string;
           name: string;
@@ -50177,6 +50445,7 @@ export type Database = {
         Update: {
           created_at?: string;
           created_by?: string | null;
+          curfew_at?: string | null;
           deleted_at?: string | null;
           id?: string;
           name?: string;
@@ -70667,6 +70936,10 @@ export type Database = {
         Args: { p_engagement_id: string; p_record_id: string };
         Returns: string;
       };
+      add_holiday_preset: {
+        Args: { p_holiday_calendar_id: string; p_names?: Json; p_preset: string; p_year: number };
+        Returns: number;
+      };
       add_incident_media: {
         Args: {
           p_captured_at?: string;
@@ -70804,6 +71077,14 @@ export type Database = {
         };
         Returns: string;
       };
+      answer_availability_poll: {
+        Args: { p_answers: Json; p_poll_id: string };
+        Returns: {
+          availability_kind: Database["app"]["Enums"]["availability_kind"];
+          day: string;
+          written: boolean;
+        }[];
+      };
       answer_help_desk_request: { Args: { p_body: string; p_ticket_id: string }; Returns: string };
       append_doc_update: {
         Args: { p_doc_id: string; p_generation: number; p_update: string };
@@ -70867,6 +71148,7 @@ export type Database = {
           p_template_id: string;
           p_time_zone?: string;
           p_venue_id?: string;
+          p_without_dates?: boolean;
         };
         Returns: string;
       };
@@ -70990,6 +71272,17 @@ export type Database = {
         }[];
       };
       automation_definition: { Args: { p_automation_id: string }; Returns: Json };
+      availability_poll_results: {
+        Args: { p_poll_id: string };
+        Returns: {
+          answered_by_poll: boolean;
+          availability: string;
+          day: string;
+          full_name: string;
+          person_id: string;
+          responded_at: string;
+        }[];
+      };
       award_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       award_work_order: {
         Args: { p_bid_id: string; p_reason: string; p_work_order_id: string };
@@ -71096,6 +71389,10 @@ export type Database = {
         Returns: Json;
       };
       bulk_update_beos: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_cues: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
@@ -72132,7 +72429,12 @@ export type Database = {
         Returns: string;
       };
       create_template_from_project: {
-        Args: { p_description?: string; p_name: string; p_project_id: string };
+        Args: {
+          p_description?: string;
+          p_keep_dates?: boolean;
+          p_name: string;
+          p_project_id: string;
+        };
         Returns: string;
       };
       create_view_link: {
@@ -72978,6 +73280,7 @@ export type Database = {
           token: string;
         }[];
       };
+      move_cue: { Args: { p_cue_id: string; p_to_position: number }; Returns: number };
       my_access_paths: {
         Args: {
           p_org_id: string;
@@ -73037,6 +73340,22 @@ export type Database = {
         Returns: {
           factor_id: string;
           label: string;
+        }[];
+      };
+      my_availability_requests: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          answer: Database["app"]["Enums"]["availability_kind"];
+          closes_at: string;
+          day: string;
+          locked: boolean;
+          message: string;
+          org_id: string;
+          org_name: string;
+          poll_id: string;
+          project_name: string;
+          responded_at: string;
+          title: string;
         }[];
       };
       my_availability_status: {
@@ -73600,6 +73919,25 @@ export type Database = {
         Returns: {
           full_name: string;
           person_id: string;
+        }[];
+      };
+      place_record: {
+        Args: { p_commit?: boolean; p_day: string; p_reason?: string; p_record_id: string };
+        Returns: {
+          baseline_ends_at: string;
+          baseline_starts_at: string;
+          due_at: string;
+          ends_at: string;
+          is_target: boolean;
+          old_due_at: string;
+          old_ends_at: string;
+          old_starts_at: string;
+          record_id: string;
+          shift_end_days: number;
+          shift_end_minutes: number;
+          shift_start_days: number;
+          shift_start_minutes: number;
+          starts_at: string;
         }[];
       };
       plan_limit_candidates: {
@@ -74662,9 +75000,11 @@ export type Database = {
         Args: {
           p_commit?: boolean;
           p_end_days: number;
+          p_end_minutes?: number;
           p_reason?: string;
           p_record_id: string;
           p_start_days: number;
+          p_start_minutes?: number;
         };
         Returns: {
           baseline_ends_at: string;
@@ -74677,7 +75017,9 @@ export type Database = {
           old_starts_at: string;
           record_id: string;
           shift_end_days: number;
+          shift_end_minutes: number;
           shift_start_days: number;
+          shift_start_minutes: number;
           starts_at: string;
         }[];
       };
@@ -74953,6 +75295,7 @@ export type Database = {
         };
         Returns: string;
       };
+      save_cue_calls: { Args: { p_calls: Json; p_cue_id: string }; Returns: undefined };
       save_geofence: {
         Args: {
           p_boundary_geojson: Json;
@@ -75165,6 +75508,17 @@ export type Database = {
       };
       send_automation_notice: {
         Args: { p_body?: string; p_recipient_person_id: string; p_run_id: string; p_title: string };
+        Returns: string;
+      };
+      send_availability_poll: {
+        Args: {
+          p_closes_at?: string;
+          p_days: string[];
+          p_message?: string;
+          p_person_ids: string[];
+          p_project_id: string;
+          p_title: string;
+        };
         Returns: string;
       };
       send_chat_message: {
@@ -75432,6 +75786,27 @@ export type Database = {
         }[];
       };
       shared_work_details: { Args: { p_engagement_id: string }; Returns: Json };
+      shift_cue_plan: { Args: { p_run_of_show_id: string; p_seconds: number }; Returns: number };
+      shift_records: {
+        Args: { p_commit?: boolean; p_minutes: number; p_reason?: string; p_record_ids: string[] };
+        Returns: {
+          baseline_ends_at: string;
+          baseline_starts_at: string;
+          due_at: string;
+          ends_at: string;
+          is_target: boolean;
+          old_due_at: string;
+          old_ends_at: string;
+          old_starts_at: string;
+          project_id: string;
+          record_id: string;
+          shift_end_days: number;
+          shift_end_minutes: number;
+          shift_start_days: number;
+          shift_start_minutes: number;
+          starts_at: string;
+        }[];
+      };
       shipment_display_key: {
         Args: {
           p_row: Omit<
@@ -75474,6 +75849,7 @@ export type Database = {
           standard_count: number;
         }[];
       };
+      standby_cue: { Args: { p_cue_id?: string; p_run_of_show_id: string }; Returns: undefined };
       start_break_glass: {
         Args: { p_org_id: string; p_reason: string };
         Returns: {

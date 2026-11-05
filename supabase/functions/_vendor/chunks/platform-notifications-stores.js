@@ -163,6 +163,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "availability.requested",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.availability.requested.subject",
+      body: "kinds.availability.requested.body",
+    },
+  },
+  {
     kind: "event.invited",
     category: "schedule",
     emailTemplate: "notification",
