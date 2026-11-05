@@ -1,6 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
 import { expectAccessibleInBothThemes } from "./a16-support";
-import { DEMO_ORG, reloadUntil, runImportWorker, signInAs, workUntil } from "./a36-support";
+import {
+  DEMO_ORG,
+  hydrated,
+  leaveStep,
+  reloadUntil,
+  runImportWorker,
+  signInAs,
+  workUntil,
+} from "./a36-support";
 import { describe, hardCodedText } from "./pseudo-checks";
 import { expectAccessible, uniqueId } from "./support";
 
@@ -30,7 +38,9 @@ function rundown(id: string): string {
 
 /** The en-XA wraps every catalog message; anything a person sees outside one is hard-coded (gate 16). */
 async function expectNoHardCodedText(page: Page) {
-  await page.context().addCookies([{ name: "xos-locale", value: "en-XA", url: page.url() }]);
+  await page
+    .context()
+    .addCookies([{ name: "xos-locale", value: "en-XA", url: new URL(page.url()).origin }]);
   await page.reload();
   expect(describe(await hardCodedText(page))).toEqual([]);
   await page.context().clearCookies({ name: "xos-locale" });
@@ -47,7 +57,10 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
   await page.goto(`/${DEMO_ORG}/show/run-of-show?create=1`);
   const sheet = page.getByRole("dialog", { name: "New running order" });
   const project = sheet.getByLabel("Project");
+  // The sheet opens from the URL, so it is on the page before it hydrates, and a choice made earlier is lost.
+  await sheet.waitFor();
   if ((await project.count()) > 0) {
+    await hydrated(project);
     const nws = await project.locator("option", { hasText: /^NWS · / }).getAttribute("value");
     await project.selectOption(nws ?? "");
   }
@@ -88,12 +101,12 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
   await expect(page.getByRole("grid", { name: "Preview" })).toContainText("Cue number");
   await expectAccessibleInBothThemes(page);
   await expectNoHardCodedText(page);
-  await page.getByRole("button", { name: "Confirm the mapping" }).click();
+  await leaveStep(page, "Confirm the mapping", "Map the columns");
 
   // Validate and commit: three new cues, the unnumbered one appended after Q2.
   await workUntil(page, page.getByRole("heading", { name: "Dry run" }));
   await expect(page.getByRole("region", { name: "Dry run" })).toContainText("3");
-  await page.getByRole("button", { name: "Commit the import" }).click();
+  await leaveStep(page, "Commit the import", "Dry run");
   await workUntil(page, page.getByRole("heading", { name: "Undo the whole batch" }));
   await expect(page.getByText("3 rows were written")).toBeVisible();
 
@@ -121,7 +134,7 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
   await page.getByRole("button", { name: "Read the rows" }).click();
   await page.waitForURL(/\?import=/);
   await workUntil(page, page.getByRole("heading", { name: "Map the columns" }));
-  await page.getByRole("button", { name: "Confirm the mapping" }).click();
+  await leaveStep(page, "Confirm the mapping", "Map the columns");
   await workUntil(page, page.getByRole("heading", { name: "Dry run" }));
   const dry = page.getByRole("region", { name: "Dry run" });
   await expect(dry.getByText("New records").locator("..")).toContainText("0");

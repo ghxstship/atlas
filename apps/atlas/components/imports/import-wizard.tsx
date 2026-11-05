@@ -718,23 +718,26 @@ function MappingStep({
               <p className="m-0 text-text-12 text-text-secondary">
                 {t("imports.map.previewIntro")}
               </p>
-              <DataTable
-                caption={t("imports.map.preview")}
-                label={t("imports.map.preview")}
-                height="auto"
-                columns={[
-                  { key: "row", label: t("imports.issues.row") },
-                  ...previewColumns.map((c) => ({
-                    key: c.id,
-                    label: t(`imports.fields.${choice[c.id] ?? ""}`),
-                  })),
-                ]}
-                rows={sampleRows.map((n) => ({
-                  id: `sample-${n}`,
-                  row: t("imports.map.previewRow", { row: n }),
-                  ...Object.fromEntries(previewColumns.map((c) => [c.id, sampleOf(c.id, n)])),
-                }))}
-              />
+              {/* Cells of the uploaded spreadsheet: data, not copy. */}
+              <div data-pseudo-exempt>
+                <DataTable
+                  caption={t("imports.map.preview")}
+                  label={t("imports.map.preview")}
+                  height="auto"
+                  columns={[
+                    { key: "row", label: t("imports.issues.row") },
+                    ...previewColumns.map((c) => ({
+                      key: c.id,
+                      label: t(`imports.fields.${choice[c.id] ?? ""}`),
+                    })),
+                  ]}
+                  rows={sampleRows.map((n) => ({
+                    id: `sample-${n}`,
+                    row: t("imports.map.previewRow", { row: n }),
+                    ...Object.fromEntries(previewColumns.map((c) => [c.id, sampleOf(c.id, n)])),
+                  }))}
+                />
+              </div>
             </section>
           ) : null}
           {missing.length > 0 ? (
