@@ -868,8 +868,6 @@ export async function recordAssetCustody(
     ...(note ? { p_note: note } : {}),
     ...(input.rosterEntryId ? { p_roster_entry_id: input.rosterEntryId } : {}),
     ...(input.reservationId ? { p_reservation_id: input.reservationId } : {}),
-    ...(input.rosterEntryId ? { p_roster_entry_id: input.rosterEntryId } : {}),
-    ...(input.reservationId ? { p_reservation_id: input.reservationId } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ id: data });
@@ -1214,6 +1212,8 @@ export async function applyAssetScanEvent(
     ...(input.quantity !== null && input.quantity !== undefined
       ? { p_quantity: input.quantity }
       : {}),
+    ...(input.rosterEntryId ? { p_roster_entry_id: input.rosterEntryId } : {}),
+    ...(input.reservationId ? { p_reservation_id: input.reservationId } : {}),
   });
   if (error) return fail(toDataError(error));
   const row = (data as unknown as ApplyRow[] | null)?.[0];

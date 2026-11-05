@@ -181,17 +181,30 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
       .toBe(2);
 
     // 3. The production accepts both entries in Atlas. The Owner made the engagement, so the seeded entries name
-    // them as creator and the Admin reviews them (sod_roster_reviewer).
+    // them as creator and the Admin reviews them (sod_roster_reviewer). NWS is shared, so the agency's party can
+    // also show another engagement of Demo Staff One (power-editing.spec.ts makes one), whose own entry is already
+    // Accepted: the entry to review is the one offering Accept, and it stops offering that once reviewed.
     const admin = await atlasAs(browser, "admin@example.com");
     await admin.page.goto(`/${ORG}/p/NWS/advancing?section=crew`);
     for (const name of ["Demo Staff One", "Demo Staff Two"]) {
+      const accept = admin.page.getByRole("button", { name: "Accept" });
       const entry = admin.page
         .getByRole("region", { name: party })
         .getByRole("listitem")
-        .filter({ hasText: name });
+        .filter({ hasText: name })
+        .filter({ has: accept });
       await entry.getByRole("button", { name: "Accept" }).click();
-      await expect(entry).toContainText("Accepted");
+      await expect(entry).toHaveCount(0);
     }
+    await expect
+      .poll(() =>
+        value<number>(
+          `select count(*)::int as v from app.engagement_roster_entries
+            where engagement_id = $1 and entry_state = 'Accepted' and not is_self and deleted_at is null`,
+          [engagementId],
+        ),
+      )
+      .toBe(2);
     await admin.context.close();
 
     // The production activates the engagement from its record in Atlas.

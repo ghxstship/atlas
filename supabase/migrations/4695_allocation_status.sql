@@ -182,16 +182,18 @@ revoke select on app.advance_allocation_status from xos_backup;
 create view app.allocation_holders as
 select 'Pool'::text as holder_kind, e.id as engagement_id, null::uuid as roster_entry_id, e.org_id, e.project_id,
   coalesce(ao.name, ep.full_name) as holder_name, coalesce(ao.name, ep.full_name) as party_name, e.role_type,
-  null::app.roster_entry_state as entry_state, null::app.roster_person_response as person_response, null::text as role_code
+  null::app.roster_entry_state as entry_state, null::app.roster_person_response as person_response, null::text as role_code,
+  e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing') as holder_open
 from app.engagements e
 left join app.counterparties c on c.id = e.counterparty_id
 left join app.organizations ao on ao.id = c.organization_id
 left join app.people ep on ep.id = e.person_id
-where e.deleted_at is null and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
+where e.deleted_at is null
   and e.project_id in (select private.project_ids_with('advancing.packet.read'))
 union all
 select 'Person'::text, e.id, r.id, e.org_id, e.project_id, pp.full_name, coalesce(ao.name, ep.full_name), e.role_type,
-  r.entry_state, r.person_response, r.role_code
+  r.entry_state, r.person_response, r.role_code,
+  r.entry_state <> 'Withdrawn' and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
 from app.engagement_roster_entries r
 join app.engagements e on e.id = r.engagement_id
 join private.roster_people rp on rp.roster_entry_id = r.id
@@ -199,11 +201,10 @@ left join app.people pp on pp.id = rp.person_id
 left join app.counterparties c on c.id = e.counterparty_id
 left join app.organizations ao on ao.id = c.organization_id
 left join app.people ep on ep.id = e.person_id
-where r.deleted_at is null and r.entry_state <> 'Withdrawn' and e.deleted_at is null
-  and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
+where r.deleted_at is null and e.deleted_at is null
   and e.project_id in (select private.project_ids_with('advancing.packet.read'));
 
-call private.describe('app.allocation_holders', 'Who an allocation can go to on a project (R7), for the Assign picker: each open engagement as a party pool, and each live roster entry of one as a person, with the person''s name (private.roster_people), the party''s name and the entry''s state. A security definer view filtered to advancing.packet.read on the project.', array[
+call private.describe('app.allocation_holders', 'Who an allocation can go to on a project (R7), for the Assign picker and for naming who holds one: each engagement as a party pool, and each roster entry of one as a person, holder_open marking those an allocation can still go to, with the person''s name (private.roster_people), the party''s name and the entry''s state. A security definer view filtered to advancing.packet.read on the project.', array[
   'holder_kind', 'Pool for a party''s engagement, Person for a roster entry.',
   'engagement_id', 'Engagement of the pool or of the entry.',
   'roster_entry_id', 'Roster entry; NULL for a pool.',
@@ -214,7 +215,8 @@ call private.describe('app.allocation_holders', 'Who an allocation can go to on 
   'role_type', 'External role type of the engagement.',
   'entry_state', 'Review state of the entry; NULL for a pool.',
   'person_response', 'The person''s answer; NULL for a pool.',
-  'role_code', 'Role the person works, for the default radio channel hint; NULL for a pool.'
+  'role_code', 'Role the person works, for the default radio channel hint; NULL for a pool.',
+  'holder_open', 'Whether an allocation can still go to this holder. A closed one is kept so its allocations still name who held them.'
 ]);
 revoke all on app.allocation_holders from public, anon;
 grant select on app.allocation_holders to authenticated, service_role;

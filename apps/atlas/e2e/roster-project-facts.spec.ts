@@ -194,7 +194,7 @@ test("project facts in Atlas: the logged peek, the names lock and the travel par
       readerEmail,
       "Demo Hospitality Reader",
       "Hospitality Reader",
-      ["advancing.packet.read", "hospitality.fulfillment.read"],
+      ["projects.project.read", "advancing.packet.read", "hospitality.fulfillment.read"],
       projectId,
     );
     const readerContext = await browser.newContext({ reducedMotion: "reduce" });
@@ -241,7 +241,12 @@ test("project facts in Atlas: the logged peek, the names lock and the travel par
       coordinatorEmail,
       "Demo Hospitality Coordinator",
       "Hospitality Coordinator",
-      ["advancing.packet.read", "hospitality.fulfillment.read", "hospitality.accommodation.write"],
+      [
+        "projects.project.read",
+        "advancing.packet.read",
+        "hospitality.fulfillment.read",
+        "hospitality.accommodation.write",
+      ],
       projectId,
     );
     const coordinatorContext = await browser.newContext({ reducedMotion: "reduce" });

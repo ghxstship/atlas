@@ -67,7 +67,9 @@ export function SectionKindFields({
             options={WINDOW_KINDS.map((w) => ({ value: w, label: t(`windowKinds.${key(w)}`) }))}
           />
         ) : null}
+        {/* The key resets the default when the kind changes: a File's 3 or a request's 10 can pass another kind's limit. */}
         <Input
+          key={kind}
           id={`${id}-max`}
           name="maxLines"
           type="number"

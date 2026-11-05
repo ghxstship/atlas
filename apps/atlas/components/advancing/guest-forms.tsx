@@ -27,7 +27,10 @@ export interface GuestItem {
   readonly scopeNodeId: string | null;
 }
 
-/** Posts in a transition so a refused submit keeps its input; `onDone` runs after a success. */
+/**
+ * Posts in a transition so a refused submit keeps its input; `onDone` runs after a success. Each form also keeps
+ * `action`, so one sent before the page hydrates does not load the page with its fields in the URL.
+ */
 function useSubmit(action: Action, onDone?: () => void) {
   const [state, run, pending] = useActionState<AdvancingState, FormData>(async (prev, form) => {
     const next = await action(prev, form);
@@ -40,7 +43,7 @@ function useSubmit(action: Action, onDone?: () => void) {
     const data = new FormData(event.currentTarget, submitter);
     startTransition(() => run(data));
   };
-  return { state, pending, onSubmit };
+  return { state, pending, onSubmit, action: run };
 }
 
 function ErrorLine({ state }: { state: AdvancingState }) {
@@ -124,7 +127,7 @@ export function AddGuestDialog({
   const common = useCopy("advancing.common");
   const [open, setOpen] = useState(false);
   const formId = useId();
-  const { state, pending, onSubmit } = useSubmit(addGuestAction, () => setOpen(false));
+  const { state, pending, onSubmit, action } = useSubmit(addGuestAction, () => setOpen(false));
   return (
     <Dialog
       title={t("addTitle")}
@@ -147,7 +150,13 @@ export function AddGuestDialog({
         </>
       }
     >
-      <form id={formId} onSubmit={onSubmit} className="flex flex-col gap-12" noValidate>
+      <form
+        id={formId}
+        action={action}
+        onSubmit={onSubmit}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="projectId" value={projectId} />
         <ErrorLine state={state} />
@@ -173,9 +182,9 @@ function MoveButton({
   label: string;
   variant: "primary" | "secondary" | "ghost";
 }) {
-  const { state, pending, onSubmit } = useSubmit(moveGuestAction);
+  const { state, pending, onSubmit, action } = useSubmit(moveGuestAction);
   return (
-    <form onSubmit={onSubmit} className="inline-flex flex-col gap-4">
+    <form action={action} onSubmit={onSubmit} className="inline-flex flex-col gap-4">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="guestId" value={guestId} />
       <input type="hidden" name="to" value={to} />
@@ -211,7 +220,12 @@ export function GuestActions({
   const remove = useSubmit(removeGuestAction);
   if (editing) {
     return (
-      <form onSubmit={update.onSubmit} className="flex basis-full flex-col gap-8" noValidate>
+      <form
+        action={update.action}
+        onSubmit={update.onSubmit}
+        className="flex basis-full flex-col gap-8"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="guestId" value={guest.id} />
         <ErrorLine state={update.state} />
@@ -262,7 +276,11 @@ export function GuestActions({
         </Button>
       ) : null}
       {canEdit && state !== "Checked In" ? (
-        <form onSubmit={remove.onSubmit} className="inline-flex flex-col gap-4">
+        <form
+          action={remove.action}
+          onSubmit={remove.onSubmit}
+          className="inline-flex flex-col gap-4"
+        >
           <input type="hidden" name="org" value={org} />
           <input type="hidden" name="guestId" value={guest.id} />
           <Button type="submit" size="sm" variant="ghost" loading={remove.pending}>
