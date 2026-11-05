@@ -82,7 +82,7 @@ export function RosterLockDialog({
         </>
       }
     >
-      <form id={formId} onSubmit={submit} className="flex flex-col gap-8">
+      <form id={formId} action={run} onSubmit={submit} className="flex flex-col gap-8">
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="engagementId" value={engagementId} />
         <input type="hidden" name="timeZone" value={timeZone} />

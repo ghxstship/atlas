@@ -104,7 +104,7 @@ test("budget lines are tagged, filtered by tag and kept in a saved view", async 
       await drawer.getByRole("button", { name: "Close" }).first().click();
     }
     await page.reload();
-    await expect(page.getByRole("gridcell", { name: "Rental" })).toBeVisible();
+    await expect(page.getByRole("gridcell", { name: "Rental", exact: true })).toBeVisible();
 
     // Add filter keeps only the Rental line; the figures stay whole-budget.
     const editor = page.getByRole("dialog", { name: "Add a filter" });

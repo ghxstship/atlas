@@ -108,7 +108,7 @@ test("drafting: a run of show fills an empty running order, flagged, edited and 
   ).toBeVisible();
   // The support act starts before doors end: the clash is flagged on its line.
   await expect(panel.getByText("Overlaps the cue before by 15 minutes.")).toBeVisible();
-  await expect(panel.getByText("the walk-in music time")).toBeVisible();
+  await expect(panel.getByText("the walk-in music time", { exact: true })).toBeVisible();
   await expectAccessible(page);
 
   // Leave the untimed walk-in music out and rename doors; the flags follow every edit.
@@ -141,8 +141,12 @@ test("drafting: a risk assessment fills a project's empty risk list for a qualif
   test.skip(risks.length > 0, "NWG already has Risk records from an earlier attempt.");
 
   await page.goto(`/${ORG}/p/NWG/work?kind=Risk`);
-  await page.getByRole("button", { name: "Draft risk assessment with Aurora" }).click();
   const panel = page.getByRole("dialog", { name: "Draft a risk assessment with Aurora" });
+  // A development server hydrates this route slowly, and a click before that opens nothing.
+  await baseExpect(async () => {
+    await page.getByRole("button", { name: "Draft risk assessment with Aurora" }).click();
+    await baseExpect(panel).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 60_000 });
   await expect(panel.getByText("Categories", { exact: true })).toBeVisible();
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
   await expect(panel.getByText("AI-generated")).toBeVisible();
@@ -219,7 +223,9 @@ test("drafting: with the switch off, no list offers a draft", async () => {
 test("drafting: the es-US locale shows the Spanish copy", async () => {
   const name = `Noche ${uniqueId()}`;
   const run = await newRun(page, name);
-  await page.context().addCookies([{ name: "xos-locale", value: "es-US", url: page.url() }]);
+  await page
+    .context()
+    .addCookies([{ name: "xos-locale", value: "es-US", url: new URL(page.url()).origin }]);
   try {
     await page.goto(`/${ORG}/show/run-of-show?peek=${run}`);
     const drawer = page.getByRole("dialog", { name: `NWS · ${name}` });
@@ -228,6 +234,8 @@ test("drafting: the es-US locale shows the Spanish copy", async () => {
     await expect(panel.getByLabel("¿Qué debe redactar Aurora?")).toBeVisible();
     await expectAccessible(page);
   } finally {
-    await page.context().addCookies([{ name: "xos-locale", value: "en-US", url: page.url() }]);
+    await page
+      .context()
+      .addCookies([{ name: "xos-locale", value: "en-US", url: new URL(page.url()).origin }]);
   }
 });

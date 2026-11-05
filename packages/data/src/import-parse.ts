@@ -72,8 +72,10 @@ export function parseDelimited(text: string, delimiter: string): string[][] {
  * tab (what spreadsheets put on the clipboard), otherwise CSV.
  */
 export function parsePasted(text: string): string[][] {
-  const first = text.split(/\r\n|\n|\r/).find((line) => line.trim() !== "") ?? "";
-  return parseDelimited(text, first.includes("\t") ? "\t" : ",");
+  // A browser submits a textarea's line breaks as CRLF, which a quoted cell would otherwise keep in its value.
+  const pasted = text.replace(/\r\n?/g, "\n");
+  const first = pasted.split("\n").find((line) => line.trim() !== "") ?? "";
+  return parseDelimited(pasted, first.includes("\t") ? "\t" : ",");
 }
 
 /** Writes rows as CSV (RFC 4180): a cell with a comma, a quote or a line break is quoted, quotes doubled. */

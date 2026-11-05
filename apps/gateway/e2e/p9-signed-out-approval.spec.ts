@@ -202,7 +202,7 @@ test("P9: an outside approver approves a pass from the email with a code, signed
     const code = await requestCode(page, base);
 
     // A wrong code says how many tries are left before the link locks, and the approval stays undecided.
-    const field = page.getByLabel("Code from your email");
+    const field = page.getByRole("textbox", { name: "Code from your email" });
     await field.fill(wrong(code));
     await page.getByRole("button", { name: "Show the request" }).click();
     await expect(
@@ -250,7 +250,7 @@ test("P9: five wrong codes lock the link, even for the right code", async ({ pag
       page.getByRole("heading", { level: 1, name: "Reject this request from your email" }),
     ).toBeVisible();
     const code = await requestCode(page, base);
-    const field = page.getByLabel("Code from your email");
+    const field = page.getByRole("textbox", { name: "Code from your email" });
     for (let left = 4; left >= 1; left -= 1) {
       await field.fill(wrong(code));
       await page.getByRole("button", { name: "Show the request" }).click();

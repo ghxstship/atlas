@@ -102,18 +102,39 @@ async function seedCleanPhoto(client: SupabaseClient, holder: string): Promise<s
     });
     if (verdict.error) throw new Error(`record_object_scan: ${verdict.error.message}`);
   }
-  const consent = await app
+  // A person has one standing consent per purpose, and a test earlier in the run may have left theirs.
+  const standing = await app
     .from("consent_records")
-    .insert({
-      org_id: ORG_ID,
-      person_id: holder,
-      purpose_code: "credential_photo",
-      notice_version: "credential-photo-2026-11",
-      source: "Web",
-    })
     .select("id")
-    .single();
+    .eq("org_id", ORG_ID)
+    .eq("person_id", holder)
+    .eq("purpose_code", "credential_photo")
+    .is("withdrawn_at", null)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (standing.error) throw new Error(`standing consent: ${standing.error.message}`);
+  const consent = standing.data
+    ? standing
+    : await app
+        .from("consent_records")
+        .insert({
+          org_id: ORG_ID,
+          person_id: holder,
+          purpose_code: "credential_photo",
+          notice_version: "credential-photo-2026-11",
+          source: "Web",
+        })
+        .select("id")
+        .single();
   if (consent.error) throw new Error(`consent: ${consent.error.message}`);
+  // The same for a live photo: the newest stands.
+  const replaced = await app
+    .from("credential_photos")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("org_id", ORG_ID)
+    .eq("person_id", holder)
+    .is("deleted_at", null);
+  if (replaced.error) throw new Error(`earlier photo: ${replaced.error.message}`);
   const photo = await app.from("credential_photos").insert({
     org_id: ORG_ID,
     person_id: holder,

@@ -40,6 +40,10 @@ import { useCopy, type Translate } from "./use-copy";
 
 type Action = (prev: AdvancingState, form: FormData) => Promise<AdvancingState>;
 
+/**
+ * Posts in a transition so a refused submit keeps its input. Each form also keeps `action`, so one sent before the page
+ * hydrates does not load the page with its fields in the URL.
+ */
 function useDialogAction(action: Action, onDone: () => void) {
   const [state, run, pending] = useActionState<AdvancingState, FormData>(async (prev, form) => {
     const next = await action(prev, form);
@@ -51,7 +55,7 @@ function useDialogAction(action: Action, onDone: () => void) {
     const submitter = (event.nativeEvent as SubmitEvent).submitter;
     startTransition(() => run(new FormData(event.currentTarget, submitter)));
   };
-  return { state, pending, submit };
+  return { state, pending, submit, action: run };
 }
 
 function Refusal({ state }: { state: AdvancingState }) {
@@ -362,6 +366,7 @@ export function AllocationAssignDialog({
     state,
     pending,
     submit: run,
+    action,
   } = useDialogAction(assignAllocationAction, () => setOpen(false));
   const [options, setOptions] = useState<AssignOptions | null>(null);
   const [reasonMissing, setReasonMissing] = useState(false);
@@ -455,7 +460,7 @@ export function AllocationAssignDialog({
         ) : null
       }
     >
-      <form id={formId} onSubmit={submit} className="flex flex-col gap-8">
+      <form id={formId} action={action} onSubmit={submit} className="flex flex-col gap-8">
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="projectId" value={projectId} />
         <input type="hidden" name="timeZone" value={timeZone} />
@@ -610,7 +615,9 @@ function ReviewDialog({ org, row }: { org: string; row: AllocationRowProps }) {
   const t = useCopy("advancing.allocations");
   const [open, setOpen] = useState(false);
   const formId = useId();
-  const { state, pending, submit } = useDialogAction(decideAllocationAction, () => setOpen(false));
+  const { state, pending, submit, action } = useDialogAction(decideAllocationAction, () =>
+    setOpen(false),
+  );
   const [allowances, setAllowances] = useState<readonly AllocationAllowance[]>([]);
   const [options, setOptions] = useState<AssignOptions | null>(null);
   const radios = row.offering === "Radios";
@@ -660,7 +667,7 @@ function ReviewDialog({ org, row }: { org: string; row: AllocationRowProps }) {
         </Button>
       }
     >
-      <form id={formId} onSubmit={submit} className="flex flex-col gap-8">
+      <form id={formId} action={action} onSubmit={submit} className="flex flex-col gap-8">
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="id" value={row.id} />
         {row.kind === "Asset" ? (
@@ -716,7 +723,9 @@ function SplitDialog({ org, row }: { org: string; row: AllocationRowProps }) {
   const t = useCopy("advancing.allocations");
   const [open, setOpen] = useState(false);
   const formId = useId();
-  const { state, pending, submit } = useDialogAction(splitAllocationAction, () => setOpen(false));
+  const { state, pending, submit, action } = useDialogAction(splitAllocationAction, () =>
+    setOpen(false),
+  );
   const [options, setOptions] = useState<AssignOptions | null>(null);
   const [parts, setParts] = useState(1);
   useEffect(() => {
@@ -744,7 +753,7 @@ function SplitDialog({ org, row }: { org: string; row: AllocationRowProps }) {
       pending={pending}
       submitLabel={t("splitDialog.submit")}
     >
-      <form id={formId} onSubmit={submit} className="flex flex-col gap-8">
+      <form id={formId} action={action} onSubmit={submit} className="flex flex-col gap-8">
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="id" value={row.id} />
         {Array.from({ length: parts }, (_, i) => (
@@ -836,7 +845,7 @@ function IssueDialog({
   const setOpen = (next: boolean) => (controlled ? onOpenChange?.(next) : setOwnOpen(next));
   const formId = useId();
   const [eventId, setEventId] = useState(() => crypto.randomUUID());
-  const { state, pending, submit } = useDialogAction(issueAllocationAction, () => {
+  const { state, pending, submit, action } = useDialogAction(issueAllocationAction, () => {
     setOpen(false);
     setEventId(crypto.randomUUID());
   });
@@ -875,7 +884,7 @@ function IssueDialog({
       pending={pending}
       submitLabel={t("issueDialog.submit")}
     >
-      <form id={formId} onSubmit={submit} className="flex flex-col gap-8">
+      <form id={formId} action={action} onSubmit={submit} className="flex flex-col gap-8">
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="id" value={row.id} />
         <input type="hidden" name="eventId" value={eventId} />
@@ -983,7 +992,7 @@ function WithdrawDialog({ org, row }: { org: string; row: AllocationRowProps }) 
   const t = useCopy("advancing.allocations");
   const [open, setOpen] = useState(false);
   const formId = useId();
-  const { state, pending, submit } = useDialogAction(withdrawAllocationAction, () =>
+  const { state, pending, submit, action } = useDialogAction(withdrawAllocationAction, () =>
     setOpen(false),
   );
   return (
@@ -1001,7 +1010,7 @@ function WithdrawDialog({ org, row }: { org: string; row: AllocationRowProps }) 
       pending={pending}
       submitLabel={t("withdrawDialog.submit")}
     >
-      <form id={formId} onSubmit={submit} className="flex flex-col gap-8">
+      <form id={formId} action={action} onSubmit={submit} className="flex flex-col gap-8">
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="id" value={row.id} />
         <Textarea name="reason" maxLength={1000} width="100%" label={t("withdrawDialog.reason")} />
@@ -1013,9 +1022,12 @@ function WithdrawDialog({ org, row }: { org: string; row: AllocationRowProps }) 
 
 function UnsplitButton({ org, row }: { org: string; row: AllocationRowProps }) {
   const t = useCopy("advancing.allocations");
-  const { state, pending, submit } = useDialogAction(unsplitAllocationAction, () => undefined);
+  const { state, pending, submit, action } = useDialogAction(
+    unsplitAllocationAction,
+    () => undefined,
+  );
   return (
-    <form onSubmit={submit} className="flex flex-col items-end gap-4">
+    <form action={action} onSubmit={submit} className="flex flex-col items-end gap-4">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="id" value={row.id} />
       <Button type="submit" size="sm" variant="ghost" disabled={pending} aria-busy={pending}>

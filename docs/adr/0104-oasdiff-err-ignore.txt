@@ -7,3 +7,9 @@ POST /asset-units/scan added the new `Returned` enum value to the `asset_state` 
 GET /asset-units/{id} added the new `Returned` enum value to the `asset_state` response property for the response status `200`
 PATCH /asset-units/{id} added the new `Returned` enum value to the `asset_state` response property for the response status `200`
 POST /asset-units/{id}/transitions added the new `Returned` enum value to the `asset_state` response property for the response status `200`
+# The same tenth state reaches the responses added since: bulk edit of asset units (A119) and R7's scans.
+POST /asset-units/bulk-preview added the new `Returned` enum value to the `inverse/items/expect/asset_state` response property for the response status `200`
+POST /asset-units/bulk-preview added the new `Returned` enum value to the `inverse/items/set/asset_state` response property for the response status `200`
+POST /asset-units/bulk-update added the new `Returned` enum value to the `inverse/items/expect/asset_state` response property for the response status `200`
+POST /asset-units/bulk-update added the new `Returned` enum value to the `inverse/items/set/asset_state` response property for the response status `200`
+POST /asset-units/scans added the new `Returned` enum value to the `asset_state` response property for the response status `200`

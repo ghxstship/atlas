@@ -16,6 +16,8 @@
 --     API gate is never stricter than the RPC (parity review correction 3).
 
 alter table app.engagements add column roster_locks_at timestamptz;
+-- app.engagements grants its columns one by one (0700), and Atlas's crew roster reads the lock under row level security.
+grant select (roster_locks_at) on app.engagements to authenticated;
 comment on column app.engagements.roster_locks_at is 'Names lock (R5, G-142): after this instant the company side can no longer add, invite, edit Draft entries or submit new names on the roster. NULL means no lock. Set by the producing org through app.set_roster_lock.';
 
 -- The column is written only by its RPC ---------------------------------------------------------------------------------

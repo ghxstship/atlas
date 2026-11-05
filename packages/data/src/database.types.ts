@@ -65354,6 +65354,7 @@ export type Database = {
           entry_state: Database["app"]["Enums"]["roster_entry_state"] | null;
           holder_kind: string | null;
           holder_name: string | null;
+          holder_open: boolean | null;
           org_id: string | null;
           party_name: string | null;
           person_response: Database["app"]["Enums"]["roster_person_response"] | null;

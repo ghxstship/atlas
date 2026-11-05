@@ -171,5 +171,9 @@ select is(pg_temp.refusal($$select app.decide_timesheet(pg_temp.id('ts_stella'),
 select pg_temp.as_user('alice');
 select lives_ok($$select app.decide_timesheet(pg_temp.id('ts_stella'), 'Approved', 'Hours match the call sheet.')$$, 'another approver can');
 
+-- Who clocked a worker is named on the timesheet ------------------------------------------------------------------------------------------
+select is((select count(*)::int from app.person_names(array[pg_temp.id('olga')])), 1,
+  'an approver reads the name of the agency lead who clocked a worker in');
+
 select * from finish();
 rollback;

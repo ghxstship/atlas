@@ -325,7 +325,8 @@ export async function untilDrawn(page: Page): Promise<void> {
         return hydrated(last) && [...landmarks].every(hydrated);
       },
       undefined,
-      { timeout: 15_000 },
+      // next dev compiles on demand, so a loaded CI runner hydrates slowly.
+      { timeout: 45_000 },
     )
     .catch(() => undefined);
   await page
@@ -338,7 +339,7 @@ export async function untilDrawn(page: Page): Promise<void> {
           .querySelector("nextjs-portal")
           ?.shadowRoot?.querySelector("[data-nextjs-toast]:not(#devtools-indicator)"),
       undefined,
-      { timeout: 10_000 },
+      { timeout: 30_000 },
     )
     .catch(() => undefined);
   await page.evaluate(

@@ -172,7 +172,7 @@ test("R9: a vendor answers a typed advance, the org books its dock slot, and nam
     const entries = await sql<{ id: string; person_id: string }>(
       `select r.id, rp.person_id from app.engagement_roster_entries r
          join private.roster_people rp on rp.roster_entry_id = r.id
-        where r.engagement_id = $1 and r.deleted_at is null`,
+        where r.engagement_id = $1 and r.deleted_at is null and not r.is_self`,
       [engagementId],
     );
     for (const entry of entries) {
@@ -327,7 +327,7 @@ test("R9: a vendor answers a typed advance, the org books its dock slot, and nam
       .getByLabel("Dock", { exact: true })
       .selectOption({ label: `DOCK-${tag} · ${dockName}` });
     await book.getByRole("button", { name: "Book dock slot" }).click();
-    await slow(loadInCard.getByText("Dock slot booked.")).toBeVisible();
+    await slow(loadInCard.getByRole("cell", { name: "Dock slot booked" })).toBeVisible();
     await expectAccessible(producer);
 
     // The vendor reads the dock slot on Deliveries and the radios as approved on Advance.
