@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xos-sdk"
-version = "4.1.0"
+version = "4.2.0"
 description = "Python SDK for the XOS public API."
 readme = "README.md"
 authors = [{ name = "GHXSTSHIP Industries LLC" }]
