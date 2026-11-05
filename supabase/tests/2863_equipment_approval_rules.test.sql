@@ -13,7 +13,7 @@ set search_path = extensions, public;
 \ir 2654_project_facts_world.psql
 \ir 2691_allocation_world.psql
 
-select plan(32);
+select plan(39);
 
 create function pg_temp.approval_of(p_allocation text) returns uuid
 language sql security definer as $$
@@ -106,6 +106,15 @@ select is((select count(*)::integer from app.notifications where kind = 'allocat
            and recipient_person_id = pg_temp.id('dave') and message_args ->> 'decision' = 'declined'), 1,
   'the requester hears the allocation was declined');
 
+-- A decision from the email link (2861) has no session, and the rule named the approver, so it declines the same way.
+insert into world select 'a_link', pg_temp.alloc('request', 'dave', 'e_mo', 'class', 'cls_radio', 1);
+select pg_temp.as_platform();
+select lives_ok(format($$select private.decide_subject_approval_as(%L, %L, false, 'Not this week.', 'Email link')$$,
+  pg_temp.approval_of('a_link'), pg_temp.id('bob')), 'a rejection from the email link needs no session');
+select is(pg_temp.state_of(pg_temp.id('a_link')), 'Declined', 'and declines the allocation');
+select is((select reason from app.advance_allocation_state_transitions where advance_allocation_id = pg_temp.id('a_link') and to_state = 'Declined'),
+  'Rejected at Quartermaster: Not this week.', 'with the same reason');
+
 -- 4. Withdrawing or declining the allocation withdraws the approval --------------------------------------------------------------
 insert into world select 'a_w', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_radio', 1);
 select pg_temp.as_user('dave');
@@ -127,6 +136,17 @@ select is((select approval_state::text from app.subject_approval_status where ad
 select pg_temp.as_user('quinn');
 select is((select count(*)::integer from app.subject_approval_status where advance_allocation_id = pg_temp.id('a_kai')), 0,
   'an outsider reads none');
+
+-- 6. Refused moves of the two lifecycles this gate joins ----------------------------------------------------------------------------
+select pg_temp.as_user('alice');
+select throws_like(format($$select app.transition_approval_rule(%L, 'Active', 'Draft', 'Back to the drawing board.')$$, pg_temp.id('rule_radio')),
+  'approval_rule_transition_not_allowed:%', 'an Active rule does not go back to a Draft');
+select pg_temp.as_platform();
+select throws_like(format($$select private.transition_lifecycle('advance_allocation', 'app.advance_allocations', 'allocation_state',
+    'app.advance_allocation_state_transitions', 'advance_allocation_id', %L, 'Declined', 'Requested', 'Reopen.')$$, pg_temp.id('a_mo')),
+  'advance_allocation_transition_not_allowed:%', 'a Declined allocation does not go back to Requested');
+select is(pg_temp.state_of(pg_temp.id('a_mo')), 'Declined', 'and stays Declined');
+select is(pg_temp.approval_state('a_mo'), 'Rejected', 'with its approval still Rejected');
 
 select * from finish();
 rollback;

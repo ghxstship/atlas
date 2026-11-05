@@ -145,6 +145,7 @@
       "unexpected": "The export could not finish. Try again."
     },
     "columns": {
+      "advance_allocation_id": "Equipment request",
       "access_level_enum_id": "Access level",
       "account_code": "Account",
       "account_name": "Account name",
