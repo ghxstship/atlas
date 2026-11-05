@@ -18,6 +18,12 @@ export interface BulkField {
   readonly options: readonly BulkChoice[];
   /** Asks for a reason, saved with each change (state changes). */
   readonly reason?: boolean;
+  /**
+   * The rows this change applies to, when not every row allows it (a work order in a final state
+   * has no state to move to). The bar offers the change only when every selected row is listed,
+   * and a row's menu only on a listed row. Every row when absent.
+   */
+  readonly rows?: readonly string[];
 }
 
 export interface BulkConfig {

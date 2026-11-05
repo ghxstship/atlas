@@ -24854,14 +24854,14 @@
           "comment": "Email delivery the digest carries.",
           "name": "notification_delivery_id",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.id",
+          "references": "app.notification_deliveries.id",
           "type": "uuid"
         },
         {
           "comment": "Partition key of the delivery, checked by the foreign key.",
           "name": "notification_created_at",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.notification_created_at",
+          "references": "app.notification_deliveries.notification_created_at",
           "type": "timestamp with time zone"
         },
         {
@@ -39487,14 +39487,14 @@
           "comment": "Notification delivered.",
           "name": "notification_id",
           "nullable": false,
-          "references": "private.notifications_p202609.id",
+          "references": "app.notifications.id",
           "type": "uuid"
         },
         {
           "comment": "Creation time of the notification: its partition key, checked by the foreign key.",
           "name": "notification_created_at",
           "nullable": false,
-          "references": "private.notifications_p202609.created_at",
+          "references": "app.notifications.created_at",
           "type": "timestamp with time zone"
         },
         {
@@ -53440,14 +53440,14 @@
           "comment": "Push delivery the ticket belongs to.",
           "name": "notification_delivery_id",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.id",
+          "references": "app.notification_deliveries.id",
           "type": "uuid"
         },
         {
           "comment": "Partition key of the delivery, checked by the foreign key.",
           "name": "notification_created_at",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.notification_created_at",
+          "references": "app.notification_deliveries.notification_created_at",
           "type": "timestamp with time zone"
         },
         {
@@ -66170,14 +66170,14 @@
           "comment": "SMS delivery held for the summary.",
           "name": "notification_delivery_id",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.id",
+          "references": "app.notification_deliveries.id",
           "type": "uuid"
         },
         {
           "comment": "Partition key of the delivery, checked by the foreign key.",
           "name": "notification_created_at",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.notification_created_at",
+          "references": "app.notification_deliveries.notification_created_at",
           "type": "timestamp with time zone"
         },
         {

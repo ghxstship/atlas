@@ -3,7 +3,7 @@ import type { Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2140, 2150,
+ * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2130, 2150,
  * 2151, 2635 and 2696): one property across a selection, previewed, all or nothing, with the inverse rows
  * that undo it. Each resource has its own RPC; adding one is a row function, a registry row and a name
  * here.
@@ -14,6 +14,10 @@ export const BULK_RESOURCES = [
   "shifts",
   "invoices",
   "asset_units",
+  "projects",
+  "work_orders",
+  "punch_items",
+  "documents",
   "shipments",
   "dock_slots",
   "fulfillments",
@@ -110,6 +114,10 @@ const RPC = {
   shifts: "bulk_update_shifts",
   invoices: "bulk_update_invoices",
   asset_units: "bulk_update_asset_units",
+  projects: "bulk_update_projects",
+  work_orders: "bulk_update_work_orders",
+  punch_items: "bulk_update_punch_items",
+  documents: "bulk_update_documents",
   shipments: "bulk_update_shipments",
   dock_slots: "bulk_update_dock_slots",
   fulfillments: "bulk_update_fulfillments",

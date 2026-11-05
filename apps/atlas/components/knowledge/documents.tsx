@@ -22,6 +22,7 @@ import {
   PeekDrawer,
   RecordPage,
 } from "@/components/collection-kit/kit";
+import type { BulkConfig } from "@/components/bulk/types";
 import type { KitRow, ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
@@ -214,6 +215,7 @@ export async function DocumentsSection({
   const rows: KitRow[] = docs.map((d) => ({
     id: d.id,
     key: scopeOf(d),
+    label: d.title,
     title: d.title,
     meta: t("documents.updatedLine", { date: when(lastChange(d)) }),
     cells: {
@@ -223,6 +225,25 @@ export async function DocumentsSection({
       updated: when(lastChange(d)),
     },
   }));
+
+  // Bulk edit (Section 11.7): move documents to a project or org-wide. The database checks
+  // knowledge.document.write where each document is and where it goes.
+  const bulk: BulkConfig | null = canWrite
+    ? {
+        org: ctx.org.slug,
+        resource: "documents",
+        fields: [
+          {
+            key: "project_id",
+            label: t("documents.scope"),
+            options: [
+              { value: null, label: t("documents.orgWide") },
+              ...projects.data.map((p) => ({ value: p.id, label: `${p.key} ${p.name}` })),
+            ],
+          },
+        ],
+      }
+    : null;
 
   let drawer = null;
   if (state.create && canWrite) {
@@ -305,6 +326,7 @@ export async function DocumentsSection({
         ) : null
       }
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "documents")}
+      bulk={bulk}
     >
       {drawer}
     </CollectionView>

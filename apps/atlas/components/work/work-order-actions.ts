@@ -6,6 +6,7 @@ import {
   createPunchItem,
   createWorkOrder,
   deleteWorkOrder,
+  restoreWorkOrder,
   transitionWorkOrder,
   updateBid,
   updateWorkOrder,
@@ -112,10 +113,21 @@ export async function transitionWorkOrderAction(
   return done(null);
 }
 
+/** Moves a Draft work order to Trash; the caller puts it on the undo stack (Section 11.7). */
 export async function deleteWorkOrderAction(org: string, id: string): Promise<ActionResult> {
   const ctx = await context(org);
   if (!z.uuid().safeParse(id).success) return invalid();
   const result = await deleteWorkOrder(ctx.viewer.db, id);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/** Restores a deleted work order from Trash: the undo of a delete, refused once it is purged. */
+export async function restoreWorkOrderAction(org: string, id: string): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!z.uuid().safeParse(id).success) return invalid();
+  const result = await restoreWorkOrder(ctx.viewer.db, id);
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);

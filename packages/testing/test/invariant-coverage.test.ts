@@ -176,13 +176,14 @@ describe("state machine transition coverage (gate 4)", () => {
   });
 
   it("exercises an allowed move of every state machine", () => {
+    // Each mover's pattern is built once and the refusals are set aside once: building a pattern per
+    // statement took more than five seconds on a CI runner.
+    const allowed = statements.filter((s) => !s.includes("throws_"));
     const unmoved = machines
-      .filter(
-        (m) =>
-          !statements.some(
-            (s) => !s.includes("throws_") && m.movers.some((fn) => calls(fn).test(s)),
-          ),
-      )
+      .filter((m) => {
+        const patterns = m.movers.map(calls);
+        return !allowed.some((s) => patterns.some((pattern) => pattern.test(s)));
+      })
       .map((m) => m.name);
     expect(unmoved, "state machines no suite moves along an allowed transition").toEqual([]);
   });

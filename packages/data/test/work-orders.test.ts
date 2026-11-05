@@ -12,6 +12,7 @@ import {
   listWorkOrderHistory,
   listWorkOrders,
   listWorkOrderTransitions,
+  restoreWorkOrder,
   summarizeBids,
   transitionWorkOrder,
   updateBid,
@@ -189,6 +190,23 @@ describe("work orders", () => {
     expect((await deleteWorkOrder(db, "w9")).ok).toBe(true);
     expect(await deleteWorkOrder(db, "w9")).toEqual({ ok: false, error: { kind: "not-found" } });
     expect((await deleteWorkOrder(db, "w9")).ok).toBe(false);
+  });
+
+  it("moves only a live work order to Trash and restores it through the Trash RPC", async () => {
+    const { db, calls } = moduleClient({
+      "from:work_orders": [okResponse([{ id: "w9" }])],
+      "rpc:restore_trash_item": [
+        okResponse(1),
+        errorResponse("42501", "you cannot edit this row, so you cannot restore it"),
+      ],
+    });
+    expect(await deleteWorkOrder(db, "w9")).toEqual({ ok: true, data: null });
+    expect(stepsOf(calls[0], "is")).toEqual([["deleted_at", null]]);
+    expect(await restoreWorkOrder(db, "w9")).toEqual({ ok: true, data: null });
+    expect(stepsOf(calls[1], "args")).toEqual([
+      [{ p_subject_table: "work_orders", p_subject_id: "w9" }],
+    ]);
+    expect((await restoreWorkOrder(db, "w9")).ok).toBe(false);
   });
 
   it("transitions and awards through the RPCs", async () => {
