@@ -1,6 +1,7 @@
 import type { XosClient } from "@xos/data";
 import { addCalendarDays, startOfDayIn, todayIn } from "@xos/data/calendar";
 import { listTravelSegments, type TravelSegment } from "@xos/data/hospitality";
+import { personNames } from "@xos/data/person-names";
 import { intervalSeconds, listRunsOfShow, type RunOfShow } from "@xos/data/show";
 import { fail, ok, toDataError, type Result } from "@xos/data/result";
 
@@ -261,16 +262,19 @@ interface StayRow {
   id: string;
   check_in_on: string;
   check_out_on: string;
-  person: { full_name: string | null } | null;
+  person_id: string;
   block: { id: string; title: string; hotel: { counterparty_name: string | null } | null } | null;
 }
 
 interface LinkRow {
   cue_id: string;
-  engagement: { person: { full_name: string | null } | null } | null;
+  engagement: { person_id: string | null } | null;
 }
 
-/** Everything the Show day of one project and day shows, in at most six reads. */
+/**
+ * Everything the Show day of one project and day shows, in at most seven reads. Row level security hides the people a
+ * project engages from app.people, so names come from one app.person_names read, not from embeds.
+ */
 export async function loadShowDay(
   db: XosClient,
   input: {
@@ -308,7 +312,7 @@ export async function loadShowDay(
       ? db
           .from("accommodation_assignments")
           .select(
-            "id, check_in_on, check_out_on, person:people!accommodation_assignments_person_id_fkey(full_name), " +
+            "id, check_in_on, check_out_on, person_id, " +
               "block:accommodation_blocks!accommodation_assignments_accommodation_block_id_fkey!inner(id, title, project_id, deleted_at, hotel:counterparties!accommodation_blocks_counterparty_id_fkey(counterparty_name))",
           )
           .eq("block.project_id", input.project.id)
@@ -330,11 +334,19 @@ export async function loadShowDay(
       : await db
           .from("engagement_cues")
           .select(
-            "cue_id, engagement:engagements!engagement_cues_engagement_id_fkey(person:people!engagements_person_id_fkey(full_name))",
+            "cue_id, engagement:engagements!engagement_cues_engagement_id_fkey(person_id)",
           )
           .in("cue_id", cueIds)
           .is("deleted_at", null);
   if (links.error) return fail(toDataError(links.error));
+  const linkRows = (links.data ?? []) as unknown as LinkRow[];
+  const stayRows = (blocks?.data ?? []) as unknown as StayRow[];
+  const arriving = travel ? arrivalsOn(travel.data, input.day, input.project.timeZone) : null;
+  const names = await personNames(db, [
+    ...linkRows.map((l) => l.engagement?.person_id),
+    ...stayRows.map((r) => r.person_id),
+    ...(arriving ?? []).map((s) => s.personId),
+  ]);
   return ok({
     runs: runs.data,
     cues: cueRows.map((c) => ({
@@ -346,19 +358,21 @@ export async function loadShowDay(
       durationSeconds: intervalSeconds(c.duration === null ? null : String(c.duration)),
       calledAt: c.called_at,
     })),
-    links: ((links.data ?? []) as unknown as LinkRow[]).map((l) => ({
+    links: linkRows.map((l) => ({
       cueId: l.cue_id,
-      actName: l.engagement?.person?.full_name ?? null,
+      actName: names.get(l.engagement?.person_id ?? "") ?? null,
     })),
     stageNames: new Map(
       ((scopes.data ?? []) as { id: string; name: string }[]).map((s) => [s.id, s.name]),
     ),
-    arrivals: travel ? arrivalsOn(travel.data, input.day, input.project.timeZone) : null,
+    arrivals: arriving
+      ? arriving.map((s) => ({ ...s, personName: names.get(s.personId) ?? s.personName }))
+      : null,
     hotels: blocks
       ? hotelsOn(
-          ((blocks.data ?? []) as unknown as StayRow[]).map((r) => ({
+          stayRows.map((r) => ({
             id: r.id,
-            personName: r.person?.full_name ?? null,
+            personName: names.get(r.person_id) ?? null,
             checkInOn: r.check_in_on,
             checkOutOn: r.check_out_on,
             blockId: r.block?.id ?? "",

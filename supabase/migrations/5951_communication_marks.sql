@@ -95,10 +95,10 @@ stable
 security definer
 set search_path = ''
 as $$
-  select private.shift_worker_person_id(s.membership_id, s.engagement_id) from app.shifts s where s.id = p_shift_id;
+  select private.shift_worker_person_id(s.membership_id, s.engagement_id, s.roster_entry_id) from app.shifts s where s.id = p_shift_id;
 $$;
 
-comment on function private.shift_assignee(uuid) is 'B6: the person on a shift now, the member or the engaged worker (private.shift_worker_person_id, 1394); NULL for an open shift.';
+comment on function private.shift_assignee(uuid) is 'B6: the person on a shift now: the member, the engaged worker or the agency staff member on the roster entry (private.shift_worker_person_id, 1394, R12''s 4750); NULL for an open shift or an agency slot.';
 revoke all on function private.shift_assignee(uuid) from public, anon, authenticated;
 
 -- 2. Communication marks ---------------------------------------------------------------------------------------------------

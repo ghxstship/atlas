@@ -54,7 +54,7 @@ As recent views (1440) have none, seen marks and the diffs computed from them ar
 
 ### 7. Today and Show day are dashboards
 
-Home > Today and Show > Show day stand on the 12-column Dashboard template (A129) and keep the viewer's spans in `me.dashboard_layout.today` and `me.dashboard_layout.show_day` (5953). The Show day page reads its day in a fixed number of queries and refreshes live on cues, running orders, travel segments and room assignments (the last by org, since a room assignment has no project of its own). Its project list holds the projects whose running orders the viewer reads; a project with none has no show day to show.
+Home > Today and Show > Show day stand on the 12-column Dashboard template (A129) and keep the viewer's spans in `me.dashboard_layout.today` and `me.dashboard_layout.show_day` (5953). The Show day page reads its day in a fixed number of queries (names through one `app.person_names` read, since row level security hides engaged people from `app.people`) and refreshes live on cues, running orders, travel segments and room assignments (the last by org, since a room assignment has no project of its own). Its project list holds the projects whose running orders the viewer reads; a project with none has no show day to show.
 
 ### 8. The Compass role table is unchanged
 
