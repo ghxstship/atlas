@@ -74,7 +74,7 @@ export function TransitionControls({
   }
   return (
     <div className="flex flex-col gap-8">
-      <h3 className="m-0 text-label-13 font-semibold">{t("transition.title")}</h3>
+      <h2 className="m-0 text-label-13 font-semibold">{t("transition.title")}</h2>
       {/* The record.state shortcut focuses the first move, so the next Enter or Tab picks one. */}
       <div data-shortcut="record.state" data-shortcut-focus="" className="flex flex-wrap gap-6">
         {next.map((state) => (

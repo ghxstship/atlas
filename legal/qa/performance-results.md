@@ -188,6 +188,161 @@ same tokens at 0.3 to 0.8 opacity during the peek's 80 ms reduced-motion fade, s
 ended: the drawer's text read #5c5d5f and #414347 on #131417. The same nodes pass at rest. Gateway's
 helper now waits for the resting state as Atlas's does (finding A24-008).
 
+### A144 (RRR-207, RRR-120, 2026-10-28): measured as Lighthouse measures, every signed-in route
+
+The nightly failed gate 10 on script size for Atlas Projects, Inbox and project overview (207 to
+212 KB against 204,800 bytes) while `budget:js` passed them at 198 KB. Local runs on the build
+machine (Lighthouse CI 0.15.1, Lighthouse 12.6.1, desktop preset, one run per page, Chromium
+headless shell 1248, `next start` on the stack of block 6483x with the demo seed) found three causes:
+
+- **Compression level and headers.** `budget:js` gzipped at level 9 and counted no headers.
+  `next start` gzips at zlib's default level, and Lighthouse's `transferSize` includes each
+  response's headers and framing: about 400 bytes a script, 4 to 5 KB on a page of 10 to 13 chunks.
+  `budget:js` now counts both and lands within 100 bytes of Lighthouse on every page that fetches
+  nothing after hydration (Atlas sign-in: 163,570 against 163,481).
+- **Modules fetched after hydration.** Every signed-in Atlas page fetches the shell's key handler
+  once it hydrates (2,951 bytes). Crew Shifts fetched its quick add row, open on the page, with the
+  chrono-node date parser (21 KB). Gateway Money fetches a 21 KB module the same way. No build
+  manifest lists them; `budget:js -- --served` loads each key page in Chromium and counts them, in
+  CI's journeys jobs.
+- **Shell code on every page.** The client sitemap with its route matching (about 5 KB), the
+  shell peek (2 KB), the ownership offer's actions with the step-up dialog (1 KB), and the
+  not-found and loading boundaries (three chunks, 1.8 KB plus 1.2 KB of headers).
+
+Script bytes as Lighthouse counts them (`resource-summary:script:size`), before (batch-c 4bf1cacf)
+and after, against 204,800:
+
+| Page                                    | Before  | After   | Change  | Headroom |
+| --------------------------------------- | ------- | ------- | ------- | -------- |
+| Atlas /auth/sign-in                     | 164,370 | 163,481 | -889    | 41,319   |
+| Atlas /demo-productions/home            | 197,674 | 183,161 | -14,513 | 21,639   |
+| Atlas /demo-productions/projects        | 211,670 | 200,417 | -11,253 | 4,383    |
+| Atlas /demo-productions/p/NWS/overview  | 207,275 | 197,052 | -10,223 | 7,748    |
+| Atlas /demo-productions/inbox           | 211,525 | 200,086 | -11,439 | 4,714    |
+| Atlas /demo-productions/crew/shifts     | 225,006 | 199,843 | -25,163 | 4,957    |
+| Atlas /demo-productions/finance/budgets | 200,508 | 190,390 | -10,118 | 14,410   |
+| Gateway /auth/sign-in                   |         | 175,678 |         | 29,122   |
+| Gateway /home                           |         | 182,587 |         | 22,213   |
+| Gateway /explore                        |         | 195,711 |         | 9,089    |
+| Gateway /work                           |         | 182,235 |         | 22,565   |
+| Gateway /money                          |         | 202,123 |         | 2,677    |
+
+What came out of every signed-in Atlas page, in gzip bytes of the shared shell and boundary
+chunks (the org shell chunk went from 23,318 to 13,569, and three boundary chunks of 1,758 bytes
+left with their headers):
+
+| Change                                                                                                                                      | Bytes                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| The server shell hands over the first page's breadcrumbs and help node; the client sitemap and its matching load with the first interaction | ~5,800                |
+| The shell peek loads with `?peek` (`shell-peek-gate.tsx`), its link helper without the sitemap                                              | ~2,200                |
+| The ownership offer's actions and the step-up dialog load on the banner that shows them                                                     | ~1,000                |
+| Not-found (root and org) and Projects-style loading boundaries render from `@xos/ui/static`                                                 | 1,758 and 3 responses |
+| The quick add's date parser loads with the field's focus (Crew Shifts, record lists)                                                        | page                  |
+
+The cut to the shared shell is about 11 KB in Lighthouse's terms (11.3 KB on Projects, 11.4 KB on
+Inbox, 10.2 KB on project overview), short of the 15 KB follow-up 12 asked for. The rest of the
+org shell chunk (13.6 KB) is the frame, AppShell, Sidebar, Breadcrumbs, TabBar, the help and Aurora
+entry points, the undo center and the system banners, all rendered or listening on every page. Two
+larger moves were measured and left out: shipping the en-US `ui` catalog (3 to 4 KB) or the client
+sitemap through the page payload instead of a script would pass the script budget by moving bytes
+from an immutable, cached chunk into every full page load.
+
+#### Every signed-in route
+
+`pnpm --filter @xos/testing lighthouse atlas gateway` visits every signed-in route in the generated
+sitemaps (`packages/testing/src/lighthouse-routes.ts`): 253 Atlas routes (248 as the
+Owner, 5 partner console pages as the partner's Owner) and 52 Gateway routes (46 as the crew
+member, 6 vendor engagement tabs as the vendor), plus both sign-in pages signed out. 308 pages,
+every one within its budgets on the final run, read from the reports (lhci asserted 302 of them;
+see "Pages that ended elsewhere" below):
+
+| App     | Pages | Accessibility | Performance | LCP          | CLS            | TBT        | Script             |
+| ------- | ----- | ------------- | ----------- | ------------ | -------------- | ---------- | ------------------ |
+| Atlas   | 255   | 1 on every    | 0.94 to 1   | 581–1,487 ms | 0.000 to 0.029 | 0 to 16 ms | 163,481 to 270,930 |
+| Gateway | 53    | 1 on every    | 1           | 470–723 ms   | 0.000 to 0.003 | 0 to 6 ms  | 175,684 to 219,050 |
+
+Left out, as no seeded person can open them: Atlas `/{org}/settings/partner` (an org that is a
+partner agency) and `/{org}/me/developer` (an org that allows personal tokens); Gateway's
+`/settings/developer`, the company settings (they need the person acting for the account) and 20
+engagement tabs of role types the seed has no engagement for (client, artist, sponsor).
+
+The first run failed accessibility (0.98 to 0.99) on 10 pages, all `heading-order` and, on boards,
+`aria-allowed-role`: Board cards were `article role="button"` and its column titles h3 under the
+page's h1; More fields headed a form at h3 under the page title (Atlas profile, privacy,
+preferences and modules settings, Gateway profile and privacy); a record's Move to and Gateway's
+saved opportunities skipped from h1 to h3. Each now takes the next level.
+
+187 Atlas routes and 6 Gateway routes measured over 204,800 bytes of script (in Lighthouse or the build manifests). Each holds a ceiling in
+`packages/testing/bundle-ceilings.json` (measured plus 3 KB) that the nightly and `budget:js`
+assert and that only moves down; no key page holds one. By route family:
+
+| Family                         | Routes | Script (bytes)  | Cause                                                                                                    |
+| ------------------------------ | ------ | --------------- | -------------------------------------------------------------------------------------------------------- |
+| Atlas settings and Me          | 56     | 209,120–264,232 | The settings form kit (fields and validation, 33 KB); under Me also second-factor enrolment (26 KB)      |
+| Atlas module collections       | 113    | 205,730–270,937 | The collection kit beyond the table: collaboration menu, export, record list, drawer forms (28 to 35 KB) |
+| Atlas reports, Home tabs       | 13     | 209,343–226,709 | Report tables; Home's tiles with the views and export menus                                              |
+| Atlas other lists              | 5      | 207,724–247,590 | The same collection kit, open on My Work, By Phase, a record, a custom object, client orgs               |
+| Gateway Money, Work, Documents | 6      | 217,870–219,049 | The list table and its filters on top of the shell                                                       |
+
+The module collections are the project tabs and the Schedule, Work, Show, Advancing, Places, Canon,
+Knowledge, Vendors, Procurement, Finance, People, Assets, Logistics, Hospitality, Safety, Site Ops
+and Crew pages.
+
+Splitting the collection kit and the settings form kit the way A46 and A48 split the Projects
+table is each module's follow-up; the ceilings keep them from growing until then.
+
+#### Pages that ended elsewhere (review, 2026-10-30)
+
+lhci 0.15.1 matches each `assertMatrix` entry against a report's `finalUrl`, and a report that no
+entry matches is not asserted at all. Every Atlas owner run holds more than one script budget, so
+its entries are exact URLs. Six of the 308 pages redirected and went unasserted: Atlas
+`/demo-productions/p/NWS` (to `/p/NWS/overview`) and the saved view `/views/<id>` (to
+`/projects?view=table&archive=active&sort=name`); Gateway `/work`, `/money`, `/settings` and
+`/work/engagements/<key>` (to `/work/upcoming`, `/money/overview`, `/settings/profile` and the
+engagement's overview). Read against the budgets, all six were inside them at their landing URLs
+(accessibility 1, LCP 683 to 796 ms, CLS at most 0.0002, TBT 0, script 182,241 to 204,256 bytes,
+Gateway Settings 544 bytes under). The same blind spot would have hidden a run that lost its session:
+the CLI signed in once per person and put that session back before every page, and with a one-hour
+JWT and refresh-token rotation, a run past the hour (Atlas takes about one) would have sent every
+later page to sign in, unasserted.
+
+The CLI (`packages/testing/src/lighthouse-landing.ts`) now:
+
+- asks the server where each page lands, with the person's cookies and redirects not followed,
+  and visits the landing path (the project's overview is visited once, from its own route);
+- stops the run when a signed-in page answers with a redirect to `/auth/`, or off the app;
+- signs each person in afresh for every 40 pages, about 7 minutes of Lighthouse;
+- fails when lhci does, and also when any page's summary is over a budget (accessibility below 1
+  included, as lhci asserts) or its final URL is not the one it asked for.
+
+Rescoring the 308 local reports with the new verdict fails exactly those six (and only for having
+ended elsewhere); the nightly measures their landing paths from now on. The redirect, sign-in and
+batching rules are unit tested with a fake server (`packages/testing/test/lighthouse-landing.test.ts`).
+
+#### Follow-up 12's shell cut: 11 KB of the 15 KB asked
+
+The cut above is about 11 KB in Lighthouse's terms, short of the "at least 15 KB" of follow-up 12.
+On the 2026-10-28 build the org shell chunk is 13,516 gzip bytes and the root chunk 22,362. Taking
+each remaining shell module out of the org chunk and gzipping again shows what each would give:
+the Undo and plain toasts 334 bytes, the help tour list 328, the help model's article search 298,
+the Banner 163 and the count badge 127; everything left is rendered or listening on every page. The
+remaining 4 KB would take a dozen such moves or one of two larger ones this package left out: the
+en-US `ui` catalog (4,198 bytes of the root chunk) shipped in the page payload, which moves bytes
+from a cached chunk into every full load (ADR 0027), or the shell's key handler (about 3 KB, fetched
+after hydration on every signed-in page) loaded on the first key, which would let a page's first
+key reach the browser's default before the shell could claim it. Follow-up 12 stays Partial on that
+clause until the owner accepts the 11 KB or schedules the catalog split. This branch also carries
+A125's region shortcuts and A143's region boundaries, so the next `route-js-budget` and served
+measure in CI give the shell's figures as merged.
+
+#### 10,000 rows at 60 fps
+
+`pnpm --filter @xos/ui test:visual frame-timing` (after `storybook:build`) scrolls the 10,000-row
+DataTable story 48 px a frame for 240 frames in Chromium: p95 16.70 ms, max 16.80 ms, no missed
+frame, in each of three runs. The budget is 16.7 ms plus 1 ms for timestamp rounding. With the CPU
+slowed tenfold (CDP `Emulation.setCPUThrottlingRate`) the same scroll measures p95 50.1 ms and fails,
+so the check sees a slow table.
+
 ## API latency (A24-010)
 
 Every API response now carries `Server-Timing` (`auth`, `rate`, `validate`, `handler`). Single

@@ -30,17 +30,20 @@ export const loadTargets = {
   compassDevicesPerShow: 1_000,
 } as const;
 
-/** Lighthouse CI assertions for the budgets above (Total Blocking Time stands in for INP in the lab). */
-export function lighthouseAssertions(): Record<string, [string, Record<string, number>]> {
+/**
+ * Lighthouse CI assertions for the budgets above (Total Blocking Time stands in for INP in the lab).
+ * `scriptBytes` is a page's route JavaScript budget: the 200 KB of gate 10, or the ceiling recorded
+ * for a page still over it (bundle-ceilings.json).
+ */
+export function lighthouseAssertions(
+  scriptBytes: number = webBudgets.routeJavaScriptGzipBytes,
+): Record<string, [string, Record<string, number>]> {
   return {
     "largest-contentful-paint": ["error", { maxNumericValue: webBudgets.largestContentfulPaintMs }],
     "cumulative-layout-shift": ["error", { maxNumericValue: webBudgets.cumulativeLayoutShift }],
     "total-blocking-time": ["error", { maxNumericValue: webBudgets.interactionToNextPaintMs }],
     interactive: ["warn", { maxNumericValue: interactiveBudgetMs }],
-    "resource-summary:script:size": [
-      "error",
-      { maxNumericValue: webBudgets.routeJavaScriptGzipBytes },
-    ],
+    "resource-summary:script:size": ["error", { maxNumericValue: scriptBytes }],
     "categories:accessibility": ["error", { minScore: 1 }],
   };
 }
