@@ -476,9 +476,10 @@ test("R12: allocate an agency slot, drag agency staff onto an open shift, and th
 
     // The drag board ranks the agency's accepted people beside the members; Staff Two dropped on an open shift
     // fills it, and the meter moves.
+    // Late in the day: agency staff cannot be placed on a shift that is already over (roster_shift_closed).
     const [open] = await localSql<{ id: string }>(
       `insert into app.shifts (project_id, role_code, starts_at, ends_at, time_zone)
-       values ($1, '5000.51.02', ($2::date + time '05:17') at time zone $3, ($2::date + time '06:43') at time zone $3, $3)
+       values ($1, '5000.51.02', ($2::date + time '23:17') at time zone $3, ($2::date + time '23:43') at time zone $3, $3)
        returning id`,
       [DEMO_PROJECT_ID, projectDay(), NEW_PROJECT_TIME_ZONE],
       DEMO_OWNER,
@@ -486,7 +487,7 @@ test("R12: allocate an agency slot, drag agency staff onto an open shift, and th
     await page.goto(`/${DEMO_ORG}/crew/schedule`);
     const board = page.getByTestId("scheduling-board");
     const meter = board.getByRole("meter", { name: "Fill rate" });
-    const target = board.getByTestId("board-open-shift").filter({ hasText: /5:17/ });
+    const target = board.getByTestId("board-open-shift").filter({ hasText: /11:17/ });
     await expect(target).toHaveCount(1);
     await target.getByRole("button").click();
     const before = /^(\d+) of (\d+)/.exec((await meter.getAttribute("aria-valuetext")) ?? "");
@@ -499,8 +500,12 @@ test("R12: allocate an agency slot, drag agency staff onto an open shift, and th
     await expect(candidate).toContainText(`Agency staff, ${party}`);
     await settle(page);
     await expectAccessible(page);
+    // Both ends in view: a drag that scrolls to its target after the press picks up whichever row is then under it.
+    const viewport = page.viewportSize();
+    await page.setViewportSize({ width: viewport?.width ?? 1280, height: 2400 });
     await candidate.dragTo(target);
     await expect(board.getByTestId("board-announcement")).toContainText(`${staffTwo} is on`);
+    if (viewport) await page.setViewportSize(viewport);
     await expect(meter).toHaveAttribute(
       "aria-valuetext",
       new RegExp(`^${filled + 1} of ${total} shifts filled`),
@@ -524,18 +529,19 @@ test("R12: allocate an agency slot, drag agency staff onto an open shift, and th
       DEMO_OWNER,
     );
     await localSql("select app.assign_roster_shift($1, $2)", [now?.id, agency.one], DEMO_OWNER);
+    await localSql("select app.publish_shifts(array[$1]::uuid[])", [now?.id], DEMO_OWNER);
     for (const [kind, ago] of [
       ["In", "30 minutes"],
       ["Out", "0 minutes"],
     ] as const) {
-      const [punched] = await localSql<{ outcome: string }>(
+      const [punched] = await localSql<{ outcome: Record<string, unknown> }>(
         `select app.record_supervisor_punches(gen_random_uuid(), $1, $2::app.punch_kind, now() - $3::interval,
            jsonb_build_array(jsonb_build_object('punch_id', gen_random_uuid(), 'shift_id', $4::uuid)),
-           null, $5, $6, $7, null) -> 'results' -> 0 ->> 'outcome' as outcome`,
+           null, $5, $6, $7, null) -> 'results' -> 0 as outcome`,
         [DEMO_PROJECT_ID, kind, ago, now?.id, PIER.latitude, PIER.longitude, PIER.accuracy],
         DEMO_OWNER,
       );
-      expect(punched?.outcome).toBe("applied");
+      expect(punched?.outcome?.["outcome"], JSON.stringify(punched)).toBe("applied");
     }
     const [sheet] = await localSql<{ id: string }>(
       `insert into app.timesheets (project_id, roster_entry_id, period_start, period_end)
