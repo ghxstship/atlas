@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { expectAccessibleInBothThemes } from "./a16-support";
-import { DEMO_ORG, reloadUntil, runImportWorker, signInAs } from "./a36-support";
+import { DEMO_ORG, reloadUntil, runImportWorker, signInAs, workUntil } from "./a36-support";
 import { describe, hardCodedText } from "./pseudo-checks";
 import { uniqueId } from "./support";
 
@@ -52,11 +52,11 @@ test("guest list import: an exact and a near duplicate, commit, and approval by 
   await producer.getByRole("link", { name: "Import guests" }).click();
   await producer.waitForURL(/\/import\?target=guest_list_entries&project=/);
   await expect(producer.getByLabel("Import into")).toHaveValue("guest_list_entries");
-  await expect(producer.getByLabel("Project")).not.toHaveValue("");
+  await expect(producer.getByLabel("Project", { exact: true })).not.toHaveValue("");
   const csv = [
     "Guest,Plus 1,Access",
     `${existing.toUpperCase()},2,Side door`,
-    `${existing.replace("Vale", "Vael")},0,`,
+    `${existing.replace("Vale", "Valee")},0,`,
     `${fresh},1,`,
   ].join("\n");
   await producer
@@ -66,17 +66,16 @@ test("guest list import: an exact and a near duplicate, commit, and approval by 
   await producer.waitForURL(/\?import=/);
   const importUrl = producer.url();
 
-  await runImportWorker();
-  await reloadUntil(producer, producer.getByRole("heading", { name: "Map the columns" }));
-  await expect(producer.getByLabel("Column Guest")).toHaveValue("guest_name");
-  await expect(producer.getByLabel("Column Plus 1")).toHaveValue("plus_ones");
-  await expect(producer.getByLabel("Column Access")).toHaveValue("note");
+  await workUntil(producer, producer.getByRole("heading", { name: "Map the columns" }));
+  await expect(producer.getByLabel("Column Guest", { exact: true })).toHaveValue("guest_name");
+  await expect(producer.getByLabel("Column Plus 1", { exact: true })).toHaveValue("plus_ones");
+  await expect(producer.getByLabel("Column Access", { exact: true })).toHaveValue("note");
   await expectAccessibleInBothThemes(producer);
   await producer.getByRole("button", { name: "Confirm the mapping" }).click();
+  await expect(producer.getByText(/^Checking every row/)).toBeVisible();
 
   // The exact duplicate is an update; the near duplicate waits for a decision.
-  await runImportWorker();
-  await reloadUntil(producer, producer.getByRole("heading", { name: "Dry run" }));
+  await workUntil(producer, producer.getByRole("heading", { name: "Dry run" }));
   await expect(producer.getByText(`Row 3 looks like ${existing}`)).toBeVisible();
   await expect(producer.getByRole("button", { name: "Commit the import" })).toBeDisabled();
   await expectAccessibleInBothThemes(producer);
@@ -91,8 +90,7 @@ test("guest list import: an exact and a near duplicate, commit, and approval by 
   await expect(dry.getByText("New records").locator("..")).toContainText("2");
   await expect(dry.getByText("Updates").locator("..")).toContainText("1");
   await producer.getByRole("button", { name: "Commit the import" }).click();
-  await runImportWorker();
-  await reloadUntil(producer, producer.getByRole("heading", { name: "Undo the whole batch" }));
+  await workUntil(producer, producer.getByRole("heading", { name: "Undo the whole batch" }));
   await expect(producer.getByText("3 rows were written")).toBeVisible();
 
   // The committer cannot approve a guest they imported.
@@ -112,7 +110,7 @@ test("guest list import: an exact and a near duplicate, commit, and approval by 
       .filter({ has: owner.locator('td[data-column="guest"]').filter({ hasText: name }) });
   await expect(row(existing)).toHaveCount(1);
   await row(fresh).getByRole("checkbox").click();
-  await row(existing.replace("Vale", "Vael"))
+  await row(existing.replace("Vale", "Valee"))
     .getByRole("checkbox")
     .click({ modifiers: ["ControlOrMeta"] });
   await owner

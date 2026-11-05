@@ -98,3 +98,17 @@ export async function reloadUntil(page: Page, target: Locator, tries = 10) {
   }
   await expect(target).toBeVisible();
 }
+
+/**
+ * Runs the import worker and reloads until `target` shows. A click on Confirm or Commit queues the job when its action
+ * finishes, so one worker run straight after the click can find nothing to do.
+ */
+export async function workUntil(page: Page, target: Locator, attempts = 15): Promise<void> {
+  for (let i = 0; i < attempts; i += 1) {
+    await runImportWorker();
+    await page.reload();
+    if (await target.isVisible()) return;
+    await page.waitForTimeout(1_000);
+  }
+  await expect(target).toBeVisible();
+}

@@ -65,6 +65,8 @@ export function ActionForm({
   return (
     <form
       ref={form}
+      // Only for a submit before the page hydrates, which would otherwise load the page with the fields in its URL.
+      action={run}
       onSubmit={(event) => {
         // Submitting through a transition instead of the form action keeps what the person typed
         // when the action is refused; React resets a form after a form action.

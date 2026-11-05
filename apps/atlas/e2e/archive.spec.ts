@@ -68,7 +68,11 @@ test("an archived record leaves the list and search, shows under Archived, and r
   // Under Archived, with when it was archived.
   await page.getByLabel("Archived", { exact: true }).selectOption("only");
   await expect(page).toHaveURL(/archived=only/);
-  await list.getByText("Install the zephyr truss").first().click();
+  await list
+    .getByRole("row")
+    .filter({ hasText: "Install the zephyr truss" })
+    .getByRole("button", { name: "Open" })
+    .click();
   const archived = page.getByRole("dialog", { name: "Install the zephyr truss" });
   await expect(archived.getByText(/^Archived on /)).toBeVisible();
   await expectAccessible(page);
@@ -115,7 +119,11 @@ test("a document is archived from its peek and unarchived from the Archived list
   await page.goto(`/${slug}/knowledge/documents`);
 
   await page.getByLabel("Archived", { exact: true }).selectOption("include");
-  await list.getByText("Zephyr Rigging Plan").first().click();
+  await list
+    .getByRole("row")
+    .filter({ hasText: "Zephyr Rigging Plan" })
+    .getByRole("button", { name: "Open" })
+    .click();
   const archived = page.getByRole("dialog", { name: "Zephyr Rigging Plan" });
   await archived.getByRole("button", { name: "Unarchive" }).click();
   await page.getByLabel("Archived", { exact: true }).selectOption("");
@@ -147,7 +155,11 @@ test("an archived custom object record still opens from a link to it", async ({ 
 
   // Archive it from its peek: it leaves the list.
   const list = page.getByRole("main");
-  await list.getByText("Zephyr breakaway chair").first().click();
+  await list
+    .getByRole("row")
+    .filter({ hasText: "Zephyr breakaway chair" })
+    .getByRole("button", { name: "Open" })
+    .click();
   await expect(page).toHaveURL(/peek=/);
   const recordId = new URL(page.url()).searchParams.get("peek");
   const peek = page.getByRole("dialog", { name: /Zephyr breakaway chair/ });

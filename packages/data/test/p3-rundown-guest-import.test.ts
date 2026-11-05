@@ -112,6 +112,10 @@ describe("pasted rows", () => {
       ["Q1", "House\nto half", "slow"],
       ["2", "Walk-in", ""],
     ]);
+    // A browser submits a textarea's line breaks as CRLF; a quoted cell keeps a plain line break.
+    expect(parsePasted('Cue\tScene\r\nQ1\t"House\r\nto half"\r\n')).toEqual(
+      parsePasted('Cue\tScene\nQ1\t"House\nto half"\n'),
+    );
     expect(parsePasted("\n\nName,Plus\nJordan,1\n")).toEqual([
       [""],
       [""],
