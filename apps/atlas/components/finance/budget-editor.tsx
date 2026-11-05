@@ -49,6 +49,8 @@ import {
 } from "@/lib/finance/live-lines";
 import { parsePastedLines } from "@/lib/finance/paste";
 import { BudgetPresence } from "./budget-presence";
+import { propertyEdit, softDelete, versionChain } from "@/components/undo/entries";
+import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { ActionFeedback } from "./kit-action-feedback";
 import { fieldError } from "./kit-field-error";
 import { useFinanceT } from "./kit-use-finance-t";
@@ -69,6 +71,9 @@ import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
  * what this person typed and the version they started from, so a later save is still checked against
  * it and nothing is overwritten unseen. Who else has the budget open, and the line each is editing,
  * shows above the grid.
+ *
+ * Cell edits, pastes and deletes go on the session's undo stack (Section 11.7): Cmd or Ctrl+Z undoes them through the
+ * server, and the toast of a paste or a delete acts on the same entry. A save pushes its entry once it commits.
  */
 
 // The Line fields drawer's editor loads when the drawer opens, inside this already-lazy chunk.
@@ -152,9 +157,102 @@ export function BudgetEditor(props: Props) {
     theirs: BudgetLine;
     previous: BudgetLine;
   } | null>(null);
-  const [undo, setUndo] = useState<{ ids: string[]; message: string; restore: boolean } | null>(
-    null,
+  // The undo stack entry a paste or delete toast shows.
+  const [undo, setUndo] = useState<{ entry: number; message: string } | null>(null);
+  // The versions this tab's own saves left. An undo of a cell edit saves against the version its edit left, carried
+  // past this tab's later saves of the line and never past anyone else's, so it cannot overwrite their change.
+  const [chain] = useState(versionChain);
+  useEffect(
+    () =>
+      undoStack.subscribe((event) => {
+        if (event.kind === "undone") {
+          setUndo((u) => (u?.entry === event.entry.id ? null : u));
+        }
+      }),
+    [],
   );
+  // A refusal reads in the catalog's words (finance.refusals), never the database's sentence.
+  const undoResult = (result: ActionState, stale = "common.lineUndo"): UndoResult => {
+    if (result.ok) return { ok: true };
+    const error = result.error;
+    if (result.conflict || !error) return { ok: false, message: t(stale) };
+    if (error.kind === "refusal") {
+      const key = `refusals.${error.rule}`;
+      return {
+        ok: false,
+        message: t.has(key) ? t(key) : t("refusals.unknown", { rule: error.rule }),
+      };
+    }
+    return { ok: false, message: t(`errors.${error.kind}`) };
+  };
+  /** Deletes or restores lines for an undo or a redo, refreshing the grid either way. */
+  const batch = async (ids: readonly string[], restore: boolean) => {
+    const result = await submit(deleteBudgetLinesAction, {
+      org: props.org,
+      ids: ids.join(","),
+      ...(restore ? { restore: "1" } : {}),
+    });
+    setStatus(result);
+    // Lines this tab removed leave the page without a line-removed status; restored ones count again.
+    if (result.ok) {
+      setDeletedHere((current) => {
+        const next = new Set(current);
+        for (const id of ids) {
+          if (restore) next.delete(id);
+          else next.add(id);
+        }
+        return next;
+      });
+    }
+    start(() => router.refresh());
+    return undoResult(result);
+  };
+  /** A paste (restore false) or a delete (restore true) on the stack, with its toast. */
+  const pushBatch = (ids: string[], message: string, restore: boolean) =>
+    setUndo({
+      entry: undoStack.push(
+        softDelete({
+          label: message,
+          toast: false,
+          restore: () => batch(ids, restore),
+          remove: () => batch(ids, !restore),
+        }),
+      ).id,
+      message,
+    });
+  /**
+   * Saves a line's values for an undo or a redo of a cell edit, against the version the edit left as this tab's own
+   * saves carried it on. A save by someone else in between leaves that version behind, and the server refuses. It waits
+   * for a save of the line still in flight, holds the line against a page render as a save does, and shows only what
+   * the server answered, so a refusal leaves the grid as it is.
+   */
+  const resave = async (id: string, input: BudgetLineInput, left: string): Promise<UndoResult> => {
+    let answer: UndoResult = { ok: false, message: t("common.editUndo") };
+    markSaving(id, true);
+    const last = await saves.current.run(id, left, async () => {
+      const expected = chain.latest(id, left);
+      const result = await submit(updateBudgetLineAction, {
+        org: props.org,
+        id,
+        expectedUpdatedAt: expected,
+        line: JSON.stringify(input),
+      });
+      answer = undoResult(result, "common.editUndo");
+      const settled = lineSaveOutcome(result);
+      if (settled.kind === "saved") {
+        chain.record(id, expected, settled.line.updatedAt);
+        setLines((current) =>
+          current.map((l) => (l.id === id ? mergeSavedLine(l, settled.line) : l)),
+        );
+        start(() => router.refresh());
+      } else if (settled.kind === "removed") {
+        setLines((current) => current.filter((l) => l.id !== id));
+      }
+      return savedVersion(settled);
+    });
+    if (last) markSaving(id, false);
+    return answer;
+  };
   const [sheet, setSheet] = useState<
     "add" | "catalog" | "paste" | "delete" | "draw" | "fields" | null
   >(null);
@@ -344,7 +442,20 @@ export function BudgetEditor(props: Props) {
         setStatus({});
       } else {
         setStatus(result);
-        if (outcome.kind === "saved") start(() => router.refresh());
+        if (outcome.kind === "saved") {
+          const left = outcome.line.updatedAt;
+          chain.record(id, version, left);
+          start(() => router.refresh());
+          undoStack.push(
+            propertyEdit({
+              label: t("budgets.edited", { number: previous.lineNumber }),
+              toast: false,
+              before: { line: JSON.stringify(inputOf(previous)) },
+              after: { line: JSON.stringify(input) },
+              save: (set) => resave(id, JSON.parse(String(set.line)) as BudgetLineInput, left),
+            }),
+          );
+        }
       }
       return savedVersion(outcome);
     });
@@ -508,7 +619,7 @@ export function BudgetEditor(props: Props) {
           onClose={() => setSheet(null)}
           onPasted={(ids) => {
             setSheet(null);
-            setUndo({ ids, message: t("budgets.pasted", { count: ids.length }), restore: false });
+            pushBatch(ids, t("budgets.pasted", { count: ids.length }), false);
           }}
         />
       ) : null}
@@ -520,7 +631,7 @@ export function BudgetEditor(props: Props) {
           onDeleted={(ids) => {
             setDeletedHere((current) => new Set([...current, ...ids]));
             setSheet(null);
-            setUndo({ ids, message: t("budgets.deleted", { count: ids.length }), restore: true });
+            pushBatch(ids, t("budgets.deleted", { count: ids.length }), true);
           }}
         />
       ) : null}
@@ -533,19 +644,12 @@ export function BudgetEditor(props: Props) {
       <ToastRegion label={t("common.notifications")}>
         {undo ? (
           <UndoToast
-            key={undo.ids.join(",")}
+            key={undo.entry}
             message={undo.message}
             onUndo={() => {
               const target = undo;
               setUndo(null);
-              void submit(deleteBudgetLinesAction, {
-                org: props.org,
-                ids: target.ids.join(","),
-                ...(target.restore ? { restore: "1" } : {}),
-              }).then((r) => {
-                setStatus(r);
-                start(() => router.refresh());
-              });
+              void undoStack.undo(target.entry);
             }}
             onExpire={() => setUndo(null)}
           />

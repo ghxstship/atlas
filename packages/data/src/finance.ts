@@ -1750,6 +1750,8 @@ export interface Invoice {
   readonly totalMinor: number | null;
   readonly appliedMinor: number;
   readonly createdAt: string;
+  /** The version a bulk change of the invoice is sent against (Section 11.7, migration 5120). */
+  readonly updatedAt: string;
 }
 
 export interface InvoiceLine {
@@ -1770,7 +1772,7 @@ export async function listInvoices(
   let query = db
     .from("invoices")
     .select(
-      "id, project_id, direction, counterparty_id, payee_person_id, engagement_id, invoice_number, issued_on, due_on, currency_code, invoice_state, created_at, payee:people!invoices_payee_person_id_fkey(full_name)",
+      "id, project_id, direction, counterparty_id, payee_person_id, engagement_id, invoice_number, issued_on, due_on, currency_code, invoice_state, created_at, updated_at, payee:people!invoices_payee_person_id_fkey(full_name)",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
@@ -1824,6 +1826,7 @@ export async function listInvoices(
         totalMinor: subtotal === null || tax === null ? null : subtotal + tax,
         appliedMinor: num(t["applied_minor"]),
         createdAt: str(i["created_at"]),
+        updatedAt: str(i["updated_at"]),
       };
     }),
   );
@@ -1944,8 +1947,21 @@ export async function addInvoiceLine(
   );
 }
 
+/** Deletes an invoice line to Trash (soft delete); the invoice must still be Proposed. */
 export async function deleteInvoiceLine(db: XosClient, lineId: string): Promise<Result<null>> {
   return done(db.from("invoice_lines").update({ deleted_at: now() }).eq("id", lineId));
+}
+
+/**
+ * Restores a deleted invoice line through the Trash RPC (migration 1031), for its Undo and for Activity: the
+ * line's own rules decide (the invoice must still be Proposed), and a number a newer line took moves it to the end
+ * (migration 5121).
+ */
+export async function restoreInvoiceLine(db: XosClient, lineId: string): Promise<Result<null>> {
+  const r = await rpcValue(
+    db.rpc("restore_trash_item", { p_subject_table: "invoice_lines", p_subject_id: lineId }),
+  );
+  return r.ok ? ok(null) : r;
 }
 
 export async function issueInvoice(

@@ -483,6 +483,8 @@ export async function RecordBody({
       <RegionContent data={detail.recurrence}>
         {(recurrence) => (
           <RecurrenceForm
+            // A rule changed by an undo or by someone else fills the form afresh.
+            key={recurrence?.id ?? "none"}
             org={org}
             record={record}
             recurrence={recurrence}
