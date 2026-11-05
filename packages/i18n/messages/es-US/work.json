@@ -779,6 +779,7 @@
       "date": "Cuándo"
     },
     "created": "{key} creado",
+    "adding": "Agregando {title}…",
     "field": "{name}: {value}",
     "announce": "{title}, con {fields}",
     "choose": "Elegir una coincidencia para {token}",

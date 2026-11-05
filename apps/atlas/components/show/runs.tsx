@@ -2,6 +2,7 @@
 
 import {
   callLines,
+  cueProgress,
   CUE_CALL_KINDS,
   CUE_CALL_SLUGS,
   type Cue,
@@ -9,7 +10,10 @@ import {
   type CueCallKind,
   type CueEngagement,
   type CueProgress,
+  type HeardCalls,
   type RunOfShow,
+  unconfirmedCalls,
+  withHeardCalls,
 } from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
 import { emitWorkflow } from "@xos/data/workflow-signal";
@@ -29,6 +33,7 @@ import {
   Tag,
   TemplateCollection,
   Timeline,
+  useLive,
 } from "@xos/ui";
 import type { Route } from "next";
 import dynamic from "next/dynamic";
@@ -428,11 +433,32 @@ const SHOW_PACING = { batchMs: 30, minIntervalMs: 200, maxIntervalMs: 1_000 } as
 
 /**
  * Follows cue calls live while mounted (ADR 0044): a called cue refreshes the page as soon as
- * Realtime reports it. A 15-second pull covers a dropped channel; it replaced a 2-second poll.
+ * Realtime reports it, and `onCalled` hears the call from the cue's row first, so the page can show
+ * it before the reread lands (ADR 0119). A 15-second pull covers a dropped channel; it replaced a
+ * 2-second poll.
  */
-function LiveCues({ runId }: { runId: string }) {
+function LiveCues({
+  runId,
+  onCalled,
+}: {
+  runId: string;
+  onCalled: (cueId: string, calledAt: string) => void;
+}) {
   const router = useRouter();
-  useLiveRefresh([{ table: "cues", filter: `run_of_show_id=eq.${runId}` }], SHOW_PACING);
+  const topics = [{ table: "cues", filter: `run_of_show_id=eq.${runId}` }];
+  useLiveRefresh(topics, SHOW_PACING);
+  useLive(
+    topics,
+    (changes) => {
+      for (const change of changes) {
+        const calledAt = change.row?.["called_at"];
+        if (change.type === "UPDATE" && change.id && typeof calledAt === "string") {
+          onCalled(change.id, calledAt);
+        }
+      }
+    },
+    SHOW_PACING,
+  );
   useEffect(() => {
     const timer = setInterval(() => router.refresh(), 15_000);
     return () => clearInterval(timer);
@@ -588,8 +614,8 @@ function DepartmentFilter({
 export function RunBody({
   org,
   run: runOfShow,
-  cues,
-  progress,
+  cues: servedCues,
+  progress: served,
   live,
   canEdit,
   canCall,
@@ -648,6 +674,14 @@ export function RunBody({
   const view = useScheduleView();
   const time = (at: string | null) => formatScheduleTime(at, locale, tz, view, "time");
   const cueTime = useCueTime(tz);
+  // Calls heard from Realtime rows or from the caller's own answer (cue id to called_at), held until
+  // a server read carries them: a device shows a call in the frame it arrives (Section 11.11, cue
+  // sync under 500 ms), and a reread that started before the call cannot take it back (ADR 0119).
+  const [heard, setHeard] = useState<HeardCalls>({});
+  const cues = withHeardCalls(servedCues, heard);
+  const progress = cues === servedCues ? served : cueProgress(cues);
+  const onCalled = (cueId: string, calledAt: string) =>
+    setHeard((h) => ({ ...unconfirmedCalls(h, servedCues), [cueId]: calledAt }));
   const next = progress.next >= 0 ? cues[progress.next] : undefined;
   const current = progress.current >= 0 ? cues[progress.current] : undefined;
   const callsOf = (cueId: string) => calls.filter((c) => c.cueId === cueId);
@@ -661,7 +695,7 @@ export function RunBody({
   if (live) {
     return (
       <div className="flex flex-col gap-16">
-        <LiveCues runId={runOfShow.id} />
+        <LiveCues runId={runOfShow.id} onCalled={onCalled} />
         <p className="m-0 text-text-12 text-text-secondary">{t("live.syncing")}</p>
         {/* The current and standby lines are the only live regions; each changes once per call. */}
         <p role="status" className="m-0 text-heading-16 font-semibold">
@@ -699,6 +733,7 @@ export function RunBody({
             calls={calls}
             department={department}
             onDepartment={setDepartment}
+            onCalled={onCalled}
           />
         ) : (
           <>

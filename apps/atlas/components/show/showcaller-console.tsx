@@ -15,6 +15,7 @@ import { chordOf } from "@xos/schemas/shortcuts/keys";
 import { Button, Dialog, Input, RunOfShowLive, Select, Tag } from "@xos/ui";
 import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import { useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useShellKeys } from "@/components/shell/shell-keys-context";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
@@ -68,6 +69,7 @@ export function ShowcallerConsole({
   calls,
   department,
   onDepartment,
+  onCalled,
 }: {
   org: string;
   run: RunOfShow;
@@ -76,11 +78,14 @@ export function ShowcallerConsole({
   calls: readonly CueCall[];
   department: CueCallKind | null;
   onDepartment: (kind: CueCallKind | null) => void;
+  /** Hears a call this console made, with the database's call time, before the page's reread lands (ADR 0119). */
+  onCalled: (cueId: string, calledAt: string) => void;
 }) {
   const t = useCopy("show");
   const locale = useLocale();
   const view = useScheduleView();
   const keys = useShellKeys();
+  const router = useRouter();
   const action = useAction();
   const region = useRef<HTMLElement>(null);
   const [now, setNow] = useState(() => new Date());
@@ -112,15 +117,23 @@ export function ShowcallerConsole({
     ) ?? "";
   const label = (k: CueCallKind) => t(`cues.departments.${CUE_CALL_SLUGS[k]}`);
 
-  // A called cue is the Show funnel's step (A146).
-  const called = () => {
-    setPicked(null);
-    emitWorkflow("atlas.show:step1");
-  };
+  // A call shows from the time the database gave it, then the page rereads itself: the action renders
+  // nothing, so no render competes with the call reaching the other devices (ADR 0119).
+  const call = (cue: Cue) =>
+    action.run(
+      () => callCueAction(org, cue.id),
+      (data) => {
+        setPicked(null);
+        // A called cue is the Show funnel's step (A146).
+        emitWorkflow("atlas.show:step1");
+        onCalled(cue.id, data.calledAt);
+        router.refresh();
+      },
+    );
   const go = () => {
     const cue = selectedCue;
     if (!cue || cue.calledAt) return;
-    action.run(() => callCueAction(org, cue.id), called);
+    call(cue);
   };
   const standby = (cue: Cue | undefined) => {
     if (!cue || cue.calledAt) return;
@@ -290,8 +303,7 @@ export function ShowcallerConsole({
           loading={action.pending}
           disabled={!upcoming}
           onClick={() => {
-            if (upcoming)
-              action.run(() => callCueAction(org, upcoming.id), called);
+            if (upcoming) call(upcoming);
           }}
         >
           {t("live.callNext")}

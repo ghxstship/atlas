@@ -101,6 +101,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0116](0116-file-previews-and-the-brand-color-picker.md)            | File Previews and the Brand Color Picker                                         | Accepted |
 | [0117](0117-photo-location-pass-art-and-sponsor-proof-photos.md)    | Photo Location, Pass Art from the Org Logo, and Sponsor Proof Photos             | Accepted |
 | [0118](0118-route-view-transitions-and-region-boundaries.md)        | Route View Transitions and Region Boundaries                                     | Accepted |
+| [0119](0119-cue-calls-shown-from-the-realtime-row.md)               | Cue Calls Shown From the Realtime Row                                            | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
 | [0122](0122-pseudo-locale-checks-on-every-route.md)                 | Pseudo-Locale Checks on Every Route                                              | Accepted |
