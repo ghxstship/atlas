@@ -8,7 +8,8 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  * record without it and saves it with one, the record's peek shows it and edits it, the records table shows it as
  * a column, Add filter narrows the list to one value, the filtered list is saved as a view, and reopening the view
  * brings the filter back. A filterable Text field on vendors is filled on the create form and filtered with
- * contains on the vendor directory. Each run signs up a new owner in a new org on the local stack.
+ * contains on the vendor directory, whose Export menu is off while the filter holds. Each run signs up a new owner
+ * in a new org on the local stack.
  */
 
 test.use({ reducedMotion: "reduce" });
@@ -213,4 +214,14 @@ test("a vendor's custom field is filled on the create form and filtered with con
   await page.waitForURL(/cf\.union_local\.contains=iatse/);
   await expect(page.getByText("Harbor Rigging")).toBeVisible();
   await expect(page.getByText("Bayside Audio")).toHaveCount(0);
+
+  // The export worker cannot apply the condition, so the Export menu says so rather than export every vendor.
+  const csv = page.getByRole("menuitem", { name: "CSV", exact: true });
+  await openWith(
+    page,
+    page.locator('[data-shortcut="view.export"]').getByRole("button", { name: "Export" }),
+    csv,
+  );
+  await expect(csv).toBeDisabled();
+  await expect(page.getByText("Exports do not apply Add filter conditions yet.")).toBeVisible();
 });
