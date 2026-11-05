@@ -333,9 +333,7 @@ export async function loadShowDay(
       ? { data: [] as LinkRow[], error: null }
       : await db
           .from("engagement_cues")
-          .select(
-            "cue_id, engagement:engagements!engagement_cues_engagement_id_fkey(person_id)",
-          )
+          .select("cue_id, engagement:engagements!engagement_cues_engagement_id_fkey(person_id)")
           .in("cue_id", cueIds)
           .is("deleted_at", null);
   if (links.error) return fail(toDataError(links.error));
