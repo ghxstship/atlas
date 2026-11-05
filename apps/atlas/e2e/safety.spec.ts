@@ -174,11 +174,13 @@ test("journey 17: run an inspection template, fail an item, see the punch record
   const admin = await (await browser.newContext({ reducedMotion: "reduce" })).newPage();
   await signIn(admin, "admin@example.com");
   await admin.goto(runnerUrl);
-  await admin.getByRole("button", { name: "Sign off" }).click();
-  await admin
-    .getByRole("dialog", { name: `Sign off ${template}?` })
-    .getByRole("button", { name: "Sign off" })
-    .click();
+  const signOff = admin.getByRole("dialog", { name: `Sign off ${template}?` });
+  // A click before the long page hydrates opens nothing.
+  await expect(async () => {
+    await admin.getByRole("button", { name: "Sign off" }).first().click();
+    await expect(signOff).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 60_000 });
+  await signOff.getByRole("button", { name: "Sign off" }).click();
   await expect(admin.getByText("Signed off. The results are frozen")).toBeVisible();
   await expect(admin.getByRole("button", { name: "Save item 1" })).toHaveCount(0);
   await expectAccessible(admin);
