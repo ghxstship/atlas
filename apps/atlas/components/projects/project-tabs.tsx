@@ -186,6 +186,8 @@ export function ProjectTabs({
     <nav
       ref={nav}
       aria-label={label}
+      // Until it has measured, every tab renders and the last ones run past the edge.
+      aria-busy={count === null ? true : undefined}
       className="relative -mx-4 overflow-x-clip border-b border-border-subtle"
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
