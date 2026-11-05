@@ -90,17 +90,19 @@ test.describe("with the fixture model", () => {
     );
 
     // Header similarity finds the street; Aurora suggests the three columns it misses, for the person to confirm.
-    await expect(page.getByLabel("Column Street")).toHaveValue("street_address");
+    await expect(page.getByLabel("Column Street", { exact: true })).toHaveValue("street_address");
     await expect(page.getByText("From the column name").first()).toBeVisible();
-    await expect(page.getByLabel("Column Hall")).toHaveValue("");
+    await expect(page.getByLabel("Column Hall", { exact: true })).toHaveValue("");
     await expectAccessibleInBothThemes(page);
     await page.getByRole("button", { name: "Suggest with Aurora" }).click();
     await expect(
       page.getByText("Aurora suggested 3 columns. Check them before you confirm."),
     ).toBeVisible();
-    await expect(page.getByLabel("Column Hall")).toHaveValue("name");
-    await expect(page.getByLabel("Column Region Code")).toHaveValue("jurisdiction_id");
-    await expect(page.getByLabel("Column Local Clock")).toHaveValue("time_zone");
+    await expect(page.getByLabel("Column Hall", { exact: true })).toHaveValue("name");
+    await expect(page.getByLabel("Column Region Code", { exact: true })).toHaveValue(
+      "jurisdiction_id",
+    );
+    await expect(page.getByLabel("Column Local Clock", { exact: true })).toHaveValue("time_zone");
     await expect(page.getByText("Suggested by Aurora")).toHaveCount(3);
     await page.getByRole("button", { name: "Confirm the mapping" }).click();
     await expect(page.getByText("Checking every row")).toBeVisible({ timeout: 20_000 });
@@ -118,10 +120,12 @@ test.describe("with the fixture model", () => {
     await runImportWorker();
     await reloadUntil(page, page.getByRole("heading", { name: "Map the columns" }));
     await expect(page.getByText("Sheet Vendor Directory")).toBeVisible();
-    await expect(page.getByLabel("Column COMPANY")).toHaveValue("name");
-    await expect(page.getByLabel("Column COUNTERPARTY TYPE")).toHaveValue("counterparty_type");
+    await expect(page.getByLabel("Column COMPANY", { exact: true })).toHaveValue("name");
+    await expect(page.getByLabel("Column COUNTERPARTY TYPE", { exact: true })).toHaveValue(
+      "counterparty_type",
+    );
     await expect(page.getByText("From the Playbook column map")).toHaveCount(2);
-    await expect(page.getByLabel("Column VENDOR ID")).toHaveValue("");
+    await expect(page.getByLabel("Column VENDOR ID", { exact: true })).toHaveValue("");
     await expectAccessibleInBothThemes(page);
   });
 });

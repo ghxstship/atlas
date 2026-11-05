@@ -79,13 +79,16 @@ test("guest list import: an exact and a near duplicate, commit, and approval by 
   await expect(producer.getByText(`Row 3 looks like ${existing}`)).toBeVisible();
   await expect(producer.getByRole("button", { name: "Commit the import" })).toBeDisabled();
   await expectAccessibleInBothThemes(producer);
-  await producer
-    .context()
-    .addCookies([{ name: "xos-locale", value: "en-XA", url: new URL(importUrl).origin }]);
-  await producer.reload();
-  expect(describe(await hardCodedText(producer))).toEqual([]);
-  await producer.context().clearCookies({ name: "xos-locale" });
-  await producer.reload();
+  // A production build offers no pseudo-locales.
+  if (process.env["E2E_PRODUCTION_BUILD"] !== "1") {
+    await producer
+      .context()
+      .addCookies([{ name: "xos-locale", value: "en-XA", url: new URL(importUrl).origin }]);
+    await producer.reload();
+    expect(describe(await hardCodedText(producer))).toEqual([]);
+    await producer.context().clearCookies({ name: "xos-locale" });
+    await producer.reload();
+  }
   await producer.getByRole("button", { name: "Keep separate" }).click();
   await expect(producer.getByText("Kept as a new record.")).toBeVisible();
   const dry = producer.getByRole("region", { name: "Dry run" });
