@@ -49,6 +49,9 @@ const DYNAMIC = [
   // A126's Today search: a group by kind, a result by kind and row.
   "search-group-",
   "search-result-",
+  // R7a's Receive against an order sheet: an order by number, a line's stepper by line number.
+  "receive-order-",
+  "receive-more-",
   // A140: a sponsor's proof photo button, by entitlement.
   "proof-photo-",
 ];

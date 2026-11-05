@@ -100,9 +100,14 @@ const ALREADY_DONE: Readonly<Record<string, readonly string[]>> = {
 
 /**
  * RPCs that answer with a summary instead of the whole row (report_incident returns its number and state,
- * apply_asset_scan its outcome). The optimistic row stays until the next download brings the server's.
+ * apply_asset_scan and receive_goods their outcome). The optimistic row stays until the next download brings the
+ * server's.
  */
-const SUMMARY_RESULT = new Set(["app.report_incident", "app.apply_asset_scan"]);
+const SUMMARY_RESULT = new Set([
+  "app.report_incident",
+  "app.apply_asset_scan",
+  "app.receive_goods",
+]);
 
 /** Strips device-only fields that the server tables do not have. */
 const DEVICE_ONLY = new Set([

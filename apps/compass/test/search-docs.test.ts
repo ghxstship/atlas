@@ -38,6 +38,8 @@ function external(audience: Audience, projectId = "proj-1"): CompassIdentity {
         projectName: "Pier Show",
         roleType: audience,
         state: "Active",
+        via: "engagement",
+        rosterEntryId: null,
       },
     ],
   };

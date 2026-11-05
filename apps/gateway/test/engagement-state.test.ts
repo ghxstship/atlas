@@ -144,6 +144,26 @@ describe("the Overview shows each role type what applies to it (A59-033)", () =>
     );
   });
 
+  it("puts Project details after onboarding (crew, staff) and after crew (artist) (R5, ADR 0100)", () => {
+    for (const roleType of ["crew", "staff"] as const) {
+      const set = tabs(roleType);
+      expect(set.indexOf("engagement.project-details")).toBe(
+        set.indexOf("engagement.onboarding") + 1,
+      );
+    }
+    const artist = tabs("artist");
+    expect(artist.indexOf("engagement.project-details")).toBe(
+      artist.indexOf("engagement.crew") + 1,
+    );
+    const advance = engagementTabIds(sitemap, "artist-representative", ["advance"]);
+    expect(advance.indexOf("engagement.project-details")).toBe(
+      advance.indexOf("engagement.crew") + 1,
+    );
+    for (const roleType of ["vendor", "contractor", "client", "sponsor"] as const) {
+      expect(tabs(roleType)).not.toContain("engagement.project-details");
+    }
+  });
+
   it("gives clients and sponsors no worker tabs", () => {
     const worker = [
       "engagement.offer",
@@ -154,6 +174,7 @@ describe("the Overview shows each role type what applies to it (A59-033)", () =>
       "engagement.travel-and-lodging",
       "engagement.time",
       "engagement.credentials",
+      "engagement.project-details",
     ];
     for (const roleType of ["client", "sponsor"] as const) {
       expect(tabs(roleType).filter((t) => worker.includes(t))).toEqual([]);

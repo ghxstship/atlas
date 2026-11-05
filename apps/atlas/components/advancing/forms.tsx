@@ -1,10 +1,12 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import { Button, Dialog, IconButton, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { RiderLineProposal } from "@xos/data/advancing";
 import { emitWorkflow } from "@xos/data/workflow-signal";
 import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import type { Route } from "next";
+import dynamic from "next/dynamic";
 import { useFormatter } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
@@ -46,13 +48,33 @@ import { DraftEntry } from "@/components/aurora/entry/draft-entry";
 import { riderPartyChoices, type PartyChoice } from "@/lib/advancing/rider-party";
 import { useCopy } from "./use-copy";
 import { useQueryHref } from "./views";
+import type { ChoiceOption } from "./section-kind-fields";
+
+// R9: the kind-specific fields and the choice editor load only for sections that are not Text.
+const SectionKindFields = dynamic(() =>
+  import("./section-kind-fields").then((m) => m.SectionKindFields),
+);
+const SectionChoicesEditor = dynamic(() =>
+  import("./section-kind-fields").then((m) => m.SectionChoicesEditor),
+);
+
+const SECTION_KINDS = enums.advanceSectionKind;
+
+/** The catalog segment of a section or window kind: Item Request is itemRequest. */
+function kindKey(value: string): string {
+  return value
+    .split(" ")
+    .map((w, i) => (i === 0 ? w.toLowerCase() : w))
+    .join("");
+}
 
 /** Client forms of the Advancing pages; each keeps typed input after a failed submit. */
 
 /**
  * Submits a form to a server action in a transition instead of through the form action, so a
  * refused submit keeps what the person typed (React resets a form after a form action). The
- * submitter is included, so a button's name and value reach the action.
+ * submitter is included, so a button's name and value reach the action. Each form also keeps `action`, so one sent
+ * before the page hydrates still posts to its server action rather than loading the page with its fields in the URL.
  */
 function submitWith(run: (form: FormData) => void) {
   return (event: FormEvent<HTMLFormElement>) => {
@@ -167,7 +189,12 @@ function ActButton({
     </Button>
   );
   return (
-    <form id={formId} onSubmit={submitWith(formAction)} className="inline-flex flex-col gap-8">
+    <form
+      id={formId}
+      action={formAction}
+      onSubmit={submitWith(formAction)}
+      className="inline-flex flex-col gap-8"
+    >
       {hidden}
       {confirm ? (
         <Dialog
@@ -250,7 +277,13 @@ export function CreatePacketDialog({
         </>
       }
     >
-      <form id={formId} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
+      <form
+        id={formId}
+        action={action}
+        onSubmit={submitWith(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <TzOffset />
         <ErrorNotice state={state} />
@@ -305,7 +338,7 @@ export function PacketDetailsForm({
   const [state, action, pending] = useActionState(updatePacketAction, INITIAL);
   const id = useId();
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <TzOffset />
@@ -395,7 +428,7 @@ export function ArchivePacketButton({
     if (state.ok) router.push(backHref as Route);
   }, [state, router, backHref]);
   return (
-    <form id={formId} onSubmit={submitWith(action)}>
+    <form id={formId} action={action} onSubmit={submitWith(action)}>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <Dialog
@@ -432,6 +465,43 @@ export interface SectionItem {
   readonly position: number;
   readonly title: string;
   readonly prompt: string | null;
+  /** R9: the kind and its configuration; Text when left out. */
+  readonly kind?: string;
+  readonly windowKind?: string | null;
+  readonly maxLines?: number | null;
+  readonly perPerson?: boolean;
+  readonly choices?: readonly {
+    readonly id: string;
+    readonly assetClassId: string | null;
+    readonly credentialCategoryId: string | null;
+    readonly name: string;
+  }[];
+}
+
+/** What the request sections of a project can offer, for the packet builder (R9). */
+export interface ChoiceOptions {
+  readonly assetClasses: readonly ChoiceOption[];
+  readonly credentialCategories: readonly ChoiceOption[];
+}
+
+/** A section's kind and configuration in one line: "Item Request · up to 10 lines · per person". */
+function SectionKindSummary({ section }: { section: SectionItem }) {
+  const t = useCopy("advancing.sections.kind");
+  const kind = section.kind ?? "Text";
+  if (kind === "Text") return null;
+  const parts = [
+    section.windowKind ? t(`windowKinds.${kindKey(section.windowKind)}`) : null,
+    section.maxLines ? t("upTo", { n: section.maxLines }) : null,
+    section.perPerson ? t("perPersonShort") : null,
+  ].filter((p): p is string => p !== null);
+  return (
+    <span className="flex flex-wrap items-center gap-4 text-text-12 text-text-secondary">
+      <span className="rounded-control bg-bg-surface px-8 py-2 text-label-12">
+        {t(`kinds.${kindKey(kind)}`)}
+      </span>
+      {parts.join(" · ")}
+    </span>
+  );
 }
 
 function SectionEdit({
@@ -452,7 +522,7 @@ function SectionEdit({
   }, INITIAL);
   const id = useId();
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="sectionId" value={section.id} />
       <ErrorNotice state={state} />
@@ -497,6 +567,8 @@ export function SectionList({
   canEdit,
   sent,
   draftContext = [],
+  choiceOptions = { assetClasses: [], credentialCategories: [] },
+  guestWarning = false,
 }: {
   org: string;
   packetId: string;
@@ -505,6 +577,10 @@ export function SectionList({
   sent: boolean;
   /** Records a section drafted with Aurora is written from: the packet and its project (A95). */
   draftContext?: readonly { collection: string; id: string; label: string }[];
+  /** R9: the classes and categories request sections can offer. */
+  choiceOptions?: ChoiceOptions;
+  /** R9: a Guest List section goes to a contractor or sponsor, who are not asked for one. */
+  guestWarning?: boolean;
 }) {
   const t = useCopy("advancing.sections");
   const [editing, setEditing] = useState<string | null>(null);
@@ -528,6 +604,27 @@ export function SectionList({
                     </span>
                     {s.prompt ? (
                       <span className="text-text-13 text-text-secondary">{s.prompt}</span>
+                    ) : null}
+                    <SectionKindSummary section={s} />
+                    {s.kind === "Item Request" || s.kind === "Credential Request" ? (
+                      <SectionChoicesEditor
+                        org={org}
+                        sectionId={s.id}
+                        kind={s.kind}
+                        editable={canEdit && !sent}
+                        choices={(s.choices ?? []).map((c) => ({
+                          id: c.id,
+                          name: c.name,
+                          value: c.assetClassId
+                            ? `asset_class:${c.assetClassId}`
+                            : `credential_category:${c.credentialCategoryId}`,
+                        }))}
+                        options={
+                          s.kind === "Item Request"
+                            ? choiceOptions.assetClasses
+                            : choiceOptions.credentialCategories
+                        }
+                      />
                     ) : null}
                   </div>
                   {canEdit ? (
@@ -574,8 +671,14 @@ export function SectionList({
           ))}
         </ol>
       )}
+      {guestWarning ? <InlineAlert tone="warning">{t("kind.guestListWarning")}</InlineAlert> : null}
       {canEdit && !sent ? (
-        <AddSectionForm org={org} packetId={packetId} draftContext={draftContext} />
+        <AddSectionForm
+          org={org}
+          packetId={packetId}
+          draftContext={draftContext}
+          choiceOptions={choiceOptions}
+        />
       ) : null}
       {canEdit && sent ? (
         <p className="m-0 text-text-12 text-text-tertiary">{t("fixedAfterSend")}</p>
@@ -588,16 +691,25 @@ function AddSectionForm({
   org,
   packetId,
   draftContext,
+  choiceOptions,
 }: {
   org: string;
   packetId: string;
   draftContext: readonly { collection: string; id: string; label: string }[];
+  choiceOptions: ChoiceOptions;
 }) {
   const t = useCopy("advancing.sections");
   const [state, action, pending, key] = useResettingAction(addSectionAction);
+  const [kind, setKind] = useState<string>("Text");
   const id = useId();
   return (
-    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form
+      key={key}
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-col gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <ErrorNotice state={state} />
@@ -626,6 +738,28 @@ function AddSectionForm({
         label={t("prompt")}
         help={t("promptHelp")}
       />
+      <Select
+        id={`${id}-kind`}
+        name="kind"
+        label={t("kind.label")}
+        help={t("kind.help")}
+        value={kind}
+        options={SECTION_KINDS.map((k) => ({ value: k, label: t(`kind.kinds.${kindKey(k)}`) }))}
+        onChange={(e) => setKind(e.target.value)}
+      />
+      {kind !== "Text" ? (
+        <SectionKindFields
+          kind={kind}
+          assetClasses={choiceOptions.assetClasses}
+          credentialCategories={choiceOptions.credentialCategories}
+        />
+      ) : null}
+      {state.fieldErrors?.["choices"] ? (
+        <InlineAlert tone="danger">{t("kind.choicesError")}</InlineAlert>
+      ) : null}
+      {state.fieldErrors?.["maxLines"] ? (
+        <InlineAlert tone="danger">{t("kind.maxError")}</InlineAlert>
+      ) : null}
       <div>
         <Button type="submit" size="sm" icon="Plus" loading={pending}>
           {t("add")}
@@ -641,28 +775,68 @@ export function AddRecipientForm({
   org,
   packetId,
   parties,
+  engagements = [],
+  timeZone = "UTC",
 }: {
   org: string;
   packetId: string;
   parties: readonly Option[];
+  /** R9: live engagements of the project, as `<party value>` to engagement options. */
+  engagements?: readonly (Option & { readonly party: string })[];
+  /** The project's IANA zone; the naming deadline is typed in it. */
+  timeZone?: string;
 }) {
   const t = useCopy("advancing.recipients");
   const [state, action, pending] = useActionState(addRecipientAction, INITIAL);
+  const [party, setParty] = useState("");
+  const [engagement, setEngagement] = useState("");
   const id = useId();
   if (parties.length === 0) {
     return <p className="m-0 text-text-13 text-text-secondary">{t("noParties")}</p>;
   }
+  const own = engagements.filter((e) => e.party === party);
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-wrap items-end gap-8" noValidate>
+    <form
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-wrap items-end gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
+      <input type="hidden" name="timeZone" value={timeZone} />
       <Select
         id={`${id}-party`}
         name="party"
         label={t("party")}
         placeholder={t("partyHint")}
         options={[...parties]}
+        value={party}
+        onChange={(e) => {
+          setParty(e.target.value);
+          setEngagement("");
+        }}
         error={state.fieldErrors?.["party"] ? t("partyError") : ""}
+      />
+      {own.length > 0 ? (
+        <Select
+          id={`${id}-engagement`}
+          name="engagementId"
+          label={t("engagement")}
+          placeholder={t("engagementHint")}
+          options={own.map((e) => ({ value: e.value, label: e.label }))}
+          value={engagement}
+          onChange={(e) => setEngagement(e.target.value)}
+        />
+      ) : null}
+      <Input
+        id={`${id}-names-due`}
+        name="namesDueAt"
+        type="datetime-local"
+        label={t("namesDue.label")}
+        help={t("namesDue.help", { zone: timeZone })}
+        disabled={engagement === ""}
+        error={state.fieldErrors?.["namesDueAt"] ? t("namesDue.error") : ""}
       />
       <Button type="submit" size="sm" icon="UserPlus" loading={pending}>
         {t("add")}
@@ -715,7 +889,7 @@ export function IssueLinkForm({
   const id = useId();
   const path = state.issued ? state.issued.url : null;
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="recipientId" value={recipientId} />
       <ErrorNotice state={state} />
@@ -806,17 +980,27 @@ export function RevokeLinkButton({ org, linkId }: { org: string; linkId: string 
 const reviewed = () => emitWorkflow("atlas.advancing:done");
 
 /** Accept or return an answer; returning needs a reason the recipient will read. */
-export function ReviewForm({ org, submissionId }: { org: string; submissionId: string }) {
+export function ReviewForm({
+  org,
+  submissionId,
+  typed = false,
+}: {
+  org: string;
+  submissionId: string;
+  /** R9: the answer asked for items or passes, which the review approves or declines. */
+  typed?: boolean;
+}) {
   const t = useCopy("advancing.review");
   const [state, action, pending] = useActionState(reviewSubmissionAction, INITIAL);
   useActionOutcome(state, pending, (s) => s.ok === true, reviewed);
   const [returning, setReturning] = useState(false);
   const id = useId();
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="submissionId" value={submissionId} />
       <ErrorNotice state={state} />
+      {typed ? <p className="m-0 text-text-13 text-text-secondary">{t("typedHelp")}</p> : null}
       {returning ? (
         <>
           <input type="hidden" name="outcome" value="Returned" />
@@ -875,7 +1059,13 @@ export function RecordAnswerForm({
   const [state, action, pending, key] = useResettingAction(recordSubmissionAction);
   const id = useId();
   return (
-    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form
+      key={key}
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-col gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <ErrorNotice state={state} />
       <div className="flex flex-wrap gap-8">
@@ -970,7 +1160,13 @@ export function CreateRiderDialog({
         </>
       }
     >
-      <form id={formId} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
+      <form
+        id={formId}
+        action={action}
+        onSubmit={submitWith(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <ErrorNotice state={state} />
         <Select
@@ -1028,7 +1224,7 @@ export function RiderDetailsForm({
   const [state, action, pending] = useActionState(updateRiderAction, INITIAL);
   const id = useId();
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
+    <form action={action} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <ErrorNotice state={state} />
@@ -1089,7 +1285,7 @@ export function ArchiveRiderButton({
     if (state.ok) router.push(backHref as Route);
   }, [state, router, backHref]);
   return (
-    <form id={formId} onSubmit={submitWith(action)}>
+    <form id={formId} action={action} onSubmit={submitWith(action)}>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <Dialog
@@ -1175,7 +1371,13 @@ export function AddRiderLineForm({ org, riderId }: { org: string; riderId: strin
   const [state, action, pending, key] = useResettingAction(addRiderLineAction);
   const id = useId();
   return (
-    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+    <form
+      key={key}
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-col gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <ErrorNotice state={state} />
@@ -1211,7 +1413,12 @@ export function RiderLineRow({
   const id = useId();
   if (editing) {
     return (
-      <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
+      <form
+        action={action}
+        onSubmit={submitWith(action)}
+        className="flex flex-col gap-8"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="lineId" value={line.id} />
         <ErrorNotice state={state} />
@@ -1351,7 +1558,12 @@ export function RunReconciliationForm({
     if (state.ok && state.id) router.push(href({ peek: state.id, full: "1" }));
   }, [state, router, href]);
   return (
-    <form onSubmit={submitWith(action)} className="flex flex-wrap items-end gap-8" noValidate>
+    <form
+      action={action}
+      onSubmit={submitWith(action)}
+      className="flex flex-wrap items-end gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       {defaultProjectId ? (
         <input type="hidden" name="projectId" value={defaultProjectId} />

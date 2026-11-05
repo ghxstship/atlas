@@ -61,6 +61,78 @@ export const KNOWN_REFUSALS = [
   "account_membership_not_yours",
   "account_membership_unconfirmed",
   "assignment_account_mismatch",
+  // R5: the producing org's names lock (G-142, migration 4656).
+  "roster_locked",
+  "roster_lock_engagement_closed",
+  // R8: the party side asks for and shares out what its engagement needs (migration 4700, through 4693).
+  "allocation_not_your_engagement",
+  "allocation_entry_not_on_engagement",
+  "allocation_not_requestable",
+  "allocation_item_kind",
+  "offering_not_offered",
+  "offering_not_provided",
+  "allocation_cap_engagement",
+  "allocation_cap_person",
+  "allocation_engagement_closed",
+  "allocation_entry_not_live",
+  "allocation_entry_not_accepted",
+  "allocation_issued",
+  "allocation_state_conflict",
+  "allocation_not_pool",
+  "allocation_not_split",
+  "allocation_split_exceeds",
+  "allocation_split_parts",
+  "allocation_window",
+  "allocation_quantity_positive",
+  "allocation_quantity_whole",
+  // R9: typed advance answers, party uploads, supplied sponsor assets, guest list caps and the naming
+  // deadline (migrations 4710 to 4716).
+  "advance_section_derived",
+  "advance_section_role",
+  "advance_section_open",
+  "advance_recipient_engagement",
+  "advance_line_limit",
+  "advance_line_kind",
+  "advance_line_person",
+  "advance_line_window",
+  "advance_line_roster_entry",
+  "advance_file_document",
+  "advance_answer_length",
+  "advance_typed_answer_rpc",
+  "party_upload_missing",
+  "party_upload_checksum",
+  "guest_list_cap",
+  "sponsor_asset_files_required",
+  "sponsor_asset_files_invalid",
+  "sponsor_asset_source",
+  "credential_names_closed",
+  // R10: the advance link's typed sections, uploads, guests and crew roster (migrations 4730 and 4731).
+  "advance_token_invalid",
+  "advance_token_locked",
+  "advance_token_expired",
+  "advance_access_code",
+  "token_invalid",
+  "advance_upload_type",
+  "advance_upload_size",
+  "advance_upload_limit",
+  "advance_upload_rate",
+  "advance_upload_ticket",
+  "advance_guest_rate",
+  "advance_roster_rate",
+  "guest_list_closed",
+  "guest_name_length",
+  "guest_plus_ones",
+  "guest_note_length",
+  // R12: a staffing agency places its roster staff on shifts after their training (migrations 4750 to 4752).
+  "roster_shift_not_agency_slot",
+  "roster_entry_other_engagement",
+  "roster_training_incomplete",
+  "roster_shift_overlap",
+  "roster_shift_closed",
+  "roster_shift_not_assigned",
+  "roster_entry_not_working",
+  "roster_training_not_due",
+  "sod_roster_training",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",
@@ -72,12 +144,15 @@ export const KNOWN_REFUSALS = [
   "notification_channel_outside",
 ] as const;
 
+/** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */
+export function refusalOutcome(rule: string): string {
+  return (KNOWN_REFUSALS as readonly string[]).includes(rule) ? `refusals.${rule}` : "refused";
+}
+
 export function outcomeFor(error: DataError): string {
   switch (error.kind) {
     case "refusal":
-      return (KNOWN_REFUSALS as readonly string[]).includes(error.rule)
-        ? `refusals.${error.rule}`
-        : "refused";
+      return refusalOutcome(error.rule);
     case "not-found":
       return "notFound";
     case "conflict":

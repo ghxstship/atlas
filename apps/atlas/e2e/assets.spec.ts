@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./engine-test";
+import { expect, settle, test, type Page } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 
 /**
@@ -49,8 +49,9 @@ test("every Assets page renders in every view it offers", async ({ page }) => {
   }
   // A filter survives a view switch (Section 11.15).
   await page.goto(`/${ORG}/assets/units?view=table&filter=Deployed`);
+  await settle(page);
   await page.getByRole("radio", { name: "List" }).click();
-  await expect(page).toHaveURL(/filter=Deployed/);
+  await expect(page).toHaveURL(/view=list.*filter=Deployed|filter=Deployed.*view=list/);
   await expect(page.getByText("MH-002 · Spot Fixture")).toBeVisible();
   await expect(page.getByText("MH-001 · Spot Fixture")).toBeHidden();
 });
@@ -63,6 +64,7 @@ test("journey 19: check out and return a unit by scan and see the custody ledger
 
   // Register a unit; it starts Proposed and opens in the peek.
   await page.goto(`/${ORG}/assets/units`);
+  await settle(page);
   await page.getByRole("button", { name: "Register unit" }).first().click();
   const register = page.getByRole("dialog", { name: "Register unit" });
   await register.getByLabel("Asset class").selectOption({ label: "Digital Two-Way Radio" });
@@ -157,6 +159,7 @@ test("journey 23: a damaged unit is written off by an approver, with a comment",
   // A unit of this run's own goes out, comes back damaged and is reported.
   const tag = `MH-E2E-${suffix()}`;
   await page.goto(`/${ORG}/assets/units`);
+  await settle(page);
   await page.getByRole("button", { name: "Register unit" }).first().click();
   const register = page.getByRole("dialog", { name: "Register unit" });
   await register.getByLabel("Asset class").selectOption({ label: "Spot Fixture" });

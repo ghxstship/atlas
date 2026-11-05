@@ -31,10 +31,31 @@ export const accountingPeriodState = [
   "Audited",
   "Archived",
 ] as const;
+/** app.acquisition_kind */
+export const acquisitionKind = ["Purchase", "Rental"] as const;
 /** app.actor_kind */
 export const actorKind = ["Person", "Service", "System"] as const;
 /** app.advance_review_outcome */
 export const advanceReviewOutcome = ["Accepted", "Returned"] as const;
+/** app.advance_section_kind */
+export const advanceSectionKind = [
+  "Text",
+  "File",
+  "Schedule Window",
+  "Item Request",
+  "Crew Roster",
+  "Guest List",
+  "Credential Request",
+] as const;
+/** app.advance_window_kind */
+export const advanceWindowKind = [
+  "Load In",
+  "Load Out",
+  "Arrival",
+  "Soundcheck",
+  "Activation Setup",
+  "Activation Strike",
+] as const;
 /** app.agreement_kind */
 export const agreementKind = [
   "Offer Letter",
@@ -70,6 +91,19 @@ export const aiSuggestionState = [
   "Rejected",
   "Expired",
 ] as const;
+/** app.allocation_origin */
+export const allocationOrigin = ["Requested", "Assigned", "Split"] as const;
+/** app.allocation_service_kind */
+export const allocationServiceKind = ["Travel", "Per Diem"] as const;
+/** app.allocation_state */
+export const allocationState = ["Requested", "Approved", "Declined", "Withdrawn"] as const;
+/** app.allocation_withdraw_cause */
+export const allocationWithdrawCause = [
+  "Requester",
+  "Reviewer",
+  "Entry Removed",
+  "Engagement Ended",
+] as const;
 /** app.application_state */
 export const applicationState = [
   "Submitted",
@@ -88,7 +122,13 @@ export const approvalPolicyState = ["Draft", "Active", "Retired"] as const;
 /** app.approval_state */
 export const approvalState = ["In Review", "Approved", "Rejected", "Canceled"] as const;
 /** app.asset_lot_movement_kind */
-export const assetLotMovementKind = ["Count", "Check Out", "Check In"] as const;
+export const assetLotMovementKind = [
+  "Count",
+  "Check Out",
+  "Check In",
+  "Receipt",
+  "Vendor Return",
+] as const;
 /** app.asset_scan_action */
 export const assetScanAction = ["check-out", "check-in", "transfer"] as const;
 /** app.asset_state */
@@ -102,6 +142,7 @@ export const assetState = [
   "Damaged",
   "Lost",
   "Retired",
+  "Returned",
 ] as const;
 /** app.audience_kind */
 export const audienceKind = [
@@ -203,6 +244,8 @@ export const costCenterKind = ["Standing", "Overhead", "Event"] as const;
 export const coverageMedium = ["Online", "Print", "Broadcast", "Podcast", "Social"] as const;
 /** app.coverage_tone */
 export const coverageTone = ["Positive", "Neutral", "Negative"] as const;
+/** app.credential_category_kind */
+export const credentialCategoryKind = ["Access", "Parking"] as const;
 /** app.cue_call_kind */
 export const cueCallKind = ["Audio", "Lighting", "Video", "Special Effects", "Stage"] as const;
 /** app.custom_data_type */
@@ -387,6 +430,8 @@ export const garmentLetterSize = [
   "4XL",
   "5XL",
 ] as const;
+/** app.goods_return_reason */
+export const goodsReturnReason = ["Off Hire", "Defective", "Wrong Item", "Over Delivery"] as const;
 /** app.grant_target_kind */
 export const grantTargetKind = ["organization", "workspace", "team", "project", "record"] as const;
 /** app.group_kind */
@@ -729,6 +774,8 @@ export const profileSection = [
 ] as const;
 /** app.profile_visibility */
 export const profileVisibility = ["Private", "Network", "Public"] as const;
+/** app.project_fact_kind */
+export const projectFactKind = ["Travel", "Uniform", "Vehicle"] as const;
 /** app.project_role */
 export const projectRole = [
   "Producer",
@@ -742,7 +789,7 @@ export const projectState = ["Proposed", "Active", "Blocked", "Complete", "Cance
 /** app.punch_kind */
 export const punchKind = ["In", "Break Start", "Break End", "Out"] as const;
 /** app.punch_source */
-export const punchSource = ["Mobile", "Kiosk"] as const;
+export const punchSource = ["Mobile", "Kiosk", "Supervisor"] as const;
 /** app.purge_method */
 export const purgeMethod = ["Delete", "Drop Partition", "Account Lifecycle"] as const;
 /** app.rate_type */
@@ -761,6 +808,14 @@ export const reportChart = ["Table", "Bar", "Line", "Area", "Pie", "Number"] as 
 export const representationScope = ["Offers", "Advance", "Settlement", "Documents"] as const;
 /** app.requisition_state */
 export const requisitionState = ["Proposed", "Approved", "Rejected", "Filled", "Canceled"] as const;
+/** app.reservation_release_reason */
+export const reservationReleaseReason = [
+  "Withdrawn",
+  "Entry Removed",
+  "Engagement Ended",
+  "Split",
+  "Released By Reviewer",
+] as const;
 /** app.retention_basis */
 export const retentionBasis = ["Soft Deleted", "Age"] as const;
 /** app.review_state */
@@ -859,6 +914,8 @@ export const shiftClaimState = [
 export const shiftState = ["Draft", "Published", "Accepted", "Canceled"] as const;
 /** app.shipment_direction */
 export const shipmentDirection = ["Inbound", "Outbound"] as const;
+/** app.shoe_size_system */
+export const shoeSizeSystem = ["US Men", "US Women", "EU", "UK"] as const;
 /** app.shortcut_shell */
 export const shortcutShell = ["Atlas", "Gateway"] as const;
 /** app.sms_consent_action */
@@ -877,6 +934,8 @@ export const spendDocumentType = [
 ] as const;
 /** app.sponsor_asset_kind */
 export const sponsorAssetKind = ["Logo", "Artwork", "Copy", "Video", "Other"] as const;
+/** app.sponsor_asset_source */
+export const sponsorAssetSource = ["Org Supplied", "Sponsor Supplied"] as const;
 /** app.staffing_basis */
 export const staffingBasis = ["Ratio", "Fixed", "Declared"] as const;
 /** app.submittal_kind */
@@ -1043,6 +1102,7 @@ export const weatherHazard = ["Wind", "Lightning", "Heat"] as const;
 /** app.work_detail_category */
 export const workDetailCategory = [
   "Emergency Contacts",
+  "Contact",
   "Uniform Sizes",
   "Dietary Needs",
   "Accessibility Needs",

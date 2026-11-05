@@ -4,7 +4,7 @@ import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { formatElapsed } from "../../src/domain/clock";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
-import { formatTime, Gate, ProjectPicker, SyncBanner } from "../../src/screens/common";
+import { formatTime, Gate, ProjectPicker, SyncBanner, useAllowed } from "../../src/screens/common";
 import { Button, Card, ListRow, Screen, Tag, Text } from "../../src/ui";
 
 /**
@@ -16,6 +16,7 @@ function Crew(): ReactElement {
   const { t } = useTranslation();
   const router = useRouter();
   const { projectId } = useCompass();
+  const canClockTeam = useAllowed("clock.team");
   const now = Date.now();
   const { rows: roster } = useRows<Row & { display_name: string }>("kiosk_roster");
   const { rows: open } = useRows<
@@ -75,6 +76,14 @@ function Crew(): ReactElement {
             />
           ))}
         </Card>
+      ) : null}
+      {canClockTeam ? (
+        <Button
+          testID="crew-clock-team"
+          icon="users"
+          label={t("compass.clockTeam.open")}
+          onPress={() => router.push("/clock-team")}
+        />
       ) : null}
       <Button
         testID="crew-dispatch"

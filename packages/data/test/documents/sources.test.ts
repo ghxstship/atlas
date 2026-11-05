@@ -370,6 +370,38 @@ describe("loaders read each record as the caller", () => {
     expect((await loadDocumentData(db, ORG, "final-cost-report", "p1")).ok).toBe(false);
   });
 
+  it("radio hand-out: the project of the org and its radio allocations", async () => {
+    const missing = fakeClient({ "from:projects": [okResponse(null)] });
+    expect((await loadDocumentData(missing.db, ORG, "radio-handout", "p1")).ok).toBe(false);
+    const { db, calls } = fakeClient({
+      "from:projects": [project],
+      "rpc:radio_handout": [
+        okResponse([
+          {
+            allocation_id: "a1",
+            roster_entry_id: "re1",
+            person_name: "Kai Morgan",
+            party_name: "Bayside Audio",
+            class_name: "Two-way radios",
+            quantity: 1,
+            tags_issued: ["R-001"],
+            channel_numbers: [1, 4],
+            channel_names: ["Production", "Audio"],
+            display_status: "Issued",
+          },
+        ]),
+      ],
+    });
+    const r = await loadDocumentData(db, ORG, "radio-handout", "p1");
+    expect(r.ok && r.data.lines.map((l) => [l.personName, l.tagsIssued, l.status])).toEqual([
+      ["Kai Morgan", ["R-001"], "Issued"],
+    ]);
+    expect(calls.find((c) => c.target === "rpc:radio_handout")?.steps).toContainEqual([
+      "args",
+      [{ p_project_id: "p1" }],
+    ]);
+  });
+
   const agreementRow = (signed: boolean) => ({
     id: "a1",
     project_id: "p1",

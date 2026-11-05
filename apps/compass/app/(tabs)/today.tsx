@@ -2,8 +2,9 @@ import type { Row } from "@xos/sync";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { isInternal } from "@xos/sync";
 import { View } from "react-native";
-import { access, operationalEngagements, todayBlocks } from "../../src/domain/access";
+import { access, operationalEngagements, rosterOnly, todayBlocks } from "../../src/domain/access";
 import { currentShift, isMine } from "../../src/domain/shifts";
 import {
   formatElapsed,
@@ -23,6 +24,7 @@ import { itemZone } from "../../src/domain/orgs";
 import { useHomeWidgets, useOngoingNotification } from "../../src/runtime/glance";
 import { CombinedToday } from "../../src/screens/CombinedToday";
 import { TodaySearch } from "../../src/screens/TodaySearch";
+import { RosterToday } from "../../src/screens/RosterToday";
 import { useTodayGlance, type TodayGlance } from "../../src/screens/useTodayGlance";
 import { formatDistance, hapticsOn, scheduleZone } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
@@ -364,6 +366,34 @@ export default function TodayScreen(): ReactElement {
         <Text>{t("compass.common.loading")}</Text>
       </Screen>
     );
+  // A person who works this project only on a party's roster sees their own call, parking and gear (R8).
+  if (!((resolved?.contexts.length ?? 0) > 1) && rosterOnly(identity, projectId)) {
+    return (
+      <Screen
+        testID="today"
+        title={t("compass.today.title")}
+        refreshing={refreshing}
+        onRefresh={() => {
+          setRefreshing(true);
+          void refresh().finally(() => setRefreshing(false));
+        }}
+      >
+        <ProjectPicker />
+        <StorageResetNotice />
+        <SyncBanner />
+        {/* Agency staff clock their own time on the shifts the agency placed them on (R12). */}
+        {access(identity, "clock", projectId).allowed && projectId ? (
+          <ClockCard
+            current={null}
+            onState={setClockState}
+            glance={glance}
+            zone={itemZone(null, projectRows[0]?.time_zone, personZone)}
+          />
+        ) : null}
+        <RosterToday />
+      </Screen>
+    );
+  }
   const canClock = access(identity, "clock", projectId).allowed;
   // Today on the project's calendar (A71), never the UTC date, which is tomorrow every evening in the Americas.
   const zone = itemZone(null, projectRows[0]?.time_zone, personZone);
@@ -372,7 +402,10 @@ export default function TodayScreen(): ReactElement {
   const combined = (resolved?.contexts.length ?? 0) > 1;
   const me = {
     membershipId: identity.membershipId,
-    engagementIds: operationalEngagements(identity, null).map((e) => e.id),
+    // A party's engagement reached through its roster never makes its shifts the person's own (R8).
+    engagementIds: operationalEngagements(identity, null)
+      .filter((e) => e.via !== "roster")
+      .map((e) => e.id),
   };
   const upcoming = shifts
     .filter((s) => isMine(s, me) && Date.parse(s.ends_at) >= Date.now())
@@ -411,6 +444,16 @@ export default function TodayScreen(): ReactElement {
       ) : (
         <CueGlance glance={glance} />
       )}
+      {/* A staffing agency's lead clocks its roster staff in from here (R12); internal supervisors use the Crew tab. */}
+      {!isInternal(identity.audience) && access(identity, "clock.team", projectId).allowed ? (
+        <Button
+          testID="today-clock-team"
+          variant="secondary"
+          icon="users"
+          label={t("compass.clockTeam.open")}
+          onPress={() => router.push("/clock-team")}
+        />
+      ) : null}
       {combined ? <CombinedToday clockState={clockState} /> : null}
       {!combined &&
       blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (

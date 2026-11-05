@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import {
   archiveCredentialCategory,
   createCredentialCategory,
@@ -58,6 +59,8 @@ const Category = z.object({
     .transform((c) => c.toUpperCase())
     .pipe(z.string().regex(CATEGORY_CODE)),
   name: z.string().trim().min(1).max(100),
+  // R7: a parking pass is a category of kind Parking.
+  kind: z.enum(Constants.app.Enums.credential_category_kind).optional(),
 });
 
 export async function createCategoryAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -66,6 +69,7 @@ export async function createCategoryAction(_: ActionState, form: FormData): Prom
     projectId: form.get("projectId"),
     code: form.get("code"),
     name: form.get("name"),
+    kind: form.get("kind") ?? undefined,
   });
   if (!parsed.success) return { error: "categoryInput" };
   const result = await createCredentialCategory(ctx.viewer.db, {
@@ -82,6 +86,7 @@ export async function updateCategoryAction(_: ActionState, form: FormData): Prom
     id: form.get("id"),
     code: form.get("code"),
     name: form.get("name"),
+    kind: form.get("kind") ?? undefined,
   });
   if (!parsed.success) return { error: "categoryInput" };
   const result = await updateCredentialCategory(ctx.viewer.db, parsed.data.id, parsed.data);

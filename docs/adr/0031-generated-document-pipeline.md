@@ -69,3 +69,17 @@ Before this ADR, only report runs rendered PDFs, untagged, with pdfkit 0.20.2 (A
 - Gate 19 needs the CI job that runs `documents:verapdf` (the YAML is in the A49 report for the orchestrator).
 - Gateway does not offer the signed agreement certificate: Gateway signing runs on a token page without a session, and the signer's certificate is downloaded from Atlas by the org. Day sheets, call sheets, BEOs, inspections, incidents and the final cost report are offered in Atlas only, because Gateway's tabs do not list them as records.
 - A tenant logo stored as SVG prints as the brand name until a PNG or JPEG logo is uploaded.
+
+## Amendment (2026-10-30, R7, RRR-187): the radio hand-out
+
+- **A thirteenth record document.** `radio-handout` is added beyond Section 11.9's twelve.
+  - It is keyed by the project id, so it is served at `/{org}/documents/radio-handout/{projectId}`.
+  - Its loader reads `app.radio_handout`, as the caller and for a project of the org.
+  - It lists one row per radio allocation, sorted by party and then person: the person, the party, the radio, the
+    tags issued, the channels and the status, plus blank Signature and Returned columns for the hand-out table.
+- **Classification and version.** It prints names, asset tags and channel numbers, so it is Internal. It is computed
+  live, so like the final cost report it renders with the version in force at generation time.
+- **Delivery.** It is offered in Atlas only, from the allocations page. Its QR code opens that page filtered to the
+  project's assets.
+- **veraPDF.** The gate now renders thirteen templates. With the two papers and two locales that is 52 record files
+  (48 before).

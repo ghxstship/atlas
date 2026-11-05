@@ -29,7 +29,7 @@ export function RosterReviewActions({ org, id, name }: { org: string; id: string
   return (
     <div className="flex flex-col items-end gap-4">
       <div className="flex flex-wrap gap-8">
-        <form onSubmit={submit}>
+        <form action={run} onSubmit={submit}>
           <input type="hidden" name="org" value={org} />
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="outcome" value="Accepted" />
@@ -69,7 +69,7 @@ export function RosterReviewActions({ org, id, name }: { org: string; id: string
             </>
           }
         >
-          <form id={formId} onSubmit={submit} className="flex flex-col gap-8">
+          <form id={formId} action={run} onSubmit={submit} className="flex flex-col gap-8">
             <input type="hidden" name="org" value={org} />
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="outcome" value="Returned" />

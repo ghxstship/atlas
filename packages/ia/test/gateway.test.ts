@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   chromeSlot,
   commandMenuIndex,
+  ENGAGEMENT_TAB_SET_KEYS,
   engagementTabs,
   EXTERNAL_ROLE_TYPES,
   flattenRoutes,
@@ -21,9 +22,10 @@ const label = (id: string) => labelOf(indexSitemap(gateway).byId.get(id)?.node.l
 
 /**
  * Section 4.5.8 engagement tabs by role type, in order. Crew and Staff add Invoices after Timesheets
- * (A43, finding A38-007), where an individual agrees to self-billing and follows pay. The crew roster tab
- * Crew (R4, ADR 0100) follows Advance, Deliverables, Onboarding or Activation Schedule; it renders only for
- * roster managers (condition roster-manager).
+ * (A43, finding A38-007), where an individual agrees to self-billing and follows pay. Every party with an
+ * advance packet has the typed Advance tab (R9), contractors after Deliverables and sponsors after Activation
+ * Schedule. The crew roster tab Crew (R4, ADR 0100) follows Advance, Onboarding or Project Details; it renders
+ * only for roster managers (condition roster-manager).
  */
 const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, string[]> = {
   client: [
@@ -55,6 +57,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Overview",
     "Scope",
     "Deliverables",
+    "Advance",
     "Crew",
     "Time",
     "Invoices",
@@ -65,6 +68,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Overview",
     "Offer",
     "Onboarding",
+    "Project Details",
     "Shifts",
     "Timesheets",
     "Invoices",
@@ -78,6 +82,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Overview",
     "Offer",
     "Onboarding",
+    "Project Details",
     "Crew",
     "Training",
     "Positions",
@@ -93,6 +98,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Offer",
     "Advance",
     "Crew",
+    "Project Details",
     "Rider",
     "Set Times",
     "Hospitality",
@@ -107,6 +113,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Entitlements",
     "Asset Approvals",
     "Activation Schedule",
+    "Advance",
     "Crew",
     "Proof of Performance",
     "Invoices",
@@ -241,8 +248,30 @@ describe("gateway engagement tabs (Section 4.5.8)", () => {
     },
   );
 
-  it("covers all eight role types", () => {
-    expect(Object.keys(gateway.engagementTabs?.sets ?? {})).toEqual([...EXTERNAL_ROLE_TYPES]);
+  it("covers all eight role types, then the roster member", () => {
+    expect(Object.keys(gateway.engagementTabs?.sets ?? {})).toEqual([...ENGAGEMENT_TAB_SET_KEYS]);
+    expect(ENGAGEMENT_TAB_SET_KEYS.slice(0, EXTERNAL_ROLE_TYPES.length)).toEqual([
+      ...EXTERNAL_ROLE_TYPES,
+    ]);
+    expect(gateway.audience.roleTypes).toEqual([...EXTERNAL_ROLE_TYPES]);
+  });
+
+  it("gives a person on a roster their own tabs only (R8, ADR 0100)", () => {
+    expect(engagementTabs(gateway, "roster-member").map((n) => labelOf(n.label))).toEqual([
+      "Overview",
+      "Project Details",
+      "Credentials",
+      "Travel and Lodging",
+      "Per Diem",
+      "Documents",
+      "Messages",
+    ]);
+    const ctx = { role: "account-member", roleType: "roster-member" as const };
+    const crew = indexSitemap(gateway).byId.get("engagement.crew");
+    expect(crew?.node.route).toBeDefined();
+    expect(guardRoute(gateway, "/work/engagements/NWL-ENG-1/overview", ctx).status).toBe(200);
+    expect(guardRoute(gateway, "/work/engagements/NWL-ENG-1/crew", ctx).status).toBe(404);
+    expect(guardRoute(gateway, "/work/engagements/NWL-ENG-1/timesheets", ctx).status).toBe(404);
   });
 
   it("gives an Artist Representative the roster and the artist tabs within delegated scopes", () => {
@@ -256,6 +285,7 @@ describe("gateway engagement tabs (Section 4.5.8)", () => {
       "Overview",
       "Advance",
       "Crew",
+      "Project Details",
       "Rider",
       "Set Times",
       "Hospitality",

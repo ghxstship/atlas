@@ -135,8 +135,19 @@ describe("fill rate", () => {
         { state: "Accepted", assigned: true },
         { state: "Canceled", assigned: false },
       ]),
-    ).toEqual({ filled: 2, total: 3, percent: 67 });
-    expect(fillRate([])).toEqual({ filled: 0, total: 0, percent: 0 });
+    ).toEqual({ filled: 2, total: 3, percent: 67, allocated: 0 });
+    expect(fillRate([])).toEqual({ filled: 0, total: 0, percent: 0, allocated: 0 });
+  });
+
+  it("counts agency slots as allocated, not filled (R12)", () => {
+    expect(
+      fillRate([
+        { state: "Published", assigned: true },
+        { state: "Published", assigned: false, agencySlot: true },
+        { state: "Canceled", assigned: false, agencySlot: true },
+        { state: "Published", assigned: false },
+      ]),
+    ).toEqual({ filled: 1, total: 3, percent: 33, allocated: 1 });
   });
 });
 
