@@ -214,3 +214,38 @@ end;
 $$;
 
 comment on function app.decide_timesheet(uuid, app.approval_decision, text) is 'Approves or rejects a submitted timesheet: crew.timesheet.approve on the project, never by its submitter or the worker, member, external or agency staff member (sod_timesheet_submitter, invariant 18), nor by a supervisor who punched the worker in or out on the timesheet''s time (sod_supervisor_punch, R12). Approval records the minutes approved.';
+
+-- Who clocked a worker is named on the timesheet's approval (sod_supervisor_punch), and an agency's lead is not otherwise
+-- someone the org may know by name. Recreated from 1275.
+create or replace function app.person_names(p_person_ids uuid[])
+returns table (person_id uuid, full_name text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id, p.full_name
+  from app.people p
+  where p.id = any (p_person_ids)
+    and p.deleted_at is null
+    and (
+      p.id in (select private.visible_person_ids())
+      or exists (
+        select 1 from app.engagements e
+        where e.person_id = p.id and e.deleted_at is null and e.org_id in (select private.my_org_ids()))
+      or exists (
+        select 1 from app.applications a
+        where a.applicant_person_id = p.id and a.deleted_at is null and a.org_id in (select private.my_org_ids()))
+      or exists (
+        select 1 from app.credentials c
+        where c.holder_person_id = p.id and c.deleted_at is null and c.org_id in (select private.my_org_ids()))
+      or exists (
+        select 1 from app.certification_holders h
+        where h.person_id = p.id and h.deleted_at is null and h.org_id in (select private.my_org_ids()))
+      or exists (
+        select 1 from app.clock_punches cp
+        where cp.created_by = p.id and cp.source = 'Supervisor' and cp.org_id in (select private.my_org_ids()))
+    );
+$$;
+comment on function app.person_names(uuid[]) is 'Display names of the requested people the reader may know by name: members, and people their orgs engage, received an application from, recorded a credential or certification for, or had a worker clocked in by.';
+

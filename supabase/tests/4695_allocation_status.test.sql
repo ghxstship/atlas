@@ -127,6 +127,7 @@ select pg_temp.as_user('carol');
 select is((select count(*)::int from app.allocation_holders where engagement_id = pg_temp.id('eng_vendor_a') and holder_kind = 'Pool'), 1,
   'the vendor is one pool');
 select is((select holder_name from app.allocation_holders where roster_entry_id = pg_temp.id('e_kai')), 'Kai Morgan', 'and Kai a person on it');
+select ok((select holder_open from app.allocation_holders where roster_entry_id = pg_temp.id('e_kai')), 'and an allocation can still go to them');
 
 -- Catering counts -------------------------------------------------------------------------------------------------------------------
 select pg_temp.eats('kai', 'e_kai', '{Vegan}', 'Shellfish', '01920000-0000-7000-8695-000000000101');

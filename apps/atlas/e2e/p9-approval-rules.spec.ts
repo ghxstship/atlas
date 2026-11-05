@@ -142,10 +142,11 @@ for (const locale of ["en-US", "es-US"] as const) {
       [ORG_ID, ADMIN],
     );
 
+    // Signing in reads the English sign-in page, so the locale follows it.
+    await signInAs(page, "owner@example.com", DEMO_ORG);
     await page
       .context()
       .addCookies([{ name: "xos-locale", value: locale, url: baseURL as string }]);
-    await signInAs(page, "owner@example.com", DEMO_ORG);
 
     // 1. Project Settings: a Draft rule for the category, a step the Admin decides, then Activate.
     await page.goto(`/${DEMO_ORG}/p/${PROJECT_KEY}/settings`);
@@ -190,7 +191,7 @@ for (const locale of ["en-US", "es-US"] as const) {
     await page.goto(`/${DEMO_ORG}/approvals?tab=mine`);
     const row = page.getByTestId("subject-approval").filter({ hasText: ruleName });
     await expect(
-      row.getByText(t("workflow.approvals.subjects.Pass"), { exact: false }),
+      row.getByText(t("workflow.approvals.subjects.Pass"), { exact: false }).first(),
     ).toBeVisible();
     const reminders = row.getByTestId("approval-reminders");
     await expect(reminders).toContainText(

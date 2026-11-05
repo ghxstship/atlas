@@ -439,7 +439,8 @@ test("radios for a party pool: request, review from stock and an order line, spl
     );
     const text = pdfText(new Uint8Array(await handout.body()));
     expect(text).toContain(one);
-    for (const tag of issued) expect(text).toContain(tag);
+    // A long tag may wrap inside its table cell.
+    for (const tag of issued) expect(text.replace(/\s/g, "")).toContain(tag);
     expect(text).toContain("1 Production");
     expect(text).toContain("3 Stage");
 

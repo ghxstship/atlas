@@ -207,17 +207,23 @@ export interface AllocationHolder {
   readonly roleCode: string | null;
 }
 
-/** The pools and people of a project for the Assign picker (app.allocation_holders), parties first. */
+/**
+ * The pools and people of a project (app.allocation_holders), parties first: those an allocation can still go to, for
+ * the Assign picker, or also the closed ones (`includeClosed`), so a withdrawn allocation still names who held it.
+ */
 export async function listAllocationHolders(
   db: XosClient,
   projectId: string,
+  options: { readonly includeClosed?: boolean } = {},
 ): Promise<Result<AllocationHolder[]>> {
-  const { data, error } = await db
+  let query = db
     .from("allocation_holders")
     .select(
       "holder_kind, engagement_id, roster_entry_id, project_id, holder_name, party_name, role_type, entry_state, person_response, role_code",
     )
-    .eq("project_id", projectId)
+    .eq("project_id", projectId);
+  if (!options.includeClosed) query = query.eq("holder_open", true);
+  const { data, error } = await query
     .order("party_name", { ascending: true })
     .order("holder_kind", { ascending: false })
     .order("holder_name", { ascending: true, nullsFirst: false });

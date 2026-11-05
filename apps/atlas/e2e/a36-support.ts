@@ -98,3 +98,36 @@ export async function reloadUntil(page: Page, target: Locator, tries = 10) {
   }
   await expect(target).toBeVisible();
 }
+
+/** Waits until React has hydrated a control, so what is done to it reaches the component's state. */
+export async function hydrated(control: Locator): Promise<void> {
+  await expect
+    .poll(
+      () => control.evaluate((el) => Object.keys(el).some((key) => key.startsWith("__reactProps"))),
+      { timeout: 60_000 },
+    )
+    .toBe(true);
+}
+
+/**
+ * Sends a wizard step and waits until the page has left it. A reload (workUntil) while the action is still on its way
+ * cancels the action, so the step would never move.
+ */
+export async function leaveStep(page: Page, submit: string, heading: string): Promise<void> {
+  await page.getByRole("button", { name: submit }).click();
+  await expect(page.getByRole("heading", { name: heading })).toBeHidden({ timeout: 60_000 });
+}
+
+/**
+ * Runs the import worker and reloads until `target` shows. A click on Confirm or Commit queues the job when its action
+ * finishes, so one worker run straight after the click can find nothing to do.
+ */
+export async function workUntil(page: Page, target: Locator, attempts = 15): Promise<void> {
+  for (let i = 0; i < attempts; i += 1) {
+    await runImportWorker();
+    await page.reload();
+    if (await target.isVisible()) return;
+    await page.waitForTimeout(1_000);
+  }
+  await expect(target).toBeVisible();
+}

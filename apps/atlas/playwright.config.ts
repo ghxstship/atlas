@@ -27,6 +27,16 @@ const engines = new Set(
   (process.env["E2E_ENGINES"] ?? "chromium,firefox,webkit").split(",").map((e) => e.trim()),
 );
 
+/**
+ * A production build offers no pseudo-locales, so their specs would only skip there. They stay out of such a run, since
+ * Playwright shards by test count: pseudo-locales-routes.spec.ts alone has about 800 tests, which left two of the four
+ * journey shards with nothing to run and one with most of the journeys, past its time limit.
+ */
+const desktopIgnore =
+  process.env["E2E_PRODUCTION_BUILD"] === "1"
+    ? /(mobile|pseudo-locales|pseudo-locales-routes)\.spec\.ts/
+    : /mobile\.spec\.ts/;
+
 /** Launch options naming a locally installed browser, when the variable is set. */
 function launch(variable: string) {
   const executablePath = process.env[variable];
@@ -73,7 +83,7 @@ export default defineConfig({
   projects: [
     ...desktop
       .filter((p) => engines.has(p.name ?? ""))
-      .map((p) => ({ ...p, testIgnore: /mobile\.spec\.ts/ })),
+      .map((p) => ({ ...p, testIgnore: desktopIgnore })),
     {
       name: "mobile",
       use: { ...devices["Pixel 7"], ...launch("PLAYWRIGHT_CHROMIUM_EXECUTABLE") },

@@ -103,7 +103,7 @@ test("an approved purchase order line fills Committed live, and the report carri
     .getByLabel("Budget line")
     .selectOption({ label: `${budgetName} · 1 · ${lineName} (USD)` });
   await lineForm.getByRole("button", { name: "Add line" }).click();
-  await expect(buyer.getByRole("table", { name: "Lines" })).toContainText(budgetName);
+  await expect(buyer.getByRole("grid", { name: "Lines" })).toContainText(budgetName);
   const poNumber = /PO\D*(\d+)/.exec(await buyer.locator("header").first().innerText())?.[1] ?? "";
   expect(poNumber).not.toBe("");
 

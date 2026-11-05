@@ -49,7 +49,6 @@ async function removeProject(projectId: string): Promise<void> {
   for (const statement of [
     `update app.engagement_roster_entries set deleted_at = now()
       where engagement_id in (select id from app.engagements where project_id = $1) and deleted_at is null`,
-    "update app.engagements set roster_locks_at = null where project_id = $1",
     `update app.setting_values set deleted_at = now()
       where scope_kind = 'Project' and scope_id = $1 and deleted_at is null`,
     "update app.engagements set deleted_at = now() where project_id = $1 and deleted_at is null",

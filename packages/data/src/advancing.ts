@@ -521,6 +521,16 @@ export async function getPacket(
     recipients.data.flatMap((r) => (r.counterparty_id ? [r.counterparty_id] : [])),
   );
   if (!names.ok) return fail(names.error);
+  // An engaged person outside the org is hidden from app.people, so their name comes through the engagement (0710).
+  await Promise.all(
+    recipients.data.map(async (r) => {
+      if (!r.person_id || !r.engagement_id || names.data.get(r.person_id)) return;
+      const { data: name } = await db.rpc("engaged_person_name", {
+        p_engagement_id: r.engagement_id,
+      });
+      if (name) names.data.set(r.person_id, name);
+    }),
+  );
   const fetched = await fetchSubmissions(
     db,
     sections.data.map((s) => s.id),
@@ -1068,7 +1078,10 @@ export interface ProjectEngagement {
   readonly personId: string | null;
   readonly counterpartyId: string | null;
   readonly roleType: string;
+  /** The party to show: the supplying account's name, else the engaged person's. */
   readonly name: string | null;
+  /** The engaged person's own name, when the reader may read the engagement. */
+  readonly personName: string | null;
 }
 
 export async function listProjectEngagements(
@@ -1089,14 +1102,29 @@ export async function listProjectEngagements(
     data.flatMap((e) => (e.counterparty_id ? [e.counterparty_id] : [])),
   );
   if (!names.ok) return fail(names.error);
+  // Row level security hides an engaged person outside the org from app.people, so their name comes from the function
+  // for readers of the engagement (0710).
+  const personNames = await Promise.all(
+    data.map(async (e) => {
+      if (!e.person_id) return null;
+      const known = names.data.get(e.person_id);
+      if (known) return known;
+      const { data: name } = await db.rpc("engaged_person_name", { p_engagement_id: e.id });
+      return name ?? null;
+    }),
+  );
   return ok(
-    data.map((e) => ({
-      id: e.id,
-      personId: e.person_id,
-      counterpartyId: e.counterparty_id,
-      roleType: e.role_type,
-      name: names.data.get(e.counterparty_id ?? "") ?? names.data.get(e.person_id ?? "") ?? null,
-    })),
+    data.map((e, i) => {
+      const personName = personNames[i] ?? null;
+      return {
+        id: e.id,
+        personId: e.person_id,
+        counterpartyId: e.counterparty_id,
+        roleType: e.role_type,
+        name: names.data.get(e.counterparty_id ?? "") ?? personName,
+        personName,
+      };
+    }),
   );
 }
 

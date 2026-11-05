@@ -1,8 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { expectAccessibleInBothThemes } from "./a16-support";
-import { DEMO_ORG, reloadUntil, runImportWorker, signInAs } from "./a36-support";
+import { DEMO_ORG, hydrated, leaveStep, signInAs, workUntil } from "./a36-support";
 import { describe, hardCodedText } from "./pseudo-checks";
-import { uniqueId } from "./support";
+import { expectAccessible, uniqueId } from "./support";
 
 /**
  * P3 (RRR-217, gap G-84, Section 4.6.2): import a rundown into a running order. From the running order's peek,
@@ -30,7 +30,9 @@ function rundown(id: string): string {
 
 /** The en-XA wraps every catalog message; anything a person sees outside one is hard-coded (gate 16). */
 async function expectNoHardCodedText(page: Page) {
-  await page.context().addCookies([{ name: "xos-locale", value: "en-XA", url: page.url() }]);
+  await page
+    .context()
+    .addCookies([{ name: "xos-locale", value: "en-XA", url: new URL(page.url()).origin }]);
   await page.reload();
   expect(describe(await hardCodedText(page))).toEqual([]);
   await page.context().clearCookies({ name: "xos-locale" });
@@ -47,7 +49,10 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
   await page.goto(`/${DEMO_ORG}/show/run-of-show?create=1`);
   const sheet = page.getByRole("dialog", { name: "New running order" });
   const project = sheet.getByLabel("Project");
+  // The sheet opens from the URL, so it is on the page before it hydrates, and a choice made earlier is lost.
+  await sheet.waitFor();
   if ((await project.count()) > 0) {
+    await hydrated(project);
     const nws = await project.locator("option", { hasText: /^NWS · / }).getAttribute("value");
     await project.selectOption(nws ?? "");
   }
@@ -66,17 +71,17 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
   // Paste the rows: the preview shows them as read, the quoted line break kept in its cell.
   await page.getByRole("radio", { name: "Pasted rows" }).click();
   await page.getByLabel("Rows", { exact: true }).fill(rundown(id));
-  const preview = page.getByRole("table", { name: "First 3 rows" });
+  const preview = page.getByRole("grid", { name: "First 3 rows" });
   await expect(preview).toContainText(`Walk-in ${id}`);
   await expect(preview).toContainText(`Host welcome ${id}`);
-  await expectAccessibleInBothThemes(page);
+  // Not the both-themes check here: it reloads the page, which empties the pasted rows.
+  await expectAccessible(page);
   await page.getByRole("button", { name: "Read the rows" }).click();
   await page.waitForURL(/\?import=/);
   const importUrl = page.url();
 
   // Detect, then map: the Playbook map names the Playbook headers, header similarity the rest.
-  await runImportWorker();
-  await reloadUntil(page, page.getByRole("heading", { name: "Map the columns" }));
+  await workUntil(page, page.getByRole("heading", { name: "Map the columns" }));
   await expect(page.getByLabel("Column CUE ID")).toHaveValue("position");
   await expect(page.getByLabel("Column SCENE")).toHaveValue("label");
   await expect(page.getByLabel("Column START TIME")).toHaveValue("planned_at");
@@ -85,18 +90,16 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
   await expect(page.getByText("From the column name").first()).toBeVisible();
   // The uploader sees the first rows under each column and laid out by the choices.
   await expect(page.getByText(`Walk-in ${id}`).first()).toBeVisible();
-  await expect(page.getByRole("table", { name: "Preview" })).toContainText("Cue number");
+  await expect(page.getByRole("grid", { name: "Preview" })).toContainText("Cue number");
   await expectAccessibleInBothThemes(page);
   await expectNoHardCodedText(page);
-  await page.getByRole("button", { name: "Confirm the mapping" }).click();
+  await leaveStep(page, "Confirm the mapping", "Map the columns");
 
   // Validate and commit: three new cues, the unnumbered one appended after Q2.
-  await runImportWorker();
-  await reloadUntil(page, page.getByRole("heading", { name: "Dry run" }));
+  await workUntil(page, page.getByRole("heading", { name: "Dry run" }));
   await expect(page.getByRole("region", { name: "Dry run" })).toContainText("3");
-  await page.getByRole("button", { name: "Commit the import" }).click();
-  await runImportWorker();
-  await reloadUntil(page, page.getByRole("heading", { name: "Undo the whole batch" }));
+  await leaveStep(page, "Commit the import", "Dry run");
+  await workUntil(page, page.getByRole("heading", { name: "Undo the whole batch" }));
   await expect(page.getByText("3 rows were written")).toBeVisible();
 
   await page.goto(`/${DEMO_ORG}/show/run-of-show?peek=${runId}`);
@@ -122,11 +125,9 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
   await page.getByLabel("Rows", { exact: true }).fill(rundown(id));
   await page.getByRole("button", { name: "Read the rows" }).click();
   await page.waitForURL(/\?import=/);
-  await runImportWorker();
-  await reloadUntil(page, page.getByRole("heading", { name: "Map the columns" }));
-  await page.getByRole("button", { name: "Confirm the mapping" }).click();
-  await runImportWorker();
-  await reloadUntil(page, page.getByRole("heading", { name: "Dry run" }));
+  await workUntil(page, page.getByRole("heading", { name: "Map the columns" }));
+  await leaveStep(page, "Confirm the mapping", "Map the columns");
+  await workUntil(page, page.getByRole("heading", { name: "Dry run" }));
   const dry = page.getByRole("region", { name: "Dry run" });
   await expect(dry.getByText("New records").locator("..")).toContainText("0");
   await expect(dry.getByText("Updates").locator("..")).toContainText("3");

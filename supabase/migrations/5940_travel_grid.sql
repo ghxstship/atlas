@@ -38,6 +38,9 @@ as $$
       select 1 from app.certification_holders h
       where h.person_id = p_person_id and h.deleted_at is null and h.org_id in (select private.my_org_ids()))
     or exists (
+      select 1 from app.clock_punches cp
+      where cp.created_by = p_person_id and cp.source = 'Supervisor' and cp.org_id in (select private.my_org_ids()))
+    or exists (
       select 1 from private.roster_people rp
       join app.engagement_roster_entries r on r.id = rp.roster_entry_id
       join app.engagements e on e.id = r.engagement_id

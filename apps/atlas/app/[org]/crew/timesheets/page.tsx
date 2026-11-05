@@ -3,11 +3,11 @@ import {
   getTimesheet,
   listSupervisorPunchers,
   listTimesheets,
-  personNames,
   TIMESHEET_STATES,
   workedMinutes,
   type Timesheet,
 } from "@xos/data/crew";
+import { personNames } from "@xos/data/person-names";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
@@ -103,7 +103,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       const punchedByMe = me !== null && [...punchers.data.values()].some((p) => p.includes(me));
       const clockedBy = (entryId: string) =>
         (punchers.data.get(entryId) ?? [])
-          .map((p) => (approvers.ok ? approvers.data.get(p) : null) ?? t("crew.common.unnamed"))
+          .map((p) => approvers.get(p) ?? t("crew.common.unnamed"))
           .join(", ");
       const hidden = { org: crew.slug, id: s.id };
       const record = (
@@ -222,9 +222,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
                 {s.approvals.map((a) => (
                   <li key={a.id}>
                     {t(a.voidedAt ? "crew.sheets.approvalVoided" : "crew.sheets.approvalStands", {
-                      name:
-                        (approvers.ok ? approvers.data.get(a.approvedBy) : null) ??
-                        t("crew.record.someone"),
+                      name: approvers.get(a.approvedBy) ?? t("crew.record.someone"),
                       hours: format.number(hoursFromMinutes(a.approvedMinutes)),
                     })}
                   </li>

@@ -89,7 +89,9 @@ test("the field lead finds the unit checked out to them, and nothing else of the
       { timeout: 60_000 },
     );
     await menu.getByRole("combobox").fill(query);
-    expect(await (await reply).text(), query).not.toContain('"inventory"');
+    // The browser may drop a streamed reply's body before it is read; the menu below is still checked.
+    const body = await (await reply).text().catch(() => "");
+    expect(body, query).not.toContain('"inventory"');
     await expect(menu.getByRole("group", { name: "Inventory" })).toHaveCount(0);
   }
 });
