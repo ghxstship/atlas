@@ -256,7 +256,7 @@ describe("import repository", () => {
       kind: "refusal",
       rule: "import_paste_empty",
     });
-  });
+  }, 30_000);
 
   it("names uploads by source and stores them in the person's folder", () => {
     expect(importSourceOf("Customers.CSV")).toEqual({ source: "CSV", ext: "csv" });

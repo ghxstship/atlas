@@ -240,8 +240,12 @@ test("drafting: an SOP and an advance packet section are drafted into their edit
   test.skip(!open, "The demo seed has no unsent advance packet.");
   await page.goto(`/${ORG}/advancing/packets?peek=${open?.id ?? ""}&full=1`);
   const sections = page.locator('section[aria-labelledby="packet-sections"]');
-  await sections.getByRole("button", { name: "Draft with Aurora" }).click();
   const section = page.getByRole("dialog", { name: "Draft a section with Aurora" });
+  // The packet page is long and hydrates after it paints; a click before that opens nothing.
+  await expect(async () => {
+    await sections.getByRole("button", { name: "Draft with Aurora" }).click();
+    await expect(section).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 60_000 });
   await expect(section.getByText(/^Sent: /).first()).toBeVisible();
   await section.getByLabel("What should the draft say?").fill("Ask for hospitality needs");
   await section.getByRole("button", { name: "Send to Aurora" }).click();
