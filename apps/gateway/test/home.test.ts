@@ -23,6 +23,7 @@ describe("upNextDetails", () => {
       at: "2027-06-01T12:00:00Z",
       timeZone: "America/New_York",
       kind: "shift",
+      tbc: false,
     });
     expect(details.where).toBe("Northwind Pier Pavilion, 1 Pier Way, Miami, 33132");
     expect(details.contact).toBe("Carol Nguyen");
@@ -42,6 +43,19 @@ describe("upNextDetails", () => {
       upNextDetails({ row: { ...row, next_call_at: null }, orgName: "O", badges: [], gear: [] })
         .call,
     ).toBeNull();
+  });
+
+  it("marks a set whose time is to be confirmed (G-40), so the card shows TBC", () => {
+    const call = (next_call_tbc: boolean | null) =>
+      upNextDetails({
+        row: { ...row, next_call_kind: "Set", next_call_tbc },
+        orgName: "O",
+        badges: [],
+        gear: [],
+      }).call;
+    expect(call(true)?.tbc).toBe(true);
+    expect(call(false)?.tbc).toBe(false);
+    expect(call(null)?.tbc).toBe(false);
   });
 
   it("falls back to the org for the contact and leaves out an empty venue", () => {

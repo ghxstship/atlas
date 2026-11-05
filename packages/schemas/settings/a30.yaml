@@ -750,3 +750,6 @@ settings:
       # The Atlas shell's registry key handler: C, ?, / and G then a letter (A81, shortcuts.yaml).
       - consumer: apps/atlas/components/shell/key-dispatch.ts#installShellKeys
         test: apps/atlas/test/shortcuts.test.ts
+      # The showcaller console: its letters and symbols obey it, its F13 to F20 do not (ADR 0131).
+      - consumer: apps/atlas/components/show/show-keys.ts#showKeyAction
+        test: apps/atlas/test/shortcuts.test.ts

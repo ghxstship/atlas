@@ -451,6 +451,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       showDate: "2026-10-24",
       cueCount: 3,
       calledCount: 1,
+      curfewAt: null,
     },
     cues: [
       {
@@ -462,6 +463,8 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         durationSeconds: 30,
         calledAt: "2026-10-24T23:00:12Z",
         calledByName: "Sam Lee",
+        startTbc: false,
+        standbyAt: null,
       },
       {
         id: "q2",
@@ -472,6 +475,8 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         durationSeconds: 5400,
         calledAt: null,
         calledByName: null,
+        startTbc: false,
+        standbyAt: null,
       },
       {
         id: "q3",
@@ -482,6 +487,8 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
         durationSeconds: null,
         calledAt: null,
         calledByName: null,
+        startTbc: false,
+        standbyAt: null,
       },
     ],
   },

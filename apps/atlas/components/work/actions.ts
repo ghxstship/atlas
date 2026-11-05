@@ -68,6 +68,8 @@ const createSchema = z.object({
   xyz: z.string().length(1).nullable().optional(),
   ownerId: optionalId,
   startsAt: instant,
+  /** The start is an estimate to be confirmed (G-40); the database clears it while the start is empty. */
+  startTbc: z.boolean().optional(),
   endsAt: instant,
   dueAt: instant,
   /** The form's custom field inputs by field key (A117); absent when the form showed none. */
@@ -115,6 +117,7 @@ const patchSchema = z.object({
   ownerId: optionalId,
   accountableId: optionalId,
   startsAt: instant,
+  startTbc: z.boolean().optional(),
   endsAt: instant,
   dueAt: instant,
   replanReason: z.string().trim().min(1).max(500).nullable().optional(),

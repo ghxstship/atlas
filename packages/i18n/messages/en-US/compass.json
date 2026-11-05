@@ -161,6 +161,7 @@
       "engagement_documents": "engagement documents",
       "profile_certifications": "your certifications",
       "profile_documents": "your documents",
+      "cue_calls": "department calls",
       "roster_entries": "roster entries",
       "advance_allocations": "items assigned to you",
       "parking_passes": "parking passes",
@@ -358,6 +359,7 @@
     "cueTitle": "Next cue: {cue}",
     "cueBody": "{project} at {time}",
     "channel": "Shift and next cue",
+    "cueTbc": "{cue} · TBC",
     "gallery": {
       "todayName": "Compass Today",
       "todayDescription": "Your shifts today and the next cue.",
@@ -612,7 +614,24 @@
     "countdownLabel": "{minutes} min {seconds} s to {cue}",
     "countdownLate": "{minutes} min {seconds} s late for {cue}",
     "countdownSoon": "{cue} in {seconds} seconds",
-    "countdownGo": "{cue}: go"
+    "countdownGo": "{cue}: go",
+    "tbc": "TBC",
+    "onStandby": "Standby",
+    "department": "Your department",
+    "allDepartments": "All",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Lighting",
+      "video": "Video",
+      "sfx": "Special Effects",
+      "stage": "Stage"
+    },
+    "yourCallNow": "Your call now: {cue}",
+    "yourCallNext": "Your call next: {cue}",
+    "callLine": "{department} · {instruction}",
+    "noCall": "No {department} call",
+    "noCalls": "No department calls",
+    "countdownTbc": "{cue}: time to be confirmed"
   },
   "kiosk": {
     "title": "Kiosk",

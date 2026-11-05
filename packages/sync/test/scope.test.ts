@@ -98,6 +98,15 @@ describe("download scope (Section 8.7)", () => {
     ).toBe(true);
   });
 
+  it("admits department calls to internal devices on a readable project and never to externals (ADR 0131)", () => {
+    const call = { id: "k1", cue_id: "q1", project_id: "proj-1" };
+    expect(admits("cue_calls", call, internal)).toBe(true);
+    expect(admits("cue_calls", { ...call, project_id: "proj-9" }, internal)).toBe(false);
+    for (const audience of ["client", "artist", "crew"] as const) {
+      expect(admits("cue_calls", call, external(audience))).toBe(false);
+    }
+  });
+
   it("denies everything once the engagement closes", () => {
     const closed = external("crew", []);
     expect(
