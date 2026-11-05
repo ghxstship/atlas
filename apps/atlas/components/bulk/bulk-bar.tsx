@@ -3,11 +3,18 @@
 import type { BulkOutcome, BulkRow, BulkValue } from "@xos/data/bulk";
 import { BulkActionBar, Button, Dialog, InlineAlert, Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { bulkUpdateAction, type BulkActionResult } from "@/lib/bulk/actions";
+import { shiftRecordsAction } from "@/components/schedule/actions";
 import type { BulkConfig, BulkField, BulkRowRef } from "./types";
+
+// Shift time (P8) loads the first time someone opens it, so the records pages carry none of it.
+const ShiftDialog = dynamic(() => import("./shift-dialog").then((m) => m.ShiftDialog), {
+  ssr: false,
+});
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -45,6 +52,7 @@ export function BulkBar({
   const t = useTranslations("collab.bulk") as unknown as Translate;
   const router = useRouter();
   const labels = new Map(rows.map((r) => [r.id, r.label]));
+  const [shifting, setShifting] = useState(false);
 
   /** Sends rows back through the RPC for an undo or a redo; the stack reports the outcome. */
   const send = async (batch: readonly BulkRow[]): Promise<UndoResult> => {
@@ -82,15 +90,53 @@ export function BulkBar({
             <BulkActionBar
               count={selected.size}
               announce={false}
-              actions={config.fields.slice(0, 4).map((f) => ({
-                label: t("change", { field: f.label }),
-                icon: "PenLine",
-                onSelect: () => setField(f),
-              }))}
+              actions={[
+                ...config.fields.slice(0, config.shift ? 3 : 4).map((f) => ({
+                  label: t("change", { field: f.label }),
+                  icon: "PenLine",
+                  onSelect: () => setField(f),
+                })),
+                ...(config.shift
+                  ? [{ label: t("shift.action"), icon: "Clock", onSelect: () => setShifting(true) }]
+                  : []),
+              ]}
               onClear={onClear}
             />
           </div>
         </div>
+      ) : null}
+      {shifting && config.shift && selected.size > 0 ? (
+        <ShiftDialog
+          org={config.org}
+          ids={[...selected]}
+          labels={labels}
+          onClose={() => setShifting(false)}
+          onDone={(plan, minutes, inverse) => {
+            const ids = [...selected];
+            setShifting(false);
+            onClear();
+            undoStack.push({
+              label: t("shift.done", {
+                count: plan.moves.length,
+                minutes: minutes > 0 ? `+${minutes}` : String(minutes),
+              }),
+              undo: () => send(inverse),
+              // Redo shifts the same selection again; the database pushes successors afresh.
+              redo: async () => {
+                const again = await shiftRecordsAction(config.org, {
+                  recordIds: ids,
+                  minutes,
+                  commit: true,
+                });
+                if (again.ok) {
+                  router.refresh();
+                  return { ok: true };
+                }
+                return { ok: false, message: t("failed") };
+              },
+            });
+          }}
+        />
       ) : null}
       {field && selected.size > 0 ? (
         <BulkDialog

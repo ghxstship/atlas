@@ -345,6 +345,10 @@ export interface RecordQuery {
   readonly to?: string;
   /** Only records with a start, end or due time. */
   readonly datedOnly?: boolean;
+  /** Only records with no start, end or due time (P8: the Unscheduled list). */
+  readonly undatedOnly?: boolean;
+  /** Leaves out records in these states. */
+  readonly excludeStates?: readonly string[];
   /** Trash: only soft-deleted records. Otherwise soft-deleted records are left out. */
   readonly trashed?: boolean;
   /**
@@ -385,6 +389,10 @@ export async function listRecords(
   const window = windowFilter(query.from, query.to);
   if (window) q = q.or(window);
   if (query.datedOnly) q = q.or("starts_at.not.is.null,ends_at.not.is.null,due_at.not.is.null");
+  if (query.undatedOnly) q = q.is("starts_at", null).is("ends_at", null).is("due_at", null);
+  if (query.excludeStates && query.excludeStates.length > 0) {
+    q = q.not("record_state", "in", `(${query.excludeStates.join(",")})`);
+  }
   q = query.trashed ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
   // Trash shows every trashed record, archived or not.
   if (!query.trashed) q = applyArchived(q, query.archived);
@@ -723,11 +731,17 @@ export async function restoreRecord(db: XosClient, id: string): Promise<Result<n
 /**
  * Copies a record into a new Proposed record of the same project (journey 70): kind, subtype,
  * title, scope, phase, URID, XYZ tag, people, dates and the kind's attributes. With children, the
- * checklist is copied too, every item open.
+ * checklist is copied too, every item open. `withoutDates` leaves the copy undated, so it waits in
+ * the schedule's Unscheduled list (P8).
  */
 export async function duplicateRecord(
   db: XosClient,
-  input: { readonly orgId: string; readonly recordId: string; readonly withChildren?: boolean },
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly withChildren?: boolean;
+    readonly withoutDates?: boolean;
+  },
 ): Promise<Result<{ id: string; number: number }>> {
   const source = await getRecord(db, input.recordId);
   if (!source.ok) return source;
@@ -746,10 +760,10 @@ export async function duplicateRecord(
     xyz: r.xyz,
     ownerId: r.ownerId,
     accountableId: r.accountableId,
-    startsAt: r.startsAt,
-    startTbc: r.startTbc,
-    endsAt: r.endsAt,
-    dueAt: r.dueAt,
+    startsAt: input.withoutDates ? null : r.startsAt,
+    startTbc: input.withoutDates ? false : r.startTbc,
+    endsAt: input.withoutDates ? null : r.endsAt,
+    dueAt: input.withoutDates ? null : r.dueAt,
     timeZone: r.timeZone,
     extension: extension.data,
   });

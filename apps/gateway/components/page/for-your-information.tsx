@@ -25,6 +25,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "roster_entry.project_facts_entered": "updates.kinds.projectFactsEntered",
   // P5: an org asks for a badge photo (5822); the item opens Profile, Badge photos.
   "credential_photo.requested": "updates.kinds.badgePhotoRequested",
+  // P8 (5853): an org asks for the person's availability; it links to /profile#availability-requests.
+  "availability.requested": "updates.kinds.availabilityRequested",
 };
 
 /** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin. */

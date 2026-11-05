@@ -90,6 +90,7 @@ export function RecordCollection({
   timeZone,
   timeline,
   canReschedule = false,
+  backlog = [],
   canCreate,
   create,
   peek,
@@ -119,6 +120,8 @@ export function RecordCollection({
   timeline: TimelineModel | null;
   /** Timeline bars move and resize (A133). */
   canReschedule?: boolean;
+  /** Undated records to place on the timeline, beside it (P8); only with canReschedule. */
+  backlog?: readonly { id: string; label: string }[];
   canCreate: boolean;
   create?: ReactNode;
   peek?: ReactNode;
@@ -503,10 +506,10 @@ export function RecordCollection({
     );
   } else if (view === "timeline") {
     body =
-      timeline && timeline.bars.length > 0 ? (
+      timeline && (timeline.bars.length > 0 || (canReschedule && backlog.length > 0)) ? (
         <div className="min-w-0">
           {canReschedule ? (
-            <RescheduleTimeline org={org} label={label} timeline={timeline} />
+            <RescheduleTimeline org={org} label={label} timeline={timeline} backlog={backlog} />
           ) : (
             <Timeline label={label} {...timelineView(timeline, format)} />
           )}

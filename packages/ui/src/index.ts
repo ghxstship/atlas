@@ -435,6 +435,8 @@ export {
   Gallery,
   Calendar,
   Timeline,
+  dayAtPointer,
+  RECORD_MIME,
   ResourceSchedule,
   OrgChart,
   type GalleryProps,

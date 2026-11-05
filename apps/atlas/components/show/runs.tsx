@@ -34,6 +34,7 @@ import type { Route } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useFormatter, useLocale } from "next-intl";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
@@ -67,6 +68,8 @@ const ShowcallerConsole = dynamic(() =>
 );
 const CueEditor = dynamic(() => import("./cue-editor").then((m) => m.CueEditor));
 const MoveCueDialog = dynamic(() => import("./cue-editor").then((m) => m.MoveCueDialog));
+// Shift the cues still to come (P8), for people who edit the run of show; loads on demand.
+const CueShift = dynamic(() => import("./cue-shift").then((m) => m.CueShift));
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -915,6 +918,14 @@ export function RunBody({
             })}
           </ol>
         )}
+        {canEdit && cues.some((c) => !c.calledAt && c.plannedAt) ? (
+          <CueShift
+            org={org}
+            runId={runOfShow.id}
+            cues={cues}
+            label={(c) => time(c.plannedAt) ?? ""}
+          />
+        ) : null}
         {moving ? (
           <MoveCueDialog
             org={org}

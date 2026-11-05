@@ -46,6 +46,8 @@
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
       "submittal_note_length": "Write a note of 1 to 500 characters.",
+      "availability_poll_closed": "This poll has closed. Tell the org your availability directly.",
+      "availability_poll_answer": "Answer each day of the poll once, as Available, Tentative or Unavailable.",
       "approval_link_code_too_soon": "A code was sent a moment ago. Wait a minute, then ask again; at most five are sent an hour.",
       "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
       "approval_link_email_off": "Your approval emails are turned off, so no code can be sent. Sign in to decide instead.",
@@ -1613,6 +1615,7 @@
         "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
         "certificationExpiring": "Your {title} certification expires on {expiresOn}",
         "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}",
+        "availabilityRequested": "{orgName} asks for your availability: {title}",
         "badgePhotoRequested": "{orgName} asks for your badge photo",
         "projectFactsEntered": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}} for {projectName}. Check them and correct anything that is wrong."
       }
@@ -1843,7 +1846,24 @@
       "account": "Enter the company name and a web address of 2 to 48 lowercase letters, numbers and hyphens.",
       "company": "Check the handle and visibility.",
       "website": "Enter a full web address starting with https://.",
-      "email": "Enter an email address like team@company.com."
+      "email": "Enter an email address like team@company.com.",
+      "availabilityAnswer": "Choose Available, Tentative or Unavailable for at least one day."
+    },
+    "availabilityRequests": {
+      "title": "Availability requests",
+      "shared": "Your answers go on your availability for that org and are shared with its planners.",
+      "closes": "Answer by {when}",
+      "locked": "{day}: {answer}, locked by the notice period",
+      "formLabel": "Answer {title}",
+      "choose": "Choose",
+      "save": "Send answers",
+      "saved": "Answers saved.",
+      "kinds": {
+        "Available": "Available",
+        "Tentative": "Tentative",
+        "Unavailable": "Unavailable",
+        "Unstated": "Not stated"
+      }
     }
   },
   "documents": {
