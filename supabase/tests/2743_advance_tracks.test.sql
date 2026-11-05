@@ -135,6 +135,10 @@ select pg_temp.as_user('alice');
 update app.advance_sections set track = 'Hospitality' where id = pg_temp.id('s_power');
 select pg_temp.as_platform();
 select is(pg_temp.state('rcp_v', 'Hospitality'), 'Reopened', 'a section no longer done on a signed-off track is Reopened');
+-- now() is frozen in this transaction, so the sign-off is dated an hour back for the answers below to be newer than it.
+alter table app.advance_track_signoffs disable trigger t40_guard_advance_track_signoff;
+update app.advance_track_signoffs set signed_off_at = now() - interval '1 hour' where id = pg_temp.id('signoff');
+alter table app.advance_track_signoffs enable trigger t40_guard_advance_track_signoff;
 insert into world select 'a_power', pg_temp.answer('s_power', 'Two 63 A feeds.');
 select pg_temp.review(pg_temp.id('a_power'), 'Returned', 'Which stage?');
 select is(pg_temp.state('rcp_v', 'Hospitality'), 'Reopened', 'a Returned review keeps it Reopened');

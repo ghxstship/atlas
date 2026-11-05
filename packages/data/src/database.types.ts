@@ -177,6 +177,7 @@ export type Database = {
           prompt: string | null;
           section_kind: Database["app"]["Enums"]["advance_section_kind"] | null;
           title: string | null;
+          track: Database["app"]["Enums"]["advance_track"] | null;
           window_kind: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         ComputedFields: never;
@@ -189,6 +190,7 @@ export type Database = {
           prompt?: string | null;
           section_kind?: Database["app"]["Enums"]["advance_section_kind"] | null;
           title?: string | null;
+          track?: Database["app"]["Enums"]["advance_track"] | null;
           window_kind?: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         Update: {
@@ -200,6 +202,7 @@ export type Database = {
           prompt?: string | null;
           section_kind?: Database["app"]["Enums"]["advance_section_kind"] | null;
           title?: string | null;
+          track?: Database["app"]["Enums"]["advance_track"] | null;
           window_kind?: Database["app"]["Enums"]["advance_window_kind"] | null;
         };
         Relationships: [
@@ -333,6 +336,19 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      advance_track_progress: {
+        Row: {
+          advance_packet_id: string | null;
+          advance_recipient_id: string | null;
+          sections_done: number | null;
+          sections_total: number | null;
+          signed_off_at: string | null;
+          track: Database["app"]["Enums"]["advance_track"] | null;
+          track_state: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
       };
       applications: {
         Row: {
@@ -5599,6 +5615,13 @@ export type Database = {
             foreignKeyName: "advance_promotions_advance_submission_id_fkey";
             columns: ["advance_submission_id"];
             isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["latest_submission_id"];
+          },
+          {
+            foreignKeyName: "advance_promotions_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
             referencedRelation: "advance_submissions";
             referencedColumns: ["id"];
           },
@@ -5710,8 +5733,22 @@ export type Database = {
             foreignKeyName: "advance_recipient_tokens_advance_recipient_id_fkey";
             columns: ["advance_recipient_id"];
             isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["advance_recipient_id"];
+          },
+          {
+            foreignKeyName: "advance_recipient_tokens_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
             referencedRelation: "advance_recipients";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipient_tokens_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_track_progress";
+            referencedColumns: ["advance_recipient_id"];
           },
           {
             foreignKeyName: "advance_recipient_tokens_claimed_by_fkey";
@@ -5794,6 +5831,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "advance_packets";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_advance_packet_id_fkey";
+            columns: ["advance_packet_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["advance_packet_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_advance_packet_id_fkey";
+            columns: ["advance_packet_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_track_progress";
+            referencedColumns: ["advance_packet_id"];
           },
           {
             foreignKeyName: "advance_recipients_counterparty_id_fkey";
@@ -5903,6 +5954,13 @@ export type Database = {
             foreignKeyName: "advance_section_choices_advance_section_id_fkey";
             columns: ["advance_section_id"];
             isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["advance_section_id"];
+          },
+          {
+            foreignKeyName: "advance_section_choices_advance_section_id_fkey";
+            columns: ["advance_section_id"];
+            isOneToOne: false;
             referencedRelation: "advance_sections";
             referencedColumns: ["id"];
           },
@@ -5957,6 +6015,7 @@ export type Database = {
           prompt: string | null;
           section_kind: Database["app"]["Enums"]["advance_section_kind"];
           title: string;
+          track: Database["app"]["Enums"]["advance_track"];
           updated_at: string;
           updated_by: string | null;
           window_kind: Database["app"]["Enums"]["advance_window_kind"] | null;
@@ -5975,6 +6034,7 @@ export type Database = {
           prompt?: string | null;
           section_kind?: Database["app"]["Enums"]["advance_section_kind"];
           title: string;
+          track?: Database["app"]["Enums"]["advance_track"];
           updated_at?: string;
           updated_by?: string | null;
           window_kind?: Database["app"]["Enums"]["advance_window_kind"] | null;
@@ -5992,6 +6052,7 @@ export type Database = {
           prompt?: string | null;
           section_kind?: Database["app"]["Enums"]["advance_section_kind"];
           title?: string;
+          track?: Database["app"]["Enums"]["advance_track"];
           updated_at?: string;
           updated_by?: string | null;
           window_kind?: Database["app"]["Enums"]["advance_window_kind"] | null;
@@ -6003,6 +6064,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "advance_packets";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_sections_advance_packet_id_fkey";
+            columns: ["advance_packet_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["advance_packet_id"];
+          },
+          {
+            foreignKeyName: "advance_sections_advance_packet_id_fkey";
+            columns: ["advance_packet_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_track_progress";
+            referencedColumns: ["advance_packet_id"];
           },
           {
             foreignKeyName: "advance_sections_created_by_fkey";
@@ -6066,6 +6141,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "advance_submission_files_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["latest_submission_id"];
+          },
           {
             foreignKeyName: "advance_submission_files_advance_submission_id_fkey";
             columns: ["advance_submission_id"];
@@ -6160,6 +6242,13 @@ export type Database = {
           window_zone?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "advance_submission_lines_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["latest_submission_id"];
+          },
           {
             foreignKeyName: "advance_submission_lines_advance_submission_id_fkey";
             columns: ["advance_submission_id"];
@@ -6282,8 +6371,22 @@ export type Database = {
             foreignKeyName: "advance_submissions_advance_recipient_id_fkey";
             columns: ["advance_recipient_id"];
             isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["advance_recipient_id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
             referencedRelation: "advance_recipients";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_track_progress";
+            referencedColumns: ["advance_recipient_id"];
           },
           {
             foreignKeyName: "advance_submissions_advance_recipient_token_id_fkey";
@@ -6291,6 +6394,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "advance_recipient_tokens";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_advance_section_id_fkey";
+            columns: ["advance_section_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["advance_section_id"];
           },
           {
             foreignKeyName: "advance_submissions_advance_section_id_fkey";
@@ -6322,6 +6432,95 @@ export type Database = {
           },
           {
             foreignKeyName: "advance_submissions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_track_signoffs: {
+        Row: {
+          advance_recipient_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          revoke_reason: string | null;
+          revoked_at: string | null;
+          signed_off_at: string;
+          track: Database["app"]["Enums"]["advance_track"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          advance_recipient_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          revoke_reason?: string | null;
+          revoked_at?: string | null;
+          signed_off_at?: string;
+          track: Database["app"]["Enums"]["advance_track"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          advance_recipient_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          revoke_reason?: string | null;
+          revoked_at?: string | null;
+          signed_off_at?: string;
+          track?: Database["app"]["Enums"]["advance_track"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_track_signoffs_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_progress";
+            referencedColumns: ["advance_recipient_id"];
+          },
+          {
+            foreignKeyName: "advance_track_signoffs_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_recipients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_track_signoffs_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_track_progress";
+            referencedColumns: ["advance_recipient_id"];
+          },
+          {
+            foreignKeyName: "advance_track_signoffs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_track_signoffs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_track_signoffs_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -60715,6 +60914,27 @@ export type Database = {
           },
         ];
       };
+      advance_allocation_heat: {
+        Row: {
+          allocation_count: number | null;
+          approved_quantity: number | null;
+          engagement_id: string | null;
+          issued_quantity: number | null;
+          kind: string | null;
+          lost_quantity: number | null;
+          offering: Database["app"]["Enums"]["offering_kind"] | null;
+          on_order_quantity: number | null;
+          org_id: string | null;
+          party_label: string | null;
+          project_id: string | null;
+          received_quantity: number | null;
+          requested_quantity: number | null;
+          reserved_quantity: number | null;
+          returned_quantity: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       advance_allocation_status: {
         Row: {
           allocation_id: string | null;
@@ -60748,6 +60968,148 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [];
+      };
+      advance_progress: {
+        Row: {
+          advance_packet_id: string | null;
+          advance_recipient_id: string | null;
+          advance_section_id: string | null;
+          cell_state: string | null;
+          due_at: string | null;
+          latest_submission_id: string | null;
+          org_id: string | null;
+          overdue: boolean | null;
+          packet_title: string | null;
+          position: number | null;
+          project_id: string | null;
+          recipient_engagement_id: string | null;
+          recipient_label: string | null;
+          section_kind: Database["app"]["Enums"]["advance_section_kind"] | null;
+          section_title: string | null;
+          submitted_at: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "advance_packets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["recipient_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["recipient_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["recipient_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_engagement_id_fkey";
+            columns: ["recipient_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_track_progress: {
+        Row: {
+          advance_packet_id: string | null;
+          advance_recipient_id: string | null;
+          org_id: string | null;
+          overdue: boolean | null;
+          project_id: string | null;
+          recipient_label: string | null;
+          sections_done: number | null;
+          sections_outstanding: number | null;
+          sections_total: number | null;
+          signed_off_at: string | null;
+          signed_off_by_name: string | null;
+          signoff_id: string | null;
+          track: Database["app"]["Enums"]["advance_track"] | null;
+          track_state: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "advance_packets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       ai_never_send: {
         Row: {
@@ -65354,6 +65716,10 @@ export type Database = {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
+      bulk_update_documents: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
       bulk_update_engaged_allocation_assignments: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
@@ -65382,6 +65748,14 @@ export type Database = {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
+      bulk_update_projects: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_punch_items: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
       bulk_update_purchase_orders: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
@@ -65407,6 +65781,10 @@ export type Database = {
         Returns: Json;
       };
       bulk_update_vendors: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_work_orders: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
@@ -68710,6 +69088,10 @@ export type Database = {
       };
       revoke_account_invitation: { Args: { p_account_invitation_id: string }; Returns: undefined };
       revoke_advance_token: { Args: { p_token_id: string }; Returns: undefined };
+      revoke_advance_track_signoff: {
+        Args: { p_reason: string; p_signoff_id: string };
+        Returns: undefined;
+      };
       revoke_api_key: { Args: { p_api_key_id: string }; Returns: undefined };
       revoke_certification_share: {
         Args: { p_certification_share_id: string };
@@ -68748,6 +69130,19 @@ export type Database = {
       };
       roster_project_facts: { Args: { p_roster_entry_id: string }; Returns: Json };
       roster_project_facts_for_engagement: { Args: { p_engagement_id: string }; Returns: Json[] };
+      roster_readiness: {
+        Args: { p_project_id: string };
+        Returns: {
+          category: string;
+          cell_state: string;
+          engagement_id: string;
+          entry_state: Database["app"]["Enums"]["roster_entry_state"];
+          party_label: string;
+          person_label: string;
+          role_code: string;
+          roster_entry_id: string;
+        }[];
+      };
       roster_shared_work_details: { Args: { p_roster_entry_id: string }; Returns: Json };
       roster_travel_day_counts: {
         Args: { p_project_id: string };
@@ -68964,6 +69359,13 @@ export type Database = {
         }[];
       };
       send_advance_packet: { Args: { p_packet_id: string }; Returns: string };
+      send_advance_reminder_now: {
+        Args: { p_packet_id: string; p_recipient_ids: string[] };
+        Returns: {
+          sent: number;
+          skipped: number;
+        }[];
+      };
       send_agreement: {
         Args: { p_agreement_id: string; p_reason: string; p_valid_for?: string };
         Returns: {
@@ -69255,6 +69657,10 @@ export type Database = {
       };
       sign_engagement_document: {
         Args: { p_document_id: string; p_reason?: string };
+        Returns: string;
+      };
+      sign_off_advance_track: {
+        Args: { p_recipient_id: string; p_track: Database["app"]["Enums"]["advance_track"] };
         Returns: string;
       };
       sign_off_inspection: { Args: { p_inspection_id: string }; Returns: string };
@@ -70040,6 +70446,8 @@ export type Database = {
         | "Crew Roster"
         | "Guest List"
         | "Credential Request";
+      advance_track:
+        "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
       advance_window_kind:
         | "Load In"
         | "Load Out"
@@ -76650,6 +77058,15 @@ export const Constants = {
         "Crew Roster",
         "Guest List",
         "Credential Request",
+      ],
+      advance_track: [
+        "Finance",
+        "Technical",
+        "Hospitality",
+        "Catering",
+        "Travel",
+        "Logistics",
+        "General",
       ],
       advance_window_kind: [
         "Load In",

@@ -2,7 +2,8 @@
 -- after, the highest k reached, at most 5; a project override and an org lock turn them off; a second run sends nothing.
 -- They reach the person, the account's Owner and the Advancing Lead, never an Account Member who is not assigned
 -- (owner decision 6). A manual reminder needs advancing.packet.send and goes at most once a day. Both cron jobs are
--- scheduled. Project facts reminders go only while an offering is on and its fact is missing.
+-- scheduled. Project facts reminders go only while an offering is on and its fact is missing. Neither ledger stops org
+-- deletion or the sandbox purge: each row carries its org and references no subject.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -152,6 +153,13 @@ select app.set_setting(pg_temp.id('org_a'), 'offerings.' || o, 'Organization', n
 from unnest(array['travel', 'uniforms', 'parking']) o;
 select pg_temp.as_platform();
 select is(private.send_roster_fact_reminders(), 0, 'with the offerings off nothing is asked for');
+
+-- Org deletion and the sandbox purge -----------------------------------------------------------------------------------------------
+-- Both purges refuse any marked row outside the org (2741_reminder_ledgers_purge.test.sql purges one of each).
+select ok((select bool_and(org_id = pg_temp.id('org_a')) from private.advance_reminders_sent), 'a packet reminder''s ledger row carries the org');
+select is((select count(*)::int from pg_catalog.pg_constraint k
+  where k.contype = 'f' and k.conrelid in ('private.advance_reminders_sent'::regclass, 'private.roster_fact_reminders_sent'::regclass)
+    and k.confrelid not in ('app.organizations'::regclass, 'app.people'::regclass)), 0, 'and neither ledger holds a foreign key to its subject');
 
 select * from finish();
 rollback;

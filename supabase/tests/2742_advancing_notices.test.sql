@@ -1,7 +1,8 @@
 -- pgTAP: migration 2742 (R11), advancing notices. Each kind fires on its event, to the right people and never to the
 -- person who acted: advance_submission.returned to the recipient's people; submittal.returned to the vendor's Owner and
 -- Advancing Lead, not an unassigned Account Member; roster_entry.removed and roster_entry.facts_requested to the person;
--- roster_entry.share_revoked to the project's packet readers; credential.revoked to the holder. A rostered person who
+-- roster_entry.share_revoked to the project's packet readers; credential.revoked to the holder (2742_credential_revoked_cascades.test.sql
+-- covers R7's cascades, which do not send it). A rostered person who
 -- is no account member gets Email and Push deliveries through private.party_org_ids, which keeps A127's open-offer
 -- branch beside R4's roster branch.
 begin;
@@ -78,11 +79,22 @@ select is((select message_args ->> 'kind' from app.notifications where kind = 'r
   and subject_id = pg_temp.id('e_kai')), 'several', 'for the several facts missing');
 select is(pg_temp.told('carol', 'roster_entry.facts_requested', 'e_kai'), 0, 'the reviewer is not asked');
 
+select pg_temp.new_user('wes', 'wes@touring.test', 'Wes Lindqvist');
+select pg_temp.as_user('victor');
+insert into world select 'e_soft', app.invite_to_roster(pg_temp.id('eng_vendor_a'), 'wes@touring.test');
+select pg_temp.as_user('wes');
+select app.respond_party_invitation('roster', (select i.invitation_id from app.my_pending_invitations() i where i.invitation_kind = 'roster'), true);
 select pg_temp.as_user('victor');
 select app.withdraw_roster_entry(pg_temp.id('e_una'), 'Not touring this leg.');
 select pg_temp.as_platform();
 select is(pg_temp.told('una', 'roster_entry.removed', 'e_una'), 1, 'a withdrawn entry tells its person');
 select is(pg_temp.told('victor', 'roster_entry.removed', 'e_una'), 0, 'not the one who withdrew it');
+
+-- A deleted entry that was never withdrawn tells its person the same way.
+update app.engagement_roster_entries set deleted_at = now() where id = pg_temp.id('e_soft');
+select is(pg_temp.told('wes', 'roster_entry.removed', 'e_soft'), 1, 'a deleted entry tells its person');
+select is((select count(*)::int from app.notifications where kind = 'roster_entry.removed' and subject_id = pg_temp.id('e_soft')), 1,
+  'once');
 
 -- roster_entry.share_revoked ------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('kai');

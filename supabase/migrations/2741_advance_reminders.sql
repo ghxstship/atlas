@@ -6,7 +6,8 @@
 --      advancing.overdue_reminder_every_days (2, 0 to 14; 0 sends no overdue reminder). Org lockable, per project,
 --      edited with advancing.packet.send.
 --   2. Ledgers private.advance_reminders_sent and private.roster_fact_reminders_sent (as 1463): a reminder is written
---      before it is queued, so no run sends it twice.
+--      before it is queued, so no run sends it twice. Each row carries its org and holds no foreign key to its subject,
+--      so org deletion (1351), the sandbox purge (1530) and a hard delete of the subject are never blocked by a ledger.
 --   3. private.advance_reminder_recipients(recipient): the person answering when they can sign in, the account's live
 --      Account Owners and Admins, and the Advancing Leads assigned to the recipient's engagement. Never an unassigned
 --      Account Member (decision 6).
@@ -26,8 +27,9 @@ select private.define_setting('advancing.overdue_reminder_every_days', 'Integer'
 -- 2. Ledgers ------------------------------------------------------------------------------------------------------------------
 
 create table private.advance_reminders_sent (
-  advance_recipient_id uuid not null references app.advance_recipients (id),
+  advance_recipient_id uuid not null,
   recipient_person_id uuid not null references app.people (id),
+  org_id uuid not null references app.organizations (id),
   reminder text not null,
   due_at timestamptz not null,
   sent_at timestamptz not null default now(),
@@ -36,10 +38,12 @@ create table private.advance_reminders_sent (
 );
 
 create index advance_reminders_sent_person_idx on private.advance_reminders_sent (recipient_person_id);
+create index advance_reminders_sent_org_idx on private.advance_reminders_sent (org_id);
 
 comment on table private.advance_reminders_sent is 'Every advance reminder already sent, per recipient, person reminded, reminder and due date (R11). Written before the notification is queued, so no run of private.send_advance_reminders or app.send_advance_reminder_now sends it twice.';
 comment on column private.advance_reminders_sent.advance_recipient_id is 'Recipient of the packet reminded.';
 comment on column private.advance_reminders_sent.recipient_person_id is 'Person reminded.';
+comment on column private.advance_reminders_sent.org_id is 'Org that sent the packet; org deletion (1351) and the sandbox purge (1530) remove the row with it.';
 comment on column private.advance_reminders_sent.reminder is 'due (ahead of the due date), overdue:<k> (the k-th overdue reminder, 1 to 5) or manual (a coordinator''s).';
 comment on column private.advance_reminders_sent.due_at is 'Due date the reminder was for; a moved due date is reminded again. For a manual reminder, the start of the UTC day it was sent, so a recipient is reminded by hand at most once a day.';
 comment on column private.advance_reminders_sent.sent_at is 'When it was sent.';
@@ -49,7 +53,8 @@ revoke all on private.advance_reminders_sent from public, anon, authenticated;
 grant select on private.advance_reminders_sent to service_role;
 
 create table private.roster_fact_reminders_sent (
-  roster_entry_id uuid not null references app.engagement_roster_entries (id),
+  roster_entry_id uuid not null,
+  org_id uuid not null references app.organizations (id),
   threshold_days smallint not null,
   arrival_starts_at timestamptz not null,
   sent_at timestamptz not null default now(),
@@ -57,8 +62,11 @@ create table private.roster_fact_reminders_sent (
   constraint roster_fact_reminders_sent_days check (threshold_days between 1 and 30)
 );
 
+create index roster_fact_reminders_sent_org_idx on private.roster_fact_reminders_sent (org_id);
+
 comment on table private.roster_fact_reminders_sent is 'Every project facts reminder already sent, per roster entry, threshold and arrival (R11). Written before the notification is queued, so private.send_roster_fact_reminders never reminds a threshold twice.';
 comment on column private.roster_fact_reminders_sent.roster_entry_id is 'Roster entry whose person was reminded.';
+comment on column private.roster_fact_reminders_sent.org_id is 'Org of the roster entry; org deletion (1351) and the sandbox purge (1530) remove the row with it.';
 comment on column private.roster_fact_reminders_sent.threshold_days is 'Days before arrival the reminder was for: advancing.reminder_days_before, or 1.';
 comment on column private.roster_fact_reminders_sent.arrival_starts_at is 'Start of the arrival window the reminder was for; a moved arrival is reminded again.';
 comment on column private.roster_fact_reminders_sent.sent_at is 'When it was sent.';
@@ -160,8 +168,8 @@ begin
   for v_person in select x from private.advance_reminder_recipients(p_recipient_id) x loop
     -- The coordinator who reminds by hand is never reminded themselves.
     continue when v_person = private.current_person_id();
-    insert into private.advance_reminders_sent (advance_recipient_id, recipient_person_id, reminder, due_at)
-    values (p_recipient_id, v_person, p_reminder, p_due_at)
+    insert into private.advance_reminders_sent (advance_recipient_id, recipient_person_id, org_id, reminder, due_at)
+    values (p_recipient_id, v_person, v_packet.org_id, p_reminder, p_due_at)
     on conflict do nothing;
     if found then
       perform private.notify(v_packet.org_id, v_person, 'advance_packet.reminder', 'advance_packets', v_packet.id,
@@ -282,8 +290,8 @@ begin
       when v_row.arrives_at - now() <= make_interval(days => v_days::integer) then v_days::integer
     end;
     continue when v_threshold is null;
-    insert into private.roster_fact_reminders_sent (roster_entry_id, threshold_days, arrival_starts_at)
-    values (v_row.id, v_threshold, v_row.arrives_at)
+    insert into private.roster_fact_reminders_sent (roster_entry_id, org_id, threshold_days, arrival_starts_at)
+    values (v_row.id, v_row.org_id, v_threshold, v_row.arrives_at)
     on conflict do nothing;
     continue when not found;
     perform private.notify(v_row.org_id, v_row.person_id, 'roster_entry.facts_requested', 'engagement_roster_entries', v_row.id,

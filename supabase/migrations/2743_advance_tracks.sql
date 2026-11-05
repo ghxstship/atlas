@@ -181,10 +181,37 @@ revoke select on app.advance_track_progress from xos_backup;
 
 -- 4. Gateway --------------------------------------------------------------------------------------------------------------------
 
+-- A security_invoker view applies the end user's policies to its base tables even under a view that is not invoker, and
+-- an external party holds no policy on packets, sections or recipients. So the rows come through a definer read that takes
+-- no argument and answers only for the signed-in person's own recipients.
+create or replace function private.my_advance_track_progress()
+returns table (
+  advance_recipient_id uuid,
+  advance_packet_id uuid,
+  track app.advance_track,
+  sections_total integer,
+  sections_done integer,
+  track_state text,
+  signed_off_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select t.advance_recipient_id, t.advance_packet_id, t.track, t.sections_total, t.sections_done, t.track_state, t.signed_off_at
+  from app.advance_track_progress t
+  where t.advance_recipient_id in (select x.id from api_external.my_advance_recipients x);
+$$;
+
+comment on function private.my_advance_track_progress() is 'R11, G-176: the signed-in person''s own rows of app.advance_track_progress, for the recipients of api_external.my_advance_recipients (Section 8.7). Definer because the progress view runs with the caller''s policies, which give an external party nothing. Takes no argument, so it never answers for anyone else, and returns no signer.';
+revoke all on function private.my_advance_track_progress() from public, anon;
+-- Function calls inside a view run with the caller's execute privilege.
+grant execute on function private.my_advance_track_progress() to authenticated, service_role;
+
 create view api_external.advance_track_progress as
 select t.advance_recipient_id, t.advance_packet_id, t.track, t.sections_total, t.sections_done, t.track_state, t.signed_off_at
-from app.advance_track_progress t
-where t.advance_recipient_id in (select x.id from api_external.my_advance_recipients x);
+from private.my_advance_track_progress() t;
 
 call private.describe('api_external.advance_track_progress', 'Where the caller''s advance recipients stand on each track (R11, G-176): the same recipients as api_external.my_advance_recipients (Section 8.7), with the computed state and when a track was signed off. Who signed off never appears.', array[
   'advance_recipient_id', 'Recipient.', 'advance_packet_id', 'Packet.', 'track', 'Track.',
