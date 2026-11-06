@@ -70693,6 +70693,8 @@ export type Database = {
           engagement_id: string | null;
           has_open_entry: boolean | null;
           membership_id: string | null;
+          period_ends_at: string | null;
+          period_starts_at: string | null;
           project_id: string | null;
           roster_entry_id: string | null;
           timesheet_id: string | null;
@@ -70703,6 +70705,8 @@ export type Database = {
           engagement_id?: string | null;
           has_open_entry?: never;
           membership_id?: string | null;
+          period_ends_at?: never;
+          period_starts_at?: never;
           project_id?: string | null;
           roster_entry_id?: string | null;
           timesheet_id?: string | null;
@@ -70712,6 +70716,8 @@ export type Database = {
           engagement_id?: string | null;
           has_open_entry?: never;
           membership_id?: string | null;
+          period_ends_at?: never;
+          period_starts_at?: never;
           project_id?: string | null;
           roster_entry_id?: string | null;
           timesheet_id?: string | null;
