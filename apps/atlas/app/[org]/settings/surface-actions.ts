@@ -14,12 +14,8 @@ import {
   SPEND_DOCUMENT_TYPES,
   type SpendDocumentType,
 } from "@xos/data/governance";
-import {
-  CUE_FIELD_AUDIENCES,
-  audiencesFor,
-  setCueFieldAudiences,
-  type CueFieldAudience,
-} from "@xos/data/custom-fields";
+import { CUE_FIELD_AUDIENCES, audiencesFor } from "@xos/data/cue-field-audiences";
+import { setCueFieldAudiences, type CueFieldAudience } from "@xos/data/custom-fields";
 import { requireSecondFactor } from "@xos/data/auth-assurance";
 import {
   DATA_REQUEST_MOVES,

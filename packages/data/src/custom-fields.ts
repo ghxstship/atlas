@@ -1,5 +1,6 @@
 import { addCalendarDays, instantOfLocalIn, startOfDayIn } from "./calendar.ts";
 import type { XosClient } from "./client.ts";
+import type { Database } from "./database.types.ts";
 import {
   liveChoices,
   type CustomDataType,
@@ -113,44 +114,8 @@ export async function listCustomFieldDefinitions(
 
 // Cue field audiences (app.cue_field_audiences, 2920) --------------------------------------------------------
 
-/** Who a cue field is for: Crew in Atlas, Showcaller on showcaller links, Client in Gateway (ADR 0142). */
-export const CUE_FIELD_AUDIENCES = ["Crew", "Showcaller", "Client"] as const;
-export type CueFieldAudience = (typeof CUE_FIELD_AUDIENCES)[number];
-
-/** Data types that never go to a showcaller link or a Client: neither has an account or holds money. */
-export const CREW_ONLY_TYPES: readonly CustomDataType[] = ["Person", "Money", "Email"];
-
-/** The audiences a field of this type may take. */
-export function audiencesFor(type: CustomDataType): readonly CueFieldAudience[] {
-  return CREW_ONLY_TYPES.includes(type) ? ["Crew"] : CUE_FIELD_AUDIENCES;
-}
-
-/** The live audiences of the org's cue fields, by definition id. */
-export async function listCueFieldAudiences(
-  db: XosClient,
-  orgId: string,
-): Promise<Result<ReadonlyMap<string, readonly CueFieldAudience[]>>> {
-  const { data, error } = await untyped(db)
-    .from("cue_field_audiences")
-    .select("custom_field_definition_id, audience")
-    .eq("org_id", orgId)
-    .is("deleted_at", null);
-  if (error) return fail(toDataError(error));
-  const byField = new Map<string, CueFieldAudience[]>();
-  for (const r of (data ?? []) as {
-    custom_field_definition_id: string;
-    audience: CueFieldAudience;
-  }[]) {
-    byField.set(r.custom_field_definition_id, [
-      ...(byField.get(r.custom_field_definition_id) ?? []),
-      r.audience,
-    ]);
-  }
-  for (const list of byField.values()) {
-    list.sort((a, b) => CUE_FIELD_AUDIENCES.indexOf(a) - CUE_FIELD_AUDIENCES.indexOf(b));
-  }
-  return ok(byField);
-}
+/** Who a cue field is for (ADR 0142). The list itself is in cue-field-audiences.ts, which client code never imports. */
+export type CueFieldAudience = Database["app"]["Enums"]["cue_field_audience"];
 
 /**
  * Makes a cue field's audiences exactly `audiences`: adds the missing ones and removes the rest (soft delete).

@@ -5,15 +5,15 @@ import { intervalSeconds, isSegmentColor, type SegmentColor } from "./show.ts";
 import { untyped } from "./untyped.ts";
 
 /**
- * The segment library (B3, ADR 0142 decision 8; migration 2921): an org's reusable show segments, each a named block
+ * The segment library (B3, ADR 0142 decision 9; migration 2921): an org's reusable show segments, each a named block
  * of cues with their department calls, copied into running orders and republished to them when the library copy
  * changes (Global Elements Manager semantics: a publish replaces the copy's uncalled cues, local edits included).
  *
- * - Members read the library; holders of show.run_of_show.write org-wide edit it. Table writes go under row level
+ * - Readers of running orders read the library, org-wide or from one project; holders of show.run_of_show.write
+ *   org-wide edit it. Table writes go under row level
  *   security; the database keeps each segment's version and caps it at 100 cues.
  * - {@link insertLibrarySegment} and {@link publishLibrarySegment} are definer RPCs, one transaction each, that
  *   renumber the running order and refuse a place at or before the last called cue or a run past 300 cues.
- * - The tables are newer than the generated data types, so every row is mapped here (untyped.ts).
  */
 
 export interface LibrarySegment {

@@ -4,8 +4,8 @@ import {
   audiencesFor,
   CUE_FIELD_AUDIENCES,
   listCueFieldAudiences,
-  setCueFieldAudiences,
-} from "../src/custom-fields.ts";
+} from "../src/cue-field-audiences.ts";
+import { setCueFieldAudiences } from "../src/custom-fields.ts";
 import { readClientCueFields } from "../src/gateway-operations.ts";
 import { addCustomFieldChoice, setCustomFieldChoiceColor } from "../src/governance.ts";
 import {

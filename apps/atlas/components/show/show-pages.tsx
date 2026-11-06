@@ -1,9 +1,6 @@
 import { listAttachments } from "@xos/data/attachments";
-import {
-  listCueFieldAudiences,
-  listCustomFieldDefinitions,
-  listCustomFieldValues,
-} from "@xos/data/custom-fields";
+import { listCueFieldAudiences } from "@xos/data/cue-field-audiences";
+import { listCustomFieldDefinitions, listCustomFieldValues } from "@xos/data/custom-fields";
 import { listThreads } from "@xos/data/comments";
 import {
   cueCallKindOf,

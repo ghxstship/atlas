@@ -6,6 +6,7 @@
  * inserting a segment into a running order and publishing it are definer RPCs, one transaction each.
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
@@ -115,7 +116,7 @@ const CueFieldAudience = editDefinition(
     fields: {
       custom_field_definition_id: fields.ref("cue custom field"),
       audience: z
-        .enum(["Crew", "Showcaller", "Client"])
+        .enum(Constants.app.Enums.cue_field_audience)
         .meta({ description: "Who the field is for.", example: "Client" }),
     },
   }),
@@ -253,7 +254,7 @@ const projectBody = (id: string) =>
     .object({ project_id: fields.ref("project of the show channel") })
     .meta({ id, description: "The project whose show channel to use." });
 
-/** Show channel actions on Workforce groups (2922, ADR 0142 decision 9): Clients are never in the channel. */
+/** Show channel actions on Workforce groups (2922, ADR 0142 decision 10): Clients are never in the channel. */
 export const showChannelActions = [
   collectionAction("openShowChannel", {
     segment: "open-show-channel",

@@ -11,7 +11,7 @@ import {
   listSpendAuthorities,
   SPEND_DOCUMENT_TYPES,
 } from "@xos/data/governance";
-import { audiencesFor, listCueFieldAudiences } from "@xos/data/custom-fields";
+import { audiencesFor, listCueFieldAudiences } from "@xos/data/cue-field-audiences";
 import { listSettingValues } from "@xos/data/settings";
 import { SEGMENT_COLORS, isSegmentColor } from "@xos/data/show";
 import { Tag } from "@xos/ui";

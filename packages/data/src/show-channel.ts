@@ -3,7 +3,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
 /**
- * Show channels (B3, ADR 0142 decision 9; migration 2922): a project's crew chat beside the running cue, a Project
+ * Show channels (B3, ADR 0142 decision 10; migration 2922): a project's crew chat beside the running cue, a Project
  * group marked show_channel, one live per project. Clients are never in it: the database refuses to add one, hides
  * the channel from a member who becomes one, and never notifies one. The messages themselves are the group's chat
  * (workforce-chat.ts listMessages and sendMessage, app.send_chat_message).
