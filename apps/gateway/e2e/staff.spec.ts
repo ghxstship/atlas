@@ -345,11 +345,10 @@ test("journey 42: slate, award, roster, training before positions, slots, placem
         [PROJECT, kind, shiftOne, ...PIER],
       );
     }
-    // Two days wide: periods still compare clock-ins on UTC days, so an evening shift in the Americas counts on the next.
     const sheetFor = async (entry: string) => {
       const [row] = await sql<{ id: string }>(
         `insert into app.timesheets (project_id, roster_entry_id, period_start, period_end)
-         values ($1, $2, $3::date, $3::date + 1) returning id`,
+         values ($1, $2, $3::date, $3::date) returning id`,
         [PROJECT, entry, projectDay()],
         PEOPLE.owner,
       );
