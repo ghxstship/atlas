@@ -250,6 +250,7 @@ describe("invoice and receipt lines", () => {
         kind,
         document: textDoc("Many lines."),
         fileName: "long.txt",
+        subject: null,
       });
       expect(result).toMatchObject({ kind: "failed", code: "model_output_invalid" });
       expect(log.completed[0]).toMatchObject({
