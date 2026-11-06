@@ -4,7 +4,8 @@ StatusHeatmap crosses rows with columns, one state per cell: the recipients of a
 people on a roster by readiness category, or the parties of a project by offering (R11, Section 11.11).
 
 - Props: `label`, `corner`, `rows` (`{ id, label, sublabel }`), `cols` (`{ id, label }`), `cells` keyed
-  `<row id>:<col id>` to `{ state, href, detail }`, `legend` (`{ state, icon, label }`), optional `selection` for a
+  `<row id>:<col id>` to `{ state, href, detail, readOnly }` (`detail` shows under the state; a `readOnly` cell keeps its
+  focus but opens nothing), `legend` (`{ state, icon, label }`), optional `selection` for a
   bulk action on rows, and `onCellSelect`.
 - An ARIA grid with `useGridFocus`, like CoordinateMatrix: arrows move between cells, Home and End go to the row's
   ends (with Ctrl or Cmd, the grid's), and Enter or Space opens a cell (`onCellSelect`, else the cell's `href`).

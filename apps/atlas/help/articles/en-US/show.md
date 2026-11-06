@@ -2,7 +2,16 @@
 title: Run of show, day sheets and call sheets
 summary: Build the running order of a show, run it live with cues, and publish day and call sheets.
 kind: page
-nodes: [show.run-of-show, show.day-sheets, show.call-sheets, show.show-day, show.segments, project.show, show]
+nodes:
+  [
+    show.run-of-show,
+    show.day-sheets,
+    show.call-sheets,
+    show.show-day,
+    show.segments,
+    project.show,
+    show,
+  ]
 order: 22
 ---
 
@@ -41,6 +50,7 @@ Put the running order on any TV or laptop with no sign-in. Open the running orde
 - **Backstage** shows the cue on now, the next cue with its planned time, the three after it, and whether the show is running late.
 
 When a cue runs past its duration the timer turns red and reads **Over by** the time, until the next cue is called. On the screen, keys 1, 2 and 3 switch modes, **Open in new window** pops the screen out to a second display, and **Fullscreen** fills the screen. The screen follows cues within a few seconds of them being called. Revoke the link to take it off every screen.
+
 ### Edit the running order as a grid
 
 Choose **Edit as grid** to type the cues like a spreadsheet: Time, Duration, Label, Segment and TBC, in running order. Time takes shorthand such as 830p or 20:30, and +1 marks a cue after midnight; Duration takes 45, 45m or 1h30. Typing in the last row adds a cue, and **Move up** and **Move down** reorder. Called cues, and the cues before the last called one, keep their places. **Save** previews; **Apply** writes every row or none and renumbers the cues.

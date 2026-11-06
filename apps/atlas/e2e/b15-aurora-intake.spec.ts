@@ -125,9 +125,12 @@ test("contracts: a contract and a rider of one act book one engagement, and a re
   const act = `Owls ${uniqueId()}`;
   // The act's party exists, so the review preselects it on the one exact match.
   await sql(
-    "select app.create_counterparty((select org_id from app.projects where id = $1), $2, null, null)",
+    `with me as (
+       select set_config('request.jwt.claims', json_build_object('sub', u.id, 'role', 'authenticated')::text, true)
+       from auth.users u where u.email = 'owner@example.com')
+     select app.create_counterparty((select org_id from app.projects where id = $1), $2, null, null) from me`,
     [project, act],
-  ).catch(() => undefined);
+  );
   await page.goto(`/${ORG}/p/${projectKey}/engagements`);
   await settle(page);
   await page.getByRole("button", { name: "Read Contracts and Riders", exact: true }).click();
@@ -156,9 +159,8 @@ test("contracts: a contract and a rider of one act book one engagement, and a re
   await expect(
     panel.getByText("This fee is a total. Enter the rate per unit.").first(),
   ).toBeVisible();
-  const party = group.getByLabel("Party", { exact: true });
-  const parties = await party.locator("option").allTextContents();
-  await party.selectOption({ label: parties.find((p) => p === act) ?? parties[1] ?? "" });
+  // Preselected on the one exact match of the act's name, and nothing else.
+  await expect(group.getByLabel("Party", { exact: true }).locator("option:checked")).toHaveText(act);
   for (const other of await panel.getByTestId("contract-group").all()) {
     if (!(await other.textContent())?.includes(act)) {
       await other.getByRole("checkbox").first().uncheck();

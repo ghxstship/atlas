@@ -125,7 +125,13 @@ describe("day sheet version 3 (B7)", () => {
       v3.blocks
         .filter((b) => b.kind === "heading" || b.kind === "table")
         .map((b) => ("text" in b ? b.text : b.caption)),
-    ).toEqual(["Notes for the day", "Local contacts", "Calls", "Schedule", `Cues: ${RUN.run.name}`]);
+    ).toEqual([
+      "Notes for the day",
+      "Local contacts",
+      "Calls",
+      "Schedule",
+      `Cues: ${RUN.run.name}`,
+    ]);
   });
 
   it("prints version 3 for an audience, even for a sheet issued before it", () => {

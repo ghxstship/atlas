@@ -123,7 +123,9 @@ const LISTLESS_SCOPES: ReadonlySet<string> = new Set(["show"]);
  */
 export function scopesMeet(a: string, b: string): boolean {
   if (a === b || a === GLOBAL_SCOPE || b === GLOBAL_SCOPE) return true;
-  return (a === LIST_SCOPE && !LISTLESS_SCOPES.has(b)) || (b === LIST_SCOPE && !LISTLESS_SCOPES.has(a));
+  return (
+    (a === LIST_SCOPE && !LISTLESS_SCOPES.has(b)) || (b === LIST_SCOPE && !LISTLESS_SCOPES.has(a))
+  );
 }
 
 /**

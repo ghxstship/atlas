@@ -120,7 +120,9 @@ export function CancelForm({
       <Textarea
         name="reason"
         label={t("approvals.cancel.reason")}
-        help={t(withdrawsRequest ? "approvals.cancel.equipmentHelp" : "approvals.cancel.reasonHelp")}
+        help={t(
+          withdrawsRequest ? "approvals.cancel.equipmentHelp" : "approvals.cancel.reasonHelp",
+        )}
         maxLength={500}
         rows={2}
         width="100%"

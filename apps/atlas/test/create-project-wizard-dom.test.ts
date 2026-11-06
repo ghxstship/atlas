@@ -71,9 +71,9 @@ describe("the staged intake's start (B14)", () => {
     await user.click(screen.getByRole("radio", { name: /Concert/ }));
     const form = view.container.querySelector("form") as HTMLFormElement;
     await waitFor(() => expect(new FormData(form).get("startFrom")).toBe("type"));
-    expect((screen.getByRole("radio", { name: /A past project/ }) as HTMLInputElement).checked).toBe(
-      false,
-    );
+    expect(
+      (screen.getByRole("radio", { name: /A past project/ }) as HTMLInputElement).checked,
+    ).toBe(false);
   });
 
   it("shows a refusal on a field no step holds", async () => {

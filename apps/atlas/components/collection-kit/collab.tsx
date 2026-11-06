@@ -33,13 +33,7 @@ export function CollabPanels(props: CollabPanelsProps) {
 }
 
 /** Loads the comments and attachments of one A16 row and renders their panels. */
-async function LoadedCollabPanels({
-  ctx,
-  table,
-  id,
-  history = true,
-  children,
-}: CollabPanelsProps) {
+async function LoadedCollabPanels({ ctx, table, id, history = true, children }: CollabPanelsProps) {
   const db = ctx.viewer.db;
   const subject = { table, id };
   const [threads, attachments, members, t] = await Promise.all([

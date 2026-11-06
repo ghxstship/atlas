@@ -34,7 +34,9 @@ export async function subjectWithdrawal(
   ];
   const db = ctx.viewer.db;
   const [held, operations] = await Promise.all([
-    Promise.all(moduleProjects.map(async (id) => [id, await myModuleCapabilities(db, id)] as const)),
+    Promise.all(
+      moduleProjects.map(async (id) => [id, await myModuleCapabilities(db, id)] as const),
+    ),
     others.some((s) => s.dockSlotId !== null) ? getOperationsAccess(db, ctx.org.id) : null,
   ]);
   const passWriter = new Set(

@@ -33,7 +33,8 @@ function viewer(
   const rpc = async (name: string, args: { p_project_id: string; p_capabilities: string[] }) => {
     if (name !== "my_capabilities_on_project") throw new Error(`Unexpected call ${name}`);
     const mine = held[args.p_project_id];
-    if (!mine) return { data: null, error: { code: "XX000", message: "Down.", details: "", hint: "" } };
+    if (!mine)
+      return { data: null, error: { code: "XX000", message: "Down.", details: "", hint: "" } };
     return { data: args.p_capabilities.filter((c) => mine.includes(c)), error: null };
   };
   return {

@@ -2,7 +2,16 @@
 title: Guion del espectáculo, hojas del día y hojas de llamado
 summary: Arme el orden de un espectáculo, ejecútelo en vivo con señales y publique hojas del día y de llamado.
 kind: page
-nodes: [show.run-of-show, show.day-sheets, show.call-sheets, show.show-day, show.segments, project.show, show]
+nodes:
+  [
+    show.run-of-show,
+    show.day-sheets,
+    show.call-sheets,
+    show.show-day,
+    show.segments,
+    project.show,
+    show,
+  ]
 order: 22
 ---
 
@@ -41,6 +50,7 @@ Muestre el guion en cualquier televisor o laptop sin iniciar sesión. Abra el gu
 - **Backstage** muestra la señal en curso, la siguiente con su hora prevista, las tres que siguen y si el espectáculo va atrasado.
 
 Cuando una señal excede su duración, el temporizador se pone rojo y dice **Excedido por** el tiempo, hasta que se llama la siguiente señal. En la pantalla, las teclas 1, 2 y 3 cambian de modo, **Abrir en una ventana nueva** lleva la pantalla a un segundo monitor y **Pantalla completa** la llena. La pantalla sigue las señales a los pocos segundos de llamarse. Revoque el enlace para quitarlo de todas las pantallas.
+
 ### Editar el orden de presentación como cuadrícula
 
 Elija **Editar como cuadrícula** para escribir los cues como en una hoja de cálculo: Hora, Duración, Etiqueta, Segmento y Por confirmar, en el orden de presentación. La hora acepta formas cortas como 8:30 p. m. o 20:30, y +1 marca un cue después de la medianoche; Duración acepta 45, 45m o 1h30. Escribir en la última fila agrega un cue, y **Subir** y **Bajar** reordenan. Los cues llamados, y los que van antes del último llamado, conservan su lugar. **Guardar** muestra la vista previa; **Aplicar** escribe todas las filas o ninguna y renumera los cues.
