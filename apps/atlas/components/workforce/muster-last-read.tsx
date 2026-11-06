@@ -18,7 +18,7 @@ export function MusterLastRead({
   failed: boolean;
   note: string;
   fallback: ReactNode;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   const [kept, setKept] = useState<ReactNode>(failed ? null : children);
   if (!failed && kept !== children) setKept(children);

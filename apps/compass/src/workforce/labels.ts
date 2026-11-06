@@ -428,9 +428,7 @@ export function doorLabels(t: T): DoorCheckInScreenLabels {
     checkPass: t(`${C}.door.checkPass`),
     passNotListed: t(`${C}.door.passNotListed`),
     passUsed: (name, at) =>
-      at
-        ? t(`${C}.door.passUsedAt`, { name, time: when(at) })
-        : t(`${C}.door.passUsed`, { name }),
+      at ? t(`${C}.door.passUsedAt`, { name, time: when(at) }) : t(`${C}.door.passUsed`, { name }),
     passOffline: t(`${C}.door.passOffline`),
     passType: (name) => t(`${C}.door.passType`, { name }),
     table: (table) => t(`${C}.door.table`, { table }),

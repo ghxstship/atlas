@@ -103,9 +103,7 @@ export async function MusterSection({
               <ErrorPanel what={t("muster.what")} />
             </>
           }
-        >
-          {null}
-        </MusterLastRead>
+        />
       </CollectionPage>
     );
   }
