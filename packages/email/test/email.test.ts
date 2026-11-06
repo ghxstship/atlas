@@ -97,6 +97,32 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     signInUrl: "https://gateway.xos.test/auth/sign-in",
   },
   approval_link_code: { code: "482913", orgName: "Northwind Live", expiresInMinutes: 10 },
+  legal_clock_alert: {
+    audience: "operator",
+    overdue: 1,
+    dueSoon: 1,
+    items: [
+      {
+        reference: "LQ-2026-00001",
+        matter: "DMCA Counter-Notice",
+        clock: "Due",
+        at: new Date("2026-11-17T04:59:59Z"),
+        overdue: true,
+      },
+      { reference: "LQ-2026-00002", clock: "First Response", at: when, overdue: false },
+    ],
+    queueUrl: "https://console.xos.test/legal-queue",
+  },
+  moderation_notice: {
+    kind: "moderation_appeal.decided",
+    args: {
+      title: "Summer Series Riggers",
+      outcome: "Upheld",
+      statement: "We applied again and were not asked for a fee.",
+      reviewer: "same",
+      reviewerName: "",
+    },
+  },
 };
 
 /** Notification kinds seeded in migrations 0520 and 0560, the database side of the catalog. */
@@ -206,6 +232,76 @@ describe("catalog", () => {
         "UTC",
       ),
     ).toContain("November 4, 2026");
+  });
+
+  it("tells the person who re-reviewed an appeal, and never implies a second employee (6168)", () => {
+    const args = { title: "Riggers", outcome: "Upheld", statement: "Stands.", reviewerName: "" };
+    const same = { ...args, reviewer: "same" };
+    expect(formatMessage("en-US", "kinds.moderation_appeal.decided.body", same)).toBe(
+      "We looked at your appeal afresh and kept the decision. The person who made the first decision did this review, because GHXSTSHIP is a small team. Stands.",
+    );
+    expect(formatMessage("es-US", "kinds.moderation_appeal.decided.body", same)).toContain(
+      "La persona que tomó la primera decisión hizo esta revisión",
+    );
+    expect(
+      formatMessage("en-US", "kinds.moderation_appeal.decided.body", {
+        ...args,
+        reviewer: "outside",
+        reviewerName: "Noor Adeyemi",
+      }),
+    ).toContain("Noor Adeyemi, an outside reviewer, did this review.");
+    for (const locale of ["en-US", "es-US"] as const) {
+      for (const reviewer of ["same", "outside", "other"]) {
+        expect(
+          formatMessage(locale, "kinds.moderation_appeal.decided.body", { ...args, reviewer }),
+        ).not.toMatch(/Another reviewer|Otra persona/);
+      }
+    }
+  });
+
+  it("names every legal queue matter in both languages (6165)", () => {
+    const enums = readFileSync(
+      new URL("../../data/src/enums.generated.ts", import.meta.url),
+      "utf8",
+    );
+    const list = /legalQueueMatter = \[([^\]]*)\]/.exec(enums)?.[1] ?? "";
+    const matters = [...list.matchAll(/"([^"]+)"/g)].map((m) => m[1] ?? "");
+    expect(matters.length).toBeGreaterThan(0);
+    for (const locale of ["en-US", "es-US"] as const) {
+      for (const matter of matters) {
+        expect(hasMessage(locale, `legal_clock_alert.matters.${matter}`), matter).toBe(true);
+      }
+    }
+  });
+
+  it("gives a legal clock alert a link only for an operator, and never the matter to anyone else", async () => {
+    const render = (audience: "operator" | "backup" | "reviewer") =>
+      renderEmail(
+        "legal_clock_alert",
+        {
+          audience,
+          overdue: 1,
+          dueSoon: 0,
+          items: [
+            {
+              reference: "LQ-2026-00007",
+              clock: "Due",
+              at: new Date("2026-11-17T04:59:59Z"),
+              overdue: true,
+            },
+          ],
+          queueUrl: "https://console.xos.test/legal-queue",
+        },
+        { locale: "en-US", sender, recipientName: "Dave", timeZone: "America/New_York" },
+      );
+    const operator = await render("operator");
+    expect(operator.subject).toBe("XOS legal queue: 1 clock is overdue");
+    expect(operator.html).toContain("https://console.xos.test/legal-queue");
+    expect(operator.text).toContain("November 16, 2026 at 11:59");
+    const backup = await render("backup");
+    expect(backup.html).not.toContain("console.xos.test");
+    expect(backup.text).toContain("backup contact");
+    expect((await render("reviewer")).text).toContain("outside reviewer");
   });
 
   it("never ships a raw key or an unfilled argument", () => {

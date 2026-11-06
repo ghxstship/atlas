@@ -363,6 +363,7 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | Secret                                                           | Notes                                                                                                                                                     |
 | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `XOS_API_JWT_SIGNING_KEY`                                        | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                                                           |
+| `XOS_CONSOLE_URL`                                                | `https://console.ghxstship.tech`; the link in a legal queue alert. Without it the alert has no link (ADR 0167)                                            |
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`           | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)                                                  |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`        | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key                                            |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`                | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, at cutover, once the domain passes its checks and `XOS_POSTAL_ADDRESS` is set (ADR 0033, decision 41) |
@@ -497,6 +498,38 @@ becomes downloadable after the next run.
 
 Renovate proposes new `clamav/clamav` tags. Update ADR 0001 and `infra/scanning/docker-compose.yaml`
 together. Roll hosts one at a time; while one restarts, scans retry with backoff.
+
+## Legal queue and mailboxes (OWNER)
+
+Everything with a legal clock lives in the console at `/legal-queue` (ADR 0167). Only an Administrator with a second factor reaches it. `xos_sweep_legal_queue` (pg_cron, hourly at :11) reads the feeds and raises the alerts; migrations create it.
+
+**1. Route the mailboxes.** Each public mailbox must reach a person who checks it daily, and each message that starts a clock goes into the queue the day it arrives, with the time it arrived. The clock starts then, not when it is entered.
+
+| Mailbox                        | Add to the queue as                                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `privacy@ghxstship.tech`       | Data subject request, from Brazil, appeal, deletion by email, privacy complaint, Customer's request for help |
+| `copyright@ghxstship.tech`     | DMCA notice, DMCA counter-notice                                                                             |
+| `abuse@ghxstship.tech`         | Abuse report, intimate image, child sexual abuse material                                                    |
+| `security@ghxstship.tech`      | Security report, personal data breach                                                                        |
+| `accessibility@ghxstship.tech` | Accessibility report, accessibility review request                                                           |
+| `legal@ghxstship.tech`         | Government data request, return of omitted data, another written promise                                     |
+| `support@ghxstship.tech`       | Accessibility reports and manual cancel and refund promises, when they arrive there                          |
+
+Give each mailbox an auto-reply saying it was received and when to expect an answer, using only the numbers the published documents state.
+
+**2. Connect the alert paths.**
+
+- Confirm the `subprocessor-notices` worker runs every minute. It sends the alerts, so they stop when it stops.
+- Set the Edge Function secret `XOS_CONSOLE_URL`.
+- Save the on-call webhook in Vault, the same value as the `XOS_ALERT_WEBHOOK_URL` repository secret: `select vault.create_secret('<webhook url>', 'xos_alert_webhook_url');`
+- Before `XOS_EMAIL_DELIVER_TO_ANY` is on, keep the operator's address and any backup contact in `XOS_EMAIL_ALLOWLIST`, or alerts are refused.
+- Check the queue page after setup. It says when alert email is stuck or has failed, when an overdue clock has had no alert in 26 hours (the sweep is down), and when the on-call channel is not connected.
+
+**3. Name a backup contact.** Add one on the queue page, on a different provider from the owner's inbox. They get overdue alerts only, with references and dates and never the matter. Tell them what to do when one arrives: reach the owner by phone. Add a person, not another of your own addresses.
+
+**4. Outside reviewer (optional).** Appoint one on the queue page only after signing an agreement that covers confidentiality and data protection, and after deciding whether they belong on the Subprocessor List. From then on every moderation appeal goes to them, and the operator only records their decision. Update Acceptable Use Policy 7 and the Contact Page the same day.
+
+**5. Each January.** Read the government request count on the queue page and publish it at `/legal`, zero included (DPA 13.6). The first count covers the first full calendar year after the DPA takes effect.
 
 ## Legal change notices (OWNER)
 

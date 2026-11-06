@@ -883,7 +883,8 @@
       "submit": "Add backup contact",
       "done": "Backup contact added.",
       "remove": "Remove",
-      "removeLabel": "Remove {name}"
+      "removeLabel": "Remove {name}",
+      "line": "{name}, {email}"
     },
     "reviewer": {
       "title": "Outside reviewer",

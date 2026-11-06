@@ -883,7 +883,8 @@
       "submit": "Agregar contacto de respaldo",
       "done": "Contacto de respaldo agregado.",
       "remove": "Quitar",
-      "removeLabel": "Quitar a {name}"
+      "removeLabel": "Quitar a {name}",
+      "line": "{name}, {email}"
     },
     "reviewer": {
       "title": "Revisor externo",

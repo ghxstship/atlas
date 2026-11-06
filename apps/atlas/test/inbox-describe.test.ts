@@ -273,6 +273,8 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     title: "Festival Riggers",
     outcome: "Upheld",
     statement: "The fee request breaks the marketplace rules.",
+    reviewer: "same",
+    reviewerName: "",
   },
 };
 

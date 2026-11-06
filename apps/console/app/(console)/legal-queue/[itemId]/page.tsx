@@ -29,7 +29,10 @@ export default async function LegalQueueItemPage({ params }: PageProps<"/legal-q
   const { itemId } = await params;
   if (!z.uuid().safeParse(itemId).success) notFound();
   const ctx = await requirePermission("legal.queue");
-  const [detail, format] = await Promise.all([getLegalQueueItem(ctx.db, itemId), getConsoleFormat()]);
+  const [detail, format] = await Promise.all([
+    getLegalQueueItem(ctx.db, itemId),
+    getConsoleFormat(),
+  ]);
   if (!detail.ok) {
     if (detail.error.kind === "not-found") notFound();
     throw new Error(`Cannot read the legal queue item: ${detail.error.kind}`);
@@ -76,7 +79,9 @@ export default async function LegalQueueItemPage({ params }: PageProps<"/legal-q
     ...(item.requesterContact
       ? [{ label: t("legalQueue.facts.contact"), value: item.requesterContact }]
       : []),
-    ...(item.subjectName ? [{ label: t("legalQueue.facts.subject"), value: item.subjectName }] : []),
+    ...(item.subjectName
+      ? [{ label: t("legalQueue.facts.subject"), value: item.subjectName }]
+      : []),
     ...(item.details ? [{ label: t("legalQueue.facts.details"), value: item.details }] : []),
     ...(item.courtActionFiled
       ? [{ label: t("legalQueue.facts.courtAction"), value: t("common.yes") }]

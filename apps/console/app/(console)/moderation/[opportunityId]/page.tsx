@@ -171,7 +171,9 @@ export default async function ListingPage({ params }: PageProps<"/moderation/[op
                       <span>{t("moderation.appealRecord", { notes: a.reReviewNotes })}</span>
                     ) : null}
                     {a.outsideReviewerName ? (
-                      <span>{t("moderation.reviewerOutside", { name: a.outsideReviewerName })}</span>
+                      <span>
+                        {t("moderation.reviewerOutside", { name: a.outsideReviewerName })}
+                      </span>
                     ) : a.sameReviewer ? (
                       <span>{t("moderation.reviewerSame")}</span>
                     ) : null}

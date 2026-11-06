@@ -165,39 +165,39 @@ export async function dispatchPlatformEmails(
                 },
               })
             : claim.template === "party_invitation"
-          ? await sendEmail({
-              ...common,
-              template: "party_invitation",
-              props: {
-                kind: claim.args["kind"] === "roster" ? "roster" : "account",
-                inviterName: text(claim.args["inviter_name"]),
-                accountName: text(claim.args["account_name"]),
-                projectName: text(claim.args["project_name"]),
-                partyName: text(claim.args["party_name"]),
-                expiresAt: new Date(str(claim.args["expires_at"], "expires_at")),
-                signInUrl: gatewaySignInUrl(options.gatewayUrl ?? options.appUrl),
-              },
-            })
-          : claim.template === "subprocessor_confirm"
-            ? await sendEmail({
-                ...common,
-                template: "subprocessor_confirm",
-                props: {
-                  confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
-                },
-              })
-            : await sendEmail({
-                ...common,
-                template: "subprocessor_notice",
-                props: {
-                  listVersion: str(claim.args["list_version"], "list_version"),
-                  summary: str(claim.args["summary"], "summary"),
-                  effectiveOn: new Date(
-                    `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
-                  ),
-                  listUrl: links.list,
-                },
-              });
+              ? await sendEmail({
+                  ...common,
+                  template: "party_invitation",
+                  props: {
+                    kind: claim.args["kind"] === "roster" ? "roster" : "account",
+                    inviterName: text(claim.args["inviter_name"]),
+                    accountName: text(claim.args["account_name"]),
+                    projectName: text(claim.args["project_name"]),
+                    partyName: text(claim.args["party_name"]),
+                    expiresAt: new Date(str(claim.args["expires_at"], "expires_at")),
+                    signInUrl: gatewaySignInUrl(options.gatewayUrl ?? options.appUrl),
+                  },
+                })
+              : claim.template === "subprocessor_confirm"
+                ? await sendEmail({
+                    ...common,
+                    template: "subprocessor_confirm",
+                    props: {
+                      confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                    },
+                  })
+                : await sendEmail({
+                    ...common,
+                    template: "subprocessor_notice",
+                    props: {
+                      listVersion: str(claim.args["list_version"], "list_version"),
+                      summary: str(claim.args["summary"], "summary"),
+                      effectiveOn: new Date(
+                        `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
+                      ),
+                      listUrl: links.list,
+                    },
+                  });
       await store.finish(claim.id, true, result.providerMessageId, null);
       sent += 1;
     } catch (error) {

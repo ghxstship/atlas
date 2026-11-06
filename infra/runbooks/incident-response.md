@@ -2,6 +2,10 @@
 
 This is the operational runbook for the Incident Response Policy (`legal/policies/incident-response.md`, owner A21). The policy defines severities, roles and notification duties. This runbook says what to do, minute by minute. Every synthetic check alert links to a section below.
 
+## With one person on the team
+
+Every role below can be one person, and today it is. Do not wait for someone to hand over to: you are the Incident Commander, the Communications Lead and the Privacy Officer, so do each step yourself in the order given. A SEV1 or SEV2 "immediately, 24x7" start means as soon as an alert reaches you. Add every incident with personal data to the Legal Queue (`/legal-queue`, Personal data breach) so the 48-hour and 72-hour clocks alert you. If an outside firm is ever named for incidents, call it at step 5.
+
 ## First 15 minutes
 
 1. **Acknowledge** the alert in the on-call channel: "I have it." You are the Incident Commander (IC) until you hand over.

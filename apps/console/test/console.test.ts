@@ -214,3 +214,54 @@ describe("console copy", () => {
     }
   });
 });
+
+/** The legal queue (ADR 0167): every clock in the migration has its words, and no copy promises a second person. */
+describe("legal queue copy", () => {
+  const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+  const messages = (locale: string, namespace: string) =>
+    JSON.parse(
+      readFileSync(join(repoRoot, `packages/i18n/messages/${locale}/${namespace}.json`), "utf8"),
+    ) as Record<string, Record<string, Record<string, Record<string, string>>>>;
+  const migration = readFileSync(
+    join(repoRoot, "supabase/migrations/6165_legal_queue.sql"),
+    "utf8",
+  );
+  const rules = [
+    ...migration.matchAll(
+      /^ {2}\('([a-z_]+)', '[^']+', '(?:Statute|Published Promise|Internal Target|Customer Clock)'/gm,
+    ),
+  ].map((m) => m[1] ?? "");
+
+  it.each(["en-US", "es-US"])("labels and sources every rule in %s", (locale) => {
+    expect(rules).toContain("dmca_counter_notice");
+    const catalog = messages(locale, "console")["legalQueue"]?.["rules"] ?? {};
+    expect(Object.keys(catalog).sort()).toEqual([...rules].sort());
+    for (const rule of rules) {
+      expect(catalog[rule]?.["label"], rule).toBeTruthy();
+      expect(catalog[rule]?.["source"], rule).toBeTruthy();
+    }
+  });
+
+  it.each(["en-US", "es-US"])("names every refusal the queue raises in %s", (locale) => {
+    const sql = ["6165_legal_queue", "6166_legal_queue_console", "6168_one_person_appeal_rule"]
+      .map((file) => readFileSync(join(repoRoot, `supabase/migrations/${file}.sql`), "utf8"))
+      .join("\n");
+    const raised = new Set(
+      [...sql.matchAll(/private\.refuse\('([a-z_]+)'/g)].map((m) => m[1] ?? ""),
+    );
+    expect(raised.size).toBeGreaterThan(10);
+    const refusals = messages(locale, "console")["refusals"] as unknown as Record<string, string>;
+    for (const rule of raised) expect(refusals[rule], rule).toBeTruthy();
+    expect(refusals["moderation_appeal_same_operator"]).toBeUndefined();
+  });
+
+  it.each(["en-US", "es-US"])("promises no second person on an appeal in %s", (locale) => {
+    const moderation = messages(locale, "console")["moderation"] as unknown as Record<
+      string,
+      string
+    >;
+    expect(`${moderation["intro"]} ${moderation["appealOwn"]}`).not.toMatch(
+      /another operator|otra persona del equipo/i,
+    );
+  });
+});

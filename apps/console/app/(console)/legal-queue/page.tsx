@@ -225,9 +225,7 @@ export default async function LegalQueuePage({ searchParams }: PageProps<"/legal
                 key={c.id}
                 className="flex flex-wrap items-center justify-between gap-12 rounded-card border border-border-subtle p-12 text-text-13"
               >
-                <span>
-                  {c.name}, {c.email}
-                </span>
+                <span>{t("legalQueue.contacts.line", { name: c.name, email: c.email })}</span>
                 <ActionForm
                   action={removeLegalAlertContactAction}
                   hidden={{ contactId: c.id }}
@@ -291,7 +289,11 @@ export default async function LegalQueuePage({ searchParams }: PageProps<"/legal
               variant="secondary"
               label={t("legalQueue.reviewer.end")}
             >
-              <ReasonField t={t} id="legal-reviewer-end" label={t("legalQueue.reviewer.endReason")} />
+              <ReasonField
+                t={t}
+                id="legal-reviewer-end"
+                label={t("legalQueue.reviewer.endReason")}
+              />
             </ActionForm>
           </Panel>
         ) : (
@@ -330,7 +332,11 @@ export default async function LegalQueuePage({ searchParams }: PageProps<"/legal
                 required
                 width="100%"
               />
-              <ReasonField t={t} id="legal-reviewer-reason" label={t("legalQueue.reviewer.reason")} />
+              <ReasonField
+                t={t}
+                id="legal-reviewer-reason"
+                label={t("legalQueue.reviewer.reason")}
+              />
             </ActionForm>
           </Panel>
         )}
