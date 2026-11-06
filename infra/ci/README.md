@@ -6,7 +6,7 @@
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | `restore-drill.sh`   | Backup and restore drill (`infra/drills/release-drill.sh`: row counts, key-table checksums, pgTAP smoke) on the stack `supabase db start` built, in the `database` job | Yes                                                              |
 | `powersync-check.sh` | Sync rules against the migrated catalog; writes the publication SQL                                                                                                    | `continue-on-error` until the A17 rule fixes land, then blocking |
-| `status-history.sh`  | Reads and force-pushes the synthetic checks' history on the single-commit ref `refs/status/history`                                                                       | Its own scheduled workflow; a failed run notifies on-call        |
+| `status-history.sh`  | Reads and force-pushes the synthetic checks' history on the single-commit ref `refs/status/history`                                                                    | Its own scheduled workflow; a failed run notifies on-call        |
 | `post-alert.sh`      | One line to `XOS_ALERT_WEBHOOK_URL`, the channel the synthetic checks post to                                                                                          | No; passes with a warning until the secret exists                |
 | `backup-weekly.sh`   | Encrypted weekly logical backup of staging, and of production with its own read-only login (`--reader`, ADR 0033 decision 47)                                          | Its own scheduled workflow; needs the owner's public key first   |
 | `oasdiff.sh`         | Gate 20: breaking changes in the OpenAPI document since the latest `v*` tag                                                                                            | Yes; passes with a notice until the first tag                    |
@@ -95,12 +95,12 @@ Before the first tag, the owner confirms the names are theirs. Publishing under 
 
 ## 6. Repository settings (orchestrator)
 
-| Setting                                       | Value                                                                                                                                                                  |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vercel project `status`                       | A static project on the existing Vercel team, domain `status.ghxstship.tech` (ADR 0033, decision 72; hosted on Vercel by owner decision, 2026-10-24)                   |
-| Settings, Variables and Secrets (status page) | `VERCEL_ORG_ID`, `VERCEL_STATUS_PROJECT_ID` (variables) and `VERCEL_STATUS_TOKEN` (secret, a token the owner creates in Vercel, limited to the team)                   |
-| Settings, Secrets (Actions)                   | `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                                                              |
-| Settings, Environments                        | `production-backup`, deployment branches `main` only, with the secret `PRODUCTION_BACKUP_DB_URL` (the owner sets it; `infra/runbooks/backup-and-restore.md`)           |
+| Setting                                       | Value                                                                                                                                                                          |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Vercel project `status`                       | A static project on the existing Vercel team, domain `status.ghxstship.tech` (ADR 0033, decision 72; hosted on Vercel by owner decision, 2026-10-24)                           |
+| Settings, Variables and Secrets (status page) | `VERCEL_ORG_ID`, `VERCEL_STATUS_PROJECT_ID` (variables) and `VERCEL_STATUS_TOKEN` (secret, a token the owner creates in Vercel, limited to the team)                           |
+| Settings, Secrets (Actions)                   | `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                                                                      |
+| Settings, Environments                        | `production-backup`, deployment branches `main` only, with the secret `PRODUCTION_BACKUP_DB_URL` (the owner sets it; `infra/runbooks/backup-and-restore.md`)                   |
 | Branch protection                             | `main` through `infra/security/github/main-ruleset.json` (`infra/runbooks/security-owner-steps.md`). The synthetic history's ref is not a branch, so no branch rule reaches it |
 
 ## 7. Supabase stack images: GHCR first

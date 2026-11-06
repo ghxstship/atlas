@@ -2,7 +2,9 @@
 
 ## Reporting a vulnerability
 
-Email **security@ghxstship.tech**. Do not open a public issue. If this repository's Security tab shows "Report a vulnerability", you may use GitHub private vulnerability reporting instead.
+Email **security@ghxstship.tech**. Do not put details of a finding in a public issue. If this repository's Security tab shows "Report a vulnerability", you may use GitHub private vulnerability reporting instead.
+
+If your email bounces, or you have no answer within 3 business days, open a GitHub issue that says only that you need a private way to report a security finding, with no details of it, and we will give you one.
 
 Include the affected surface (Atlas, Gateway, Compass, API, SDK, CLI or MCP server), the steps to reproduce, and the impact you observed. Keep other people's data out of your report. We acknowledge reports within 3 business days and share a remediation plan within 10 business days. We do not pay bounties.
 

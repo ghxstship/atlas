@@ -249,4 +249,10 @@ describe("the disclosure contact", () => {
     ).toBeGreaterThan(Date.now());
     expect(read("SECURITY.md")).toContain("security@ghxstship.tech");
   });
+
+  it("leaves a way in if the mailbox fails, and asks for no details in public", () => {
+    const policy = read("SECURITY.md");
+    expect(policy).toContain("If your email bounces");
+    expect(policy).toContain("with no details of it");
+  });
 });
