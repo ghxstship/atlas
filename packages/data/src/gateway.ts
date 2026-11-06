@@ -238,6 +238,23 @@ export function onboardingStanding(item: OnboardingItem, today: string): Onboard
   return "todo";
 }
 
+/**
+ * Of an engagement's uploaded items, which still have no certificate behind them, as far as the party can tell: those
+ * waiting for review, and those a reviewer passed, which records no certificate. A file failed or still to upload is
+ * neither.
+ */
+export function uploadsAwaitingCertificate(
+  items: readonly OnboardingItem[],
+  today: string,
+): { waiting: OnboardingItem[]; passed: OnboardingItem[] } {
+  return {
+    waiting: items.filter((i) => onboardingStanding(i, today) === "review"),
+    passed: items.filter(
+      (i) => i.submittedAt !== null && onboardingStanding(i, today) === "verified",
+    ),
+  };
+}
+
 function toOnboardingItem(row: ExternalRow<"onboarding_items">): OnboardingItem {
   return {
     id: req(row.id, "onboarding_items.id"),

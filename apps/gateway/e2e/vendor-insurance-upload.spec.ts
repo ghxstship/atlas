@@ -6,8 +6,9 @@ import { expectAccessible, signIn, sql } from "./support";
 /**
  * A vendor's insurance upload, from Gateway to Atlas (launch flag, 2026-11-06). The vendor is pointed at Compliance, where
  * it is; after uploading it sees the file was received and waits for review, not "none on file"; whoever records
- * certificates sees the upload on Insurance certificates and records it, which verifies nothing; and the vendor then sees
- * the certificate.
+ * certificates sees the upload on Insurance certificates once it is scanned, and a passed review keeps it there, because
+ * passing records no certificate, with the vendor told so. Recording it verifies nothing, and the vendor then sees the
+ * certificate.
  */
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
@@ -52,14 +53,47 @@ test("a vendor's upload is received, waits for review and becomes a certificate"
     await page.reload();
     await expect(page.getByText(waiting)).toBeVisible();
     await expect(page.getByText(none)).toHaveCount(0);
+    await expect(page.getByText("No insurance certificate recorded yet.")).toBeVisible();
 
-    // Atlas: the upload waits on Insurance certificates, and recording it verifies nothing.
+    // Atlas: until the scanner clears the file it can be seen and not recorded.
     const atlas = await atlasAs(browser, "producer@example.com");
     await atlas.page.goto(`/${ORG}/vendors/insurance-certificates`);
-    const uploads = atlas.page.getByRole("region", { name: "Vendor uploads waiting for review" });
+    const uploads = atlas.page.getByRole("region", { name: "Vendor uploads with no certificate" });
     const row = uploads.getByRole("listitem").filter({ hasText: name });
     await expect(row).toBeVisible();
+    await expect(row.getByText("Waiting for review")).toBeVisible();
+    await expect(row.getByRole("link", { name: "Record certificate" })).toHaveCount(0);
     await expectAccessible(atlas.page);
+
+    const file = await sql<{ name: string }>(
+      `select substr(dv.storage_uri, char_length('storage://onboarding-uploads/') + 1) as name
+         from app.onboarding_items i
+         join app.onboarding_requirements r on r.id = i.onboarding_requirement_id
+         join app.document_versions dv on dv.document_id = i.document_id
+        where i.engagement_id = $1 and r.name = $2`,
+      [engagement.id, name],
+    );
+    await sql(
+      `select app.record_object_scan(s.id, true)::text from private.object_scans s
+        where s.bucket_id = 'onboarding-uploads' and s.object_name = $1 and s.scan_status = 'Scanning'`,
+      [file[0]?.name],
+    );
+
+    // Passing the review records no certificate: it stays listed here and the vendor is told, never "none on file" again.
+    await sql(
+      `insert into app.onboarding_verifications (org_id, onboarding_item_id, outcome, note)
+       select i.org_id, i.id, 'Passed', 'Checked.' from app.onboarding_items i
+         join app.onboarding_requirements r on r.id = i.onboarding_requirement_id
+        where i.engagement_id = $1 and r.name = $2`,
+      [engagement.id, name],
+    );
+    await atlas.page.reload();
+    await expect(row.getByText("Passed review, no certificate recorded")).toBeVisible();
+    await page.reload();
+    await expect(page.getByText(`${name}: reviewed and passed.`)).toBeVisible();
+    await expect(page.getByText(none)).toHaveCount(0);
+
+    // Recording it verifies nothing more.
     await row.getByRole("link", { name: "Record certificate" }).click();
 
     const policy = POLICY();
@@ -85,7 +119,8 @@ test("a vendor's upload is received, waits for review and becomes a certificate"
       [policy, engagement.id],
     );
     expect(state?.document_uri).toMatch(/^storage:\/\/onboarding-uploads\//);
-    expect(state?.verifications).toBe("0");
+    // The one review above, and nothing from recording.
+    expect(state?.verifications).toBe("1");
     await atlas.context.close();
 
     // Gateway: the certificate is on file now.
@@ -93,7 +128,7 @@ test("a vendor's upload is received, waits for review and becomes a certificate"
     const coi = page.getByRole("listitem").filter({ hasText: policy });
     await expect(coi).toBeVisible();
     await expect(coi.getByText("Current")).toBeVisible();
-    await expect(page.getByText(waiting)).toHaveCount(0);
+    await expect(page.getByText(`${name}: reviewed and passed.`)).toHaveCount(0);
   } finally {
     await packet.retire();
     await sql(`update app.insurance_certificates set deleted_at = null where id = any($1)`, [

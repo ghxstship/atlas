@@ -567,6 +567,12 @@ export interface VendorCertificateUpload {
   readonly submittedAt: string;
   /** Where the file is; a certificate recorded from it keeps this as its document_uri. */
   readonly storageUri: string;
+  /** A reviewer passed the onboarding item, which records no certificate. */
+  readonly reviewPassed: boolean;
+  /** The scanner has cleared the file, so a reader can open it. */
+  readonly scanned: boolean;
+  /** How many such files there are, of which the list holds at most 50. */
+  readonly total: number;
 }
 
 /** Uploads waiting for review, for holders of vendors.coi.write (app.vendor_certificate_uploads); others get none. */
@@ -585,6 +591,9 @@ export async function listVendorCertificateUploads(
       itemName: row.item_name,
       submittedAt: row.submitted_at,
       storageUri: row.storage_uri,
+      reviewPassed: row.review_passed,
+      scanned: row.scan_status === "Clean",
+      total: row.total_count,
     })),
   );
 }

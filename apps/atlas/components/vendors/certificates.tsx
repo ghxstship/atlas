@@ -65,7 +65,9 @@ function standingOf(c: InsuranceCertificate, t: Copy, now: string): KitState {
  * (derived from its validity window at read time), with a calendar of expiries. Recording needs
  * vendors.coi.write. The new-certificate drawer offers Aurora's extraction (journey 36): fields are
  * proposed with confidences and saved only when the person confirms. Files vendors uploaded for onboarding items wait
- * at the top for whoever records certificates (6071): opening one and recording it never verifies the onboarding item.
+ * at the top for whoever records certificates (6071): opening one and recording it never verifies the onboarding item,
+ * and passing the item records no certificate, so a passed file stays here. A file can be recorded once its reader can
+ * open it, which means the scanner has cleared it.
  */
 export async function InsuranceCertificates({
   ctx,
@@ -98,12 +100,14 @@ export async function InsuranceCertificates({
   const uploads = uploadsResult?.ok ? uploadsResult.data : [];
   const uploadLinks = new Map(
     await Promise.all(
-      uploads.map(async (u) => [u.itemId, await onboardingUploadLink(db, u.storageUri)] as const),
+      uploads
+        .filter((u) => u.scanned)
+        .map(async (u) => [u.itemId, await onboardingUploadLink(db, u.storageUri)] as const),
     ),
   );
   const fromUpload =
     typeof search["upload"] === "string"
-      ? uploads.find((u) => u.itemId === search["upload"])
+      ? uploads.find((u) => u.itemId === search["upload"] && uploadLinks.get(u.itemId))
       : undefined;
   const exponent = new Map(
     (currencies.ok ? currencies.data : []).map((c) => [c.code, c.minorUnits]),
@@ -373,7 +377,11 @@ export async function InsuranceCertificates({
       ]}
       rows={rows}
       filters={
-        uploads.length > 0 ? (
+        uploadsResult && !uploadsResult.ok ? (
+          <p className="m-0 basis-full text-text-13 text-danger-text" role="alert">
+            {t("certificates.uploads.loadError")}
+          </p>
+        ) : uploads.length > 0 ? (
           <section
             aria-labelledby="coi-uploads-heading"
             className="flex basis-full flex-col gap-8 rounded-card border border-border-subtle p-12"
@@ -382,6 +390,14 @@ export async function InsuranceCertificates({
               {t("certificates.uploads.heading")}
             </h2>
             <p className="m-0 text-text-13 text-text-secondary">{t("certificates.uploads.help")}</p>
+            {(uploads[0]?.total ?? 0) > uploads.length ? (
+              <p className="m-0 text-text-13 text-text-secondary">
+                {t("certificates.uploads.more", {
+                  shown: uploads.length,
+                  total: uploads[0]?.total ?? 0,
+                })}
+              </p>
+            ) : null}
             <ul role="list" className="m-0 flex list-none flex-col gap-8 p-0">
               {uploads.map((u) => {
                 const file = uploadLinks.get(u.itemId);
@@ -396,6 +412,13 @@ export async function InsuranceCertificates({
                           item: u.itemName,
                           date: format.dateTime(new Date(u.submittedAt), { dateStyle: "medium" }),
                         })}
+                      </span>
+                      <span className="text-text-13 text-text-secondary">
+                        {t(
+                          u.reviewPassed
+                            ? "certificates.uploads.passed"
+                            : "certificates.uploads.waiting",
+                        )}
                       </span>
                     </span>
                     <span className="flex flex-wrap items-center gap-8">
@@ -415,12 +438,18 @@ export async function InsuranceCertificates({
                       >
                         {t("certificates.uploads.review")}
                       </a>
-                      <KitLink
-                        size="sm"
-                        href={withQuery(path, state, { create: "1", upload: u.itemId })}
-                      >
-                        {t("certificates.uploads.record")}
-                      </KitLink>
+                      {file ? (
+                        <KitLink
+                          size="sm"
+                          href={withQuery(path, state, { create: "1", upload: u.itemId })}
+                        >
+                          {t("certificates.uploads.record")}
+                        </KitLink>
+                      ) : (
+                        <span className="text-text-13 text-text-secondary">
+                          {t("certificates.uploads.notReady")}
+                        </span>
+                      )}
                     </span>
                   </li>
                 );

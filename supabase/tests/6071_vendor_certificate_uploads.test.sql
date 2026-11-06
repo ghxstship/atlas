@@ -1,12 +1,12 @@
--- pgTAP: migration 6071. Files a vendor engagement uploaded wait for whoever records certificates, until someone reviews
--- them or a certificate points at them. Recording a certificate verifies nothing, and holders of vendors.coi.write may read
--- a vendor's file while nobody else outside the engagement may.
+-- pgTAP: migration 6071. Files a vendor engagement uploaded wait for whoever records certificates until a certificate
+-- points at them, a review fails them or the scanner refuses them. A passed review keeps them, because it records no
+-- certificate. Recording a certificate verifies nothing, and who may open the file is unchanged.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(13);
+select plan(24);
 
 create function pg_temp.uploads(p_who text) returns integer
 language plpgsql as $$
@@ -43,6 +43,8 @@ begin
   insert into app.documents (org_id, project_id, title) values (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Proof of Coverage') returning id into v_doc;
   insert into app.document_versions (document_id, storage_uri, checksum_sha256) values (v_doc, v_uri, repeat('a', 64));
   update app.onboarding_items set document_id = v_doc, submitted_at = now() where id = pg_temp.id(p_item);
+  insert into private.object_scans (bucket_id, object_name, scan_status, scanned_at)
+  values ('onboarding-uploads', replace(v_uri, 'storage://onboarding-uploads/', ''), 'Clean', now());
   return v_uri;
 end $$;
 
@@ -63,7 +65,7 @@ select is(pg_temp.uploads('gina'), 0, 'a Viewer without vendors.coi.write gets n
 select is(pg_temp.uploads('xavier'), 0, 'nor does another org');
 select is(pg_temp.uploads('sam'), 0, 'nor does the vendor''s own person');
 
--- Reading the file ------------------------------------------------------------------------------------------------------
+-- Reading the file: unchanged by 6071 --------------------------------------------------------------------------------------
 create function pg_temp.reads(p_who text, p_uri text) returns boolean
 language plpgsql as $$
 declare v boolean;
@@ -75,8 +77,39 @@ begin
   perform pg_temp.as_platform();
   return v;
 end $$;
-select ok(pg_temp.reads('carol', (select uri from f where key = 'v')), 'a holder of vendors.coi.write may read a vendor''s file');
+select ok(pg_temp.reads('carol', (select uri from f where key = 'v')), 'whoever reads the engagement may read the vendor''s file');
 select ok(not pg_temp.reads('xavier', (select uri from f where key = 'v')), 'another org may not');
+select ok(position('vendors.coi.write' in pg_get_functiondef('private.onboarding_upload_readable(text)'::regprocedure)) = 0,
+  'and holding vendors.coi.write opens no file by itself');
+
+-- What the scanner says --------------------------------------------------------------------------------------------------
+create function pg_temp.scan_of(p_uri text) returns text
+language sql as $$ select s.scan_status::text from private.object_scans s where s.object_name = replace(p_uri, 'storage://onboarding-uploads/', '') $$;
+create function pg_temp.set_scan(p_uri text, p_status text) returns void
+language sql as $$
+  update private.object_scans s
+  set scan_status = p_status::app.scan_status, scanned_at = case when p_status = 'Scanning' then null else now() end
+  where s.object_name = replace(p_uri, 'storage://onboarding-uploads/', '') $$;
+create function pg_temp.listed_scan() returns text
+language plpgsql as $$
+declare v text;
+begin
+  perform pg_temp.as_user('carol');
+  select u.scan_status into v from app.vendor_certificate_uploads(pg_temp.id('org_a')) u;
+  perform pg_temp.as_platform();
+  return v;
+end $$;
+select is(pg_temp.listed_scan(), 'Clean', 'a cleared file says so');
+select pg_temp.set_scan((select uri from f where key = 'v'), 'Scanning');
+select is(pg_temp.listed_scan(), 'Scanning', 'a file still being scanned is listed, and says so');
+select pg_temp.set_scan((select uri from f where key = 'v'), 'Infected');
+select is(pg_temp.uploads('carol'), 0, 'an infected file is not listed');
+select pg_temp.set_scan((select uri from f where key = 'v'), 'Scan Failed');
+select is(pg_temp.uploads('carol'), 0, 'nor one the scanner refused');
+delete from private.object_scans s where s.object_name = replace((select uri from f where key = 'v'), 'storage://onboarding-uploads/', '');
+select is(pg_temp.uploads('carol'), 0, 'nor one the scanner removed');
+insert into private.object_scans (bucket_id, object_name, scan_status, scanned_at)
+values ('onboarding-uploads', replace((select uri from f where key = 'v'), 'storage://onboarding-uploads/', ''), 'Clean', now());
 
 -- Recording a certificate takes it off the list, and verifies nothing -------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -95,11 +128,45 @@ update app.insurance_certificates set deleted_at = now() where id = pg_temp.id('
 select pg_temp.as_platform();
 select is(pg_temp.uploads('carol'), 1, 'removing the certificate brings it back');
 
--- A reviewer's decision takes it off the list -----------------------------------------------------------------------------
+-- A review ---------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-insert into app.onboarding_verifications (onboarding_item_id, outcome, note) values (pg_temp.id('item_v'), 'Failed', 'Not a certificate.');
+update app.insurance_certificates set deleted_at = now() where id = pg_temp.id('cert') and deleted_at is null;
+select is((select u.review_passed from app.vendor_certificate_uploads(pg_temp.id('org_a')) u), false, 'before a review it is not passed');
+insert into app.onboarding_verifications (onboarding_item_id, outcome, note) values (pg_temp.id('item_v'), 'Passed', 'Checked.');
 select pg_temp.as_platform();
-select is(pg_temp.uploads('carol'), 0, 'a reviewed upload no longer waits');
+select is(pg_temp.uploads('carol'), 1, 'a passed review keeps it listed, since it recorded no certificate');
+select pg_temp.as_user('carol');
+select is((select u.review_passed from app.vendor_certificate_uploads(pg_temp.id('org_a')) u), true, 'and says it passed');
+select pg_temp.as_platform();
+update app.onboarding_items set submitted_at = now() + interval '1 second' where id = pg_temp.id('item_v');
+select pg_temp.as_user('carol');
+select is((select u.review_passed from app.vendor_certificate_uploads(pg_temp.id('org_a')) u), false, 'a new upload after it waits for review again');
+select pg_temp.as_platform();
+insert into app.onboarding_verifications (onboarding_item_id, outcome, note, verified_at) values (pg_temp.id('item_v'), 'Failed', 'Not a certificate.', now() + interval '2 seconds');
+select is(pg_temp.uploads('carol'), 0, 'a failed review takes it off the list');
+update app.onboarding_items set submitted_at = now() + interval '3 seconds' where id = pg_temp.id('item_v');
+select is(pg_temp.uploads('carol'), 1, 'and a new upload brings it back');
+
+-- Bounded ----------------------------------------------------------------------------------------------------------------
+do $$
+declare v_req uuid; v_item uuid; v_doc uuid; v_uri text;
+begin
+  for g in 1..50 loop
+    insert into app.onboarding_requirements (org_id, name, item_kind, verification_method)
+    values (pg_temp.id('org_a'), 'Extra ' || g, 'Document Upload', 'Reviewer') returning id into v_req;
+    insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values (pg_temp.id('eng_vendor_a'), v_req) returning id into v_item;
+    v_uri := 'storage://onboarding-uploads/' || pg_temp.id('org_a') || '/' || pg_temp.id('eng_vendor_a') || '/' || v_item || '/x.pdf';
+    insert into app.documents (org_id, project_id, title) values (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Extra') returning id into v_doc;
+    insert into app.document_versions (document_id, storage_uri, checksum_sha256) values (v_doc, v_uri, repeat('b', 64));
+    update app.onboarding_items set document_id = v_doc, submitted_at = now() where id = v_item;
+    insert into private.object_scans (bucket_id, object_name, scan_status, scanned_at)
+    values ('onboarding-uploads', replace(v_uri, 'storage://onboarding-uploads/', ''), 'Clean', now());
+  end loop;
+end $$;
+select is(pg_temp.uploads('carol'), 50, 'the list holds at most 50');
+select pg_temp.as_user('carol');
+select is((select max(u.total_count) from app.vendor_certificate_uploads(pg_temp.id('org_a')) u), 51, 'and says how many there are');
+select pg_temp.as_platform();
 
 select * from finish();
 rollback;

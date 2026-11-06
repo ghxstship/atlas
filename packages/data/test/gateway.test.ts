@@ -28,6 +28,7 @@ import {
   listTaxForms,
   listThreads,
   onboardingStanding,
+  uploadsAwaitingCertificate,
   openThread,
   proposeRepresentation,
   rateEngagement,
@@ -206,6 +207,32 @@ describe("onboarding", () => {
     const result = await listOnboardingItems(db, ID);
     expect(result.ok && result.data.map((i) => i.id)).toEqual(["b", "a"]);
     expect((await listOnboardingItems(db)).ok).toBe(false);
+  });
+
+  it("says which uploads have no certificate behind them yet", () => {
+    const base: OnboardingItem = {
+      id: "i",
+      engagementId: ID,
+      name: "n",
+      kind: "Document Upload" as OnboardingItem["kind"],
+      blocking: true,
+      verification: "Reviewer",
+      submittedAt: "x",
+      latestOutcome: null,
+      expiresOn: null,
+      passes: false,
+      satisfied: false,
+    };
+    const items: OnboardingItem[] = [
+      { ...base, id: "waiting" },
+      { ...base, id: "passed", latestOutcome: "Passed", satisfied: true },
+      { ...base, id: "failed", latestOutcome: "Failed" },
+      { ...base, id: "not uploaded", submittedAt: null },
+    ];
+    const { waiting, passed } = uploadsAwaitingCertificate(items, "2026-10-14");
+    expect(waiting.map((i) => i.id)).toEqual(["waiting"]);
+    // A passed review is the path the vendor lands on when nobody records a certificate.
+    expect(passed.map((i) => i.id)).toEqual(["passed"]);
   });
 
   it("derives the standing of an item", () => {
