@@ -17,4 +17,4 @@ export {
   STRIPE_WORKER_LIMITS,
   type BillingAlert,
 } from "../../src/billing/cancel.ts";
-export { stripeCancellationStore } from "../../src/stores.ts";
+export { stripeCancellationStore } from "../../src/billing/cancel-store.ts";

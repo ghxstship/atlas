@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { StripeCancelMode, StripeCancellationStore } from "./billing/cancel.ts";
 import type { BillingStore } from "./billing/webhook.ts";
 import type { InboundStore } from "./inbound/parse.ts";
 import { actionLinks } from "./notifications/action-links.ts";
@@ -125,75 +124,23 @@ export function restDb(options: RestDbOptions): PlatformDb {
   };
 }
 
-function rows(data: unknown): readonly Readonly<Record<string, unknown>>[] {
+export function rows(data: unknown): readonly Readonly<Record<string, unknown>>[] {
   return Array.isArray(data) ? (data as Readonly<Record<string, unknown>>[]) : [];
 }
 
-function text(row: Readonly<Record<string, unknown>> | undefined, key: string): string {
+export function text(row: Readonly<Record<string, unknown>> | undefined, key: string): string {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
   return value;
 }
 
-function optionalText(
+export function optionalText(
   row: Readonly<Record<string, unknown>> | undefined,
   key: string,
 ): string | null {
   const value = row?.[key];
   return typeof value === "string" ? value : null;
-}
-
-/** The Stripe cancels of the org-lifecycle worker, over the 6140 RPCs (ADR 0161). */
-export function stripeCancellationStore(db: PlatformDb): StripeCancellationStore {
-  return {
-    async claim(input) {
-      return rows(
-        await db.rpc("claim_stripe_cancellations", {
-          p_worker: input.worker,
-          p_livemode: input.livemode,
-          p_limit: input.limit,
-        }),
-      ).map((row) => ({
-        cancellationId: text(row, "cancellation_id"),
-        stripeSubscriptionId: text(row, "stripe_subscription_id"),
-        mode: text(row, "cancel_mode") as StripeCancelMode,
-        attempt: Number(row["attempt"]),
-      }));
-    },
-    async finish({ cancellationId, outcome }) {
-      await db.rpc("finish_stripe_cancellation", {
-        p_id: cancellationId,
-        p_accepted: outcome.accepted,
-        p_stripe_status: outcome.accepted ? outcome.stripeStatus : null,
-        p_error: outcome.accepted ? null : outcome.error,
-      });
-    },
-    async checkoutsToClose(livemode) {
-      return rows(await db.rpc("stripe_checkouts_to_close", { p_livemode: livemode })).map((row) =>
-        text(row, "stripe_checkout_session_id"),
-      );
-    },
-    async closeCheckout(sessionId) {
-      await db.rpc("finish_billing_checkout_from_stripe", {
-        p_stripe_checkout_session_id: sessionId,
-        p_checkout_state: "Expired",
-      });
-    },
-    async alertsToSend() {
-      return rows(await db.rpc("billing_alerts_to_send", { p_limit: 50 })).map((row) => ({
-        alertId: text(row, "alert_id"),
-        kind: text(row, "alert_kind"),
-        orgId: optionalText(row, "subject_org_id"),
-        stripeSubscriptionId: optionalText(row, "stripe_subscription_id"),
-        detail: text(row, "detail"),
-        raisedAt: text(row, "raised_at"),
-      }));
-    },
-    async markAlertSent(alertId) {
-      await db.rpc("mark_billing_alert_sent", { p_alert_id: alertId });
-    },
-  };
 }
 
 /** BillingStore over the 0560, 1250, 1640 and 6140 RPCs. */

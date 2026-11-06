@@ -52,6 +52,7 @@ export {
   type StripeWebhookRequest,
   type WebhookOutcome,
 } from "./billing/webhook.ts";
+export { stripeCancellationStore } from "./billing/cancel-store.ts";
 export {
   runStripeCancellations,
   sendStripeCancel,
@@ -264,7 +265,6 @@ export {
   PUNCH_KINDS,
   PlatformDbError,
   billingStore,
-  stripeCancellationStore,
   inboundStore,
   isPlatformEmailKind,
   kioskPunch,
