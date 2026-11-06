@@ -1147,9 +1147,9 @@ async function commit(store, batchId, options) {
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      if (error.message.startsWith("pool_invitation_declined"))
-        await store.skipRow(valid.id, error.message.slice(0, 1e3));
-      else await store.refuseRow(valid.id, error.message.slice(0, 1e3));
+      const pool = /^(pool_invitation_[a-z_]+):/.exec(error.message)?.[1];
+      if (pool === "pool_invitation_declined") await store.skipRow(valid.id, pool);
+      else await store.refuseRow(valid.id, pool ?? error.message.slice(0, 1e3));
     }
   }
   await store.finishBatch(batchId);

@@ -276,7 +276,7 @@ async function commitPoolMatch(input) {
   const { store, batchId, valid } = input;
   const rowId = valid.id;
   if (valid.mergeInto) {
-    await store.skipRow(rowId, "Already invited or in a pool: merged in review.");
+    await store.skipRow(rowId, "pool_merged_in_review");
     return;
   }
   const target = valid.matchedId;
