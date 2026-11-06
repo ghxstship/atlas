@@ -78,7 +78,7 @@ export async function PaymentsDueTab({ page }: { page: FinancePage }) {
   const whatOf = (d: PaymentDue) =>
     d.kind === "per_diem"
       ? t("finance.due.perDiemOn", { day: c.date(d.dueOn) })
-      : (d.label ?? t("finance.due.kinds." + d.kind));
+      : (d.label ?? t(`finance.due.kinds.${d.kind}`));
   const kindLabel = (d: PaymentDue) => t(`finance.due.kinds.${d.kind}`);
 
   const groups = groupPaymentsDue(due.data, weekStart);

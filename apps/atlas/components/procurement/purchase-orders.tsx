@@ -180,7 +180,13 @@ export async function PurchaseOrdersSection({
         stateLabel={stateLabel}
         money={money}
         canWrite={canWrite}
-        recordHref={(extra) => withQuery(path, state, { peek: selected.id, full: "1", ...extra })}
+        recordHref={(extra) =>
+          withQuery(
+            path,
+            { ...state, baseQuery: dropKey(state.baseQuery, "lineAct") },
+            { peek: selected.id, full: "1", ...extra },
+          )
+        }
         peekHref={(id) => withQuery(path, state, { peek: id, full: "1" })}
         lineActId={typeof search["lineAct"] === "string" ? search["lineAct"] : null}
       />

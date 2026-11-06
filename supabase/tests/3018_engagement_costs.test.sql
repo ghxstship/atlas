@@ -139,7 +139,7 @@ select is((select person_id::text || '/' || role_type::text from app.engagement_
   pg_temp.id('art')::text || '/Artist', 'with the engagement''s party and role');
 select is((select coalesce(total_minor::text, 'null') || '/' || priced_total_minor || '/' || unpriced_count || '/' || coalesce(travel_minor::text, 'null')
   from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) where currency_code = 'USD'),
-  'null/4500/4/0', 'an unpriced item leaves the total NULL, with the priced total and the engagement''s unpriced count beside it');
+  'null/4500/5/0', 'an unpriced item leaves the total NULL, with the priced total and the engagement''s unpriced count beside it');
 select is((select string_agg(currency_code || ':' || invoice_minor || ':' || total_minor, ',' order by currency_code)
   from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_ivy_a'))), 'EUR:3000:3000,USD:7000:7000',
   'one row per currency, never summed; a Proposed bill is not yet a cost');

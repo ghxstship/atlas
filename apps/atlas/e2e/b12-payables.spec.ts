@@ -1,6 +1,6 @@
 import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
 import { ORG, signIn } from "./a16-support";
-import { expectAccessible, todayIn, uniqueId } from "./support";
+import { expectAccessible, uniqueId } from "./support";
 
 /**
  * B12 payables, credits, reimbursements and act costs (RRR-236, gaps G-184, G-186, G-195, G-223, G-224 and G-228) on the
@@ -39,7 +39,8 @@ async function fileExpense(
   await create.locator("#expense-line").press("Enter");
   await create.getByLabel("Description", { exact: true }).fill(input.description);
   await create.locator("#expense-amount").fill(input.amount);
-  await create.locator("#expense-date").fill(todayIn("America/New_York"));
+  // A day in a seeded period that is open (seed 0115), since approval posts in the period of the date.
+  await create.locator("#expense-date").fill("2026-10-15");
   if (input.paidMyself) {
     await create.getByRole("switch", { name: "I paid this myself" }).check();
   }
