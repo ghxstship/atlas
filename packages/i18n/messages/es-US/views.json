@@ -16,7 +16,8 @@
     "chart": "Gráfico",
     "feed": "Actividad",
     "inbox": "Bandeja de entrada",
-    "split": "Vista dividida"
+    "split": "Vista dividida",
+    "heatmap": "Mapa de calor"
   },
   "filter": {
     "add": "Agregar filtro",
@@ -583,6 +584,9 @@
       "worker_classification": "Clasificación",
       "xyz": "XYZ",
       "zone_id": "Zona",
+      "day_on": "Fecha",
+      "day_type": "Tipo de día",
+      "team_code": "Equipo",
       "sign_number": "Número de letrero",
       "sign_type": "Tipo de letrero",
       "width_in": "Ancho (in)",

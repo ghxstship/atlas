@@ -12,19 +12,23 @@ import {
 } from "../lib/format.ts";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
 import { SegmentedControl } from "../Navigation/Navigation.tsx";
-import { type CalendarProps } from "./Charts.types.ts";
+import { Icon } from "../Icon/Icon.tsx";
+import { type CalendarProps, type TimelineCategory } from "./Charts.types.ts";
+import { TL_CATEGORY } from "./categories.ts";
 
 /**
  * Dated records by month or agenda with state icons. With `selection`, events that have an `id`
  * select as rows of a list do (X and Shift+X, Cmd or Ctrl+click, Shift+click, Cmd or Ctrl+A, Esc),
  * in date order. Right-click, Shift+F10 or the Context Menu key on such an event calls
  * `onItemContextMenu`. An event carries its `data-item` id and `data-column="title"`, so a page can
- * preview it (hover cards).
+ * preview it (hover cards). `days` gives dates their day-type tags (B4), each drawn as text with an icon and a
+ * categorical swatch, so a type never reads by colour alone.
  */
 export function Calendar({
   month,
   today,
   events,
+  days = [],
   onEventSelect,
   selection,
   onItemContextMenu,
@@ -39,6 +43,28 @@ export function Calendar({
   const byDate = new Map<string, CalendarProps["events"]>();
   for (const e of events) byDate.set(e.date, [...(byDate.get(e.date) ?? []), e]);
   const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
+  const tagsByDate = new Map(days.map((d) => [d.date, d.tags]));
+  const tagList = (tags: readonly TimelineCategory[] | undefined) =>
+    tags && tags.length > 0 ? (
+      <ul className="m-0 flex list-none flex-wrap gap-2 p-0" aria-label={t("calendar.dayTypes")}>
+        {tags.map((tag) => (
+          <li
+            key={tag.label}
+            className="inline-flex max-w-full items-center gap-2 rounded-chip bg-bg-surface px-2 text-text-11 text-text-secondary"
+          >
+            <span
+              aria-hidden="true"
+              className={cx(
+                "inline-block size-(--space-6) flex-none rounded-mark",
+                TL_CATEGORY[tag.category],
+              )}
+            />
+            {tag.icon ? <Icon name={tag.icon} size={12} /> : null}
+            <span className="truncate">{tag.label}</span>
+          </li>
+        ))}
+      </ul>
+    ) : null;
   const ids = () => sorted.flatMap((e) => (e.id === undefined ? [] : [e.id]));
   const select = useItemSelection(selection, ids);
   const selectedCount = selection ? ids().filter(select.isSelected).length : 0;
@@ -127,7 +153,12 @@ export function Calendar({
               <time dateTime={e.date} className="text-text-secondary tabular-nums">
                 {formatDate(locale, e.date, dateFormat)}
               </time>
-              {eventButton(e, i)}
+              <div className="flex min-w-0 flex-col gap-2">
+                {i === sorted.findIndex((x) => x.date === e.date)
+                  ? tagList(tagsByDate.get(e.date))
+                  : null}
+                {eventButton(e, i)}
+              </div>
             </li>
           ))}
         </ol>
@@ -175,6 +206,7 @@ export function Calendar({
                           >
                             {d}
                           </span>
+                          {tagList(iso ? tagsByDate.get(iso) : undefined)}
                           {dayEvents.slice(0, 3).map(eventButton)}
                           {dayEvents.length > 3 ? (
                             <span className="text-text-secondary">

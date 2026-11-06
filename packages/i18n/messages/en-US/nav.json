@@ -23,7 +23,10 @@
         "calendar": "Calendar",
         "milestones": "Milestones",
         "baselines": "Baselines",
-        "events": "Events"
+        "events": "Events",
+        "days": "Days",
+        "workload": "Workload",
+        "clashes": "Clashes"
       },
       "work": {
         "allRecords": "All Records",

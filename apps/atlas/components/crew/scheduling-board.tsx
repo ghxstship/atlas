@@ -14,6 +14,7 @@ import {
 } from "@/app/[org]/crew/scheduling-actions";
 import { candidateKey, type BoardCandidate } from "@/lib/crew/board-candidates";
 import { FillMeter } from "./fill-meter";
+import { SHIFT_MIME } from "./shift-drop-mime";
 
 export interface BoardShift {
   readonly id: string;
@@ -204,6 +205,16 @@ export function SchedulingBoard(props: {
                 <li
                   key={s.id}
                   {...dropProps(s.id)}
+                  // B4: an open shift also drags onto a person's lane of the schedule below (shift-drop.tsx).
+                  draggable={!busy}
+                  onDragStart={(event) => {
+                    if (dragged.current) return;
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData(
+                      SHIFT_MIME,
+                      JSON.stringify({ id: s.id, label: s.label }),
+                    );
+                  }}
                   data-testid="board-open-shift"
                   className={cx(
                     "rounded-control border border-dashed",

@@ -16,7 +16,8 @@
     "chart": "Chart",
     "feed": "Feed",
     "inbox": "Inbox",
-    "split": "Split view"
+    "split": "Split view",
+    "heatmap": "Heatmap"
   },
   "filter": {
     "add": "Add filter",
@@ -583,6 +584,9 @@
       "worker_classification": "Classification",
       "xyz": "XYZ",
       "zone_id": "Zone",
+      "day_on": "Date",
+      "day_type": "Day type",
+      "team_code": "Team",
       "sign_number": "Sign number",
       "sign_type": "Sign type",
       "width_in": "Width (in)",

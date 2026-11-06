@@ -42,6 +42,8 @@ import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
+// B4: the cue grid's one-module wrapper loads it when opened, so the run of show carries none of it until then.
+import { CueGrid } from "@/components/lazy-ui/cue-grid";
 import {
   formatDay,
   formatScheduleTime,
@@ -681,6 +683,8 @@ export function RunBody({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [moving, setMoving] = useState<Cue | null>(null);
+  // B4 (G-41): the running order as a grid, loaded when opened.
+  const [gridOpen, setGridOpen] = useState(false);
   // Cue times follow me.time_zone_display and carry their zone abbreviation (Section 15).
   const view = useScheduleView();
   const time = (at: string | null) => formatScheduleTime(at, locale, tz, view, "time");
@@ -964,6 +968,22 @@ export function RunBody({
             })}
           </ol>
         )}
+        {canEdit ? (
+          <div>
+            <Button size="sm" icon="Sheet" onClick={() => setGridOpen(true)}>
+              {t("cueGrid.open")}
+            </Button>
+          </div>
+        ) : null}
+        {gridOpen ? (
+          <CueGrid
+            org={org}
+            runId={runOfShow.id}
+            day={runOfShow.showDate}
+            timeZone={runOfShow.timeZone}
+            onClose={() => setGridOpen(false)}
+          />
+        ) : null}
         {canEdit && cues.some((c) => !c.calledAt && c.plannedAt) ? (
           shifting ? (
             <CueShift
