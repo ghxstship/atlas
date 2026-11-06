@@ -895,7 +895,6 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     dock: inProject(dockSlots),
     yard: inProject(yard),
   }),
-  "project/overview": inProject(activity),
   "project/procurement": sections("section", "purchase-orders", {
     "purchase-orders": inProject(purchaseOrders),
     receipts: inProject(receipts),
