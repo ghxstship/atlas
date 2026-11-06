@@ -10,6 +10,22 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.5 release (2026-11-06)
+
+4.5 is 4.4 plus merge train 7: B1, B5, B6 and B16. Its migrations are numbered above production's 5869. As on 4.2, the owner's standing choice skips the staging observation window.
+
+| Step                     | Status | Evidence                                                                                                                                                                                                                                 |
+| ------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit | Done   | Every check of PR #73 passed at `b70e7932`; the release commit `7ae2fcdd` has the same tree; the local gate passed on the release lane                                                                                                   |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on `7ae2fcdd`: 868 tables' row counts and 25 key-table checksums match; restore 27 s against the 4 h RTO                                                                                                 |
+| Migrations, staging      | Done   | Branch `staging` (`rmrzfolncwhnhygmfxnw`): 23 migrations, 5900 to 6059; advisors: no failure, 905 accepted                                                                                                                               |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: point-in-time target 2026-11-06T11:13:07Z; the same 23 migrations (561 applied, none pending, none only remote); `private.ensure_realtime_channel_policies()` created none; advisors: no failure, 905 accepted   |
+| Edge Functions           | Done   | All 24 deployed from `7ae2fcdd` with local bundling, including the new `storage-browse`; `XOS_FILE_HANDOVER_SECRET` (A103) is still not set (**OWNER**)                                                                                  |
+| Apps                     | Done   | `main` fast-forwarded to `7ae2fcdd`, which Vercel deploys to production; no staging window, by the owner's choice; Atlas, Gateway, Console and Docs answer, and Atlas shows no runtime errors                                            |
+| Storage sign-in          | OWNER  | Connect with Google and Connect with Microsoft (B16) need the platform OAuth apps `XOS_GOOGLE_STORAGE_CLIENT_ID`, `XOS_MICROSOFT_STORAGE_CLIENT_ID` and their secrets in Atlas and the two Edge Functions; both stay disabled until then |
+| Packages                 | Ready  | `@ghxstship/xos-sdk`, `@ghxstship/xos-cli` and `xos-sdk` say 4.5.0; the tag starts `publish-packages.yml`, which waits for the owner's approval                                                                                          |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                                                                                         |
+
 ## XOS 4.4 release (2026-11-06)
 
 4.4 is 4.3 plus merge train 6: A124, A127, A131, P3, P5, P7 and P9. Its migrations moved up by 3000 (ADR 0022 amendment). As on 4.2, the owner's standing choice skips the staging observation window.
