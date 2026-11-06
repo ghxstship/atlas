@@ -1,8 +1,8 @@
 -- pgTAP: migration 1473, the moderation queue and notice and action from the operator console (A90, RRR-135,
 -- finding A65-009; Section 4.4.3, Section 14.9, EU Digital Services Act articles 16, 17 and 20). Trust and Safety
 -- reads the queue and decides a reported listing with a statement of reasons in parts; the affected party and the
--- reporters are notified; the affected party or the reporter appeals within six months; another operator decides
--- the appeal, and a reversal records the new decision.
+-- reporters are notified; the affected party or the reporter appeals within six months; a documented re-review decides
+-- the appeal (6168 changed who may), and a reversal records the new decision.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -118,14 +118,15 @@ select lives_ok(format($$insert into world select 'appeal_one', app.file_moderat
 select throws_ok(format($$select app.file_moderation_appeal(%L, 'Again.')$$, pg_temp.id('decision_one')), 'XR001',
   'moderation_appeal_exists: This decision has already been appealed.', 'once');
 select pg_temp.as_op('tess');
-select is((select (app.console_listing_detail(pg_temp.id('opp_one')) #>> '{appeals,0,decidable_by_me}')::boolean), false,
-  'the operator who decided sees they may not decide the appeal');
-select throws_ok(format($$select app.console_decide_appeal(%L, 'Reversed', 'Changed my mind.')$$, pg_temp.id('appeal_one')), 'XR001',
-  'moderation_appeal_same_operator: Another operator decides this appeal: you made the decision it appeals.',
-  'and the database refuses it');
+select is((select (app.console_listing_detail(pg_temp.id('opp_one')) #>> '{appeals,0,my_own_decision}')::boolean), true,
+  'the operator who decided sees the appeal is about their own decision');
+select throws_ok(format($$select app.console_decide_appeal(%L, 'Reversed', 'Changed my mind.', ' ')$$, pg_temp.id('appeal_one')), 'XR001',
+  'moderation_appeal_re_review: Record what you looked at again and how you weighed the grounds, in up to 4,000 characters.',
+  'an appeal outcome needs a documented re-review');
 select pg_temp.as_op('olga');
-select lives_ok(format($$select app.console_decide_appeal(%L, 'Reversed', %L)$$, pg_temp.id('appeal_one'),
-  'The fee is a statutory card check the org does not collect, so the listing breaks no rule. We restored it.'),
+select lives_ok(format($$select app.console_decide_appeal(%L, 'Reversed', %L, %L)$$, pg_temp.id('appeal_one'),
+  'The fee is a statutory card check the org does not collect, so the listing breaks no rule. We restored it.',
+  'Read the appeal and the attached rule again, and the listing as it stood.'),
   'another operator reverses it');
 select pg_temp.as_platform();
 select ok(not private.opportunity_removed(pg_temp.id('opp_one')), 'and the listing is restored');
@@ -151,9 +152,10 @@ select pg_temp.as_user('ivy');
 select lives_ok(format($$insert into world select 'appeal_two', app.file_moderation_appeal(%L, 'The questions are not optional.')$$,
   pg_temp.id('decision_two')), 'the reporter appeals a decision to take no action');
 select pg_temp.as_op('olga');
-select throws_ok(format($$select app.console_decide_appeal(%L, 'Reversed', 'The questions are required.')$$, pg_temp.id('appeal_two')),
+select throws_ok(format($$select app.console_decide_appeal(%L, 'Reversed', 'The questions are required.', 'Read them again.')$$, pg_temp.id('appeal_two')),
   'XR001', null, 'reversing no action needs the new decision');
 select lives_ok(format($$select app.console_decide_appeal(%L, 'Reversed', 'The questions are required, which the policy forbids.',
+  'Filled in the application to see which questions are required.',
   'Removed', 'Illegal Content', 'Equal opportunity law', 'Age and gender are required to apply.')$$, pg_temp.id('appeal_two')),
   'and with it the listing is removed');
 select pg_temp.as_platform();
