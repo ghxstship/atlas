@@ -9,6 +9,9 @@ import {
   canonicalNotice,
   giveSensitiveConsent,
   listGuestNeedsStates,
+  listMySensitiveStates,
+  sensitiveStepFor,
+  ungrantedMealPreferences,
   SENSITIVE_CATEGORIES,
   SENSITIVE_NOTICE_KEYS,
   SENSITIVE_NOTICE_VERSIONS,
@@ -64,9 +67,78 @@ describe("the wording of a consent", () => {
     }
   });
 
+  it("hashes every statement someone ticks and everything an attester reads", () => {
+    for (const catalog of [enUS, esUS]) {
+      const { dietary, accessibility, diversity } = catalog.consent.notices;
+      for (const notice of [dietary, accessibility, diversity]) {
+        expect(notice.attestAuthority.length).toBeGreaterThan(10);
+        expect(notice.attestNotice.length).toBeGreaterThan(10);
+        expect(canonicalNotice(notice)).toContain(notice.attestAuthority);
+        expect(canonicalNotice(notice)).toContain(notice.attestNotice);
+      }
+      for (const notice of [dietary, accessibility]) {
+        for (const part of ["attestCollected", "attestWhy", "attestWho"] as const) {
+          expect(canonicalNotice(notice)).toContain(notice[part]);
+        }
+      }
+      for (const part of ["mealTitle", "mealBody", "mealWho"] as const) {
+        expect(canonicalNotice(dietary)).toContain(dietary[part]);
+      }
+      expect(catalog.consent.attest).toEqual({ required: catalog.consent.attest.required });
+    }
+  });
+
+  it("says who reads a meal preference truthfully: the company cannot", () => {
+    expect(enUS.consent.notices.dietary.who).toContain("Your company cannot read them");
+    expect(enUS.consent.notices.dietary.who).toContain("it cannot read it back");
+    expect(enUS.consent.notices.dietary.collected).toContain("meal preference");
+    expect(enUS.consent.notices.dietary.withdraw).toContain("Work Details");
+    expect(esUS.consent.notices.dietary.withdraw).toContain("Datos de trabajo");
+  });
+
   it("never claims anyone reviewed it", () => {
     const text = JSON.stringify([enUS.consent, esUS.consent]);
     expect(text).not.toMatch(/attorney|counsel|lawyer|abogad|legally/i);
+  });
+});
+
+describe("what a section shows", () => {
+  const grant = { category: "Accessibility", noticeVersion: "2026-11-06", givenAt: "" } as const;
+  const state = (over: object) => ({
+    category: "Dietary and Allergies" as const,
+    waiting: false,
+    held: false,
+    mealPreferences: [],
+    ...over,
+  });
+
+  it("is the form only under the person's own standing grant", () => {
+    expect(sensitiveStepFor("Accessibility", [grant], [])).toBe("form");
+    expect(sensitiveStepFor("Dietary and Allergies", [grant], [])).toBe("first");
+  });
+
+  it("says a value waits, also for someone who holds only a meal preference", () => {
+    const states = [state({ waiting: true, mealPreferences: ["Halal"] })];
+    expect(sensitiveStepFor("Dietary and Allergies", [], states)).toBe("waiting");
+    expect(ungrantedMealPreferences(states)).toEqual(["Halal"]);
+  });
+
+  it("says a hold keeps a value after a withdrawal, not that it is from before", () => {
+    expect(sensitiveStepFor("Dietary and Allergies", [], [state({ held: true })])).toBe("held");
+  });
+
+  it("reads the states from the database", async () => {
+    const { db, rpc } = rpcClient([
+      { category: "Accessibility", waiting: true, held: false, meal_preferences: [] },
+    ]);
+    const read = await listMySensitiveStates(db);
+    expect(read.ok && read.data[0]).toEqual({
+      category: "Accessibility",
+      waiting: true,
+      held: false,
+      mealPreferences: [],
+    });
+    expect(rpc).toHaveBeenCalledWith("my_sensitive_states", {});
   });
 });
 
@@ -85,6 +157,24 @@ describe("recording consent", () => {
       p_locale: "es-US",
       p_surface: "Compass",
     });
+  });
+
+  it("passes the address the web app's server saw, and nothing when there is none", async () => {
+    const { db, rpc } = rpcClient("consent-id");
+    await giveSensitiveConsent(db, {
+      category: "Accessibility",
+      locale: "en-US",
+      surface: "Atlas",
+      clientIp: "203.0.113.9",
+    });
+    expect(rpc.mock.calls[0]?.[1]).toMatchObject({ p_client_ip: "203.0.113.9" });
+    await giveSensitiveConsent(db, {
+      category: "Accessibility",
+      locale: "en-US",
+      surface: "Atlas",
+      clientIp: null,
+    });
+    expect(rpc.mock.calls[1]?.[1]).not.toHaveProperty("p_client_ip");
   });
 
   it("sends a company's two statements only when given", async () => {
@@ -186,7 +276,8 @@ describe("a guest's needs", () => {
     expect(rpc.mock.calls[0]?.[1]).toMatchObject({
       p_authority_confirmed: true,
       p_notice_confirmed: true,
-      p_notice_version: SENSITIVE_NOTICE_VERSIONS["Dietary and Allergies"],
+      p_dietary_notice_version: SENSITIVE_NOTICE_VERSIONS["Dietary and Allergies"],
+      p_accessibility_notice_version: SENSITIVE_NOTICE_VERSIONS.Accessibility,
       p_allergies: "Peanuts",
     });
   });

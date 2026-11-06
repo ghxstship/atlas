@@ -41,6 +41,8 @@ test("a person reads the step, agrees, saves, withdraws, and the data is gone", 
   const id = uniqueId();
   const slug = `consent-${id}`;
   const email = testEmail("consent", id);
+  // As a platform proxy would send it. The server action reaches the database from the app server, so it must pass this on.
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": "203.0.113.77" });
   await signUp(page, { name: "Wren Consent", email });
   await createOrganization(page, { name: `Consent ${id}`, slug });
 
@@ -81,8 +83,9 @@ test("a person reads the step, agrees, saves, withdraws, and the data is gone", 
     locale: string;
     surface: string;
     basis: string;
+    ip: string;
   }>(
-    `select c.notice_version, c.locale, c.surface::text, c.basis::text
+    `select c.notice_version, c.locale, c.surface::text, c.basis::text, host(c.captured_ip) as ip
        from app.sensitive_data_consents c join app.people p on p.id = c.person_id
        join auth.users u on u.id = p.user_id
       where lower(u.email) = lower($1) and c.category = 'Dietary and Allergies'`,
@@ -93,6 +96,7 @@ test("a person reads the step, agrees, saves, withdraws, and the data is gone", 
     locale: "en-US",
     surface: "Atlas",
     basis: "Own Consent",
+    ip: "203.0.113.77",
   });
   // Consent is specific: accessibility still has its own step.
   await expect(page.getByRole("form", { name: "Accessibility needs" })).toHaveCount(0);
@@ -145,14 +149,14 @@ test("whoever keeps a guest list attests, and only the Owner reads the needs bac
   await expect(next).toBeDisabled();
   await needs.getByLabel("I have this person's authority to enter this.").check();
   await expect(next).toBeDisabled();
-  await needs.getByLabel("This person has been told what is entered, why and who sees it.").check();
+  await needs.getByLabel("This person has been told what is entered, why and who sees it, and that they can have it removed.").check();
   await next.click();
   expect(await cognitiveLoadProblems(page)).toEqual([]);
   await expectAccessible(page);
   await needs.getByLabel("Allergies").fill("Shellfish");
   await needs.getByRole("button", { name: "Save needs" }).click();
   await expect(needs).toBeHidden();
-  await expect(row).toContainText("Needs on file");
+  await expect(row).toContainText("Attested");
 
   const [attestation] = await localSql<{
     basis: string;
@@ -183,7 +187,7 @@ test("whoever keeps a guest list attests, and only the Owner reads the needs bac
   await row.getByRole("button", { name: `Dietary and access needs for ${guest}` }).click();
   await needs.getByRole("button", { name: "Remove needs" }).click();
   await expect(needs).toBeHidden();
-  await expect(row).not.toContainText("Needs on file");
+  await expect(row).not.toContainText("Attested");
   await localSql("update app.guest_list_entries set deleted_at = now() where guest_name = $1", [
     guest,
   ]);

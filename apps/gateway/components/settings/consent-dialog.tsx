@@ -75,13 +75,13 @@ export function ConsentDialog({
               id={`${formId}-authority`}
               name="authorityConfirmed"
               value="true"
-              label={t("consent.attest.companyAuthority")}
+              label={t(`consent.notices.${key}.attestAuthority`)}
             />
             <Checkbox
               id={`${formId}-notice`}
               name="noticeConfirmed"
               value="true"
-              label={t("consent.attest.companyNotice")}
+              label={t(`consent.notices.${key}.attestNotice`)}
             />
           </>
         ) : null}

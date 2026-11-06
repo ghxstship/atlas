@@ -4,8 +4,10 @@ import { clearGuestNeeds, setGuestNeeds } from "@xos/data/sensitive-consent";
 import { parseGuestNeedsForm, workDetailErrorKey } from "@xos/data/work-details-forms";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { outcomeFor } from "@/lib/action-result";
+import { clientIp } from "@/lib/auth/legal";
 import { requestEngagedGuest, respondToSettlement } from "@/lib/party";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { FormResult } from "./operations";
@@ -83,6 +85,7 @@ export async function setGuestNeedsAction(
     ...parsed.value,
     locale: await getLocale(),
     surface: "Gateway",
+    clientIp: clientIp(await headers()),
   });
   if (!result.ok) return { error: workDetailErrorKey(result.error) };
   revalidatePath("/work/engagements", "layout");

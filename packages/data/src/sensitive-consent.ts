@@ -36,21 +36,21 @@ export const SENSITIVE_NOTICE_VERSIONS: Readonly<Record<SensitiveCategory, strin
   "Supplier Diversity": "2026-11-06",
 };
 
-/** The one wording version a guest's needs are attested under; it covers both categories they can hold. */
-export const GUEST_NEEDS_NOTICE_VERSION = SENSITIVE_NOTICE_VERSIONS["Dietary and Allergies"];
-
 /** Refusals of migrations 6160 to 6162 the apps explain with their own sentence. */
 export const SENSITIVE_CONSENT_RULES = [
   "sensitive_consent_required",
   "sensitive_notice_version",
   "sensitive_notice_locale",
   "sensitive_attestation_required",
-  "sensitive_person_withdrew",
+  "sensitive_person_only",
   "sensitive_entry_not_yours",
   "sensitive_consent_category",
 ] as const;
 
-/** The exact text a version's hash covers: the notice's keys in order, as compact UTF-8 JSON. */
+/**
+ * The exact text a version's hash covers: the notice's keys in order, as compact UTF-8 JSON. The notice holds everything
+ * a person reads or ticks: what a person consents to, and what someone attesting for them reads and states.
+ */
 export function canonicalNotice(notice: Readonly<Record<string, string>>): string {
   const sorted: Record<string, string> = {};
   for (const key of Object.keys(notice).sort()) sorted[key] = notice[key] as string;
@@ -82,6 +82,55 @@ export async function listMySensitiveConsents(
   );
 }
 
+/** A category with a value of the person's that no own grant covers (app.my_sensitive_states). */
+export interface SensitiveState {
+  readonly category: SensitiveCategory;
+  /** From before consent was recorded: hidden from everyone else, and cleared 30 days after they are told unless they agree. */
+  readonly waiting: boolean;
+  /** They withdrew, and a legal hold keeps it hidden until it ends. */
+  readonly held: boolean;
+  /** Meal preferences on their roster entries that no grant covers. */
+  readonly mealPreferences: readonly string[];
+}
+
+export async function listMySensitiveStates(
+  db: XosClient,
+  accountId: string | null = null,
+): Promise<Result<SensitiveState[]>> {
+  const { data, error } = await db.rpc(
+    "my_sensitive_states",
+    accountId ? { p_account_id: accountId } : {},
+  );
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((row) => ({
+      category: row.category,
+      waiting: row.waiting,
+      held: row.held,
+      mealPreferences: row.meal_preferences,
+    })),
+  );
+}
+
+/** What a category's section shows: the form under a standing grant, or the step, worded for what is on file. */
+export type SensitiveStep = "form" | "first" | "waiting" | "held";
+
+export function sensitiveStepFor(
+  category: SensitiveCategory,
+  consents: readonly StandingConsent[],
+  states: readonly SensitiveState[],
+): SensitiveStep {
+  if (consents.some((c) => c.category === category)) return "form";
+  const state = states.find((s) => s.category === category);
+  if (state?.waiting) return "waiting";
+  return state?.held ? "held" : "first";
+}
+
+/** The meal preferences no grant covers, for the step to show the person what it is about. */
+export function ungrantedMealPreferences(states: readonly SensitiveState[]): readonly string[] {
+  return states.find((s) => s.category === "Dietary and Allergies")?.mealPreferences ?? [];
+}
+
 /** A category's standing grant among those read, or null. */
 export function standingFor(
   consents: readonly StandingConsent[],
@@ -98,6 +147,8 @@ export interface GiveConsentInput {
   readonly accountId?: string | null;
   readonly authorityConfirmed?: boolean;
   readonly noticeConfirmed?: boolean;
+  /** The address the platform server saw, on the web apps, whose request to the database carries their own. */
+  readonly clientIp?: string | null;
 }
 
 /** Records the signed-in person's consent, or a company's attestation, with the version and language shown. */
@@ -113,6 +164,7 @@ export async function giveSensitiveConsent(
     ...(input.accountId ? { p_account_id: input.accountId } : {}),
     ...(input.authorityConfirmed ? { p_authority_confirmed: true } : {}),
     ...(input.noticeConfirmed ? { p_notice_confirmed: true } : {}),
+    ...(input.clientIp ? { p_client_ip: input.clientIp } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ id: data });
@@ -184,6 +236,7 @@ export async function attestRosterMealPreference(
     readonly surface: SensitiveSurface;
     readonly authorityConfirmed: boolean;
     readonly noticeConfirmed: boolean;
+    readonly clientIp?: string | null;
   },
 ): Promise<Result<{ id: string }>> {
   const { data, error } = await db.rpc("attest_roster_meal_preference", {
@@ -193,6 +246,7 @@ export async function attestRosterMealPreference(
     p_surface: input.surface,
     p_authority_confirmed: input.authorityConfirmed,
     p_notice_confirmed: input.noticeConfirmed,
+    ...(input.clientIp ? { p_client_ip: input.clientIp } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ id: data });
@@ -226,6 +280,7 @@ export interface GuestNeedsInput {
   readonly noticeConfirmed: boolean;
   readonly locale: string;
   readonly surface: SensitiveSurface;
+  readonly clientIp?: string | null;
 }
 
 /** Sets a guest's needs as a full replacement under an attestation; nothing given clears them. */
@@ -239,13 +294,16 @@ export async function setGuestNeeds(
     p_accessibility_needs: [...input.accessibilityNeeds],
     p_authority_confirmed: input.authorityConfirmed,
     p_notice_confirmed: input.noticeConfirmed,
-    p_notice_version: GUEST_NEEDS_NOTICE_VERSION,
+    // Each category stands on its own wording.
+    p_dietary_notice_version: SENSITIVE_NOTICE_VERSIONS["Dietary and Allergies"],
+    p_accessibility_notice_version: SENSITIVE_NOTICE_VERSIONS.Accessibility,
     p_locale: input.locale,
     p_surface: input.surface,
     ...(input.allergies ? { p_allergies: input.allergies } : {}),
     ...(input.dietaryNotes ? { p_dietary_notes: input.dietaryNotes } : {}),
     ...(input.accessibilityNotes ? { p_accessibility_notes: input.accessibilityNotes } : {}),
     ...(input.guestEmail ? { p_guest_email: input.guestEmail } : {}),
+    ...(input.clientIp ? { p_client_ip: input.clientIp } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ id: data ?? null });

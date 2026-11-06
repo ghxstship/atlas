@@ -54,7 +54,7 @@ test("Work Details: agree, save, withdraw, and remove what someone else entered"
       [guest, DEMO.org],
     );
     await sql(
-      `select app.set_guest_care_needs($1, '{Vegan}', null, null, '{}', null, 'crew@example.com', true, true, '2026-11-06', 'en-US', 'Atlas')`,
+      `select app.set_guest_care_needs($1, '{Vegan}', null, null, '{}', null, 'crew@example.com', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas')`,
       [entry?.id],
       DEMO.owner,
     );
@@ -73,6 +73,49 @@ test("Work Details: agree, save, withdraw, and remove what someone else entered"
     await sql("update app.guest_list_entries set deleted_at = now() where guest_name = $1", [
       guest,
     ]);
+  }
+});
+
+test("A value from before consent: the person sees it, is told it waits, and agreeing keeps it", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const person = DEMO.vendorContact;
+  const backlog = async () => {
+    // Written as a migration would: no signed-in person, so no consent is recorded.
+    await sql(
+      `insert into app.person_work_details (person_id, allergies)
+       select $1, 'Sesame' where not exists (select 1 from app.person_work_details w where w.person_id = $1 and w.deleted_at is null)`,
+      [person],
+    );
+    await sql(
+      "update app.person_work_details set allergies = 'Sesame' where person_id = $1 and deleted_at is null",
+      [person],
+    );
+  };
+  await sql("select app.withdraw_sensitive_consent('Dietary and Allergies')", [], person);
+  await backlog();
+  try {
+    await signIn(page, "vendor@example.com", "/settings/work-details");
+    await expect(page.getByRole("form", { name: "Dietary needs" })).toHaveCount(0);
+    await expect(page.getByText(/from before we recorded consent/)).toBeVisible();
+    await expect(page.getByText("On file: Sesame", { exact: true })).toBeVisible();
+    await expectAccessible(page);
+
+    await page.getByRole("button", { name: "Keep them", exact: true }).click();
+    const step = page.getByRole("dialog", { name: "Before you add dietary and allergy details" });
+    await step.getByRole("button", { name: "I agree" }).click();
+    await expect(step).toBeHidden();
+    const needs = page.getByRole("form", { name: "Dietary needs" });
+    await expect(needs.getByLabel("Allergies")).toHaveValue("Sesame");
+    const [record] = await sql<{ standing: boolean; waiting: boolean }>(
+      `select consent_id is not null as standing, awaiting_since is not null as waiting
+         from app.sensitive_field_records where person_id = $1 and field_code = 'allergies'`,
+      [person],
+    );
+    expect(record).toEqual({ standing: true, waiting: false });
+  } finally {
+    await sql("select app.withdraw_sensitive_consent('Dietary and Allergies')", [], person);
   }
 });
 

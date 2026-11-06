@@ -6,6 +6,8 @@ import {
   rosterMealConsentStands,
 } from "@xos/data/sensitive-consent";
 import { getLocale } from "next-intl/server";
+import { headers } from "next/headers";
+import { clientIp } from "@/lib/auth/legal";
 import { Constants } from "@xos/data/database.types";
 import type { Parsed } from "@xos/data/work-details-forms";
 import {
@@ -162,6 +164,7 @@ export async function attestRosterMealAction(
     surface: "Gateway",
     authorityConfirmed,
     noticeConfirmed,
+    clientIp: clientIp(await headers()),
   });
   return result.ok ? { ok: true } : { ok: false, error: rosterFactErrorKey(result.error) };
 }
@@ -174,6 +177,7 @@ export async function consentRosterMealAction(): Promise<
     category: "Dietary and Allergies",
     locale: await getLocale(),
     surface: "Gateway",
+    clientIp: clientIp(await headers()),
   });
   return result.ok ? { ok: true } : { ok: false, error: rosterFactErrorKey(result.error) };
 }

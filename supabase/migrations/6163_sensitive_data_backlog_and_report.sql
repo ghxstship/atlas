@@ -4,8 +4,12 @@
 --   * No consent is invented for a value already held. Each one gets a field record with no consent and awaiting_since set.
 --     Reads treat it as absent from now on (6161). The person keeps seeing it, is told once by the daily job
 --     (account.sensitive_consent_needed), and either consents, which keeps it, or it is cleared 30 days after that notice.
---   * private.run_sensitive_data_job, daily: sends those notices; clears values waiting more than 30 days; clears values
---     a legal hold kept after a withdrawal once the hold ends; deletes a guest's needs 90 days after the project ends.
+--   * private.run_sensitive_data_job, daily: sends those notices, and only a notice that went out starts the clock; clears
+--     values waiting more than 30 days; clears values a legal hold kept after a withdrawal once the hold ends; links guest
+--     needs to an account opened later and tells the person; deletes guest values whose attestation is gone; deletes a guest's
+--     needs 90 days after the project ends, or a year after they last changed on a project with no end date.
+--   * app.my_sensitive_states: what waits for the person's consent, what a hold keeps, and their meal preferences, so Work
+--     Details can show them.
 --   * app.sensitive_consent_report: consent state per subject and field for an org's data.request.manage holders, never
 --     a value, and never whether a value is held.
 
@@ -40,6 +44,24 @@ group by f.code, c.person_id, c.account_id;
 
 -- The daily job -------------------------------------------------------------------------------------------------------
 
+create or replace function private.sensitive_subject_reachable(p_person_id uuid, p_account_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from app.people p where p.id = p_person_id and p.user_id is not null)
+    or exists (
+      select 1 from app.account_memberships m
+      join app.account_membership_roles o on o.account_membership_id = m.id and o.account_role = 'Account Owner' and o.deleted_at is null
+      join app.people p on p.id = m.person_id and p.user_id is not null
+      where m.org_id = p_account_id and m.deleted_at is null and m.valid_to is null);
+$$;
+
+comment on function private.sensitive_subject_reachable(uuid, uuid) is 'True when the daily job can tell a person or a company''s Owner about a value waiting for consent. With nobody to tell, its 30 days run from when it started waiting; otherwise only from a notice that went out.';
+revoke all on function private.sensitive_subject_reachable(uuid, uuid) from public, anon, authenticated;
+
 create or replace function private.run_sensitive_data_job()
 returns bigint
 language plpgsql
@@ -50,21 +72,24 @@ as $$
 declare
   v_row record;
   v_count bigint := 0;
+  v_category app.sensitive_data_category;
+  v_user uuid;
 begin
-  -- Tell each person, once, what is waiting for their consent.
+  -- Tell each person, once, what is waiting for their consent. A notice that fails leaves the row to try again tomorrow.
   for v_row in
     select distinct r.person_id, p.user_id
     from app.sensitive_field_records r
     join app.people p on p.id = r.person_id
     where r.awaiting_since is not null and r.awaiting_notified_at is null and r.cleared_at is null and p.user_id is not null
+      and r.guest_list_entry_id is null
   loop
     begin
       perform private.notify_account(v_row.user_id, 'account.sensitive_consent_needed', '{}'::jsonb);
+      update app.sensitive_field_records r set awaiting_notified_at = now()
+      where r.person_id = v_row.person_id and r.awaiting_since is not null and r.awaiting_notified_at is null and r.cleared_at is null;
     exception when others then
       raise warning 'account.sensitive_consent_needed was not sent to sign-in %: %', v_row.user_id, sqlerrm;
     end;
-    update app.sensitive_field_records r set awaiting_notified_at = now()
-    where r.person_id = v_row.person_id and r.awaiting_since is not null and r.awaiting_notified_at is null;
   end loop;
   for v_row in
     select distinct r.account_id, p.user_id
@@ -76,11 +101,11 @@ begin
   loop
     begin
       perform private.notify_account(v_row.user_id, 'account.sensitive_consent_needed', '{}'::jsonb);
+      update app.sensitive_field_records r set awaiting_notified_at = now()
+      where r.account_id = v_row.account_id and r.awaiting_since is not null and r.awaiting_notified_at is null and r.cleared_at is null;
     exception when others then
       raise warning 'account.sensitive_consent_needed was not sent to sign-in %: %', v_row.user_id, sqlerrm;
     end;
-    update app.sensitive_field_records r set awaiting_notified_at = now()
-    where r.account_id = v_row.account_id and r.awaiting_since is not null and r.awaiting_notified_at is null;
   end loop;
 
   -- Clear what waited more than 30 days, and what a legal hold kept after a withdrawal once the hold has ended.
@@ -90,13 +115,15 @@ begin
     join private.sensitive_fields f on f.code = r.field_code
     left join app.sensitive_data_consents c on c.id = r.consent_id
     where r.cleared_at is null and r.guest_list_entry_id is null
-      and ((r.awaiting_since is not null and coalesce(r.awaiting_notified_at, r.awaiting_since) < now() - interval '30 days')
+      and ((r.awaiting_since is not null and (r.awaiting_notified_at < now() - interval '30 days'
+            or (r.awaiting_notified_at is null and r.awaiting_since < now() - interval '30 days'
+                and not private.sensitive_subject_reachable(r.person_id, r.account_id))))
         or (c.id is not null and c.withdrawn_at is not null))
   loop
     -- A grant given since then wins.
     continue when (v_row.account_id is not null and private.sensitive_account_consent_id(v_row.account_id, v_row.category) is not null)
       or (v_row.person_id is not null and private.sensitive_consent_stands(v_row.person_id, v_row.category));
-    if private.erase_sensitive_category(v_row.person_id, v_row.account_id, v_row.category) then
+    if private.clear_ungranted_sensitive_values(v_row.person_id, v_row.account_id, v_row.category) then
       v_count := v_count + 1;
       if v_row.person_id is not null then
         perform private.log_work_detail_event(v_row.person_id, 'sensitive_consent.values_cleared', null, null, '{}', '{}', null);
@@ -104,25 +131,117 @@ begin
     end if;
   end loop;
 
-  -- A guest's needs last until 90 days after the project ends.
+  -- An account opened, or an address confirmed, after the entry: link it, tell the person, and honor a withdrawal.
   for v_row in
-    select n.guest_list_entry_id
+    select distinct private.person_with_verified_email(n.guest_email) as person_id
     from app.guest_care_needs n
-    join app.projects p on p.id = n.project_id
-    where p.ends_on is not null and p.ends_on < (now() - interval '90 days')::date
+    where n.guest_person_id is null and n.guest_email is not null and private.person_with_verified_email(n.guest_email) is not null
   loop
-    perform private.close_guest_needs(v_row.guest_list_entry_id);
+    perform private.link_guest_needs_to_person(v_row.person_id);
+    select p.user_id into v_user from app.people p where p.id = v_row.person_id;
+    perform private.log_work_detail_event(v_row.person_id, 'sensitive_consent.attested', null, null, '{}', '{}', null);
+    foreach v_category in array array['Dietary and Allergies', 'Accessibility']::app.sensitive_data_category[] loop
+      if private.person_withdrew_sensitive(v_row.person_id, v_category) then
+        perform private.close_guest_needs(n.guest_list_entry_id, v_category)
+        from app.guest_care_needs n where n.guest_person_id = v_row.person_id;
+      elsif exists (select 1 from app.sensitive_data_consents c
+                    where c.person_id = v_row.person_id and c.category = v_category and c.guest_list_entry_id is not null and c.withdrawn_at is null) then
+        begin
+          perform private.notify_account(v_user, 'account.sensitive_data_attested', jsonb_build_object('category', v_category));
+        exception when others then
+          raise warning 'account.sensitive_data_attested was not sent to sign-in %: %', v_user, sqlerrm;
+        end;
+      end if;
+    end loop;
+  end loop;
+
+  -- A guest's values with no standing attestation: what a hold kept, now that it has ended.
+  for v_row in
+    select n.guest_list_entry_id, x.category
+    from app.guest_care_needs n
+    cross join lateral (values
+      ('Dietary and Allergies'::app.sensitive_data_category, cardinality(n.dietary_needs) > 0 or n.allergies is not null or n.dietary_notes is not null),
+      ('Accessibility'::app.sensitive_data_category, cardinality(n.accessibility_needs) > 0 or n.accessibility_notes is not null)) x (category, held)
+    where x.held and not private.guest_needs_on_hold(n)
+      and not exists (select 1 from app.sensitive_data_consents c
+                      where c.guest_list_entry_id = n.guest_list_entry_id and c.category = x.category and c.withdrawn_at is null)
+  loop
+    perform private.close_guest_needs(v_row.guest_list_entry_id, v_row.category);
+    v_count := v_count + 1;
+  end loop;
+  delete from app.guest_care_needs n
+  where cardinality(n.dietary_needs) = 0 and n.allergies is null and n.dietary_notes is null
+    and cardinality(n.accessibility_needs) = 0 and n.accessibility_notes is null and not private.guest_needs_on_hold(n);
+
+  -- A guest's needs last until 90 days after the project ends: its last day, or when it was archived or deleted. A project with
+  -- no end date never ends, so they last until a year after they last changed. An attestation whose values were not saved goes
+  -- the same way. A legal hold defers this.
+  for v_row in
+    select distinct g.id as entry
+    from app.guest_list_entries g
+    join app.projects p on p.id = g.project_id
+    left join app.guest_care_needs n on n.guest_list_entry_id = g.id
+    left join app.sensitive_data_consents c on c.guest_list_entry_id = g.id and c.withdrawn_at is null
+    where (n.id is not null or c.id is not null)
+      and g.org_id not in (select private.held_org_ids('app.guest_care_needs'))
+      and not private.guest_needs_on_hold(n)
+      and (coalesce(p.ends_on, p.archived_at::date, p.deleted_at::date) < (now() - interval '90 days')::date
+        or (p.ends_on is null and p.archived_at is null and p.deleted_at is null
+            and greatest(n.updated_at, c.given_at) < now() - interval '1 year'))
+  loop
+    perform private.close_guest_needs(v_row.entry);
     v_count := v_count + 1;
   end loop;
   return v_count;
 end;
 $$;
 
-comment on function private.run_sensitive_data_job() is 'The daily job of ADR 0164: tells each person once what waits for their consent, clears values that waited over 30 days and values a legal hold kept after a withdrawal once the hold ends, and deletes a guest''s needs 90 days after the project ends. Returns how many it cleared.';
+comment on function private.run_sensitive_data_job() is 'The daily job of ADR 0164: tells each person once what waits for their consent, and a failed notice is tried again and starts no clock; clears values that waited over 30 days and values a legal hold kept after a withdrawal once the hold ends; links guest needs to an account opened later and tells the person; deletes guest values with no standing attestation; deletes a guest''s needs 90 days after the project ends, or a year after they last changed on a project with no end date. A legal hold defers every deletion. Returns how many it cleared.';
 revoke all on function private.run_sensitive_data_job() from public, anon, authenticated;
 grant execute on function private.run_sensitive_data_job() to service_role;
 
 select cron.schedule('xos_run_sensitive_data_job', '37 3 * * *', 'select private.run_sensitive_data_job()');
+
+-- What Work Details shows ---------------------------------------------------------------------------------------------
+
+create or replace function app.my_sensitive_states(p_account_id uuid default null)
+returns table (
+  category app.sensitive_data_category,
+  waiting boolean,
+  held boolean,
+  meal_preferences text[]
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with me as (select private.require_person() as id)
+  select f.category,
+    bool_or(r.awaiting_since is not null),
+    bool_or(r.awaiting_since is null and c.withdrawn_at is not null),
+    case when f.category = 'Dietary and Allergies' and p_account_id is null then array(
+      select distinct t.meal_preference from app.roster_travel_requests t
+      join private.roster_people x on x.roster_entry_id = t.roster_entry_id, me
+      where x.person_id = me.id and t.meal_preference is not null and t.deleted_at is null
+        and private.roster_meal_grant_id(t.roster_entry_id) is null order by 1) else '{}'::text[] end
+  from me
+  join app.sensitive_field_records r on r.guest_list_entry_id is null and (
+    (p_account_id is null and r.person_id = me.id and r.account_id is null)
+    or (p_account_id is not null and r.account_id = p_account_id
+        and p_account_id in (select private.my_account_ids(array['Account Owner', 'Account Admin']::app.account_role[]))))
+  join private.sensitive_fields f on f.code = r.field_code
+  left join app.sensitive_data_consents c on c.id = r.consent_id
+  where r.cleared_at is null and (r.awaiting_since is not null or c.withdrawn_at is not null)
+    and not (case when p_account_id is null then private.sensitive_consent_stands(me.id, f.category)
+                  else private.sensitive_account_consent_id(p_account_id, f.category) is not null end)
+  group by f.category
+  order by f.category;
+$$;
+
+comment on function app.my_sensitive_states(uuid) is 'For the signed-in person, or a company they are an Owner or Admin of, each category with a value no own grant covers: waiting (from before consent was recorded, cleared 30 days after they are told unless they agree), held (they withdrew and a legal hold keeps it hidden until it ends), and the person''s meal preferences no grant covers, so Work Details can show them.';
+revoke all on function app.my_sensitive_states(uuid) from public, anon;
+grant execute on function app.my_sensitive_states(uuid) to authenticated, service_role;
 
 -- The report ----------------------------------------------------------------------------------------------------------
 
@@ -189,25 +308,42 @@ begin
     from app.sensitive_data_consents c
     where c.org_id = p_org_id and c.guest_list_entry_id is not null
     union
+    -- Whoever this org rosters can give a meal preference, and whoever it attested for as a company has one.
+    select 'Person', r.person_id, null::uuid, null::uuid, 'Dietary and Allergies'
+    from app.engagements e
+    join app.engagement_roster_entries x on x.engagement_id = e.id and x.deleted_at is null
+    join private.roster_people r on r.roster_entry_id = x.id
+    where e.org_id = p_org_id and e.deleted_at is null and r.person_id is not null
+    union
     select 'Person', c.person_id, null::uuid, null::uuid, c.category
     from app.sensitive_data_consents c
     where c.org_id = p_org_id and c.guest_list_entry_id is null and c.account_id is null
+  ), shared_fields as (
+    -- Which fields each subject's category covers for this org. A roster alone gives the meal preference; a company's
+    -- attestation covers nothing else.
+    select s.kind, s.id, s.account, s.guest, s.cat, f.code, f.sort_order
+    from subjects s
+    join private.sensitive_fields f on f.category = s.cat
+      and (case when s.guest is not null then f.table_name = 'app.guest_care_needs'
+                when s.cat = 'Supplier Diversity' then f.table_name = 'app.supplier_diversity_certifications'
+                when f.code = 'meal_preference' then true
+                when f.table_name = 'app.person_work_details' then exists (
+                  select 1 from people_shared ps where ps.person_id = s.id
+                    and ps.shared = case s.cat when 'Dietary and Allergies' then 'Dietary Needs'::app.work_detail_category
+                                               else 'Accessibility Needs'::app.work_detail_category end)
+                else false end)
   )
   select s.kind,
     coalesce(s.guest, s.account, s.id),
     coalesce(g.guest_name, a.name, p.full_name),
     s.cat,
-    f.code,
+    s.code,
     private.sensitive_standing_of(k),
     k.notice_version,
     k.given_at,
     b.full_name,
     k.withdrawn_at
-  from subjects s
-  join private.sensitive_fields f on f.category = s.cat
-    and f.table_name = case when s.guest is not null then 'app.guest_care_needs'
-                            when s.cat = 'Supplier Diversity' then 'app.supplier_diversity_certifications'
-                            else 'app.person_work_details' end
+  from shared_fields s
   left join app.people p on p.id = s.id
   left join app.organizations a on a.id = s.account
   left join app.guest_list_entries g on g.id = s.guest
@@ -216,15 +352,22 @@ begin
     where c.category = s.cat
       and case when s.guest is not null then c.guest_list_entry_id = s.guest
                when s.account is not null then c.account_id = s.account
-               else c.person_id = s.id and c.guest_list_entry_id is null and (c.basis = 'Own Consent' or c.org_id = p_org_id) end
-    order by c.withdrawn_at is null desc, c.given_at desc
+               else c.person_id = s.id and c.guest_list_entry_id is null and (c.basis = 'Own Consent'
+                 -- A company's attestation covers its meal preference and nothing else.
+                 or (s.code = 'meal_preference' and (c.org_id = p_org_id or exists (
+                   select 1 from private.roster_people r
+                   join app.engagement_roster_entries x on x.id = r.roster_entry_id and x.deleted_at is null
+                   join app.engagements e on e.id = x.engagement_id and e.org_id = p_org_id and e.deleted_at is null
+                   join app.counterparties cp on cp.id = e.counterparty_id
+                   where r.person_id = s.id and cp.organization_id = c.org_id)))) end
+    order by c.withdrawn_at is null desc, (c.basis = 'Own Consent') desc, c.given_at desc
     limit 1) k on true
   left join app.people b on b.id = k.given_by
-  order by 3, s.cat, f.sort_order;
+  order by 3, s.cat, s.sort_order;
 end;
 $$;
 
-comment on function app.sensitive_consent_report(uuid) is 'Consent state per subject and sensitive field for an org''s data.request.manage holders, else 42501: the people who share a category with it, the guests and people it attested for, and the owners of supplier diversity certifications shared with it. Never a value, and never whether a value is held: every field of the category is listed.';
+comment on function app.sensitive_consent_report(uuid) is 'Consent state per subject and sensitive field for an org''s data.request.manage holders, else 42501: the people who share a category with it, the people it rosters (their meal preference), the guests and people it attested for, and the owners of supplier diversity certifications shared with it. A company''s attestation is shown against the meal preference only. Never a value, and never whether a value is held: every field a subject''s category covers is listed.';
 revoke all on function app.sensitive_consent_report(uuid) from public, anon;
 grant execute on function app.sensitive_consent_report(uuid) to authenticated, service_role;
 

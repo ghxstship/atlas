@@ -357,7 +357,7 @@ function StepForm({
         <Input
           name="mealPreference"
           label={label("mealPreference")}
-          help={help("mealPreference")}
+          help={travel?.mealPreferenceMasked ? t("consent.meal.masked") : help("mealPreference")}
           maxLength={100}
           defaultValue={travel?.mealPreference ?? ""}
           {...err("mealPreference")}

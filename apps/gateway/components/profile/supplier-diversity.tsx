@@ -3,7 +3,12 @@ import {
   listSupplierDiversityPrograms,
   SUPPLIER_DIVERSITY_KINDS,
 } from "@xos/data/supplier-diversity";
-import { listMySensitiveConsents, standingFor } from "@xos/data/sensitive-consent";
+import {
+  listMySensitiveConsents,
+  listMySensitiveStates,
+  sensitiveStepFor,
+  standingFor,
+} from "@xos/data/sensitive-consent";
 import type { XosClient } from "@xos/data";
 import { ActionButton } from "@/components/actions/action-button";
 import { RowList } from "@/components/engagement/rows";
@@ -38,12 +43,18 @@ export async function SupplierDiversityPanel({
   /** The company acted as, or null for the person's own. */
   accountId: string | null;
 }) {
-  const [certs, programs, consents] = await Promise.all([
+  const [certs, programs, consents, states] = await Promise.all([
     listMySupplierDiversity(db, accountId),
     listSupplierDiversityPrograms(db, accountId),
     listMySensitiveConsents(db, accountId),
+    listMySensitiveStates(db, accountId),
   ]);
   const consent = consents.ok ? standingFor(consents.data, "Supplier Diversity") : null;
+  const step = sensitiveStepFor(
+    "Supplier Diversity",
+    consents.ok ? consents.data : [],
+    states.ok ? states.data : [],
+  );
   const hidden = accountId ? { accountId } : {};
   return (
     <Section id="supplier-diversity" title={t("gateway.diversity.title")}>
@@ -203,10 +214,11 @@ export async function SupplierDiversityPanel({
                 hidden={hidden}
                 gateKey="diversity"
                 reviewKey="reviewDiversity"
-                waiting={certs.data.length > 0}
+                waiting={step === "waiting"}
+                held={step === "held"}
                 attest={accountId !== null}
               />
-              {certs.data.length > 0 ? (
+              {step === "waiting" ? (
                 <ConsentWithdraw
                   category="Supplier Diversity"
                   hidden={hidden}

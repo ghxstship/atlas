@@ -142,7 +142,8 @@
     "holiday_day_taken": "Este calendario ya tiene un feriado ese día. Quítelo primero o elija otro día.",
     "holiday_venue_taken": "Ese recinto ya tiene un calendario de feriados. Desasígnelo allí primero.",
     "import_sensitive_column": "Esta columna parece contener datos de dieta, accesibilidad o diversidad. Una importación no puede registrar el consentimiento, así que déjala sin asignar.",
-    "custom_field_sensitive": "Un campo personalizado no puede guardar datos de dieta, accesibilidad o diversidad. Usa Datos de trabajo o el paso de necesidades del invitado."
+    "custom_field_sensitive": "Un campo personalizado no puede guardar datos de dieta, accesibilidad o diversidad. Usa Datos de trabajo o el paso de necesidades del invitado.",
+    "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",

@@ -142,7 +142,8 @@
     "holiday_day_taken": "This calendar already has a holiday on that day. Remove it first, or choose another day.",
     "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first.",
     "import_sensitive_column": "This column looks like dietary, accessibility or diversity data. An import cannot record consent for it, so leave it unmapped.",
-    "custom_field_sensitive": "A custom field cannot hold dietary, accessibility or diversity data. Use Work Details or the guest's needs step."
+    "custom_field_sensitive": "A custom field cannot hold dietary, accessibility or diversity data. Use Work Details or the guest's needs step.",
+    "question_sensitive": "A question cannot ask for dietary, accessibility or protected-group details, because answering it records no consent. Use Work Details or the guest's needs step."
   },
   "partner": {
     "sections": "Partner console sections",

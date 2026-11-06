@@ -38,4 +38,4 @@ Allocations say what each party and person is given for a production: badges, pa
 
 Related: [Venues, spaces and site plans](help:places).
 
-A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only that needs are on file; the Owner and the catering lead and on-site medical roles read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it.
+A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only who attested and when; the Owner and the catering lead and on-site medical roles read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it.

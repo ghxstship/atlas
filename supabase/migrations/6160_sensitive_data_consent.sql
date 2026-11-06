@@ -18,7 +18,8 @@
 --     one call, as easy as giving consent. A legal hold over the person keeps the values, masked, until the hold ends; the
 --     daily job of 6163 clears them then. Supplier diversity certifications are de-identified and soft deleted, so the
 --     owner's access log still has something to point at.
---   * Account deletion (1112) withdraws everything the person gave or was the subject of.
+--   * Account deletion (1112) withdraws everything the person gave or was the subject of, and closes what a guest list holds
+--     about them (6162).
 -- Functions start from their latest definitions: 4664_work_details_profile_move.sql for private.guard_person_work_details,
 -- 2011_supplier_certificate_number_encryption.sql for private.guard_supplier_diversity_certification.
 
@@ -62,9 +63,9 @@ revoke all on private.sensitive_notice_versions from public, anon, authenticated
 grant select on private.sensitive_notice_versions to service_role;
 
 insert into private.sensitive_notice_versions (category, notice_version, text_sha256_en_us, text_sha256_es_us) values
-  ('Dietary and Allergies', '2026-11-06', 'b955a088acb63017190aaf5f7404c3a56c3e809ad572c6f05c3447005abaef57', 'c58fa3148926b0df889c85f6f76cf01e229698dde1022bc20ff93d648f716af5'),
-  ('Accessibility', '2026-11-06', 'd3a05ebc2fa79c9badbe6fedaf0096a9f987889eda3a6ea8769b4f2474273005', 'c771c131d332c0616ad96a33fe66001ba5b41168d6b8d145f4a52fa7175c5bcb'),
-  ('Supplier Diversity', '2026-11-06', '377c8781fc06bab01c567202b409dc813643e4d8ef6887df6fa8950879615ed5', 'b454a1e2cd703241f9cc94e7998d0eafca906e693c05a21a0a018426e16546b2');
+  ('Dietary and Allergies', '2026-11-06', 'ce491a3e79d6f018d808a938b6b4e50f5fa427b4b8cce8a73d06d7865ca32e56', 'c83e0468416b36efaed8fe88fbede4996abb72207393d270481b5a66e5279fcc'),
+  ('Accessibility', '2026-11-06', 'ac684586754bd358add71ec9041ecaea088b544a21cc5c3f0c7d783d28835cdc', 'e1d8614b6c2c3209cf7194e634decfd5171b5d7f3c4a7c112403b074036b4596'),
+  ('Supplier Diversity', '2026-11-06', '75bfaaa6f72191488dd503ce1b83ffb0464439164cb02cfb21cbee37224ea21d', '65a68564806dca003dbf0b6247ea5b3d9ee25e21e01259c4548323816c123fc5');
 
 -- Consents ------------------------------------------------------------------------------------------------------------
 
@@ -134,7 +135,7 @@ call private.describe('app.sensitive_data_consents', 'Consent to hold one catego
   'notice_confirmed', 'The person attesting confirmed the person has had notice of what is entered and why.',
   'given_by', 'Person who consented or attested.',
   'given_at', 'When it was given. Set by the database.',
-  'captured_ip', 'Client IP address at capture, as evidence. Set by the database.',
+  'captured_ip', 'Client IP address at capture, as evidence: passed by the platform server, or read from the request when absent. Only the database writes it.',
   'withdrawn_at', 'When it was withdrawn; NULL while it stands.',
   'withdrawn_by', 'Person who withdrew it; NULL for the database, or while it stands.',
   'created_at', 'When the row was created.',
@@ -166,12 +167,15 @@ as $$
 begin
   if tg_op = 'INSERT' then
     new.given_at := now();
-    new.captured_ip := private.request_ip();
+    -- The web apps call through their server, so the request's own address is theirs: they pass the client's (0850).
+    new.captured_ip := coalesce(new.captured_ip, private.request_ip());
     new.withdrawn_at := null;
     new.withdrawn_by := null;
     return new;
   end if;
-  if (to_jsonb(new) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id', 'updated_at']) <> (to_jsonb(old) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id', 'updated_at']) then
+  if (to_jsonb(new) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id', 'person_id', 'updated_at']) <> (to_jsonb(old) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id', 'person_id', 'updated_at'])
+     or (new.person_id is distinct from old.person_id
+         and not (old.person_id is null and old.guest_list_entry_id is not null and private.in_trusted_operation('sensitive_guest_link'))) then
     perform private.refuse('consent_immutable', 'A consent record is evidence; only its withdrawal is recorded.');
   end if;
   if old.withdrawn_at is not null and new.withdrawn_at is distinct from old.withdrawn_at then
@@ -185,7 +189,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_sensitive_data_consent() is 'Sensitive data consents: the capture time and IP address come from the database; nothing changes afterwards but a one-time withdrawal stamped with the database time.';
+comment on function private.guard_sensitive_data_consent() is 'Sensitive data consents: the capture time comes from the database and the IP address from the platform server or the request; nothing changes afterwards but a one-time withdrawal stamped with the database time, and naming the person on a guest''s attestation once a verified sign-in matches its email (private.link_guest_needs_to_person).';
 revoke all on function private.guard_sensitive_data_consent() from public, anon, authenticated;
 
 create trigger t40_guard_sensitive_data_consent before insert or update on app.sensitive_data_consents
@@ -380,22 +384,34 @@ begin
   for update;
   if p_present then
     if v_id is null then
-      insert into app.sensitive_field_records (field_code, person_id, account_id, guest_list_entry_id, consent_id, entered_by)
-      values (p_field_code, p_person_id, p_account_id, p_guest_list_entry_id, p_consent_id, private.current_person_id());
+      insert into app.sensitive_field_records (field_code, person_id, account_id, guest_list_entry_id, consent_id, entered_by, awaiting_since)
+      values (p_field_code, p_person_id, p_account_id, p_guest_list_entry_id, p_consent_id, private.current_person_id(),
+        case when p_consent_id is null then now() end);
     else
-      update app.sensitive_field_records r set consent_id = p_consent_id, entered_by = private.current_person_id(),
-        entered_at = case when r.cleared_at is null then r.entered_at else now() end, changed_at = now(), cleared_at = null,
-        awaiting_since = null
+      -- Only a grant ends a wait. A value still held with no grant keeps its record, its clock and its notice as they stand.
+      update app.sensitive_field_records r set
+        consent_id = case when p_consent_id is not null then p_consent_id when r.cleared_at is not null then null else r.consent_id end,
+        entered_by = case when p_consent_id is not null or r.cleared_at is not null then private.current_person_id() else r.entered_by end,
+        entered_at = case when r.cleared_at is null then r.entered_at else now() end,
+        changed_at = now(),
+        cleared_at = null,
+        awaiting_since = case
+          when p_consent_id is not null then null
+          when r.cleared_at is not null then now()
+          when r.consent_id is null then coalesce(r.awaiting_since, now())
+          else r.awaiting_since end,
+        awaiting_notified_at = case when p_consent_id is not null or r.cleared_at is not null then null else r.awaiting_notified_at end,
+        person_id = case when p_guest_list_entry_id is not null then p_person_id else r.person_id end
       where r.id = v_id;
     end if;
   elsif v_id is not null then
-    update app.sensitive_field_records r set cleared_at = now(), changed_at = now(), awaiting_since = null
+    update app.sensitive_field_records r set cleared_at = now(), changed_at = now(), awaiting_since = null, awaiting_notified_at = null
     where r.id = v_id and r.cleared_at is null;
   end if;
 end;
 $$;
 
-comment on function private.record_sensitive_field(text, boolean, uuid, uuid, uuid, uuid) is 'Keeps the field-level record of one field of one subject: the consent and who entered a value, or when it was cleared. Never a value.';
+comment on function private.record_sensitive_field(text, boolean, uuid, uuid, uuid, uuid) is 'Keeps the field-level record of one field of one subject: the consent and who entered a value, or when it was cleared. Never a value. A value held with no grant stays waiting: only a grant, or clearing it, ends the wait, so saving the rest of a form leaves the 30-day clock running.';
 revoke all on function private.record_sensitive_field(text, boolean, uuid, uuid, uuid, uuid) from public, anon, authenticated;
 
 -- The guard on person work details ------------------------------------------------------------------------------------
@@ -596,6 +612,20 @@ $$;
 comment on function private.person_on_legal_hold(uuid) is 'True while an org the person belongs to or works for holds a legal hold that reaches their data, the rule that also refuses their account deletion (1112).';
 revoke all on function private.person_on_legal_hold(uuid) from public, anon, authenticated;
 
+create or replace function private.sensitive_subject_on_hold(p_person_id uuid, p_account_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select (p_person_id is not null and private.person_on_legal_hold(p_person_id))
+    or (p_account_id is not null and p_account_id in (select private.held_org_ids('app.supplier_diversity_certifications')));
+$$;
+
+comment on function private.sensitive_subject_on_hold(uuid, uuid) is 'True while a legal hold reaches a person''s data, or a company''s supplier diversity certifications: their sensitive values stay, hidden, until it ends.';
+revoke all on function private.sensitive_subject_on_hold(uuid, uuid) from public, anon, authenticated;
+
 create or replace function private.remove_work_detail_share_category(p_person_id uuid, p_category app.work_detail_category)
 returns void
 language plpgsql
@@ -683,7 +713,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_person_id is not null and private.person_on_legal_hold(p_person_id) then
+  if private.sensitive_subject_on_hold(p_person_id, p_account_id) then
     return false;
   end if;
   if p_category = 'Supplier Diversity' then
@@ -736,7 +766,8 @@ create or replace function app.give_sensitive_consent(
   p_surface app.sensitive_consent_surface,
   p_account_id uuid default null,
   p_authority_confirmed boolean default false,
-  p_notice_confirmed boolean default false
+  p_notice_confirmed boolean default false,
+  p_client_ip inet default null
 )
 returns uuid
 language plpgsql
@@ -762,8 +793,8 @@ begin
     v_id := private.sensitive_account_consent_id(p_account_id, p_category);
     if v_id is null then
       insert into app.sensitive_data_consents (category, basis, account_id, notice_version, locale, surface,
-        authority_confirmed, notice_confirmed, given_by)
-      values (p_category, 'Attested Authority', p_account_id, p_notice_version, p_locale, p_surface, true, true, v_me)
+        authority_confirmed, notice_confirmed, given_by, captured_ip)
+      values (p_category, 'Attested Authority', p_account_id, p_notice_version, p_locale, p_surface, true, true, v_me, p_client_ip)
       returning id into v_id;
       perform private.write_audit_event(p_account_id, 'sensitive_consent.given', 'app.sensitive_data_consents', v_id,
         jsonb_build_object('category', p_category, 'basis', 'Attested Authority', 'notice_version', p_notice_version));
@@ -771,14 +802,14 @@ begin
   else
     v_id := private.sensitive_consent_id(v_me, p_category);
     if v_id is null then
-      insert into app.sensitive_data_consents (category, basis, person_id, notice_version, locale, surface, given_by)
-      values (p_category, 'Own Consent', v_me, p_notice_version, p_locale, p_surface, v_me)
+      insert into app.sensitive_data_consents (category, basis, person_id, notice_version, locale, surface, given_by, captured_ip)
+      values (p_category, 'Own Consent', v_me, p_notice_version, p_locale, p_surface, v_me, p_client_ip)
       returning id into v_id;
       perform private.log_work_detail_event(v_me, 'sensitive_consent.given', null, null, '{}', '{}', null);
     end if;
   end if;
   -- A value from before consent was recorded now stands on this consent.
-  update app.sensitive_field_records r set consent_id = v_id, awaiting_since = null
+  update app.sensitive_field_records r set consent_id = v_id, awaiting_since = null, awaiting_notified_at = null
   from private.sensitive_fields f
   where f.code = r.field_code and f.category = p_category and r.cleared_at is null and r.guest_list_entry_id is null
     and ((p_account_id is not null and r.account_id = p_account_id) or (p_account_id is null and r.person_id = v_me))
@@ -787,9 +818,9 @@ begin
 end;
 $$;
 
-comment on function app.give_sensitive_consent(app.sensitive_data_category, text, text, app.sensitive_consent_surface, uuid, boolean, boolean) is 'The signed-in person gives their own consent for one category, with the version and language of the wording they were shown and the surface; or, with an account, an Owner or Admin attests for the company''s supplier diversity status. Idempotent while a grant stands. Refuses sensitive_notice_version, sensitive_notice_locale, sensitive_attestation_required, sensitive_consent_category and supplier_diversity_not_yours. Returns the consent id. Values from before consent was recorded stand on it from then on.';
-revoke all on function app.give_sensitive_consent(app.sensitive_data_category, text, text, app.sensitive_consent_surface, uuid, boolean, boolean) from public, anon;
-grant execute on function app.give_sensitive_consent(app.sensitive_data_category, text, text, app.sensitive_consent_surface, uuid, boolean, boolean) to authenticated, service_role;
+comment on function app.give_sensitive_consent(app.sensitive_data_category, text, text, app.sensitive_consent_surface, uuid, boolean, boolean, inet) is 'The signed-in person gives their own consent for one category, with the version and language of the wording they were shown and the surface; or, with an account, an Owner or Admin attests for the company''s supplier diversity status. Idempotent while a grant stands. Refuses sensitive_notice_version, sensitive_notice_locale, sensitive_attestation_required, sensitive_consent_category and supplier_diversity_not_yours. Returns the consent id. Values from before consent was recorded stand on it from then on. p_client_ip is the address the platform server saw, as in app.record_legal_acceptances; without it the request''s is recorded. It is evidence, not an access control.';
+revoke all on function app.give_sensitive_consent(app.sensitive_data_category, text, text, app.sensitive_consent_surface, uuid, boolean, boolean, inet) from public, anon;
+grant execute on function app.give_sensitive_consent(app.sensitive_data_category, text, text, app.sensitive_consent_surface, uuid, boolean, boolean, inet) to authenticated, service_role;
 
 create or replace function private.close_sensitive_consent(p_consent app.sensitive_data_consents)
 returns void
@@ -834,7 +865,9 @@ begin
     end loop;
     return private.erase_sensitive_category(null, p_account_id, p_category);
   end if;
-  -- The person's own consent, and anything attested about them in this category, ends together.
+  -- The person's own consent, and anything attested about them in this category, ends together. That includes a guest list
+  -- entry that only names their verified email so far.
+  perform private.link_guest_needs_to_person(v_me);
   for v_consent in select * from app.sensitive_data_consents c
                    where c.person_id = v_me and c.category = p_category and c.withdrawn_at is null for update loop
     perform private.close_sensitive_consent(v_consent);
@@ -884,14 +917,23 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  v_entry uuid;
 begin
+  -- A guest list holds this outside the person's own rows: close it here. The auth user is deleted after this (1112), so
+  -- the verified email still names the entries that hold it.
+  perform private.link_guest_needs_to_person(new.id);
+  for v_entry in select n.guest_list_entry_id from app.guest_care_needs n where n.guest_person_id = new.id loop
+    perform private.close_guest_needs(v_entry);
+  end loop;
+  update app.guest_care_needs n set guest_person_id = null where n.guest_person_id = new.id;
   update app.sensitive_data_consents c set withdrawn_at = now(), withdrawn_by = new.id
   where c.withdrawn_at is null and (c.person_id = new.id or (c.given_by = new.id and c.basis = 'Own Consent'));
   return null;
 end;
 $$;
 
-comment on function private.erase_sensitive_consents() is 'After a person is deleted (account deletion, 1112): withdraws every grant about them. The rows stay as evidence; the values were deleted by the erasures of 1340, 1464 and 4655.';
+comment on function private.erase_sensitive_consents() is 'After a person is deleted (account deletion, 1112): withdraws every grant about them and deletes what a guest list holds about them under their person or verified email. The grants stay as evidence. The person''s own values and meal preferences are deleted by the erasures of 1340, 1464 and 4655, and the field records follow. An org''s legal hold on guest needs keeps those values hidden until it ends, no longer linked to the person.';
 revoke all on function private.erase_sensitive_consents() from public, anon, authenticated;
 
 create trigger t63_erase_sensitive_consents after update of deleted_at on app.people

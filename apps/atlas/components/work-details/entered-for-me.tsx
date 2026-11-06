@@ -1,9 +1,28 @@
 import type { SensitiveEntryAboutMe } from "@xos/data/sensitive-consent";
-import { Button } from "@/components/ui";
-import { removeSensitiveEntryAction } from "@/lib/work-details/actions";
+import { workDetailLabelKey } from "@xos/data/work-details";
+import { RemoveEntryForm } from "./remove-entry-form";
 import type { Translate } from "@/lib/shell/translate";
 
 const P = "workDetails.consent.about";
+
+/** The values entered for a guest list entry, in the person's language; a roster meal preference shows on its project. */
+function enteredValues(t: Translate, details: SensitiveEntryAboutMe["details"]): string {
+  if (!details || typeof details !== "object" || Array.isArray(details)) return "";
+  const list = (key: string, group: string) => {
+    const values = details[key];
+    return Array.isArray(values)
+      ? values.map((v) => t(`workDetails.${group}.${workDetailLabelKey(String(v))}`))
+      : [];
+  };
+  const text = (key: string) => (typeof details[key] === "string" ? [details[key]] : []);
+  return [
+    ...list("dietary_needs", "dietaryNeeds"),
+    ...text("allergies"),
+    ...text("dietary_notes"),
+    ...list("accessibility_needs", "accessibilityNeeds"),
+    ...text("accessibility_notes"),
+  ].join(", ");
+}
 
 /**
  * What someone else entered about the person under an attestation (ADR 0164): who, when and, for a guest list entry,
@@ -56,16 +75,14 @@ export function EnteredForMeSection({
                     {t(`${P}.guest`, { guest: e.guestName })}
                   </span>
                 ) : null}
+                {enteredValues(t, e.details) ? <span>{enteredValues(t, e.details)}</span> : null}
               </span>
-              <form action={removeSensitiveEntryAction}>
-                {Object.entries(hidden).map(([name, value]) => (
-                  <input key={name} type="hidden" name={name} value={value} />
-                ))}
-                <input type="hidden" name="consentId" value={e.consentId} />
-                <Button type="submit" size="sm" variant="ghost">
-                  {t(`${P}.removeNamed`, { category })}
-                </Button>
-              </form>
+              <RemoveEntryForm
+                hidden={hidden}
+                consentId={e.consentId}
+                label={t(`${P}.removeNamed`, { category })}
+                failed={t(`${P}.removeFailed`)}
+              />
             </li>
           );
         })}

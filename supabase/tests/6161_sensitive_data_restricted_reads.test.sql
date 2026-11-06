@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(19);
+select plan(20);
 
 create function pg_temp.read(p_who text, p_engagement text) returns jsonb
 language plpgsql as $$
@@ -28,6 +28,8 @@ select ok(not has_column_privilege('authenticated', 'app.person_work_details', '
   and not has_column_privilege('authenticated', 'app.person_work_details', 'accessibility_notes', 'SELECT'), 'and never directly selectable');
 select ok(not has_column_privilege('authenticated', 'app.supplier_diversity_certifications', 'diversity_kind', 'SELECT'),
   'nor is a supplier diversity kind');
+select is((select read_capability from private.column_classifications where table_name = 'app.roster_travel_requests' and column_name = 'meal_preference' and classification = 'Restricted'),
+  'data.restricted.read.medical', 'a meal preference is Restricted under the medical capability');
 
 select pg_temp.as_user('ivy');
 select app.ensure_my_work_details();

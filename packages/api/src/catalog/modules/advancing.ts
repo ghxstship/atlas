@@ -114,7 +114,12 @@ const GuestNeedsRequest = z
       "The guest has been told what is entered, why and who sees it.",
       true,
     ),
-    notice_version: fields.text("Version of the wording the caller read.", "2026-11-06", 20),
+    dietary_notice_version: orNull(
+      fields.text("Version of the dietary wording the caller read.", "2026-11-06", 20),
+    ).optional(),
+    accessibility_notice_version: orNull(
+      fields.text("Version of the accessibility wording the caller read.", "2026-11-06", 20),
+    ).optional(),
     locale: fields.text("Language the wording was shown in.", "en-US", 10),
   })
   .meta({
@@ -160,7 +165,7 @@ export const additions = defineAdditions("Advancing", {
         itemAction("setNeeds", {
           summary: "Set a guest's dietary and access needs",
           description:
-            "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version and language of the wording they were shown (422 sensitive_notice_version). Attested per category with who gave it, and audited without values. An email matching a verified sign-in names that person, who is told and can remove it; a person who withdrew that category refuses it (422 sensitive_person_withdrew). The values never come back here.",
+            "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version of the wording they were shown for each category they enter and its language (422 sensitive_notice_version). Attested per category with who gave it, and audited without values; another keeper or another matched person is a new attestation. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category is not attested back in: it is not saved, and the answer is the same. The values never come back here.",
           body: GuestNeedsRequest,
         }),
         itemAction("clearNeeds", {

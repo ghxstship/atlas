@@ -180,14 +180,20 @@ describe("Identity: consent for sensitive data (ADR 0164)", () => {
         dietary_needs: ["Vegan"],
         authority_confirmed: true,
         notice_confirmed: true,
-        notice_version: "2026-11-06",
+        dietary_notice_version: "2026-11-06",
         locale: "en-US",
       }),
     );
     await expectContract(set, "guestListEntries.setNeeds");
     expect(db.calls[0]).toMatchObject({
       name: "set_guest_care_needs",
-      args: { p_authority_confirmed: true, p_notice_confirmed: true, p_surface: "API" },
+      args: {
+        p_authority_confirmed: true,
+        p_notice_confirmed: true,
+        p_surface: "API",
+        p_dietary_notice_version: "2026-11-06",
+        p_accessibility_notice_version: null,
+      },
     });
   });
 

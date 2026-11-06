@@ -116,11 +116,13 @@ const LOG_KEYS: Readonly<Record<string, string>> = {
   "sensitive_consent.withdrawn": "consentWithdrawn",
   "sensitive_consent.withdrawn_on_hold": "consentWithdrawnOnHold",
   "sensitive_consent.attested": "attested",
+  "sensitive_consent.attestation_not_saved": "attestationNotSaved",
   "sensitive_consent.entry_removed": "entryRemoved",
   "sensitive_consent.values_cleared": "valuesCleared",
   "dietary_needs.viewed": "dietaryViewed",
   "accessibility_needs.viewed": "accessibilityViewed",
   "guest_needs.viewed": "guestNeedsViewed",
+  "meal_preference.viewed": "mealViewed",
 };
 
 /** The `workDetails.log.actions.*` key of an access log action; unknown actions are `other`. */

@@ -839,7 +839,8 @@
     "block_self": "You cannot block yourself.",
     "content_moderation_own": "Another moderator decides reports about your own post, comment or message.",
     "content_moderation_nothing_open": "Every report about this was already decided.",
-    "content_moderation_authority": "Reviewing reported content needs permission to manage communication."
+    "content_moderation_authority": "Reviewing reported content needs permission to manage communication.",
+    "question_sensitive": "A question cannot ask for dietary, accessibility or protected-group details, because answering it records no consent. Use Work Details or the guest's needs step."
   },
   "settingsPanels": {
     "groupsTitle": "Group spaces",

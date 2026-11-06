@@ -37,6 +37,8 @@ import {
 import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { clientIp } from "@/lib/auth/legal";
 import { redirect } from "next/navigation";
 import { getGatewayContext } from "@/lib/shell/context";
 
@@ -116,6 +118,7 @@ export async function giveSensitiveConsentAction(_: State, form: FormData): Prom
       accountId: accountOf(form),
       authorityConfirmed: form.get("authorityConfirmed") === "true",
       noticeConfirmed: form.get("noticeConfirmed") === "true",
+      clientIp: clientIp(await headers()),
     }),
   );
 }
@@ -131,11 +134,11 @@ export async function withdrawSensitiveConsentAction(_: State, form: FormData): 
 }
 
 /** Removes what someone else entered about the person. */
-export async function removeSensitiveEntryAction(form: FormData): Promise<void> {
+export async function removeSensitiveEntryAction(_: State, form: FormData): Promise<State> {
   const id = parseId(form, "consentId");
-  if (!id) return;
+  if (!id) return { error: "invalid" };
   const { db } = await person();
-  done(await removeSensitiveEntry(db, id));
+  return done(await removeSensitiveEntry(db, id));
 }
 
 export async function saveDietaryAction(_: State, form: FormData): Promise<State> {

@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(38);
+select no_plan();
 
 create function pg_temp.fields(p_person text) returns text[]
 language sql as $$
@@ -108,6 +108,10 @@ select ok(not (select app.withdraw_sensitive_consent('Dietary and Allergies')), 
 select pg_temp.as_platform();
 select is((select allergies from app.person_work_details where person_id = pg_temp.id('ivy')), 'Peanuts', 'they stay');
 select ok(not private.sensitive_consent_stands(pg_temp.id('ivy'), 'Dietary and Allergies'), 'but the consent is gone, so use has stopped');
+select pg_temp.as_user('ivy');
+select ok((select held and not waiting from app.my_sensitive_states() where category = 'Dietary and Allergies'),
+  'Work Details says a hold keeps it, not that it is from before consent');
+select pg_temp.as_platform();
 update app.legal_holds set released_at = now() where org_id = pg_temp.id('org_a') and released_at is null;
 
 -- A company -----------------------------------------------------------------------------------------------------------
@@ -124,6 +128,15 @@ select pg_temp.as_platform();
 select results_eq($$select diversity_kind::text, certifying_body, certificate_number is null, deleted_at is not null
     from app.supplier_diversity_certifications where account_id = pg_temp.id('acct_v')$$,
   $$values ('Other'::text, 'Removed'::text, true, true)$$, 'the certification is de-identified and removed');
+
+-- The address the platform server saw ----------------------------------------------------------------------------------------
+select pg_temp.new_user('ipa', 'ipa@freelance.test', 'Ipa Rivas');
+select pg_temp.as_user('ipa');
+select app.give_sensitive_consent('Accessibility', '2026-11-06', 'en-US', 'Atlas', p_client_ip => '203.0.113.9');
+select pg_temp.as_platform();
+select is((select host(captured_ip) from app.sensitive_data_consents where person_id = pg_temp.id('ipa')), '203.0.113.9', 'a web app''s server passes the client''s address, and it is recorded');
+select throws_like($$update app.sensitive_data_consents set person_id = pg_temp.id('ivy') where person_id = pg_temp.id('ipa')$$,
+  'consent_immutable:%', 'a consent cannot be moved to another person');
 
 select * from finish();
 rollback;

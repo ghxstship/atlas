@@ -15,8 +15,12 @@ import {
 } from "@xos/data/work-details";
 import {
   listMySensitiveConsents,
+  listMySensitiveStates,
   listSensitiveEntriesAboutMe,
+  sensitiveStepFor,
   standingFor,
+  ungrantedMealPreferences,
+  type SensitiveState,
   type StandingConsent,
 } from "@xos/data/sensitive-consent";
 import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
@@ -190,12 +194,14 @@ function NeedsSections({
   t,
   d,
   consents,
+  states,
   formatDay,
 }: {
   ctx: OrgContext;
   t: Translate;
   d: WorkDetails | null;
   consents: readonly StandingConsent[];
+  states: readonly SensitiveState[];
   formatDay: (at: string) => string;
 }) {
   const dietary = d?.dietaryNeeds ?? [];
@@ -205,8 +211,30 @@ function NeedsSections({
       {t(`${P}.consent.given`, { date: formatDay(c.givenAt), version: c.noticeVersion })}
     </p>
   );
-  const dietOnFile = dietary.length > 0 || Boolean(d?.allergies) || Boolean(d?.dietaryNotes);
-  const accessOnFile = access.length > 0 || Boolean(d?.accessibilityNotes);
+  // A value no own grant covers: the step says what it is, and that it waits or that a hold keeps it.
+  const dietStep = sensitiveStepFor("Dietary and Allergies", consents, states);
+  const accessStep = sensitiveStepFor("Accessibility", consents, states);
+  const onFile = (values: readonly (string | null | undefined)[]) => {
+    const held = values.filter((v): v is string => Boolean(v));
+    return held.length > 0 ? [t(`${P}.consent.gate.onFile`, { values: held.join(", ") })] : [];
+  };
+  const dietOnFile =
+    dietStep === "first"
+      ? []
+      : [
+          ...onFile([
+            ...dietary.map((n) => labelled(t, "dietaryNeeds", n)),
+            d?.allergies,
+            d?.dietaryNotes,
+          ]),
+          ...ungrantedMealPreferences(states).map((value) =>
+            t(`${P}.consent.gate.mealOnFile`, { value }),
+          ),
+        ];
+  const accessOnFile =
+    accessStep === "first"
+      ? []
+      : onFile([...access.map((n) => labelled(t, "accessibilityNeeds", n)), d?.accessibilityNotes]);
   const dietConsent = standingFor(consents, "Dietary and Allergies");
   const accessConsent = standingFor(consents, "Accessibility");
   return (
@@ -264,9 +292,11 @@ function NeedsSections({
               hidden={hiddenFor(ctx)}
               gateKey="dietary"
               reviewKey="reviewDietary"
-              waiting={dietOnFile}
+              waiting={dietStep === "waiting"}
+              held={dietStep === "held"}
+              onFile={dietOnFile}
             />
-            {dietOnFile ? (
+            {dietStep === "waiting" ? (
               <ConsentWithdraw
                 category="Dietary and Allergies"
                 hidden={hiddenFor(ctx)}
@@ -322,9 +352,11 @@ function NeedsSections({
               hidden={hiddenFor(ctx)}
               gateKey="accessibility"
               reviewKey="reviewAccessibility"
-              waiting={accessOnFile}
+              waiting={accessStep === "waiting"}
+              held={accessStep === "held"}
+              onFile={accessOnFile}
             />
-            {accessOnFile ? (
+            {accessStep === "waiting" ? (
               <ConsentWithdraw
                 category="Accessibility"
                 hidden={hiddenFor(ctx)}
@@ -484,14 +516,15 @@ function PassportSection({ ctx, t, d }: { ctx: OrgContext; t: Translate; d: Work
 
 /** Work Details on Settings, Work Details (me.work-details). */
 export async function MyWorkDetailsPanel({ ctx }: { ctx: OrgContext }) {
-  const [t, locale, details, consents, entered] = await Promise.all([
+  const [t, locale, details, consents, states, entered] = await Promise.all([
     getTranslate(),
     getLocale(),
     getMyWorkDetails(ctx.viewer.db),
     listMySensitiveConsents(ctx.viewer.db),
+    listMySensitiveStates(ctx.viewer.db),
     listSensitiveEntriesAboutMe(ctx.viewer.db),
   ]);
-  if (!details.ok || !consents.ok || !entered.ok) return loadFailed(t);
+  if (!details.ok || !consents.ok || !states.ok || !entered.ok) return loadFailed(t);
   const region = regionFromLocale(locale);
   const d = details.data;
   const day = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
@@ -504,7 +537,7 @@ export async function MyWorkDetailsPanel({ ctx }: { ctx: OrgContext }) {
         </InlineAlert>
       </div>
       <ContactsSection ctx={ctx} t={t} region={region} />
-      <NeedsSections ctx={ctx} t={t} d={d} consents={consents.data} formatDay={formatDay} />
+      <NeedsSections ctx={ctx} t={t} d={d} consents={consents.data} states={states.data} formatDay={formatDay} />
       <EnteredForMeSection
         t={t}
         entries={entered.data}

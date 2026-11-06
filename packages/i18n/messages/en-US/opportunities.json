@@ -190,7 +190,8 @@
       "question_template_not_found": "That question template was deleted or is not available to you. Choose another template.",
       "question_template_not_draft": "A question template applies only to a Draft posting. Add questions one at a time instead.",
       "opportunity_hidden_client_named": "While the client and event are hidden, the title and description cannot name the project, its client or the venue. Remove the name, or show the client and event.",
-      "opportunity_hidden_client_published": "This listing already showed its client and event, so they can no longer be hidden. Post a new opportunity to hide them."
+      "opportunity_hidden_client_published": "This listing already showed its client and event, so they can no longer be hidden. Post a new opportunity to hide them.",
+      "question_sensitive": "A question cannot ask for dietary, accessibility or protected-group details, because answering it records no consent. Use Work Details or the guest's needs step."
     },
     "insuredsMissing": "Recorded as failed. No current certificate names: {rule}. Ask the vendor for an updated certificate.",
     "questionsNotApplied": "The draft is saved, but the template's questions were not added. Open the draft and add them there."

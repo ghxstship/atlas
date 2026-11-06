@@ -15,8 +15,10 @@ import {
 } from "@xos/data/work-details-forms";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { clientIp } from "@/lib/auth/legal";
 import { getOrgContext } from "@/lib/shell/context";
 import type { AdvancingState } from "./actions";
 import { KNOWN_ERRORS } from "./errors";
@@ -152,6 +154,7 @@ export async function setGuestNeedsAction(
     ...parsed.value,
     locale: await getLocale(),
     surface: "Atlas",
+    clientIp: clientIp(await headers()),
   });
   if (!result.ok) return { error: workDetailErrorKey(result.error) };
   revalidatePath(`/${ctx.org.slug}`, "layout");

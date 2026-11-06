@@ -27,7 +27,8 @@ export const ROSTER_FACT_RULES = [
   // ADR 0164: a meal preference is dietary data, entered under consent or an attestation (6162).
   "sensitive_consent_required",
   "sensitive_attestation_required",
-  "sensitive_person_withdrew",
+  "sensitive_person_only",
+  "travel_note_sensitive",
   "sensitive_notice_version",
   "project_fact_not_yours",
   "roster_entry_withdrawn",
@@ -60,6 +61,8 @@ export interface RosterTravelRequest {
   readonly outboundOn: string | null;
   readonly seatPreference: SeatPreference | null;
   readonly mealPreference: string | null;
+  /** One is on file that this reader may not read (ADR 0164). */
+  readonly mealPreferenceMasked: boolean;
   readonly needsGroundTransport: boolean;
   readonly needsLodging: boolean;
   readonly travelNotes: string | null;
@@ -167,6 +170,7 @@ export function parseTravel(v: unknown): RosterTravelRequest | null {
     outboundOn: str(o["outbound_on"]),
     seatPreference: str(o["seat_preference"]) as SeatPreference | null,
     mealPreference: str(o["meal_preference"]),
+    mealPreferenceMasked: bool(o["meal_preference_masked"]),
     needsGroundTransport: bool(o["needs_ground_transport"]),
     needsLodging: bool(o["needs_lodging"]),
     travelNotes: str(o["travel_notes"]),

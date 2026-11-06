@@ -190,7 +190,8 @@
       "question_template_not_found": "Esa plantilla de preguntas se eliminó o no está disponible para ti. Elige otra plantilla.",
       "question_template_not_draft": "Una plantilla de preguntas solo se aplica a una publicación en Borrador. Añade las preguntas una por una.",
       "opportunity_hidden_client_named": "Mientras el cliente y el evento están ocultos, el título y la descripción no pueden nombrar el proyecto, su cliente ni el lugar. Quita el nombre o muestra el cliente y el evento.",
-      "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos."
+      "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos.",
+      "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado."
     },
     "insuredsMissing": "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado.",
     "questionsNotApplied": "El borrador está guardado, pero no se añadieron las preguntas de la plantilla. Abre el borrador y añádelas allí."

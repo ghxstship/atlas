@@ -16,6 +16,12 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 
 const INITIAL: GuestNeedsFormState = {};
 
+const ATTEST_SECTIONS = [
+  ["collected", "attestCollected"],
+  ["why", "attestWhy"],
+  ["who", "attestWho"],
+] as const;
+
 function HiddenFields({ values }: { values: Readonly<Record<string, string>> }) {
   return (
     <>
@@ -195,21 +201,27 @@ export function GuestNeedsDialog({
           <p className="m-0 text-text-13 text-text-secondary">
             {t("consent.notices.dietary.attest")}
           </p>
-          <p className="m-0 text-text-13 text-text-secondary">
-            {t("consent.notices.dietary.collected")}
-          </p>
-          <p className="m-0 text-text-13 text-text-secondary">
-            {t("consent.notices.accessibility.collected")}
-          </p>
+          {/* What the guest must have been told: the two statements below are about exactly this. */}
+          {ATTEST_SECTIONS.map(([heading, part]) => (
+            <div key={part} className="flex flex-col gap-2">
+              <h3 className="m-0 text-text-13 font-semibold">{t(`consent.headings.${heading}`)}</h3>
+              <p className="m-0 text-text-13 text-text-secondary">
+                {t(`consent.notices.dietary.${part}`)}
+              </p>
+              <p className="m-0 text-text-13 text-text-secondary">
+                {t(`consent.notices.accessibility.${part}`)}
+              </p>
+            </div>
+          ))}
           <Checkbox
             id={`${id}-authority`}
-            label={t("consent.attest.authority")}
+            label={t("consent.notices.dietary.attestAuthority")}
             checked={authority}
             onChange={(event) => setAuthority(event.target.checked)}
           />
           <Checkbox
             id={`${id}-notice`}
-            label={t("consent.attest.notice")}
+            label={t("consent.notices.dietary.attestNotice")}
             checked={notice}
             onChange={(event) => setNotice(event.target.checked)}
           />

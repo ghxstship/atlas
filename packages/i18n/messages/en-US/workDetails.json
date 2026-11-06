@@ -178,7 +178,9 @@
       "valuesCleared": "Data waiting for consent was deleted",
       "dietaryViewed": "Dietary needs viewed",
       "accessibilityViewed": "Accessibility needs viewed",
-      "guestNeedsViewed": "Your guest needs were viewed"
+      "guestNeedsViewed": "Your guest needs were viewed",
+      "mealViewed": "Meal preference read",
+      "attestationNotSaved": "Someone tried to enter data for you; it was not saved"
     }
   },
   "org": {
@@ -255,7 +257,8 @@
     "sensitive_notice_version": "This wording changed. Reload the page and read the current version.",
     "sensitive_notice_locale": "Reload the page and try again.",
     "sensitive_attestation_required": "Confirm both statements to continue.",
-    "sensitive_person_withdrew": "This person withdrew their consent to this data, so only they can give it again.",
+    "sensitive_person_only": "Only this person can enter this.",
+    "travel_note_sensitive": "Leave dietary and access needs out of the travel notes. Add a meal preference, or use Work Details, which record consent.",
     "sensitive_entry_not_yours": "Only the person this is about, or whoever entered it, can remove it.",
     "sensitive_consent_category": "A company holds only supplier diversity status.",
     "guest_note_sensitive": "Leave dietary and access needs out of the note. Use the guest's needs step, which records consent."
@@ -425,17 +428,30 @@
         "title": "Before you add dietary and allergy details",
         "collected": "Your dietary needs, allergies and dietary notes, and any meal preference you give on a project. These can reveal your health or your religion.",
         "why": "So a production you choose to share them with can feed you safely. We use them for nothing else, and no AI feature reads them.",
-        "who": "You. If you share this category with a project, that organization's Owner and the catering lead and on-site medical roles on that project also see them, and each read shows in your access log. Other people there see them locked. Catering planners see counts of five or more people, with no names. Your company never sees them.",
-        "withdraw": "Withdraw here at any time, in one step. We stop using the details at once and delete them. If a legal hold reaches your data, we keep them hidden until the hold ends, then delete them.",
-        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can remove it at any time."
+        "who": "You. If you share this category with a project, that organization's Owner and the catering lead and on-site medical roles on that project also see them, and each read shows in your access log. A meal preference you give on a project goes to those same people on that project. Other people there see these details locked. Catering planners see counts of five or more people, with no names. Your company cannot read them. If it enters your meal preference, it cannot read it back, you are told, and you can remove it.",
+        "withdraw": "Withdraw under Work Details at any time, in one step. We stop using the details at once and delete them. If a legal hold reaches your data, we keep them hidden until the hold ends, then delete them.",
+        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can remove it at any time.",
+        "attestCollected": "The guest's dietary needs, allergies and dietary notes. These can reveal their health or religion.",
+        "attestWhy": "So the production can feed the guest safely. They are used for nothing else, and no AI feature reads them.",
+        "attestWho": "On this project, the organization's Owner and the catering lead and on-site medical roles, each read logged. Whoever keeps the guest list sees only who attested and when. They are deleted when the guest is removed or declined, and at the latest 90 days after the project ends.",
+        "attestAuthority": "I have this person's authority to enter this.",
+        "attestNotice": "This person has been told what is entered, why and who sees it, and that they can have it removed.",
+        "mealTitle": "Enter a meal preference for this person",
+        "mealBody": "A meal preference can reveal health or religion. It is optional, and it is used only to feed them on this project. No AI feature reads it.",
+        "mealWho": "On this project, the organization's Owner and the catering lead and on-site medical roles read it, each read logged. Once it is saved, your company cannot read it back. The person is told and can remove it."
       },
       "accessibility": {
         "title": "Before you add accessibility details",
         "collected": "Your accessibility needs and notes. These can reveal a disability or a health condition.",
         "why": "So a production you choose to share them with can plan for you and get you out safely. We use them for nothing else, and no AI feature reads them.",
-        "who": "You. If you share this category with a project, that organization's Owner and the catering lead and on-site medical roles on that project also see them, and each read shows in your access log. Other people there see them locked. Your company never sees them.",
-        "withdraw": "Withdraw here at any time, in one step. We stop using the details at once and delete them. If a legal hold reaches your data, we keep them hidden until the hold ends, then delete them.",
-        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can remove it at any time."
+        "who": "You. If you share this category with a project, that organization's Owner and the catering lead and on-site medical roles on that project also see them, and each read shows in your access log. Other people there see them locked. Your company cannot read them.",
+        "withdraw": "Withdraw under Work Details at any time, in one step. We stop using the details at once and delete them. If a legal hold reaches your data, we keep them hidden until the hold ends, then delete them.",
+        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can remove it at any time.",
+        "attestCollected": "The guest's accessibility needs and notes. These can reveal a disability or a health condition.",
+        "attestWhy": "So the production can plan for the guest and get them out safely. They are used for nothing else, and no AI feature reads them.",
+        "attestWho": "The same people, on the same terms, as dietary needs: the Owner and the catering lead and on-site medical roles on this project, each read logged, and deleted at the same times.",
+        "attestAuthority": "I have this person's authority to enter this.",
+        "attestNotice": "This person has been told what is entered, why and who sees it, and that they can have it removed."
       },
       "diversity": {
         "title": "Before you add a supplier diversity certification",
@@ -443,7 +459,9 @@
         "why": "So an organization that runs a supplier diversity program can count it, if you choose to share it with them. We use it for nothing else, and no AI feature reads it.",
         "who": "You, or the Owners and Admins of the company it belongs to. If you share it with an organization, the members there with restricted data access also see it, and each read shows in your access log.",
         "withdraw": "Withdraw here at any time, in one step. We stop using it at once, end every share and remove it. If a legal hold reaches your data, we keep it hidden until the hold ends, then remove it.",
-        "attest": "You are declaring this for a company. Do it only if you have authority to speak for the company, and the people it describes have been told what is declared, why and who sees it."
+        "attest": "You are declaring this for a company. Do it only if you have authority to speak for the company, and the people it describes have been told what is declared, why and who sees it.",
+        "attestAuthority": "I have authority to declare this for the company.",
+        "attestNotice": "The people it describes have been told what is declared, why and who sees it."
       }
     },
     "headings": {
@@ -462,7 +480,10 @@
       "reviewAccessibility": "Add accessibility details",
       "reviewDiversity": "Add a certification",
       "waiting": "You have details on file from before we recorded consent. They are hidden from everyone else, and we delete them {days} days after we told you unless you agree.",
-      "confirm": "Keep them"
+      "confirm": "Keep them",
+      "held": "You withdrew your consent. A legal hold reaches your data, so what you entered stays hidden from everyone until the hold ends, and then we delete it.",
+      "onFile": "On file: {values}",
+      "mealOnFile": "Meal preference on a project: {value}"
     },
     "given": "You agreed on {date}, wording version {version}.",
     "withdrawAction": {
@@ -477,18 +498,14 @@
       "done": "Consent withdrawn. The details are deleted."
     },
     "attest": {
-      "authority": "I have this person's authority to enter this.",
-      "notice": "This person has been told what is entered, why and who sees it.",
-      "companyAuthority": "I have authority to declare this for the company.",
-      "companyNotice": "The people it describes have been told what is declared, why and who sees it.",
-      "mealTitle": "Enter a meal preference for this person",
-      "mealBody": "A meal preference can reveal health or religion. It is optional, and the person is told you entered it. They can remove it.",
       "required": "Confirm both statements to continue."
     },
     "meal": {
       "addOwn": "Add a meal preference",
       "addForPerson": "Add a meal preference for this person",
-      "locked": "Optional. Agree to the dietary wording first; everything else on this form saves without it."
+      "locked": "Optional. Agree to the dietary wording first; everything else on this form saves without it.",
+      "lockedValue": "Locked",
+      "masked": "A meal preference is on file, and your company cannot read it. Enter a new one to replace it, or leave this empty to keep it."
     },
     "about": {
       "title": "Entered for you by someone else",
@@ -497,7 +514,8 @@
       "by": "{name} on {date}",
       "byOrg": "{name}, {org}, on {date}",
       "guest": "Guest list: {guest}",
-      "removeNamed": "Remove {category}"
+      "removeNamed": "Remove {category}",
+      "removeFailed": "That did not go through, so it is still on file. Try again."
     },
     "categories": {
       "Dietary and Allergies": "Dietary and allergies",
@@ -547,8 +565,8 @@
     "guestNeeds": {
       "open": "Needs",
       "openNamed": "Dietary and access needs for {name}",
-      "tag": "Needs on file",
-      "recorded": "Needs on file from {name}, {date}.",
+      "tag": "Attested",
+      "recorded": "Attested by {name}, {date}.",
       "replaces": "Saving replaces what is on file. You see it again only with medical access.",
       "dietaryNeeds": "Dietary needs",
       "allergies": "Allergies",

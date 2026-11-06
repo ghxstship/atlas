@@ -38,6 +38,8 @@ import {
 import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { clientIp } from "@/lib/auth/legal";
 import { redirect } from "next/navigation";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
 
@@ -105,7 +107,12 @@ export async function giveSensitiveConsentAction(_: State, form: FormData): Prom
   const { db } = await viewerPerson();
   return done(
     form,
-    await giveSensitiveConsent(db, { category, locale: await getLocale(), surface: "Atlas" }),
+    await giveSensitiveConsent(db, {
+      category,
+      locale: await getLocale(),
+      surface: "Atlas",
+      clientIp: clientIp(await headers()),
+    }),
   );
 }
 
@@ -120,11 +127,11 @@ export async function withdrawSensitiveConsentAction(_: State, form: FormData): 
 }
 
 /** Removes what someone else entered about the viewer. */
-export async function removeSensitiveEntryAction(form: FormData): Promise<void> {
+export async function removeSensitiveEntryAction(_: State, form: FormData): Promise<State> {
   const id = parseId(form, "consentId");
-  if (!id) return;
+  if (!id) return { error: "invalid" };
   const { db } = await viewerPerson();
-  done(form, await removeSensitiveEntry(db, id));
+  return done(form, await removeSensitiveEntry(db, id));
 }
 
 // Work details ------------------------------------------------------------------------------------------

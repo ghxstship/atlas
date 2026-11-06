@@ -303,6 +303,8 @@ kinds:
         test: supabase/tests/6162_guest_needs_and_attestation.test.sql
       - emitter: supabase/migrations/6162_guest_needs_and_attestation.sql#app.attest_roster_meal_preference
         test: supabase/tests/6162_guest_needs_and_attestation.test.sql
+      - emitter: supabase/migrations/6163_sensitive_data_backlog_and_report.sql#private.run_sensitive_data_job
+        test: supabase/tests/6162_guest_needs_and_attestation.test.sql
   - kind: account.sensitive_consent_needed
     category: account
     emitted_by:

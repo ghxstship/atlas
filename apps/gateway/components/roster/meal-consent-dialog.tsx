@@ -45,7 +45,7 @@ export function MealConsentDialog({
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
-      title={company ? t("consent.attest.mealTitle") : t("consent.notices.dietary.title")}
+      title={company ? t("consent.notices.dietary.mealTitle") : t("consent.notices.dietary.title")}
       actions={
         <>
           <Button variant="secondary" type="button" onClick={onClose}>
@@ -66,16 +66,21 @@ export function MealConsentDialog({
       <div className="flex flex-col gap-12">
         {company ? (
           <>
-            <p className="m-0 text-text-13 text-text-secondary">{t("consent.attest.mealBody")}</p>
+            <p className="m-0 text-text-13 text-text-secondary">
+              {t("consent.notices.dietary.mealBody")}
+            </p>
+            <p className="m-0 text-text-13 text-text-secondary">
+              {t("consent.notices.dietary.mealWho")}
+            </p>
             <Checkbox
               id={`${id}-authority`}
-              label={t("consent.attest.authority")}
+              label={t("consent.notices.dietary.attestAuthority")}
               checked={authority}
               onChange={(event) => setAuthority(event.target.checked)}
             />
             <Checkbox
               id={`${id}-notice`}
-              label={t("consent.attest.notice")}
+              label={t("consent.notices.dietary.attestNotice")}
               checked={notice}
               onChange={(event) => setNotice(event.target.checked)}
             />

@@ -167,7 +167,8 @@ export const KNOWN_REFUSALS = [
   "guest_note_sensitive",
   "sensitive_consent_required",
   "sensitive_attestation_required",
-  "sensitive_person_withdrew",
+  "sensitive_person_only",
+  "travel_note_sensitive",
   "sensitive_notice_version",
 ] as const;
 

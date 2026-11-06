@@ -23,6 +23,8 @@ export function ConsentGate({
   gateKey,
   reviewKey,
   waiting = false,
+  held = false,
+  onFile = [],
 }: {
   category: SensitiveCategory;
   hidden: Readonly<Record<string, string>>;
@@ -32,14 +34,23 @@ export function ConsentGate({
   reviewKey: string;
   /** Values from before consent was recorded are on file, hidden from everyone else. */
   waiting?: boolean;
+  /** The person withdrew, and a legal hold keeps what they entered hidden until it ends. */
+  held?: boolean;
+  /** What is on file, so the person sees what they are asked about. */
+  onFile?: readonly string[];
 }) {
   const t = useTranslations("workDetails.consent") as unknown as Translate;
   const [open, setOpen] = useState(false);
   return (
     <div className="flex flex-col items-start gap-8">
       <p className="m-0 text-text-13 text-text-secondary">
-        {waiting ? t("gate.waiting", { days: 30 }) : t(`gate.${gateKey}`)}
+        {waiting ? t("gate.waiting", { days: 30 }) : held ? t("gate.held") : t(`gate.${gateKey}`)}
       </p>
+      {onFile.map((line) => (
+        <p key={line} className="m-0 text-text-13">
+          {line}
+        </p>
+      ))}
       <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
         {waiting ? t("gate.confirm") : t(`gate.${reviewKey}`)}
       </Button>

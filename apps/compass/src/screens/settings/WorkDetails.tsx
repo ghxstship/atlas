@@ -31,13 +31,16 @@ import {
 import {
   giveSensitiveConsent,
   listMySensitiveConsents,
+  listMySensitiveStates,
   listSensitiveEntriesAboutMe,
   removeSensitiveEntry,
   SENSITIVE_NOTICE_KEYS,
-  standingFor,
+  sensitiveStepFor,
+  ungrantedMealPreferences,
   withdrawSensitiveConsent,
   type SensitiveCategory,
   type SensitiveEntryAboutMe,
+  type SensitiveState,
   type StandingConsent,
 } from "@xos/data/sensitive-consent";
 import { formatPhone, regionFromLocale, toE164 } from "@xos/i18n/formats";
@@ -118,12 +121,18 @@ export function ConsentStep({
   category,
   db,
   waiting,
+  held = false,
+  onFile = [],
   onChanged,
   testID,
 }: {
   readonly category: SensitiveCategory;
   readonly db: XosClient;
   readonly waiting: boolean;
+  /** The person withdrew, and a legal hold keeps what they entered hidden until it ends. */
+  readonly held?: boolean;
+  /** What is on file, so the person sees what they are asked about. */
+  readonly onFile?: readonly string[];
   readonly onChanged: () => void;
   readonly testID: string;
 }): ReactElement {
@@ -135,8 +144,17 @@ export function ConsentStep({
     return (
       <>
         <Text variant="text13" tone="secondary">
-          {waiting ? t(`${W}.consent.gate.waiting`, { days: 30 }) : t(`${W}.consent.gate.${key}`)}
+          {waiting
+            ? t(`${W}.consent.gate.waiting`, { days: 30 })
+            : held
+              ? t(`${W}.consent.gate.held`)
+              : t(`${W}.consent.gate.${key}`)}
         </Text>
+        {onFile.map((line) => (
+          <Text key={line} variant="text13">
+            {line}
+          </Text>
+        ))}
         <Button
           testID={`${testID}-review`}
           label={
@@ -247,20 +265,39 @@ function NeedsCard({
   db,
   details,
   consents,
+  states,
   onSaved,
 }: FormProps & {
   readonly kind: "dietary" | "accessibility";
   readonly consents: readonly StandingConsent[];
+  readonly states: readonly SensitiveState[];
 }): ReactElement {
   const { t } = useTranslation();
   const dietary = kind === "dietary";
   const category: SensitiveCategory = dietary ? "Dietary and Allergies" : "Accessibility";
-  const consented = standingFor(consents, category) !== null;
-  const onFile = dietary
-    ? (details?.dietaryNeeds.length ?? 0) > 0 ||
-      Boolean(details?.allergies) ||
-      Boolean(details?.dietaryNotes)
-    : (details?.accessibilityNeeds.length ?? 0) > 0 || Boolean(details?.accessibilityNotes);
+  const step = sensitiveStepFor(category, consents, states);
+  const consented = step === "form";
+  const onFileLines = (): readonly string[] => {
+    const held = dietary
+      ? [
+          ...(details?.dietaryNeeds ?? []).map((n) => t(`${W}.dietaryNeeds.${workDetailLabelKey(n)}`)),
+          details?.allergies,
+          details?.dietaryNotes,
+        ]
+      : [
+          ...(details?.accessibilityNeeds ?? []).map((n) =>
+            t(`${W}.accessibilityNeeds.${workDetailLabelKey(n)}`),
+          ),
+          details?.accessibilityNotes,
+        ];
+    const values = held.filter((v): v is string => Boolean(v));
+    return [
+      ...(values.length > 0 ? [t(`${W}.consent.gate.onFile`, { values: values.join(", ") })] : []),
+      ...(dietary
+        ? ungrantedMealPreferences(states).map((value) => t(`${W}.consent.gate.mealOnFile`, { value }))
+        : []),
+    ];
+  };
   const options: readonly string[] = dietary ? DIETARY_NEEDS : ACCESSIBILITY_NEEDS;
   const listName = dietary ? "dietaryNeeds" : "accessibilityNeeds";
   const [chosen, setChosen] = useState<readonly string[]>(
@@ -294,11 +331,13 @@ function NeedsCard({
           <ConsentStep
             category={category}
             db={db}
-            waiting={onFile}
+            waiting={step === "waiting"}
+            held={step === "held"}
+            onFile={step === "first" ? [] : onFileLines()}
             onChanged={onSaved}
             testID={`work-${kind}-consent`}
           />
-          {onFile ? (
+          {step === "waiting" ? (
             <WithdrawConsent
               category={category}
               db={db}
@@ -451,6 +490,7 @@ interface Loaded {
   readonly details: WorkDetails | null;
   readonly contacts: readonly EmergencyContact[];
   readonly consents: readonly StandingConsent[];
+  readonly states: readonly SensitiveState[];
   readonly entered: readonly SensitiveEntryAboutMe[];
 }
 
@@ -513,10 +553,11 @@ export function WorkDetailsSettings(): ReactElement {
       getMyWorkDetails(db),
       listMyEmergencyContacts(db),
       listMySensitiveConsents(db),
+      listMySensitiveStates(db),
       listSensitiveEntriesAboutMe(db),
-    ]).then(([details, contacts, consents, entered]) => {
+    ]).then(([details, contacts, consents, states, entered]) => {
       if (!live) return;
-      if (!details.ok || !contacts.ok || !consents.ok || !entered.ok) {
+      if (!details.ok || !contacts.ok || !consents.ok || !states.ok || !entered.ok) {
         setFailed(true);
         return;
       }
@@ -525,6 +566,7 @@ export function WorkDetailsSettings(): ReactElement {
         details: details.data,
         contacts: contacts.data,
         consents: consents.data,
+        states: states.data,
         entered: entered.data,
       });
     });
@@ -563,6 +605,7 @@ export function WorkDetailsSettings(): ReactElement {
             db={db}
             details={loaded.details}
             consents={loaded.consents}
+            states={loaded.states}
             onSaved={reload}
           />
           <NeedsCard
@@ -571,6 +614,7 @@ export function WorkDetailsSettings(): ReactElement {
             db={db}
             details={loaded.details}
             consents={loaded.consents}
+            states={loaded.states}
             onSaved={reload}
           />
           <EnteredForMeCard db={db} entries={loaded.entered} onChanged={reload} />

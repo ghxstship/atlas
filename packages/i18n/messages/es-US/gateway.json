@@ -148,7 +148,8 @@
       "guest_note_sensitive": "No incluyas necesidades de dieta ni de acceso en la nota. Usa el paso de necesidades del invitado, que registra el consentimiento.",
       "sensitive_consent_required": "Acepta el texto antes de guardar esto. Nada más del formulario lo necesita.",
       "sensitive_attestation_required": "Confirma ambas declaraciones para continuar.",
-      "sensitive_person_withdrew": "Esta persona retiró su consentimiento a estos datos, así que solo ella puede darlo de nuevo.",
+      "sensitive_person_only": "Solo esta persona puede introducir esto.",
+      "travel_note_sensitive": "No incluyas necesidades de dieta ni de acceso en las notas de viaje. Añade una preferencia de comida o usa Datos de trabajo, que registran el consentimiento.",
       "sensitive_notice_version": "Este texto cambió. Recarga la página y lee la versión actual."
     }
   },

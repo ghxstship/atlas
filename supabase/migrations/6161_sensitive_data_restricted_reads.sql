@@ -1,8 +1,9 @@
 -- 6161_sensitive_data_restricted_reads.sql
 -- RRR-248 issue 5, ADR 0164 (extends ADR 0105). Who reads sensitive data, once a person has consented.
 --
---   * Dietary needs, dietary notes, accessibility needs and accessibility notes join allergies as Restricted under
---     data.restricted.read.medical: never directly selectable. The person reads their own through app.my_work_detail_needs;
+--   * Dietary needs, dietary notes, accessibility needs, accessibility notes and a roster entry's meal preference join
+--     allergies as Restricted under data.restricted.read.medical: never directly selectable. 6162 masks the meal preference
+--     in every read of a roster entry's travel. The person reads their own through app.my_work_detail_needs;
 --     the Owner and, on their project, the catering lead and on-site medical roles (4662) read a person's through
 --     app.roster_shared_work_details, on a live share, every read logged. A hospitality reader sees them locked, and the
 --     company that rosters the person sees them locked too: it has no need of them (ADR 0164 supersedes the part of owner
@@ -25,16 +26,27 @@ set classification = 'Restricted', read_capability = 'data.restricted.read.medic
 where table_name = 'app.person_work_details' and column_name in ('dietary_needs', 'dietary_notes', 'accessibility_needs', 'accessibility_notes');
 
 update private.column_classifications
+set classification = 'Restricted', read_capability = 'data.restricted.read.medical'
+where table_name = 'app.roster_travel_requests' and column_name = 'meal_preference';
+
+update private.column_classifications
 set classification = 'Restricted', read_capability = 'data.restricted.read.government_id'
 where table_name = 'app.supplier_diversity_certifications' and column_name = 'diversity_kind';
 
 revoke select (dietary_needs, dietary_notes, accessibility_needs, accessibility_notes) on app.person_work_details from authenticated;
 revoke select (diversity_kind) on app.supplier_diversity_certifications from authenticated;
 
+-- The person keeps selecting their own travel requests, every column but this one.
+revoke select on app.roster_travel_requests from authenticated;
+grant select (id, org_id, roster_entry_id, inbound_airport_code, outbound_airport_code, inbound_on, outbound_on, seat_preference,
+  needs_ground_transport, needs_lodging, travel_notes, created_at, created_by, updated_at, updated_by, deleted_at)
+  on app.roster_travel_requests to authenticated;
+
 comment on column app.person_work_details.dietary_needs is 'Dietary needs hospitality caters for, each once, in enum order. Restricted (data.restricted.read.medical, ADR 0164): never directly selectable; a new value needs the person''s standing consent. The person reads their own through app.my_work_detail_needs.';
 comment on column app.person_work_details.dietary_notes is 'Other dietary notes. Restricted (data.restricted.read.medical, ADR 0164): never directly selectable; a new value needs the person''s standing consent. The person reads their own through app.my_work_detail_needs.';
 comment on column app.person_work_details.accessibility_needs is 'Accessibility needs, each once, in enum order. Restricted (data.restricted.read.medical, ADR 0164): never directly selectable; a new value needs the person''s standing consent. The person reads their own through app.my_work_detail_needs.';
 comment on column app.person_work_details.accessibility_notes is 'Accessibility needs in the person''s words. Restricted (data.restricted.read.medical, ADR 0164): never directly selectable; a new value needs the person''s standing consent. The person reads their own through app.my_work_detail_needs.';
+comment on column app.roster_travel_requests.meal_preference is 'Meal preference for the flight, as the person writes it. Dietary data: Restricted (data.restricted.read.medical, ADR 0164), never directly selectable. It stands on the person''s consent or the company''s attestation. The person reads their own through app.roster_project_facts, a holder on the project reads it there or in the travel party, each read logged, and everyone else sees it locked. The company that rosters the person never reads it, even what it entered.';
 comment on column app.supplier_diversity_certifications.diversity_kind is 'Kind of certification, which can reveal ownership by a protected group. Restricted (data.restricted.read.government_id, ADR 0164): never directly selectable; the owner reads it through app.my_supplier_diversity and an org holding the capability through app.shared_supplier_diversity. A new value needs the owner''s standing consent.';
 
 create or replace function app.my_work_detail_needs()
@@ -227,6 +239,8 @@ end;
 $$;
 
 comment on function app.roster_shared_work_details(uuid) is 'The work details of the person on a roster entry (R4, owner decision 4; R6a; ADR 0164). Org readers (private.work_detail_share_visible) read the categories shared on the entry that their project capabilities cover; company readers (a roster manager who is not the person, while the person''s account_roster_sharing consent for the supplying account stands) read every category but the retired Uniform Sizes; anyone else gets 42501. Dietary needs and notes, allergies and accessibility needs and notes are Restricted and read as absent while the person''s sensitive data consent does not stand: they come back only to holders of data.restricted.read.medical on the project, in dietary or accessibility when the reader also reads the category and in medical whenever the share names it, each unmasked read logged; everyone else, the company always, reads them masked (dietary_masked, allergies_masked, accessibility_masked). contact is the verified sign-in email and phone. The passport number is always masked. Every read with something readable writes the person''s access log and the producing org''s audit ledger, without dedupe.';
+revoke all on function app.roster_shared_work_details(uuid) from public, anon;
+grant execute on function app.roster_shared_work_details(uuid) to authenticated, service_role;
 
 -- Catering counts -----------------------------------------------------------------------------------------------------
 
@@ -320,6 +334,8 @@ end;
 $$;
 
 comment on function app.share_supplier_diversity(uuid, uuid, text) is 'The owner shares one supplier diversity certification with an org that runs a supplier diversity program, recording supplier_diversity consent for that org when none stands (separate from profile sharing). Needs the owner''s standing sensitive data consent (sensitive_consent_required, ADR 0164). Idempotent while the share stands. Logged in the owner''s access log and the org''s audit ledger. Returns the share id.';
+revoke all on function app.share_supplier_diversity(uuid, uuid, text) from public, anon;
+grant execute on function app.share_supplier_diversity(uuid, uuid, text) to authenticated, service_role;
 
 create or replace function app.shared_supplier_diversity(p_org_id uuid)
 returns table (

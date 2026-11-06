@@ -148,7 +148,8 @@
       "guest_note_sensitive": "Leave dietary and access needs out of the note. Use the guest's needs step, which records consent.",
       "sensitive_consent_required": "Agree to the wording before saving this. Nothing else on the form needs it.",
       "sensitive_attestation_required": "Confirm both statements to continue.",
-      "sensitive_person_withdrew": "This person withdrew their consent to this data, so only they can give it again.",
+      "sensitive_person_only": "Only this person can enter this.",
+      "travel_note_sensitive": "Leave dietary and access needs out of the travel notes. Add a meal preference, or use Work Details, which record consent.",
       "sensitive_notice_version": "This wording changed. Reload the page and read the current version."
     }
   },
