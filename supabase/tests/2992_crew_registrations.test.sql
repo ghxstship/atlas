@@ -80,7 +80,8 @@ select is((select v.value_text from app.personal_setting_values v where v.person
 select is((select a.answer from app.crew_registration_answers a where a.crew_registration_id = pg_temp.id('reg_rae')), 'Rigging', 'and the answer');
 select pg_temp.as_user('rae');
 select is(pg_temp.refusal($$select pg_temp.submit('summer-crew', pg_temp.answers())$$), 'registration_duplicate', 'a second live registration on the page is refused');
-select ok(pg_temp.submit('volunteers', '[]', false) is not null, 'a page at the account minimum needs no separate confirmation');
+insert into world select 'reg_rae_16', pg_temp.submit('volunteers', '[]', false);
+select ok(pg_temp.id('reg_rae_16') is not null, 'a page at the account minimum needs no separate confirmation');
 
 select pg_temp.as_user('liam');
 select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]')$$), 'registration_age_unconfirmed', 'someone who never confirmed 16+ is refused');
@@ -115,6 +116,7 @@ rollback to savepoint read_only_org;
 
 -- Registering again adds to the person's own live share rather than starting another.
 select pg_temp.as_user('rae');
+select app.withdraw_crew_registration(pg_temp.id('reg_rae_16'));
 select app.withdraw_crew_registration(app.submit_crew_registration('northwind-live', 'volunteers', '[]', true, null, array['bio']::app.profile_section[], null));
 select pg_temp.as_platform();
 select is((select count(*)::int from app.profile_shares s where s.person_id = pg_temp.id('rae') and s.org_id = pg_temp.id('org_a')), 1, 'a second registration reuses the person''s live share');
