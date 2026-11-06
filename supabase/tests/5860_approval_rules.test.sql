@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(66);
+select plan(67);
 
 create function pg_temp.approval_of(p_credential text) returns uuid language sql as $$
   select a.id from app.subject_approvals a where a.credential_id = pg_temp.id(p_credential) and a.canceled_at is null

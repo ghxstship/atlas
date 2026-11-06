@@ -27,7 +27,7 @@ import { getNode } from "@xos/ia";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter, getLocale } from "next-intl/server";
-import { PageHeader, TemplateCollection, TemplateGridEditor } from "./ui";
+import { PageHeader, TemplateCollection, TemplateGridEditor } from "./ui-collection";
 import { CustomFieldList } from "@/components/custom-fields/list";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { customFieldList, hasCustomFields } from "@/lib/custom-fields/server";

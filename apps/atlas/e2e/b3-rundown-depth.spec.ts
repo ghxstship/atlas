@@ -71,7 +71,7 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   // The editor is one screen of the peek: at most seven visible fields and one primary action on each tab.
   expect(await cognitiveLoadProblems(page)).toEqual([]);
   await editor.getByRole("tab", { name: "Words" }).click();
-  await editor.getByLabel("Script").fill("Ladies and gentlemen, welcome.");
+  await editor.getByLabel("Script", { exact: true }).fill("Ladies and gentlemen, welcome.");
   expect(await cognitiveLoadProblems(page)).toEqual([]);
   await editor.getByRole("tab", { name: "Calls" }).click();
   expect(await cognitiveLoadProblems(page)).toEqual([]);
@@ -119,7 +119,7 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
     await page.getByRole("button", { name: "Add cue" }).click();
     const form = page.getByRole("dialog", { name: "Add cue" });
     await expectDialogWithinLoad(form);
-    await form.getByLabel("Cue", { exact: true }).fill(label);
+    await form.getByRole("textbox", { name: "Cue", exact: true }).fill(label);
     await form.getByRole("tab", { name: "Words" }).click();
     await expectDialogWithinLoad(form);
     await form.getByRole("tab", { name: "Calls" }).click();
@@ -148,7 +148,7 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   await page.getByRole("button", { name: "Edit Award One" }).click();
   const libraryCue = page.getByRole("dialog", { name: "Edit cue Award One" });
   await expectDialogWithinLoad(libraryCue);
-  await libraryCue.getByLabel("Cue", { exact: true }).fill("Award One (Gold)");
+  await libraryCue.getByRole("textbox", { name: "Cue", exact: true }).fill("Award One (Gold)");
   await libraryCue.getByRole("button", { name: "Save" }).click();
   await expect(libraryCue).toBeHidden();
   await expect(page.getByText("Library updated: publish to shows", { exact: false })).toBeVisible({

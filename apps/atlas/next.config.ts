@@ -34,7 +34,14 @@ const config: NextConfig = {
   // Generated documents render with pdfkit, which reads its own files at runtime; it stays a
   // server-side external, loaded from node_modules and never bundled (ADR 0031).
   serverExternalPackages: ["pdfkit"],
-  turbopack: { resolveAlias: { "use-intl/format-message": formatOnlyAlias } },
+  turbopack: {
+    resolveAlias: {
+      "use-intl/format-message": formatOnlyAlias,
+      // @xos/ui's en-US fallback stays out of the browser: the root layout passes the `ui` copy to XOSProvider for every
+      // locale (i18n/request.ts uiMessages), which takes about 5 KB off every route (ADR 0027 amendment).
+      "@xos/i18n/messages/en-US/ui.json": { browser: "./lib/i18n/ui-catalog-from-server.json" },
+    },
+  },
   // The release on browser error reports (instrumentation-client.ts). Always defined, so the build
   // inlines a string instead of shipping a process.env lookup.
   env: { NEXT_PUBLIC_XOS_RELEASE: process.env["VERCEL_GIT_COMMIT_SHA"] ?? "" },

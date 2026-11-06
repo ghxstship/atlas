@@ -91,7 +91,7 @@ test("itineraries: a confirmation with two passengers and a leg becomes segments
   await page.getByRole("button", { name: "Read Itineraries", exact: true }).click();
   const panel = page.getByRole("dialog", { name: "Read Itineraries", exact: true });
   await panel
-    .getByLabel("Files", { exact: true })
+    .getByLabel("Files")
     .setInputFiles(
       textFile(
         "trip.txt",
@@ -136,7 +136,7 @@ test("contracts: a contract and a rider of one act book one engagement, and a re
   await page.getByRole("button", { name: "Read Contracts and Riders", exact: true }).click();
   const panel = page.getByRole("dialog", { name: "Read Contracts and Riders", exact: true });
   await panel
-    .getByLabel("Files", { exact: true })
+    .getByLabel("Files")
     .setInputFiles([
       textFile(
         "agreement.txt",

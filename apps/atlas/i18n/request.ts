@@ -74,11 +74,11 @@ export function clientMessages(locale: AtlasLocale) {
 }
 
 /**
- * Flat `ui` messages for @xos/ui, which ships only en-US; every other locale, shipped or pseudo,
- * passes its own through XOSProvider. @xos/ui fills `{name}` itself, so these stay source text.
+ * Flat `ui` messages for @xos/ui, for every locale, en-US included: Atlas's browser bundle leaves out @xos/ui's en-US
+ * fallback (next.config.ts, ADR 0027), so the copy comes once with the layout instead of in every route's JavaScript.
+ * @xos/ui fills `{name}` itself, so these stay source text.
  */
-export function uiMessages(locale: AtlasLocale): Record<string, string> | undefined {
-  if (locale === defaultLocale) return undefined;
+export function uiMessages(locale: AtlasLocale): Record<string, string> {
   const out: Record<string, string> = {};
   const walk = (value: unknown, prefix: string) => {
     if (typeof value === "string") out[prefix] = value;

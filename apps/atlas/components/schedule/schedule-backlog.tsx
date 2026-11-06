@@ -161,7 +161,7 @@ export function ScheduleBacklog({
                 }}
                 className="flex items-center justify-between gap-8 rounded-control border border-border-subtle bg-bg-canvas px-8 py-4 text-text-13 cursor-grab"
               >
-                <span className="min-w-0 truncate">{item.label}</span>
+                <span className="min-w-0 break-words">{item.label}</span>
                 <Button
                   size="sm"
                   variant="ghost"

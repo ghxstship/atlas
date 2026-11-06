@@ -45,6 +45,7 @@ test("journey: set and move a project's anchor, with a pinned record staying", a
   expect(await dueOf(page, slug, moving)).toBe("2027-03-12T10:00");
 
   await page.goto(`/${slug}/p/ANC/schedule`);
+  await settle(page);
   await page.getByRole("button", { name: "Move anchor" }).click();
   const move = page.getByRole("dialog", { name: "Move the anchor of ANC" });
   await move.getByLabel("Anchor day").fill("2027-03-15");

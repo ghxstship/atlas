@@ -188,3 +188,7 @@ The baseline is set from the merged build of train 8, with the rule of decision 
 pages still over 200 KB: of 326 pages, 214 hold a ceiling. 96 pages were past A144's numbers or had none and took
 measured plus 3 KB, 105 fell to it, 13 kept a lower one, and 15 pages now under 200 KB lost theirs. From here ceilings
 only fall: lower one when a page shrinks, never raise it, and a key page over 200 KB is a failure, never a ceiling.
+
+## Amendment (2026-11-06, merge train 9): the `ui` copy comes from the server in Atlas
+
+Merge train 9 adds its packages' routes and copy without raising a ceiling. @xos/ui bundled its whole en-US `ui` catalog as the fallback on every Atlas route, about 5 KB compressed. Atlas's browser build now resolves that import to an empty object, and the root layout passes the flat `ui` messages to `XOSProvider` for every locale, en-US included, which ADR 0010 D6 allows. Every component in Atlas renders under that provider; `global-error.tsx` uses its own generated extract. Gateway, Compass and the docs keep the fallback.

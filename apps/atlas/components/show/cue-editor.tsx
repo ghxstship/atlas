@@ -179,7 +179,9 @@ export function CueEditor({
                 value={segment}
                 onChange={(e) => setSegment(e.target.value)}
               />
+              {/* Select is uncontrolled, so it remounts when the segment typed brings another color. */}
               <Select
+                key={shownSegmentColor(pickedColor, segment, segmentColors)}
                 id={`cue-edit-segment-color-${cue.id}`}
                 label={t("cues.segmentColor")}
                 disabled={segment.trim() === ""}
