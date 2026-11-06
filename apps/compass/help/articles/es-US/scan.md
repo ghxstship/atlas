@@ -12,18 +12,18 @@ Escanear es el botón elevado del centro de la barra de pestañas. Elige un modo
 
 - **Activo**: apunta a una etiqueta de equipo, un número de serie o un código de barras. Compass te asigna el equipo o lo devuelve. Un equipo asignado a otra persona lo indica.
 - **Recepción**: escanea cada caja de una entrega. El conteo avanza mientras escaneas; revisa el lote, quita una unidad mal contada y guarda.
-- **Acreditación**: elige el punto de acceso y escanea una credencial. Compass indica si se concede o se niega el acceso, con el motivo.
+- **Acreditación**: elige el punto de acceso y escanea una credencial. Compass concede o niega el acceso, con el motivo.
 - **Consulta**: escanea cualquier código para saber a qué pertenece.
 
 Un código que Compass no conoce pasa al mostrador para identificarlo. También puedes escribir un código, o tocar **Leer etiqueta NFC** y acercar una credencial, pulsera o etiqueta a la parte superior del teléfono. En Consulta, **Grabar en una etiqueta NFC** pone la etiqueta del equipo encontrado en un adhesivo NFC en blanco.
 
 ## Entrada y Salida
 
-En el modo Acreditación, elige **Entrada** o **Salida** para el punto de acceso. Este dispositivo guarda tu elección, incluso tras reiniciar, así que un teléfono apostado en una salida sigue en Salida. La salida nunca se niega. Un escaneo denegado dice por qué.
+Elige **Entrada** o **Salida** para el punto de acceso. Este dispositivo recuerda tu elección. La salida nunca se niega.
 
-El pase de un invitado abre a ese invitado en la puerta, listo para registrarlo.
+El pase de un invitado lo abre en la puerta.
 
-Si puedes emitir credenciales y leer el registro de escaneos, una denegación (salvo una credencial revocada) ofrece **Anular** 15 minutos y luego deja de ofrecerlo: di por qué y confirma. Sin conexión espera tras el escaneo; si este se sube concedido, la cola indica que no hacía falta.
+Si puedes emitir credenciales y leer el registro de escaneos, una denegación (salvo una credencial revocada) ofrece **Anular** 15 minutos: di por qué y confirma. Sin conexión espera tras el escaneo; si este se sube concedido, la cola indica que no hacía falta.
 
 **Adentro ahora** cuenta quién entró con escaneo en el punto. Requiere el registro de escaneos.
 

@@ -74,6 +74,11 @@ test.describe("Guest passes and guest emails (B8)", () => {
       await dialog.getByRole("button", { name: /^Send to \d+ guests?$/ }).click();
       await expect(dialog.getByText(/^Queued for \d+ guests?$/)).toBeVisible();
       await expectAccessible(page);
+      // A dialog that has sent starts again, so a Pass can follow an Invitation without a reload.
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await page.getByRole("button", { name: "Email guests" }).click();
+      await expect(dialog.getByText(/^Queued for \d+ guests?$/)).toHaveCount(0);
+      await expect(dialog.getByRole("button", { name: /^Send to \d+ guests?$/ })).toBeEnabled();
     } finally {
       await localSql(
         "update app.guest_list_entries set deleted_at = now() where id = any ($1) and deleted_at is null",

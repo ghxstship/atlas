@@ -4,7 +4,7 @@
  * sent, so pdfkit, its fonts and the documents copy never load at boot. The brand is the sending org's name: the
  * worker holds no org's logo, and the pass carries only the row's org. The document is dated when the guest was
  * approved, so its CreationDate, and with it pdfkit's file ID, are the same on every attempt: a retried send carries
- * a byte-identical attachment under the same idempotency key (review correction C15).
+ * a byte-identical attachment under the same idempotency key.
  */
 import { buildDocumentModel } from "../../data/src/documents/build.ts";
 import { renderDocumentPdf } from "../../data/src/documents/render.ts";

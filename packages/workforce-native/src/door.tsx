@@ -113,7 +113,6 @@ export function DoorCheckInScreen({
       openPass(scannedPass);
     }
     // openPass reads the current list and labels; only the scan and the list arriving start it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scannedPass, status, guests]);
   const admit = async () => {
     if (guest === null) return;

@@ -3,7 +3,7 @@ import { renderGuestPassPdf } from "../edge/guest-pass-render.ts";
 import type { ClaimedGuestEmail, GuestPassFacts } from "../src/notifications/guest-emails.ts";
 
 /**
- * The guest pass a Pass email attaches (B8, review correction C15): dated when the guest was approved, so a retried
+ * The guest pass a Pass email attaches (B8): dated when the guest was approved, so a retried
  * send renders the same bytes and Resend's idempotency key never meets a different payload.
  */
 const PASS: GuestPassFacts = {

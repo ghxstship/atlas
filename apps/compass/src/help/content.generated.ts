@@ -1419,10 +1419,11 @@ export const COMPASS_HELP: HelpContent = {
               { t: "strong", v: "Out" },
               {
                 t: "text",
-                v: " for the access point. Out is never refused. A denied scan says why.",
+                v: " for the access point. This device remembers your choice. Out is never refused. A denied scan says why.",
               },
             ],
           },
+          { t: "p", c: [{ t: "text", v: "A guest's pass opens that guest at the door." }] },
           {
             t: "p",
             c: [
@@ -2763,7 +2764,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Scan a guest's pass, or type the code printed on it, to open that guest with their pass type, table and host. A pass that is not on tonight's list says so. When a guest checks in, their host hears that they arrived.",
+                v: "Scan a guest's pass on the Scan tab, in Credential mode, or type the code printed on it here, to open that guest with their pass type, table and host. A pass that is not on tonight's list says so, and a pass already used says who came in with it and when. When a guest checks in, their host hears that they arrived.",
               },
             ],
           },
@@ -4632,7 +4633,7 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Acreditación" },
                 {
                   t: "text",
-                  v: ": elige el punto de acceso y escanea una credencial. Compass indica si se concede o se niega el acceso, con el motivo.",
+                  v: ": elige el punto de acceso y escanea una credencial. Compass concede o niega el acceso, con el motivo.",
                 },
               ],
               [
@@ -4664,16 +4665,17 @@ export const COMPASS_HELP: HelpContent = {
           {
             t: "p",
             c: [
-              { t: "text", v: "En el modo Acreditación, elige " },
+              { t: "text", v: "Elige " },
               { t: "strong", v: "Entrada" },
               { t: "text", v: " o " },
               { t: "strong", v: "Salida" },
               {
                 t: "text",
-                v: " para el punto de acceso. La salida nunca se niega. Un escaneo denegado dice por qué.",
+                v: " para el punto de acceso. Este dispositivo recuerda tu elección. La salida nunca se niega.",
               },
             ],
           },
+          { t: "p", c: [{ t: "text", v: "El pase de un invitado lo abre en la puerta." }] },
           {
             t: "p",
             c: [
@@ -6074,7 +6076,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Escanea el pase de un invitado, o escribe el código impreso en él, para abrir a ese invitado con su tipo de pase, su mesa y su anfitrión. Un pase que no está en la lista de esta noche lo indica. Cuando un invitado se registra, su anfitrión recibe aviso de que llegó.",
+                v: "Escanea el pase de un invitado en la pestaña Escanear, en el modo Acreditación, o escribe aquí el código impreso en él, para abrir a ese invitado con su tipo de pase, su mesa y su anfitrión. Un pase que no está en la lista de esta noche lo indica, y un pase ya usado dice quién entró con él y cuándo. Cuando un invitado se registra, su anfitrión recibe aviso de que llegó.",
               },
             ],
           },
