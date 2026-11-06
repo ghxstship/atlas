@@ -219,9 +219,9 @@ function pageFields(
       label: t("registrationPages.fields.minimumAge"),
       kind: "number" as const,
       required: true,
-      min: 16,
+      min: 18,
       max: 99,
-      defaultValue: String(record?.minimumAge ?? 16),
+      defaultValue: String(record?.minimumAge ?? 18),
       help: t("registrationPages.minimumAgeHelp"),
     },
   ];

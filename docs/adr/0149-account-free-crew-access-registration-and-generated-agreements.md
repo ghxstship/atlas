@@ -3,7 +3,7 @@
 - Status: Proposed
 - Date: 2026-11-06
 - Decider: B10 (RRR-234), gaps G-125, G-129, G-130 and G-132; the owner decides on review
-- Migrations: `2990_crew_access_links.sql` to `2999_notification_kind_seed.sql`
+- Migrations: `6520_crew_access_links.sql` to `6526_pool_invitation_import_target.sql`, with its kinds in the train's seed `6799_notification_kind_seed.sql`
 
 ## Context
 
@@ -26,7 +26,7 @@ Event Lab's seatless logins go further. Going further would need a change to ADR
 - The read returns rendered fields only: the worker's Published, Accepted and Canceled shifts on the one project, from 12 hours ago to 14 days ahead, with job title and venue as text (S5-29 keeps maps deferred). Never a rate, a note, a Draft or another worker.
 - One write: the worker accepts their own Published shift. No session is created. No punching (kiosk PINs, Compass and R12's supervisor punches cover time) and no decline (declining stays signed-in, with a reason).
 - Gateway keeps a right code in an httpOnly, Secure cookie with `Path=/shifts/{token}`, for the shorter of 12 hours and the link's life. It is `SameSite=Lax`, not Strict, so opening the link from a text message or a QR scan does not ask again in that window; the token is still required, every request rechecks through the RPC, and accepting runs only as a same-origin server action.
-- A printed card carries the code only when the issuer ticks that box. The separate channel is the safer rule: a lost card with no code opens nothing. The issuer decides, because a crew call at a loading dock may have no other channel.
+- A printed card never carries the code. By the owner's ruling of 2026-11-06 on Section 7.5 invariant 8, a QR code or link alone opens nothing, because a guest or patron could scan one left in place; a code printed beside it would be a link alone.
 - A read-only org keeps reads working, which matters to a worker on site, and refuses the write for anyone (`crew_access_read_only`). Links are exempt from the read-only guard so that a wrong code is always counted.
 
 ### 3. Registration pages
@@ -35,8 +35,8 @@ Event Lab's seatless logins go further. Going further would need a change to ADR
 
 - A registration is not an opportunity. Opportunities are project-scoped postings with a deadline, positions and an application board, and pools are org objects with no project.
 - It is not an invite link or a join request either (0861): those lead to org membership and a role, while a registration fills a pool and gives no role. This is the distinction the G-129 evidence turns on.
-- Public copy and questions only. The pool is never external (S4.4-27): no page, email or notification names it.
-- Registering needs an account with decision 54's 16+. A page may ask 16 to 99 by self-confirmation. Guardian consent for 16 and 17 year olds waits for counsel; an org that needs adults sets the minimum to 18. The minimum age is recorded on the registration and is fixed once the page leaves Draft.
+- A link alone shows the page's public copy only: the questions, like everything else, wait for sign-in (owner ruling on invariant 8). The page holds nothing sensitive and takes no token, the same standing as a public listing; the person is onboarded before they answer anything. The pool is never external (S4.4-27): no page, email or notification names it.
+- Registering needs an account, and the person confirms the page's minimum age, 18 to 99 by self-confirmation. The owner's decision of 2026-11-06 makes 18 the account minimum, so nothing here goes below it. The minimum age is recorded on the registration and is fixed once the page leaves Draft.
 - A Do Not Engage person, a closed or missing page, a deleted pool and a read-only org all get the same refusal, so neither the flag nor the org's billing state ever shows.
 - A registration, the profile sections it shares and the work phone it saves are written in one transaction, so a refused registration shares nothing with the org.
 - Every plan has registration pages, including plans without public marketplace listings (Pro, 0720). This gives lower plans a public recruitment page; the owner confirms that choice.
@@ -51,7 +51,7 @@ An org writes its own wording once, with merge fields from a closed list, and ge
 - A rate is Restricted. A body that uses `engagement.rate` is masked, with neither the body nor its hash, for an org reader without `data.restricted.read.payroll` and for a representative without Settlement scope, because a SHA-256 of a text that differs from known wording only by a number can be guessed offline. The title never uses the rate, because every engagement reader reads it and it travels in the notification. A template's wording is fixed once a batch references it, because the mask follows the template's text; a call whose every entry is refused leaves no batch, so it fixes nothing. The engaged person always reads their own text, since Onboarding and Blocked do not open the money area and that is when they sign.
 - Decline is Sent to Canceled, with no new enum value in the frozen API.
 - Executed verifies an Automatic Electronic Signature item, with no reviewer, under a trusted operation. The engaged person cannot countersign their own (`sod_onboarding_self_verify`). A Reviewer item is verified by a reviewer as today.
-- One button never signs a generated document: every other signing path refuses it, and a signing link for one is refused when it is issued.
+- One button never signs a generated document: every other signing path refuses it, and a signing link for one is refused when it is issued. Gateway's Home, engagement Overview and Documents offer Read and sign through the Documents tab instead (`signsInOneClick`).
 
 ### 5. Pool invitations and the import target
 
@@ -71,4 +71,4 @@ The new RPCs are reached through `@xos/data` only. oasdiff shows no difference.
 
 - Account deletion's reach grows: registrations and claimed invitations give an Erasure row, a legal hold on the new tables blocks the deletion, and the person's answers, invitations and standing rates are hard deleted while the pool membership stays with a blank name.
 - The Better Stack log drains must mask `/shifts/` and `xcrw_` (`infra/runbooks/production.md`).
-- Guardian consent, maps and payments stay out of scope. A counsel-reviewed agreement template is a later decision.
+- Maps and payments stay out of scope. A counsel-reviewed agreement template is a later decision.

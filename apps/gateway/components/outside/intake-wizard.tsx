@@ -84,6 +84,9 @@ export function IntakeWizard({
   const next = () => setIndex((i) => Math.min(i + 1, steps.length - 1));
   const back = () => setIndex((i) => Math.max(i - 1, 0));
   const [accountId, setAccountId] = useState<string | null>(null);
+  // An account made in this step stays a choice when the person comes back to it.
+  const [madeAccounts, setMadeAccounts] = useState<readonly { id: string; name: string }[]>([]);
+  const accountChoices = [...accounts, ...madeAccounts];
   const [onFile, setOnFile] = useState<IntakeOnFileChoice | null>(null);
   const [tax, setTax] = useState<{ id: string; last4: string; kind: string } | null>(null);
   const [payout, setPayout] = useState<{ id: string; reference: string } | null>(null);
@@ -103,12 +106,22 @@ export function IntakeWizard({
     async (data) => {
       const name = String(data.get("newAccount") ?? "").trim();
       const picked = String(data.get("accountId") ?? "");
-      if (name !== "") return intakeCreateAccountAction(token, { name });
+      if (name !== "") {
+        const made = await intakeCreateAccountAction(token, { name });
+        if (made.ok) setMadeAccounts((list) => [...list, { id: made.data, name }]);
+        return made;
+      }
       return picked === ""
         ? { ok: false as const, outcome: "refusals.vendor_intake_account" }
         : { ok: true as const, data: picked };
     },
     (id) => {
+      // A tax form and payout reference belong to the account they were filed for: choosing another starts them again.
+      if (id !== accountId) {
+        setTax(null);
+        setPayout(null);
+        setOnFile(null);
+      }
       setAccountId(id);
       next();
     },
@@ -200,13 +213,13 @@ export function IntakeWizard({
           className="flex flex-col gap-12"
         >
           <Outcome outcome={companyState.outcome} />
-          {accounts.length > 0 ? (
+          {accountChoices.length > 0 ? (
             <Select
               id="intake-account"
               name="accountId"
               label={t("account")}
-              value={accountId ?? accounts[0]?.id ?? ""}
-              options={accounts.map((a) => ({ value: a.id, label: a.name }))}
+              value={accountId ?? accountChoices[0]?.id ?? ""}
+              options={accountChoices.map((a) => ({ value: a.id, label: a.name }))}
             />
           ) : null}
           <Input
@@ -215,7 +228,7 @@ export function IntakeWizard({
             label={t("newAccount")}
             help={t("newAccountHelp")}
             maxLength={120}
-            required={accounts.length === 0}
+            required={accountChoices.length === 0}
             width="100%"
           />
           {nav({ label: t("next"), pending: companyPending })}
@@ -414,7 +427,7 @@ export function IntakeWizard({
             {accountId ? (
               <li>
                 {t("reviewAccount", {
-                  name: accounts.find((a) => a.id === accountId)?.name ?? t("newAccountName"),
+                  name: accountChoices.find((a) => a.id === accountId)?.name ?? t("newAccountName"),
                 })}
               </li>
             ) : null}

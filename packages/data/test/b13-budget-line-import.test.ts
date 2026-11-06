@@ -25,6 +25,11 @@ const FIELDS = [
   { name: "markup_percent", required: false, strongKey: false },
   { name: "client_unit_price", required: false, strongKey: false },
   { name: "excluded_from_quote", required: false, strongKey: false },
+  { name: "unit_basis", required: false, strongKey: false },
+  { name: "element_id", required: false, strongKey: false },
+  { name: "grade_code", required: false, strongKey: false },
+  { name: "phase_code", required: false, strongKey: false },
+  { name: "tier_code", required: false, strongKey: false },
 ];
 const NAMES = FIELDS.map((f) => f.name);
 const COLUMNS = NAMES.map((fieldName, index) => ({
@@ -37,6 +42,10 @@ const lookups = {
   uridExists: async (v: string) => v === "5000.04.02" || v === "5000",
   uridXyz: async (v: string) => (v === "5000.04.02" ? "Y" : null),
   costCenterId: async (_o: string, v: string) => (v === "CC1" ? "cc1" : null),
+  unitExists: async (v: string) => ["day", "each", "hour"].includes(v),
+  elementExists: async (v: string) => v === "5000.04.02-GHXST-001",
+  canonCodeExists: async (kind: string, v: string) =>
+    ({ grade: "base", phase: "build", tier: "core" })[kind] === v,
 } as unknown as TargetLookups;
 
 function row(values: Partial<Record<(typeof NAMES)[number], string>>) {
@@ -96,6 +105,36 @@ describe("validateRow budget_lines", () => {
       { budget: { id: "b1", exponent: 0, maxLineNumber: 0 } },
     );
     expect(v.values["unit_price_minor"]).toBe(1500);
+  });
+
+  it("gives a per-cell reason for a unit, element, grade, phase or tier canon does not list", async () => {
+    const bad = await check({
+      description: "Truss",
+      urid: "5000.04.02",
+      unit_basis: "hrs",
+      element_id: "nope",
+      grade_code: "gold",
+      phase_code: "someday",
+      tier_code: "top",
+    });
+    expect(bad.issues.map((i) => i.issue).sort()).toEqual([
+      "unknown_element",
+      "unknown_grade",
+      "unknown_phase",
+      "unknown_tier",
+      "unknown_unit",
+    ]);
+    const good = await check({
+      description: "Truss",
+      urid: "5000.04.02",
+      unit_basis: "Day",
+      element_id: "5000.04.02-GHXST-001",
+      grade_code: "base",
+      phase_code: "build",
+      tier_code: "core",
+    });
+    expect(good.issues).toEqual([]);
+    expect(good.values).toMatchObject({ unit_basis: "day", grade_code: "base" });
   });
 
   it("reads a blank cell as saying nothing, so an update leaves the value alone", async () => {

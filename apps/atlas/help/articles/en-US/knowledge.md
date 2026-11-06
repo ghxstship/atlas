@@ -25,4 +25,4 @@ File each document under one of your organization's **document types**, such as 
 
 ## Public form links
 
-A Published form without a photo, signature or GPS stamp can have a **Public link**. People outside the organization open it with an access code and answer without an account. A response becomes a record only when someone approves it. Responses show in Submissions with a Public link label.
+A Published form without a photo, signature or GPS stamp can have a **Public link**. It belongs to a project, whose **Outside access** section lists, revokes and regenerates it. People outside the organization open it with an access code, then sign in or create an account to answer; their account's name and email go with the response. A response becomes a record only when someone approves it. Responses show in Submissions with a Public link label.

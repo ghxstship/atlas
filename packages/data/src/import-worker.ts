@@ -305,6 +305,8 @@ export interface TargetLookups {
   poolInvitationContext(job: ImportJobRecord): Promise<PoolInvitationContext>;
   /** A pending pool invitation's expiry and whether it holds a rate; null when it is gone (B10). */
   poolInvitation(id: string): Promise<{ expiresAt: string; hasRate: boolean } | null>;
+  /** True when a budget line's grade, phase or tier is one canon lists (B13). */
+  canonCodeExists(kind: "grade" | "phase" | "tier", code: string): Promise<boolean>;
   /** True when the unit is one canon lists (B11). */
   unitExists(unit: string): Promise<boolean>;
   /** Catalogue matching of a need or order line (app.import_material_match, B11, 6537); null for none. */
@@ -735,7 +737,17 @@ export async function validateRow(
     case "budget_lines": {
       const budget = destination.budget;
       const exponent = budget?.exponent ?? 2;
-      for (const f of ["description", "unit_basis"]) bounded(f);
+      bounded("description");
+      // Canon units are exact lower-case aliases, so Day and day are one unit and hrs is a per-cell reason, never a
+      // foreign key message at commit.
+      await set(
+        "unit_basis",
+        async (v) => {
+          const unit = v.trim().toLowerCase();
+          return (await lookups.unitExists(unit)) ? unit : null;
+        },
+        "unknown_unit",
+      );
       await set("urid", (v) => lookups.uridExists(v), "unknown_urid");
       await set(
         "line_number",
@@ -766,8 +778,17 @@ export async function validateRow(
         "unknown_cost_center",
         "cost_center_id",
       );
-      for (const f of ["grade_code", "element_id", "phase_code", "tier_code"]) {
-        if (text(f).trim()) values[f] = text(f).trim();
+      await set("element_id", (v) => lookups.elementExists(v.trim()), "unknown_element");
+      for (const [field, kind, issue] of [
+        ["grade_code", "grade", "unknown_grade"],
+        ["phase_code", "phase", "unknown_phase"],
+        ["tier_code", "tier", "unknown_tier"],
+      ] as const) {
+        await set(
+          field,
+          async (v) => ((await lookups.canonCodeExists(kind, v.trim())) ? v.trim() : null),
+          issue,
+        );
       }
       const declared = text("xyz").trim().toUpperCase();
       if (declared !== "") {
@@ -1780,6 +1801,15 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         p_keys: keys,
       });
       return typeof id === "string" ? id : null;
+    },
+    async canonCodeExists(kind, code) {
+      const [table, column] = {
+        grade: ["grade", "code"],
+        phase: ["dim_phase", "phase_code"],
+        tier: ["dim_tier", "tier_code"],
+      }[kind] as [string, string];
+      const row = await one(canon.from(table).select(column).eq(column, code).limit(1), table);
+      return row !== null;
     },
     async unitExists(unit) {
       const row = await one(

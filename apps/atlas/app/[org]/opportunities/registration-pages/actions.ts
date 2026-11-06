@@ -61,7 +61,7 @@ const pageSchema = z.object({
     .max(80),
   intro: z.string().trim().max(4000).default(""),
   poolId: z.uuid(),
-  minimumAge: z.coerce.number().int().min(16).max(99),
+  minimumAge: z.coerce.number().int().min(18).max(99),
 });
 
 export async function saveRegistrationPageAction(_: State, form: FormData): Promise<State> {

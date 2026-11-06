@@ -45,10 +45,9 @@ export function FormLinkDialog({
   }, [org]);
   const [state, dispatch, pending] = useActionState(
     async (_s: { error: string | null }, data: FormData) => {
-      const project = String(data.get("projectId") ?? "");
       const result = await createFormLinkAction(org, {
         templateId,
-        projectId: project === "" ? null : project,
+        projectId: String(data.get("projectId") ?? ""),
         expiresOn: String(data.get("expiresOn") ?? ""),
         dailyCap: Number(data.get("dailyCap") ?? 200),
         onePerEmail: data.get("onePerEmail") === "on",
@@ -86,12 +85,10 @@ export function FormLinkDialog({
           name="projectId"
           label={t("project")}
           help={t("projectHelp")}
-          value=""
+          required
+          placeholder={t("chooseProject")}
           onChange={(event) => setProjectId(event.target.value)}
-          options={[
-            { value: "", label: t("noProject") },
-            ...(options?.projects ?? []).map((p) => ({ value: p.value, label: p.label })),
-          ]}
+          options={(options?.projects ?? []).map((p) => ({ value: p.value, label: p.label }))}
         />
         <Input
           id="form-link-expires"

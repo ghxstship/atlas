@@ -694,7 +694,7 @@ export async function createFormLinkAction(
   org: string,
   input: {
     templateId: string;
-    projectId: string | null;
+    projectId: string;
     expiresOn: string;
     dailyCap: number;
     onePerEmail: boolean;
@@ -702,16 +702,15 @@ export async function createFormLinkAction(
 ): Promise<OutsideResult<Revealed>> {
   const ctx = await getOrgContext(org);
   if (!ctx) return { ok: false, error: "notFound" };
-  // A form link's expiry is the end of the day in the named project's zone, else the org's; never a UTC day.
+  // A form link belongs to a project, and its expiry is the end of the day in that project's zone; never a UTC day.
+  if (!input.projectId) return { ok: false, error: "form_link_project" };
   let zone = await getOrgTimeZone(ctx);
-  if (input.projectId) {
-    const { data } = await ctx.viewer.db
-      .from("projects")
-      .select("time_zone")
-      .eq("id", input.projectId)
-      .maybeSingle();
-    zone = (data as { time_zone?: string } | null)?.time_zone ?? zone;
-  }
+  const { data } = await ctx.viewer.db
+    .from("projects")
+    .select("time_zone")
+    .eq("id", input.projectId)
+    .maybeSingle();
+  zone = (data as { time_zone?: string } | null)?.time_zone ?? zone;
   const r = await createFormLink(ctx.viewer.db, {
     templateId: input.templateId,
     expiresAt: endOfDayInZone(input.expiresOn, zone),

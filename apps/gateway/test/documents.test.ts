@@ -26,4 +26,9 @@ describe("Gateway document links (Section 11.9)", () => {
     expect(signsInOneClick({ kind: "Agreement", state: "Sent" })).toBe(true);
     expect(signsInOneClick({ kind: "Agreement", state: "Signed" })).toBe(false);
   });
+
+  it("never lets a generated agreement be signed in one click (B10)", () => {
+    expect(signsInOneClick({ kind: "Agreement", state: "Sent", generated: true })).toBe(false);
+    expect(signsInOneClick({ kind: "Agreement", state: "Sent", generated: false })).toBe(true);
+  });
 });

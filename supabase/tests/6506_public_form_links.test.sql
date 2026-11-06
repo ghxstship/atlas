@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(40);
+select plan(44);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -78,12 +78,13 @@ begin
   update private.form_link_grants set issued_at = now() - interval '1 minute' where form_link_id = v.form_link_id;
 end $$;
 
-create function pg_temp.submit(p_key text, p_email text, p_answers jsonb, p_client text, p_website text default null) returns jsonb
+-- A signed-in outsider answers: xavier belongs to another org. The owner's ruling on invariant 8 asks for an account.
+create function pg_temp.submit(p_key text, p_answers jsonb, p_client text, p_website text default null, p_user text default 'xavier') returns jsonb
 language plpgsql as $$
 declare v jsonb;
 begin
-  perform pg_temp.anon();
-  v := api_public.submit_public_form(pg_temp.v(p_key), pg_temp.v(p_key || ':grant'), 'Rae Ortiz', p_email, p_answers, p_website, p_client);
+  perform pg_temp.as_user(p_user);
+  v := api_public.submit_public_form(pg_temp.v(p_key), pg_temp.v(p_key || ':grant'), p_answers, p_website, p_client);
   perform pg_temp.as_platform();
   return v;
 end $$;
@@ -112,6 +113,8 @@ select is(pg_temp.try('dave', format($$select * from app.create_form_link(%L, no
 select is(pg_temp.try('dave', format($$select * from app.create_form_link(%L, now() + interval '30 days')$$, pg_temp.k('gps_form'))), 'form_link_unsupported', 'a GPS stamp is refused');
 select is(pg_temp.try('dave', format($$select * from app.create_form_link(%L, now() + interval '91 days')$$, pg_temp.k('plain'))), 'form_link_expiry_range', 'an expiry past 90 days is refused');
 
+select is(pg_temp.try('dave', format($$select * from app.create_form_link(%L, now() + interval '30 days')$$, pg_temp.k('plain'))), 'form_link_project',
+  'a link belongs to a project, so Outside access can revoke and regenerate it');
 select pg_temp.link('a', 'check', pg_temp.id('prj_a'));
 select ok(pg_temp.v('a') ~ '^xfrm_[0-9a-f]{64}$' and pg_temp.v('a:code') ~ '^[0-9]{6}$' and pg_temp.v('a:grant') ~ '^xfrg_[0-9a-f]{64}$',
   'the token and a 6-digit code come back once, and the code earns a grant');
@@ -138,7 +141,15 @@ select is(pg_temp.read_only(format($$select api_public.public_form(%L, %L, null)
 select pg_temp.as_platform();
 
 -- Reading --------------------------------------------------------------------------------------------------------------
+-- A link with its code still opens nothing without an account (owner ruling 2026-11-06 on Section 7.5 invariant 8).
 select pg_temp.anon();
+select is(api_public.public_form(pg_temp.v('a'), pg_temp.v('a:grant'), '198.51.100.80') ->> 'reason', 'form_link_sign_in',
+  'inv_08: past the code, a visitor with no account reads nothing');
+select is(api_public.submit_public_form(pg_temp.v('a'), pg_temp.v('a:grant'), '{"ok": true}', null, '198.51.100.80') ->> 'reason', 'form_link_sign_in',
+  'inv_08: and answers nothing');
+select pg_temp.as_user('xavier');
+select is(api_public.public_form(pg_temp.v('a'), 'xfrg_' || repeat('0', 64), '198.51.100.80') ->> 'reason', 'form_link_grant',
+  'inv_08: a signed-in person still needs the code');
 select pg_temp.put('read', null, api_public.public_form(pg_temp.v('a'), pg_temp.v('a:grant'), '198.51.100.80')::text);
 select pg_temp.as_platform();
 select is((select array_agg(x order by x) from jsonb_object_keys(pg_temp.v('read')::jsonb) x), array['description','fields','meta','name','status'], 'the read answers its key set');
@@ -148,27 +159,27 @@ select ok(pg_temp.v('read') not like '%points%' and pg_temp.v('read') not like '
   'never points, the passing score, the record kind or the note');
 
 -- Spam controls --------------------------------------------------------------------------------------------------------
-select is(pg_temp.submit('a', 'one@guest.test', '{"ok": true}', '198.51.100.81', 'https://spam.test') ->> 'status', 'ok', 'a filled honeypot answers ok');
+select is(pg_temp.submit('a', '{"ok": true}', '198.51.100.81', 'https://spam.test') ->> 'status', 'ok', 'a filled honeypot answers ok');
 select is((select count(*)::int from app.form_submissions where form_link_id = pg_temp.k('a')), 0, 'and stores nothing');
 -- now() is frozen in this transaction, so the grant is backdated above; a fresh grant is under 3 seconds old.
 update private.form_link_grants set issued_at = now() where form_link_id = pg_temp.k('a');
-select is(pg_temp.submit('a', 'one@guest.test', '{"ok": true}', '198.51.100.82') ->> 'reason', 'form_link_too_fast', 'a submit under 3 seconds after the grant is refused');
+select is(pg_temp.submit('a', '{"ok": true}', '198.51.100.82') ->> 'reason', 'form_link_too_fast', 'a submit under 3 seconds after the grant is refused');
 update private.form_link_grants set issued_at = now() - interval '1 minute' where form_link_id = pg_temp.k('a');
 
 -- Answers: the same codes app.submit_form gives
-select is(pg_temp.submit('a', 'one@guest.test', '{}', '198.51.100.83') ->> 'reason', 'form_answer_required', 'a required answer is required');
-select is(pg_temp.submit('a', 'one@guest.test', '{"ok": true, "why": "No"}', '198.51.100.84') ->> 'reason', 'form_answer_hidden', 'a hidden field stays empty');
-select is(pg_temp.submit('a', 'one@guest.test', '{"ok": true, "load": "Huge"}', '198.51.100.85') ->> 'reason', 'form_answer_choice', 'a choice must be listed');
-select is(pg_temp.submit('a', 'one@guest.test', jsonb_build_object('ok', true, 'on', repeat('x', 33000)), '198.51.100.86') ->> 'reason', 'form_answers_too_large', 'answers over 32 KB are refused');
+select is(pg_temp.submit('a', '{}', '198.51.100.83') ->> 'reason', 'form_answer_required', 'a required answer is required');
+select is(pg_temp.submit('a', '{"ok": true, "why": "No"}', '198.51.100.84') ->> 'reason', 'form_answer_hidden', 'a hidden field stays empty');
+select is(pg_temp.submit('a', '{"ok": true, "load": "Huge"}', '198.51.100.85') ->> 'reason', 'form_answer_choice', 'a choice must be listed');
+select is(pg_temp.submit('a', jsonb_build_object('ok', true, 'on', repeat('x', 33000)), '198.51.100.86') ->> 'reason', 'form_answers_too_large', 'answers over 32 KB are refused');
 
 -- A response ------------------------------------------------------------------------------------------------------------
-select is(pg_temp.submit('a', 'One@Guest.test', '{"ok": true, "load": "Light"}', '198.51.100.87') ->> 'status', 'ok', 'a valid response is filed');
+select is(pg_temp.submit('a', '{"ok": true, "load": "Light"}', '198.51.100.87') ->> 'status', 'ok', 'a valid response is filed');
 select pg_temp.put('resp', (select s.id from app.form_submissions s where s.form_link_id = pg_temp.k('a')), null);
 select is((select submission_state::text || '/' || coalesce(submitted_by_membership_id::text, 'no member') || '/' || respondent_name || '/' || respondent_email || '/' || score::text
-  from app.form_submissions where id = pg_temp.k('resp')), 'Submitted/no member/Rae Ortiz/one@guest.test/3', 'stored Submitted with no member, the respondent''s name and lower-case email, and its score');
+  from app.form_submissions where id = pg_temp.k('resp')), (select 'Submitted/no member/' || btrim(pe.full_name) || '/' || lower(u.email) || '/3' from world w join auth.users u on u.id = w.id join app.people pe on pe.user_id = u.id where w.key = 'xavier_user'), 'stored Submitted with no member, the respondent''s name and lower-case email, and its score');
 select is((select record_id from app.form_submissions where id = pg_temp.k('resp')), null, 'it creates no record');
 select is((select count(*)::int from app.form_submission_state_transitions where form_submission_id = pg_temp.k('resp') and reason = 'Submitted via public link' and to_state = 'Submitted'), 1, 'the ledger says how it came');
-select is(pg_temp.submit('a', 'one@guest.test', '{"ok": true}', '198.51.100.88') ->> 'reason', 'form_link_already_answered', 'one response per email');
+select is(pg_temp.submit('a', '{"ok": true}', '198.51.100.88') ->> 'reason', 'form_link_already_answered', 'one response per email');
 select is(pg_temp.try('carol', format($$update app.form_submissions set respondent_email = 'x@y.test' where id = %L$$, pg_temp.k('resp'))), '42501',
   'a member cannot change a response''s submitter fields');
 select throws_like(format($$update app.form_submissions set form_link_id = null, respondent_name = null, respondent_email = null, submitted_by_membership_id = %L where id = %L$$,
@@ -182,22 +193,22 @@ select is((select r.record_kind::text || '/' || r.record_subtype || '/' || r.pro
   'Inspection/Safety/' || pg_temp.id('prj_a')::text, 'approving makes the project record of the form''s kind and subtype');
 
 -- The caps --------------------------------------------------------------------------------------------------------------
-select pg_temp.link('capped', 'plain', null, 2, null, false);
-select is(pg_temp.submit('capped', 'c1@guest.test', '{"a": "x"}', '198.51.100.90') ->> 'status', 'ok', 'the first in the window goes');
-select is(pg_temp.submit('capped', 'c2@guest.test', '{"a": "x"}', '198.51.100.91') ->> 'status', 'ok', 'and the second');
-select is(pg_temp.submit('capped', 'c3@guest.test', '{"a": "x"}', '198.51.100.92') ->> 'reason', 'form_link_rate_limited', 'past the cap in any 24 hours is refused');
+select pg_temp.link('capped', 'plain', pg_temp.id('prj_a'), 2, null, false);
+select is(pg_temp.submit('capped', '{"a": "x"}', '198.51.100.90') ->> 'status', 'ok', 'the first in the window goes');
+select is(pg_temp.submit('capped', '{"a": "x"}', '198.51.100.91') ->> 'status', 'ok', 'and the second');
+select is(pg_temp.submit('capped', '{"a": "x"}', '198.51.100.92') ->> 'reason', 'form_link_rate_limited', 'past the cap in any 24 hours is refused');
 alter table app.form_submissions disable trigger user;
 update app.form_submissions set created_at = now() - interval '25 hours' where form_link_id = pg_temp.k('capped');
 alter table app.form_submissions enable trigger user;
-select is(pg_temp.submit('capped', 'c3@guest.test', '{"a": "x"}', '198.51.100.93') ->> 'status', 'ok', 'a response 25 hours old no longer counts');
+select is(pg_temp.submit('capped', '{"a": "x"}', '198.51.100.93') ->> 'status', 'ok', 'a response 25 hours old no longer counts');
 
-select pg_temp.link('total', 'plain', null, 200, 1, false);
-select is(pg_temp.submit('total', 't1@guest.test', '{"a": "x"}', '198.51.100.94') ->> 'status', 'ok', 'the only response allowed goes');
-select is(pg_temp.submit('total', 't2@guest.test', '{"a": "x"}', '198.51.100.95') ->> 'reason', 'form_link_rate_limited', 'past max_responses is refused');
+select pg_temp.link('total', 'plain', pg_temp.id('prj_a'), 200, 1, false);
+select is(pg_temp.submit('total', '{"a": "x"}', '198.51.100.94') ->> 'status', 'ok', 'the only response allowed goes');
+select is(pg_temp.submit('total', '{"a": "x"}', '198.51.100.95') ->> 'reason', 'form_link_rate_limited', 'past max_responses is refused');
 
-select pg_temp.link('addr', 'plain', null, 1000, null, false);
-select pg_temp.submit('addr', 'x' || n || '@guest.test', '{"a": "x"}', '198.51.100.96') from generate_series(1, 10) n;
-select is(pg_temp.submit('addr', 'x11@guest.test', '{"a": "x"}', '198.51.100.96') ->> 'reason', 'form_link_rate_limited', 'the 11th from one relayed address in an hour is refused');
+select pg_temp.link('addr', 'plain', pg_temp.id('prj_a'), 1000, null, false);
+select pg_temp.submit('addr', '{"a": "x"}', '198.51.100.96') from generate_series(1, 10) n;
+select is(pg_temp.submit('addr', '{"a": "x"}', '198.51.100.96') ->> 'reason', 'form_link_rate_limited', 'the 11th from one relayed address in an hour is refused');
 
 -- A form no longer Published ---------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');

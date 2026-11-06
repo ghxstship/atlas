@@ -26,7 +26,6 @@ export interface IssuedLink extends IssuedCrewAccessLink {
 
 export interface IssueState {
   readonly links?: readonly IssuedLink[];
-  readonly includeCode?: boolean;
   readonly projectName?: string;
   readonly rule?: string;
   readonly error?: "input" | "notFound" | "unexpected";
@@ -79,7 +78,6 @@ export async function issueCrewAccessLinksAction(
     return { error: result.error.kind === "not-found" ? "notFound" : "unexpected", at: Date.now() };
   }
   return {
-    includeCode: form.get("includeCode") === "true",
     projectName: String(form.get("projectName") ?? ""),
     links: result.data.map((link) => ({
       ...link,

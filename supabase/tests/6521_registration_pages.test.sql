@@ -37,8 +37,8 @@ with p as (insert into app.registration_pages (org_id, slug, title, intro, talen
   values (pg_temp.id('org_a'), 'summer-crew', 'Summer Crew', 'Work the summer series.', pg_temp.id('pool'), 18) returning id) insert into world select 'page', id from p;
 select throws_ok(format($$insert into app.registration_pages (org_id, slug, title, talent_pool_id) values ('%s', 'summer-crew', 'Other', '%s')$$, pg_temp.id('org_a'), pg_temp.id('pool')),
   '23505', null, 'a slug is unique per org among live pages');
-select throws_ok(format($$insert into app.registration_pages (org_id, slug, title, talent_pool_id, minimum_age) values ('%s', 'young', 'Young', '%s', 15)$$, pg_temp.id('org_a'), pg_temp.id('pool')),
-  '23514', null, 'the minimum age is at least 16');
+select throws_ok(format($$insert into app.registration_pages (org_id, slug, title, talent_pool_id, minimum_age) values ('%s', 'young', 'Young', '%s', 17)$$, pg_temp.id('org_a'), pg_temp.id('pool')),
+  '23514', null, 'the minimum age is at least 18');
 
 -- Questions while Draft ------------------------------------------------------------------------------------------------------------
 with q as (insert into app.registration_page_questions (registration_page_id, prompt, sort_order, is_required)
@@ -79,10 +79,8 @@ select throws_ok(format($$select app.transition_registration_page('%s', 'Open', 
 -- The public read when Open --------------------------------------------------------------------------------------------------------
 select pg_temp.as_anon();
 select results_eq($$select org_name, title, intro, minimum_age::int, prompt, is_required from api_public.registration_page('northwind-live', 'summer-crew') order by sort_order$$,
-  $$values ('Northwind Live'::text, 'Summer Crew'::text, 'Work the summer series.'::text, 18, 'Which skills do you bring?'::text, true),
-           ('Northwind Live'::text, 'Summer Crew'::text, 'Work the summer series.'::text, 18, 'Do you hold a forklift ticket?'::text, false),
-           ('Northwind Live'::text, 'Summer Crew'::text, 'Work the summer series.'::text, 18, 'Which nights can you work?'::text, true)$$,
-  'anon reads the copy and questions of an Open page');
+  $$values ('Northwind Live'::text, 'Summer Crew'::text, 'Work the summer series.'::text, 18, null::text, null::boolean)$$,
+  'anon reads only the copy of an Open page: the questions are for a signed-in person');
 select is((select r.org_id from api_public.registration_page('northwind-live', 'summer-crew') r limit 1), pg_temp.id('org_a'), 'with the org id for the brand scope check');
 select is((select count(*)::int from pg_catalog.pg_proc p, unnest(p.proallargtypes, p.proargmodes, p.proargnames) as a (t, m, n)
     where p.oid = 'api_public.registration_page'::regproc and a.m = 't' and a.n like '%pool%'), 0, 'and never the pool');

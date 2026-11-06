@@ -1756,6 +1756,7 @@
       "interview": "Entrevista para {title}",
       "rate": "Califica tu trabajo con {org}",
       "rateAction": "Calificar",
+      "readAndSign": "Leer y firmar",
       "reviewQuote": "Revisar la cotización",
       "stillComing": "¿Sigues yendo a {title}?",
       "stillComingYes": "Voy a ir",
@@ -2273,7 +2274,8 @@
       "form_answer_date": "Escribe las fechas como fecha.",
       "form_answer_length": "Una respuesta es demasiado larga. Acórtala y envía de nuevo.",
       "org_read_only": "Esta organización no recibe respuestas nuevas en este momento.",
-      "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía."
+      "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía.",
+      "form_link_sign_in": "Inicia sesión o crea una cuenta para responder este formulario."
     },
     "crewShifts": {
       "title": "Mis turnos",
@@ -3017,8 +3019,6 @@
     "title": "Formulario",
     "codeIntro": "Escribe el código de acceso de la persona que te envió este enlace.",
     "poweredBy": "Con tecnología de XOS",
-    "name": "Tu nombre",
-    "email": "Tu correo",
     "website": "Deja esto vacío",
     "choose": "Elegir",
     "yes": "Sí",
@@ -3030,7 +3030,11 @@
     "thanks": "Gracias. Tus respuestas se enviaron.",
     "unexpected": "No se pudo completar. Inténtalo de nuevo.",
     "unanswered": "Responde estas preguntas antes de continuar: {fields}",
-    "required": "Responde esta pregunta."
+    "required": "Responde esta pregunta.",
+    "answeringAs": "Respondes como {who}. La organización ve tu nombre y tu correo junto con tus respuestas.",
+    "signIn": "Inicia sesión o crea una cuenta para responder este formulario.",
+    "signUpAction": "Crear una cuenta",
+    "signInAction": "Iniciar sesión"
   },
   "badgePhotos": {
     "title": "Fotos de credencial",

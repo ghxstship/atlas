@@ -165,9 +165,14 @@ export interface EngagementDocument {
   readonly documentId: string | null;
   readonly expiresOn: string | null;
   readonly state: EngagementDocumentState;
+  /** Generated from a template (B10): read in full and signed with the hash of the text, never with one button. */
+  readonly generated: boolean;
 }
 
-function toDocument(row: ExternalRow<"engagement_documents">): EngagementDocument {
+function toDocument(
+  row: ExternalRow<"engagement_documents">,
+  generated: ReadonlySet<string>,
+): EngagementDocument {
   return {
     id: req(row.id, "engagement_documents.id"),
     engagementId: req(row.engagement_id, "engagement_documents.engagement_id"),
@@ -176,6 +181,7 @@ function toDocument(row: ExternalRow<"engagement_documents">): EngagementDocumen
     documentId: row.document_id,
     expiresOn: row.expires_on,
     state: req(row.engagement_document_state, "engagement_documents.engagement_document_state"),
+    generated: generated.has(row.id ?? ""),
   };
 }
 
@@ -189,10 +195,19 @@ export async function listEngagementDocuments(
     .select(
       "id, engagement_id, document_kind, title, document_id, expires_on, engagement_document_state",
     );
-  if (engagementId !== undefined) query = query.eq("engagement_id", engagementId);
-  const { data, error } = await query.order("title", { ascending: true });
+  let texts = external(db).from("engagement_document_texts").select("id");
+  if (engagementId !== undefined) {
+    query = query.eq("engagement_id", engagementId);
+    texts = texts.eq("engagement_id", engagementId);
+  }
+  const [{ data, error }, generated] = await Promise.all([
+    query.order("title", { ascending: true }),
+    texts,
+  ]);
   if (error) return fail(toDataError(error));
-  return ok(data.map(toDocument));
+  if (generated.error) return fail(toDataError(generated.error));
+  const textIds = new Set(generated.data.flatMap((t) => (t.id ? [t.id] : [])));
+  return ok(data.map((row) => toDocument(row, textIds)));
 }
 
 export interface EngagementQuoteVersion {

@@ -35,12 +35,14 @@ export function gatewayRecordPath(
 /**
  * Whether a document can be signed with one click on a list. A Quote never can: it is a commercial
  * commitment, signed only after its total, valid-until date and consent sentence are shown (S14.5-01).
+ * Nor can a generated agreement (B10): the database takes it only with the hash of the text the person read.
  */
 export function signsInOneClick(document: {
   readonly kind: string;
   readonly state: string;
+  readonly generated?: boolean;
 }): boolean {
-  return document.state === "Sent" && document.kind !== "Quote";
+  return document.state === "Sent" && document.kind !== "Quote" && document.generated !== true;
 }
 
 /**

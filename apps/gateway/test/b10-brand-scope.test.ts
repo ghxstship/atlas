@@ -51,7 +51,7 @@ vi.mock("@xos/data/gateway", () => ({
       orgName: "Demo",
       title: "Crew",
       intro: null,
-      minimumAge: 16,
+      minimumAge: 18,
     },
   }),
   myRegistrations: async () => ({ ok: true, data: [] }),

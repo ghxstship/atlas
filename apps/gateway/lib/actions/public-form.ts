@@ -3,23 +3,24 @@
 import { submitPublicForm } from "@xos/data/form-links";
 import { cookies, headers } from "next/headers";
 import { observability } from "@/lib/observability";
-import { FORM_GRANT_COOKIE, publicDb, visitorAddress } from "@/lib/outside/public";
+import { FORM_GRANT_COOKIE, visitorAddress } from "@/lib/outside/public";
+import { getGatewayContext } from "@/lib/shell/context";
 
 /**
- * Answers a public form through a client with no session (B2, ADR 0141), so no account is offered or used. The
- * response carries the respondent's name and email and the answers; the database applies every limit.
+ * Answers a public form as the signed-in person (B2, ADR 0141; owner ruling 2026-11-06 on invariant 8): the database
+ * takes their name and email from their account and applies every limit.
  */
 export async function submitPublicFormAction(
   token: string,
   input: {
-    readonly name: string;
-    readonly email: string;
     readonly answers: Readonly<Record<string, unknown>>;
     readonly website: string;
   },
 ): Promise<{ readonly ok: true } | { readonly ok: false; readonly reason: string }> {
   const grant = (await cookies()).get(FORM_GRANT_COOKIE)?.value ?? "";
-  const sent = await submitPublicForm(publicDb(), {
+  const ctx = await getGatewayContext();
+  if (ctx === null) return { ok: false, reason: "form_link_sign_in" };
+  const sent = await submitPublicForm(ctx.db, {
     token,
     grant,
     ...input,

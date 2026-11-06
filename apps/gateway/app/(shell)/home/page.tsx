@@ -529,14 +529,16 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         "FileSignature",
         t("gateway.home.needsYou.sign", { title: item.document.title }),
         `${item.engagement.orgName} · ${t(enumLabelKey("engagementDocumentKind", item.document.kind))}`,
-        // A quote is signed from its engagement's Documents tab, after its total and consent are shown.
+        // A quote and a generated agreement are signed from the engagement's Documents tab, once read.
         !signsInOneClick(item.document) ? (
           <ButtonLink
             href={tabHref(item.engagement.key, "engagement.documents")}
             variant="secondary"
             size="sm"
           >
-            {t("gateway.home.needsYou.reviewQuote")}
+            {item.document.kind === "Quote"
+              ? t("gateway.home.needsYou.reviewQuote")
+              : t("gateway.home.needsYou.readAndSign")}
           </ButtonLink>
         ) : (
           <ActionButton

@@ -121,15 +121,15 @@ function FieldInput({
 export function PublicFormFill({
   token,
   fields,
+  answeringAs,
 }: {
   token: string;
   fields: readonly PublicFormField[];
+  answeringAs: string;
 }) {
   const t = useTranslations("gateway.publicForm") as unknown as Translate;
   const tokens = useTranslations("gateway.tokens.refusals") as unknown as Translate;
   const [answers, setAnswers] = useState<Answers>({});
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState(false);
@@ -151,8 +151,6 @@ export function PublicFormFill({
         }),
       );
       const result = await submitPublicFormAction(token, {
-        name,
-        email,
         answers: shownAnswers,
         website,
       });
@@ -206,27 +204,9 @@ export function PublicFormFill({
       ) : null}
       {current === 0 ? (
         <>
-          <Input
-            id="respondent-name"
-            label={t("name")}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={200}
-            required
-            autoComplete="name"
-            width="100%"
-          />
-          <Input
-            id="respondent-email"
-            type="email"
-            label={t("email")}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            maxLength={320}
-            required
-            autoComplete="email"
-            width="100%"
-          />
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("answeringAs", { who: answeringAs })}
+          </p>
           <div hidden>
             <label>
               {t("website")}

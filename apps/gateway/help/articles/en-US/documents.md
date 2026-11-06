@@ -14,7 +14,7 @@ A note at the top counts documents that expire within 30 days. Renew them before
 
 ## Your documents
 
-Each shows its title, kind, organization, expiry date and state. A document waiting for your signature has **Sign**. Open one to go to its engagement's Documents tab.
+Each shows its title, kind, organization, expiry date and state. A document waiting for your signature has **Sign**. A generated agreement or a quote is read first: open it to read and sign on its engagement's Documents tab. Open one to go to its engagement's Documents tab.
 
 ## Signed by link
 

@@ -56,6 +56,7 @@ function lookups(match: MaterialMatch | null = null): TargetLookups {
     destinationKeyMatch: async () => null,
     nextCuePosition: async () => 1,
     cueCalled: async () => false,
+    canonCodeExists: async () => true,
     unitExists: async (u) => u === "each",
     materialMatch: async () => match,
     projectTimeZone: async () => "America/New_York",

@@ -848,7 +848,7 @@
     "includePastCrewHelp": "Personas con una contratación Completa en los últimos 24 meses.",
     "slugHelp": "La dirección de la página bajo tu organización, en palabras en minúsculas con guiones. Se fija cuando la página se abre.",
     "poolHelp": "Las personas aprobadas se unen a este grupo. La página nunca muestra su nombre.",
-    "minimumAgeHelp": "De 16 a 99. Las cuentas ya requieren 16; pon 18 si el trabajo requiere adultos. Se fija cuando la página se abre.",
+    "minimumAgeHelp": "De 18 a 99. Se fija cuando la página se abre.",
     "states": {
       "Draft": "Borrador",
       "Open": "Abierta",

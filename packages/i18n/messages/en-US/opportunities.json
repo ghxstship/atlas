@@ -848,7 +848,7 @@
     "includePastCrewHelp": "People with a Complete engagement in the last 24 months.",
     "slugHelp": "The page address under your organization, in lowercase words with hyphens. It is fixed once the page opens.",
     "poolHelp": "Approved registrants join this pool. The page never shows its name.",
-    "minimumAgeHelp": "16 to 99. Accounts already need 16; set 18 if the work needs adults. It is fixed once the page opens.",
+    "minimumAgeHelp": "18 to 99. It is fixed once the page opens.",
     "states": {
       "Draft": "Draft",
       "Open": "Open",

@@ -133,7 +133,7 @@ select f.project_id, 'Form link', f.id, coalesce(f.note, t.name), null::text, f.
   private.has_capability(f.org_id, 'knowledge.sop.publish')
 from app.form_links f
 join app.form_templates t on t.id = f.form_template_id
-where f.deleted_at is null and f.project_id is not null and private.is_member(f.org_id)
+where f.deleted_at is null and private.is_member(f.org_id)
 union all
 -- Engagements: current, and those that ended in the last 18 months. Not links; the party and the state.
 select b.project_id, 'Engagement', b.engagement_id, b.party_name, null::text, null::text, b.engagement_state::text,

@@ -598,6 +598,7 @@
       "sod_vendor_intake_self": "Quien envió una solicitud de alta, o cualquiera de la cuenta del proveedor, no puede decidirla.",
       "plan_limit_exceeded": "Se alcanzó el límite de contrataciones externas de tu plan. Cambia el plan o espera al próximo mes.",
       "form_not_published": "Publica el formulario antes de compartirlo por enlace.",
+      "form_link_project": "Elige el proyecto al que pertenece este enlace.",
       "form_link_unsupported": "Los formularios con fotos, firmas o ubicación GPS solo los llenan los miembros.",
       "form_link_expiry_range": "Un enlace de formulario vence después de hoy y dentro de 90 días.",
       "form_link_revoked": "Un enlace de formulario revocado sigue revocado. Crea un enlace nuevo.",

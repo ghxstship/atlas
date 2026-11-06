@@ -1059,7 +1059,7 @@ export async function getPublicRegistrationPage(
     orgName: head.org_name ?? "",
     title: head.title ?? "",
     intro: head.intro,
-    minimumAge: head.minimum_age ?? 16,
+    minimumAge: head.minimum_age ?? 18,
     questions: result.data.flatMap((q) =>
       q.question_id && q.prompt
         ? [{ id: q.question_id, prompt: q.prompt, isRequired: q.is_required === true }]

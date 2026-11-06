@@ -1756,6 +1756,7 @@
       "interview": "Interview for {title}",
       "rate": "Rate your work with {org}",
       "rateAction": "Rate",
+      "readAndSign": "Read and sign",
       "reviewQuote": "Review quote",
       "stillComing": "Still coming to {title}?",
       "stillComingYes": "I'm coming",
@@ -2196,7 +2197,7 @@
       "crew_access_shift_state": "That shift can no longer be accepted. Reload the page to see its state.",
       "registration_page_closed": "This registration page is not open.",
       "registration_rate_limited": "Too many registrations in the last hour. Try again later.",
-      "registration_age_unconfirmed": "Confirm the minimum age to register. If you have not confirmed you are 16 or older, do that in your account first.",
+      "registration_age_unconfirmed": "Confirm the minimum age to register. If you have not confirmed your age, do that in your account first.",
       "registration_answer_required": "Answer every required question.",
       "registration_answer_unknown": "This page changed. Reload it and answer again.",
       "registration_answer_length": "Keep each answer to 4,000 characters.",
@@ -2273,7 +2274,8 @@
       "form_answer_date": "Enter dates as a date.",
       "form_answer_length": "An answer is too long. Shorten it and send again.",
       "org_read_only": "This organization is not taking new responses right now.",
-      "guest_email_format": "Enter one email address for the guest, or leave it empty."
+      "guest_email_format": "Enter one email address for the guest, or leave it empty.",
+      "form_link_sign_in": "Sign in or create an account to answer this form."
     },
     "crewShifts": {
       "title": "My shifts",
@@ -3017,8 +3019,6 @@
     "title": "Form",
     "codeIntro": "Enter the access code from the person who sent you this link.",
     "poweredBy": "Powered by XOS",
-    "name": "Your name",
-    "email": "Your email",
     "website": "Leave this empty",
     "choose": "Choose",
     "yes": "Yes",
@@ -3030,7 +3030,11 @@
     "thanks": "Thank you. Your answers were sent.",
     "unexpected": "That did not go through. Try again.",
     "unanswered": "Answer these before you go on: {fields}",
-    "required": "Answer this question."
+    "required": "Answer this question.",
+    "answeringAs": "You are answering as {who}. The organization sees your name and email with your answers.",
+    "signIn": "Sign in or create an account to answer this form.",
+    "signUpAction": "Create an account",
+    "signInAction": "Sign in"
   },
   "badgePhotos": {
     "title": "Badge photos",

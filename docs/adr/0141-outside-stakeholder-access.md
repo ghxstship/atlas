@@ -3,7 +3,7 @@
 - Status: Proposed
 - Date: 2026-11-06
 - Decider: Owner, on the parity audit approved 2026-10-28 and the deferred theme it left (package B2, RRR-226)
-- Migrations: `6500_stakeholder_packs.sql` to `6507_project_outside_access.sql`, `2919_notification_kind_seed.sql`
+- Migrations: `6500_stakeholder_packs.sql` to `6507_project_outside_access.sql`, `6799_notification_kind_seed.sql`
 - Gaps: G-29 (packs), G-30 in part (outside scheduled delivery), G-81 (project access page), G-226 (reusable vendor
   intake), G-293 (public form links)
 
@@ -94,11 +94,15 @@ way, so those rows stay until the org's own retention or the person removes them
 ### 5. Public form responses become records only when approved
 
 For link responses only, this departs from Section 4.9, where a member's submission makes its record at once. Spam can
-then create no records. **Owner step (a).** Spam controls: a 6-digit code, a 2-hour grant, a 3-second minimum fill time, 10
+then create no records. **Owner step (a).**
+
+Owner ruling of 2026-11-06 on Section 7.5 invariant 8: a QR code or link alone opens nothing, and anyone not on the platform and on the project is onboarded first. So the link's token and code open only the sign-in step: `api_public.public_form` and `submit_public_form` refuse without a person (`form_link_sign_in`), and the respondent's name and email are their account's, never typed. Every link names a project (`form_link_project`), so Outside access can always show, revoke and regenerate it. A response gives the person nothing on the project: it waits for a member's decision. **Owner step: say if a response should also start project onboarding.**
+
+Spam controls: a 6-digit code, a 2-hour grant, a 3-second minimum fill time, 10
 submits an hour per relayed address and 500 per reaching address, a cap in any rolling 24 hours, an optional total cap, one
 response per email, answers of at most 32 KB, and a hidden website field that answers ok and stores nothing. No CAPTCHA: it
 would need an external service account. Photo, signature and GPS fields stay member-only. Respondents' names and emails
-follow `app.form_submissions`' default retention, and there is no erasure path for people without an account (counsel step).
+follow `app.form_submissions`' default retention, and they stay as answered if the account is later deleted (counsel step).
 
 The frozen `FormSubmission` schema requires a member submitter, so `formSubmissions` never answers a link response;
 an additive `formLinkResponses` resource does.

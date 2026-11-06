@@ -4,7 +4,7 @@
 -- volunteers sign in (or sign up) to Gateway and register (6522). The page shows its own copy and questions only and
 -- never names the pool, which stays internal (0720).
 --   * app.registration_pages: the org's page, a slug unique per org among live rows, a title and intro, the Talent pool
---     approved registrants join, and a minimum age of 16 to 99 (decision 54 sets 16 for every account; an org that
+--     approved registrants join, and a minimum age of 18 to 99, never below the account minimum, which is becoming 18 (owner decision, 2026-11-06).
 --     needs adults sets 18, fixed once the page leaves Draft). Draft, Open and Closed, through the lifecycle ledger. Eligible for Trash. Reads take
 --     opportunities.application.read org-wide, writes opportunities.pool.write org-wide, as pools do.
 --   * Why a registration is not an opportunity: opportunities are project-scoped postings with a deadline, positions
@@ -37,13 +37,13 @@ create table app.registration_pages (
   title text not null,
   intro text,
   talent_pool_id uuid not null references app.talent_pools (id),
-  minimum_age smallint not null default 16,
+  minimum_age smallint not null default 18,
   page_state app.registration_page_state not null default 'Draft',
   deleted_at timestamptz,
   constraint registration_pages_slug check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(slug) between 1 and 80),
   constraint registration_pages_title check (char_length(btrim(title)) between 1 and 200),
   constraint registration_pages_intro check (intro is null or char_length(btrim(intro)) between 1 and 4000),
-  constraint registration_pages_minimum_age check (minimum_age between 16 and 99)
+  constraint registration_pages_minimum_age check (minimum_age between 18 and 99)
 );
 
 create unique index registration_pages_org_slug_key on app.registration_pages (org_id, slug) where deleted_at is null;
@@ -55,7 +55,7 @@ call private.describe('app.registration_pages', 'An org''s public crew registrat
   'title', 'Page title, 1 to 200 characters.',
   'intro', 'What the page tells a visitor, up to 4000 characters.',
   'talent_pool_id', 'Talent pool an approved registrant joins. Internal: never shown on the page.',
-  'minimum_age', 'Minimum age a registrant confirms, 16 to 99 (16 by default, decision 54).',
+  'minimum_age', 'Minimum age a registrant confirms, 18 to 99 (18 by default, as the account minimum is becoming).',
   'page_state', 'Draft, Open or Closed.'
 ]);
 
@@ -270,7 +270,8 @@ begin
     select null::text, null::text, v_org.id, v_org.name, v_page.title, v_page.intro, v_page.minimum_age, q.id, q.prompt, q.is_required,
       q.sort_order
     from (select 1) one
-    left join app.registration_page_questions q on q.registration_page_id = v_page.id and q.deleted_at is null
+    -- The questions are for a signed-in person: a link alone shows only the page's public copy (invariant 8).
+    left join app.registration_page_questions q on q.registration_page_id = v_page.id and q.deleted_at is null and v_me is not null
     order by q.sort_order nulls first, q.id;
 end;
 $$;

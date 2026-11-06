@@ -137,7 +137,7 @@ select is((select count(*)::integer from app.rfq_supplier_notices n where n.rfq_
 select is((select count(*)::integer from app.rfq_supplier_notices n where n.rfq_id = pg_temp.id('r_a') and n.vendor_id = pg_temp.id('ven_t')), 0, 'nor the winner');
 select is(private.send_rfq_supplier_notices(), 0, 'and running again sends nothing');
 select set_eq($$select k from app.notifications n cross join lateral jsonb_object_keys(n.message_args) k where n.subject_id = pg_temp.id('r_a') and n.kind = 'rfq.not_awarded' and k <> 'actorName'$$,
-  $$values ('title'), ('orgName'), ('projectName')$$, 'no price, winner or other vendor in its args');
+  $$values ('title'), ('orgName'), ('projectName'), ('gatewayPath')$$, 'no price, winner or other vendor in its args, and a Gateway link for an outside vendor');
 
 -- A split-award vendor with a Proposed order is not told it lost.
 select pg_temp.rfq('r_split', array['ven_v', 'ven_t']);

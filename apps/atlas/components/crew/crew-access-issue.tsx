@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, MultiSelect, QRCode, Select, Tag } from "@xos/ui";
+import { Button, InlineAlert, MultiSelect, QRCode, Select, Tag } from "@xos/ui";
 import type { CrewAccessWorker, CrewAccessWorkerRef } from "@xos/data/crew-access";
 import type { Route } from "next";
 import Link from "next/link";
@@ -27,11 +27,9 @@ const workerKey = (w: CrewAccessWorkerRef) => JSON.stringify(w);
 /** The link and code of one worker, once, with a card to print. */
 function IssuedCard({
   link,
-  includeCode,
   projectName,
 }: {
   link: IssuedLink;
-  includeCode: boolean;
   projectName: string;
 }) {
   const t = useTranslations("crew.crewAccess.result");
@@ -60,11 +58,6 @@ function IssuedCard({
           <p className="m-0 text-text-13 print:hidden">
             {t("code")} <span className="font-mono font-semibold">{link.accessCode}</span>
           </p>
-          {includeCode ? (
-            <p className="m-0 hidden text-text-13 print:block">
-              {t("code")} <span className="font-mono font-semibold">{link.accessCode}</span>
-            </p>
-          ) : null}
         </div>
         {absolute ? (
           <QRCode value={link.url} label={t("qr", { name: link.personName ?? "" })} size={120} />
@@ -108,7 +101,6 @@ function ResultPanel({ state, closeHref }: { state: IssueState; closeHref: strin
           <IssuedCard
             key={link.linkId}
             link={link}
-            includeCode={state.includeCode === true}
             projectName={state.projectName ?? ""}
           />
         ))}
@@ -144,7 +136,7 @@ function ResultPanel({ state, closeHref }: { state: IssueState; closeHref: strin
   );
 }
 
-/** Issue links: project, workers, validity, and whether a printed card carries the code. Four fields. */
+/** Issue links: project, workers and validity. A printed card never carries the code (owner ruling, invariant 8). */
 export function CrewAccessIssue({
   org,
   projects,
@@ -227,8 +219,7 @@ export function CrewAccessIssue({
         }))}
       />
       <div className="flex flex-col gap-4">
-        <Checkbox name="includeCode" value="true" label={t("includeCode")} />
-        <p className="m-0 text-text-12 text-text-secondary">{t("includeCodeHelp")}</p>
+        <p className="m-0 text-text-12 text-text-secondary">{t("printedCardHelp")}</p>
       </div>
       <div className="flex flex-wrap items-center gap-8">
         <Button

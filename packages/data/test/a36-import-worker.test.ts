@@ -90,6 +90,7 @@ function lookups(writes: Row[]): TargetLookups {
     }),
     poolInvitation: async () => null,
     cueCalled: async () => false,
+    canonCodeExists: async () => true,
     unitExists: async () => true,
     materialMatch: async () => null,
     projectTimeZone: async () => "UTC",

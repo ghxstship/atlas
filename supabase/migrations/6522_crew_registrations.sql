@@ -2,7 +2,7 @@
 -- B10 Crew onboarding, recruitment and account-free field access (RRR-234, gap G-129, Section 4.4.3, Section 4.8.1,
 -- Section 14.9, ADR 0149 decisions 1 and 3). A person signed in to Gateway registers on an Open registration page
 -- (6521); the org approves or declines, and approving puts them in the page's Talent pool. Nobody is created on their
--- behalf: registering needs an account with decision 54's 16+ confirmation.
+-- behalf: registering needs an account, and the person confirms the page's minimum age, never below 18.
 --   * app.crew_registrations and app.crew_registration_answers: one live registration per page and person while it is
 --     Submitted or Approved, with the answers, the minimum age confirmed at submission and an optional profile share
 --     (app.share_profile).
@@ -46,7 +46,7 @@ create table app.crew_registrations (
   confirmed_minimum_age smallint not null,
   profile_share_id uuid references app.profile_shares (id),
   deleted_at timestamptz,
-  constraint crew_registrations_confirmed_minimum_age check (confirmed_minimum_age between 16 and 99)
+  constraint crew_registrations_confirmed_minimum_age check (confirmed_minimum_age between 18 and 99)
 );
 
 create index crew_registrations_page_idx on app.crew_registrations (registration_page_id);
@@ -62,7 +62,7 @@ call private.describe('app.crew_registrations', 'A person''s registration on an 
   'registration_page_id', 'Page registered on.',
   'person_id', 'Registrant, signed in.',
   'registration_state', 'Submitted, Approved, Declined or Withdrawn.',
-  'confirmed_minimum_age', 'The page''s minimum age at submission, which the registrant confirmed (with decision 54''s 16+).',
+  'confirmed_minimum_age', 'The page''s minimum age at submission, which the registrant confirmed; never below 18.',
   'profile_share_id', 'Profile share the registrant gave the org with the registration (app.share_profile).'
 ]);
 
@@ -190,7 +190,7 @@ begin
   if private.rate_limit_exceeded('crew_registration', v_me::text, 10, interval '1 hour') then
     perform private.refuse('registration_rate_limited', 'Too many registrations in the last hour. Try again later.');
   end if;
-  if not app.minimum_age_confirmed() or (v_page.minimum_age > 16 and p_age_confirmed is not true) then
+  if not app.minimum_age_confirmed() or p_age_confirmed is not true then
     perform private.refuse('registration_age_unconfirmed', format('Confirm that you are %s or older.', v_page.minimum_age));
   end if;
   if p_answers is not null and jsonb_typeof(p_answers) <> 'array' then
@@ -265,7 +265,7 @@ begin
 end;
 $$;
 
-comment on function app.submit_crew_registration(text, text, jsonb, boolean, uuid, app.profile_section[], text) is 'The signed-in person registers on an Open registration page by org slug and page slug, with answers [{question_id, answer}], the page''s age confirmation, an optional profile share of their own for the org, optional sections to share and an optional E.164 work phone. The sections and the phone are written in the same transaction, so a refused registration shares nothing and saves nothing. Refusals: registration_page_closed (also for a dead pool, a read-only org and a person the org flagged Do Not Engage), registration_rate_limited (10 a person an hour), registration_age_unconfirmed (no 16+ confirmation, or a page minimum above 16 without p_age_confirmed), registration_answer_unknown, registration_answer_length, registration_answer_required, registration_duplicate, profile_share_not_yours, registration_phone. Returns the registration id.';
+comment on function app.submit_crew_registration(text, text, jsonb, boolean, uuid, app.profile_section[], text) is 'The signed-in person registers on an Open registration page by org slug and page slug, with answers [{question_id, answer}], the page''s age confirmation, an optional profile share of their own for the org, optional sections to share and an optional E.164 work phone. The sections and the phone are written in the same transaction, so a refused registration shares nothing and saves nothing. Refusals: registration_page_closed (also for a dead pool, a read-only org and a person the org flagged Do Not Engage), registration_rate_limited (10 a person an hour), registration_age_unconfirmed (no account age confirmation, or no p_age_confirmed for the page minimum), registration_answer_unknown, registration_answer_length, registration_answer_required, registration_duplicate, profile_share_not_yours, registration_phone. Returns the registration id.';
 
 create or replace function app.withdraw_crew_registration(p_registration_id uuid)
 returns uuid

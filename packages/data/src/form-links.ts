@@ -25,6 +25,7 @@ export const FORM_LINK_REFUSALS = [
   "form_link_access_code_required",
   "form_link_access_code",
   "form_link_grant",
+  "form_link_sign_in",
   "form_link_too_fast",
   "form_link_already_answered",
   "form_answers_too_large",
@@ -73,7 +74,7 @@ export async function createFormLink(
   input: {
     readonly templateId: string;
     readonly expiresAt: string;
-    readonly projectId: string | null;
+    readonly projectId: string;
     readonly dailyCap: number;
     readonly maxResponses: number | null;
     readonly onePerEmail: boolean;
@@ -83,7 +84,7 @@ export async function createFormLink(
   const { data, error } = await db.rpc("create_form_link", {
     p_template_id: input.templateId,
     p_expires_at: input.expiresAt,
-    ...(input.projectId === null ? {} : { p_project_id: input.projectId }),
+    p_project_id: input.projectId,
     p_daily_cap: input.dailyCap,
     ...(input.maxResponses === null ? {} : { p_max_responses: input.maxResponses }),
     p_one_per_email: input.onePerEmail,
@@ -240,8 +241,6 @@ export async function submitPublicForm(
   input: {
     readonly token: string;
     readonly grant: string;
-    readonly name: string;
-    readonly email: string;
     readonly answers: Readonly<Record<string, unknown>>;
     readonly website: string;
     readonly clientAddress: string | null;
@@ -251,8 +250,6 @@ export async function submitPublicForm(
   const { data, error } = await publicRpc(db).rpc("submit_public_form", {
     p_token: input.token,
     p_grant: input.grant,
-    p_respondent_name: input.name,
-    p_respondent_email: input.email,
     p_answers: input.answers,
     p_website: input.website === "" ? null : input.website,
     p_client_address: input.clientAddress,
@@ -267,7 +264,7 @@ export async function submitPublicForm(
 
 // The form's windows -----------------------------------------------------------------------------------
 
-/** The first window also holds name and email (two fields), so it takes five form fields. */
+/** The first window also says who is answering, so it takes five form fields. */
 export const FIRST_WINDOW_FIELDS = 5;
 export const WINDOW_FIELDS = 7;
 

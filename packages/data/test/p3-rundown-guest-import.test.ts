@@ -106,6 +106,7 @@ function lookups(writes: Row[] = [], called: ReadonlySet<string> = new Set()): T
     }),
     poolInvitation: async () => null,
     cueCalled: async (id) => called.has(id),
+    canonCodeExists: async () => true,
     unitExists: async () => true,
     materialMatch: async () => null,
     projectTimeZone: async () => "UTC",

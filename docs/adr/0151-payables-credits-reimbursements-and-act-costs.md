@@ -135,6 +135,9 @@ Overlaps that remain, by design:
 - Hospitality counts only Catering and Amenity fulfillment lines; Travel and Lodging fulfillments are costed through
   their segments and rooms.
 
+
+A Canceled fulfillment costs nothing: its lines leave hospitality, and a travel segment under one leaves travel, so an unpriced line on one never blanks the act's total.
+
 ### 6. Duplicate warnings warn and never block
 
 Look-alike expenses (an alike vendor at 0.85 name similarity, or the same submitter with no vendor; within 1% and 7

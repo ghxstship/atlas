@@ -142,7 +142,7 @@ describe("form links", () => {
       await createFormLink(client, {
         templateId: "t",
         expiresAt: "x",
-        projectId: null,
+        projectId: "p1",
         dailyCap: 200,
         maxResponses: null,
         onePerEmail: true,

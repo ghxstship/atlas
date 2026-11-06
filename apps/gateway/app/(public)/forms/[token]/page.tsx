@@ -8,11 +8,14 @@ import {
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
+import type { Route } from "next";
+import Link from "next/link";
 import { OutsideCodeForm } from "@/components/outside/code-form";
 import { PublicFormFill } from "@/components/outside/public-form";
-import { InlineAlert } from "@/components/ui";
+import { ButtonLink, InlineAlert } from "@/components/ui";
 import { observability } from "@/lib/observability";
 import { FORM_GRANT_COOKIE, publicDb, visitorAddress } from "@/lib/outside/public";
+import { getGatewayContext } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * A public form link (B2, ADR 0141): the access code, then a form in windows, then a thank-you. No account is offered.
+ * A public form link (B2, ADR 0141): the access code, then sign-in or a new account (owner ruling 2026-11-06 on Section
+ * 7.5 invariant 8: a link alone opens nothing, and anyone not on the platform is onboarded first), then a form in
+ * windows, then a thank-you.
  * The read answers only key, label, kind, required, choices and show_if: never points, the record kind or the approver.
  */
 export default async function PublicFormPage({
@@ -63,7 +68,8 @@ export default async function PublicFormPage({
       </>
     );
   }
-  const read = await readPublicForm(publicDb(), {
+  const ctx = await getGatewayContext();
+  const read = await readPublicForm(ctx?.db ?? publicDb(), {
     token,
     grant,
     clientAddress: visitorAddress(await headers()),
@@ -74,6 +80,26 @@ export default async function PublicFormPage({
       error: read.error,
     });
     throw new Error("public form read failed");
+  }
+  if (read.data.refused && read.data.reason === "form_link_sign_in") {
+    const next = encodeURIComponent(path);
+    return (
+      <>
+        {heading}
+        <p className="m-0 text-text-14">{t("gateway.publicForm.signIn")}</p>
+        <div className="flex flex-wrap items-center gap-12">
+          <ButtonLink href={`/auth/sign-up?next=${next}` as Route} variant="primary">
+            {t("gateway.publicForm.signUpAction")}
+          </ButtonLink>
+          <Link
+            href={`/auth/sign-in?next=${next}` as Route}
+            className="text-text-13 font-medium text-accent-text"
+          >
+            {t("gateway.publicForm.signInAction")}
+          </Link>
+        </div>
+      </>
+    );
   }
   if (read.data.refused) {
     return (
@@ -100,7 +126,11 @@ export default async function PublicFormPage({
         <h1 className="m-0 text-heading-24 font-semibold">{form.name}</h1>
         {form.description ? <p className="m-0 text-text-14">{form.description}</p> : null}
       </header>
-      <PublicFormFill token={token} fields={form.fields} />
+      <PublicFormFill
+        token={token}
+        fields={form.fields}
+        answeringAs={ctx?.personName ?? ctx?.email ?? ""}
+      />
       {form.suppressPoweredBy ? null : (
         <footer className="text-text-12 text-text-secondary">
           {t("gateway.publicForm.poweredBy")}

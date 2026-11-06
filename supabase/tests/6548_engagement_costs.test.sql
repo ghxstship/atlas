@@ -193,5 +193,28 @@ select ok(app.can_read_engagement_costs(pg_temp.id('prj_a')), 'a member on the p
 select r from unnest(array['finance.invoice.read', 'finance.expense.read', 'procurement.po.read', 'crew.time_entry.read', 'hospitality.fulfillment.read', 'opportunities.engagement.read']) c, pg_temp.check_capability(c) r;
 select pg_temp.as_platform();
 
+-- A Canceled fulfillment costs nothing (0440: Canceled and retained): a priced or unpriced line on one, and a segment under
+-- one, leave the total unchanged and never NULL.
+select pg_temp.as_platform();
+create temporary table cost_before as
+  select currency_code, total_minor, priced_total_minor, unpriced_count from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_art_a'));
+with x as (insert into app.fulfillments (project_id, fulfillment_kind, title) values (pg_temp.id('prj_a'), 'Catering', 'Green room') returning id) insert into world select 'ful_gone', id from x;
+with x as (insert into app.fulfillments (project_id, fulfillment_kind, title) values (pg_temp.id('prj_a'), 'Travel', 'Canceled flights') returning id) insert into world select 'ful_gone_t', id from x;
+insert into app.fulfillment_lines (fulfillment_id, description, person_id, quantity, unit_price_minor, currency_code) values
+  (pg_temp.id('ful_gone'), 'Priced tray.', pg_temp.id('art'), 1, 7000, 'USD'),
+  (pg_temp.id('ful_gone'), 'Tray with no price yet.', pg_temp.id('art'), 1, null, 'USD');
+insert into app.travel_segments (project_id, person_id, travel_mode, departs_from, departs_at, departs_time_zone, arrives_at_place,
+  arrives_time_zone, price_minor, currency_code, fulfillment_id)
+values (pg_temp.id('prj_a'), pg_temp.id('art'), 'Flight', 'MIA', '2027-06-04 15:00+00', 'America/New_York', 'LAX',
+  'America/Los_Angeles', 45000, 'USD', pg_temp.id('ful_gone_t'));
+select app.transition_fulfillment(pg_temp.id('ful_gone'), 'Proposed', 'Canceled', 'The set moved.');
+select app.transition_fulfillment(pg_temp.id('ful_gone_t'), 'Proposed', 'Canceled', 'The set moved.');
+select set_eq(
+  $$select currency_code, total_minor, priced_total_minor, unpriced_count from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_art_a'))$$,
+  $$select currency_code, total_minor, priced_total_minor, unpriced_count from cost_before$$,
+  'a priced line, an unpriced line and a segment under a Canceled fulfillment leave the total as it was');
+select is((select count(*)::integer from app.engagement_cost_items(pg_temp.id('prj_a'), pg_temp.id('eng_art_a')) where source_id in (select l.id from app.fulfillment_lines l where l.fulfillment_id = pg_temp.id('ful_gone'))), 0,
+  'and no item names its lines');
+
 select * from finish();
 rollback;

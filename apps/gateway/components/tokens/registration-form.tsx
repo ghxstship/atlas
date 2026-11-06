@@ -130,9 +130,7 @@ export function RegistrationForm({
         hidden={step !== last}
         className={step === last ? "flex flex-col gap-12" : undefined}
       >
-        {minimumAge > 16 ? (
-          <Checkbox name="ageConfirmed" value="true" label={t("ageConfirm", { age: minimumAge })} />
-        ) : null}
+        <Checkbox name="ageConfirmed" value="true" label={t("ageConfirm", { age: minimumAge })} />
         <MultiSelect
           label={t("share")}
           help={t("shareHelp")}

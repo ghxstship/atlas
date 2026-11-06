@@ -25,4 +25,4 @@ Archive cada documento bajo uno de los **tipos de documento** de su organizació
 
 ## Enlaces públicos de formularios
 
-Un formulario Publicado sin foto, firma ni ubicación GPS puede tener un **Enlace público**. Personas fuera de la organización lo abren con un código de acceso y responden sin cuenta. Una respuesta se vuelve un registro solo cuando alguien la aprueba. Las respuestas aparecen en Envíos con la etiqueta Enlace público.
+Un formulario Publicado sin foto, firma ni ubicación GPS puede tener un **Enlace público**. Pertenece a un proyecto, cuya sección **Acceso externo** lo lista, lo revoca y lo regenera. Personas fuera de la organización lo abren con un código de acceso y luego inician sesión o crean una cuenta para responder; el nombre y el correo de su cuenta van con la respuesta. Una respuesta se vuelve un registro solo cuando alguien la aprueba. Las respuestas aparecen en Envíos con la etiqueta Enlace público.

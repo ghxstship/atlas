@@ -231,7 +231,9 @@ export async function getBudgetLineTransactions(
             .eq("budget_line_id", lineId)
             .is("deleted_at", null)
             .is("invoices.deleted_at", null)
-            .eq("invoices.direction", "Payable"),
+            .eq("invoices.direction", "Payable")
+            // Only what stands posted: a payable invoice posts on Approved and Canceled reverses it (0362).
+            .in("invoices.invoice_state", ["Approved", "Disputed"]),
           (r) => r,
         )
       : null,

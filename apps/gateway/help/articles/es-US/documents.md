@@ -14,7 +14,7 @@ Una nota arriba cuenta los documentos que vencen dentro de 30 días. Renuévalos
 
 ## Tus documentos
 
-Cada uno muestra su título, tipo, organización, fecha de vencimiento y estado. Un documento que espera tu firma tiene **Firmar**. Abre uno para ir a la pestaña Documentos de su contratación.
+Cada uno muestra su título, tipo, organización, fecha de vencimiento y estado. Un documento que espera tu firma tiene **Firmar**. Un acuerdo generado o una cotización se lee primero: ábrelo para leer y firmar en la pestaña Documentos de su contratación. Abre uno para ir a la pestaña Documentos de su contratación.
 
 ## Firmados por enlace
 

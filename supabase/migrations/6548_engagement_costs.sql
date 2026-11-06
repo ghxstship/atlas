@@ -9,7 +9,8 @@
 --     subtracted, since the org still pays it, to the tax authority), invoice (the engagement's Approved or Disputed
 --     payable bills including tax), travel (segment prices), lodging (nights times the block's nightly rate, per
 --     assignment, so a shared room counts per person), per_diem, hospitality (lines of Catering and Amenity fulfillments
---     only: Travel and Lodging fulfillments are costed through their segments and rooms), expense (Approved and Paid
+--     only, never Canceled ones: Travel and Lodging fulfillments are costed through their segments and rooms, and a
+--     segment under a Canceled fulfillment counts for nothing), expense (Approved and Paid
 --     charges naming the engagement, net of their credits) and purchase_order (lines naming it on Approved, Sent or
 --     Closed orders, without the header tax and shipping, as P4 counts them).
 --   * There is no link between a bill and a settlement (app.submit_engagement_invoice, 0765 and 1122), so they offset by
@@ -136,6 +137,8 @@ begin
       case when t.currency_code is not null then t.price_minor end
     from app.travel_segments t
     where t.project_id = p_project_id and t.deleted_at is null
+      -- A segment has no state of its own: one under a Canceled fulfillment costs nothing.
+      and not exists (select 1 from app.fulfillments cf where cf.id = t.fulfillment_id and cf.fulfillment_state = 'Canceled')
     union all
     select coalesce(private.allocation_engagement(a.allocation_id), private.cost_engagement_for_person(bk.project_id, a.person_id)),
       'lodging', 'accommodation_assignments', a.id, bk.id, a.check_in_on, bk.title, bk.currency_code::text,
@@ -159,6 +162,8 @@ begin
     from app.fulfillment_lines fl
     join app.fulfillments f on f.id = fl.fulfillment_id and f.deleted_at is null
     where f.project_id = p_project_id and fl.deleted_at is null and f.fulfillment_kind in ('Catering', 'Amenity')
+      -- Canceled and retained (0440): it costs nothing, and its lines can no longer be priced or removed.
+      and f.fulfillment_state <> 'Canceled'
     union all
     select x.engagement_id, 'expense', 'expenses', x.id, null::uuid, x.incurred_on, x.description, x.currency_code::text,
       (x.amount_minor - private.expense_credited_minor(x.id))::bigint,

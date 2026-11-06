@@ -824,7 +824,7 @@ export const outsideAccessResources: readonly ResourceSpec[] = [
           .object({
             form_template_id: fields.ref("form the link answers"),
             expires_at: fields.instant("When the link stops opening."),
-            project_id: fields.ref("project the responses belong to").optional(),
+            project_id: fields.ref("project the responses belong to"),
             daily_cap: fields.int("Most responses in any 24 hours, 1 to 1000.", 200).optional(),
             max_responses: fields.int("Most responses in all, 1 to 10000.", 500).optional(),
             one_per_email: z

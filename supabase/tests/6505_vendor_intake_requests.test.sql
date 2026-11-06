@@ -382,7 +382,7 @@ from app.create_vendor_intake_link(pg_temp.k('prj_del'), 'Closing crew', 'Contra
 insert into app.form_templates (org_id, name, record_kind, fields) values (pg_temp.k('org_del'), 'Exit survey', 'Document', '[{"key": "notes", "label": "Notes", "kind": "text"}]');
 select app.publish_form_template((select t.id from app.form_templates t where t.org_id = pg_temp.k('org_del') and t.name = 'Exit survey'));
 select pg_temp.put('form_del', l.form_link_id, l.token || ' ' || l.access_code)
-from app.create_form_link((select t.id from app.form_templates t where t.org_id = pg_temp.k('org_del') and t.name = 'Exit survey'), now() + interval '30 days') l;
+from app.create_form_link((select t.id from app.form_templates t where t.org_id = pg_temp.k('org_del') and t.name = 'Exit survey'), now() + interval '30 days', pg_temp.k('prj_del')) l;
 select pg_temp.as_anon();
 select set_config('request.headers', json_build_object('x-forwarded-for', '192.0.2.10')::text, true);
 select pg_temp.put('intake_del:grant', null, api_public.open_vendor_intake(split_part(pg_temp.v('intake_del'), ' ', 1), split_part(pg_temp.v('intake_del'), ' ', 2), '198.51.100.73') ->> 'grant');
@@ -391,9 +391,9 @@ select pg_temp.as_user('lena');
 select app.submit_vendor_intake(split_part(pg_temp.v('intake_del'), ' ', 1), pg_temp.v('intake_del:grant'));
 select pg_temp.as_platform();
 update private.form_link_grants set issued_at = now() - interval '1 minute' where form_link_id = pg_temp.k('form_del');
-select pg_temp.as_anon();
+select pg_temp.as_user('lena');
 select set_config('request.headers', json_build_object('x-forwarded-for', '192.0.2.10')::text, true);
-select is(api_public.submit_public_form(split_part(pg_temp.v('form_del'), ' ', 1), pg_temp.v('form_del:grant'), 'Rae Ortiz', 'rae@guest.test', '{"notes": "Fine."}', null, '198.51.100.74') ->> 'status', 'ok',
+select is(api_public.submit_public_form(split_part(pg_temp.v('form_del'), ' ', 1), pg_temp.v('form_del:grant'), '{"notes": "Fine."}', null, '198.51.100.74') ->> 'status', 'ok',
   'the fixture holds a form response');
 select pg_temp.as_platform();
 set local storage.allow_delete_query = 'true';

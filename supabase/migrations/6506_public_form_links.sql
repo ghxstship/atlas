@@ -2,8 +2,12 @@
 -- B2 (RRR-226, ADR 0141; parity gap G-293). A tokenised public mode for workforce forms (0803), which before this took
 -- submissions from members only (anon had no path by design). A form link lets people outside the org answer one
 -- Published form: a supplier's safety check-in, a guest survey, an incident report from a venue's staff.
+--   * Owner ruling 2026-11-06 on Section 7.5 invariant 8: a link alone opens nothing, and anyone not on the platform is
+--     onboarded first. The link takes its token and code (open_form_link, no account yet), and then the read and the
+--     submit need a signed-in person (form_link_sign_in): the respondent's name and email are their account's, never
+--     typed. A response gives them nothing on the project, and it waits for a member's decision.
 --   * app.form_links: one link and 6-digit access code per audience (Section 7.5 invariant 8): an expiry within 90
---     days, an optional project the responses belong to, a cap of 1 to 1000 in any 24 hours, an optional total cap and
+--     days, the project the responses belong to, whose Outside access lists, revokes and regenerates it, a cap of 1 to 1000 in any 24 hours, an optional total cap and
 --     one response per email by default. Only holders of knowledge.sop.publish in the org make, regenerate and revoke
 --     them, and only for a Published form whose current version has no photo field, signature or GPS stamp
 --     (form_link_unsupported): those stay member-only.
@@ -36,7 +40,7 @@ create table app.form_links (
   id uuid primary key default private.uuid_v7(),
   org_id uuid not null references app.organizations (id),
   form_template_id uuid not null references app.form_templates (id),
-  project_id uuid references app.projects (id),
+  project_id uuid not null references app.projects (id),
   note text,
   token_hash bytea not null,
   token_hint text not null,
@@ -69,7 +73,7 @@ create index form_links_revoked_by_idx on app.form_links (revoked_by);
 call private.install_domain_table('app.form_links', 'app.form_templates', 'form_template_id', array['app.projects', 'project_id']);
 call private.describe('app.form_links', 'Public links to a Published form (ADR 0141): people outside the org open it with a 6-digit access code and answer it without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Made by app.create_form_link, changed only by app.regenerate_form_link and app.revoke_form_link, opened by api_public.open_form_link.', array[
   'form_template_id', 'Form the link answers; Published, with no photo field, signature or GPS stamp.',
-  'project_id', 'Project the responses belong to, when the link names one; an approved response becomes a record there.',
+  'project_id', 'Project the responses belong to; an approved response becomes a record there, and its Outside access manages the link.',
   'note', 'What the link is for, for the team. Never shown on the public page.',
   'token_hash', 'SHA-256 of the link token (xfrm_ and 256 random bits in hex). Never readable by signed-in callers.',
   'token_hint', 'Last four characters of the token, to tell links apart.',
@@ -196,8 +200,8 @@ create index form_submissions_form_link_email_idx on app.form_submissions (form_
 
 comment on column app.form_submissions.submitted_by_membership_id is 'Member who submitted; null for a response through a public form link (6506).';
 comment on column app.form_submissions.form_link_id is 'Public form link a response came through (ADR 0141); null for a member''s submission.';
-comment on column app.form_submissions.respondent_name is 'Name the outside respondent gave, for a link response only.';
-comment on column app.form_submissions.respondent_email is 'Email the outside respondent gave, lower case, for a link response only. Confidential.';
+comment on column app.form_submissions.respondent_name is 'Name on the outside respondent''s account when they answered, for a link response only.';
+comment on column app.form_submissions.respondent_email is 'Email of the outside respondent''s account when they answered, lower case, for a link response only. Confidential.';
 
 insert into private.column_classifications (table_name, column_name, classification, read_capability) values
   ('app.form_submissions', 'respondent_email', 'Confidential', null)
@@ -507,13 +511,17 @@ begin
      or exists (select 1 from jsonb_array_elements(v_version.fields) f where f ->> 'kind' = 'photo') then
     perform private.refuse('form_link_unsupported', 'Forms with photos, signatures or a GPS stamp are filled in by members only.');
   end if;
-  if p_project_id is not null and not exists (
+  if p_expires_at is null or p_expires_at <= now() or p_expires_at > now() + interval '90 days' then
+    perform private.refuse('form_link_expiry_range', 'A form link expires after now and within 90 days.');
+  end if;
+  -- A link always belongs to a project, so Outside access can show, revoke and regenerate it (ADR 0141 decision 5).
+  if p_project_id is null then
+    perform private.refuse('form_link_project', 'Choose the project this link belongs to.');
+  end if;
+  if not exists (
     select 1 from app.projects p where p.id = p_project_id and p.org_id = v_template.org_id and p.deleted_at is null
       and p.id in (select private.readable_project_ids())) then
     raise exception using errcode = '42501', message = 'the project does not exist or is not visible';
-  end if;
-  if p_expires_at is null or p_expires_at <= now() or p_expires_at > now() + interval '90 days' then
-    perform private.refuse('form_link_expiry_range', 'A form link expires after now and within 90 days.');
   end if;
   perform private.begin_trusted_operation('form_link_service');
   insert into app.form_links as l (form_template_id, project_id, note, token_hash, token_hint, access_code_hash, expires_at,
@@ -782,6 +790,10 @@ begin
   if v_read.o_reason is not null then
     return private.live_link_refusal(v_read.o_reason);
   end if;
+  -- Owner ruling 2026-11-06: past the code, a person with an account reads the form.
+  if private.current_person_id() is null then
+    return private.live_link_refusal('form_link_sign_in');
+  end if;
   v_link := v_read.o_link;
   return (
     select jsonb_build_object(
@@ -816,8 +828,6 @@ grant execute on function api_public.public_form(text, text, text) to anon, auth
 create or replace function api_public.submit_public_form(
   p_token text,
   p_grant text,
-  p_respondent_name text,
-  p_respondent_email text,
   p_answers jsonb,
   p_website text default null,
   p_client_address text default null
@@ -835,8 +845,9 @@ declare
   v_template app.form_templates;
   v_version app.form_template_versions;
   v_checked record;
-  v_name text := btrim(coalesce(p_respondent_name, ''));
-  v_email text := lower(btrim(coalesce(p_respondent_email, '')));
+  v_person uuid := private.current_person_id();
+  v_email text;
+  v_name text;
   v_id uuid;
 begin
   perform private.require_read_write();
@@ -845,6 +856,13 @@ begin
   if v_read.o_reason is not null then
     return private.live_link_refusal(v_read.o_reason);
   end if;
+  -- Owner ruling 2026-11-06: the respondent is a signed-in person, named by their account.
+  if v_person is null then
+    return private.live_link_refusal('form_link_sign_in');
+  end if;
+  select lower(btrim(coalesce(u.email, ''))) into v_email from auth.users u where u.id = auth.uid();
+  select btrim(coalesce(pe.full_name, '')) into v_name from app.people pe where pe.id = v_person;
+  v_name := coalesce(nullif(v_name, ''), split_part(v_email, '@', 1));
   v_link := v_read.o_link;
   if private.org_read_only(v_link.org_id) then
     return private.live_link_refusal('org_read_only');
@@ -912,6 +930,6 @@ begin
 end;
 $$;
 
-comment on function api_public.submit_public_form(text, text, text, text, jsonb, text, text) is 'Answers a public form without an account (ADR 0141; Section 7.5 invariant 8). Refuses a read-only (GET) call first, as private.form_link_reader does, a read-only org (org_read_only), more than 10 submits an hour from one relayed address or 500 from one reaching address, the link''s cap in any 24 hours or total cap (form_link_rate_limited), a submit under 3 seconds after the grant (form_link_too_fast), a missing name or malformed email (form_respondent_name, form_respondent_email), a second response from one email when the link allows one (form_link_already_answered), answers over 32 KB (form_answers_too_large) and every refusal app.submit_form would give (private.check_form_answers, same codes). A filled website field (the honeypot) answers ok and stores nothing. Otherwise files the response as Submitted with the respondent''s name and email, on the link''s project, and emits form_submission.submitted with via link. Answers JSON: status ok, or status refused with the reason.';
-revoke all on function api_public.submit_public_form(text, text, text, text, jsonb, text, text) from public;
-grant execute on function api_public.submit_public_form(text, text, text, text, jsonb, text, text) to anon, authenticated, service_role;
+comment on function api_public.submit_public_form(text, text, jsonb, text, text) is 'Answers a public form as a signed-in person, past the link''s code (ADR 0141; Section 7.5 invariant 8). Refuses a read-only (GET) call first, as private.form_link_reader does, a read-only org (org_read_only), more than 10 submits an hour from one relayed address or 500 from one reaching address, the link''s cap in any 24 hours or total cap (form_link_rate_limited), a submit under 3 seconds after the grant (form_link_too_fast), a missing name or malformed email (form_respondent_name, form_respondent_email), a second response from one email when the link allows one (form_link_already_answered), answers over 32 KB (form_answers_too_large) and every refusal app.submit_form would give (private.check_form_answers, same codes). A filled website field (the honeypot) answers ok and stores nothing. Otherwise files the response as Submitted with the respondent''s name and email, on the link''s project, and emits form_submission.submitted with via link. Answers JSON: status ok, or status refused with the reason.';
+revoke all on function api_public.submit_public_form(text, text, jsonb, text, text) from public;
+grant execute on function api_public.submit_public_form(text, text, jsonb, text, text) to anon, authenticated, service_role;

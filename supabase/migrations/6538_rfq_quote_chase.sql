@@ -267,7 +267,9 @@ begin
                       where w.rfq_id = r.id and po.vendor_id = s.vendor_id and po.deleted_at is null and po.po_state <> 'Canceled')
   loop
     v_sent := v_sent + private.send_rfq_supplier_notice(v_row.rfq, v_row.vendor_id, 'Not Awarded', 1::smallint,
-      jsonb_build_object('title', (v_row.rfq).title, 'orgName', v_row.org_name, 'projectName', v_row.project_name), p_now);
+      -- /work, not /work/quote-requests, which lists only Issued RFQs. With no path the link would fall back to the
+      -- buying org's Atlas inbox, a 404 for an outside vendor; the member rule drops it for a member.
+      jsonb_build_object('title', (v_row.rfq).title, 'orgName', v_row.org_name, 'projectName', v_row.project_name, 'gatewayPath', '/work'), p_now);
   end loop;
   return v_sent;
 end;

@@ -80,11 +80,12 @@ select is((select v.value_text from app.personal_setting_values v where v.person
 select is((select a.answer from app.crew_registration_answers a where a.crew_registration_id = pg_temp.id('reg_rae')), 'Rigging', 'and the answer');
 select pg_temp.as_user('rae');
 select is(pg_temp.refusal($$select pg_temp.submit('summer-crew', pg_temp.answers())$$), 'registration_duplicate', 'a second live registration on the page is refused');
-insert into world select 'reg_rae_16', pg_temp.submit('volunteers', '[]', false);
-select ok(pg_temp.id('reg_rae_16') is not null, 'a page at the account minimum needs no separate confirmation');
+select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]', false)$$), 'registration_age_unconfirmed', 'every page asks for its minimum age, 18 by default');
+insert into world select 'reg_rae_16', pg_temp.submit('volunteers', '[]', true);
+select ok(pg_temp.id('reg_rae_16') is not null, 'and takes the confirmation');
 
 select pg_temp.as_user('liam');
-select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]')$$), 'registration_age_unconfirmed', 'someone who never confirmed 16+ is refused');
+select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]')$$), 'registration_age_unconfirmed', 'someone who never confirmed their age is refused');
 select pg_temp.confirm_age('liam');
 
 -- The rate limit counts successes: register and withdraw ten times, then the eleventh is refused.
