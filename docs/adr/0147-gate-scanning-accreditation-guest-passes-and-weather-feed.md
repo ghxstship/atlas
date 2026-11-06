@@ -48,9 +48,10 @@ name), and the AI-drafted induction quiz, anti-passback, lightning networks and 
    values: `private.presence_person_names` and `private.presence_party_names` answer a reader holding
    `credentials.scan_log.read`, `crew.time_entry.read` or `advancing.packet.read` on the project, and give anyone else
    no name. `private.presence_clock_people` gives time entries' people, ids and not names, for a reader who may not read
-   memberships or engagements, so a clock-in never silently drops off the list. Each takes arrays and each view calls it
-   once, so the gate runs once per statement: a helper called per row took 33 to 41 seconds at 5,000 rows, past the
-   8-second statement timeout, and would have replaced an evacuation list with an error. A refresh that still fails
+   memberships or engagements, so a clock-in never silently drops off the list. Each takes arrays, answers one map, and each view
+   calls it once, so the gate runs once per statement: a helper called per row took 33 to 41 seconds at 5,000 rows, past
+   the 8-second statement timeout, and would have replaced an evacuation list with an error. It now takes about 0.25
+   seconds. A refresh that still fails
    keeps the last list on screen and says so. The views scan none of those tables, as
    ADR 0016 rule 14 asks. `app.zone_counts_live` counts people scanned in;
    it is not a load count and never feeds the permitted-load alerts of `app.occupancy_counters`. The Issued page's
