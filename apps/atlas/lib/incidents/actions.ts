@@ -305,7 +305,12 @@ export async function issueAlertAction(_: ActionState, form: FormData): Promise<
   if (!parsed.success) return { error: "alertInput" };
   const result = await issueCrisisAlert(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
   if (!result.ok) return failed(result.error);
-  return done(ctx.org.slug);
+  return done(ctx.org.slug, {
+    count: String(result.data.peopleTold),
+    onSite: String(result.data.peopleToldOnSite),
+    // An alert that reached nobody is recorded, not a success: the form says so as a warning.
+    ...(result.data.peopleTold === 0 ? { tone: "warning" } : {}),
+  });
 }
 
 export async function endAlertAction(_: ActionState, form: FormData): Promise<ActionState> {

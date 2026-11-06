@@ -392,6 +392,7 @@ async function ReportForm({
   );
   return (
     <RecordSection id="report-incident" title={t("incidents.report")}>
+      <p className="m-0 text-text-13 text-text-secondary">{t("incidents.nearMiss")}</p>
       <ActionForm
         action={reportIncidentAction}
         hidden={{ org: page.ctx.org.slug, projectId: project.id, timeZone: project.timeZone }}
@@ -1147,6 +1148,20 @@ function AlertsPanel({
                     time: dateTime(format, a.issuedAt, projectOf(page, a.projectId)?.timeZone),
                   })}
                 </span>
+                {a.peopleTold !== null ? (
+                  <span
+                    className={
+                      a.peopleTold === 0
+                        ? "text-text-13 font-medium text-danger-text"
+                        : "text-text-13 text-text-secondary"
+                    }
+                  >
+                    {t("incidents.alerts.reach", {
+                      count: a.peopleTold,
+                      onSite: a.peopleToldOnSite ?? 0,
+                    })}
+                  </span>
+                ) : null}
               </span>
               {canAlert ? (
                 <ActionForm
@@ -1174,6 +1189,9 @@ function AlertsPanel({
             variant="danger"
             resetOnSuccess
           >
+            <p className="m-0 text-text-13 text-text-secondary">
+              {t("incidents.alerts.reachHelp")}
+            </p>
             <SelectField
               id="alert-code"
               name="emergencyCode"
@@ -1211,6 +1229,12 @@ function AlertsPanel({
                     a.projectKey,
                     a.message,
                     dateTime(format, a.issuedAt),
+                    a.peopleTold !== null
+                      ? t("incidents.alerts.reach", {
+                          count: a.peopleTold,
+                          onSite: a.peopleToldOnSite ?? 0,
+                        })
+                      : null,
                   )}
                 </li>
               ))}

@@ -399,6 +399,34 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "crisis_alert.issued",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.crisis_alert.issued.subject",
+      body: "kinds.crisis_alert.issued.body",
+    },
+  },
+  {
+    kind: "crisis_alert.ended",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.crisis_alert.ended.subject",
+      body: "kinds.crisis_alert.ended.body",
+    },
+  },
+  {
     kind: "account.security_changed",
     category: "account",
     emailTemplate: "notification",

@@ -217,6 +217,7 @@ test.describe("Safety incidents (journey 16, Atlas)", () => {
 test.describe("Emergency codes and the radio plan", () => {
   test("read a protocol, announce and clear a crisis alert, and add a radio channel", async ({
     page,
+    browser,
   }) => {
     await signIn(page, "producer@example.com");
     await page.goto(`/${ORG}/safety/emergency-codes?project=${PROJECT}`);
@@ -230,8 +231,28 @@ test.describe("Emergency codes and the radio plan", () => {
     await page.locator("#alert-code").selectOption({ value: "CODE_BLUE" });
     await page.locator("#alert-message").fill(message);
     await page.getByRole("button", { name: "Announce alert" }).click();
+    // The confirmation says what happened, with how many were told, and never implies emergency services were called.
+    const confirmation = page
+      .getByRole("status")
+      .filter({
+        hasText: /Alert sent to \d+ (person|people), \d+ of them clocked in on this project\./,
+      });
+    await expect(confirmation).toBeVisible();
+    await expect(confirmation).toContainText("XOS does not contact emergency services.");
     const alert = page.getByRole("listitem").filter({ hasText: message });
     await expect(alert).toBeVisible();
+    // The count stays on the alert after the page refreshes.
+    await page.reload();
+    await expect(
+      alert.getByText(/Sent to \d+ (person|people), \d+ of them clocked in\./),
+    ).toBeVisible();
+
+    // Someone on the project is told: it reaches their Inbox, with the announcement.
+    const lead = await asPerson(browser, "field@example.com");
+    await lead.goto(`/${ORG}/inbox`);
+    await expect(lead.getByText(message)).toBeVisible();
+    await lead.context().close();
+
     await alert.getByRole("button", { name: "Give the all-clear" }).click();
     await expect(page.getByRole("listitem").filter({ hasText: message })).toHaveCount(0);
 

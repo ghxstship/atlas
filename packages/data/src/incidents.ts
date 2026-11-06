@@ -871,6 +871,10 @@ export interface CrisisAlert {
   readonly message: string;
   readonly issuedAt: string;
   readonly endedAt: string | null;
+  /** People it reached when announced (6070); null for an alert from before notifications were sent. */
+  readonly peopleTold: number | null;
+  /** How many of them were clocked in on the project then. */
+  readonly peopleToldOnSite: number | null;
 }
 
 export async function listCrisisAlerts(
@@ -880,7 +884,7 @@ export async function listCrisisAlerts(
   let query = db
     .from("crisis_alerts")
     .select(
-      "id, project_id, emergency_code, message, issued_at, ended_at, project:projects!crisis_alerts_project_id_fkey(project_key)",
+      "id, project_id, emergency_code, message, issued_at, ended_at, people_told, people_told_on_site, project:projects!crisis_alerts_project_id_fkey(project_key)",
     )
     .eq("org_id", filter.orgId)
     .is("deleted_at", null);
@@ -897,6 +901,8 @@ export async function listCrisisAlerts(
         message: string;
         issued_at: string;
         ended_at: string | null;
+        people_told: number | null;
+        people_told_on_site: number | null;
         project: { project_key: string } | null;
       }[]
     ).map((r) => ({
@@ -907,11 +913,17 @@ export async function listCrisisAlerts(
       message: r.message,
       issuedAt: r.issued_at,
       endedAt: r.ended_at,
+      peopleTold: r.people_told,
+      peopleToldOnSite: r.people_told_on_site,
     })),
   );
 }
 
-/** Announces a crisis alert under a global code (safety.incident.dispatch on the project). */
+/**
+ * Announces a crisis alert under a global code (safety.incident.dispatch on the project). The database tells the people
+ * on the project as the row is written (6070) and returns how many it reached: the caller reports those counts as they
+ * are, zero included.
+ */
 export async function issueCrisisAlert(
   db: XosClient,
   input: {
@@ -920,7 +932,7 @@ export async function issueCrisisAlert(
     readonly emergencyCode: string;
     readonly message: string;
   },
-): Promise<Result<{ id: string }>> {
+): Promise<Result<{ id: string; peopleTold: number; peopleToldOnSite: number }>> {
   const { data, error } = await db
     .from("crisis_alerts")
     .insert({
@@ -929,10 +941,14 @@ export async function issueCrisisAlert(
       emergency_code: input.emergencyCode,
       message: input.message.trim(),
     })
-    .select("id")
+    .select("id, people_told, people_told_on_site")
     .single();
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({
+    id: data.id,
+    peopleTold: data.people_told ?? 0,
+    peopleToldOnSite: data.people_told_on_site ?? 0,
+  });
 }
 
 /** Gives the all-clear for an alert. */

@@ -259,6 +259,30 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "crisis_alert.issued",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.crisis_alert.issued.subject",
+      body: "kinds.crisis_alert.issued.body",
+    },
+  },
+  {
+    kind: "crisis_alert.ended",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.crisis_alert.ended.subject",
+      body: "kinds.crisis_alert.ended.body",
+    },
+  },
+  {
     kind: "account.security_changed",
     category: "account",
     emailTemplate: "notification",
@@ -972,7 +996,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/6059_notification_kind_seed.sql"
+"supabase/migrations/6079_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

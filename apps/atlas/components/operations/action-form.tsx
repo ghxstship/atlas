@@ -91,7 +91,14 @@ export function ActionForm({
         <Button type="submit" variant={variant} loading={pending}>
           {submitLabel}
         </Button>
-        <p role="status" className="m-0 text-text-13 text-success-text">
+        <p
+          role="status"
+          className={`m-0 text-text-13 ${
+            state.result?.["tone"] === "warning"
+              ? "font-medium text-danger-text"
+              : "text-success-text"
+          }`}
+        >
           {state.ok && successKey ? root(successKey, messageValues(state.result)) : null}
         </p>
       </div>

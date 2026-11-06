@@ -110,6 +110,12 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     skipped: "0",
   },
   "incident.reported": { title: "NWS-32 Slip at dock" },
+  "crisis_alert.issued": {
+    title: "Code Red",
+    project: "Northwind Summer Series",
+    message: "Evacuate the north lawn.",
+  },
+  "crisis_alert.ended": { title: "Code Red", project: "Northwind Summer Series" },
   "invoice.approved": { title: "INV-0042" },
   "invoice.submitted": { title: "INV-0042" },
   "invoice.scheduled": { title: "INV-0042" },
