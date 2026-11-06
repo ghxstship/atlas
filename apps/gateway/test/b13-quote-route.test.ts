@@ -34,14 +34,21 @@ beforeEach(() => {
   state.generate.mockReset();
   state.generate.mockResolvedValue({
     ok: true,
-    data: { bytes: new Uint8Array([37, 80]), fileName: "quote-NWF26-Q-14-v1-letter.pdf", templateVersion: 1 },
+    data: {
+      bytes: new Uint8Array([37, 80]),
+      fileName: "quote-NWF26-Q-14-v1-letter.pdf",
+      templateVersion: 1,
+    },
   });
   state.read = { ok: true, data: { refused: false, quote: { quote_key: "NWF26-Q-14" } } };
 });
 
 describe("POST /sign/{token}/quote", () => {
   it("streams the PDF from what the token reader returned", async () => {
-    const response = await POST(post({ accessCode: "123456" }, { "sec-fetch-site": "same-origin" }), context);
+    const response = await POST(
+      post({ accessCode: "123456" }, { "sec-fetch-site": "same-origin" }),
+      context,
+    );
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Type")).toBe("application/pdf");
     expect(response.headers.get("Cache-Control")).toContain("no-store");
@@ -49,7 +56,10 @@ describe("POST /sign/{token}/quote", () => {
   });
 
   it("refuses a cross-site post", async () => {
-    const response = await POST(post({ accessCode: "123456" }, { "sec-fetch-site": "cross-site" }), context);
+    const response = await POST(
+      post({ accessCode: "123456" }, { "sec-fetch-site": "cross-site" }),
+      context,
+    );
     expect(response.status).toBe(403);
     expect(state.generate).not.toHaveBeenCalled();
   });

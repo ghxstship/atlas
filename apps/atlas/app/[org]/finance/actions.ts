@@ -125,7 +125,10 @@ export async function saveBudgetAction(_: ActionState, form: FormData): Promise<
   // Typed as a percent; a blank field is no default markup, stored as NULL.
   const markupText = (f["defaultMarkupPercent"] ?? "").trim();
   const markupPercent = markupText === "" ? null : Number(markupText);
-  if (markupPercent !== null && !(Number.isFinite(markupPercent) && markupPercent >= 0 && markupPercent <= 1000)) {
+  if (
+    markupPercent !== null &&
+    !(Number.isFinite(markupPercent) && markupPercent >= 0 && markupPercent <= 1000)
+  ) {
     return inputError("defaultMarkupPercent");
   }
   const defaultMarkupBp = markupPercent === null ? null : Math.round(markupPercent * 100);

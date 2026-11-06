@@ -44,7 +44,15 @@ export async function newLine(
   const [row] = await localSql<{ id: string }>(
     `insert into app.budget_lines (org_id, budget_id, line_number, description, urid, line_type, quantity, unit_price_minor, xyz, xyz_basis)
      values ($1, $2, $3, $4, $5, $6, 2, $7, 'X', 'Declared') returning id`,
-    [DEMO_ORG_ID, budgetId, n, description, lineType === "Labor" ? "5000.51.02" : "5000.04.02", lineType, priceMinor],
+    [
+      DEMO_ORG_ID,
+      budgetId,
+      n,
+      description,
+      lineType === "Labor" ? "5000.51.02" : "5000.04.02",
+      lineType,
+      priceMinor,
+    ],
   );
   return row?.id as string;
 }

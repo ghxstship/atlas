@@ -254,7 +254,13 @@ export async function createShift(
 export type ShiftPatch = Partial<
   Pick<
     ShiftInput,
-    "roleCode" | "startsAt" | "endsAt" | "timeZone" | "membershipId" | "engagementId" | "budgetLineId"
+    | "roleCode"
+    | "startsAt"
+    | "endsAt"
+    | "timeZone"
+    | "membershipId"
+    | "engagementId"
+    | "budgetLineId"
   >
 >;
 

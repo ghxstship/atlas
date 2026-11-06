@@ -145,7 +145,10 @@ const Quote = defineResource({
     ),
     has_draft: fields.bool("Whether the quote has a live Draft version.", false),
     cost_total_minor: orNull(
-      fields.money("Internal cost of the current version's lines; returned by GET /quotes/{id}.", 100000),
+      fields.money(
+        "Internal cost of the current version's lines; returned by GET /quotes/{id}.",
+        100000,
+      ),
     ),
     versions: orNull(
       z
@@ -159,13 +162,17 @@ const Quote = defineResource({
             ),
             valid_until: fields.date("Last day the client can accept."),
             terms: orNull(fields.text("Notes and terms.", "Half on signature.", 4000)),
-            content_sha256: orNull(fields.text("SHA-256 of the content frozen at send.", "ab12", 64)),
+            content_sha256: orNull(
+              fields.text("SHA-256 of the content frozen at send.", "ab12", 64),
+            ),
             sent_at: orNull(fields.instant("When the version was sent.")),
             accepted_at: orNull(fields.instant("When the version was accepted.")),
             accepted_name: orNull(fields.text("Name as signed.", "Cleo Marsh")),
           }),
         )
-        .meta({ description: "Versions, newest first; returned by GET /quotes/{id}, null in lists." }),
+        .meta({
+          description: "Versions, newest first; returned by GET /quotes/{id}, null in lists.",
+        }),
     ),
     lines: orNull(
       z
@@ -243,7 +250,11 @@ export const additions = defineAdditions("Finance", {
         add: {
           default_markup_bp: {
             schema: orNull(
-              fields.int("Default markup of the budget's lines in basis points; 2500 is 25 percent.", 2500, 0),
+              fields.int(
+                "Default markup of the budget's lines in basis points; 2500 is 25 percent.",
+                2500,
+                0,
+              ),
             ),
             create: "optional",
           },
@@ -261,11 +272,22 @@ export const additions = defineAdditions("Finance", {
       apply: editShape({
         add: {
           markup_bp: {
-            schema: orNull(fields.int("The line's markup in basis points; null uses the budget's default.", 2500, 0)),
+            schema: orNull(
+              fields.int(
+                "The line's markup in basis points; null uses the budget's default.",
+                2500,
+                0,
+              ),
+            ),
             create: "optional",
           },
           client_unit_price_minor: {
-            schema: orNull(fields.money("Override of the client unit price; null derives it from the markup.", 12500)),
+            schema: orNull(
+              fields.money(
+                "Override of the client unit price; null derives it from the markup.",
+                12500,
+              ),
+            ),
             create: "optional",
           },
           excluded_from_quote: {

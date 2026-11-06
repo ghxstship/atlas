@@ -270,7 +270,9 @@ export async function generateExternalDocument(
  * same fields because anon cannot read app.org_brands.
  */
 export async function generateTokenQuoteDocument(
-  input: Omit<ExternalGenerateInput, "kind" | "id"> & { readonly quote: Readonly<Record<string, unknown>> },
+  input: Omit<ExternalGenerateInput, "kind" | "id"> & {
+    readonly quote: Readonly<Record<string, unknown>>;
+  },
 ): Promise<Result<GeneratedDocument>> {
   const q = input.quote as Parameters<typeof quoteDataFromFields>[0] & {
     readonly org_id?: string;

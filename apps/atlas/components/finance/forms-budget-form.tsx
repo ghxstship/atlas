@@ -79,7 +79,9 @@ export function BudgetForm({
         inputMode="decimal"
         label={t("budgets.fields.defaultMarkup")}
         help={t("budgets.fields.defaultMarkupHelp")}
-        defaultValue={budget && budget.defaultMarkupBp !== null ? String(budget.defaultMarkupBp / 100) : ""}
+        defaultValue={
+          budget && budget.defaultMarkupBp !== null ? String(budget.defaultMarkupBp / 100) : ""
+        }
         error={fieldError(t, state, "defaultMarkupPercent")}
       />
       <Checkbox

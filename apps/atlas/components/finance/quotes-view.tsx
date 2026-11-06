@@ -124,11 +124,17 @@ export async function QuotesView({ page }: { page: FinancePage }) {
       const accepted = versions.find((v) => v.state === "Accepted");
       const email = accepted ? await quoteAcceptanceEmail(db, accepted.id) : null;
       const project = projectOf.get(q.projectId);
-      const zone = await db.from("projects").select("time_zone").eq("id", q.projectId).maybeSingle();
+      const zone = await db
+        .from("projects")
+        .select("time_zone")
+        .eq("id", q.projectId)
+        .maybeSingle();
       const timeZone = zone.data?.time_zone ?? "UTC";
       const money = (minor: number | null) => c.money(minor, q.currency);
       const marginPercent =
-        q.marginMinor !== null && q.clientTotalMinor ? (q.marginMinor / q.clientTotalMinor) * 100 : null;
+        q.marginMinor !== null && q.clientTotalMinor
+          ? (q.marginMinor / q.clientTotalMinor) * 100
+          : null;
       detail = {
         kindLabel: t("finance.quotes.kind"),
         recordKey: q.key,
@@ -137,7 +143,10 @@ export async function QuotesView({ page }: { page: FinancePage }) {
         stateLabel: stateLabel(q.displayState),
         propertiesLabel: t("finance.common.properties"),
         properties: [
-          { label: t("finance.quotes.fields.client"), value: q.clientName ?? t("finance.common.none") },
+          {
+            label: t("finance.quotes.fields.client"),
+            value: q.clientName ?? t("finance.common.none"),
+          },
           { label: t("finance.common.project"), value: project?.key ?? "" },
           { label: t("finance.quotes.fields.validUntil"), value: c.date(q.validUntil) },
           { label: t("finance.common.currency"), value: q.currency },
@@ -196,12 +205,21 @@ export async function QuotesView({ page }: { page: FinancePage }) {
             <Figures
               label={t("finance.quotes.figures.label")}
               items={[
-                { label: t("finance.quotes.figures.clientTotal"), value: money(q.clientTotalMinor) },
-                { label: t("finance.quotes.figures.cost"), value: money(loaded.data.costTotalMinor) },
+                {
+                  label: t("finance.quotes.figures.clientTotal"),
+                  value: money(q.clientTotalMinor),
+                },
+                {
+                  label: t("finance.quotes.figures.cost"),
+                  value: money(loaded.data.costTotalMinor),
+                },
                 { label: t("finance.quotes.figures.margin"), value: money(q.marginMinor) },
                 {
                   label: t("finance.quotes.figures.marginPercent"),
-                  value: marginPercent === null ? t("finance.common.none") : `${c.number(Math.round(marginPercent * 10) / 10)}%`,
+                  value:
+                    marginPercent === null
+                      ? t("finance.common.none")
+                      : `${c.number(Math.round(marginPercent * 10) / 10)}%`,
                 },
               ]}
             />
@@ -247,7 +265,9 @@ export async function QuotesView({ page }: { page: FinancePage }) {
                   money(q.marginMinor),
                 ]}
               />
-              <p className="m-0 text-text-12 text-text-secondary">{t("finance.quotes.internalNote")}</p>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("finance.quotes.internalNote")}
+              </p>
             </Section>
             {accepted ? (
               <Section id="quote-signature" title={t("finance.quotes.signature")}>
@@ -258,7 +278,9 @@ export async function QuotesView({ page }: { page: FinancePage }) {
                   </div>
                   <div>
                     <dt className="text-text-secondary">{t("finance.quotes.signedAt")}</dt>
-                    <dd className="m-0">{accepted.acceptedAt ? c.dateTime(accepted.acceptedAt) : ""}</dd>
+                    <dd className="m-0">
+                      {accepted.acceptedAt ? c.dateTime(accepted.acceptedAt) : ""}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-text-secondary">{t("finance.quotes.howSigned")}</dt>
@@ -270,7 +292,9 @@ export async function QuotesView({ page }: { page: FinancePage }) {
                   </div>
                   <div>
                     <dt className="text-text-secondary">{t("finance.quotes.fingerprint")}</dt>
-                    <dd className="m-0 break-all font-mono text-text-12">{accepted.contentSha256}</dd>
+                    <dd className="m-0 break-all font-mono text-text-12">
+                      {accepted.contentSha256}
+                    </dd>
                   </div>
                 </dl>
               </Section>

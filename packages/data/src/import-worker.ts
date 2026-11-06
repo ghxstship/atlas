@@ -523,7 +523,11 @@ export async function validateRow(
       const exponent = budget?.exponent ?? 2;
       for (const f of ["description", "unit_basis"]) bounded(f);
       await set("urid", (v) => lookups.uridExists(v), "unknown_urid");
-      await set("line_number", (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null), "invalid_line_number");
+      await set(
+        "line_number",
+        (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null),
+        "invalid_line_number",
+      );
       if (!text("quantity")) values["quantity"] = 1;
       await set("quantity", (v) => nonNegative(v), "invalid_quantity");
       // A blank price or the word Unpriced is NULL, never zero (S3.7-02).
@@ -532,7 +536,8 @@ export async function validateRow(
         values["unit_price_minor"] = null;
       } else {
         const minor = minorUnits(price, exponent);
-        if (minor === null) issues.push({ columnIndex: columnOf("unit_price"), issue: "invalid_price" });
+        if (minor === null)
+          issues.push({ columnIndex: columnOf("unit_price"), issue: "invalid_price" });
         else values["unit_price_minor"] = minor;
       }
       const type = text("line_type").trim();
@@ -542,7 +547,12 @@ export async function validateRow(
         if (known) values["line_type"] = known;
         else issues.push({ columnIndex: columnOf("line_type"), issue: "invalid_line_type" });
       }
-      await set("cost_center", (v) => lookups.costCenterId(orgId, v), "unknown_cost_center", "cost_center_id");
+      await set(
+        "cost_center",
+        (v) => lookups.costCenterId(orgId, v),
+        "unknown_cost_center",
+        "cost_center_id",
+      );
       for (const f of ["grade_code", "element_id", "phase_code", "tier_code"]) {
         if (text(f).trim()) values[f] = text(f).trim();
       }
@@ -578,7 +588,8 @@ export async function validateRow(
       if (excluded !== "") {
         if (["true", "yes", "1"].includes(excluded)) values["excluded_from_quote"] = true;
         else if (["false", "no", "0"].includes(excluded)) values["excluded_from_quote"] = false;
-        else issues.push({ columnIndex: columnOf("excluded_from_quote"), issue: "invalid_boolean" });
+        else
+          issues.push({ columnIndex: columnOf("excluded_from_quote"), issue: "invalid_boolean" });
       }
       break;
     }
@@ -1271,13 +1282,22 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
     },
     async uridExists(urid) {
       const [discipline, category] = await Promise.all([
-        one(canon.from("dim_discipline").select("disc_code").eq("disc_code", urid.trim()).limit(1), "dim_discipline"),
-        one(canon.from("dim_category").select("cat_urid").eq("cat_urid", urid.trim()).limit(1), "dim_category"),
+        one(
+          canon.from("dim_discipline").select("disc_code").eq("disc_code", urid.trim()).limit(1),
+          "dim_discipline",
+        ),
+        one(
+          canon.from("dim_category").select("cat_urid").eq("cat_urid", urid.trim()).limit(1),
+          "dim_category",
+        ),
       ]);
       return discipline !== null || category !== null;
     },
     async uridXyz(urid) {
-      const row = await one(canon.from("dim_category").select("xyz").eq("cat_urid", urid.trim()).limit(1), "dim_category");
+      const row = await one(
+        canon.from("dim_category").select("xyz").eq("cat_urid", urid.trim()).limit(1),
+        "dim_category",
+      );
       const tag = typeof row?.["xyz"] === "string" ? row["xyz"].trim() : null;
       return tag === "X" || tag === "Y" || tag === "Z" ? tag : null;
     },
@@ -1451,7 +1471,10 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       if (!budget) return null;
       const [currency, last] = await Promise.all([
         one(
-          app.from("currencies").select("minor_unit_exponent").eq("currency_code", budget["currency_code"]),
+          app
+            .from("currencies")
+            .select("minor_unit_exponent")
+            .eq("currency_code", budget["currency_code"]),
           "currencies",
         ),
         one(
@@ -1467,7 +1490,10 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       ]);
       return {
         id: budgetId,
-        exponent: typeof currency?.["minor_unit_exponent"] === "number" ? currency["minor_unit_exponent"] : 2,
+        exponent:
+          typeof currency?.["minor_unit_exponent"] === "number"
+            ? currency["minor_unit_exponent"]
+            : 2,
         maxLineNumber: typeof last?.["line_number"] === "number" ? last["line_number"] : 0,
       };
     },

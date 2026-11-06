@@ -63,7 +63,9 @@ export async function listBudgetVersions(
   const result = await rows(
     db
       .from("budget_versions")
-      .select("id, budget_id, version_number, label, purpose, currency_code, created_at, created_by")
+      .select(
+        "id, budget_id, version_number, label, purpose, currency_code, created_at, created_by",
+      )
       .eq("budget_id", budgetId)
       .is("deleted_at", null)
       .order("version_number", { ascending: false }),
@@ -153,13 +155,7 @@ export async function restoreBudgetVersion(db: XosClient, id: string): Promise<R
 
 export type CompareStatus = "added" | "removed" | "changed" | "unchanged";
 export type CompareField =
-  | "description"
-  | "quantity"
-  | "unitPrice"
-  | "lineType"
-  | "urid"
-  | "markup"
-  | "clientPrice";
+  "description" | "quantity" | "unitPrice" | "lineType" | "urid" | "markup" | "clientPrice";
 
 /** One side of a comparison: a version's frozen line, or a live line through liveCompareLine. */
 export type CompareLine = BudgetVersionLine;

@@ -1,6 +1,13 @@
 import { expect as baseExpect, test } from "./engine-test";
 import { DEMO_ORG, signInAs } from "./a36-support";
-import { DEMO_ORG_ID, DEMO_PROJECT, localSql, newBudget, newLine, removeBudget } from "./b13-support";
+import {
+  DEMO_ORG_ID,
+  DEMO_PROJECT,
+  localSql,
+  newBudget,
+  newLine,
+  removeBudget,
+} from "./b13-support";
 import { uniqueId } from "./support";
 
 /**
@@ -48,18 +55,21 @@ test("approved time reaches Actual and the Labor report", async ({ page }) => {
     const [owner] = await localSql<{ id: string }>(
       `select id from app.people where user_id = (select id from auth.users where email = 'owner@example.com')`,
     );
-    await localSql(`insert into app.timesheet_approvals (org_id, timesheet_id, approved_by, approved_minutes) values ($1, $2, $3, 120)`, [
-      DEMO_ORG_ID,
-      sheet?.id,
-      owner?.id,
-    ]);
+    await localSql(
+      `insert into app.timesheet_approvals (org_id, timesheet_id, approved_by, approved_minutes) values ($1, $2, $3, 120)`,
+      [DEMO_ORG_ID, sheet?.id, owner?.id],
+    );
 
     await signInAs(page, "owner@example.com", DEMO_ORG);
     await page.goto(`/${DEMO_ORG}/finance/budgets?budget=${budgetId}`);
-    await expect(page.getByRole("grid").getByRole("gridcell", { name: "$60.00", exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole("grid").getByRole("gridcell", { name: "$60.00", exact: true }).first(),
+    ).toBeVisible();
 
     await page.goto(`/${DEMO_ORG}/reports/labor?project=NWS`);
-    await expect(page.getByRole("heading", { name: "Posted to budget by team", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Posted to budget by team", exact: true }),
+    ).toBeVisible();
     await expect(page.getByRole("cell", { name: "Own team", exact: true }).first()).toBeVisible();
   } finally {
     await removeBudget(budgetId);

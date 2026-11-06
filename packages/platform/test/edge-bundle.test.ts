@@ -98,7 +98,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
-  "import-run": 120,
+  // B13 (RRR-237, G-214): budget lines became an import target, with per-cell validation and line numbering in the worker
+  // itself. That is about 4.5 KB over the 120 this function had, in code every run needs; exceljs stays lazy.
+  "import-run": 128,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
   "inbound-email": 80,

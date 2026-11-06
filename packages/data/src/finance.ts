@@ -969,7 +969,10 @@ const LINE_COLUMNS =
  * A cost unit price marked up by basis points, rounded half away from zero as app.budget_line_prices
  * rounds (3020). Null when either is null: an unpriced line or a missing markup has no client price.
  */
-export function clientUnitPrice(unitPriceMinor: number | null, markupBp: number | null): number | null {
+export function clientUnitPrice(
+  unitPriceMinor: number | null,
+  markupBp: number | null,
+): number | null {
   if (unitPriceMinor === null || markupBp === null) return null;
   const raw = (unitPriceMinor * (10000 + markupBp)) / 10000;
   return Math.sign(raw) * Math.round(Math.abs(raw));
@@ -1024,7 +1027,9 @@ function toLine(r: Raw, amounts?: Raw, commitment?: Raw, price?: Raw, forecast?:
     etcSource: etcSource === "Entered" || etcSource === "Derived" ? etcSource : null,
     efcMinor: forecast ? numOrNull(forecast["efc_minor"]) : null,
     forwardExposureMinor: forecast ? numOrNull(forecast["forward_exposure_minor"]) : null,
-    varianceAtCompletionMinor: forecast ? numOrNull(forecast["variance_at_completion_minor"]) : null,
+    varianceAtCompletionMinor: forecast
+      ? numOrNull(forecast["variance_at_completion_minor"])
+      : null,
     forecastWithheld: forecast ? forecast["is_withheld"] === true : false,
     laborActualMinor: amounts ? num(amounts["labor_actual_minor"]) : 0,
     laborUnpricedMinutes: amounts ? num(amounts["labor_unpriced_minutes"]) : 0,
@@ -1200,7 +1205,9 @@ export async function updateBudget(
       .update({
         name: input.name.trim(),
         is_baseline: input.isBaseline,
-        ...(input.defaultMarkupBp !== undefined ? { default_markup_bp: input.defaultMarkupBp } : {}),
+        ...(input.defaultMarkupBp !== undefined
+          ? { default_markup_bp: input.defaultMarkupBp }
+          : {}),
       })
       .eq("id", budgetId),
   );
@@ -1261,7 +1268,9 @@ const lineRow = (input: BudgetLineInput) => ({
   ...(input.clientUnitPriceMinor !== undefined
     ? { client_unit_price_minor: input.clientUnitPriceMinor }
     : {}),
-  ...(input.excludedFromQuote !== undefined ? { excluded_from_quote: input.excludedFromQuote } : {}),
+  ...(input.excludedFromQuote !== undefined
+    ? { excluded_from_quote: input.excludedFromQuote }
+    : {}),
   ...(input.etcMinor !== undefined ? { etc_minor: input.etcMinor } : {}),
 });
 

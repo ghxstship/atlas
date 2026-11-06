@@ -8,7 +8,8 @@ import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./re
  * there is no Paid state. Every state change goes through the RPCs in 3023, and the database decides.
  */
 
-export type QuoteVersionState = "Draft" | "Sent" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
+export type QuoteVersionState =
+  "Draft" | "Sent" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
 /** A version's state as shown: Expired is computed for a Sent version past valid until. */
 export type QuoteDisplayState = QuoteVersionState | "Expired";
 
@@ -162,7 +163,10 @@ export async function listQuotes(
 }
 
 /** How many live quotes a project has, for the budget page's "Quotes (n)" link. */
-export async function countProjectQuotes(db: XosClient, projectId: string): Promise<Result<number>> {
+export async function countProjectQuotes(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<number>> {
   const { count, error } = await db
     .from("quote_statuses")
     .select("quote_id", { count: "exact", head: true })
@@ -198,9 +202,15 @@ export async function getQuote(db: XosClient, quoteId: string): Promise<Result<Q
   if (!lines.ok) return lines;
   let costTotal: number | null = 0;
   for (const line of lines.data) {
-    costTotal = costTotal === null || line.costAmountMinor === null ? null : costTotal + line.costAmountMinor;
+    costTotal =
+      costTotal === null || line.costAmountMinor === null ? null : costTotal + line.costAmountMinor;
   }
-  return ok({ status: head, versions: versions.data, lines: lines.data, costTotalMinor: costTotal });
+  return ok({
+    status: head,
+    versions: versions.data,
+    lines: lines.data,
+    costTotalMinor: costTotal,
+  });
 }
 
 async function capturedLines(db: XosClient, budgetVersionId: string): Promise<Result<QuoteLine[]>> {
@@ -334,7 +344,10 @@ export async function deleteQuoteDraft(db: XosClient, versionId: string): Promis
 }
 
 export async function restoreQuoteDraft(db: XosClient, versionId: string): Promise<Result<null>> {
-  const { error } = await db.from("quote_versions").update({ deleted_at: null }).eq("id", versionId);
+  const { error } = await db
+    .from("quote_versions")
+    .update({ deleted_at: null })
+    .eq("id", versionId);
   return error ? fail(toDataError(error)) : ok(null);
 }
 
@@ -356,7 +369,10 @@ export async function sendQuoteVersion(
   if (error) return fail(toDataError(error));
   const row = (data as { engagement_document_id: string; content_sha256: string }[] | null)?.[0];
   if (!row) return fail({ kind: "unexpected", message: "The sent quote was not returned." });
-  return ok({ engagementDocumentId: row.engagement_document_id, contentSha256: row.content_sha256 });
+  return ok({
+    engagementDocumentId: row.engagement_document_id,
+    contentSha256: row.content_sha256,
+  });
 }
 
 export async function withdrawQuoteVersion(

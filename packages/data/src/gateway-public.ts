@@ -338,11 +338,11 @@ export async function previewTokenQuote(
   db: XosClient,
   input: { readonly token: string; readonly accessCode: string },
 ): Promise<Result<TokenQuote | TokenRefusal>> {
-  const result = await rows<{ refusal: string | null; reason: string | null; quote: TokenQuote["quote"] | null }>(
-    db,
-    "token_quote",
-    { p_token: input.token, p_access_code: input.accessCode },
-  );
+  const result = await rows<{
+    refusal: string | null;
+    reason: string | null;
+    quote: TokenQuote["quote"] | null;
+  }>(db, "token_quote", { p_token: input.token, p_access_code: input.accessCode });
   if (!result.ok) return result;
   const row = result.data[0];
   const refused = refusalOf(row);

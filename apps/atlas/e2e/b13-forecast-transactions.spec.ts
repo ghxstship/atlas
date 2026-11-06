@@ -20,7 +20,9 @@ test("forecast columns and transactions on a line", async ({ page }) => {
     await page.goto(`/${DEMO_ORG}/finance/budgets?budget=${budgetId}&columns=forecast`);
     const grid = page.getByRole("grid");
     await expect(grid.getByRole("columnheader", { name: "Estimated final cost" })).toBeVisible();
-    await expect(grid.getByRole("gridcell", { name: "$200.00", exact: true }).first()).toBeVisible();
+    await expect(
+      grid.getByRole("gridcell", { name: "$200.00", exact: true }).first(),
+    ).toBeVisible();
 
     const transactions = page.getByRole("button", { name: "Transactions", exact: true });
     await expect(transactions).toBeDisabled();

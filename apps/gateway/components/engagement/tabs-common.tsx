@@ -281,7 +281,10 @@ export async function DocumentsTab({
   const shown = kinds ? docs.data.filter((d) => kinds.includes(d.kind)) : docs.data;
   // A Quote document's PDF and confirmation read its version (api_external.quote_versions).
   const quotes = shown.some((d) => d.kind === "Quote")
-    ? await listEngagementQuoteVersions(view.ctx.db, shown.map((d) => d.id))
+    ? await listEngagementQuoteVersions(
+        view.ctx.db,
+        shown.map((d) => d.id),
+      )
     : null;
   const quoteOf = new Map((quotes?.ok ? quotes.data : []).map((q) => [q.engagementDocumentId, q]));
   if (shown.length === 0) {
@@ -364,7 +367,9 @@ function QuoteDocumentActions({
   return (
     <span className="inline-flex flex-wrap items-center gap-8">
       <DocumentActions kind="quote" id={quote.id} engagementKey={engagementKey} />
-      {canSign ? <QuoteSignButton documentId={documentId} total={total} validUntil={validUntil} /> : null}
+      {canSign ? (
+        <QuoteSignButton documentId={documentId} total={total} validUntil={validUntil} />
+      ) : null}
     </span>
   );
 }

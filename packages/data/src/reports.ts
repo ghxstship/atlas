@@ -292,7 +292,10 @@ function groupVariance(
     // NULL-aware and withheld like Committed: one unknown line blanks its group, never a partial sum.
     const forecast = forecasts.get(l.budgetLineId);
     if (forecast?.withheld) g.efcWithheld = true;
-    g.efc = g.efc === null || forecast === undefined || forecast.efc === null ? null : g.efc + forecast.efc;
+    g.efc =
+      g.efc === null || forecast === undefined || forecast.efc === null
+        ? null
+        : g.efc + forecast.efc;
   }
   for (const c of changes) {
     const g = groupFor(keyOfChange(c), currencyOfBudget.get(c.budgetId) ?? "");
@@ -857,28 +860,24 @@ export async function laborReport(
         openEntryCount: sheets.filter((h) => h["has_open_entry"] === true).length,
       };
     }),
-    postedByTeam: teams.data.map(
-      (r): LaborTeamRow => ({
-        projectId: str(r["project_id"]),
-        teamKind: str(r["team_kind"]),
-        teamName: strOrNull(r["team_name"]),
-        currency: strOrNull(r["currency_code"]),
-        minutes: num(r["minutes"]),
-        unpricedMinutes: num(r["unpriced_minutes"]),
-        amountMinor: numOrNull(r["amount_minor"]),
-        isMasked: r["is_masked"] === true,
-      }),
-    ),
-    offBudget: offBudget.data.map(
-      (r): LaborOffBudgetRow => ({
-        postingId: str(r["posting_id"]),
-        projectId: str(r["project_id"]),
-        shiftId: strOrNull(r["shift_id"]),
-        person: strOrNull(r["person_name"]),
-        workDate: str(r["work_date"]),
-        minutes: num(r["minutes"]),
-      }),
-    ),
+    postedByTeam: teams.data.map((r): LaborTeamRow => ({
+      projectId: str(r["project_id"]),
+      teamKind: str(r["team_kind"]),
+      teamName: strOrNull(r["team_name"]),
+      currency: strOrNull(r["currency_code"]),
+      minutes: num(r["minutes"]),
+      unpricedMinutes: num(r["unpriced_minutes"]),
+      amountMinor: numOrNull(r["amount_minor"]),
+      isMasked: r["is_masked"] === true,
+    })),
+    offBudget: offBudget.data.map((r): LaborOffBudgetRow => ({
+      postingId: str(r["posting_id"]),
+      projectId: str(r["project_id"]),
+      shiftId: strOrNull(r["shift_id"]),
+      person: strOrNull(r["person_name"]),
+      workDate: str(r["work_date"]),
+      minutes: num(r["minutes"]),
+    })),
     payrollRuns: [...runs.entries()].map(([id, run]) => ({
       payrollRunId: id,
       currency: currencies.get(id) ?? null,

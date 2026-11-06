@@ -23,7 +23,10 @@ const FIELDS = [
   { name: "excluded_from_quote", required: false, strongKey: false },
 ];
 const NAMES = FIELDS.map((f) => f.name);
-const COLUMNS = NAMES.map((fieldName, index) => ({ index, fieldName })) as unknown as MappedColumn[];
+const COLUMNS = NAMES.map((fieldName, index) => ({
+  index,
+  fieldName,
+})) as unknown as MappedColumn[];
 const BUDGET: ImportDestination = { budget: { id: "b1", exponent: 2, maxLineNumber: 3 } };
 
 const lookups = {

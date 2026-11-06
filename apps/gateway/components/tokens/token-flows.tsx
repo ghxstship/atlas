@@ -399,9 +399,7 @@ function QuoteSummary({
           </tfoot>
         </table>
       </div>
-      <p className="m-0 text-text-13">
-        {t("sign.quote.validUntil", { date: quote.valid_until })}
-      </p>
+      <p className="m-0 text-text-13">{t("sign.quote.validUntil", { date: quote.valid_until })}</p>
       {quote.terms ? <p className="m-0 text-text-13 whitespace-pre-wrap">{quote.terms}</p> : null}
       <p className="m-0 text-text-12 text-text-secondary">{t("sign.quote.tax")}</p>
       {quote.content_sha256 ? (

@@ -21,7 +21,9 @@ test("a snapshot compares with the live budget", async ({ page }) => {
     await settle(page);
     await expect(async () => {
       await page.getByRole("button", { name: "Versions", exact: true }).click();
-      await expect(page.getByRole("dialog", { name: "Budget versions" })).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByRole("dialog", { name: "Budget versions" })).toBeVisible({
+        timeout: 5_000,
+      });
     }).toPass();
     const drawer = page.getByRole("dialog", { name: "Budget versions" });
     await drawer.getByLabel("Snapshot name").fill(`Before changes ${id}`);
@@ -31,7 +33,9 @@ test("a snapshot compares with the live budget", async ({ page }) => {
     await localSql(`update app.budget_lines set quantity = 3 where id = $1`, [line]);
     await drawer.getByRole("button", { name: "Compare", exact: true }).click();
     await page.waitForURL(/compare=/);
-    await expect(page.getByRole("heading", { name: `Before changes ${id} to Live budget` })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: `Before changes ${id} to Live budget` }),
+    ).toBeVisible();
     await expect(page.getByRole("cell", { name: "Changed", exact: true })).toBeVisible();
     await expect(page.getByRole("cell", { name: "$100.00", exact: true }).first()).toBeVisible();
 
@@ -39,11 +43,18 @@ test("a snapshot compares with the live budget", async ({ page }) => {
     await settle(page);
     await expect(async () => {
       await page.getByRole("button", { name: "Versions", exact: true }).click();
-      await expect(page.getByRole("dialog", { name: "Budget versions" })).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByRole("dialog", { name: "Budget versions" })).toBeVisible({
+        timeout: 5_000,
+      });
     }).toPass();
-    await page.getByRole("dialog", { name: "Budget versions" }).getByRole("button", { name: "Delete", exact: true }).click();
+    await page
+      .getByRole("dialog", { name: "Budget versions" })
+      .getByRole("button", { name: "Delete", exact: true })
+      .click();
     await page.getByRole("button", { name: "Undo", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "Budget versions" }).getByText(`Before changes ${id}`)).toBeVisible();
+    await expect(
+      page.getByRole("dialog", { name: "Budget versions" }).getByText(`Before changes ${id}`),
+    ).toBeVisible();
   } finally {
     await removeBudget(budgetId);
   }

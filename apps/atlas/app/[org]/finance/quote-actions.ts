@@ -162,7 +162,11 @@ export async function withdrawQuoteAction(_: ActionState, form: FormData): Promi
   if (!versionId.success) return { error: { kind: "not-found" } };
   return finish(
     ctx,
-    await quotes.withdrawQuoteVersion(ctx.viewer.db, versionId.data, String(form.get("reason") ?? "")),
+    await quotes.withdrawQuoteVersion(
+      ctx.viewer.db,
+      versionId.data,
+      String(form.get("reason") ?? ""),
+    ),
   );
 }
 
@@ -172,7 +176,11 @@ export async function declineQuoteAction(_: ActionState, form: FormData): Promis
   if (!versionId.success) return { error: { kind: "not-found" } };
   return finish(
     ctx,
-    await quotes.declineQuoteVersion(ctx.viewer.db, versionId.data, String(form.get("reason") ?? "")),
+    await quotes.declineQuoteVersion(
+      ctx.viewer.db,
+      versionId.data,
+      String(form.get("reason") ?? ""),
+    ),
   );
 }
 
@@ -189,7 +197,9 @@ export async function restoreQuoteDraftAction(
   versionId: string,
 ): Promise<ActionState> {
   const ctx = await contextOf(org);
-  const ids = z.object({ quoteId: z.uuid(), versionId: z.uuid() }).safeParse({ quoteId, versionId });
+  const ids = z
+    .object({ quoteId: z.uuid(), versionId: z.uuid() })
+    .safeParse({ quoteId, versionId });
   if (!ids.success) return { error: { kind: "not-found" } };
   // Deleting the only Draft of a quote never sent took the quote with it; restoring the quote restores the Draft.
   const db = ctx.viewer.db;
@@ -288,7 +298,8 @@ export async function quoteSigningLinkAction(
   form: FormData,
 ): Promise<QuoteSendState> {
   const parsed = LinkInput.safeParse(Object.fromEntries(form.entries()));
-  if (!parsed.success) return { error: { kind: "input" }, fieldErrors: { email: "email" }, at: Date.now() };
+  if (!parsed.success)
+    return { error: { kind: "input" }, fieldErrors: { email: "email" }, at: Date.now() };
   const v = parsed.data;
   const ctx = await contextOf(v.org);
   return {

@@ -147,7 +147,9 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
     const committed = budgetCommittedTotal(lines);
     const committedWithheld = lines.some((l) => l.committedWithheld);
     // Figures appear only when a line or the budget carries pricing, and only ever NULL-aware.
-    const priced = b.defaultMarkupBp !== null || lines.some((l) => l.effectiveMarkupBp !== null || l.clientUnitPriceMinor !== null);
+    const priced =
+      b.defaultMarkupBp !== null ||
+      lines.some((l) => l.effectiveMarkupBp !== null || l.clientUnitPriceMinor !== null);
     const quoted = lines.filter((l) => !l.excludedFromQuote);
     const clientTotal =
       quoted.length === 0 || quoted.some((l) => l.clientExtendedMinor === null)
@@ -210,7 +212,10 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
       },
       ...(priced
         ? [
-            { label: t("finance.budgets.figures.clientTotal"), value: money(conv(clientTotal), cur) },
+            {
+              label: t("finance.budgets.figures.clientTotal"),
+              value: money(conv(clientTotal), cur),
+            },
             { label: t("finance.budgets.figures.margin"), value: money(conv(margin), cur) },
           ]
         : []),
@@ -221,7 +226,9 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
       },
       {
         label: t("finance.budgets.figures.forwardExposure"),
-        value: forecastWithheld ? t("finance.budgets.figures.withheld") : money(conv(exposure), cur),
+        value: forecastWithheld
+          ? t("finance.budgets.figures.withheld")
+          : money(conv(exposure), cur),
       },
     ];
   };
@@ -490,7 +497,9 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
                 </h2>
                 <Link
                   className="text-text-13 text-accent-text underline"
-                  href={withQuery(page, { compare: null, to: null, show: null, budget: b.id }) as Route}
+                  href={
+                    withQuery(page, { compare: null, to: null, show: null, budget: b.id }) as Route
+                  }
                 >
                   {t("finance.budgets.versions.backToGrid")}
                 </Link>
@@ -498,8 +507,14 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
               <Figures
                 label={t("finance.budgets.versions.compare")}
                 items={[
-                  { label: t("finance.budgets.versions.costChange"), value: delta(compared.costDeltaMinor) },
-                  { label: t("finance.budgets.versions.clientChange"), value: delta(compared.clientDeltaMinor) },
+                  {
+                    label: t("finance.budgets.versions.costChange"),
+                    value: delta(compared.costDeltaMinor),
+                  },
+                  {
+                    label: t("finance.budgets.versions.clientChange"),
+                    value: delta(compared.clientDeltaMinor),
+                  },
                   { label: t("finance.budgets.versions.added"), value: String(compared.added) },
                   {
                     label: t("finance.budgets.versions.changedRemoved"),
@@ -507,7 +522,10 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
                   },
                 ]}
               />
-              <nav aria-label={t("finance.budgets.versions.compare")} className="flex gap-8 text-text-13">
+              <nav
+                aria-label={t("finance.budgets.versions.compare")}
+                className="flex gap-8 text-text-13"
+              >
                 <Link
                   aria-current={changedOnly ? "true" : undefined}
                   className="rounded-chip border border-border-subtle px-8 py-2 aria-[current=true]:bg-bg-hover"
@@ -562,7 +580,9 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
             {(["cost", "client", "forecast"] as const).map((set) => (
               <Link
                 key={set}
-                href={withQuery(page, { columns: set === "cost" ? null : set, budget: b.id }) as Route}
+                href={
+                  withQuery(page, { columns: set === "cost" ? null : set, budget: b.id }) as Route
+                }
                 aria-current={columnSet === set ? "true" : undefined}
                 className="rounded-chip border border-border-subtle px-8 py-2 aria-[current=true]:bg-bg-hover aria-[current=true]:text-text-primary"
               >
@@ -571,7 +591,9 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
             ))}
             <Link
               className="text-accent-text underline"
-              href={`/${ctx.org.slug}/finance/quotes?project=${encodeURIComponent(b.projectKey ?? "")}` as Route}
+              href={
+                `/${ctx.org.slug}/finance/quotes?project=${encodeURIComponent(b.projectKey ?? "")}` as Route
+              }
             >
               {t("finance.budgets.quotesLink", { count: quoteCount.ok ? quoteCount.data : 0 })}
             </Link>

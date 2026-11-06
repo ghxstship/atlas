@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  compareBudgetLines,
-  liveCompareLine,
-  type CompareLine,
-} from "../src/budget-versions.ts";
+import { compareBudgetLines, liveCompareLine, type CompareLine } from "../src/budget-versions.ts";
 import { clientUnitPrice, mergeSavedLine, type BudgetLine } from "../src/finance.ts";
 import { signingLinkHours } from "../src/quotes.ts";
 

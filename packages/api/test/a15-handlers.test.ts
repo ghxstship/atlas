@@ -1183,7 +1183,10 @@ describe("invoices and payments", () => {
       data: Row[];
     };
     expect(page.data[0]).toMatchObject({ id: QUOTE, quote_key: "NWF26-Q-14", versions: null });
-    const one = (await expectContract(await success(http.get(`/quotes/${QUOTE}`)), "quotes.get")) as Row;
+    const one = (await expectContract(
+      await success(http.get(`/quotes/${QUOTE}`)),
+      "quotes.get",
+    )) as Row;
     expect(one["cost_total_minor"]).toBe(20000);
     expect(one["lines"]).toEqual([
       {
@@ -1195,7 +1198,10 @@ describe("invoices and payments", () => {
         amount_minor: 25000,
       },
     ]);
-    expect((one["versions"] as Row[])[0]).toMatchObject({ id: QUOTE_VERSION, quote_version_state: "Sent" });
+    expect((one["versions"] as Row[])[0]).toMatchObject({
+      id: QUOTE_VERSION,
+      quote_version_state: "Sent",
+    });
   });
 
   it("lists the 1099-NEC payees of a tax year without full TINs (A38-006)", async () => {

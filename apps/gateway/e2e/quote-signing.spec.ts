@@ -1,5 +1,12 @@
 import { expect as baseExpect, test } from "./engine-test";
-import { PEOPLE, PROJECT, ROLE_ACCOUNTS, ROLE_PEOPLE, roleEngagement, suffix } from "./role-fixtures";
+import {
+  PEOPLE,
+  PROJECT,
+  ROLE_ACCOUNTS,
+  ROLE_PEOPLE,
+  roleEngagement,
+  suffix,
+} from "./role-fixtures";
 import { expectAccessible, signIn, sql } from "./support";
 
 /**
@@ -28,11 +35,19 @@ async function sentQuote(engagementId: string, name: string) {
     [budgetId],
     PEOPLE.owner,
   );
-  await sql(`update app.budget_lines set excluded_from_quote = true where budget_id = $1 and line_number = 2`, [
-    budgetId,
-  ]);
-  const [quote] = await sql<{ id: string }>(`select app.create_quote($1, $2, $3) as id`, [budgetId, name, engagementId], PEOPLE.owner);
-  const [version] = await sql<{ id: string }>(`select id from app.quote_versions where quote_id = $1`, [quote?.id]);
+  await sql(
+    `update app.budget_lines set excluded_from_quote = true where budget_id = $1 and line_number = 2`,
+    [budgetId],
+  );
+  const [quote] = await sql<{ id: string }>(
+    `select app.create_quote($1, $2, $3) as id`,
+    [budgetId, name, engagementId],
+    PEOPLE.owner,
+  );
+  const [version] = await sql<{ id: string }>(
+    `select id from app.quote_versions where quote_id = $1`,
+    [quote?.id],
+  );
   const versionId = version?.id as string;
   const [sent] = await sql<{ engagement_document_id: string }>(
     `select engagement_document_id from app.send_quote_version($1, 'Sent for signature.')`,
@@ -42,7 +57,9 @@ async function sentQuote(engagementId: string, name: string) {
   return { versionId, documentId: sent?.engagement_document_id as string };
 }
 
-test("a client accepts a quote through its signing link and downloads the PDF", async ({ page }) => {
+test("a client accepts a quote through its signing link and downloads the PDF", async ({
+  page,
+}) => {
   const name = `Link quote ${suffix()}`;
   const engagement = await roleEngagement({
     person: ROLE_PEOPLE.client,
@@ -79,14 +96,24 @@ test("a client accepts a quote through its signing link and downloads the PDF", 
   await page.getByLabel("Type your full name to sign").fill("Cleo Typed");
   await page.getByRole("button", { name: "Accept quote", exact: true }).click();
   await expect(page.getByText("Accepted by Cleo Typed.")).toBeVisible();
-  const [accepted] = await sql<{ quote_version_state: string; accepted_name: string; accepted_by: string | null }>(
+  const [accepted] = await sql<{
+    quote_version_state: string;
+    accepted_name: string;
+    accepted_by: string | null;
+  }>(
     `select quote_version_state::text, accepted_name, accepted_by from app.quote_versions where id = $1`,
     [versionId],
   );
-  expect(accepted).toEqual({ quote_version_state: "Accepted", accepted_name: "Cleo Typed", accepted_by: null });
+  expect(accepted).toEqual({
+    quote_version_state: "Accepted",
+    accepted_name: "Cleo Typed",
+    accepted_by: null,
+  });
 });
 
-test("signed in, a quote is signed after a confirmation, never from Home in one click", async ({ page }) => {
+test("signed in, a quote is signed after a confirmation, never from Home in one click", async ({
+  page,
+}) => {
   const name = `Signed in quote ${suffix()}`;
   const engagement = await roleEngagement({
     person: ROLE_PEOPLE.client,
@@ -96,7 +123,11 @@ test("signed in, a quote is signed after a confirmation, never from Home in one 
   const { versionId } = await sentQuote(engagement.id, name);
 
   await signIn(page, "client@example.com", "/home");
-  const item = page.getByRole("listitem").filter({ hasText: `Quote` }).filter({ hasText: name }).first();
+  const item = page
+    .getByRole("listitem")
+    .filter({ hasText: `Quote` })
+    .filter({ hasText: name })
+    .first();
   await expect(page.getByRole("link", { name: "Review quote", exact: true }).first()).toBeVisible();
   await expect(item.getByRole("button", { name: "Sign", exact: true })).toHaveCount(0);
 
@@ -105,7 +136,9 @@ test("signed in, a quote is signed after a confirmation, never from Home in one 
   await row.getByRole("button", { name: "Sign", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Accept this quote" });
   await expect(dialog.getByText("$250.00", { exact: true })).toBeVisible();
-  await expect(dialog.getByText("you consent to using electronic records", { exact: false })).toBeVisible();
+  await expect(
+    dialog.getByText("you consent to using electronic records", { exact: false }),
+  ).toBeVisible();
   await dialog.getByRole("button", { name: "Accept quote", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect

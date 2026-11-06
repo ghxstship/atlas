@@ -50,6 +50,7 @@ describe("budget versus actual", () => {
   it("groups by account with NULL-aware budgets and applies approved changes", async () => {
     const { db } = fakeClient({
       "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse([])],
       "from:budget_line_facts": [
         okResponse([
           fact({}),
@@ -105,6 +106,7 @@ describe("budget versus actual", () => {
   it("sums committed per group, blank when any line is withheld or unpriced", async () => {
     const { db } = fakeClient({
       "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse([])],
       "from:budget_line_facts": [
         okResponse([
           fact({ committed_minor: 600, other_currency_po_line_count: 1 }),
@@ -143,6 +145,7 @@ describe("budget versus actual", () => {
   it("totals committed when every line is readable", async () => {
     const { db } = fakeClient({
       "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse([])],
       "from:budget_line_facts": [
         okResponse([
           fact({ committed_minor: 600 }),
@@ -162,7 +165,8 @@ describe("budget versus actual", () => {
     for (const dimension of ["costCenter", "urid", "department", "project"] as const) {
       const { db } = fakeClient({
         "from:projects": [okResponse([project])],
-        "from:budget_line_facts": [okResponse([fact({ cost_center_code: null })])],
+        "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_line_facts": [okResponse([fact({ cost_center_code: null })])],
         "from:change_order_line_facts": [
           okResponse([
             {
@@ -190,6 +194,7 @@ describe("budget versus actual", () => {
     expect(result.ok && result.data.rows).toEqual([]);
     const broken = fakeClient({
       "from:projects": [okResponse([project])],
+      "from:budget_line_forecasts": [okResponse([])],
       "from:budget_line_facts": [errorResponse("42501", "denied")],
       "from:change_order_line_facts": [okResponse([])],
     });
@@ -407,6 +412,8 @@ describe("labor", () => {
     const { db } = fakeClient({
       "from:projects": [okResponse([project])],
       "from:budget_line_facts": [okResponse([fact({ line_type: "Labor", extended_minor: 5000 })])],
+      "from:labor_posting_team_totals": [okResponse([])],
+      "from:labor_cost_posting_details": [okResponse([])],
       "from:timesheet_hours": [
         okResponse([
           { timesheet_id: "t1", project_id: "p1", worked_minutes: 480, has_open_entry: false },
@@ -451,6 +458,8 @@ describe("labor", () => {
     const { db } = fakeClient({
       "from:projects": [okResponse([project]), okResponse([])],
       "from:budget_line_facts": [okResponse([])],
+      "from:labor_posting_team_totals": [okResponse([])],
+      "from:labor_cost_posting_details": [okResponse([])],
       "from:timesheet_hours": [okResponse([])],
       "from:payroll_line_amounts": [okResponse([])],
     });

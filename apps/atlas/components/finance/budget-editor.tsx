@@ -162,7 +162,8 @@ function inputOf(line: BudgetLine): BudgetLineInput {
 /** A percent typed in the grid as basis points; blank is null, never zero. */
 const toBp = (percent: Cell): number | null =>
   percent === null || percent === "" ? null : Math.round(Number(percent) * 100);
-const validBp = (bp: number | null) => bp === null || (Number.isFinite(bp) && bp >= 0 && bp <= 100000);
+const validBp = (bp: number | null) =>
+  bp === null || (Number.isFinite(bp) && bp >= 0 && bp <= 100000);
 
 async function submit<T extends Record<string, string>>(
   action: (s: ActionState, f: FormData) => Promise<ActionState>,
@@ -189,7 +190,16 @@ export function BudgetEditor(props: Props) {
     null,
   );
   const [sheet, setSheet] = useState<
-    "add" | "catalog" | "paste" | "delete" | "draw" | "fields" | "versions" | "transactions" | "quoteLines" | null
+    | "add"
+    | "catalog"
+    | "paste"
+    | "delete"
+    | "draw"
+    | "fields"
+    | "versions"
+    | "transactions"
+    | "quoteLines"
+    | null
   >(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
   const columnSet = props.columnSet ?? "cost";
@@ -294,7 +304,11 @@ export function BudgetEditor(props: Props) {
     editable: props.canWrite,
     width: 260,
   };
-  const moneyColumn = (key: string, label: string, extra: Partial<GridColumn> = {}): GridColumn => ({
+  const moneyColumn = (
+    key: string,
+    label: string,
+    extra: Partial<GridColumn> = {},
+  ): GridColumn => ({
     key,
     label,
     type: "money",
@@ -303,7 +317,9 @@ export function BudgetEditor(props: Props) {
     ...extra,
   });
   const defaultHint =
-    defaultMarkup === null ? null : t("budgets.columns.markupDefault", { percent: defaultMarkup / 100 });
+    defaultMarkup === null
+      ? null
+      : t("budgets.columns.markupDefault", { percent: defaultMarkup / 100 });
   const clientColumns: GridColumn[] = [
     descriptionColumn,
     { key: "urid", label: t("budgets.columns.urid"), type: "code", width: 120 },
@@ -332,7 +348,9 @@ export function BudgetEditor(props: Props) {
       total: true,
       width: 136,
       derive: (r) =>
-        r["clientUnitPrice"] === null || r["clientUnitPrice"] === undefined || r["clientUnitPrice"] === ""
+        r["clientUnitPrice"] === null ||
+        r["clientUnitPrice"] === undefined ||
+        r["clientUnitPrice"] === ""
           ? null
           : Number(r["quantity"] ?? 0) * Number(r["clientUnitPrice"]),
     }),
@@ -450,7 +468,11 @@ export function BudgetEditor(props: Props) {
     })),
   ];
   const columns =
-    columnSet === "client" ? clientColumns : columnSet === "forecast" ? forecastColumns : costColumns;
+    columnSet === "client"
+      ? clientColumns
+      : columnSet === "forecast"
+        ? forecastColumns
+        : costColumns;
 
   /**
    * Saves a line against the version it was read at. The typed values show at once; a refusal puts
@@ -500,10 +522,7 @@ export function BudgetEditor(props: Props) {
       const etcMinor = toMinor(row["etc"] ?? null, props.exponent);
       // A client price left as the markup gives it stays derived; clearing an override returns to it.
       const inForce = clientPriceOf(line);
-      const override =
-        typedClient === inForce
-          ? line.clientUnitPriceMinor
-          : typedClient;
+      const override = typedClient === inForce ? line.clientUnitPriceMinor : typedClient;
       const changed =
         markupBp !== line.markupBp ||
         override !== line.clientUnitPriceMinor ||

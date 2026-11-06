@@ -45,7 +45,11 @@ test("budget lines import from a spreadsheet with a preview", async ({ page }) =
     await runImportWorker();
     await reloadUntil(page, page.getByRole("heading", { name: "Undo the whole batch" }));
 
-    const lines = await localSql<{ line_number: number; description: string; unit_price_minor: string | null }>(
+    const lines = await localSql<{
+      line_number: number;
+      description: string;
+      unit_price_minor: string | null;
+    }>(
       `select line_number, description, unit_price_minor::text from app.budget_lines
        where budget_id = $1 and deleted_at is null order by line_number`,
       [budgetId],

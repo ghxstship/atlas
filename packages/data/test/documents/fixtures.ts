@@ -482,7 +482,10 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       contentSha256: "a".repeat(64),
       lines: Array.from({ length: 80 }, (_, i) => ({
         lineNumber: i + 1,
-        description: i === 3 ? "Ångström-grade rigging, 中文字 and emoji 🎸 outside the subset" : `Scope line ${i + 1}`,
+        description:
+          i === 3
+            ? "Ångström-grade rigging, 中文字 and emoji 🎸 outside the subset"
+            : `Scope line ${i + 1}`,
         quantity: 2,
         unitBasis: "day",
         unitPriceMinor: 12500,

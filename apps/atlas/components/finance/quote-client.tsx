@@ -99,7 +99,15 @@ export function QuoteDialogHost({ org, children }: { org: string; children: Reac
 
 const EMPTY: QuoteSendState = {};
 
-function QuoteDialog({ org, target, onClose }: { org: string; target: Target; onClose: () => void }) {
+function QuoteDialog({
+  org,
+  target,
+  onClose,
+}: {
+  org: string;
+  target: Target;
+  onClose: () => void;
+}) {
   const t = useFinanceT();
   const router = useRouter();
   const [sendState, send, sending] = useActionState(sendQuoteAction, EMPTY);

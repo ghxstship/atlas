@@ -1,7 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 import { expect as baseExpect, settle, test } from "./engine-test";
 import { DEMO_ORG, signInAs } from "./a36-support";
-import { DEMO_ORG_ID, DEMO_PROJECT, localSql, newBudget, newLine, removeBudget } from "./b13-support";
+import {
+  DEMO_ORG_ID,
+  DEMO_PROJECT,
+  localSql,
+  newBudget,
+  newLine,
+  removeBudget,
+} from "./b13-support";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
@@ -19,7 +26,9 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
   const budgetId = await newBudget(`Quote budget ${id}`, 2500);
   await newLine(budgetId, 1, "Stage deck", 10000);
   const internal = await newLine(budgetId, 2, "Contingency", 5000);
-  await localSql(`update app.budget_lines set excluded_from_quote = true where id = $1`, [internal]);
+  await localSql(`update app.budget_lines set excluded_from_quote = true where id = $1`, [
+    internal,
+  ]);
   const [engagement] = await localSql<{ id: string }>(
     `insert into app.engagements (org_id, project_id, person_id, role_type, start_date)
      select $1, $2, p.id, 'Client', current_date from app.people p
@@ -43,17 +52,27 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
       await expect(page.getByRole("dialog", { name: "New quote" })).toBeVisible({ timeout: 5_000 });
     }).toPass();
     const sheet = page.getByRole("dialog", { name: "New quote" });
-    await sheet.getByLabel("Budget", { exact: true }).selectOption({ label: `NWS · Quote budget ${id}` });
+    await sheet
+      .getByLabel("Budget", { exact: true })
+      .selectOption({ label: `NWS · Quote budget ${id}` });
     await sheet.getByLabel("Title", { exact: true }).fill(`Main stage ${id}`);
     await sheet.getByLabel("Client engagement", { exact: true }).selectOption(engagementId);
     await sheet.getByRole("button", { name: "New quote", exact: true }).click();
 
     await expect
-      .poll(async () =>
-        (await localSql<{ id: string }>(`select id from app.quotes where budget_id = $1`, [budgetId])).length,
+      .poll(
+        async () =>
+          (
+            await localSql<{ id: string }>(`select id from app.quotes where budget_id = $1`, [
+              budgetId,
+            ])
+          ).length,
       )
       .toBe(1);
-    const [quote] = await localSql<{ id: string }>(`select id from app.quotes where budget_id = $1`, [budgetId]);
+    const [quote] = await localSql<{ id: string }>(
+      `select id from app.quotes where budget_id = $1`,
+      [budgetId],
+    );
     const quoteId = quote?.id as string;
 
     // The Draft shows client lines, internal cost and margin, and never the excluded line.
@@ -86,21 +105,26 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
       process.env["NEXT_PUBLIC_SUPABASE_URL"] as string,
       process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"] as string,
     );
-    const signed = await anon
-      .schema("api_public" as never)
-      .rpc("token_sign_document" as never, {
+    const signed = await anon.schema("api_public" as never).rpc(
+      "token_sign_document" as never,
+      {
         p_token: token,
         p_access_code: code,
         p_signer_name: "Cleo Typed",
-      } as never);
+      } as never,
+    );
     expect(signed.error).toBeNull();
 
     // The list updates without a reload, and the quote is locked.
     await page.goto(`/${DEMO_ORG}/finance/quotes?peek=${quoteId}&full=1`);
-    await expect(page.getByText("This quote was accepted, so it can't change.", { exact: false })).toBeVisible();
+    await expect(
+      page.getByText("This quote was accepted, so it can't change.", { exact: false }),
+    ).toBeVisible();
     await expect(page.getByText("Cleo Typed", { exact: true })).toBeVisible();
     await expect(
-      page.getByText(`Signing link with access code, sent to client-${id}@example.test`, { exact: true }),
+      page.getByText(`Signing link with access code, sent to client-${id}@example.test`, {
+        exact: true,
+      }),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "New version", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Withdraw", exact: true })).toHaveCount(0);

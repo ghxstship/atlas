@@ -119,7 +119,9 @@ export async function getBudgetLineTransactions(
       ? section(
           db
             .from("expenses")
-            .select("id, incurred_on, description, submitter_person_id, amount_minor, currency_code")
+            .select(
+              "id, incurred_on, description, submitter_person_id, amount_minor, currency_code",
+            )
             .eq("budget_line_id", lineId)
             .is("deleted_at", null)
             .in("expense_state", ["Approved", "Paid"])
@@ -179,7 +181,9 @@ export async function getBudgetLineTransactions(
       ? section(
           db
             .from("invoice_lines")
-            .select("id, invoice_id, description, quantity, unit_price_minor, invoices!inner(invoice_number, direction, deleted_at)")
+            .select(
+              "id, invoice_id, description, quantity, unit_price_minor, invoices!inner(invoice_number, direction, deleted_at)",
+            )
             .eq("budget_line_id", lineId)
             .is("deleted_at", null)
             .is("invoices.deleted_at", null)
@@ -218,7 +222,7 @@ export async function getBudgetLineTransactions(
           id: str(r["id"]),
           purchaseOrderId: str(r["purchase_order_id"]),
           poKey:
-            order?.project?.project_key && order.po_number != null
+            order?.project?.project_key && order.po_number !== null && order.po_number !== undefined
               ? `${order.project.project_key}-PO-${order.po_number}`
               : null,
           vendor: order?.vendor?.counterparty?.counterparty_name ?? null,

@@ -109,7 +109,12 @@ export function LineTransactionsDrawer({
               <Row
                 key={l.postingId}
                 main={l.person ?? t(`budgets.transactions.teams.${l.teamKind.replace(" ", "")}`)}
-                meta={[l.workDate, l.teamName, l.segment, `${Math.round((l.minutes / 60) * 100) / 100} h`]
+                meta={[
+                  l.workDate,
+                  l.teamName,
+                  l.segment,
+                  `${Math.round((l.minutes / 60) * 100) / 100} h`,
+                ]
                   .filter(Boolean)
                   .join(" · ")}
                 amount={

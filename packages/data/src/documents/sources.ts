@@ -352,11 +352,15 @@ async function quoteDocumentLines(
       .select("budget_line_id, client_unit_price_minor")
       .eq("budget_id", budgetId);
     if (prices.error) return fail(toDataError(prices.error));
-    live = new Map((prices.data ?? []).map((p) => [p.budget_line_id ?? "", p.client_unit_price_minor]));
+    live = new Map(
+      (prices.data ?? []).map((p) => [p.budget_line_id ?? "", p.client_unit_price_minor]),
+    );
   }
   return ok(
     rows.map((r) => {
-      const unit = budgetVersionId ? (r.client_unit_price_minor ?? null) : (live.get(r.id ?? "") ?? null);
+      const unit = budgetVersionId
+        ? (r.client_unit_price_minor ?? null)
+        : (live.get(r.id ?? "") ?? null);
       return {
         lineNumber: r.line_number,
         description: r.description,

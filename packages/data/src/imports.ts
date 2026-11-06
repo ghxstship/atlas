@@ -747,7 +747,11 @@ async function destinationLabel(
 ): Promise<Result<string | null>> {
   if (budgetId !== null) {
     const budget = await rows(
-      untyped(db).from("budgets").select("name, projects (project_key)").eq("id", budgetId).limit(1),
+      untyped(db)
+        .from("budgets")
+        .select("name, projects (project_key)")
+        .eq("id", budgetId)
+        .limit(1),
     );
     if (!budget.ok) return budget;
     const head = budget.data[0];
