@@ -26771,7 +26771,7 @@ export interface OrganizationUpdate {
 }
 
 /**
- * Creates an organization on the Access plan with the caller as its Owner.
+ * Creates an organization with the caller as its Owner.
  */
 export interface CreateOrganizationRequest {
   /**
@@ -26785,7 +26785,7 @@ export interface CreateOrganizationRequest {
    */
   readonly slug: string;
   /**
-   * ISO 3166-1 alpha-2 country the organization is established in, stated by the caller. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
+   * ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
    * Pattern: `^[A-Z]{2}$`.
    */
   readonly country_code?: string;
@@ -26837,7 +26837,7 @@ export interface CreateClientOrganizationRequest {
    */
   readonly plan_code?: string;
   /**
-   * ISO 3166-1 alpha-2 country the organization is established in, stated by the caller. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
+   * ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
    * Pattern: `^[A-Z]{2}$`.
    */
   readonly country_code?: string;

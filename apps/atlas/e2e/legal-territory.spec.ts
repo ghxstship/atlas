@@ -120,21 +120,15 @@ test("a saved choice of a closed language reads as no choice, and a browser in G
   await context.close();
 });
 
-test("a crew member abroad, invited by a US organization, signs up and works with no country asked", async ({
-  browser,
-  baseURL,
-}) => {
-  // The inviting org, with its Owner's invitation written the way app.invite_member does.
-  const id = uniqueId();
-  const email = `tomas-${id}@example.test`;
+/** An invitation to the demo organization, written the way app.invite_member writes one. Returns its token. */
+async function inviteToDemoOrg(email: string): Promise<string> {
   const db = localDb();
   await db.connect();
-  let token = "";
   try {
     const issued = await db.query<{ token: string }>(
       "select private.issue_invite_token() as token",
     );
-    token = issued.rows[0]?.token ?? "";
+    const token = issued.rows[0]?.token ?? "";
     await db.query(
       `insert into app.invites (org_id, email, role_id, token_hash, expires_at, invited_by)
        select o.id, $1, private.system_role_id('member'), private.invite_token_hash($2), now() + interval '1 day', m.person_id
@@ -144,9 +138,19 @@ test("a crew member abroad, invited by a US organization, signs up and works wit
        limit 1`,
       [email, token],
     );
+    return token;
   } finally {
     await db.end();
   }
+}
+
+test("a crew member abroad, invited by a US organization, signs up and works with no country asked", async ({
+  browser,
+  baseURL,
+}) => {
+  const id = uniqueId();
+  const email = `tomas-${id}@example.test`;
+  const token = await inviteToDemoOrg(email);
 
   const context = await browser.newContext({
     ...(baseURL ? { baseURL } : {}),

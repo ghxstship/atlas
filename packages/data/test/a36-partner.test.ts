@@ -64,7 +64,6 @@ describe("partner console repository", () => {
           name: "Tidewater Events",
           slug: "tidewater",
           planCode: "core",
-          countryCode: "US",
           subscriptionState: "active",
           seats: 3,
           fieldMembers: 1,

@@ -389,19 +389,8 @@ const inviteToken = z.string().min(1).meta({
   example: "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e",
 });
 
-/** Where the caller states an organization is established (ADR 0160). Optional, so API v1 stays additive. */
-const countryCode = z
-  .string()
-  .regex(/^[A-Z]{2}$/)
-  .optional()
-  .meta({
-    description:
-      "ISO 3166-1 alpha-2 country the organization is established in, stated by the caller. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.",
-    example: "US",
-  });
-
 export const CreateOrganizationRequest = z
-  .object({ name: f.text("Organization name.", "Northwind Live"), slug, country_code: countryCode })
+  .object({ name: f.text("Organization name.", "Northwind Live"), slug })
   .meta({
     id: "CreateOrganizationRequest",
     description: "Creates an organization on the Access plan with the caller as its Owner.",
@@ -413,7 +402,6 @@ export const CreateClientOrganizationRequest = z
     slug,
     owner_email: f.email("Email of the client's first Owner, who receives an invite."),
     plan_code: f.code("Plan code from `plans.yaml`; defaults to access.", "access").optional(),
-    country_code: countryCode,
   })
   .meta({
     id: "CreateClientOrganizationRequest",

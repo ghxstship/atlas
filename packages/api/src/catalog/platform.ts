@@ -31,7 +31,7 @@ export const platformResources: readonly ResourceSpec[] = [
         segment: "",
         summary: "Create an organization",
         description:
-          "Creates an organization on the Access plan with the caller as its Owner, in one transaction, through `app.create_organization`. A reserved or taken slug is refused with 422, as is a country outside the territories XOS is offered in (`territory_not_offered`).",
+          "Creates an organization on the Access plan with the caller as its Owner, in one transaction, through `app.create_organization`. A reserved or taken slug is refused with 422.",
         body: id.CreateOrganizationRequest,
         rpc: "app.create_organization",
         response: id.Organization.read,
@@ -41,7 +41,7 @@ export const platformResources: readonly ResourceSpec[] = [
         segment: "clients",
         summary: "Create a client organization",
         description:
-          "Partner console (Section 4.6.1): creates a client organization under the caller's partner organization, on the given plan, with an Owner invite for the client, through `app.create_client_organization`. Requires `org.partner.manage` in the partner organization; partner staff gain no access to the client organization. A country outside the territories XOS is offered in is refused with 422 (`territory_not_offered`). The invite token is returned once.",
+          "Partner console (Section 4.6.1): creates a client organization under the caller's partner organization, on the given plan, with an Owner invite for the client, through `app.create_client_organization`. Requires `org.partner.manage` in the partner organization; partner staff gain no access to the client organization. The invite token is returned once.",
         body: id.CreateClientOrganizationRequest,
         rpc: "app.create_client_organization",
         response: id.CreateClientOrganizationResult,
