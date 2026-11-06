@@ -19,11 +19,12 @@ State read from the GitHub API on 2026-11-06, read-only:
 
 ## Order
 
-**Finish step 0 before this branch deploys.** Merging to `main` deploys it, and it starts serving a mailbox that cannot receive mail. Then do step 1, the one with a legal statement waiting on it. Merge this branch into `main` before steps 3 and 7, because they name checks and workflows that exist only once it lands.
+**Finish step 0 before this branch deploys.** Merging to `main` deploys it, and it starts serving a mailbox that cannot receive mail. **Then merge this branch into `main`, before you run anything in steps 1 and 2 and before steps 3 and 7.** `synthetics.yml`, `post-alert.sh`, the corrected backup script and its alert, the checks step 3 requires and the workflows step 7 names exist only once it lands: run today, step 1 would run the old backup workflow and step 2's commands would fail. You can set the secrets in steps 1 and 2 before the merge, and step 1's public key goes through its own pull request. Step 1 next, the one with a legal statement waiting on it.
 
 | Step | What                                                      | Blocks                                                         |
 | ---- | --------------------------------------------------------- | -------------------------------------------------------------- |
 | 0    | Mail for `ghxstship.tech`, and one test message           | **Deploying this branch**; every address in `legal/contact.md` |
+|      | Merge this branch into `main`                             | The runs in steps 1 and 2; steps 3 and 7                       |
 | 1    | Secret values for the backup                              | "The weekly backup has run", once one succeeds                 |
 | 2    | The alert channel and the status page token               | Alerts reaching a person; the status page                      |
 | 3    | Branch protection on `main`                               | "Changes reach main only through pull requests"                |
@@ -39,7 +40,7 @@ State read from the GitHub API on 2026-11-06, read-only:
 
 GitHub private reporting is off too (step 5). So after this branch deploys, `SECURITY.md` and `security.txt` send researchers to a mailbox that does not exist, while promising an answer in 3 business days and a safe harbor that depends on reporting to us. The failure is the same for every address in `legal/contact.md`: `privacy@` takes data subject requests, which carry legal deadlines, `copyright@` is the DMCA agent's address, and `legal@`, `support@`, `abuse@` and `accessibility@` are published as well.
 
-`SECURITY.md` now tells a researcher whose mail bounces to open an issue that gives no details and ask for a private way to report. That keeps one door open for security and no other address. It is not a replacement for this step.
+From the merge, `SECURITY.md` tells a researcher whose mail bounces to use the issue form "Ask for a private way to report a security finding", which asks only why they need one. GitHub reads issue forms from `main`, so the form does not exist until then. That keeps one door open for security, for someone with a GitHub account, and no other address. It is not a replacement for this step.
 
 1. **Add the domain to your Google Workspace,** the one `ghxstship.pro`'s Google MX records suggest you already have: [Admin console, Account, Domains, Manage domains](https://admin.google.com/ac/domains/manage), Add a domain, `ghxstship.tech`, as a secondary domain. Google gives you a TXT value to prove you own it. The domain uses Vercel's nameservers, so add it there:
 
@@ -56,15 +57,15 @@ GitHub private reporting is off too (step 5). So after this branch deploys, `SEC
    Vercel's A records for the sites stay as they are. Do not touch the records under `mail.` or `inbound.`, which belong to Resend and to reply by email.
 
 3. **Create the addresses:** `security`, `legal`, `privacy`, `support`, `abuse`, `accessibility` and `copyright`, as groups at [Directory, Groups](https://admin.google.com/ac/groups) so that a second person can be added later. Google's groups refuse outside mail by default: set **Who can post** to "Anyone on the web" on each, or the mail bounces all the same.
-4. **Stop others forging these addresses.** Monitoring only for now, as with `mail.ghxstship.tech` (ADR 0033, decision 46). They change no delivery, and `mail.` keeps its own policy:
+4. **Say who may send for these addresses.** `p=none` blocks nothing yet, as with `mail.ghxstship.tech` (ADR 0033, decision 46): it changes no delivery, and `mail.` keeps its own policy. Leave `rua` out. It would send daily automated XML to whatever address it names, and `security@` carries a 3 business day promise that those reports would bury. Add it, to a separate address, when someone will read the reports, and tighten `p` after that:
 
    ```sh
    vercel dns add ghxstship.tech '@' TXT 'v=spf1 include:_spf.google.com ~all' --scope ghxstship
-   vercel dns add ghxstship.tech _dmarc TXT 'v=DMARC1; p=none; rua=mailto:security@ghxstship.tech' --scope ghxstship
+   vercel dns add ghxstship.tech _dmarc TXT 'v=DMARC1; p=none' --scope ghxstship
    ```
 
 5. **Test it from outside.** Send one message from an address not on your Workspace, such as a personal account, to `security@ghxstship.tech` and to each other address. Each must arrive where you will read it. `dig +short MX ghxstship.tech` must print `1 smtp.google.com.`. Record the date, so the legal documents can rely on it.
-6. **Watch the repository's issues,** at [Watch, Custom, Issues](https://github.com/ghxstship/atlas), because the fallback in `SECURITY.md` promises an answer from there.
+6. **Watch the repository's issues,** at [Watch, Custom, Issues](https://github.com/ghxstship/atlas), because the form promises an answer from there. To answer one, [draft a security advisory](https://github.com/ghxstship/atlas/security/advisories/new), which works with private reporting off, add the person as a collaborator on the draft, and say so in the issue. If they put details in the issue anyway, edit them out and tell them why.
 
 Only after step 5 should this branch deploy. **If you would rather use an address that works today,** choose one, then change `SECURITY.md`, the `Contact` line in `apps/atlas/app/.well-known/security.txt/route.ts` and `apps/gateway/app/.well-known/security.txt/route.ts`, the test in `infra/security/test/repo-controls.test.ts`, and the legal documents together. A working address at `ghxstship.pro` needs its own mailbox or group: an MX record shows the domain takes mail and says nothing about one address.
 
@@ -145,7 +146,9 @@ Without the webhook, an alert is only a failed run, and GitHub emails that to ju
    unset XOS_ALERT_WEBHOOK_URL
    ```
 
-A required check that fails twice in a row posts once, again every 6 hours, and once when it recovers. Only those runs are marked failed. A slow answer never alerts. It shows the row as Degraded until the next page update, and a day shows Degraded in the history only when more than 5 percent of its answers were slow. **After the first day, read the `ms` column in a few run summaries.** The budgets in `infra/synthetics/src/checks.ts` (600 ms for the sign-in pages, the API document and the API host, 800 ms for docs) have never been measured from a GitHub runner, and a budget that is too tight is a false public statement. If they are, raise them there.
+A required check that fails twice in a row posts once, again every 6 hours, and once when it recovers. Only those runs are marked failed. The status page follows the same line, so it says Outage and "We are working on it" only for a failure that has alerted, and it redeploys only when a failure is confirmed or ends, and about once an hour. GitHub can delay or drop a scheduled run, so "about" is the honest word.
+
+A single failed check or a slow answer never alerts and never deploys. If the hourly deployment happens to catch one, the row shows Degraded until the next update. In the daily history and the 30-day uptime figure, only confirmed failures, both of the pair and every failure after them, count against the service. A day shows Outage when those leave under 99 percent of its checks good, about 20 minutes on a component with one check, and Degraded on any shorter one. Scattered single failures and slow answers mark a day Degraded only when together they pass 5 percent of its answers. SLA Section 2 must define Downtime the same way (RRR-248). **After the first day, read the `ms` column in a few run summaries.** The budgets in `infra/synthetics/src/checks.ts` (600 ms for the sign-in pages, the API document and the API host, 800 ms for docs) have never been measured from a GitHub runner, and a budget that is too tight is a false public statement. If they are, raise them there.
 
 **What this does not measure.** These checks see the sign-in page and not a sign-in, and the API's document and refusal and not an API read. SLA Section 2 defines Downtime by "sign-in or an API read", so that wording has to change with this (RRR-248). A signed-in check needs a synthetic account in production holding no real data. Better Stack's monitors could do it too, which is a separate decision (ADR 0033, decision 45).
 
