@@ -47,7 +47,8 @@ describe("the renewal terms", () => {
     for (const locale of ["en-US", "es-US"] as const) {
       const r = renewal(locale);
       for (const statement of [r.statementMonthly, r.statementAnnual]) {
-        for (const field of ["{plan}", "{price}", "{currency}", "{date}"]) expect(statement).toContain(field);
+        for (const field of ["{plan}", "{price}", "{currency}", "{date}"])
+          expect(statement).toContain(field);
       }
     }
     // Checkout is told the currency, so no statement hedges that another may apply.

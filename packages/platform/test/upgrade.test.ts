@@ -190,7 +190,10 @@ describe("startPlanCheckout", () => {
     ]);
     const created = stripe.calls.find((c) => c.method === "checkout.sessions.create");
     expect(JSON.stringify(created)).toContain("Core renews automatically every month.");
-    expect(created?.params).toMatchObject({ currency: "usd", adaptive_pricing: { enabled: false } });
+    expect(created?.params).toMatchObject({
+      currency: "usd",
+      adaptive_pricing: { enabled: false },
+    });
   });
 
   it("tells Checkout the currency the Owner agreed to, so the statement and the charge cannot differ", async () => {

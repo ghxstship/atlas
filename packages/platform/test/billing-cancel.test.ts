@@ -735,8 +735,7 @@ describe("handleStripeWebhook reconciliation", () => {
         },
       }),
     );
-    const total =
-      (plan?.prices.EUR.monthlyMinor ?? 0) + 2 * (seat?.prices.EUR.monthlyMinor ?? 0);
+    const total = (plan?.prices.EUR.monthlyMinor ?? 0) + 2 * (seat?.prices.EUR.monthlyMinor ?? 0);
     expect(book.log[2]).toBe(`terms:none:${String(total)}:eur`);
 
     const expanded = memory({});

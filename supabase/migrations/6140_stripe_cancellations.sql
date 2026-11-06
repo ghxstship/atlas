@@ -881,10 +881,10 @@ begin
   end if;
   if not v_exists then
     perform private.raise_billing_alert('active_on_deleted_org', 'active_on_deleted_org:' || p_stripe_subscription_id, p_org_id, p_stripe_subscription_id,
-      format('Stripe says %s is %s, but org %s has been deleted. Its cancel is queued. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
+      format('Stripe said %s is %s, but org %s has been deleted. Its cancel was queued. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
   elsif v_row.id is null or v_row.cancellation_state = 'Accepted' then
     perform private.raise_billing_alert('active_after_cancel', 'active_after_cancel:' || p_stripe_subscription_id, p_org_id, p_stripe_subscription_id,
-      format('Stripe says %s is %s after org %s was canceled or its cancel accepted. The cancel is queued again. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
+      format('Stripe said %s is %s after org %s was canceled or its cancel accepted. Its cancel was queued again. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
   end if;
   return 'queued';
 end;
