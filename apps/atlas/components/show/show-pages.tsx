@@ -177,7 +177,7 @@ export async function RunsPage({
             .map((e) => ({ value: e.engagementId, label: e.personName ?? e.accountName ?? "" }))
         : [];
       peek = (
-        <RunPeek title={`${run.data.projectKey} · ${run.data.name}`}>
+        <RunPeek title={`${run.data.projectKey} · ${run.data.name}`} wide={live}>
           <RunBody
             org={ctx.org.slug}
             run={run.data}

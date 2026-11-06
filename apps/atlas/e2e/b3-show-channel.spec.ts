@@ -68,6 +68,11 @@ test("the show channel sits beside the running cue, takes a joiner and delivers 
   const panel = page.getByRole("region", { name: "Show channel" });
   await expect(panel.getByText("Clients are never in this channel.")).toBeVisible();
   expect(await cognitiveLoadProblems(page)).toEqual([]);
+  // Beside the running cue, and the wider of the two: the console's buttons stay on its own side of the panel.
+  const consoleBox = await page.getByRole("region", { name: "Showcaller console" }).boundingBox();
+  const panelBox = await panel.boundingBox();
+  expect(consoleBox?.width ?? 0).toBeGreaterThan(panelBox?.width ?? 0);
+  expect((consoleBox?.x ?? 0) + (consoleBox?.width ?? 0)).toBeLessThanOrEqual(panelBox?.x ?? 0);
   await panel.getByRole("button", { name: "Open the show channel" }).click();
   const box = panel.getByLabel("Message the crew");
   await expect(box).toBeVisible({ timeout: 20_000 });

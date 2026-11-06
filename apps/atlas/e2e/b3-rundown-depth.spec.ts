@@ -90,6 +90,8 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   expect(await cognitiveLoadProblems(page)).toEqual([]);
   const fields = page.getByRole("region", { name: "Custom fields" });
   await fields.getByRole("button", { name: "Edit fields" }).click();
+  // Save fields is the screen's one primary: Start live leaves while a cue is being edited.
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
   await fields.getByLabel("Camera").selectOption({ label: "Wide" });
   await fields.getByRole("button", { name: "Save fields" }).click();
   await expect(fields.getByText("Wide")).toBeVisible();

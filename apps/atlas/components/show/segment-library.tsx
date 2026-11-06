@@ -393,7 +393,7 @@ export function SegmentPeek({
         {segment.description ? <p className="m-0 text-text-14">{segment.description}</p> : null}
         {canEdit ? (
           <div className="flex flex-wrap items-center gap-8">
-            {runs.length > 0 ? (
+            {runs.length > 0 && segment.cues.length > 0 ? (
               <Button variant="primary" icon="Send" onClick={() => setDialog("publish")}>
                 {t("segmentLibrary.publishOpen")}
               </Button>
@@ -409,7 +409,7 @@ export function SegmentPeek({
             </Button>
           </div>
         ) : null}
-        {canEdit && outdated ? (
+        {canEdit && outdated && segment.cues.length > 0 ? (
           <InlineAlert tone="info">{t("segmentLibrary.libraryUpdated")}</InlineAlert>
         ) : null}
         {outcomes ? (

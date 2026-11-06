@@ -797,8 +797,8 @@ export function RunBody({
       </div>
     );
     if (!channelProjectId) return running;
-    // Two columns from 1024 px: the running cue and the show channel; stacked below that. The grid is not a show
-    // scope region: the show keys answer only in the console, which hands show.chat (M) to the channel's message box,
+    // Two columns from 1024 px, in the wide peek RunPeek opens for live mode: the running cue and the show channel;
+    // stacked below that. The grid is not a show scope region: the show keys answer only in the console, which hands show.chat (M) to the channel's message box,
     // so a key pressed on the channel (Space on its buttons, J in its messages) never calls or stands by a cue.
     return (
       <div className="grid gap-24 lg:grid-cols-[minmax(0,1fr)_var(--layout-property-column)]">
@@ -820,7 +820,7 @@ export function RunBody({
           {formatDay(runOfShow.showDate, locale, { dateStyle: "full" })}
         </span>
       </div>
-      {cues.length > 0 ? (
+      {cues.length > 0 && !editingCue ? (
         <div>
           <Button
             variant="primary"
@@ -1201,8 +1201,16 @@ function CueList({
   );
 }
 
-/** The running order peek. */
-export function RunPeek({ title, children }: { title: string; children: ReactNode }) {
+/** The running order peek. Live mode opens it wide: from 1024 px its body holds the console and the show channel. */
+export function RunPeek({
+  title,
+  wide = false,
+  children,
+}: {
+  title: string;
+  wide?: boolean;
+  children: ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -1210,6 +1218,7 @@ export function RunPeek({ title, children }: { title: string; children: ReactNod
     <Drawer
       title={title}
       open
+      wide={wide}
       shortcutScope="record"
       onOpenChange={(v) => {
         if (!v)

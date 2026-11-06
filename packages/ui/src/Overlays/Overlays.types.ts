@@ -31,6 +31,11 @@ export type DrawerProps = ReferenceDrawerProps &
      * lib/shortcut-targets.ts), as a record's side peek is for `record`.
      */
     shortcutScope?: "record" | "view";
+    /**
+     * Opens at the side peek's maximum width, within the viewport, for a body that holds two columns from lg up.
+     * A default drawer's 400 px holds one.
+     */
+    wide?: boolean;
   };
 
 export type SidePeekProps = ReferenceSidePeekProps &

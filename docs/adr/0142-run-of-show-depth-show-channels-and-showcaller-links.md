@@ -83,7 +83,7 @@ written: the 1063 trigger fires only for a person, and the portal has none.
 
 - A link lasts at most 14 days; by default to the end of the day after the show in the project's zone (P1's
   display default), and a show day already past gets now plus one day. The create dialog warns when a chosen day
-  ends before the show. A chosen day ends at the end of that day in the project's zone (W8), still under the ceiling.
+  ends before the show. A chosen day ends at the end of that day in the project's zone, still under the ceiling.
   P1's `lib/live-links/expiry.ts` has the same UTC rule and has shipped; correcting it is a recorded follow-up.
 - A device grant lasts 48 hours or to the link's expiry, whichever is first; a link serves at most 5 devices.
 - At most 5 live links per running order.

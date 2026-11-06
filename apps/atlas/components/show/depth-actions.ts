@@ -1,6 +1,11 @@
 "use server";
 
-import { listMessages, sendMessage, type ChatMessage } from "@xos/data/workforce-chat";
+import {
+  listMessages,
+  markConversationRead,
+  sendMessage,
+  type ChatMessage,
+} from "@xos/data/workforce-chat";
 import {
   getLibrarySegment,
   insertLibrarySegment,
@@ -285,6 +290,16 @@ export async function loadShowChannelAction(
     messages: messages.data,
     unread: unread.ok ? unread.data : 0,
   });
+}
+
+export async function markShowChannelReadAction(
+  org: string,
+  conversationId: string,
+): Promise<ActionResult<{ readAt: string }>> {
+  const ctx = await context(org);
+  if (!id.safeParse(conversationId).success) return invalid();
+  const result = await markConversationRead(ctx.viewer.db, conversationId);
+  return result.ok ? done({ readAt: result.data }) : failed(result.error);
 }
 
 export async function openShowChannelAction(

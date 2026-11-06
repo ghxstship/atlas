@@ -24,8 +24,8 @@ import { callCueAction, shiftCuePlanAction, standbyCueAction } from "./actions";
 import { showKeyAction, stepTarget, type ShowAction } from "./show-keys";
 
 /**
- * The showcaller console (G-75, G-77, ADR 0131): live mode for a person who calls cues. runs.tsx loads
- * it with next/dynamic. It ticks every second and reads @xos/data/show-timing, the rules Compass uses:
+ * The showcaller console (G-75, G-77, ADR 0131): live mode for a person who calls cues. runs.tsx imports
+ * it statically, since it renders on arrival. It ticks every second and reads @xos/data/show-timing, the rules Compass uses:
  * the show clock, time of day in the run's zone, overrun against the plan, the projected end against
  * the curfew, and the current and standby cues with their department calls.
  *

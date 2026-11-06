@@ -9,6 +9,7 @@ import type { ActionError } from "@/components/work/action-result";
 import {
   joinShowChannelAction,
   loadShowChannelAction,
+  markShowChannelReadAction,
   openShowChannelAction,
   sendShowChannelMessageAction,
   type ShowChannelView,
@@ -20,7 +21,7 @@ const CHAT_PACING = { batchMs: 150, minIntervalMs: 500, maxIntervalMs: 2_000 } a
 
 /**
  * The show channel beside the running cue (B3, G-79, ADR 0142): the project's crew chat, which Clients are never
- * in. runs.tsx loads it with next/dynamic in live mode. It asks app.show_channel_status what to offer (group
+ * in. runs.tsx imports it statically, since it renders on arrival in live mode. It asks app.show_channel_status what to offer (group
  * visibility hides a group from people outside it), shows the last 50 messages and the unread count, and rereads
  * them through a server action whenever Realtime reports a change to the conversation's messages, so the running
  * order's page itself never refreshes for a message and P2's live hold is untouched.
@@ -59,6 +60,22 @@ export function ShowChannelPanel({ org, projectId }: { org: string; projectId: s
     CHAT_PACING,
   );
 
+  // The list is on screen, so what it shows is read: this clears the count here and in the Inbox. A hidden tab waits
+  // until it is seen.
+  const unread = view?.unread ?? 0;
+  useEffect(() => {
+    if (!conversationId || unread === 0) return;
+    const mark = () => {
+      if (document.visibilityState !== "visible") return;
+      void markShowChannelReadAction(org, conversationId).then((result) => {
+        if (result.ok) setView((v) => (v ? { ...v, unread: 0 } : v));
+      });
+    };
+    mark();
+    document.addEventListener("visibilitychange", mark);
+    return () => document.removeEventListener("visibilitychange", mark);
+  }, [org, conversationId, unread]);
+
   const send = () => {
     const body = draft.trim();
     if (body === "" || !conversationId) return;
@@ -82,9 +99,7 @@ export function ShowChannelPanel({ org, projectId }: { org: string; projectId: s
         <h3 id={headingId} className="m-0 text-label-13 font-semibold">
           {t("showChannel.title")}
         </h3>
-        {view && view.unread > 0 ? (
-          <Tag tone="accent">{t("showChannel.unread", { count: view.unread })}</Tag>
-        ) : null}
+        {unread > 0 ? <Tag tone="accent">{t("showChannel.unread", { count: unread })}</Tag> : null}
       </div>
       <p className="m-0 text-text-12 text-text-secondary">{t("showChannel.clientsNever")}</p>
       <ActionErrorAlert error={loadError ?? action.error} />

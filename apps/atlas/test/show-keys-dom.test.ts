@@ -34,6 +34,7 @@ const panel = vi.hoisted(() => ({
   open: vi.fn(async () => ({ ok: true as const, data: "conv-1" })),
   join: vi.fn(async () => ({ ok: true as const, data: "conv-1" })),
   send: vi.fn(async () => ({ ok: true as const, data: "msg-new" })),
+  markRead: vi.fn(async () => ({ ok: true as const, data: { readAt: "2027-03-13T18:01:00Z" } })),
 }));
 
 vi.mock("@/components/show/depth-actions", () => ({
@@ -41,6 +42,7 @@ vi.mock("@/components/show/depth-actions", () => ({
   openShowChannelAction: panel.open,
   joinShowChannelAction: panel.join,
   sendShowChannelMessageAction: panel.send,
+  markShowChannelReadAction: panel.markRead,
 }));
 const portal = vi.hoisted(() => ({
   write: vi.fn(async () => ({ ok: true as const })),
@@ -380,6 +382,23 @@ describe("the show channel panel", () => {
     await screen.findByText("Lights to half on my go");
     expect(panel.load).toHaveBeenCalledTimes(2);
   });
+
+  it("marks what it shows as read, which clears its unread count", async () => {
+    panel.load.mockImplementation(async () => ({
+      ok: true as const,
+      data: { status: state.status, messages: state.messages, unread: 3 },
+    }));
+    renderLive();
+    await composer();
+    await waitFor(() => expect(panel.markRead).toHaveBeenCalledWith(ORG, "conv-1"));
+    await waitFor(() => expect(screen.queryByText(/unread/i)).toBeNull());
+  });
+
+  it("leaves nothing to mark when nothing is unread", async () => {
+    renderLive();
+    await composer();
+    expect(panel.markRead).not.toHaveBeenCalled();
+  });
 });
 
 describe("the portal's cue editor", () => {
@@ -425,19 +444,18 @@ describe("the portal's cue editor", () => {
       { ...cueRow, id: "cue-2", position: 2, label: "Walk-in Music Out" },
     ],
   };
-  const renderPortal = () =>
-    render(
-      h(NextIntlClientProvider, {
-        locale: "en-US",
-        messages: getMessages("en-US"),
-        timeZone: "America/New_York",
-        children: h(
-          ShellKeysContext.Provider,
-          { value: keys },
-          h(ShowcallerPortal, { token: "xscl_token", run: portalRun }),
-        ),
-      }),
-    );
+  const portalTree = (run: typeof portalRun) =>
+    h(NextIntlClientProvider, {
+      locale: "en-US",
+      messages: getMessages("en-US"),
+      timeZone: "America/New_York",
+      children: h(
+        ShellKeysContext.Provider,
+        { value: keys },
+        h(ShowcallerPortal, { token: "xscl_token", run }),
+      ),
+    });
+  const renderPortal = () => render(portalTree(portalRun));
 
   it("keeps Space on a cue tab from the console: it calls no cue", async () => {
     const user = userEvent.setup();
@@ -458,6 +476,49 @@ describe("the portal's cue editor", () => {
     await user.keyboard(" sj");
     expect(box.value).toBe("House to Half sj");
     expect(portal.write).not.toHaveBeenCalled();
+  });
+
+  it("saves against the version it opened on, though a live refresh hands it a newer cue", async () => {
+    const user = userEvent.setup();
+    const view = renderPortal();
+    await user.click(screen.getByRole("button", { name: "Edit House to Half" }));
+    // Someone renames the cue in Atlas; the portal's refresh arrives with the editor still open.
+    view.rerender(
+      portalTree({
+        ...portalRun,
+        cues: portalRun.cues.map((c) =>
+          c.id === "cue-1"
+            ? { ...c, label: "House to Half, renamed", updatedAt: "2027-03-13T18:05:00Z" }
+            : c,
+        ),
+      }),
+    );
+    const box = document.getElementById("portal-label-cue-1") as HTMLInputElement;
+    expect(box.value).toBe("House to Half");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(portal.write).toHaveBeenCalledWith(
+        "xscl_token",
+        expect.objectContaining({
+          op: "save",
+          cueId: "cue-1",
+          expectedUpdatedAt: "2027-03-13T18:00:00Z",
+        }),
+      ),
+    );
+  });
+
+  it("keeps the editor open and shows the refusal when the cue changed", async () => {
+    const user = userEvent.setup();
+    portal.write.mockImplementationOnce((async () => ({
+      ok: false as const,
+      reason: "showcaller_cue_changed",
+    })) as never);
+    renderPortal();
+    await user.click(screen.getByRole("button", { name: "Edit House to Half" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await screen.findByText(/Someone changed this cue since you opened it/);
+    expect(document.getElementById("portal-label-cue-1")).not.toBeNull();
   });
 
   it("offers one Save, under the tabs, on every tab that saves the cue", async () => {

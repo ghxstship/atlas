@@ -124,6 +124,9 @@ function PortalCueEditor({
   const t = useTranslations("compliance.showcallerPortal") as unknown as Translate;
   const show = useTranslations("show") as unknown as Translate;
   const [pending, start] = useTransition();
+  // The version the fields below started from. The console's live refresh hands this editor a newer cue while it stays
+  // open, and sending that one would overwrite the change it carries (showcaller_cue_changed never fires).
+  const [openedAt] = useState(cue.updatedAt);
   const [label, setLabel] = useState(cue.label);
   const [planned, setPlanned] = useState(
     cue.plannedAt ? toLocalInput(cue.plannedAt, timeZone).slice(11, 16) : "",
@@ -145,7 +148,7 @@ function PortalCueEditor({
       const saved = await write({
         op: "save",
         cueId: cue.id,
-        expectedUpdatedAt: cue.updatedAt,
+        expectedUpdatedAt: openedAt,
         fields: {
           label,
           plannedAt: planned ? fromLocalInput(`${day}T${planned}`, timeZone) : null,
