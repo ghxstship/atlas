@@ -1566,11 +1566,9 @@ export async function listEligibleReviewers(
   db: XosClient,
   recordId: string,
 ): Promise<Result<{ readonly personId: string; readonly name: string | null }[]>> {
-  const { data, error } = await untyped(db).rpc("eligible_record_reviewers", {
-    p_record_id: recordId,
-  });
+  const { data, error } = await db.rpc("eligible_record_reviewers", { p_record_id: recordId });
   if (error) return fail(toDataError(error));
-  const ids = (data ?? []) as string[];
+  const ids = data ?? [];
   const names = await personNames(db, ids);
   return ok(
     ids

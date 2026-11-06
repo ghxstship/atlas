@@ -3373,12 +3373,17 @@ export type Database = {
       submittal_files: {
         Row: {
           attachment_id: string | null;
-          decision: Database["app"]["Enums"]["file_review_decision"] | null;
+          content_type: string | null;
           filename: string | null;
+          is_current: boolean | null;
           review_comment: string | null;
+          review_decision: Database["app"]["Enums"]["file_review_decision"] | null;
+          reviewed_at: string | null;
+          size_bytes: number | null;
           submittal_id: string | null;
           title: string | null;
           uploaded_at: string | null;
+          version_id: string | null;
           version_number: number | null;
         };
         ComputedFields: never;
@@ -69046,10 +69051,13 @@ export type Database = {
           p_copy_from_project_id?: string;
           p_copy_offset_days?: number;
           p_copy_parts?: Database["app"]["Enums"]["project_copy_part"][];
+          p_currency_code?: string;
+          p_description?: string;
           p_ends_on?: string;
           p_event_audience?: Database["app"]["Enums"]["event_audience"];
           p_event_scale?: Database["app"]["Enums"]["event_scale"];
           p_event_type_id?: string;
+          p_jurisdiction_id?: string;
           p_load_in_from?: string;
           p_load_in_to?: string;
           p_load_out_from?: string;
@@ -69057,9 +69065,11 @@ export type Database = {
           p_name: string;
           p_org_id: string;
           p_project_key: string;
+          p_region_code?: string;
           p_starts_on?: string;
           p_template_choice?: string;
           p_template_id?: string;
+          p_tier_code?: string;
           p_time_zone: string;
           p_venue_id?: string;
           p_without_dates?: boolean;
@@ -69326,6 +69336,7 @@ export type Database = {
           source: string;
         }[];
       };
+      eligible_record_reviewers: { Args: { p_record_id: string }; Returns: string[] };
       end_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
       end_break_glass: {
         Args: { p_session_id: string };
