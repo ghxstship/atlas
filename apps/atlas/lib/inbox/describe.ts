@@ -55,6 +55,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "offer.sent": ["orgName"],
   // P9 (5862): how long an approval has waited, and which reminder of the org's limit this is.
   "approval.reminder": ["waitingSince", "reminderNumber", "reminderLimit"],
+  // A request through a reusable vendor intake link (B2, 6505).
+  "vendor_intake.submitted": ["requesterName", "projectName"],
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],

@@ -1,6 +1,7 @@
 // One-click unsubscribe (Section 14.5, RFC 8058): POST from the mail client, or GET from the link in the
 // footer, with a token signed per org, person and category. GET then sends the person to their
-// notification settings.
+// notification settings. A stakeholder pack token (xpku_, B2, ADR 0141) branches first: the POST stops the emails, and
+// the GET goes to Atlas's confirm page without acting, because mail scanners follow links.
 //
 // Guest list emails (B8, ADR 0147 decision 7) carry ?guest=<token> instead. A POST, the mail client's one-click
 // request, suppresses the address for the org that sent it (api_public.unsubscribe_guest_email) and answers 204
@@ -29,6 +30,15 @@ serve(async (request) => {
     return new Response(null, { status: 204 });
   }
   const token = url.searchParams.get("token");
+  if (token?.startsWith("xpku_")) {
+    if (request.method === "GET") {
+      return Response.redirect(`${env("XOS_APP_URL")}/share/pack/unsubscribe/${token}`, 303);
+    }
+    const stopped = await serviceDb().rpc("unsubscribe_pack_by_token", { p_token: token });
+    if (stopped !== true)
+      return json(404, { type: "/problems/not-found", title: "Not found", status: 404 });
+    return new Response(null, { status: 204 });
+  }
   const orgSlug = await serviceDb().rpc("unsubscribe_by_token", { p_token: token });
   if (typeof orgSlug !== "string")
     return json(404, { type: "/problems/not-found", title: "Not found", status: 404 });

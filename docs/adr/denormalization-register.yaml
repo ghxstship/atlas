@@ -220,6 +220,18 @@ derived:
     refresh: Copied by `private.guard_space_booking` on insert and update; a different engagement is refused (space_booking_set_engagement, migration 5943, B5)
     reason: A booking for an engagement without a set time names the engagement directly, so the board, Gateway and the act's filter read one column either way
     adr: "0144"
+  - objects:
+      - app.vendor_intake_requests.project_id
+    source: "`app.vendor_intake_links.project_id`"
+    refresh: Stamped by trigger on insert; a request never moves to another link (6505)
+    reason: Requests are read and counted by project in the Engagements tab and the request policy without a join
+    adr: "0141"
+  - objects:
+      - app.vendor_intake_requests.invoice_draft
+    source: The first invoice the requester typed at intake
+    refresh: Validated once by app.submit_vendor_intake; never changed; read whole by app.submit_intake_invoice, which makes the invoice (6505)
+    reason: The draft becomes invoice lines only once the engagement exists and its money area opens, so no invoice row can hold it before
+    adr: "0141"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
@@ -338,6 +350,9 @@ json:
   - column: app.time_entry_audit.old_values
     kind: audit-diff
     note: Clock times before a change.
+  - column: app.vendor_intake_requests.invoice_draft
+    kind: registered
+    note: The requester's first invoice, validated once by app.submit_vendor_intake and submitted whole by app.submit_intake_invoice (derived entry).
   - column: private.account_deletions.result
     kind: audit-diff
     note: What an account deletion erased and kept, as returned to the person (migration 1112).
@@ -1618,6 +1633,18 @@ restated:
     parent: app.dock_slots.project_id
     kind: registered
     note: Copied from the dock slot by `private.copy_parent_project` (derived entry).
+  - column: app.stakeholder_pack_recipients.full_name
+    parent: app.people.full_name
+    kind: own
+    note: The recipient's own name as the team entered it; revoked_by names who revoked them, not this person.
+  - column: app.stakeholder_pack_recipients.revoked_at
+    parent: app.stakeholder_packs.revoked_at
+    kind: own
+    note: When this recipient was revoked; revoking the pack is its own act (migration 6500).
+  - column: app.stakeholder_pack_recipients.revoked_by
+    parent: app.stakeholder_packs.revoked_by
+    kind: own
+    note: Who revoked this recipient; revoking the pack is its own act (migration 6500).
   - column: app.submittals.project_id
     parent: app.purchase_orders.project_id
     kind: own
@@ -1738,6 +1765,30 @@ restated:
     kind: finding
     note: The bank account is required and belongs to one vendor, so the change's vendor is the account's.
     finding: A108-003
+  - column: app.vendor_intake_links.project_id
+    parent: app.documents.project_id
+    kind: own
+    note: The project the link engages for; an org document has no project, and a project document is checked to be the link's (migration 6504).
+  - column: app.vendor_intake_requests.engagement_id
+    parent: app.invoices.engagement_id
+    kind: own
+    note: The engagement the approval created, set before any invoice; the invoice link is optional.
+  - column: app.vendor_intake_requests.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The link's project; the engagement is created on it at approval and may not exist.
+  - column: app.vendor_intake_requests.project_id
+    parent: app.invoices.project_id
+    kind: own
+    note: The link's project; the first invoice is submitted later and may not exist.
+  - column: app.vendor_intake_requests.project_id
+    parent: app.vendor_intake_links.project_id
+    kind: registered
+    note: Stamped from the intake link by `private.stamp_vendor_intake_request` (derived entry).
+  - column: app.vendor_intake_requests.signed_at
+    parent: app.tax_forms.signed_at
+    kind: own
+    note: When the requester signed the link's agreement, not when they signed their tax form.
   - column: app.vendor_products.currency_code
     parent: app.catalog_bindings.currency_code
     kind: own
@@ -1901,6 +1952,14 @@ restated:
     parent: app.share_links.expires_at
     kind: own
     note: When the ticket stops working, two minutes after it was issued.
+  - column: private.file_download_tickets.expires_at
+    parent: app.vendor_intake_links.expires_at
+    kind: own
+    note: When the ticket stops working, two minutes after it was issued.
+  - column: private.form_link_grants.expires_at
+    parent: app.form_links.expires_at
+    kind: own
+    note: When the grant stops working, the link's expiry or 2 hours after the open, whichever comes first.
   - column: private.live_link_grants.expires_at
     parent: app.live_links.expires_at
     kind: own
@@ -1935,6 +1994,14 @@ restated:
     parent: app.showcaller_links.expires_at
     kind: own
     note: The device grant stops working at the link's expiry or 48 hours after the open, whichever comes first (migration 6244, B3).
+  - column: private.stakeholder_pack_links.revoked_at
+    parent: app.stakeholder_pack_recipients.revoked_at
+    kind: own
+    note: When this emailed link stopped, by a later attempt of its delivery or a failed send, as well as a revocation (migration 6503).
+  - column: private.vendor_intake_grants.expires_at
+    parent: app.vendor_intake_links.expires_at
+    kind: own
+    note: When the grant stops working, the link's expiry or 24 hours after the open, whichever comes first.
   - column: xpms.bridge_element_metric.item
     parent: xpms.elements.item
     kind: own

@@ -22,6 +22,7 @@ import {
   cueFieldAudienceCapabilities,
   cueFieldAudienceResources,
 } from "./parts/segment-library.ts";
+import { outsideAccessCapabilities, outsideAccessResources } from "./parts/outside-access.ts";
 import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
 import { b7Actions, b7PlatformCapabilities } from "./parts/b7.ts";
 import {
@@ -77,6 +78,7 @@ export const additions = defineAdditions("Platform", {
     ...shareLinkResources,
     ...liveLinkResources,
     ...cueFieldAudienceResources,
+    ...outsideAccessResources,
     // B7's configure and configuration join a84's new personCalendarFeeds resource.
     ...a84Resources.map((spec) =>
       spec.op === "personCalendarFeeds"
@@ -101,6 +103,7 @@ export const additions = defineAdditions("Platform", {
     ...shareLinkCapabilities,
     ...liveLinkCapabilities,
     ...cueFieldAudienceCapabilities,
+    ...outsideAccessCapabilities,
     ...a84Capabilities,
     ...automationCapabilities,
     calendarFeeds: {

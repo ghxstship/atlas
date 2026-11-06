@@ -173,16 +173,21 @@ function toLink(r: LinkRow, state: LiveLinkState | undefined): LiveLink {
   };
 }
 
-/** The live links of a saved view or a running order, newest first, with their computed state. */
+/** The live links of a saved view, a running order or a project, newest first, with their computed state. */
 export async function listLiveLinks(
   db: XosClient,
-  subject: { readonly savedViewId: string } | { readonly runOfShowId: string },
+  subject:
+    | { readonly savedViewId: string }
+    | { readonly runOfShowId: string }
+    | { readonly projectId: string },
 ): Promise<Result<LiveLink[]>> {
   const base = db.from("live_links").select(LINK_COLUMNS).is("deleted_at", null);
   const { data, error } = await (
     "savedViewId" in subject
       ? base.eq("saved_view_id", subject.savedViewId)
-      : base.eq("run_of_show_id", subject.runOfShowId)
+      : "runOfShowId" in subject
+        ? base.eq("run_of_show_id", subject.runOfShowId)
+        : base.eq("project_id", subject.projectId)
   ).order("created_at", { ascending: false });
   if (error) return fail(toDataError(error));
   const rows = (data ?? []) as unknown as LinkRow[];
@@ -544,22 +549,16 @@ async function read(
   return ok(body);
 }
 
-/** Reads a saved view link with its device grant (api_public.live_view). */
-export async function readLiveView(
-  db: XosClient,
-  input: { readonly token: string; readonly grant: string; readonly clientAddress: string | null },
-): Promise<Result<LiveView | Refused>> {
-  if (!LIVE_VIEW_TOKEN.test(input.token)) return ok({ refused: true, reason: "live_link_invalid" });
-  const body = await read(db, "live_view", input);
-  if (!body.ok || "refused" in body.data) return body as Result<Refused>;
-  const raw = (body.data["meta"] ?? {}) as Record<string, unknown>;
+/** A live_view payload as the page reads it; a stakeholder pack's live item answers the same (6501). */
+export function parseLiveView(payload: Record<string, unknown>): LiveView | Refused {
+  const raw = (payload["meta"] ?? {}) as Record<string, unknown>;
   const rows = toRows(
     str(raw["collection_key"]) ?? "",
-    Array.isArray(body.data["rows"]) ? body.data["rows"] : [],
+    Array.isArray(payload["rows"]) ? payload["rows"] : [],
   );
-  if (!rows) return ok({ refused: true, reason: "live_link_view_unsupported" });
+  if (!rows) return { refused: true, reason: "live_link_view_unsupported" };
   const viewType = str(raw["view_type"]);
-  return ok({
+  return {
     refused: false,
     meta: {
       ...toMeta(raw),
@@ -573,11 +572,43 @@ export async function readLiveView(
           : "List",
       groupByField: str(raw["group_by_field"]),
     },
-    channel: str(body.data["channel"]),
-    serverNow: str(body.data["server_now"]) ?? new Date().toISOString(),
+    channel: str(payload["channel"]),
+    serverNow: str(payload["server_now"]) ?? new Date().toISOString(),
     data: rows,
-    truncated: body.data["truncated"] === true,
-  });
+    truncated: payload["truncated"] === true,
+  };
+}
+
+/** A live_display payload as the screen reads it; a stakeholder pack's live item answers the same (6501). */
+export function parseDisplay(payload: Record<string, unknown>): LiveDisplay {
+  const raw = (payload["meta"] ?? {}) as Record<string, unknown>;
+  const mode = raw["default_mode"];
+  return {
+    refused: false,
+    meta: {
+      ...toMeta(raw),
+      name: str(raw["name"]) ?? "",
+      showDate: str(raw["show_date"]) ?? "",
+      defaultMode: isDisplayMode(mode) ? mode : "Backstage",
+    },
+    channel: str(payload["channel"]),
+    serverNow: str(payload["server_now"]) ?? new Date().toISOString(),
+    cues: (Array.isArray(payload["cues"])
+      ? (payload["cues"] as Record<string, unknown>[])
+      : []
+    ).map(toCue),
+  };
+}
+
+/** Reads a saved view link with its device grant (api_public.live_view). */
+export async function readLiveView(
+  db: XosClient,
+  input: { readonly token: string; readonly grant: string; readonly clientAddress: string | null },
+): Promise<Result<LiveView | Refused>> {
+  if (!LIVE_VIEW_TOKEN.test(input.token)) return ok({ refused: true, reason: "live_link_invalid" });
+  const body = await read(db, "live_view", input);
+  if (!body.ok || "refused" in body.data) return body as Result<Refused>;
+  return ok(parseLiveView(body.data));
 }
 
 /** Reads a display screen link with its device grant (api_public.live_display). */
@@ -588,23 +619,7 @@ export async function readDisplay(
   if (!DISPLAY_TOKEN.test(input.token)) return ok({ refused: true, reason: "live_link_invalid" });
   const body = await read(db, "live_display", input);
   if (!body.ok || "refused" in body.data) return body as Result<Refused>;
-  const raw = (body.data["meta"] ?? {}) as Record<string, unknown>;
-  const mode = raw["default_mode"];
-  return ok({
-    refused: false,
-    meta: {
-      ...toMeta(raw),
-      name: str(raw["name"]) ?? "",
-      showDate: str(raw["show_date"]) ?? "",
-      defaultMode: isDisplayMode(mode) ? mode : "Backstage",
-    },
-    channel: str(body.data["channel"]),
-    serverNow: str(body.data["server_now"]) ?? new Date().toISOString(),
-    cues: (Array.isArray(body.data["cues"])
-      ? (body.data["cues"] as Record<string, unknown>[])
-      : []
-    ).map(toCue),
-  });
+  return ok(parseDisplay(body.data));
 }
 
 // What a display screen shows --------------------------------------------------------------------

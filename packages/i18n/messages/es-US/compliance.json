@@ -380,6 +380,47 @@
     },
     "tbc": "Por confirmar"
   },
+  "stakeholderPack": {
+    "title": "Paquete para interesados",
+    "intro": "Escribe el código de acceso que te dieron por teléfono o mensaje. Nunca llega por correo.",
+    "accessCode": "Código de acceso",
+    "accessCodeHelp": "Seis dígitos.",
+    "submit": "Abrir paquete",
+    "for": "Para {name}",
+    "download": "Descargar",
+    "view": "Ver",
+    "unavailable": "No disponible",
+    "signedOn": "Confirmaste esto el {date}.",
+    "signerName": "Escribe tu nombre para confirmar",
+    "signerHelp": "Es un comprobante de que viste este elemento, no la firma de un contrato.",
+    "sign": "Confirmar",
+    "noItems": "Todavía no se agregó nada a este paquete.",
+    "expires": "Este paquete está disponible hasta {date}.",
+    "poweredBy": "Con tecnología de XOS",
+    "back": "Volver al paquete",
+    "refusals": {
+      "pack_link_invalid": "Este enlace ya no está disponible. Pide uno nuevo a quien compartió este paquete.",
+      "pack_link_rate_limited": "Demasiados intentos desde esta dirección. Espera unos minutos e inténtalo de nuevo.",
+      "pack_link_expired": "Este enlace venció. Pide a quien compartió este paquete que te envíe uno nuevo.",
+      "pack_revoked": "Este paquete se retiró y ya no se abre.",
+      "pack_recipient_revoked": "Ya no tienes acceso a este paquete.",
+      "pack_locked": "Demasiados códigos incorrectos. Pide un código nuevo a quien compartió este paquete.",
+      "pack_access_code_required": "Escribe tu código de acceso para abrir este paquete.",
+      "pack_access_code": "Ese código no coincide. Revísalo e inténtalo de nuevo.",
+      "pack_grant": "Escribe tu código de acceso para abrir este paquete.",
+      "pack_item_unavailable": "Este elemento no está disponible en este momento.",
+      "pack_item_not_acknowledgeable": "Este elemento no pide confirmación.",
+      "pack_signer_name": "Escribe tu nombre, hasta 200 caracteres.",
+      "already_signed": "Ya confirmaste este elemento."
+    },
+    "unsubscribe": {
+      "title": "Dejar de recibir estos correos",
+      "intro": "Confirma para dejar de recibir correos sobre este paquete y otros de la misma organización. El paquete se sigue abriendo con tu enlace y tu código.",
+      "confirm": "Dejar de recibir estos correos",
+      "done": "Listo. No volverás a recibir estos correos.",
+      "failed": "No funcionó. El enlace puede ser antiguo. Pide a quien compartió el paquete que te quite de la lista."
+    }
+  },
   "showcallerPortal": {
     "title": "Llamado del show",
     "clockTitle": "Reloj del show",

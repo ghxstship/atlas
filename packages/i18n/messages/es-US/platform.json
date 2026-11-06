@@ -810,6 +810,9 @@
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
       },
+      "vendor_intake": {
+        "submitted": "Nueva solicitud de alta"
+      },
       "advance_answer": {
         "recorded": "Respuesta registrada para ti"
       },

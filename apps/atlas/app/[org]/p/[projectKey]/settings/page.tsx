@@ -7,6 +7,7 @@ import { getTranslations } from "next-intl/server";
 import { ProjectAccess } from "@/components/projects/project-access";
 import { ProjectApprovalRules } from "@/components/projects/project-approval-rules";
 import { ProjectInboxSettings } from "@/components/projects/project-inbox";
+import { OutsideAccessSection } from "@/components/projects/outside-access/outside-access-section";
 import { ProjectOfferings } from "@/components/projects/project-offerings";
 import { ProjectSettings } from "@/components/projects/project-settings";
 import { projectFormOptions } from "@/components/projects/projects-page";
@@ -20,8 +21,9 @@ import { CollectionPage } from "@/components/platform/collection-page";
 /**
  * Project Settings (Section 4.5.4): key, jurisdiction, region, tier, members, lifecycle, archive, and
  * (A52) extra project roles per member and the partner orgs the project is shared with, and (A84)
- * the project inbox address (Section 4.6.5), (R3) what the project offers the people it engages, and
- * (P9) the approval rules its passes, dock bookings and equipment requests wait on.
+ * the project inbox address (Section 4.6.5), (R3) what the project offers the people it engages,
+ * (P9) the approval rules its passes, dock bookings and equipment requests wait on, and (B2, ADR 0141)
+ * everything that reaches the project from outside the org, last and reachable at #outside-access.
  */
 export default async function SettingsPage({
   params,
@@ -78,6 +80,7 @@ export default async function SettingsPage({
       <ProjectInboxSettings ctx={ctx} />
       <ProjectOfferings ctx={ctx} />
       <ProjectApprovalRules ctx={ctx} />
+      <OutsideAccessSection ctx={ctx} />
     </CollectionPage>
   );
 }

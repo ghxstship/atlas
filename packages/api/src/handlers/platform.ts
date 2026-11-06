@@ -33,6 +33,7 @@ import { automationHandlers } from "./parts/automations.ts";
 import { workflowHandlers } from "./parts/workflow.ts";
 import { shareLinkHandlers } from "./parts/share-links.ts";
 import { liveLinkHandlers } from "./parts/live-links.ts";
+import { outsideAccessHandlers } from "./parts/outside-access.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
 import type { Row } from "./support/table.ts";
 
@@ -275,6 +276,7 @@ export const handlers = defineHandlers("Platform", {
   ...(a79PlatformHandlers as unknown as HandlerSet<"Platform">),
   ...shareLinkHandlers,
   ...liveLinkHandlers,
+  ...outsideAccessHandlers,
   ...(a84Handlers as unknown as HandlerSet<"Platform">),
   ...(b7PlatformHandlers as unknown as HandlerSet<"Platform">),
   ...(automationHandlers as unknown as HandlerSet<"Platform">),

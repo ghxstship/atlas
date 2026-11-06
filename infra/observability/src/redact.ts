@@ -163,7 +163,7 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   // as in Next's encoded router state header and a sign-in redirect's next= parameter.
   {
     pattern:
-      /(?:xadv|xagr|xcal|xcch|xcgr|xdlt|xdoc|xinv|xkio|xlch|xlgr|xlnk|xscl|xscr|xshr|xshv|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xadv|xagr|xcal|xcch|xcgr|xdlt|xdoc|xfrg|xfrm|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
     replace: "[token]",
   },
   // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,
@@ -173,11 +173,18 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   // A69-012: likewise whatever follows a leading /share/ (a mistyped or truncated share link), but
   // not /usr/share/ or file:///usr/share/ in a stack trace. The lookahead first keeps the
   // lookbehind to the places /share/ occurs, so a long string stays linear. A live link's
-  // /share/view/ or /share/screen/, and a showcaller link's /share/showcaller/ (B3), stays, and what
-  // follows it is the token.
+  // /share/view/ or /share/screen/, a showcaller link's /share/showcaller/ (B3), and a stakeholder pack's /share/pack/
+  // and /share/pack/unsubscribe/ (B2, ADR 0141) stay, and what follows them is the token.
   {
     pattern:
-      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|showcaller\/)?)[^/?#\s"'<>]+/gi,
+      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|showcaller\/|pack\/(?:unsubscribe\/)?)?)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  // Gateway's intake and public form links (B2, ADR 0141), with the same lookbehind: it matches only at the start of a
+  // string, after a host or after a delimiter, so Atlas's /{org}/knowledge/forms stays and needs no host logic.
+  {
+    pattern:
+      /(?=\/(?:onboard|forms)\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/(?:onboard|forms)\/)[^/?#\s"'<>]+/gi,
     replace: (_m, prefix) => `${prefix}[token]`,
   },
   { pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi, replace: "[token]" },

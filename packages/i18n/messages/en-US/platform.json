@@ -810,6 +810,9 @@
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
       },
+      "vendor_intake": {
+        "submitted": "New intake request"
+      },
       "advance_answer": {
         "recorded": "Answer recorded for you"
       },

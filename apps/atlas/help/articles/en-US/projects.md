@@ -48,3 +48,11 @@ The first and last show days are the project's start and end dates. Load-in and 
 ## Copy from another project
 
 In **Project settings**, **Copy from a project** copies the plan, pass categories, hotel blocks, budgets and advance forms of a past project into this one, moved by a number of days (filled in from the two first show days). Times keep their local time, also across a daylight saving change. Preview shows every item with what is copied and what is skipped and why; Copy writes exactly that. Shifts, people, engagements, credentials and the answers of the companies you engage are never copied.
+
+## Outside access
+
+The last section of Project settings lists everything that reaches the project from outside the organization: live links, file links, advance and signing links, roster invitations, stakeholder pack recipients, intake links, form links and engagements. Each row shows who has it, its state, when it ends and how often it was opened. Revoke or regenerate from the row. A new link and code show once, above the list, until you dismiss them.
+
+A **stakeholder pack** bundles live links and Public or Internal files for people outside the organization. Each recipient gets an access code you give by phone or message; it is never emailed. Packs can email a fresh sign-in link on a schedule. Report files themselves stay with members.
+
+An **intake link** lets many vendors or contractors send a request through one link. Each signs in to Gateway, gives a tax form and a payout reference, and signs the agreement. Approve requests from **Intake requests** on the Engagements tab; approving makes an Onboarding engagement, and a reviewer still verifies its items. Never ask for bank numbers: the link refuses them.

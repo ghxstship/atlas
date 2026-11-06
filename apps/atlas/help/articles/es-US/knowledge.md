@@ -22,3 +22,7 @@ order: 32
 ## Tipos de documento
 
 Archive cada documento bajo uno de los **tipos de documento** de su organización, como un plano del sitio o un certificado de seguro. Adminístrelos en **Configuración, Plantillas, Tipos de documento**, donde **Agregar tipos estándar** agrega los tipos de la Biblioteca Estándar de XOS que aún no tiene. En la pestaña Documentos de un proyecto, **Documentos obligatorios** muestra cuántos de los documentos Obligatorios y Recomendados del tipo de evento están archivados; elija **Agregar** junto a uno que falte para crearlo con su tipo ya elegido.
+
+## Enlaces públicos de formularios
+
+Un formulario Publicado sin foto, firma ni ubicación GPS puede tener un **Enlace público**. Personas fuera de la organización lo abren con un código de acceso y responden sin cuenta. Una respuesta se vuelve un registro solo cuando alguien la aprueba. Las respuestas aparecen en Envíos con la etiqueta Enlace público.

@@ -48,3 +48,11 @@ El primer y el último día del evento son las fechas de inicio y fin del proyec
 ## Copiar de otro proyecto
 
 En **Configuración del proyecto**, **Copiar de un proyecto** copia el plan, las categorías de pases, los bloques de hotel, los presupuestos y los formularios de avance de un proyecto anterior a este, movidos un número de días (que se llena con los primeros días de evento de ambos). Las horas conservan su hora local, también al cambiar el horario de verano. La vista previa muestra cada elemento con lo que se copia, lo que se omite y por qué; Copiar escribe exactamente eso. Nunca se copian turnos, personas, contrataciones, credenciales ni las respuestas de las empresas que contrata.
+
+## Acceso externo
+
+La última sección de Configuración del proyecto muestra todo lo que llega al proyecto desde fuera de la organización: enlaces en vivo, enlaces de archivo, enlaces de avance y de firma, invitaciones al equipo, destinatarios de paquetes, enlaces de alta, enlaces de formulario y contrataciones. Cada fila muestra quién lo tiene, su estado, cuándo termina y cuántas veces se abrió. Revoca o regenera desde la fila. Un enlace y un código nuevos se muestran una vez, arriba de la lista, hasta que los descartes.
+
+Un **paquete para interesados** reúne enlaces en vivo y archivos Públicos o Internos para personas fuera de la organización. Cada destinatario recibe un código de acceso que le das por teléfono o mensaje; nunca se envía por correo. Los paquetes pueden enviar un enlace de acceso nuevo según una programación. Los archivos de informes siguen siendo solo para miembros.
+
+Un **enlace de alta** permite que muchos proveedores o contratistas envíen una solicitud por un solo enlace. Cada uno inicia sesión en Gateway, da un formulario fiscal y una referencia de pago, y firma el acuerdo. Aprueba las solicitudes desde **Solicitudes de alta** en la pestaña Contrataciones; al aprobar se crea una contratación en incorporación, y un revisor aún verifica sus elementos. Nunca pidas números de cuenta bancaria: el enlace los rechaza.

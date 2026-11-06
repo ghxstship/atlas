@@ -63,8 +63,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
     // (6051, 6052), B5's accommodation_block.release_due and transfer.assigned (5947), and P8's
     // availability.requested (6123), R11's seven advancing reminders and notices (6221, 6222), and B8's guest.arrived (6254) and
-    // three weather kinds (6256, 6257), and B15's advance_answer.recorded (6273).
-    expect(registry.kinds).toHaveLength(86);
+    // three weather kinds (6256, 6257), B15's advance_answer.recorded (6273), and B2's vendor_intake.submitted (6505).
+    expect(registry.kinds).toHaveLength(87);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -148,7 +148,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // kind that names fewer channels. Kinds are never deleted.
     expect(sql.match(/\bdelete\b/g)).toHaveLength(2);
     expect(sql).toContain(
-      "delete from private.notification_templates\nwhere (kind = 'agent.change_proposed' and channel not in ('In App', 'Push'))\n   or (kind = 'approval.link_code' and channel not in ('In App', 'Email'))\n   or (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'));",
+      "delete from private.notification_templates\nwhere (kind = 'agent.change_proposed' and channel not in ('In App', 'Push'))\n   or (kind = 'approval.link_code' and channel not in ('In App', 'Email'))\n   or (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'offer.sent' and channel not in ('In App', 'Email', 'Push'))\n   or (kind = 'vendor_intake.submitted' and channel not in ('In App', 'Email'));",
     );
     const drift = renderNotificationDriftTest(registry);
     expect(drift).toContain("select plan(5);");

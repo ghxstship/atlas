@@ -25,6 +25,9 @@ export default async function ProjectEngagementsPage({
     <EngagementsView
       page={page}
       projectId={project.project.id}
+      {...(project.capabilities.has("opportunities.engagement.read")
+        ? { intake: { org: project.org.org.slug, projectKey: project.project.key } }
+        : {})}
       emptyHref={nodeHref("opportunities.postings", routeParams) ?? page.base}
     />
   );

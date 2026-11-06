@@ -683,4 +683,13 @@ nodes:
         kind: page
         label: nav.gateway.public.guestUnsubscribe
         route: "/unsubscribe/{token}"
+      - id: vendor-intake
+        kind: page
+        label: nav.gateway.public.vendorIntake
+        route: "/onboard/{token}"
+        auth: token
+      - id: public-form
+        kind: page
+        label: nav.gateway.public.publicForm
+        route: "/forms/{token}"
         auth: token

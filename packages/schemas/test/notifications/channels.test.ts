@@ -40,10 +40,10 @@ describe("the channels a category's kinds reach", () => {
   });
 
   it("offers no SMS switch for opportunities, whose kinds are never texted", () => {
-    // A89's marketplace match, and A127's offer that waits on the applicant (5200).
+    // A89's marketplace match, A127's offer that waits on the applicant (5200), and B2's intake request (6505).
     expect(
       NOTIFICATION_KINDS.filter((k) => k.category === "opportunities").map((k) => k.kind),
-    ).toEqual(["opportunity.matched", "offer.sent"]);
+    ).toEqual(["opportunity.matched", "offer.sent", "vendor_intake.submitted"]);
     expect(notificationCategoryChannels("opportunities")).toEqual(["In App", "Email", "Push"]);
     expect(notificationCategoryChannels("not-a-category")).toEqual([]);
   });

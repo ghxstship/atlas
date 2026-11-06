@@ -39,6 +39,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { QuerySwitch } from "./client";
 import { FormFiller } from "./form-filler";
+import { FormLinkAction } from "./form-link-action";
 import { REFUSALS, workforceCopy } from "./shared";
 import { CollectionPage } from "@/components/platform/collection-page";
 
@@ -115,12 +116,15 @@ export async function FormsSection({
     const drawer = selected ? (
       <PeekDrawer
         recordKey={selected.templateName ?? t("forms.form")}
-        title={selected.submittedByName ?? t("someone")}
+        title={selected.submittedByName ?? selected.respondentName ?? t("someone")}
         state={submissionState(selected, t)}
         closeHref={withQuery(path, state)}
         fullHref={withQuery(path, state, { peek: selected.id })}
         properties={[
           { label: t("forms.submittedAt"), value: when(selected.createdAt) },
+          ...(selected.formLinkId
+            ? [{ label: t("forms.publicLink.badge"), value: selected.respondentEmail ?? "" }]
+            : []),
           {
             label: t("forms.version"),
             value: selected.version === null ? t("forms.none") : String(selected.version),
@@ -188,12 +192,17 @@ export async function FormsSection({
     const rows: KitRow[] = submissions.data.map((s) => ({
       id: s.id,
       key: s.templateName ?? t("forms.form"),
-      title: s.submittedByName ?? t("someone"),
+      title: s.submittedByName ?? s.respondentName ?? t("someone"),
       state: submissionState(s, t),
       meta: when(s.createdAt),
       cells: {
         form: s.templateName ?? t("forms.form"),
-        by: s.submittedByName ?? t("someone"),
+        by: s.formLinkId
+          ? t("forms.publicLink.by", {
+              name: s.respondentName ?? "",
+              email: s.respondentEmail ?? "",
+            })
+          : (s.submittedByName ?? t("someone")),
         state: submissionState(s, t),
         score: s.score,
         at: when(s.createdAt),
@@ -326,6 +335,17 @@ export async function FormsSection({
         ]}
         actions={templateActions(ctx, t, form, canPublish)}
       >
+        {form.state === "Published" && canPublish ? (
+          <KitSection id="form-public-link" title={t("forms.publicLink.title")}>
+            <FormLinkAction
+              org={ctx.org.slug}
+              templateId={form.id}
+              fields={form.fields}
+              requiresSignature={form.requiresSignature}
+              requiresLocation={form.requiresLocation}
+            />
+          </KitSection>
+        ) : null}
         {form.state === "Published" ? (
           <KitSection id="form-fill" title={t("forms.fill")}>
             <FormFiller

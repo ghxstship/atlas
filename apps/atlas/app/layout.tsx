@@ -42,8 +42,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     productAnalyticsConsent(),
     headers(),
   ]);
-  // Public live link pages (P1, ADR 0130) and the showcaller portal (B3, ADR 0142) set only the strictly necessary
-  // grant cookie and load no product analytics; a display screen and the portal also keep the cookie banner off.
+  // Public live link pages (P1, ADR 0130), stakeholder packs (B2, ADR 0141) and the showcaller portal (B3, ADR 0142) set
+  // only the strictly necessary grant cookie and load no product analytics; a display screen and the portal also keep
+  // the cookie banner off. A pack's own display item keeps the banner: the layout sees only the path, not the item.
   const path = requestHeaders.get(PATH_HEADER) ?? "";
   const publicLive = isPublicLivePath(path);
   const bannerOff = hidesCookieBanner(path);

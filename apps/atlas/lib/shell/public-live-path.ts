@@ -1,9 +1,9 @@
 /**
- * The public, no-account pages the root layout treats apart (ADR 0130, ADR 0142). They set only the strictly necessary
+ * The public, no-account pages the root layout treats apart (ADR 0130, ADR 0141, ADR 0142). They set only the strictly necessary
  * grant cookie, so they load no product analytics, even for a visitor who consented elsewhere on the site.
  */
 export function isPublicLivePath(path: string): boolean {
-  return /^\/share\/(view|screen|showcaller)\//.test(path);
+  return /^\/share\/(view|screen|showcaller|pack)\//.test(path);
 }
 
 /**

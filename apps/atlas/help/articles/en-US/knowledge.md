@@ -22,3 +22,7 @@ order: 32
 ## Document types
 
 File each document under one of your organization's **document types**, such as a site plan or an insurance certificate. Manage them in **Settings, Templates, Document types**, where **Add standard types** adds the XOS Standard Library's types you do not have yet. On a project's Documents tab, **Required documents** shows how many of the event type's Required and Recommended documents are on file; choose **Add** beside a missing one to create it with its type already chosen.
+
+## Public form links
+
+A Published form without a photo, signature or GPS stamp can have a **Public link**. People outside the organization open it with an access code and answer without an account. A response becomes a record only when someone approves it. Responses show in Submissions with a Public link label.

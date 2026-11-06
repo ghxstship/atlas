@@ -33,6 +33,7 @@ import { PageTitle, RegionError, Section, pickView, ViewSwitcher } from "@/compo
 import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/components/ui";
 import { UpNextActions } from "@/components/page/up-next-actions";
 import { ForYourInformation } from "@/components/page/for-your-information";
+import { IntakeRequestsCard } from "@/components/outside/intake-requests-card";
 import { acceptRepresentationAction, signDocumentAction } from "@/lib/actions/engagement";
 import {
   acceptAccountMembershipAction,
@@ -222,6 +223,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           </ul>
         )}
       </Section>
+
+      <IntakeRequestsCard db={ctx.db} t={t} locale={locale} />
 
       <ForYourInformation db={ctx.db} t={t} locale={locale} />
 

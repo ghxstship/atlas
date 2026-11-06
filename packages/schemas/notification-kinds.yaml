@@ -555,6 +555,13 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/5200_one_tap_actions.sql#private.notify_offer_sent
         test: supabase/tests/5200_one_tap_actions.test.sql
+  # Vendor intake (B2: 6505)
+  - kind: vendor_intake.submitted
+    category: opportunities
+    channels: [In App, Email]
+    emitted_by:
+      - emitter: supabase/migrations/6505_vendor_intake_requests.sql#app.submit_vendor_intake
+        test: supabase/tests/6505_vendor_intake_requests.test.sql
   - kind: onboarding.item_expiring
     category: expiry_reminders
     emitted_by:

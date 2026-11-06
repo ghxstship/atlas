@@ -33,6 +33,7 @@ import {
 } from "@/app/[org]/opportunities/actions";
 import { RecordHistory } from "@/components/history/record-history";
 import { ContractIntakeEntry } from "@/components/aurora/entry/intake-entry";
+import { IntakeRequestsAction } from "@/components/projects/outside-access/intake-requests-action";
 import { ActionForm } from "@/components/opportunities/action-form";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { ratingPromptsOn } from "@/lib/shell/org-settings";
@@ -77,10 +78,13 @@ import * as enums from "@xos/data/enums";
 export async function EngagementsView({
   page,
   projectId,
+  intake,
   emptyHref,
 }: {
   page: PageSetup;
   projectId?: string;
+  /** The project tab only: Intake requests, from reusable vendor intake links (B2, ADR 0141). */
+  intake?: { readonly org: string; readonly projectKey: string };
   emptyHref: string;
 }) {
   const { ctx, t, param } = page;
@@ -128,9 +132,21 @@ export async function EngagementsView({
         <PageHeader
           title={t("engagements.title")}
           count={rows.length}
-          {...(projects.length > 0
-            ? { actions: <ContractIntakeEntry projects={projects} importHref={importHref} /> }
-            : {})}
+          actions={
+            intake || projects.length > 0 ? (
+              <>
+                {intake ? (
+                  <IntakeRequestsAction
+                    refs={intake}
+                    canCreate={ctx.capabilities.has("opportunities.engagement.write")}
+                  />
+                ) : null}
+                {projects.length > 0 ? (
+                  <ContractIntakeEntry projects={projects} importHref={importHref} />
+                ) : null}
+              </>
+            ) : undefined
+          }
           views={
             <ViewSwitch
               label={t("views.label")}
