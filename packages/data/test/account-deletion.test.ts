@@ -333,7 +333,6 @@ describe("closing an account after an answer of under 18 (ADR 0156)", () => {
     expect(removals.map((c) => c.split(":")[1])).toEqual([
       "credential-photos",
       "profile-media",
-      "profile-media",
       "upload-staging",
       "support-screenshots",
     ]);
