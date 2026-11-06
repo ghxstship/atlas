@@ -151,6 +151,35 @@ select is(pg_temp.try('rune', format('select app.join_show_channel(%L)', pg_temp
 select is(pg_temp.try('alice', format('insert into app.group_members (group_id, membership_id) values (%L, %L)', pg_temp.k('group'),
   pg_temp.id('frank@org_a'))), 'show_channel_client', 'nor be added by an admin');
 
+-- cleo owns Coral Group, the account on the Client engagement; no engagement names her. A member with reach to the running
+-- order is still kept out, which only the claims-switching branch of private.person_engaged_as can see.
+insert into app.memberships (org_id, person_id) values (pg_temp.id('org_a'), pg_temp.id('cleo'));
+insert into world select 'cleo@org_a', m.id from app.memberships m where m.person_id = pg_temp.id('cleo') and m.org_id = pg_temp.id('org_a');
+select pg_temp.as_user('alice');
+insert into app.user_capability_grants (membership_id, capability_code, scope_kind, scope_id, reason) values
+  (pg_temp.id('cleo@org_a'), 'show.run_of_show.read', 'project', pg_temp.id('prj_a'), 'Follows the run for the client.');
+select pg_temp.as_platform();
+select ok(private.person_can_on_project(pg_temp.id('cleo'), pg_temp.id('prj_a'), 'show.run_of_show.read'), 'cleo reads the running order');
+select ok(not exists (select 1 from app.engagements e where e.person_id = pg_temp.id('cleo')), 'and no engagement names her');
+select ok(private.person_engaged_as(pg_temp.id('cleo'), pg_temp.id('prj_a'), 'Client'), 'yet she reaches the project as Client through her organization');
+select is(current_setting('request.jwt.claims', true), '', 'and the claims come back afterwards');
+select is(pg_temp.status('cleo'), 'exists=true member=false join=false open=false conversation=false', 'so she is not offered the channel');
+select is(pg_temp.try('cleo', format('select app.join_show_channel(%L)', pg_temp.id('prj_a'))), 'show_channel_client',
+  'cannot join it through an organization engagement');
+select is(pg_temp.try('alice', format('insert into app.group_members (group_id, membership_id) values (%L, %L)', pg_temp.k('group'),
+  pg_temp.id('cleo@org_a'))), 'show_channel_client', 'and cannot be added to it');
+
+-- Representation opens an Artist's engagement only, so a representative is never a Client, even of a person they represent.
+select pg_temp.as_user('alice');
+with x as (insert into app.engagements (project_id, person_id, role_type, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('art'), 'Client', '2027-06-01') returning id)
+  insert into world select 'eng_art_client', id from x;
+select pg_temp.as_platform();
+select pg_temp.move_engagement('eng_art_client', 'Onboarding', 'Active');
+select pg_temp.move_engagement('eng_art_a', 'Onboarding', 'Active');
+select ok(private.person_engaged_as(pg_temp.id('rita'), pg_temp.id('prj_a'), 'Artist'), 'rita reaches art''s Artist engagement as his representative');
+select ok(not private.person_engaged_as(pg_temp.id('rita'), pg_temp.id('prj_a'), 'Client'), 'but not his Client engagement');
+
 -- A member who becomes a Client reads nothing more, and is never notified ------------------------------------------------------------
 select pg_temp.as_user('dave');
 select app.send_chat_message(pg_temp.k('conv'), 'Standby house to half.');

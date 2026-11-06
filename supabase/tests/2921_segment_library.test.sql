@@ -231,6 +231,26 @@ select is(pg_temp.try('alice', format('select * from app.publish_library_segment
 select is(pg_temp.try('gina', format('select * from app.publish_library_segment(%L, %L)', pg_temp.k('awards'), array[pg_temp.id('ros')])),
   '42501', 'publishing needs show.run_of_show.write on every run');
 
+-- A segment whose last cue was removed publishes nothing: its copies keep their cues.
+select pg_temp.as_user('alice');
+with x as (insert into app.segment_library (org_id, name) values (pg_temp.id('org_a'), 'Walk-in') returning id)
+  insert into k select 'walkin', id, null from x;
+insert into app.segment_library_cues (segment_library_id, position, label) values (pg_temp.k('walkin'), 1, 'Walk-in Music');
+select pg_temp.as_user('dave');
+with x as (insert into app.run_of_show (project_id, name, show_date) values (pg_temp.id('prj_a'), 'Matinee', '2027-06-08') returning id)
+  insert into world select 'ros_matinee', id from x;
+insert into k values ('walkin_copy', app.insert_library_segment(pg_temp.id('ros_matinee'), pg_temp.k('walkin')), null);
+select pg_temp.as_user('alice');
+update app.segment_library_cues set deleted_at = now() where segment_library_id = pg_temp.k('walkin');
+select pg_temp.as_platform();
+insert into k values ('walkin_version', null, (select library_version::text from app.run_segment_instances where id = pg_temp.k('walkin_copy')));
+select ok(pg_temp.version('walkin')::text <> (select val from k where key = 'walkin_version'), 'removing the last cue leaves the copy outdated');
+select is(pg_temp.try('alice', format('select * from app.publish_library_segment(%L, %L)', pg_temp.k('walkin'), array[pg_temp.id('ros_matinee')])),
+  'segment_library_empty', 'and publishing the empty segment is refused');
+select is(pg_temp.order_of('ros_matinee'), 'Walk-in Music@1', 'so the copy keeps its cues');
+select is((select library_version::text from app.run_segment_instances where id = pg_temp.k('walkin_copy')), (select val from k where key = 'walkin_version'),
+  'and its version');
+
 -- Trash ---------------------------------------------------------------------------------------------------------------------------
 select ok(exists (select 1 from private.trash_tables where table_name = 'segment_library'), 'a library segment can be restored from Trash');
 select ok(not exists (select 1 from private.trash_tables where table_name in ('segment_library_cues', 'segment_library_cue_calls', 'run_segment_instances')),

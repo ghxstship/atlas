@@ -4,7 +4,8 @@
 -- revoking retire the token and drop the grants, and regenerating needs both capabilities; trashing the running order
 -- revokes its links and restoring it never brings them back; a read-only org makes and regenerates none but still
 -- revokes; a cue called through a link names the link and no person, and the link is never sent or changed by a caller;
--- links stay out of Trash and keep the default retention.
+-- links stay out of Trash and keep the default retention; a partner org holding the project through a share makes none;
+-- an org holding a link can still be purged, and so can a sandbox.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -106,6 +107,21 @@ select ok(exists (select 1 from app.domain_events where event_type = 'showcaller
 select is(pg_temp.link('mia', 'x', 'ros'), 'showcaller_link_capability', 'editing without show.cue.call is not enough');
 select is(pg_temp.link('gina', 'x', 'ros'), 'showcaller_link_capability', 'nor calling without show.run_of_show.write');
 select is(pg_temp.link('xavier', 'x', 'ros'), '42501', 'another org is told the running order does not exist');
+-- org_p holds prj_a through a project share, with both capabilities granted to the org: it can use them, and is still no member.
+select pg_temp.as_user('alice');
+insert into app.project_shares (project_id, partner_organization_id) values (pg_temp.id('prj_a'), pg_temp.id('org_p'));
+insert into app.record_grants (target_kind, target_id, capability_code, grantee_org_id, valid_to, reason) values
+  ('project', pg_temp.id('prj_a'), 'show.run_of_show.read', pg_temp.id('org_p'), now() + interval '7 days', 'Co-production.'),
+  ('project', pg_temp.id('prj_a'), 'show.run_of_show.write', pg_temp.id('org_p'), now() + interval '7 days', 'Co-production.'),
+  ('project', pg_temp.id('prj_a'), 'show.cue.call', pg_temp.id('org_p'), now() + interval '7 days', 'Co-production.');
+select pg_temp.as_platform();
+select ok(private.person_can_on_project(pg_temp.id('paul'), pg_temp.id('prj_a'), 'show.run_of_show.write')
+  and private.person_can_on_project(pg_temp.id('paul'), pg_temp.id('prj_a'), 'show.cue.call'), 'a partner org''s Owner holds both capabilities on the shared project');
+select is(pg_temp.link('paul', 'x', 'ros'), '42501', 'but a partner holding the project through a share makes no link');
+select pg_temp.as_user('alice');
+update app.record_grants set deleted_at = now() where grantee_org_id = pg_temp.id('org_p');
+update app.project_shares set deleted_at = now() where partner_organization_id = pg_temp.id('org_p');
+select pg_temp.as_platform();
 select is(pg_temp.link('dave', 'x', 'ros', '   '), 'showcaller_link_caller_name', 'the caller needs a name');
 select is(pg_temp.link('dave', 'x', 'ros', 'Sam', now() + interval '15 days'), 'showcaller_link_expiry_range', 'and the link at most 14 days');
 select is(pg_temp.link('dave', 'x', 'ros', 'Sam', now() - interval '1 minute'), 'showcaller_link_expiry_range', 'after now');
@@ -138,8 +154,8 @@ select is(app.showcaller_link_devices(pg_temp.k('l1')), 0, 'which starts at none
 select pg_temp.as_platform();
 
 -- Regenerating, signing out and revoking ---------------------------------------------------------------------------------------
-insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, expires_at)
-values (private.share_token_hash('xcgr_' || repeat('a', 64)), pg_temp.k('l1'), now() + interval '1 hour');
+insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, org_id, expires_at)
+values (private.share_token_hash('xcgr_' || repeat('a', 64)), pg_temp.k('l1'), pg_temp.id('org_a'), now() + interval '1 hour');
 select pg_temp.as_user('dave');
 insert into k select 'l1:new', null, r.token from app.regenerate_showcaller_link(pg_temp.k('l1')) r;
 select pg_temp.as_platform();
@@ -148,8 +164,8 @@ select ok(exists (select 1 from private.retired_showcaller_link_tokens where tok
   'and retires the old one');
 select is((select count(*)::int from private.showcaller_link_grants where showcaller_link_id = pg_temp.k('l1')), 0, 'and drops every grant');
 select ok((select rotated_at is not null and failed_attempts = 0 from app.showcaller_links where id = pg_temp.k('l1')), 'and says when');
-insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, expires_at)
-values (private.share_token_hash('xcgr_' || repeat('b', 64)), pg_temp.k('l1'), now() + interval '1 hour');
+insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, org_id, expires_at)
+values (private.share_token_hash('xcgr_' || repeat('b', 64)), pg_temp.k('l1'), pg_temp.id('org_a'), now() + interval '1 hour');
 select pg_temp.as_user('dave');
 select is(app.sign_out_showcaller_devices(pg_temp.k('l1')), 1, 'signing devices out drops their grants');
 select pg_temp.as_platform();
@@ -203,8 +219,8 @@ insert into app.cues (run_of_show_id, position, label, segment) values (pg_temp.
 insert into world select 'q_doors', c.id from app.cues c where c.run_of_show_id = pg_temp.id('ros2') and c.label = 'Doors';
 select app.set_segment_color(pg_temp.id('ros2'), 'Doors', 'cat-3');
 select pg_temp.as_platform();
-insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, expires_at)
-values (private.share_token_hash('xcgr_' || repeat('c', 64)), pg_temp.k('l6'), now() + interval '1 hour');
+insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, org_id, expires_at)
+values (private.share_token_hash('xcgr_' || repeat('c', 64)), pg_temp.k('l6'), pg_temp.id('org_a'), now() + interval '1 hour');
 select pg_temp.as_user('dave');
 update app.run_of_show set deleted_at = now() where id = pg_temp.id('ros2');
 select pg_temp.as_platform();
@@ -274,6 +290,37 @@ select ok(exists (select 1 from private.trash_excluded_tables where table_name =
 select ok(not exists (select 1 from private.trash_tables where table_name = 'showcaller_links'), 'and sync_trash_tables leaves them out');
 select is((select retention from private.retention_policies where table_name = 'app.showcaller_links'), interval '7 years',
   'they keep the default retention, so no link is purged before the cues that name it');
+
+-- A link never stops its org being purged: the private channel and grant rows carry the org, so they go with it ----------
+select pg_temp.as_user('xavier');
+with x as (insert into app.run_of_show (project_id, name, show_date) values (pg_temp.id('prj_b'), 'Pier Night', current_date + 7) returning id)
+  insert into world select 'ros_b', id from x;
+select pg_temp.as_platform();
+select is(pg_temp.link('xavier', 'lb', 'ros_b'), 'ok', 'an org with a showcaller link');
+insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, org_id, expires_at)
+values (private.share_token_hash('xcgr_' || repeat('d', 64)), pg_temp.k('lb'), pg_temp.id('org_b'), now() + interval '1 hour');
+insert into world select 'cert_b', private.write_deletion_certificate(pg_temp.id('org_b'), 'cancellation', now(), now(), null);
+update app.deletion_certificates set storage_cleared_at = now() where id = pg_temp.id('cert_b');
+select cmp_ok(private.purge_organization(pg_temp.id('cert_b')), '>', 0::bigint, 'is purged');
+select is((select blocked_reason from app.deletion_certificates where id = pg_temp.id('cert_b')), null, 'with nothing blocking it');
+select is((select count(*)::int from app.showcaller_links where id = pg_temp.k('lb')), 0, 'the link goes with it');
+select is((select count(*)::int from private.showcaller_link_channels where showcaller_link_id = pg_temp.k('lb')), 0, 'its channel key');
+select is((select count(*)::int from private.showcaller_link_grants where showcaller_link_id = pg_temp.k('lb')), 0, 'and its device grants');
+
+select pg_temp.as_user('nina');
+insert into world select 'sandbox', s.org_id from app.open_my_sandbox() s;
+with x as (insert into app.run_of_show (project_id, name, show_date)
+  values ((select p.id from app.projects p where p.org_id = pg_temp.id('sandbox') order by p.project_key limit 1), 'Sandbox Night', current_date + 3) returning id)
+  insert into world select 'ros_sb', id from x;
+select pg_temp.as_platform();
+select is(pg_temp.link('nina', 'lsb', 'ros_sb'), 'ok', 'a sandbox with a showcaller link');
+insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, org_id, expires_at)
+values (private.share_token_hash('xcgr_' || repeat('e', 64)), pg_temp.k('lsb'), pg_temp.id('sandbox'), now() + interval '1 hour');
+update app.sandbox_orgs set expires_at = now() - interval '1 second' where org_id = pg_temp.id('sandbox');
+select lives_ok(format('select private.purge_sandbox_org(%L)', pg_temp.id('sandbox')), 'is purged');
+select is((select count(*)::int from app.organizations where id = pg_temp.id('sandbox')), 0, 'whole');
+select is((select count(*)::int from private.showcaller_link_channels where showcaller_link_id = pg_temp.k('lsb')), 0, 'its channel key included');
+select is((select count(*)::int from private.showcaller_link_grants where showcaller_link_id = pg_temp.k('lsb')), 0, 'and its device grants');
 
 select * from finish();
 rollback;

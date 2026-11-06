@@ -4,9 +4,10 @@
 -- changes no cue, department call or audit event; 20 such answers delete the grant; the read answers R1's rows only,
 -- never a person or the note. Also: a read-only transaction is refused first, tokens never cross kinds or links, the
 -- writes the portal may make (attributed to the link), the field allowlist and stale edits, the device cap, a locked
--- link still serving its devices, the per-cue flags the portal needs (called through a link, an artist's set time), and
--- the portal stopping when a column it shows is reclassified, the creator loses access, the org turns read-only, or the
--- running order or its project is trashed. P2's own suite (2790) runs unchanged over the cores.
+-- link still serving its devices, the per-cue flags the portal needs (called through a link, an artist's set time), the
+-- rate ceilings, and the portal stopping when a column it shows is reclassified, the link expires or signs its devices
+-- out, the creator loses membership or either capability, the org turns read-only, or the running order or its project
+-- is trashed. P2's own suite (2790) runs unchanged over the cores.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -386,6 +387,94 @@ select is(pg_temp.anon(format('select api_public.showcaller_run(%L, %L, null)', 
   'showcaller_link_invalid', 'an unknown token reads nothing');
 select is((select count(*) from private.rate_limit_events where bucket = 'live_link.failure')::text, (pg_temp.val('failures')::int + 1)::text,
   'and does count as a failure');
+
+-- A fourth night, for what stops one link and leaves the others ---------------------------------------------------------------------
+select pg_temp.as_user('dave');
+with x as (insert into app.run_of_show (project_id, name, show_date) values (pg_temp.id('prj_a'), 'Fourth Night', current_date + 10) returning id)
+  insert into world select 'r5', id from x;
+insert into app.cues (run_of_show_id, position, label) values (pg_temp.id('r5'), 1, 'R5 Doors'), (pg_temp.id('r5'), 2, 'R5 Curtain');
+insert into world select 'r5q' || c.position, c.id from app.cues c where c.run_of_show_id = pg_temp.id('r5');
+select pg_temp.as_platform();
+
+-- Expiry: the next read and the next write stop.
+select pg_temp.link('dave', 'lx', 'r5');
+select is(pg_temp.open('lx', pg_temp.val('lx:code'), 'g_x'), 'ok', 'a link to the fourth night opens');
+select is(pg_temp.run('lx', 'g_x') ->> 'status', 'ok', 'and reads');
+select private.begin_trusted_operation('showcaller_link_service');
+update app.showcaller_links set expires_at = now() - interval '1 minute' where id = pg_temp.k('lx');
+select private.end_trusted_operation('showcaller_link_service');
+select is(pg_temp.run('lx', 'g_x') ->> 'reason', 'showcaller_link_expired', 'past its expiry the portal reads nothing');
+select is(pg_temp.w('lx', 'g_x', 'showcaller_standby_cue', quote_literal(pg_temp.id('r5q1'))) ->> 'reason', 'showcaller_link_expired', 'and writes nothing');
+select is((select standby_at from app.cues where id = pg_temp.id('r5q1')), null::timestamptz, 'the cue is unchanged');
+
+-- Signing devices out: the next read and the next write stop, and the code opens it again.
+select pg_temp.link('dave', 'ls', 'r5');
+select is(pg_temp.open('ls', pg_temp.val('ls:code'), 'g_s'), 'ok', 'a device on another link');
+select is(pg_temp.run('ls', 'g_s') ->> 'status', 'ok', 'reads');
+select pg_temp.as_user('dave');
+select is(app.sign_out_showcaller_devices(pg_temp.k('ls')), 1, 'until the creator signs it out');
+select pg_temp.as_platform();
+select is(pg_temp.run('ls', 'g_s') ->> 'reason', 'showcaller_link_grant', 'then its next read is refused');
+select is(pg_temp.w('ls', 'g_s', 'showcaller_standby_cue', quote_literal(pg_temp.id('r5q1'))) ->> 'reason', 'showcaller_link_grant', 'and its next write');
+
+-- The creator's access, each part alone. gina is a viewer: only these grants let her make the link.
+select pg_temp.as_user('alice');
+insert into app.user_capability_grants (membership_id, capability_code, scope_kind, scope_id, reason) values
+  (pg_temp.id('gina@org_a'), 'show.run_of_show.read', 'project', pg_temp.id('prj_a'), 'Guest calling.'),
+  (pg_temp.id('gina@org_a'), 'show.run_of_show.write', 'project', pg_temp.id('prj_a'), 'Guest calling.'),
+  (pg_temp.id('gina@org_a'), 'show.cue.call', 'project', pg_temp.id('prj_a'), 'Guest calling.');
+select pg_temp.as_platform();
+select pg_temp.link('gina', 'lg', 'r5');
+select is(pg_temp.open('lg', pg_temp.val('lg:code'), 'g_g'), 'ok', 'gina''s link opens');
+select is(pg_temp.run('lg', 'g_g') ->> 'status', 'ok', 'and reads while she holds both capabilities');
+create function pg_temp.set_gina_capability(p_capability text, p_held boolean) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_user('alice');
+  update app.user_capability_grants set deleted_at = case when p_held then null else now() end
+  where membership_id = pg_temp.id('gina@org_a') and capability_code = p_capability and scope_id = pg_temp.id('prj_a');
+  perform pg_temp.as_platform();
+end $$;
+select pg_temp.set_gina_capability('show.cue.call', false);
+select is(pg_temp.run('lg', 'g_g') ->> 'reason', 'showcaller_link_owner_access', 'it stops when she loses show.cue.call alone');
+select is(pg_temp.w('lg', 'g_g', 'showcaller_standby_cue', quote_literal(pg_temp.id('r5q1'))) ->> 'reason', 'showcaller_link_owner_access', 'writes too');
+select pg_temp.set_gina_capability('show.cue.call', true);
+select is(pg_temp.run('lg', 'g_g') ->> 'status', 'ok', 'and reads again once she has it back');
+select pg_temp.set_gina_capability('show.run_of_show.write', false);
+select is(pg_temp.run('lg', 'g_g') ->> 'reason', 'showcaller_link_owner_access', 'it stops when she loses show.run_of_show.write alone');
+select pg_temp.set_gina_capability('show.run_of_show.write', true);
+select is(pg_temp.run('lg', 'g_g') ->> 'status', 'ok', 'and reads again');
+update app.memberships set deleted_at = now() where id = pg_temp.id('gina@org_a');
+select is(pg_temp.run('lg', 'g_g') ->> 'reason', 'showcaller_link_owner_access', 'it stops when she leaves the org, whatever grants remain');
+select is(pg_temp.w('lg', 'g_g', 'showcaller_standby_cue', quote_literal(pg_temp.id('r5q1'))) ->> 'reason', 'showcaller_link_owner_access', 'writes too');
+update app.memberships set deleted_at = null where id = pg_temp.id('gina@org_a');
+
+-- Rate ceilings: seeded to one short, the next call is the last, and the one after answers the rate refusal --------------------------
+create function pg_temp.seed_rate(p_bucket text, p_subject text, p_events integer) returns void
+language sql as $$
+  insert into private.rate_limit_events (bucket, subject_hash)
+  select p_bucket, extensions.digest(p_subject, 'sha256') from generate_series(1, p_events);
+$$;
+create function pg_temp.grant_subject(p_grant_key text) returns text
+language sql as $$ select encode(private.share_token_hash(pg_temp.val(p_grant_key)), 'hex') $$;
+
+select pg_temp.link('dave', 'lr', 'r5');
+select is(pg_temp.open('lr', pg_temp.val('lr:code'), 'g_r'), 'ok', 'a device with its own rate counts');
+select pg_temp.seed_rate('showcaller_link.read', pg_temp.grant_subject('g_r'), 7199);
+select is(pg_temp.run('lr', 'g_r') ->> 'status', 'ok', 'read 7200 in the hour is served');
+select is(pg_temp.run('lr', 'g_r') ->> 'reason', 'showcaller_link_rate_limited', 'read 7201 is refused: 7200 an hour per grant');
+select pg_temp.seed_rate('showcaller_link.write', pg_temp.grant_subject('g_r'), 1799);
+select is(pg_temp.w('lr', 'g_r', 'showcaller_standby_cue', quote_literal(pg_temp.id('r5q1'))) ->> 'status', 'ok', 'write 1800 in the hour is served');
+insert into k values ('before_rate', null, pg_temp.snapshot());
+select is(pg_temp.w('lr', 'g_r', 'showcaller_standby_cue', 'null') ->> 'reason', 'showcaller_link_rate_limited', 'write 1801 is refused: 1800 an hour per grant');
+select is(pg_temp.snapshot(), pg_temp.val('before_rate'), 'and changes nothing');
+
+select is(pg_temp.open('lr', pg_temp.val('lr:code'), 'g_r2'), 'ok', 'another device on the same link');
+select is(pg_temp.run('lr', 'g_r2') ->> 'status', 'ok', 'has its own read count');
+select pg_temp.seed_rate('showcaller_link.link_read', pg_temp.k('lr')::text, 40000);
+select is(pg_temp.run('lr', 'g_r2') ->> 'reason', 'showcaller_link_rate_limited', 'until the link itself passes 40000 reads an hour');
+select is(pg_temp.open('lr', pg_temp.val('lr:code'), 'g_r3'), 'ok', 'even a new device is held to the link''s count');
+select is(pg_temp.run('lr', 'g_r3') ->> 'reason', 'showcaller_link_rate_limited', 'and is refused too');
 
 -- The creator leaves the project: writes stop -------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');

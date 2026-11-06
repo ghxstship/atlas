@@ -545,8 +545,8 @@ begin
   end if;
   v_grant := 'xcgr_' || encode(extensions.gen_random_bytes(32), 'hex');
   v_grant_expires := least(v_link.expires_at, now() + interval '48 hours');
-  insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, expires_at)
-  values (private.share_token_hash(v_grant), v_link.id, v_grant_expires);
+  insert into private.showcaller_link_grants (grant_hash, showcaller_link_id, org_id, expires_at)
+  values (private.share_token_hash(v_grant), v_link.id, v_link.org_id, v_grant_expires);
 
   perform private.begin_trusted_operation('showcaller_link_service');
   update app.showcaller_links l set open_count = l.open_count + 1, last_opened_at = now() where l.id = v_link.id;

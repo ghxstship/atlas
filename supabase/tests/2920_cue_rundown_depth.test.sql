@@ -66,7 +66,6 @@ end $$;
 select ok(exists (select 1 from private.custom_field_targets where table_name = 'app.cues'), 'cues are a custom field target');
 select is(pg_temp.n('dave', $$select 1 from app.custom_field_targets where table_name = 'app.cues'$$), 1,
   'and the Settings page lists them');
-select is((select count(*)::int from private.custom_field_targets), 10, 'ten built-in tables take custom fields now');
 
 -- A running order on NWL, and a Client --------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');

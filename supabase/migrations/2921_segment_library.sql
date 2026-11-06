@@ -25,7 +25,8 @@
 --     with the current version, in place (Global Elements Manager semantics: local edits to those cues are replaced, and
 --     the UI says so). An instance with a called cue (Called) or a cue linked to an artist's set time (Linked) is left
 --     untouched; one already current answers Current; one with no live cue, or a run without an instance, answers
---     No Instance, so publishing never brings back a segment a member removed. Runs are locked one by one in id order.
+--     No Instance, so publishing never brings back a segment a member removed. An empty segment publishes nothing
+--     (segment_library_empty). Runs are locked one by one in id order.
 
 insert into private.domain_event_types (code, subject, description) values
   ('segment_library.inserted', 'run_segment_instances', 'A library segment was copied into a running order.'),
@@ -484,6 +485,10 @@ begin
     perform private.refuse('segment_publish_runs', 'Publish to between 1 and 50 running orders at a time.');
   end if;
   select count(*) into v_n from app.segment_library_cues lc where lc.segment_library_id = v_library.id and lc.deleted_at is null;
+  -- Replacing a copy with nothing would remove its cues and answer Published, and they have no way back.
+  if v_n = 0 then
+    perform private.refuse('segment_library_empty', 'This library segment has no cues yet.');
+  end if;
 
   perform private.begin_trusted_operation('segment_library');
   for v_run_id in select distinct x from unnest(p_run_ids) x where x is not null order by x loop
@@ -540,7 +545,7 @@ begin
 end;
 $$;
 
-comment on function app.publish_library_segment(uuid, uuid[]) is 'Publishes a library segment''s current version to up to 50 chosen running orders of its org (segment_publish_runs otherwise), locking them one by one in id order (ADR 0142). Answers one row per copy of the segment in each run: Published (its live uncalled cues were replaced in place by the current copies, with their department calls, and the run renumbered 1..n), Current (already this version), Called (a cue was called) or Linked (a cue is an artist''s set time), both left untouched, or No Instance (the run holds no live copy). Local edits to replaced cues, custom values included, are lost. Needs show.run_of_show.write on every run; no other run changes.';
+comment on function app.publish_library_segment(uuid, uuid[]) is 'Publishes a library segment''s current version to up to 50 chosen running orders of its org (segment_publish_runs otherwise; an empty segment is refused, segment_library_empty), locking them one by one in id order (ADR 0142). Answers one row per copy of the segment in each run: Published (its live uncalled cues were replaced in place by the current copies, with their department calls, and the run renumbered 1..n), Current (already this version), Called (a cue was called) or Linked (a cue is an artist''s set time), both left untouched, or No Instance (the run holds no live copy). Local edits to replaced cues, custom values included, are lost. Needs show.run_of_show.write on every run; no other run changes.';
 revoke all on function app.publish_library_segment(uuid, uuid[]) from public, anon;
 grant execute on function app.publish_library_segment(uuid, uuid[]) to authenticated, service_role;
 

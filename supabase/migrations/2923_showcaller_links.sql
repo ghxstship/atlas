@@ -192,17 +192,22 @@ grant select on app.showcaller_link_states to authenticated, service_role;
 revoke select on app.showcaller_link_states from xos_backup;
 
 -- Private state: channel keys, device grants and retired tokens -----------------------------------------------------------
+-- The channels and grants carry the link's org, so the org's purge (1351) and a sandbox's (1530) count them as the org's own
+-- rows; a row that references a marked row and has no org_id would stop both.
 
 create table private.showcaller_link_channels (
   showcaller_link_id uuid primary key references app.showcaller_links (id),
+  org_id uuid not null references app.organizations (id),
   channel_key text not null,
   created_at timestamptz not null default now(),
   constraint showcaller_link_channels_key_format check (channel_key ~ '^xcch_[0-9a-f]{64}$')
 );
 
 create unique index showcaller_link_channels_key on private.showcaller_link_channels (channel_key);
+create index showcaller_link_channels_org_idx on private.showcaller_link_channels (org_id);
 call private.describe('private.showcaller_link_channels', 'Each showcaller link''s Realtime channel key (ADR 0142, 2925). The portal joins xcall:<key>, which only the database sends to; regenerating a link draws a new key.', array[
   'showcaller_link_id', 'Showcaller link.',
+  'org_id', 'Org of the link.',
   'channel_key', 'xcch_ and 256 random bits in hex; handed to the portal only after the access code and with a valid device grant.',
   'created_at', 'When the key was drawn.'
 ]);
@@ -213,16 +218,19 @@ grant select on private.showcaller_link_channels to service_role;
 create table private.showcaller_link_grants (
   grant_hash bytea primary key,
   showcaller_link_id uuid not null references app.showcaller_links (id),
+  org_id uuid not null references app.organizations (id),
   expires_at timestamptz not null,
   created_at timestamptz not null default now(),
   constraint showcaller_link_grants_hash_length check (octet_length(grant_hash) = 32)
 );
 
 create index showcaller_link_grants_link_idx on private.showcaller_link_grants (showcaller_link_id);
+create index showcaller_link_grants_org_idx on private.showcaller_link_grants (org_id);
 create index showcaller_link_grants_expires_idx on private.showcaller_link_grants (expires_at);
 call private.describe('private.showcaller_link_grants', 'Device grants of showcaller links (ADR 0142): a correct access code earns the browser a grant, kept in an HttpOnly cookie, that carries its later reads and writes without the code until the link expires or 48 hours pass. At most 5 unexpired grants per link. Regenerating or revoking the link, signing its devices out, or 20 out-of-scope writes by the grant in 10 minutes delete grants. Only the SHA-256 of the grant is stored.', array[
   'grant_hash', 'SHA-256 of the grant (xcgr_ and 256 random bits in hex).',
   'showcaller_link_id', 'Showcaller link the grant opens.',
+  'org_id', 'Org of the link.',
   'expires_at', 'When the grant stops working: the link''s expiry or 48 hours after the open, whichever comes first.',
   'created_at', 'When the grant was issued.'
 ]);
@@ -320,7 +328,7 @@ begin
     right(v_token, 4), private.share_code_hash(v_token, v_code), v_expires)
   returning l.id into v_id;
   perform private.end_trusted_operation('showcaller_link_service');
-  insert into private.showcaller_link_channels (showcaller_link_id, channel_key) values (v_id, private.new_showcaller_channel_key());
+  insert into private.showcaller_link_channels (showcaller_link_id, org_id, channel_key) values (v_id, v_run.org_id, private.new_showcaller_channel_key());
   perform private.emit_event(v_run.org_id, 'showcaller_link.created', 'showcaller_links', v_id, v_run.project_id,
     jsonb_build_object('run_of_show_id', v_run.id, 'expires_at', v_expires));
   return query select v_id, v_token, v_code, v_expires;
