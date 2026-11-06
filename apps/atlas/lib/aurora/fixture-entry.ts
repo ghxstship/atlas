@@ -314,6 +314,11 @@ export const FIXTURE_DOCUMENTS: Readonly<Record<string, FixtureDocument>> = {
       issued_on: { value: "2026-09-02", excerpt: "Invoice date: 2026-09-02", confidence: 0.93 },
       due_on: { value: "2026-10-02", excerpt: "Payment due: 2026-10-02", confidence: 0.91 },
       currency_code: { value: "USD", excerpt: "Total due: USD 18,450.00", confidence: 0.88 },
+      printed_total_minor: {
+        value: 1845000,
+        excerpt: "Total due: USD 18,450.00",
+        confidence: 0.9,
+      },
     },
   },
   receipt: {

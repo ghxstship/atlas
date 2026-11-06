@@ -162,6 +162,17 @@ export function tieOut(input: {
   };
 }
 
+/** The pay basis a fee printed as a total can be carried on: an engagement's rate is per unit. */
+export const FLAT_FEE = "Flat Fee";
+
+/**
+ * The fee a contract review prefills: the printed fee only on a Flat Fee row. On any other basis the
+ * total is shown and not carried, because it would become a rate per day or per unit.
+ */
+export function prefilledFee(payBasis: string | null, printedFeeMinor: number | null): number | null {
+  return payBasis === FLAT_FEE ? printedFeeMinor : null;
+}
+
 const isRealDay = (year: number, month: number, day: number) => {
   const at = new Date(Date.UTC(year, month - 1, day));
   return at.getUTCMonth() === month - 1 && at.getUTCDate() === day;

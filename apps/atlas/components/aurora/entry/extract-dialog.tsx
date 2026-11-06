@@ -3,6 +3,7 @@
 import type { AuroraExtraction, AuroraSuggestion, AuroraSuggestionField } from "@xos/ai/client";
 import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
 import { useId, useState } from "react";
+import { rejectedOnFill, splitReading } from "@/lib/aurora/extract-reading";
 import { flushSync } from "react-dom";
 import {
   AiGenerated,
@@ -27,12 +28,7 @@ type Media = (typeof MEDIA)[number];
 
 /** Each kind's header operation and line operation, as the extraction proposes them. */
 const LINE_OPERATION = "rfqResponseLines.create";
-/**
- * An invoice's lines are not filled into the form: they stay open for the invoice's detail. They are
- * not the header, not loaded here, and not in the form's suggestion fields, and they are rejected on
- * Discard or when a new reading replaces this one.
- */
-const DEFERRED_OPERATION = "invoiceLines.create";
+
 
 interface Line {
   readonly id: string;
@@ -164,14 +160,8 @@ export function ExtractDialog({
       setAnnouncement(outcomeAnnouncement(outcome, t, ""));
       return;
     }
-    const deferredIds = outcome.suggestions
-      .filter((s) => s.operation_id === DEFERRED_OPERATION)
-      .map((s) => s.suggestion_id);
-    const loaded = await Promise.all(
-      outcome.suggestions
-        .filter((s) => s.operation_id !== DEFERRED_OPERATION)
-        .map((s) => client.suggestion(s.suggestion_id)),
-    );
+    const { deferred: deferredIds, loaded: toLoad } = splitReading(outcome.suggestions);
+    const loaded = await Promise.all(toLoad.map((id) => client.suggestion(id)));
     const suggestions = loaded.flatMap((r) => (r.ok ? [r.data] : []));
     const header = suggestions.find((s) => s.operation_id !== LINE_OPERATION);
     if (!header || suggestions.length !== loaded.length) {
@@ -236,12 +226,10 @@ export function ExtractDialog({
     const missing = fillForm(target, writes);
     // Suggestions replaced by this reading, and lines left out, are closed as rejected now.
     const kept = [phase.header.id, ...chosen.map((l) => l.id)];
-    const dropped = [
-      ...filled.filter((s) => !kept.includes(s)),
-      ...deferred,
-      ...lines.filter((l) => !kept.includes(l.id)).map((l) => l.id),
-    ];
-    await reject(dropped, t("extract.rejectReason"));
+    await reject(
+      rejectedOnFill({ kept, filled, deferred, lines: lines.map((l) => l.id) }),
+      t("extract.rejectReason"),
+    );
     onFilled(kept, phase.deferred);
     onOpenChange(false);
     setAnnouncement(

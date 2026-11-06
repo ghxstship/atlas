@@ -7,7 +7,13 @@ import type {
   AuroraOpenProposal,
   AuroraProblem,
 } from "@xos/ai/client";
-import { matchExact, normalizeAct, normalizePersonName } from "@xos/ai/intake";
+import {
+  FLAT_FEE,
+  matchExact,
+  normalizeAct,
+  normalizePersonName,
+  prefilledFee,
+} from "@xos/ai/intake";
 import { Button, Checkbox, InlineAlert, Input, Select, Tag } from "@xos/ui";
 import { useLocale } from "next-intl";
 import Link from "next/link";
@@ -42,8 +48,6 @@ import {
   useEntryT,
 } from "./shared";
 
-/** The pay basis a fee printed as a total can be carried on: agreed_rate_minor is per unit. */
-const FLAT_FEE = "Flat Fee";
 /** XOS-ENG-4: vendor-supplied labor names the vendor, so it is offered only for a counterparty. */
 const VENDOR_SUPPLIED = "VENDOR_SUPPLIED";
 
@@ -537,15 +541,8 @@ export function ContractIntakeDialog({
                 setGroups(
                   (current) =>
                     current?.map((g) => {
-                      const printed = printedFee(g);
-                      const currency = g.currency || "USD";
-                      return {
-                        ...g,
-                        fee:
-                          chosen?.pay_basis === FLAT_FEE && printed !== null
-                            ? toMajorText(printed, currency)
-                            : "",
-                      };
+                      const fee = prefilledFee(chosen?.pay_basis ?? null, printedFee(g));
+                      return { ...g, fee: toMajorText(fee, g.currency || "USD") };
                     }) ?? null,
                 );
               }}

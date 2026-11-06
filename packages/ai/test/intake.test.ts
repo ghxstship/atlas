@@ -6,6 +6,7 @@ import {
   matchExact,
   normalizeAct,
   normalizePersonName,
+  prefilledFee,
   tieOut,
 } from "../src/intake.ts";
 
@@ -149,6 +150,21 @@ describe("inferYear", () => {
   it("waits for a leap year, and refuses a day no year has", () => {
     expect(inferYear(2, 29, "2027-03-01")).toBe("2028-02-29");
     expect(inferYear(2, 30, "2027-03-01")).toBeNull();
+  });
+});
+
+describe("prefilledFee", () => {
+  it("carries a printed fee only on a Flat Fee row", () => {
+    expect(prefilledFee("Flat Fee", 750000)).toBe(750000);
+  });
+
+  it("never carries a total onto a day rate, the only basis canon has today", () => {
+    expect(prefilledFee("Day Rate", 750000)).toBeNull();
+    expect(prefilledFee(null, 750000)).toBeNull();
+  });
+
+  it("stays empty when no fee was read", () => {
+    expect(prefilledFee("Flat Fee", null)).toBeNull();
   });
 });
 
