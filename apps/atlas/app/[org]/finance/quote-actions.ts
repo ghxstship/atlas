@@ -302,10 +302,7 @@ export async function sendQuoteAction(_: QuoteSendState, form: FormData): Promis
   const ctx = await contextOf(v.org);
   const sent = await quotes.sendQuoteVersion(ctx.viewer.db, v.versionId, v.reason || null);
   if (!sent.ok) return { error: toActionError(sent.error), at: Date.now() };
-  const link =
-    v.email === ""
-      ? {}
-      : await issueLink(ctx, sent.data.engagementDocumentId, v.email);
+  const link = v.email === "" ? {} : await issueLink(ctx, sent.data.engagementDocumentId, v.email);
   return { ok: true, at: Date.now(), ...link };
 }
 

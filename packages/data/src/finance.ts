@@ -1126,42 +1126,43 @@ export async function getBudget(
     (r) => r,
   );
   if (!head.ok) return head;
-  const [summaries, lines, amounts, commitments, prices, forecasts, forecastTotals] = await Promise.all([
-    listBudgets(db, { orgId, projectId: str(head.data["project_id"]) }),
-    rows(
-      db
-        .from("budget_lines")
-        .select(LINE_COLUMNS)
-        .eq("budget_id", budgetId)
-        .is("deleted_at", null)
-        .order("line_number"),
-      (r) => r,
-    ),
-    rows(db.from("budget_line_amounts").select("*").eq("budget_id", budgetId), (r) => r),
-    rows(
-      db
-        .from("budget_line_commitments")
-        .select(
-          "budget_line_id, committed_minor, po_line_count, other_currency_po_line_count, is_committed_withheld",
-        )
-        .eq("budget_id", budgetId),
-      (r) => r,
-    ),
-    rows(db.from("budget_line_prices").select("*").eq("budget_id", budgetId), (r) => r),
-    rows(db.from("budget_line_forecasts").select("*").eq("budget_id", budgetId), (r) => r),
-    rows(
-      db
-        .from("budget_forecast_totals")
-        .select("efc_minor, forward_exposure_minor, unallocated_change_minor, is_withheld")
-        .eq("budget_id", budgetId),
-      (r): BudgetForecastTotals => ({
-        efcMinor: numOrNull(r["efc_minor"]),
-        forwardExposureMinor: numOrNull(r["forward_exposure_minor"]),
-        unallocatedChangeMinor: num(r["unallocated_change_minor"]),
-        isWithheld: r["is_withheld"] === true,
-      }),
-    ),
-  ]);
+  const [summaries, lines, amounts, commitments, prices, forecasts, forecastTotals] =
+    await Promise.all([
+      listBudgets(db, { orgId, projectId: str(head.data["project_id"]) }),
+      rows(
+        db
+          .from("budget_lines")
+          .select(LINE_COLUMNS)
+          .eq("budget_id", budgetId)
+          .is("deleted_at", null)
+          .order("line_number"),
+        (r) => r,
+      ),
+      rows(db.from("budget_line_amounts").select("*").eq("budget_id", budgetId), (r) => r),
+      rows(
+        db
+          .from("budget_line_commitments")
+          .select(
+            "budget_line_id, committed_minor, po_line_count, other_currency_po_line_count, is_committed_withheld",
+          )
+          .eq("budget_id", budgetId),
+        (r) => r,
+      ),
+      rows(db.from("budget_line_prices").select("*").eq("budget_id", budgetId), (r) => r),
+      rows(db.from("budget_line_forecasts").select("*").eq("budget_id", budgetId), (r) => r),
+      rows(
+        db
+          .from("budget_forecast_totals")
+          .select("efc_minor, forward_exposure_minor, unallocated_change_minor, is_withheld")
+          .eq("budget_id", budgetId),
+        (r): BudgetForecastTotals => ({
+          efcMinor: numOrNull(r["efc_minor"]),
+          forwardExposureMinor: numOrNull(r["forward_exposure_minor"]),
+          unallocatedChangeMinor: num(r["unallocated_change_minor"]),
+          isWithheld: r["is_withheld"] === true,
+        }),
+      ),
+    ]);
   if (!summaries.ok) return summaries;
   if (!lines.ok) return lines;
   if (!amounts.ok) return amounts;

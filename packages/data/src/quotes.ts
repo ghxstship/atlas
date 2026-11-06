@@ -212,7 +212,8 @@ export async function getQuote(db: XosClient, quoteId: string): Promise<Result<Q
     ? await capturedLines(db, shown.budgetVersionId)
     : await liveLines(db, head.budgetId);
   if (!lines.ok) return lines;
-  const live = draft && draft.id !== head.currentVersionId ? await liveTotals(db, head.budgetId) : null;
+  const live =
+    draft && draft.id !== head.currentVersionId ? await liveTotals(db, head.budgetId) : null;
   if (live && !live.ok) return live;
   let costTotal: number | null = 0;
   for (const line of lines.data) {
@@ -237,7 +238,9 @@ export async function getQuote(db: XosClient, quoteId: string): Promise<Result<Q
 async function liveTotals(
   db: XosClient,
   budgetId: string,
-): Promise<Result<{ clientTotalMinor: number | null; marginMinor: number | null; currency: string }>> {
+): Promise<
+  Result<{ clientTotalMinor: number | null; marginMinor: number | null; currency: string }>
+> {
   const { data, error } = await db
     .from("budget_price_totals")
     .select("client_total_minor, margin_minor, currency_code")
@@ -387,9 +390,10 @@ export async function quoteLinkWindow(
   where: { readonly versionId: string } | { readonly documentId: string },
 ): Promise<Result<{ validUntil: string; timeZone: string }>> {
   const versions = db.from("quote_versions").select("valid_until, quote_id");
-  const { data: version, error } = await ("versionId" in where
-    ? versions.eq("id", where.versionId)
-    : versions.eq("engagement_document_id", where.documentId)
+  const { data: version, error } = await (
+    "versionId" in where
+      ? versions.eq("id", where.versionId)
+      : versions.eq("engagement_document_id", where.documentId)
   ).maybeSingle();
   if (error) return fail(toDataError(error));
   if (!version) return fail({ kind: "not-found" });

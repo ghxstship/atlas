@@ -544,9 +544,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
  * A quote accepted through a signing link and one accepted signed in to Gateway: only an Accepted quote
  * prints the Signature block (S14.5-01), so veraPDF checks it in both wordings.
  */
-const acceptedQuote = (
-  acceptedEmail: string | null,
-): DocumentDataMap["quote"] => ({
+const acceptedQuote = (acceptedEmail: string | null): DocumentDataMap["quote"] => ({
   ...FIXTURES.quote,
   quote: {
     ...FIXTURES.quote.quote,

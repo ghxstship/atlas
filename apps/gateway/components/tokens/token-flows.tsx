@@ -389,7 +389,7 @@ function QuoteSummary({
             {quote.lines.map((l) => (
               <tr key={l.id} className="border-t border-border-subtle">
                 <td className="py-6">{l.description}</td>
-                <td className="py-6 text-end tabular-nums">{l.quantity}</td>
+                <td className="py-6 text-end tabular-nums">{format.number(l.quantity)}</td>
                 <td className="py-6 text-end tabular-nums">{money(l.unit_price_minor)}</td>
                 <td className="py-6 text-end tabular-nums">{money(l.amount_minor)}</td>
               </tr>

@@ -167,14 +167,7 @@ export class LineSaves {
 }
 
 export type LineConflictField =
-  | "description"
-  | "urid"
-  | "quantity"
-  | "unitPrice"
-  | "markup"
-  | "clientPrice"
-  | "onQuote"
-  | "etc";
+  "description" | "urid" | "quantity" | "unitPrice" | "markup" | "clientPrice" | "onQuote" | "etc";
 
 /** What differs between a stale save and the line that beat it, for the conflict dialog (journey 33). */
 export function lineConflictFields(mine: BudgetLineInput, theirs: BudgetLine): LineConflictField[] {

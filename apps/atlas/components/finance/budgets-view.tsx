@@ -381,7 +381,13 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
           <>
             <Figures
               label={t("finance.budgets.figures.label")}
-              items={totalsFigures(b, detail.data.lines, detail.data.forecast, target, fx?.rate ?? null)}
+              items={totalsFigures(
+                b,
+                detail.data.lines,
+                detail.data.forecast,
+                target,
+                fx?.rate ?? null,
+              )}
             />
             {fx && target ? (
               <p className="m-0 text-text-12 text-text-secondary">

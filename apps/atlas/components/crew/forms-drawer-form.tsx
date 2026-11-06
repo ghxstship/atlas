@@ -117,8 +117,10 @@ export function DrawerForm(props: {
         action={action}
         onSubmit={keepInputOnSubmit(action)}
         onChange={(e) => {
-          const { name, value } = e.target as HTMLSelectElement;
-          if (followed.has(name)) setChosen((before) => ({ ...before, [name]: value }));
+          const control = e.target as EventTarget as HTMLSelectElement;
+          if (followed.has(control.name)) {
+            setChosen((before) => ({ ...before, [control.name]: control.value }));
+          }
         }}
         className="flex flex-col gap-16"
         noValidate

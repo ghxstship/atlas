@@ -580,7 +580,12 @@ describe("the Atlas quote loader (B13)", () => {
   it("prints a Draft beside a sent version from live prices, with the quote's title and the budget's currency", async () => {
     const { db } = fakeClient({
       "from:quote_versions": [
-        okResponse({ id: VERSION, quote_id: "q1", org_id: ORG, created_at: "2026-11-02T15:00:00Z" }),
+        okResponse({
+          id: VERSION,
+          quote_id: "q1",
+          org_id: ORG,
+          created_at: "2026-11-02T15:00:00Z",
+        }),
         okResponse([
           versionRow(VERSION, 2, "Draft", null),
           versionRow("q-v1", 1, "Sent", "capture-1"),

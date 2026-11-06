@@ -80,11 +80,14 @@ describe("validateRow budget_lines", () => {
     expect(v.strongKeys).toEqual({ line_number: "4" });
   });
 
-  it.each(["Unpriced", "unpriced"])("reads the word %j as a NULL price, never zero", async (price) => {
-    const v = await check({ description: "Deck", urid: "5000.04.02", unit_price: price });
-    expect(v.state).toBe("Valid");
-    expect(v.values["unit_price_minor"]).toBeNull();
-  });
+  it.each(["Unpriced", "unpriced"])(
+    "reads the word %j as a NULL price, never zero",
+    async (price) => {
+      const v = await check({ description: "Deck", urid: "5000.04.02", unit_price: price });
+      expect(v.state).toBe("Valid");
+      expect(v.values["unit_price_minor"]).toBeNull();
+    },
+  );
 
   it("uses the budget currency's exponent", async () => {
     const v = await check(

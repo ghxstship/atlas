@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { compareBudgetLines, liveCompareLine, type CompareLine } from "../src/budget-versions.ts";
 import { clientUnitPrice, mergeSavedLine, type BudgetLine } from "../src/finance.ts";
-import { signingLinkHours } from "../src/quotes.ts";
+import { getQuote, quoteLinkWindow, signingLinkHours } from "../src/quotes.ts";
+import { fakeClient, okResponse } from "./fake-client.ts";
 
 /**
  * B13 (RRR-237): client price arithmetic, compare, and the signing link's lifetime. The price table is
@@ -220,5 +221,134 @@ describe("signingLinkHours", () => {
   it("is below one hour when valid until is about to end", () => {
     expect(signingLinkHours("2026-11-06", "UTC", new Date("2026-11-06T23:30:00Z"))).toBeLessThan(1);
     expect(signingLinkHours("2026-11-05", "UTC", now)).toBeLessThan(1);
+  });
+});
+
+describe("getQuote", () => {
+  const status = {
+    quote_id: "q1",
+    org_id: "o1",
+    project_id: "p1",
+    budget_id: "b1",
+    engagement_id: "e1",
+    quote_key: "NWF26-Q-14",
+    title: "Frozen title",
+    client_name: "Coral Group",
+    current_version_id: "v1",
+    current_version_number: 1,
+    display_state: "Sent",
+    valid_until: "2026-12-01",
+    sent_at: "2026-11-01T15:00:00Z",
+    accepted_at: null,
+    currency_code: "USD",
+    client_total_minor: 5000,
+    margin_minor: 1000,
+    has_draft: true,
+  };
+  const version = (id: string, number: number, state: string, capture: string | null) => ({
+    id,
+    quote_id: "q1",
+    version_number: number,
+    quote_version_state: state,
+    valid_until: "2026-12-01",
+    terms: null,
+    budget_version_id: capture,
+    content_sha256: null,
+    engagement_document_id: null,
+    sent_at: capture ? "2026-11-01T15:00:00Z" : null,
+    sent_by: null,
+    accepted_at: null,
+    accepted_by: null,
+    accepted_name: null,
+    sent_title: capture ? "Frozen title" : null,
+    sent_client_name: capture ? "Coral Group" : null,
+    updated_at: "2026-11-02T15:00:00Z",
+  });
+
+  it("follows a Draft beside a sent version: live lines and totals, since Send acts on it", async () => {
+    const { db, calls } = fakeClient({
+      "from:quote_statuses": [okResponse([status])],
+      "from:quotes": [okResponse([{ title: "Retitled" }])],
+      "from:quote_versions": [
+        okResponse([version("v2", 2, "Draft", null), version("v1", 1, "Sent", "capture-1")]),
+      ],
+      "from:budget_lines": [
+        okResponse([
+          { id: "l1", line_number: 1, description: "Deck", quantity: 2, unit_basis: "day" },
+        ]),
+      ],
+      "from:budget_line_prices": [
+        okResponse([
+          {
+            budget_line_id: "l1",
+            client_unit_price_minor: 4000,
+            client_extended_minor: 8000,
+            cost_extended_minor: 6000,
+            margin_minor: 2000,
+          },
+        ]),
+      ],
+      "from:budget_price_totals": [
+        okResponse({ client_total_minor: 8000, margin_minor: 2000, currency_code: "USD" }),
+      ],
+    });
+    const result = await getQuote(db, "q1");
+    if (!result.ok) throw new Error("the quote did not load");
+    expect(result.data.shownVersionId).toBe("v2");
+    expect(result.data.draftTitle).toBe("Retitled");
+    expect(result.data.lines[0]?.clientAmountMinor).toBe(8000);
+    expect(result.data.clientTotalMinor).toBe(8000);
+    expect(result.data.marginMinor).toBe(2000);
+    expect(result.data.costTotalMinor).toBe(6000);
+    // The list's row still names the sent version.
+    expect(result.data.status.clientTotalMinor).toBe(5000);
+    expect(calls.map((c) => c.target)).not.toContain("from:budget_version_lines");
+  });
+
+  it("shows a sent version's frozen capture when there is no Draft", async () => {
+    const { db } = fakeClient({
+      "from:quote_statuses": [okResponse([{ ...status, has_draft: false }])],
+      "from:quotes": [okResponse([{ title: "Retitled" }])],
+      "from:quote_versions": [okResponse([version("v1", 1, "Sent", "capture-1")])],
+      "from:budget_version_lines": [
+        okResponse([
+          {
+            id: "c1",
+            line_number: 1,
+            description: "Deck",
+            quantity: 2,
+            unit_basis: "day",
+            unit_price_minor: 2000,
+            client_unit_price_minor: 2500,
+          },
+        ]),
+      ],
+    });
+    const result = await getQuote(db, "q1");
+    if (!result.ok) throw new Error("the quote did not load");
+    expect(result.data.shownVersionId).toBe("v1");
+    expect(result.data.lines[0]?.clientAmountMinor).toBe(5000);
+    expect(result.data.clientTotalMinor).toBe(5000);
+  });
+});
+
+describe("quoteLinkWindow", () => {
+  it("reads the version's date and the project's zone from the database", async () => {
+    const { db, calls } = fakeClient({
+      "from:quote_versions": [okResponse({ valid_until: "2026-12-01", quote_id: "q1" })],
+      "from:quote_statuses": [okResponse({ project_id: "p1" })],
+      "from:projects": [okResponse({ time_zone: "America/New_York" })],
+    });
+    const result = await quoteLinkWindow(db, { documentId: "d1" });
+    expect(result).toEqual({
+      ok: true,
+      data: { validUntil: "2026-12-01", timeZone: "America/New_York" },
+    });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["engagement_document_id", "d1"]]);
+  });
+
+  it("answers not found for a document that is not a quote's", async () => {
+    const { db } = fakeClient({ "from:quote_versions": [okResponse(null)] });
+    expect((await quoteLinkWindow(db, { documentId: "d1" })).ok).toBe(false);
   });
 });

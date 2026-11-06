@@ -67,6 +67,7 @@ function line(id: string, over: Partial<BudgetLine> = {}): BudgetLine {
     forecastWithheld: false,
     laborActualMinor: 0,
     laborUnpricedMinutes: 0,
+    laborOtherCurrencyCount: 0,
     updatedAt: T0,
     ...over,
   };
@@ -288,22 +289,23 @@ describe("a line removed elsewhere while this person edits it", () => {
 });
 
 describe("lineConflictFields", () => {
-  const mineOf = (over: Partial<BudgetLineInput> = {}): BudgetLineInput => ({
-    budgetId: "b1",
-    lineNumber: 1,
-    description: "Stage deck",
-    lineType: "Cost",
-    urid: "5000.04.02",
-    costCenterId: null,
-    quantity: 2,
-    unitBasis: null,
-    unitPriceMinor: 1000,
-    markupBp: null,
-    clientUnitPriceMinor: null,
-    excludedFromQuote: false,
-    etcMinor: null,
-    ...over,
-  } as BudgetLineInput);
+  const mineOf = (over: Partial<BudgetLineInput> = {}): BudgetLineInput =>
+    ({
+      budgetId: "b1",
+      lineNumber: 1,
+      description: "Stage deck",
+      lineType: "Cost",
+      urid: "5000.04.02",
+      costCenterId: null,
+      quantity: 2,
+      unitBasis: null,
+      unitPriceMinor: 1000,
+      markupBp: null,
+      clientUnitPriceMinor: null,
+      excludedFromQuote: false,
+      etcMinor: null,
+      ...over,
+    }) as BudgetLineInput;
   const theirsOf = (over: Partial<BudgetLine> = {}) =>
     line("l1", {
       description: "Stage deck",
@@ -324,15 +326,21 @@ describe("lineConflictFields", () => {
   it("lists markup, client price, exclusion and ETC when they differ (journey 33)", () => {
     expect(
       lineConflictFields(
-        mineOf({ markupBp: 2500, clientUnitPriceMinor: 1500, excludedFromQuote: true, etcMinor: 50 }),
+        mineOf({
+          markupBp: 2500,
+          clientUnitPriceMinor: 1500,
+          excludedFromQuote: true,
+          etcMinor: 50,
+        }),
         theirsOf(),
       ),
     ).toEqual(["markup", "clientPrice", "onQuote", "etc"]);
   });
 
   it("reads a field the save leaves out as blank, not as a difference", () => {
-    const input = mineOf();
-    const { markupBp: _markup, etcMinor: _etc, ...partial } = input;
-    expect(lineConflictFields(partial as BudgetLineInput, theirsOf())).toEqual([]);
+    const partial: Record<string, unknown> = { ...mineOf() };
+    delete partial["markupBp"];
+    delete partial["etcMinor"];
+    expect(lineConflictFields(partial as unknown as BudgetLineInput, theirsOf())).toEqual([]);
   });
 });

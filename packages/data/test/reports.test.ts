@@ -166,7 +166,7 @@ describe("budget versus actual", () => {
       const { db } = fakeClient({
         "from:projects": [okResponse([project])],
         "from:budget_line_forecasts": [okResponse([])],
-      "from:budget_line_facts": [okResponse([fact({ cost_center_code: null })])],
+        "from:budget_line_facts": [okResponse([fact({ cost_center_code: null })])],
         "from:change_order_line_facts": [
           okResponse([
             {
@@ -519,7 +519,9 @@ describe("labor", () => {
       "from:projects": [okResponse([project])],
       "from:budget_line_facts": [okResponse([])],
       "from:labor_posting_team_totals": [okResponse([])],
-      "from:labor_cost_posting_details": [okResponse(Array.from({ length: 201 }, (_, i) => posting(i)))],
+      "from:labor_cost_posting_details": [
+        okResponse(Array.from({ length: 201 }, (_, i) => posting(i))),
+      ],
       "from:timesheet_hours": [okResponse([])],
       "from:payroll_line_amounts": [okResponse([])],
     });
