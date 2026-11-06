@@ -191,30 +191,6 @@ export type AgeRefusal =
     };
 
 /**
- * The signed-in person answered that they are under 18 and confirmed it (app.refuse_minimum_age, migration 6155): the
- * account goes, with what XOS itself holds about them, and the refusal is recorded with nothing that names them. After
- * it the session has no sign-in behind it. An account that is held keeps its sign-in, so the caller ends every session.
- */
-export async function refuseMinimumAge(
-  db: XosClient,
-  surface: AgeSurface,
-): Promise<Result<AgeRefusal>> {
-  const { data, error } = await db.rpc("refuse_minimum_age", { p_surface: surface });
-  if (error) return fail(toDataError(error));
-  const row = (data ?? {}) as Record<string, unknown>;
-  if (row["outcome"] === "Account Held") {
-    return ok({
-      outcome: "Account Held",
-      reason: String(row["reason"] ?? ""),
-      orgName: typeof row["org_name"] === "string" ? row["org_name"] : null,
-    });
-  }
-  return ok({
-    outcome: row["outcome"] === "Account Closed" ? "Account Closed" : "Account Removed",
-  });
-}
-
-/**
  * Whether a signed-in request still owes the age question, so a shell's proxy sends it to /auth/age first (ADR 0156). A
  * failed read lets it through: the database still refuses joining an org and AI features until the answer is recorded.
  */

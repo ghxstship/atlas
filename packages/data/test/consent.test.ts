@@ -11,7 +11,6 @@ import {
   parseLegalStanding,
   readLegalStanding,
   recordAiChoice,
-  refuseMinimumAge,
   newVisitorId,
   parseConsent,
   preferenceCookieOptions,
@@ -116,39 +115,6 @@ describe("18 or older", () => {
     expect(await owesAgeAnswer(db)).toBe(true);
     expect(await owesAgeAnswer(db)).toBe(false);
     expect(await owesAgeAnswer(db)).toBe(false);
-  });
-
-  it("closes the account of someone who answers under 18, and says why when it cannot", async () => {
-    const { db, calls } = fakeClient({
-      "rpc:refuse_minimum_age": [
-        okResponse({ outcome: "Account Removed" }),
-        okResponse({ outcome: "Account Closed" }),
-        okResponse({
-          outcome: "Account Held",
-          reason: "account_delete_on_shift",
-          org_name: "Northwind Live",
-        }),
-        errorResponse("XR001", "age_already_confirmed"),
-      ],
-    });
-    expect(await refuseMinimumAge(db, "Compass")).toEqual({
-      ok: true,
-      data: { outcome: "Account Removed" },
-    });
-    expect(calls[0]?.steps[0]?.[1][0]).toEqual({ p_surface: "Compass" });
-    expect(await refuseMinimumAge(db, "Atlas")).toEqual({
-      ok: true,
-      data: { outcome: "Account Closed" },
-    });
-    expect(await refuseMinimumAge(db, "Atlas")).toEqual({
-      ok: true,
-      data: {
-        outcome: "Account Held",
-        reason: "account_delete_on_shift",
-        orgName: "Northwind Live",
-      },
-    });
-    expect((await refuseMinimumAge(db, "Atlas")).ok).toBe(false);
   });
 
   it("reads and records the confirmation", async () => {

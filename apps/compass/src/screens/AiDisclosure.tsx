@@ -36,6 +36,9 @@ export function AiDisclosure({
         <Text variant="text13" tone="tertiary">
           {t("compass.aiDisclosure.change")}
         </Text>
+        <Text variant="text13" tone="tertiary">
+          {t("compass.aiDisclosure.others")}
+        </Text>
         <Button
           testID={`${testID}-notice`}
           variant="ghost"

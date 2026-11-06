@@ -12,9 +12,10 @@ import {
   minimumAgeConfirmed,
   owesAgeAnswer,
   recordAgeRefusal,
-  refuseMinimumAge,
 } from "@xos/data/consent";
+import { refuseMinimumAge } from "@xos/data/account-deletion";
 import { recordLegalAcceptances } from "@xos/data/settings";
+import { untyped } from "@xos/data/untyped";
 import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { authErrorKey } from "@/lib/auth/errors";
 import {
@@ -129,7 +130,7 @@ async function stopAccountIfUnderAge(form: FormData, back: string): Promise<void
  */
 export async function closeUnderAgeAccount(): Promise<FormState> {
   const db = await createServerSupabase();
-  const refused = await refuseMinimumAge(db, "Gateway");
+  const refused = await refuseMinimumAge(untyped(db), "Gateway");
   if (!refused.ok) return { error: "unexpected" };
   const held = refused.data.outcome === "Account Held";
   await db.auth.signOut({ scope: held ? "global" : "local" });

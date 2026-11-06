@@ -2447,7 +2447,7 @@
     "ageRefused": {
       "title": "XOS accounts are for people 18 and older",
       "sentence": "You told us you are under 18, so we did not create an account. We did not keep what you typed.",
-      "closed": "You told us you are under 18, so your account is closed and your sign-in is deleted. XOS keeps only a monthly count of people under 18 it turned away. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted.",
+      "closed": "You told us you are under 18, so your account is closed. We deleted your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
       "held": "You told us you are under 18, but your account cannot be deleted yet: a legal hold, an open shift or being an organization's only owner stands in the way. We signed you out everywhere, you cannot use this account, and we will ask again when you sign in. Contact us and we will finish closing it.",
       "minors": "If you are working or attending an event, the adult or organization responsible for you can keep your details in their own records. You do not need an account for that.",
       "contact": "Contact us"
@@ -2459,7 +2459,7 @@
       "under": {
         "title": "Confirm your answer",
         "sentence": "XOS accounts are for people 18 and older. If you are under 18, we close this account.",
-        "consequences": "Closing it ends your memberships, cancels work under way and deletes your sign-in. It cannot be undone. XOS then keeps only a monthly count of people under 18 it turned away. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted.",
+        "consequences": "Closing it ends your memberships, cancels work under way and deletes your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. It cannot be undone. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
         "confirm": "I am under 18. Close my account",
         "back": "Go back"
       }

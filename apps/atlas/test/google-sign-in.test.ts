@@ -109,6 +109,9 @@ beforeEach(() => {
   ages = 0;
   provider = "google";
   refusal = { outcome: "Account Removed" };
+  closing = [];
+  blockers = [];
+  storageRemoves = true;
   jar.values.clear();
   settings = { google: true, apple: false, azure: false };
   tokenRequests = [];
@@ -137,8 +140,25 @@ beforeEach(() => {
       return json([{ org_id: "o1", slug: "northwind", joined: true }]);
     }
     if (url.pathname === "/rest/v1/rpc/refuse_minimum_age") {
+      closing.push("close");
       closings.push(JSON.parse(String(init?.body)));
       return json(refusal);
+    }
+    if (url.pathname === "/rest/v1/rpc/account_deletion_preview") {
+      return json({ person_id: "p1", email: "m@x.test", blockers, kept: [] });
+    }
+    if (url.pathname === "/rest/v1/rpc/withdraw_my_credential_photos") {
+      return json([{ org_id: "o1", photo_path: "o1/p1/face.png" }]);
+    }
+    if (url.pathname.startsWith("/storage/v1/object/list/")) {
+      const bucket = url.pathname.split("/").at(-1);
+      return json(bucket === "profile-media" ? [{ name: "avatar.png", id: "a1" }] : []);
+    }
+    if (url.pathname.startsWith("/storage/v1/object/") && init?.method === "DELETE") {
+      const bucket = url.pathname.split("/").at(-1);
+      closing.push(`remove ${bucket}`);
+      const { prefixes } = JSON.parse(String(init.body)) as { prefixes: string[] };
+      return json(storageRemoves ? prefixes.map((name) => ({ name })) : []);
     }
     if (url.pathname === "/rest/v1/rpc/record_age_refusal") {
       refusals.push(JSON.parse(String(init?.body)));
@@ -152,6 +172,12 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+/** The order things happened in while an account closed. */
+let closing: string[] = [];
+/** What stops the account closing. */
+let blockers: { code: string; org_id: string; org_name: string }[] = [];
+/** False: storage answers a delete with nothing removed, as it does one the caller may not make. */
+let storageRemoves = true;
 /** Whether the person has answered 18 or older. */
 let confirmed = true;
 /** Answers of 18 or older recorded through app.confirm_minimum_age. */
@@ -444,6 +470,41 @@ describe("the minimum age of 18 (ADR 0156)", () => {
       url: "/auth/age?under=1&next=%2Fauth%2Forganization",
     });
     expect(closings).toEqual([]);
+  });
+
+  it("removes the person's files before the account goes", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback("code=c0ffee00-0000-4000-8000-00000000000b");
+    confirmed = false;
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/age-refused?outcome=closed",
+    });
+    expect(closing).toEqual(["remove credential-photos", "remove profile-media", "close"]);
+  });
+
+  it("does not close the account when a file cannot be removed", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback("code=c0ffee00-0000-4000-8000-00000000000c");
+    confirmed = false;
+    storageRemoves = false;
+    expect(await closeUnderAgeAccount()).toEqual({ error: "unexpected" });
+    expect(closing).not.toContain("close");
+    expect(signOuts).toEqual([]);
+  });
+
+  it("removes nothing from an account that cannot close yet", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback("code=c0ffee00-0000-4000-8000-00000000000d");
+    confirmed = false;
+    blockers = [{ code: "account_delete_on_shift", org_id: "o1", org_name: "Acme" }];
+    refusal = { outcome: "Account Held", reason: "account_delete_on_shift", org_name: "Acme" };
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/age-refused?outcome=held",
+    });
+    expect(closing).toEqual(["close"]);
   });
 
   it("closes the account once confirmed, and forgets this session", async () => {

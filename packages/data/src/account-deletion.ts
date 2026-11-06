@@ -9,6 +9,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { XosClient } from "./client.ts";
+import { minimumAgeConfirmed, type AgeRefusal, type AgeSurface } from "./consent.ts";
 import { removeCredentialPhotoObjects, withdrawMyCredentialPhotos } from "./credential-photos.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { UPLOAD_STAGING_BUCKET, stagedUploadName } from "./staged-uploads.ts";
@@ -51,6 +52,9 @@ export interface AccountDeletionResult {
 
 /** The bucket and folder of the person's own profile media (0860: paths start with the person id). */
 export const PROFILE_MEDIA_BUCKET = "profile-media";
+
+/** Screenshots a person attached to a support request or feedback (1034: paths start with the person id). */
+export const SUPPORT_SCREENSHOTS_BUCKET = "support-screenshots";
 
 function kept(value: unknown): KeptRecord[] {
   return (Array.isArray(value) ? value : []).map((k: Record<string, unknown>) => ({
@@ -115,7 +119,10 @@ export async function removeProfileMedia(
   return ok(published.data + staged.data);
 }
 
-/** Removes every object under a folder of a bucket, nested folders included. */
+/**
+ * Removes every object under a folder of a bucket, nested folders included. Storage answers a delete the caller may not
+ * make with no error and nothing removed, so this fails when any object stays.
+ */
 async function removeFolder(
   client: SupabaseClient,
   bucketId: string,
@@ -135,9 +142,16 @@ async function removeFolder(
   }
   let removed = 0;
   for (let i = 0; i < files.length; i += 100) {
-    const gone = await bucket.remove(files.slice(i, i + 100));
+    const batch = files.slice(i, i + 100);
+    const gone = await bucket.remove(batch);
     if (gone.error) return fail({ kind: "unexpected", message: gone.error.message });
-    removed += gone.data.length;
+    if (gone.data.length < batch.length) {
+      return fail({
+        kind: "unexpected",
+        message: `${batch.length - gone.data.length} object(s) in ${bucketId} could not be removed.`,
+      });
+    }
+    removed += batch.length;
   }
   return ok(removed);
 }
@@ -179,4 +193,53 @@ export async function deleteMyAccount(
   const { data, error } = await client.rpc("delete_my_account", { p_confirm_email: confirmEmail });
   if (error) return fail(toDataError(error));
   return ok(parseResult((data ?? {}) as Record<string, unknown>));
+}
+
+/**
+ * The signed-in person answered that they are under 18 and confirmed it (ADR 0156). The one way an app closes such an
+ * account: their badge photos, profile media (a public bucket, read by URL, that nobody could reach once the sign-in is
+ * gone) and support screenshots go first, while they can still reach them, because SQL cannot delete storage objects. Then
+ * app.refuse_minimum_age removes the account and what XOS itself holds about them, and records the refusal with nothing
+ * that names them. After it the session has no sign-in behind it; an account that is held keeps its sign-in, so the caller
+ * ends every session.
+ *
+ * Nothing is removed from someone who has confirmed 18, whom the database then refuses, or from an account a legal hold, an
+ * open shift or being an only owner keeps open. A file that cannot be removed stops the closure, so it can be tried again
+ * rather than leave a photo with no owner.
+ */
+export async function refuseMinimumAge(
+  client: SupabaseClient,
+  surface: AgeSurface,
+): Promise<Result<AgeRefusal>> {
+  const confirmed = await minimumAgeConfirmed(client as unknown as XosClient);
+  if (!confirmed.ok) return confirmed;
+  if (!confirmed.data) {
+    const preview = await previewAccountDeletion(client);
+    if (!preview.ok) return preview;
+    if (preview.data.blockers.length === 0) {
+      const photos = await removeMyCredentialPhotos(client);
+      if (!photos.ok) return photos;
+      const media = await removeProfileMedia(client, preview.data.personId);
+      if (!media.ok) return media;
+      const screenshots = await removeFolder(
+        client,
+        SUPPORT_SCREENSHOTS_BUCKET,
+        preview.data.personId,
+      );
+      if (!screenshots.ok) return screenshots;
+    }
+  }
+  const { data, error } = await client.rpc("refuse_minimum_age", { p_surface: surface });
+  if (error) return fail(toDataError(error));
+  const row = (data ?? {}) as Record<string, unknown>;
+  if (row["outcome"] === "Account Held") {
+    return ok({
+      outcome: "Account Held",
+      reason: String(row["reason"] ?? ""),
+      orgName: typeof row["org_name"] === "string" ? row["org_name"] : null,
+    });
+  }
+  return ok({
+    outcome: row["outcome"] === "Account Closed" ? "Account Closed" : "Account Removed",
+  });
 }

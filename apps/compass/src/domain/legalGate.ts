@@ -108,7 +108,7 @@ export function heldReason(code: string): HeldReason {
  * The version of the words the first-use AI disclosure shows (compass.aiDisclosure.*). Change it when what is sent or who
  * receives it changes: everyone who allowed is then asked again. A decline stands until the person changes it.
  */
-export const AI_DISCLOSURE_VERSION = "2026-11-06";
+export const AI_DISCLOSURE_VERSION = "2026-11-06.2";
 
 /** What Compass acts on: Unknown means ask first and send nothing. */
 export type AiChoiceState = "unknown" | "Allowed" | "Declined";

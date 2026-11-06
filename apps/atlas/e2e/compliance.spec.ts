@@ -168,9 +168,37 @@ test.describe("18 or older, for an account with no answer", () => {
     await page.locator("#age-question-under").check();
     await page.getByRole("button", { name: "Continue", exact: true }).click();
     await page.waitForURL((url) => url.searchParams.get("under") === "1");
+
+    // Files only their client can remove, one of them in a public bucket read by URL.
+    const admin = createClient(
+      process.env["E2E_SUPABASE_URL"] ?? "",
+      process.env["E2E_SUPABASE_SERVICE_KEY"] ?? "",
+    );
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+      "base64",
+    );
+    const files = [
+      ["profile-media", `${person?.person}/avatar.png`],
+      ["profile-media", `${person?.person}/certificates/osha.png`],
+      ["support-screenshots", `${person?.person}/shot.png`],
+    ] as const;
+    for (const [bucket, path] of files) {
+      const uploaded = await admin.storage
+        .from(bucket)
+        .upload(path, png, { contentType: "image/png" });
+      expect(uploaded.error).toBeNull();
+    }
+
     await page.getByRole("button", { name: "I am under 18. Close my account", exact: true }).click();
     await page.waitForURL((url) => url.pathname === "/auth/age-refused");
-    await expect(page.getByText(/XOS keeps only a monthly count/)).toBeVisible();
+    await expect(page.getByText(/XOS also keeps a monthly count/)).toBeVisible();
+
+    const [objects] = await localSql<{ n: string }>(
+      `select count(*)::text as n from storage.objects where bucket_id in ('profile-media', 'support-screenshots') and name like $1`,
+      [`${person?.person}/%`],
+    );
+    expect(objects?.n).toBe("0");
 
     const [left] = await localSql<{ users: string; people: string }>(
       `select (select count(*) from auth.users where id = $1)::text as users,

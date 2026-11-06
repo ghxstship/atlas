@@ -141,7 +141,7 @@ function Gatekeeper(): ReactElement {
   }
   if (phase.kind === "identity-failed") {
     // A sign-in with no membership or engagement can still sign out or delete itself (SIM-004).
-    if (deleting) return <DeleteAccount />;
+    if (deleting) return <DeleteAccount onBack={() => setDeleting(false)} />;
     return (
       <Screen testID="identity-failed">
         <ErrorState

@@ -102,6 +102,9 @@ beforeEach(() => {
   ages = [];
   confirmed = false;
   signOuts = [];
+  closing = [];
+  blockers = [];
+  storageRemoves = true;
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
     if (url.origin !== SUPABASE) throw new Error(`unexpected request to ${url.origin}`);
@@ -122,8 +125,25 @@ beforeEach(() => {
       return json(confirmed || ages.length > 0);
     }
     if (url.pathname === "/rest/v1/rpc/refuse_minimum_age") {
+      closing.push("close");
       refusals.push(JSON.parse(String(init?.body)));
       return json(refusal);
+    }
+    if (url.pathname === "/rest/v1/rpc/account_deletion_preview") {
+      return json({ person_id: "p1", email: "m@x.test", blockers, kept: [] });
+    }
+    if (url.pathname === "/rest/v1/rpc/withdraw_my_credential_photos") {
+      return json([{ org_id: "o1", photo_path: "o1/p1/face.png" }]);
+    }
+    if (url.pathname.startsWith("/storage/v1/object/list/")) {
+      const bucket = url.pathname.split("/").at(-1);
+      return json(bucket === "profile-media" ? [{ name: "avatar.png", id: "a1" }] : []);
+    }
+    if (url.pathname.startsWith("/storage/v1/object/") && init?.method === "DELETE") {
+      const bucket = url.pathname.split("/").at(-1);
+      closing.push(`remove ${bucket}`);
+      const { prefixes } = JSON.parse(String(init.body)) as { prefixes: string[] };
+      return json(storageRemoves ? prefixes.map((name) => ({ name })) : []);
     }
     if (url.pathname === "/rest/v1/rpc/record_age_refusal") {
       refusals.push(JSON.parse(String(init?.body)));
@@ -322,6 +342,13 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
   });
 });
 
+/** The order things happened in while an account closed. */
+let closing: string[] = [];
+/** What stops the account closing. */
+let blockers: { code: string; org_id: string; org_name: string }[] = [];
+/** False: storage answers a delete with nothing removed, as it does one the caller may not make. */
+let storageRemoves = true;
+
 describe("an answer of under 18 (ADR 0156)", () => {
   beforeEach(() => {
     refusals = [];
@@ -347,6 +374,38 @@ describe("an answer of under 18 (ADR 0156)", () => {
     });
     expect(refusals).toEqual([{ p_surface: "Gateway" }]);
     expect(signOuts).toEqual(["local"]);
+  });
+
+  it("removes the person's files before the account goes", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/age-refused?outcome=closed",
+    });
+    expect(closing).toEqual(["remove credential-photos", "remove profile-media", "close"]);
+  });
+
+  it("does not close the account when a file cannot be removed", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    storageRemoves = false;
+    expect(await closeUnderAgeAccount()).toEqual({ error: "unexpected" });
+    expect(closing).not.toContain("close");
+    expect(signOuts).toEqual([]);
+  });
+
+  it("removes nothing from an account that cannot close yet", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    blockers = [{ code: "account_delete_on_shift", org_id: "o1", org_name: "Acme" }];
+    refusal = { outcome: "Account Held", reason: "account_delete_on_shift", org_name: "Acme" };
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/age-refused?outcome=held",
+    });
+    expect(closing).toEqual(["close"]);
   });
 
   it("says so when a legal hold, a shift or sole ownership holds the account", async () => {

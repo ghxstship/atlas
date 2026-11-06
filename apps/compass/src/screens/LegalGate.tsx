@@ -1,10 +1,6 @@
+import { refuseMinimumAge } from "@xos/data/account-deletion";
 import type { XosClient } from "@xos/data/client";
-import {
-  confirmMinimumAge,
-  readLegalStanding,
-  refuseMinimumAge,
-  type AgeRefusal,
-} from "@xos/data/consent";
+import { confirmMinimumAge, readLegalStanding, type AgeRefusal } from "@xos/data/consent";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import * as Linking from "expo-linking";
 import { useEffect, useState, type ReactElement } from "react";
@@ -21,14 +17,16 @@ import {
 } from "../runtime/apple";
 import { useCompass } from "../runtime/CompassProvider";
 import { forgetGoogleAccount } from "../runtime/google";
-import { queuedChanges } from "../runtime/legalGate";
+import { forgetGate, queuedChanges } from "../runtime/legalGate";
 import { Button, Card, InlineAlert, Screen, Switch, Text, useTheme } from "../ui";
+import { DeleteAccount } from "./DeleteAccount";
 
 type Step =
   | { readonly kind: "age" }
   | { readonly kind: "under" }
   | { readonly kind: "documents" }
   | { readonly kind: "declined" }
+  | { readonly kind: "delete"; readonly from: "age" | "declined" }
   | { readonly kind: "refused" }
   | { readonly kind: "held"; readonly reason: HeldReason; readonly org: string };
 
@@ -64,7 +62,8 @@ export function QueuedWarning({
  * What Compass asks before anything else (legal issue 4, ADR 0156): the age, then the Mobile EULA and, where they apply,
  * the Worker Terms. Nothing has been downloaded yet when this shows, and every answer goes to the server, in the same
  * log web sign-up writes, before Compass opens. The age question offers both answers with equal weight and states no rule
- * until it is answered. An answer of under 18 closes the account (app.refuse_minimum_age).
+ * until it is answered. An answer of under 18 closes the account (refuseMinimumAge). Nobody has to answer or agree to
+ * leave: the age and declined steps offer Sign Out and Delete Account (guideline 5.1.1(v)).
  *
  * `onLater` is set when the person chose to review a change still in its notice period, which never holds them.
  */
@@ -121,6 +120,14 @@ export function LegalGate({
     if (done) retryIdentity();
   };
 
+  /** Everything this device holds about the person. The session stays until Done, so the next screen can show. */
+  const forgetOnThisDevice = async () => {
+    await store?.wipe();
+    await forgetGoogleAccount();
+    const { data } = await client.auth.getSession();
+    if (data.session) await forgetGate(data.session.user.id);
+  };
+
   const refuse = async () => {
     const answer: { refusal?: AgeRefusal } = {};
     const done = await attempt(async () => {
@@ -136,12 +143,14 @@ export function LegalGate({
           revoke: appleRevoker(xos, config.supabaseUrl),
         }).catch(() => undefined);
       }
-      const refused = await refuseMinimumAge(xos, "Compass");
+      const refused = await refuseMinimumAge(client, "Compass");
       if (!refused.ok) return false;
       answer.refusal = refused.data;
       return true;
     });
     if (!done || !answer.refusal) return;
+    // At once, not on Done: if the app is killed on the next screen, a relaunch finds nothing of this person's.
+    await forgetOnThisDevice().catch(() => undefined);
     setBusy(false);
     setStep(
       answer.refusal.outcome === "Account Held"
@@ -160,8 +169,7 @@ export function LegalGate({
    */
   const leave = async (held: boolean) => {
     setBusy(true);
-    await store?.wipe();
-    await forgetGoogleAccount();
+    await forgetOnThisDevice().catch(() => undefined);
     const ended = held ? await client.auth.signOut({ scope: "global" }) : null;
     if (!held || ended?.error) await client.auth.signOut({ scope: "local" });
   };
@@ -173,6 +181,10 @@ export function LegalGate({
       message={t("compass.legalGate.needsConnection")}
     />
   ) : null;
+
+  if (step.kind === "delete") {
+    return <DeleteAccount onBack={() => setStep({ kind: step.from })} />;
+  }
 
   if (step.kind === "age") {
     return (
@@ -205,6 +217,28 @@ export function LegalGate({
         <Text variant="text13" tone="tertiary">
           {t("compass.legalGate.online")}
         </Text>
+        <QueuedWarning
+          testID="legal-gate-age-queued"
+          messageKey="compass.legalGate.declined.queued"
+        />
+        <Button
+          testID="legal-gate-age-sign-out"
+          variant="ghost"
+          icon="log-out"
+          block
+          disabled={busy}
+          label={t("compass.settings.signOut")}
+          onPress={() => void signOut()}
+        />
+        <Button
+          testID="legal-gate-age-delete"
+          variant="ghost"
+          icon="ban"
+          block
+          disabled={busy}
+          label={t("compass.settings.deleteAccount")}
+          onPress={() => setStep({ kind: "delete", from: "age" })}
+        />
       </Screen>
     );
   }
@@ -294,6 +328,14 @@ export function LegalGate({
           block
           label={t("compass.settings.signOut")}
           onPress={() => void signOut()}
+        />
+        <Button
+          testID="legal-gate-delete"
+          variant="ghost"
+          icon="ban"
+          block
+          label={t("compass.settings.deleteAccount")}
+          onPress={() => setStep({ kind: "delete", from: "declined" })}
         />
       </Screen>
     );

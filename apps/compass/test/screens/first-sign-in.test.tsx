@@ -20,6 +20,9 @@ const h = vi.hoisted(() => ({
   chooseAi: vi.fn(),
   revoke: vi.fn(),
   openURL: vi.fn(),
+  forgetGate: vi.fn(),
+  events: [] as string[],
+  storageRemoves: true,
   queued: 0,
   aiChoice: "unknown" as string,
 }));
@@ -74,7 +77,23 @@ vi.mock("../../src/runtime/CompassProvider", () => ({
   useCompass: () => ({
     client: {
       rpc: h.rpc,
-      auth: { signOut: h.localSignOut, getUser: vi.fn(async () => ({ data: { user: null } })) },
+      auth: {
+        signOut: h.localSignOut,
+        getUser: vi.fn(async () => ({ data: { user: null } })),
+        getSession: async () => ({ data: { session: { user: { id: "u1" } } } }),
+      },
+      storage: {
+        from: (bucket: string) => ({
+          list: async () => ({
+            data: bucket === "profile-media" ? [{ name: "avatar.png", id: "a1" }] : [],
+            error: null,
+          }),
+          remove: async (paths: string[]) => {
+            h.events.push(`remove ${bucket}`);
+            return { data: h.storageRemoves ? paths.map((name) => ({ name })) : [], error: null };
+          },
+        }),
+      },
     },
     config: { atlasUrl: "https://atlas.test", supabaseUrl: "https://db.test" },
     signOut: h.signOut,
@@ -84,7 +103,19 @@ vi.mock("../../src/runtime/CompassProvider", () => ({
     chooseAi: h.chooseAi,
   }),
 }));
-vi.mock("../../src/runtime/legalGate", () => ({ queuedChanges: async () => h.queued }));
+vi.mock("../../src/runtime/legalGate", () => ({
+  queuedChanges: async () => h.queued,
+  forgetGate: h.forgetGate,
+}));
+vi.mock("../../src/screens/DeleteAccount", () => ({
+  DeleteAccount: ({ onBack }: { onBack: () => void }) => (
+    <main data-testid="account">
+      <button data-testid="account-back" onClick={onBack}>
+        back
+      </button>
+    </main>
+  ),
+}));
 vi.mock("../../src/runtime/google", () => ({ forgetGoogleAccount: async () => undefined }));
 vi.mock("../../src/runtime/apple", () => ({
   accountSignsInWithApple: async () => true,
@@ -110,9 +141,16 @@ const failed = () => Promise.resolve({ data: null, error: { code: "08006", messa
 /** Answers each RPC by name; `refusal` is what closing the account answers. */
 function database(answers: Record<string, () => Promise<unknown>> = {}) {
   h.rpc.mockImplementation((name: string) => {
+    if (name === "refuse_minimum_age") h.events.push("close");
     const answer = answers[name];
     if (answer) return answer();
     switch (name) {
+      case "minimum_age_confirmed":
+        return ok(false);
+      case "account_deletion_preview":
+        return ok({ person_id: "p1", email: "m@x.test", blockers: [], kept: [] });
+      case "withdraw_my_credential_photos":
+        return ok([{ org_id: "o1", photo_path: "o1/p1/face.png" }]);
       case "confirm_minimum_age":
         return ok("2026-11-06T10:00:00Z");
       case "record_legal_acceptances":
@@ -143,7 +181,22 @@ const press = async (testID: string) => {
   });
 };
 
+/** What the server answers for an account a hold keeps open. */
+const heldBy = (reason: string) => ({
+  my_legal_standing: () => ok({ closing_blocked: true }),
+  account_deletion_preview: () =>
+    ok({
+      person_id: "p1",
+      email: "m@x.test",
+      blockers: [{ code: reason, org_id: "o1", org_name: "Northwind" }],
+      kept: [],
+    }),
+  refuse_minimum_age: () => ok({ outcome: "Account Held", reason, org_name: "Northwind" }),
+});
+
 beforeEach(() => {
+  h.events = [];
+  h.storageRemoves = true;
   h.queued = 0;
   h.aiChoice = "unknown";
   h.chooseAi.mockResolvedValue(true);
@@ -187,13 +240,57 @@ describe("first sign-in: the age", () => {
     expect(h.retryIdentity).not.toHaveBeenCalled();
   });
 
-  it("declining the documents leaves only reviewing again or signing out", async () => {
+  it("declining the documents leaves reviewing again, signing out or deleting the account", async () => {
     render(<LegalGate needs={{ ...firstSignIn, age: false }} />);
     await press("legal-gate-decline");
+    expect(screen.getByTestId("legal-gate-declined")).toBeTruthy();
+    await press("legal-gate-delete");
+    expect(screen.getByTestId("account")).toBeTruthy();
+    await press("account-back");
     expect(screen.getByTestId("legal-gate-declined")).toBeTruthy();
     await press("legal-gate-sign-out");
     expect(h.signOut).toHaveBeenCalledTimes(1);
     expect(called("record_legal_acceptances")).toEqual([]);
+  });
+
+  it("a change past its date can be refused by deleting the account, with nothing accepted", async () => {
+    render(
+      <LegalGate
+        needs={{
+          age: false,
+          documents: [],
+          changes: [
+            {
+              documentSlug: "mobile-eula",
+              documentVersion: "1.1.0",
+              summary: "What changes",
+              noticedAt: "2026-10-01T00:00:00Z",
+              effectiveOn: "2026-11-01",
+              required: true,
+            },
+          ],
+        }}
+      />,
+    );
+    await press("legal-gate-decline");
+    await press("legal-gate-delete");
+    expect(screen.getByTestId("account")).toBeTruthy();
+    expect(called("record_legal_acceptances")).toEqual([]);
+  });
+
+  it("someone who will not answer the age can still leave, or delete the account", async () => {
+    h.queued = 2;
+    render(<LegalGate needs={firstSignIn} />);
+    await act(async () => undefined);
+    expect(screen.getByTestId("legal-gate-age-queued").textContent).toContain('"count":2');
+    await press("legal-gate-age-delete");
+    expect(screen.getByTestId("account")).toBeTruthy();
+    await press("account-back");
+    expect(screen.getByTestId("legal-gate-age")).toBeTruthy();
+    await press("legal-gate-age-sign-out");
+    expect(h.signOut).toHaveBeenCalledTimes(1);
+    expect(called("confirm_minimum_age")).toEqual([]);
+    expect(called("refuse_minimum_age")).toEqual([]);
   });
 
   it("warns before a sign-out deletes hours still on the device", async () => {
@@ -226,8 +323,32 @@ describe("first sign-in: an answer of under 18", () => {
     expect(h.revoke).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("legal-gate-refused")).toBeTruthy();
     await press("legal-gate-leave");
-    expect(h.wipe).toHaveBeenCalledTimes(1);
     expect(h.localSignOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("removes the person's files before the account goes", async () => {
+    await answerUnder();
+    await press("legal-gate-under-confirm");
+    expect(h.events).toEqual(["remove credential-photos", "remove profile-media", "close"]);
+  });
+
+  it("does not close the account when a file cannot be removed, and stays", async () => {
+    h.storageRemoves = false;
+    await answerUnder();
+    await press("legal-gate-under-confirm");
+    expect(called("refuse_minimum_age")).toEqual([]);
+    expect(screen.getByTestId("legal-gate-failed")).toBeTruthy();
+    expect(screen.getByTestId("legal-gate-under")).toBeTruthy();
+  });
+
+  it("forgets the person on this device at once, so a killed app reopens nothing", async () => {
+    await answerUnder();
+    await press("legal-gate-under-confirm");
+    expect(screen.getByTestId("legal-gate-refused")).toBeTruthy();
+    // Done has not been tapped: a relaunch from here finds no data and no cleared flag.
+    expect(h.wipe).toHaveBeenCalledTimes(1);
+    expect(h.forgetGate).toHaveBeenCalledWith("u1");
+    expect(h.localSignOut).not.toHaveBeenCalled();
   });
 
   it("warns before closing deletes hours still on the device", async () => {
@@ -237,14 +358,11 @@ describe("first sign-in: an answer of under 18", () => {
   });
 
   it("says why an account cannot close, sends the person to us, and ends every session", async () => {
-    database({
-      my_legal_standing: () => ok({ closing_blocked: true }),
-      refuse_minimum_age: () =>
-        ok({ outcome: "Account Held", reason: "account_delete_on_shift", org_name: "Northwind" }),
-    });
+    database(heldBy("account_delete_on_shift"));
     await answerUnder();
     await press("legal-gate-under-confirm");
     expect(screen.getByTestId("legal-gate-held")).toBeTruthy();
+    expect(h.events).toEqual(["close"]);
     expect(screen.getByText(/compass.legalGate.held.onShift/).textContent).toContain("Northwind");
     await press("legal-gate-contact");
     expect(h.openURL).toHaveBeenCalledWith("https://atlas.test/legal/contact");
@@ -253,11 +371,7 @@ describe("first sign-in: an answer of under 18", () => {
   });
 
   it("revokes no Apple grant for an account that would not close", async () => {
-    database({
-      my_legal_standing: () => ok({ closing_blocked: true }),
-      refuse_minimum_age: () =>
-        ok({ outcome: "Account Held", reason: "account_delete_sole_owner", org_name: "Northwind" }),
-    });
+    database(heldBy("account_delete_sole_owner"));
     await answerUnder();
     await press("legal-gate-under-confirm");
     expect(h.revoke).not.toHaveBeenCalled();
