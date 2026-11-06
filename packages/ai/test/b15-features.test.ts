@@ -241,6 +241,25 @@ describe("contract extraction", () => {
 });
 
 describe("invoice and receipt lines", () => {
+  it("fails and stores nothing when a list is cut off at max_tokens, for every kind with lines", async () => {
+    for (const kind of ["invoice_lines", "rider", "quote"] as const) {
+      const cut = toolCall("record_fields", { fields: [], lines: [] });
+      const model = new ScriptedModel([{ ...cut, stopReason: "max_tokens" }]);
+      const { store, log } = memoryStore();
+      const result = await extractDocument(context(model, store), {
+        kind,
+        document: textDoc("Many lines."),
+        fileName: "long.txt",
+      });
+      expect(result).toMatchObject({ kind: "failed", code: "model_output_invalid" });
+      expect(log.completed[0]).toMatchObject({
+        outcome: "Failed",
+        failureCode: "model_output_invalid",
+      });
+      expect(log.proposed).toHaveLength(0);
+    }
+  });
+
   it("proposes invoice lines without a budget line or currency, with a tie-out and its flags", async () => {
     const model = new ScriptedModel([
       toolCall("record_fields", {

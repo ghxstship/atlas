@@ -7,6 +7,7 @@ import {
   type ProposedChange,
   type ProposedField,
   type Subject,
+  FeatureError,
 } from "../session.ts";
 import { withholdIdentity } from "../redact.ts";
 import { computeTieOut, type TieOut } from "../tieout.ts";
@@ -715,6 +716,13 @@ export async function extractDocument(
       },
       schema: ExtractionSchema,
     });
+    // A list cut off at the token limit would propose part of the document and give a false residual.
+    if (result.stopReason === "max_tokens") {
+      throw new FeatureError(
+        "model_output_invalid",
+        "The document has too many lines for one read.",
+      );
+    }
 
     const raw = result.value;
     const excerpts = [
