@@ -46,12 +46,18 @@ approvals (0770); acceptance locks the quote.
 
 A signing link's signer is whoever typed the name, even when the browser holds a session, so `accepted_name` is always
 the typed name there and `accepted_by` is cleared. How a quote was signed is decided by a used token existing, never by
-`accepted_by`.
+`accepted_by`. The sender is told once: a link's notification waits for the typed name, and the acceptance trigger knows a
+link by 0769's fixed reason wording and an open link together, because a signed-in caller chooses their own reason. A
+signed-in signer who words the reason like a link while a link is also open still leaves the sender untold; the quote
+shows Accepted live all the same.
 
 A Quote document is not an agreement, and the features meant for agreements leave it out: it carries no `expires_on`
 (1463 would remind the client about `valid_until`, the only expiry); it moves Signed to Executed inside acceptance,
 because nobody countersigns it (0775 and 1624 would count it in flight forever); it stays off the Compass Profile (2080);
-and it is never signed in one click or in bulk.
+and it is never signed in one click or in bulk, on any Gateway surface (Home, Documents, the engagement's Overview).
+
+A signing link's PDF prints and encodes Gateway's Documents page, never the link: the token is one of the link's two secrets
+and the PDF is meant to be forwarded.
 
 ### 3. The template's issue time is sent_at
 

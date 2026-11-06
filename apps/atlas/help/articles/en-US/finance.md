@@ -32,7 +32,7 @@ Actual is approved and paid expenses plus approved crew hours. A shift names the
 
 ## Import lines
 
-**Import lines** brings budget lines in from .xlsx or .csv through the import wizard, with a reason for every cell it can't read. A row with a line number updates that line, and other rows are added in sheet order. A blank price or the word Unpriced stays unpriced. Undo removes the lines the batch created, unless something has come to depend on them since.
+**Import lines** brings budget lines in from .xlsx or .csv through the import wizard, with a reason for every cell it can't read. A row with a line number updates that line, changing only the cells the sheet fills, and the word Unpriced clears its price. Other rows are added in sheet order, and a blank price there stays unpriced. Undo removes the lines the batch created, unless something has come to depend on them since.
 
 ## Expenses and change orders
 

@@ -468,7 +468,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Import lines" },
           {
             t: "text",
-            v: " brings budget lines in from .xlsx or .csv through the import wizard, with a reason for every cell it can't read. A row with a line number updates that line, and other rows are added in sheet order. A blank price or the word Unpriced stays unpriced. Undo removes the lines the batch created, unless something has come to depend on them since.",
+            v: " brings budget lines in from .xlsx or .csv through the import wizard, with a reason for every cell it can't read. A row with a line number updates that line, changing only the cells the sheet fills, and the word Unpriced clears its price. Other rows are added in sheet order, and a blank price there stays unpriced. Undo removes the lines the batch created, unless something has come to depend on them since.",
           },
         ],
       },
@@ -2899,7 +2899,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Importar líneas" },
           {
             t: "text",
-            v: " trae líneas de presupuesto desde .xlsx o .csv con el asistente de importación, con un motivo para cada celda que no pueda leer. Una fila con número de línea actualiza esa línea, y las demás se agregan en el orden de la hoja. Un precio en blanco o la palabra Unpriced queda sin precio. Deshacer quita las líneas que creó el lote, salvo que algo dependa de ellas desde entonces.",
+            v: " trae líneas de presupuesto desde .xlsx o .csv con el asistente de importación, con un motivo para cada celda que no pueda leer. Una fila con número de línea actualiza esa línea, cambiando solo las celdas que la hoja llena, y la palabra Unpriced borra su precio. Las demás se agregan en el orden de la hoja, y un precio en blanco queda sin precio. Deshacer quita las líneas que creó el lote, salvo que algo dependa de ellas desde entonces.",
           },
         ],
       },

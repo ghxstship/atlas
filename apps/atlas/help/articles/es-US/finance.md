@@ -32,7 +32,7 @@ Real son los gastos aprobados y pagados más las horas aprobadas del equipo. Un 
 
 ## Importar líneas
 
-**Importar líneas** trae líneas de presupuesto desde .xlsx o .csv con el asistente de importación, con un motivo para cada celda que no pueda leer. Una fila con número de línea actualiza esa línea, y las demás se agregan en el orden de la hoja. Un precio en blanco o la palabra Unpriced queda sin precio. Deshacer quita las líneas que creó el lote, salvo que algo dependa de ellas desde entonces.
+**Importar líneas** trae líneas de presupuesto desde .xlsx o .csv con el asistente de importación, con un motivo para cada celda que no pueda leer. Una fila con número de línea actualiza esa línea, cambiando solo las celdas que la hoja llena, y la palabra Unpriced borra su precio. Las demás se agregan en el orden de la hoja, y un precio en blanco queda sin precio. Deshacer quita las líneas que creó el lote, salvo que algo dependa de ellas desde entonces.
 
 ## Gastos y órdenes de cambio
 
