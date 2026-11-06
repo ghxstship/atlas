@@ -190,6 +190,8 @@ alter table app.form_submissions
         and char_length(respondent_email) <= 320));
 
 create index form_submissions_form_link_idx on app.form_submissions (form_link_id, created_at);
+create index form_submissions_form_link_template_idx on app.form_submissions (form_link_id, form_template_id);
+create index form_submissions_form_link_project_idx on app.form_submissions (form_link_id, project_id);
 create index form_submissions_form_link_email_idx on app.form_submissions (form_link_id, lower(respondent_email));
 
 comment on column app.form_submissions.submitted_by_membership_id is 'Member who submitted; null for a response through a public form link (2916).';

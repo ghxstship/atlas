@@ -1,7 +1,7 @@
 "use client";
 
 import type { OutsideAccessRow, OutsideAccessSource } from "@xos/data/outside-access";
-import { Badge, Button } from "@xos/ui";
+import { Button, Tag } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
@@ -115,9 +115,9 @@ function Row({
     <li className="flex flex-col gap-4 py-8" data-outside-row={row.source}>
       <span className="flex flex-wrap items-baseline justify-between gap-8">
         <span className="text-text-13 text-text-primary">{row.label}</span>
-        <Badge variant={STATE_TONES[row.state] ?? "neutral"}>
+        <Tag tone={STATE_TONES[row.state] ?? "neutral"}>
           {t.has?.(`states.${row.state}`) === false ? row.state : t(`states.${row.state}`)}
-        </Badge>
+        </Tag>
       </span>
       <span className="text-text-12 text-text-secondary">
         {[

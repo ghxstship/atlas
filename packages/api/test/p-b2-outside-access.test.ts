@@ -301,27 +301,23 @@ describe("Platform: stakeholder packs", () => {
       await success(http.get(`/stakeholder-packs?filter[project_id][eq]=${PROJECT}`)),
       "stakeholderPacks.list",
     );
-    await expectContract(
-      await success(
-        http.post("/stakeholder-packs/create", {
-          project_id: PROJECT,
-          name: "Client pack",
-          expires_at: WHEN,
-        }),
-      ),
-      "stakeholderPacks.create",
+    const res1 = await success(
+      http.post("/stakeholder-packs/create", {
+        project_id: PROJECT,
+        name: "Client pack",
+        expires_at: WHEN,
+      }),
     );
-    const changed = (await expectContract(
-      await success(
-        http.post(`/stakeholder-packs/${PACK}/update`, {
-          name: "Renamed",
-          expires_at: WHEN,
-          message: null,
-          note: null,
-        }),
-      ),
-      "stakeholderPacks.update",
-    )) as Row;
+    await expectContract(res1, "stakeholderPacks.create");
+    const res2 = await success(
+      http.post(`/stakeholder-packs/${PACK}/update`, {
+        name: "Renamed",
+        expires_at: WHEN,
+        message: null,
+        note: null,
+      }),
+    );
+    const changed = (await expectContract(res2, "stakeholderPacks.update")) as Row;
     expect(changed["name"]).toBe("Renamed");
     const revoked = (await expectContract(
       await success(http.post(`/stakeholder-packs/${PACK}/revoke`)),
@@ -333,16 +329,14 @@ describe("Platform: stakeholder packs", () => {
 
   it("sets and clears a schedule", async () => {
     const { http } = world();
-    await expectContract(
-      await success(
-        http.post(`/stakeholder-packs/${PACK}/schedule`, {
-          cadence: "Weekly",
-          local_hour: 9,
-          weekday: 1,
-        }),
-      ),
-      "stakeholderPacks.setSchedule",
+    const res3 = await success(
+      http.post(`/stakeholder-packs/${PACK}/schedule`, {
+        cadence: "Weekly",
+        local_hour: 9,
+        weekday: 1,
+      }),
     );
+    await expectContract(res3, "stakeholderPacks.setSchedule");
     await expectContract(
       await success(http.post(`/stakeholder-packs/${PACK}/schedule/clear`)),
       "stakeholderPacks.clearSchedule",
@@ -351,16 +345,14 @@ describe("Platform: stakeholder packs", () => {
 
   it("adds and removes items, and surfaces the classification refusal", async () => {
     const { http } = world();
-    await expectContract(
-      await success(
-        http.post("/stakeholder-pack-items/add", {
-          stakeholder_pack_id: PACK,
-          attachment_id: id(20),
-          title: "Plan",
-        }),
-      ),
-      "stakeholderPackItems.add",
+    const res4 = await success(
+      http.post("/stakeholder-pack-items/add", {
+        stakeholder_pack_id: PACK,
+        attachment_id: id(20),
+        title: "Plan",
+      }),
     );
+    await expectContract(res4, "stakeholderPackItems.add");
     const refused = await http.post("/stakeholder-pack-items/add", {
       stakeholder_pack_id: PACK,
       attachment_id: MISSING,
@@ -375,16 +367,14 @@ describe("Platform: stakeholder packs", () => {
 
   it("answers a recipient's code only on add and resetCode, and never on a read", async () => {
     const { http } = world();
-    const added = (await expectContract(
-      await success(
-        http.post("/stakeholder-pack-recipients/add", {
-          stakeholder_pack_id: PACK,
-          full_name: "Cleo",
-          email: "cleo@example.com",
-        }),
-      ),
-      "stakeholderPackRecipients.add",
-    )) as Row;
+    const res5 = await success(
+      http.post("/stakeholder-pack-recipients/add", {
+        stakeholder_pack_id: PACK,
+        full_name: "Cleo",
+        email: "cleo@example.com",
+      }),
+    );
+    const added = (await expectContract(res5, "stakeholderPackRecipients.add")) as Row;
     expect(added["access_code"]).toBe("042424");
     const reset = (await expectContract(
       await success(http.post(`/stakeholder-pack-recipients/${RECIPIENT}/reset-code`)),
@@ -402,11 +392,27 @@ describe("Platform: stakeholder packs", () => {
       await success(http.post(`/stakeholder-pack-recipients/${RECIPIENT}/revoke`)),
       "stakeholderPackRecipients.revoke",
     );
-    const sent = (await expectContract(
-      await success(http.post("/stakeholder-pack-recipients/send", { stakeholder_pack_id: PACK })),
-      "stakeholderPackRecipients.send",
-    )) as Row;
+    const res6 = await success(
+      http.post("/stakeholder-pack-recipients/send", { stakeholder_pack_id: PACK }),
+    );
+    const sent = (await expectContract(res6, "stakeholderPackRecipients.send")) as Row;
     expect(sent["queued"]).toBe(2);
+  });
+
+  it("reads a pack, and lists items and recipients", async () => {
+    const { http } = world();
+    await expectContract(
+      await success(http.get(`/stakeholder-packs/${PACK}`)),
+      "stakeholderPacks.get",
+    );
+    const items = await success(
+      http.get(`/stakeholder-pack-items?filter[stakeholder_pack_id][eq]=${PACK}`),
+    );
+    await expectContract(items, "stakeholderPackItems.list");
+    const recipients = await success(
+      http.get(`/stakeholder-pack-recipients?filter[stakeholder_pack_id][eq]=${PACK}`),
+    );
+    await expectContract(recipients, "stakeholderPackRecipients.list");
   });
 
   it("lists events", async () => {
@@ -421,23 +427,21 @@ describe("Platform: stakeholder packs", () => {
 describe("Platform: vendor intake", () => {
   it("answers the token and code only on create and regenerate", async () => {
     const { http } = world();
-    const made = (await expectContract(
-      await success(
-        http.post("/vendor-intake-links/create", {
-          project_id: PROJECT,
-          title: "Audio",
-          role_type: "Vendor",
-          role_code: "9000.50.02",
-          worker_classification: "VENDOR_SUPPLIED",
-          pay_basis: "Day Rate",
-          arrangement: "Per Engagement",
-          start_date: "2027-06-01",
-          expires_at: WHEN,
-          counterparty_type: "AV Integrator",
-        }),
-      ),
-      "vendorIntakeLinks.create",
-    )) as Row;
+    const res7 = await success(
+      http.post("/vendor-intake-links/create", {
+        project_id: PROJECT,
+        title: "Audio",
+        role_type: "Vendor",
+        role_code: "9000.50.02",
+        worker_classification: "VENDOR_SUPPLIED",
+        pay_basis: "Day Rate",
+        arrangement: "Per Engagement",
+        start_date: "2027-06-01",
+        expires_at: WHEN,
+        counterparty_type: "AV Integrator",
+      }),
+    );
+    const made = (await expectContract(res7, "vendorIntakeLinks.create")) as Row;
     expect(made["access_code"]).toBe("042424");
     await expectContract(
       await success(http.post(`/vendor-intake-links/${INTAKE}/regenerate`)),
@@ -457,39 +461,33 @@ describe("Platform: vendor intake", () => {
 
   it("approves and declines a request", async () => {
     const approving = world();
-    const approved = (await expectContract(
-      await success(approving.http.post(`/vendor-intake-requests/${REQUEST}/approve`, {})),
-      "vendorIntakeRequests.approve",
-    )) as Row;
+    const res8 = await success(
+      approving.http.post(`/vendor-intake-requests/${REQUEST}/approve`, {}),
+    );
+    const approved = (await expectContract(res8, "vendorIntakeRequests.approve")) as Row;
     expect(approved["request_state"]).toBe("Approved");
     const declining = world();
-    const declined = (await expectContract(
-      await success(
-        declining.http.post(`/vendor-intake-requests/${REQUEST}/decline`, {
-          reason: "We already have this crew booked.",
-        }),
-      ),
-      "vendorIntakeRequests.decline",
-    )) as Row;
-    expect(declined["request_state"]).toBe("Declined");
-    await expectContract(
-      await success(
-        declining.http.get(`/vendor-intake-requests?filter[project_id][eq]=${PROJECT}`),
-      ),
-      "vendorIntakeRequests.list",
+    const res9 = await success(
+      declining.http.post(`/vendor-intake-requests/${REQUEST}/decline`, {
+        reason: "We already have this crew booked.",
+      }),
     );
+    const declined = (await expectContract(res9, "vendorIntakeRequests.decline")) as Row;
+    expect(declined["request_state"]).toBe("Declined");
+    const res10 = await success(
+      declining.http.get(`/vendor-intake-requests?filter[project_id][eq]=${PROJECT}`),
+    );
+    await expectContract(res10, "vendorIntakeRequests.list");
   });
 });
 
 describe("Platform: public forms", () => {
   it("answers the token and code only on create and regenerate", async () => {
     const { http } = world();
-    const made = (await expectContract(
-      await success(
-        http.post("/form-links/create", { form_template_id: TEMPLATE, expires_at: WHEN }),
-      ),
-      "formLinks.create",
-    )) as Row;
+    const res11 = await success(
+      http.post("/form-links/create", { form_template_id: TEMPLATE, expires_at: WHEN }),
+    );
+    const made = (await expectContract(res11, "formLinks.create")) as Row;
     expect(made["token"]).toMatch(/^xfrm_/);
     await expectContract(
       await success(http.post(`/form-links/${FORM_LINK}/regenerate`)),
@@ -519,12 +517,28 @@ describe("Platform: public forms", () => {
       "formLinkResponses.list",
     )) as { data: Row[] };
     expect(responses.data.map((s) => s["id"])).toEqual([RESPONSE]);
-    const decided = (await expectContract(
-      await success(http.post(`/form-link-responses/${RESPONSE}/decide`, { approve: true })),
-      "formLinkResponses.decide",
-    )) as Row;
+    const res12 = await success(
+      http.post(`/form-link-responses/${RESPONSE}/decide`, { approve: true }),
+    );
+    const decided = (await expectContract(res12, "formLinkResponses.decide")) as Row;
     expect(decided["submission_state"]).toBe("Approved");
     expect(calls).toEqual(["decide_form_submission"]);
+  });
+});
+
+describe("Platform: the other reads", () => {
+  it("lists and reads links, requests and responses", async () => {
+    const { http } = world();
+    await expectContract(await success(http.get("/vendor-intake-links")), "vendorIntakeLinks.list");
+    await expectContract(
+      await success(http.get(`/vendor-intake-requests/${REQUEST}`)),
+      "vendorIntakeRequests.get",
+    );
+    await expectContract(await success(http.get("/form-links")), "formLinks.list");
+    await expectContract(
+      await success(http.get(`/form-link-responses/${RESPONSE}`)),
+      "formLinkResponses.get",
+    );
   });
 });
 

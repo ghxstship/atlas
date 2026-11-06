@@ -88,6 +88,7 @@ create table app.stakeholder_pack_deliveries (
 );
 
 create index stakeholder_pack_deliveries_pack_idx on app.stakeholder_pack_deliveries (stakeholder_pack_id);
+create index stakeholder_pack_deliveries_recipient_fkey_idx on app.stakeholder_pack_deliveries (recipient_id, stakeholder_pack_id);
 
 call private.install_domain_table('app.stakeholder_pack_deliveries', 'app.stakeholder_packs', 'stakeholder_pack_id');
 create index stakeholder_pack_deliveries_recipient_idx on app.stakeholder_pack_deliveries (recipient_id, created_at);
@@ -115,6 +116,7 @@ revoke insert, update, delete on app.stakeholder_pack_deliveries from authentica
 alter table private.stakeholder_pack_links
   add constraint stakeholder_pack_links_delivery_fkey foreign key (stakeholder_pack_delivery_id, recipient_id)
     references app.stakeholder_pack_deliveries (id, recipient_id);
+create index stakeholder_pack_links_delivery_fkey_idx on private.stakeholder_pack_links (stakeholder_pack_delivery_id, recipient_id);
 
 insert into private.trash_excluded_tables (table_name, rationale) values
   ('stakeholder_pack_schedules', 'Revoked, replaced, never restored: a cleared schedule is set again instead.'),

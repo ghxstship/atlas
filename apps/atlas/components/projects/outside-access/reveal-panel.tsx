@@ -33,7 +33,10 @@ function CopyField({ id, label, value }: { id: string; label: string; value: str
  * a row a refresh replaces, and stays through router.refresh until dismissed. A hashed token cannot be redrawn later.
  */
 export function RevealPanel({ revealed, onDismiss }: { revealed: Revealed; onDismiss: () => void }) {
-  const t = useTranslations("projects.outsideAccess.reveal");
+  const t = useTranslations("projects.outsideAccess.reveal") as unknown as (
+    key: string,
+    values?: Record<string, string | number>,
+  ) => string;
   const id = useId();
   return (
     <div

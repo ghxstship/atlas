@@ -204,6 +204,8 @@ create table app.stakeholder_pack_events (
 create index stakeholder_pack_events_pack_idx on app.stakeholder_pack_events (stakeholder_pack_id, occurred_at);
 create index stakeholder_pack_events_recipient_idx on app.stakeholder_pack_events (recipient_id, action, occurred_at);
 create index stakeholder_pack_events_item_idx on app.stakeholder_pack_events (item_id, recipient_id, action);
+create index stakeholder_pack_events_recipient_fkey_idx on app.stakeholder_pack_events (recipient_id, stakeholder_pack_id);
+create index stakeholder_pack_events_item_fkey_idx on app.stakeholder_pack_events (item_id, stakeholder_pack_id);
 
 call private.install_domain_table('app.stakeholder_pack_events', 'app.stakeholder_packs', 'stakeholder_pack_id', '{}', true);
 call private.describe('app.stakeholder_pack_events', 'What each stakeholder pack recipient did (ADR 0141), append-only: a sign-in link Sent, the pack Opened with the code or a device grant, a live item Viewed (at most once per recipient, item and hour), a file Downloaded (also in app.file_access_log), an item Signed with the typed name, and Unsubscribed. Written only by the pack RPCs; no visitor address is kept.', array[

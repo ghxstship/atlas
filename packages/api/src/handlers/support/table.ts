@@ -91,6 +91,7 @@ export interface Query extends PromiseLike<{ data: unknown; error: unknown }> {
   eq(column: string, value: unknown): Query;
   neq(column: string, value: unknown): Query;
   is(column: string, value: null | boolean): Query;
+  not(column: string, operator: string, value: unknown): Query;
   in(column: string, values: readonly unknown[]): Query;
   gt(column: string, value: unknown): Query;
   gte(column: string, value: unknown): Query;
