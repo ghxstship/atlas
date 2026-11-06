@@ -74,6 +74,7 @@ The gate can delay a deletion for as long as Stripe will not accept. That tensio
 - Terms 11.1, 11.2, 11.4 and 5.10 and the guides that warn that canceling does not stop Stripe must change to say it does.
 - A charge after a cancel is refunded by hand. Automating a refund moves money without the owner, so it waits for an owner decision.
 - The portal's own cancel keeps working and is recorded from the webhook. Its cancellation reason stays optional in Stripe.
+- A plan or term change in the Stripe portal, monthly to annual included, is confirmed on Stripe's own page. XOS has no consent record or initials for it, and its next reminder follows the new term. Keeping term changes out of the portal needs a portal configuration per term; that waits for an owner decision before billing opens.
 - Billing stays closed by decision 59 until the owner opens it.
 
 ## Owner steps before live billing

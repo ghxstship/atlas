@@ -18,6 +18,8 @@ end $$;
 
 select pg_temp.as_user('nina');
 insert into world values ('org_n', app.create_organization('Nina Lighting', 'nina-lighting'));
+insert into world values ('org_t', app.create_organization('Nina Rigging', 'nina-rigging'));
+insert into world values ('org_s', app.create_organization('Nina Staging', 'nina-staging'));
 
 create function pg_temp.consent(p_amount bigint, p_interval app.billing_interval, p_initials text default '', p_date date default (now() at time zone 'UTC')::date, p_statement text default 'Core renews automatically.') returns uuid
 language sql as $$
@@ -80,27 +82,27 @@ select throws_ok($$select app.record_renewal_consent(pg_temp.id('org_n'), 'core'
   'renewal_price_mismatch: The price shown is not the plan''s price. Reload the page and try again.', 'the price must be the plan''s in that currency');
 select throws_ok($$select app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Monthly', 14900, 'XXX', current_date, '2026-11-06', 'en-US', 'x', '', true)$$, 'XR001',
   'renewal_price_mismatch: The price shown is not the plan''s price. Reload the page and try again.', 'and a currency the price book does not have is refused');
-insert into world values ('consent_trial', app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Annual', 139000, 'eur', (now() at time zone 'UTC')::date + 10, '2026-11-06', 'en-US', 'Core renews every year.', 'NL', true));
+insert into world values ('consent_trial', app.record_renewal_consent(pg_temp.id('org_t'), 'core', 'Annual', 139000, 'eur', (now() at time zone 'UTC')::date + 10, '2026-11-06', 'en-US', 'Core renews every year.', 'NL', true));
 select pg_temp.as_platform();
 select is((select currency_code from private.billing_renewal_consents where id = pg_temp.id('consent_trial')), 'EUR', 'the consent records the currency agreed to');
 select pg_temp.as_user_stepped_up('nina');
-select app.record_billing_checkout(pg_temp.id('org_n'), 'core', 'Annual', 'cs_live_Tr1al', true, now() + interval '1 hour');
+select app.record_billing_checkout(pg_temp.id('org_t'), 'core', 'Annual', 'cs_live_Tr1al', true, now() + interval '1 hour');
 select pg_temp.as_service();
 select app.finish_billing_checkout_from_stripe('cs_live_Tr1al', 'Completed');
 select pg_temp.as_platform();
-select results_eq($$select message_args ->> 'price', (message_args ->> 'nextChargeOn')::bigint from app.notifications where kind = 'billing.purchase_confirmed' and org_id = pg_temp.id('org_n') and message_args ->> 'term' = 'Annual'$$,
-  $$values ('1,390.00 EUR'::text, private.org_day_mark(pg_temp.id('org_n'), (now() at time zone 'UTC')::date + 10))$$,
+select results_eq($$select message_args ->> 'price', (message_args ->> 'nextChargeOn')::bigint from app.notifications where kind = 'billing.purchase_confirmed' and org_id = pg_temp.id('org_t')$$,
+  $$values ('1,390.00 EUR'::text, private.org_day_mark(pg_temp.id('org_t'), (now() at time zone 'UTC')::date + 10))$$,
   'with a carried trial the next charge is when it ends, in the currency agreed to');
 select pg_temp.as_user('nina');
-select app.record_renewal_consent(pg_temp.id('org_n'), 'pro', 'Monthly', 39900, 'USD', (now() at time zone 'UTC')::date, '2026-11-06', 'en-US', 'Pro renews every month.', '', true);
+select app.record_renewal_consent(pg_temp.id('org_s'), 'pro', 'Monthly', 39900, 'USD', (now() at time zone 'UTC')::date, '2026-11-06', 'en-US', 'Pro renews every month.', '', true);
 select pg_temp.as_user_stepped_up('nina');
-select app.record_billing_checkout(pg_temp.id('org_n'), 'pro', 'Monthly', 'cs_live_Sync3d', true, now() + interval '1 hour');
+select app.record_billing_checkout(pg_temp.id('org_s'), 'pro', 'Monthly', 'cs_live_Sync3d', true, now() + interval '1 hour');
 select pg_temp.as_service();
-select app.sync_subscription_from_stripe(pg_temp.id('org_n'), 'cus_N1na', 'sub_N1na', 'pro', 'Monthly', 'active', now() + interval '20 days', true);
+select app.sync_subscription_from_stripe(pg_temp.id('org_s'), 'cus_N1na', 'sub_N1na', 'pro', 'Monthly', 'active', now() + interval '20 days', true);
 select app.finish_billing_checkout_from_stripe('cs_live_Sync3d', 'Completed');
 select pg_temp.as_platform();
-select is((select (message_args ->> 'nextChargeOn')::bigint from app.notifications where kind = 'billing.purchase_confirmed' and org_id = pg_temp.id('org_n') and message_args ->> 'plan' = 'Pro'),
-  private.org_day_mark(pg_temp.id('org_n'), private.org_date(pg_temp.id('org_n'), now() + interval '20 days')),
+select is((select (message_args ->> 'nextChargeOn')::bigint from app.notifications where kind = 'billing.purchase_confirmed' and org_id = pg_temp.id('org_s')),
+  private.org_day_mark(pg_temp.id('org_s'), private.org_date(pg_temp.id('org_s'), now() + interval '20 days')),
   'and once its subscription has synced, the date Stripe gave');
 
 -- Before an annual renewal -------------------------------------------------------------------------------------------------
