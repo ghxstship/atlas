@@ -1502,6 +1502,44 @@ describe("expense balances (3011)", () => {
 });
 
 describe("payments due (3015)", () => {
+  it("reads past the row cap, so a subtotal is never over a cut-short answer", async () => {
+    const row = {
+      kind: "per_diem",
+      source_id: "s",
+      project_id: "p",
+      project_key: "NWS",
+      project_today: "2027-06-01",
+      due_on: "2027-06-02",
+      currency_code: "USD",
+      amount_minor: 100,
+      scheduled_minor: 0,
+      source_state: "Approved",
+    };
+    const { db, calls } = fakeClient({
+      "rpc:payments_due": [
+        okResponse(Array.from({ length: 1000 }, () => row)),
+        okResponse(Array.from({ length: 3 }, () => row)),
+      ],
+    });
+    const result = await finance.listPaymentsDue(db, { orgId: "o1" });
+    expect(result.ok && result.data.length).toBe(1003);
+    expect(calls.flatMap((c) => c.steps.filter(([step]) => step === "range"))).toEqual([
+      ["range", [0, 999]],
+      ["range", [1000, 1999]],
+    ]);
+  });
+
+  it("gives no partial ledger when a later page fails", async () => {
+    const { db } = fakeClient({
+      "rpc:payments_due": [
+        okResponse(Array.from({ length: 1000 }, () => ({ kind: "invoice", source_id: "s" }))),
+        errorResponse("08006", "down"),
+      ],
+    });
+    const result = await finance.listPaymentsDue(db, { orgId: "o1" });
+    expect(result.ok).toBe(false);
+  });
+
   const due = (over: Partial<finance.PaymentDue>): finance.PaymentDue => ({
     kind: "invoice",
     sourceId: "s",

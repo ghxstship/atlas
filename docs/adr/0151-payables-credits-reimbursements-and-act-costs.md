@@ -76,7 +76,9 @@ until its payment is cleared.
 
 `app.payments_due`, `app.reimbursement_balances`, `app.owed_reimbursable_expenses`, `app.po_instalment_schedule`,
 `app.engagement_cost_items` and `app.engagement_costs` are security definer functions with an explicit gate, so a reader
-sees the complete figure or none, never a partial sum under row level security. A definer function is not a way around a
+sees the complete figure or none, never a partial sum under row level security. PostgREST also caps every answer at `max_rows`
+without an error (ADR 0044), so the repositories read these functions page by page (`packages/data/src/all-rows.ts`), and
+a page that fails fails the whole read. A definer function is not a way around a
 role check, so each gate names every capability whose rows the function reads:
 
 - `app.payments_due` needs `finance.payment.read`, `finance.invoice.read`, `finance.expense.read`, `procurement.po.read`
@@ -159,6 +161,10 @@ engagement and currency:
 The roll-up never reads `engagements.agreed_rate_minor` (Restricted, 0700), so an act with no bill and no settlement shows a
 total without its fee, and says so. `po_lines.engagement_id` attributes a whole line, so G-186's "backline share" is a line
 of its own, or the whole of a shared line: a share of one line is not expressible, a known limitation.
+
+An item with no price has no currency either, so it could be in any of the act's currencies. Its component reads NULL on
+every row of the engagement rather than 0, and Atlas lists the item on every row's drill-down, since it is what makes the
+total Unpriced. An act with nothing priced has one row with no currency, and its figures are not amounts.
 
 ## API v1
 

@@ -9,6 +9,7 @@ import {
 import { todayIn } from "@xos/data/calendar";
 import Link from "next/link";
 import type { Route } from "next";
+import { getFormatter } from "next-intl/server";
 import {
   addPoInstalmentAction,
   linkPoBillAction,
@@ -45,7 +46,7 @@ export async function PoPaymentSchedule({
   zone: string;
 }) {
   const db = ctx.viewer.db;
-  const schedule = await listPoInstalments(db, order.id);
+  const [schedule, format] = await Promise.all([listPoInstalments(db, order.id), getFormatter()]);
   if (!schedule.ok) return null;
   const canLink =
     canWrite && order.state !== "Canceled" && ctx.capabilities.has("finance.invoice.read");
@@ -79,7 +80,11 @@ export async function PoPaymentSchedule({
           rows={rows.map((i) => ({
             n: i.number,
             label: i.label,
-            due: i.dueOn,
+            // A day, not an instant: read at noon in UTC so no zone moves it.
+            due: format.dateTime(new Date(`${i.dueOn}T12:00:00Z`), {
+              dateStyle: "medium",
+              timeZone: "UTC",
+            }),
             amount: money(i.amountMinor, order.currencyCode),
             bill: i.invoiceId
               ? i.isInvoiceWithheld

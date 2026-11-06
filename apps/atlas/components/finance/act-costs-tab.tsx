@@ -88,11 +88,25 @@ export async function ActCostsTab({ page }: { page: FinancePage }) {
       : c.money(r.totalMinor, r.currency ?? "");
   const term = query.q?.toLowerCase() ?? null;
   const shown = costs.data.filter((r) => term === null || partyOf(r).toLowerCase().includes(term));
-  const money = (r: EngagementCost, minor: number | null) => c.money(minor, r.currency ?? "");
+  // The row of an act with nothing priced has no currency, so its figures are not amounts: a blank is never 0.
+  const money = (r: EngagementCost, minor: number | null) =>
+    minor !== null && r.currency === null
+      ? t("finance.common.none")
+      : c.money(minor, r.currency ?? "");
+  // An act whose fee is neither billed nor settled, in any currency: the total leaves the fee out.
+  const withFee = new Set(
+    costs.data
+      .filter((r) => r.settlementMinor !== 0 || r.invoiceMinor !== 0)
+      .map((r) => r.engagementId),
+  );
+  const partyCell = (r: EngagementCost) =>
+    withFee.has(r.engagementId)
+      ? partyOf(r)
+      : t("finance.actCosts.partyNoFee", { party: partyOf(r) });
   const rows: Row[] = shown.map((r) => ({
     id: keyOf(r),
     label: partyOf(r),
-    party: partyOf(r),
+    party: partyCell(r),
     currency: r.currency ?? t("finance.actCosts.noCurrency"),
     settlement: money(r, r.settlementMinor),
     invoice: money(r, r.invoiceMinor),
@@ -135,7 +149,10 @@ export async function ActCostsTab({ page }: { page: FinancePage }) {
       projectId: project.id,
       engagementId: peeked.engagementId,
     });
-    const list = (items.ok ? items.data : []).filter((i) => i.currency === peeked.currency);
+    // An item with no price has no currency either: it is listed on every row, since it is what makes the total Unpriced.
+    const list = (items.ok ? items.data : []).filter(
+      (i) => i.currency === peeked.currency || i.currency === null,
+    );
     const labelled = (i: EngagementCostItem): ReactNode => {
       const text = i.label ?? t(`finance.actCosts.components.${COMPONENT_LABEL[i.component]}`);
       const href = sourceHref(i);
@@ -166,9 +183,9 @@ export async function ActCostsTab({ page }: { page: FinancePage }) {
       ],
       content: (
         <>
-          {peeked.settlementMinor === 0 && peeked.invoiceMinor === 0 ? (
+          {withFee.has(peeked.engagementId) ? null : (
             <p className="m-0 text-text-12 text-text-secondary">{t("finance.actCosts.noFee")}</p>
-          ) : null}
+          )}
           <Section id="act-cost-items" title={t("finance.actCosts.items")}>
             <SimpleTable
               caption={t("finance.actCosts.items")}
@@ -222,7 +239,7 @@ export async function ActCostsTab({ page }: { page: FinancePage }) {
       listItems={shown.map((r) => ({
         id: keyOf(r),
         recordKey: r.currency ?? t("finance.actCosts.noCurrency"),
-        title: partyOf(r),
+        title: partyCell(r),
         state: r.totalMinor === null ? "in-review" : "complete",
         stateLabel: totalOf(r),
         next: totalOf(r),

@@ -103,6 +103,16 @@ select pg_temp.bill('bill_gbp2', 'cp_v_a', 'GBP', 5000, '2027-06-02', 'Approved'
 select pg_temp.settled('st_cad_v', 'CAD', 'eng_vendor_a', null, 0);
 select pg_temp.bill('bill_cad_v', 'cp_v_a', 'CAD', 5000, '2027-06-02', 'Approved', null, 'eng_vendor_a');
 
+-- A person step for a per diem naming only a membership: on an act's engagement it goes there, and internal crew stay out.
+select pg_temp.as_platform();
+insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement, start_date)
+select pg_temp.id('prj_a'), pg_temp.id('frank'), 'Crew', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', '2027-06-01';
+select pg_temp.as_user('carol');
+with x as (insert into app.per_diems (project_id, membership_id, day, amount_minor, currency_code)
+  values (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '2027-06-03', 1200, 'USD') returning id) insert into world select 'pd_frank', id from x;
+with x as (insert into app.per_diems (project_id, membership_id, day, amount_minor, currency_code)
+  values (pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), '2027-06-03', 1300, 'USD') returning id) insert into world select 'pd_dave', id from x;
+
 -- ivy (eng_ivy_a): bills in two currencies, no settlement.
 select pg_temp.bill('bill_ivy_usd', null, 'USD', 7000, '2027-06-09', 'Approved', 'ivy', 'eng_ivy_a');
 select pg_temp.bill('bill_ivy_eur', null, 'EUR', 3000, '2027-06-09', 'Disputed', 'ivy', 'eng_ivy_a');
@@ -128,6 +138,10 @@ select is((select coalesce(counted_minor::text, 'null') from app.engagement_cost
 select is((select string_agg(component || ':' || coalesce(amount_minor::text, 'null'), ',' order by component)
   from app.engagement_cost_items(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) where component in ('per_diem', 'travel')), 'per_diem:4500,travel:null',
   'kai''s roster per diem and unpriced trip go to the roster''s engagement');
+select is((select e.person_id from app.engagement_cost_items(pg_temp.id('prj_a')) i join app.engagements e on e.id = i.engagement_id where i.source_id = pg_temp.id('pd_frank')),
+  pg_temp.id('frank'), 'a per diem naming only a membership follows its person to their act');
+select is((select count(*)::int from app.engagement_cost_items(pg_temp.id('prj_a')) where source_id = pg_temp.id('pd_dave')), 0,
+  'internal crew attribute to no act');
 select is((select count(*)::int from app.engagement_cost_items(pg_temp.id('prj_a'))
   where source_id in (select pl.id from app.po_lines pl where pl.purchase_order_id = pg_temp.id('po_art') and pl.engagement_id is null)), 0,
   'a line naming no engagement is no act''s cost');
@@ -143,7 +157,9 @@ select is((select person_id::text || '/' || role_type::text from app.engagement_
   pg_temp.id('art')::text || '/Artist', 'with the engagement''s party and role');
 select is((select coalesce(total_minor::text, 'null') || '/' || priced_total_minor || '/' || unpriced_count || '/' || coalesce(travel_minor::text, 'null')
   from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) where currency_code = 'USD'),
-  'null/4500/5/0', 'an unpriced item leaves the total NULL, with the priced total and the engagement''s unpriced count beside it');
+  'null/4500/5/null', 'an unpriced item leaves the total NULL, with the priced total and the unpriced count beside it, and a trip with no currency reads as no 0 under travel');
+select is((select coalesce(travel_minor::text, 'null') || '/' || lodging_minor from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) where currency_code = 'GBP'),
+  'null/0', 'on every currency''s row, while a component with nothing unpriced still sums');
 select is((select string_agg(currency_code || ':' || invoice_minor || ':' || total_minor, ',' order by currency_code)
   from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_ivy_a'))), 'EUR:3000:3000,USD:7000:7000',
   'one row per currency, never summed; a Proposed bill is not yet a cost');

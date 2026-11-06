@@ -19,7 +19,8 @@
 --     unpriced earlier bill or an unpriced settlement gives NULL, since a window sum that skipped NULL would hide it.
 --   * A blank price stays blank: an item without an amount or a currency is unpriced, and app.engagement_costs gives
 --     every row of an engagement with an unpriced item a NULL total, with the priced subtotal and the unpriced count
---     beside it. Currencies are never converted.
+--     beside it. An item with no currency could be in any of them, so its component is NULL on every row of the
+--     engagement rather than 0. Currencies are never converted.
 --   * Both functions are definer functions that name every capability whose rows they read
 --     (app.can_read_engagement_costs): finance.invoice.read (settlements, 0991, and bills), finance.expense.read,
 --     procurement.po.read, crew.time_entry.read (per diems, 2692), hospitality.fulfillment.read (travel 0442, fulfillments
@@ -145,7 +146,8 @@ begin
     where bk.project_id = p_project_id and a.deleted_at is null
     union all
     select coalesce(private.allocation_engagement(d.allocation_id), d.engagement_id,
-        (select r.engagement_id from app.engagement_roster_entries r where r.id = d.roster_entry_id)),
+        (select r.engagement_id from app.engagement_roster_entries r where r.id = d.roster_entry_id),
+        private.cost_engagement_for_person(d.project_id, private.per_diem_person(d.id))),
       'per_diem', 'per_diems', d.id, null::uuid, d.day, null::text, d.currency_code::text, d.amount_minor, d.amount_minor
     from app.per_diems d
     where d.project_id = p_project_id and d.deleted_at is null
@@ -253,11 +255,11 @@ as $$
            else coalesce(sum(i.counted_minor) filter (where i.component = 'purchase_order'), 0) end::bigint as purchase_order,
       sum(i.counted_minor)::bigint as priced
     from items i
-    where i.engagement_id = c.engagement and i.currency_code is not distinct from c.currency
+    where i.engagement_id = c.engagement and (i.currency_code = c.currency or i.currency_code is null)
   ) s
   order by c.engagement, c.currency nulls last;
 $$;
 
-comment on function app.engagement_costs(uuid, uuid) is 'The all-in cost of the project''s engagements, or of one (G-186), one row per engagement and currency from app.engagement_cost_items, with the engagement''s counterparty, person and role type: each component''s sum of counted_minor (NULL when one of its items in the currency is unpriced), the priced total, and total_minor, NULL on every row of an engagement while any of its counted items is unpriced (Section 3.7), with unpriced_count, the engagement''s unpriced items, on each row. An engagement whose items are all unpriced has one row with no currency. Currencies are never converted; a bill counts only the part above its engagement''s settlements. Needs the six capabilities of app.can_read_engagement_costs on the project (42501).';
+comment on function app.engagement_costs(uuid, uuid) is 'The all-in cost of the project''s engagements, or of one (G-186), one row per engagement and currency from app.engagement_cost_items, with the engagement''s counterparty, person and role type: each component''s sum of counted_minor (NULL when one of its items in the currency, or one with no currency, is unpriced), the priced total, and total_minor, NULL on every row of an engagement while any of its counted items is unpriced (Section 3.7), with unpriced_count, the engagement''s unpriced items, on each row. An engagement whose items are all unpriced has one row with no currency. Currencies are never converted; a bill counts only the part above its engagement''s settlements. Needs the six capabilities of app.can_read_engagement_costs on the project (42501).';
 revoke all on function app.engagement_costs(uuid, uuid) from public, anon;
 grant execute on function app.engagement_costs(uuid, uuid) to authenticated, service_role;

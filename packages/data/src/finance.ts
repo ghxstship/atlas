@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { allRows } from "./all-rows.ts";
 import type { Database, XosClient } from "./client.ts";
 import { csvField } from "./csv.ts";
 import { fillPersonNames } from "./person-names.ts";
@@ -2939,11 +2940,14 @@ export async function listPaymentsDue(
   db: XosClient,
   input: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<PaymentDue[]>> {
-  const result = await rows(
-    db.rpc("payments_due", {
-      p_org_id: input.orgId,
-      ...(input.projectId ? { p_project_id: input.projectId } : {}),
-    }),
+  const result = await allRows(
+    (from, to) =>
+      db
+        .rpc("payments_due", {
+          p_org_id: input.orgId,
+          ...(input.projectId ? { p_project_id: input.projectId } : {}),
+        })
+        .range(from, to),
     toPaymentDue,
   );
   if (!result.ok) return result;
@@ -3060,11 +3064,14 @@ export async function listReimbursementBalances(
   db: XosClient,
   input: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<ReimbursementBalance[]>> {
-  const result = await rows(
-    db.rpc("reimbursement_balances", {
-      p_org_id: input.orgId,
-      ...(input.projectId ? { p_project_id: input.projectId } : {}),
-    }),
+  const result = await allRows(
+    (from, to) =>
+      db
+        .rpc("reimbursement_balances", {
+          p_org_id: input.orgId,
+          ...(input.projectId ? { p_project_id: input.projectId } : {}),
+        })
+        .range(from, to),
     (r): ReimbursementBalance => ({
       payeePersonId: str(r["payee_person_id"]),
       payeeName: null,
@@ -3115,12 +3122,15 @@ export async function listOwedExpenses(
     readonly projectId?: string | null;
   },
 ): Promise<Result<OwedExpense[]>> {
-  return rows(
-    db.rpc("owed_reimbursable_expenses", {
-      p_org_id: input.orgId,
-      p_payee_person_id: input.payeePersonId,
-      ...(input.projectId ? { p_project_id: input.projectId } : {}),
-    }),
+  return allRows(
+    (from, to) =>
+      db
+        .rpc("owed_reimbursable_expenses", {
+          p_org_id: input.orgId,
+          p_payee_person_id: input.payeePersonId,
+          ...(input.projectId ? { p_project_id: input.projectId } : {}),
+        })
+        .range(from, to),
     (r) => ({
       expenseId: str(r["expense_id"]),
       projectKey: str(r["project_key"]),

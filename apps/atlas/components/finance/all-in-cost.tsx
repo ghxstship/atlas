@@ -44,7 +44,8 @@ export async function AllInCost({
             : c.money(row.totalMinor, row.currency ?? ""),
         ])}
       />
-      {costs.data.some((row) => row.settlementMinor === 0 && row.invoiceMinor === 0) ? (
+      {/* The fee can be in any currency, so the note is decided across them. */}
+      {costs.data.every((row) => row.settlementMinor === 0 && row.invoiceMinor === 0) ? (
         <p className="m-0 text-text-12 text-text-secondary">{t("finance.actCosts.noFee")}</p>
       ) : null}
       <Link

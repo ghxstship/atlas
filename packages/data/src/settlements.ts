@@ -1,3 +1,4 @@
+import { allRows } from "./all-rows.ts";
 import type { XosClient } from "./client.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
@@ -398,11 +399,14 @@ export async function listEngagementCosts(
   db: XosClient,
   input: { readonly projectId: string; readonly engagementId?: string | null },
 ): Promise<Result<EngagementCost[]>> {
-  return rows(
-    db.rpc("engagement_costs", {
-      p_project_id: input.projectId,
-      ...(input.engagementId ? { p_engagement_id: input.engagementId } : {}),
-    }),
+  return allRows(
+    (from, to) =>
+      db
+        .rpc("engagement_costs", {
+          p_project_id: input.projectId,
+          ...(input.engagementId ? { p_engagement_id: input.engagementId } : {}),
+        })
+        .range(from, to),
     (r) => ({
       engagementId: str(r["engagement_id"]),
       counterpartyId: strOrNull(r["counterparty_id"]),
@@ -429,11 +433,14 @@ export async function listEngagementCostItems(
   db: XosClient,
   input: { readonly projectId: string; readonly engagementId?: string | null },
 ): Promise<Result<EngagementCostItem[]>> {
-  return rows(
-    db.rpc("engagement_cost_items", {
-      p_project_id: input.projectId,
-      ...(input.engagementId ? { p_engagement_id: input.engagementId } : {}),
-    }),
+  return allRows(
+    (from, to) =>
+      db
+        .rpc("engagement_cost_items", {
+          p_project_id: input.projectId,
+          ...(input.engagementId ? { p_engagement_id: input.engagementId } : {}),
+        })
+        .range(from, to),
     (r) => ({
       engagementId: str(r["engagement_id"]),
       component: str(r["component"]) as EngagementCostComponent,
