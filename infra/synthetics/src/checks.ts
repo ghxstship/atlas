@@ -32,6 +32,26 @@ async function request(
   });
 }
 
+/**
+ * The start of a body, then the rest is cancelled, so a check of a large document downloads almost none
+ * of it. A body that ends sooner is returned whole.
+ */
+async function readStart(response: Response, bytes: number): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) return "";
+  const decoder = new TextDecoder();
+  let text = "";
+  let read = 0;
+  while (read < bytes) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    read += value.byteLength;
+    text += decoder.decode(value, { stream: true });
+  }
+  await reader.cancel();
+  return text;
+}
+
 function expectStatus(response: Response, expected: number): ProbeOutcome | null {
   return response.status === expected ? null : failed(`status_${response.status}`);
 }
@@ -108,11 +128,14 @@ export const gatewayHome: CheckDefinition = {
   },
 };
 
+const OPENAPI_PREFIX_BYTES = 1024;
+
 export const apiDocument: CheckDefinition = {
   id: "api.openapi",
   component: "api",
   requires: ["XOS_ATLAS_URL"],
-  budgetMs: 250,
+  // A static file from the CDN, like the sign-in pages' budget, and not the 250 ms of a signed-in read.
+  budgetMs: 600,
   required: true,
   runbook: `${RUNBOOK}#api-errors-or-latency`,
   async probe(context) {
@@ -122,10 +145,10 @@ export const apiDocument: CheckDefinition = {
     );
     const bad = expectStatus(response, 200);
     if (bad) return bad;
-    const body = (await response.json()) as { openapi?: unknown };
-    return typeof body.openapi === "string" && body.openapi.startsWith("3.1")
-      ? ok
-      : failed("not_openapi_3_1");
+    // The document runs to megabytes, and its version is its first key. Reading all of it would measure
+    // this runner's JSON parser against a budget meant for the host, and download it every five minutes.
+    const start = await readStart(response, OPENAPI_PREFIX_BYTES);
+    return /^\s*\{\s*"openapi"\s*:\s*"3\.1/.test(start) ? ok : failed("not_openapi_3_1");
   },
 };
 

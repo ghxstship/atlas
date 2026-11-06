@@ -202,9 +202,37 @@ describe("runChecks", () => {
       env: ENV,
       region: "us-east",
       fetch: f.impl,
-      now: clock(300),
+      now: clock(700),
     });
-    expect(results[0]).toMatchObject({ status: "degraded", detail: "over_budget_250ms" });
+    expect(results[0]).toMatchObject({ status: "degraded", detail: "over_budget_600ms" });
+  });
+
+  it("identifies the real OpenAPI document from its start, without downloading it", async () => {
+    const repo = fileURLToPath(new URL("../../../", import.meta.url));
+    const file = readFileSync(`${repo}packages/api/openapi/v1.json`);
+    // As committed, and compacted as the route serves it through Response.json.
+    for (const document of [file, Buffer.from(JSON.stringify(JSON.parse(file.toString())))]) {
+      let sent = 0;
+      let cancelled = false;
+      const body = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          controller.enqueue(document.subarray(sent, sent + 256));
+          sent += 256;
+        },
+        cancel() {
+          cancelled = true;
+        },
+      });
+      const fetcher = (async () => new Response(body, { status: 200 })) as typeof fetch;
+      const results = await runChecks([check(3)], {
+        env: ENV,
+        region: "us-east",
+        fetch: fetcher,
+      });
+      expect(results[0]?.status).toBe("pass");
+      expect(cancelled).toBe(true);
+      expect(sent).toBeLessThan(2048);
+    }
   });
 
   it("reports wrong answers and errors as failures", async () => {

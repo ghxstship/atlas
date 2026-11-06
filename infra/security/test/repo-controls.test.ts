@@ -166,7 +166,9 @@ describe("the CI scripts", () => {
       expect(run("publish", data).status).toBe(0);
       writeFileSync(join(data, "history.json"), '{"run":2}\n');
       expect(run("publish", data).status).toBe(0);
-      expect(git(remote, "rev-list", "--count", "status-data")).toBe("1");
+      expect(git(remote, "rev-list", "--count", "refs/status/history")).toBe("1");
+      // Vercel deploys every branch push on every connected project, so the history is never a branch.
+      expect(git(remote, "for-each-ref", "refs/heads")).toBe("");
 
       rmSync(join(data, "history.json"));
       expect(run("fetch", data).status).toBe(0);

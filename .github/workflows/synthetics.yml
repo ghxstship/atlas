@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
-      contents: write # Only to force-push the single-commit status-data branch.
+      contents: write # Only to force-push the single-commit ref refs/status/history, which is not a branch.
     outputs:
       changed: ${{ steps.run.outputs.changed }}
     steps:

@@ -1,6 +1,6 @@
 {
   "title": "Estado de XOS",
-  "description": "Disponibilidad en vivo de Atlas, Gateway, la API, la documentación, Realtime, la sincronización de Compass y las notificaciones, revisada cada pocos minutos.",
+  "description": "Disponibilidad de XOS, revisada desde fuera cada pocos minutos. Esta página se actualiza cuando una revisión empieza o deja de fallar, y al menos cada hora. Un componente marcado como Sin datos aún no se revisa.",
   "skipLink": "Saltar a los componentes",
   "overall": {
     "operational": "Todos los sistemas funcionan con normalidad",

@@ -49,3 +49,7 @@ A26 built the reliability stack under `infra/`: observability, synthetic checks,
 11. **Edge Functions report over HTTP.** `serve()` wraps every function with `observe`. On an unexpected error it returns the A22-013 problem and, when the `SENTRY_DSN` secret is set, sends one scrubbed event through a dependency-free envelope sender. `@sentry/deno` stays a later decision.
 
 The Consequences item about wiring Sentry into Atlas and Gateway is closed.
+
+## Amendment (2026-11-06): where the status page's history lives
+
+Item 7 no longer describes the status page. The page is a static Vercel project (owner decision, 2026-10-24), and its history is the single-commit ref `refs/status/history`, not a `status-data` branch. Vercel deploys every branch push on each project connected to the repository, and a commit holding only the history has none of their root directories. The one such push, `status-site` on 2026-10-25, failed on four projects. At one run every five minutes, a branch would have meant about 1,500 deployments a day.

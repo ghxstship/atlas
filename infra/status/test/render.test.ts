@@ -95,6 +95,23 @@ describe("state rules", () => {
     expect(uptime(h, "us-east", "api", NOW, 30)).toBeCloseTo(101 / 103);
     expect(uptime(h, "us-east", "realtime", NOW, 30)).toBeNull();
   });
+
+  it("marks a day slow by its share of slow answers, not by one of them", () => {
+    const day = (slow: number) => {
+      const runs: CheckResult[] = [];
+      for (let i = 0; i < 100 - slow; i += 1) {
+        runs.push(result("api.openapi", "api", "pass", "2026-10-16T01:00:00Z"));
+      }
+      for (let i = 0; i < slow; i += 1) {
+        runs.push(result("api.openapi", "api", "degraded", "2026-10-16T02:00:00Z"));
+      }
+      return dailyStates(history(runs), "us-east", "api", NOW, 1)[0]?.state;
+    };
+    expect(day(0)).toBe("operational");
+    expect(day(1)).toBe("operational");
+    expect(day(5)).toBe("operational");
+    expect(day(6)).toBe("degraded");
+  });
 });
 
 describe("helpers", () => {
@@ -110,6 +127,43 @@ describe("helpers", () => {
 });
 
 describe("renderStatusPage", () => {
+  const rowOf = (html: string, name: string) =>
+    html.split('<li class="component">').find((row) => row.includes(`"name">${name}<`)) ?? "";
+
+  it("claims a check only for a component a check touched", () => {
+    const at = "2026-10-16T11:55:00Z";
+    const html = renderStatusPage({
+      locale: "en-US",
+      messages: messages("en-US"),
+      config,
+      history: history([
+        result("atlas.sign_in_page", "atlas", "pass", at),
+        result("atlas.sign_in", "atlas", "skipped", at),
+        result("realtime.join", "realtime", "skipped", at),
+        result("sync.liveness", "sync", "skipped", at),
+        result("notifications.function", "notifications", "skipped", at),
+      ]),
+      incidents: [],
+      now: NOW,
+      tokenCss,
+    });
+    expect(rowOf(html, "Atlas")).toContain("Last checked");
+    expect(rowOf(html, "Atlas")).toContain("Operational");
+    for (const name of ["Realtime", "Compass sync", "Notifications"]) {
+      expect(rowOf(html, name)).toContain("No data");
+      expect(rowOf(html, name)).toContain("Not checked yet");
+      expect(rowOf(html, name)).not.toContain("Last checked");
+    }
+    expect(html).toContain('data-state="operational">The components we check are operational.');
+  });
+
+  it("does not name a component in its lede, in either locale", () => {
+    for (const locale of ["en-US", "es-US"]) {
+      const { description } = messages(locale);
+      expect(description).not.toMatch(/Atlas|Gateway|API|Realtime|Compass|notific/i);
+    }
+  });
+
   it("renders the empty state before any check has reported", () => {
     const html = renderStatusPage({
       locale: "en-US",

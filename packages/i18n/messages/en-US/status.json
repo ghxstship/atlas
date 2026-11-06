@@ -1,6 +1,6 @@
 {
   "title": "XOS status",
-  "description": "Live availability of Atlas, Gateway, the API, the documentation, Realtime, Compass sync and notifications, checked every few minutes.",
+  "description": "Availability of XOS, checked from outside every few minutes. This page updates when a check starts or stops failing, and at least hourly. A component marked No data is not checked yet.",
   "skipLink": "Skip to components",
   "overall": {
     "operational": "All systems operational",

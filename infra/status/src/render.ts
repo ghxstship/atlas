@@ -126,8 +126,16 @@ export interface DaySummary {
 }
 
 /**
+ * A day counts as slow when more than this share of its answers ran over budget. One slow answer from a
+ * CI runner says little about the service, and at 288 runs a day any stricter rule would mark most days
+ * Degraded on a public page.
+ */
+export const SLOW_DAY_SHARE = 0.05;
+
+/**
  * Daily state, oldest first: outage below 99 percent of good checks that day, degraded below 100
- * percent or with any slow answer, operational otherwise, unknown with no checks.
+ * percent or with more than SLOW_DAY_SHARE of its answers slow, operational otherwise, unknown with
+ * no checks.
  */
 export function dailyStates(
   history: StatusHistory,
@@ -153,7 +161,12 @@ export function dailyStates(
     let state: ComponentState = "unknown";
     if (total > 0) {
       const ratio = good / total;
-      state = ratio < 0.99 ? "outage" : ratio < 1 || slow > 0 ? "degraded" : "operational";
+      state =
+        ratio < 0.99
+          ? "outage"
+          : ratio < 1 || slow / total > SLOW_DAY_SHARE
+            ? "degraded"
+            : "operational";
     }
     out.push({ day, state });
   }
@@ -181,13 +194,14 @@ export function uptime(
   return total === 0 ? null : good / total;
 }
 
+/** When a check last ran. A skipped result is the run noticing a check has no settings, so it does not count. */
 function lastCheckedAt(
   history: StatusHistory,
   region: string,
   component: ComponentId,
 ): string | null {
   const times = checksOf(history, region, component)
-    .map((c) => c.last?.at)
+    .map((c) => (c.last?.status === "skipped" ? undefined : c.last?.at))
     .filter((t): t is string => typeof t === "string")
     .sort();
   return times.at(-1) ?? null;

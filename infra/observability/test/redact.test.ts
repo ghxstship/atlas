@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -350,14 +351,18 @@ describe("the log drain's transform (infra/runbooks/production.md, finding A69-0
     expect(prefixesIn(runbook, /r'\(\?i\)\(\?:(xa[^)]+)\)_\[0-9a-f\]\{16,\}/)).toEqual(appPrefixes);
   });
 
+  // VRL runs Rust's regex; these two patterns need nothing JavaScript reads differently, once (?i) is a flag.
+  // This exercises the patterns through JavaScript, not the transform in VRL.
+  const transform = runbook.slice(runbook.indexOf("# A69-012:"));
+  const [paths, tokens] = [...transform.matchAll(/, r'([^']+)'/g)].map((match) => match[1] ?? "");
+  const pathPattern = new RegExp(paths ?? "", "g");
+  const tokenPattern = new RegExp((tokens ?? "").replace("(?i)", ""), "gi");
+  const mask = (line: string) =>
+    line.replace(pathPattern, "$1$2[token]").replace(tokenPattern, "[token]");
+  const git = (...args: string[]) =>
+    execFileSync("git", args, { cwd: repo, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+
   it("masks tokens in the paths and shapes the routes use", () => {
-    // VRL runs Rust's regex; these two patterns need nothing JavaScript reads differently, once (?i) is a flag.
-    const transform = runbook.slice(runbook.indexOf("# A69-012:"));
-    const [paths, tokens] = [...transform.matchAll(/, r'([^']+)'/g)].map((match) => match[1] ?? "");
-    const pathPattern = new RegExp(paths ?? "", "g");
-    const tokenPattern = new RegExp((tokens ?? "").replace("(?i)", ""), "gi");
-    const mask = (line: string) =>
-      line.replace(pathPattern, "$1$2[token]").replace(tokenPattern, "[token]");
     const hex = "d".repeat(64);
     for (const [line, masked] of [
       [`GET /share/xshr_${hex}`, "GET /share/[token]"],
@@ -389,6 +394,43 @@ describe("the log drain's transform (infra/runbooks/production.md, finding A69-0
     expect(
       [...minted].filter((prefix) => !appPrefixes.includes(prefix)),
       "A migration mints a bearer token with a prefix redact.ts and the runbook's transform do not mask.",
+    ).toEqual([]);
+  });
+
+  it("masks every token prefix the code writes as a literal", () => {
+    // A prefix on its own in quotes, or starting a template. One assembled any other way is not seen.
+    const literals = git(
+      "grep",
+      "-hoIE",
+      "[\"'`]x[a-z]{3}_([\"'`]|[$][{])",
+      "--",
+      "apps",
+      "packages",
+      "infra",
+      "supabase/functions",
+      ":!*.test.*",
+      ":!*.spec.*",
+    );
+    const prefixes = new Set([...literals.matchAll(/x[a-z]{3}/g)].map((match) => match[0]));
+    expect(prefixes.size).toBeGreaterThan(0);
+    expect(
+      [...prefixes].filter((prefix) => !appPrefixes.includes(prefix)),
+      "Code mints a token with a prefix redact.ts and the runbook's transform do not mask.",
+    ).toEqual([]);
+  });
+
+  it("masks the token of every route with a [token] segment", () => {
+    // A bearer token in a segment with another name is not seen.
+    const prefixes = new Set<string>();
+    for (const file of git("ls-files", "apps").split("\n")) {
+      const route = /^apps\/[^/]+\/app\/(.*?)\/?\[token\]\//.exec(file)?.[1];
+      if (route === undefined) continue;
+      prefixes.add(route.replace(/\([^)]+\)\//g, ""));
+    }
+    expect(prefixes.size).toBeGreaterThan(3);
+    expect(
+      [...prefixes].filter((path) => mask(`GET /${path}/guess`) !== `GET /${path}/[token]`),
+      "A route takes a token in its path and the runbook's transform leaves it in the log store. Add the path to it.",
     ).toEqual([]);
   });
 });
