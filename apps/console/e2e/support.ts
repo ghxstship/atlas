@@ -218,7 +218,7 @@ export async function disputedRating(): Promise<{ id: string; comment: string; d
   const [engagement] = await sql<{ id: string }>(
     `insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement,
        start_date, end_date)
-     values ($1, $2, 'Crew', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', '2027-02-10', '2027-02-12')
+     values ($1, $2, 'Staff', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', '2027-02-10', '2027-02-12')
      returning id`,
     [DEMO.project, DEMO.crew],
     DEMO.owner,
