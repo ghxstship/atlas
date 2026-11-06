@@ -43,7 +43,8 @@ select pg_temp.as_platform();
 
 select set_eq($$select kind, starts_within from private.notification_quiet_hours_bypass$$,
   $$values ('shift.assigned', interval '12 hours'), ('shift.changed', interval '12 hours'), ('incident.reported', null::interval),
-    ('occupancy.threshold', null::interval), ('weather.alert', null::interval), ('account.security_changed', null::interval),
+    ('occupancy.threshold', null::interval), ('weather.alert', null::interval), ('crisis_alert.issued', null::interval),
+    ('crisis_alert.ended', null::interval), ('account.security_changed', null::interval),
     ('account.recovery_code_used', null::interval), ('access.break_glass_started', null::interval)$$,
   'the bypass list adds a new shift, security changes and emergency access, and stays short');
 
