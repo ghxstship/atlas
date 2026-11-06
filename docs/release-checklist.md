@@ -10,6 +10,21 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.4 release (2026-11-06)
+
+4.4 is 4.3 plus merge train 6: A124, A127, A131, P3, P5, P7 and P9. Its migrations moved up by 3000 (ADR 0022 amendment). As on 4.2, the owner's standing choice skips the staging observation window.
+
+| Step                     | Status | Evidence                                                                                                                                                                                                                                                                                                                |
+| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit | Done   | Every check of PR #69 passed at `6f4ceeeb`; the release commit `e0005a27` adds only 4.3's versions and release record; the local gate passed on the release lane                                                                                                                                                        |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on `e0005a27`: 846 tables' row counts and 25 key-table checksums match; restore 26 s against the 4 h RTO                                                                                                                                                                                |
+| Migrations, staging      | Done   | Branch `staging` (`rmrzfolncwhnhygmfxnw`): 22 migrations, 5180 to 5869; advisors: no failure, 867 accepted                                                                                                                                                                                                              |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: point-in-time target 2026-11-06T00:05:24Z; the same 22 migrations (538 applied, none pending, none only remote); `private.ensure_realtime_channel_policies()` created none; advisors: no failure, 867 accepted; `infra/drills/key-tables.sql` output kept with the release; 25 cron jobs active |
+| Edge Functions           | Done   | All 23 deployed from `e0005a27` with local bundling; `XOS_FILE_HANDOVER_SECRET` (A103) is still not set (**OWNER**)                                                                                                                                                                                                     |
+| Apps                     | Done   | `main` fast-forwarded to `e0005a27`, which Vercel deploys to production; no staging window, by the owner's choice                                                                                                                                                                                                       |
+| Packages                 | Ready  | `@ghxstship/xos-sdk`, `@ghxstship/xos-cli` and `xos-sdk` say 4.4.0; the tag starts `publish-packages.yml`, which waits for the owner's approval                                                                                                                                                                         |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                                                                                                                                                                        |
+
 ## XOS 4.3 release (2026-11-05)
 
 4.3 is 4.2 plus merge train 5, the advancing chain: R5, R6a, R7a, R7, R8, R9, R10 and R12. Its migrations moved up by 2000 (ADR 0022 amendment). The API v1 exception R7a's merge needed was confirmed by the owner and is recorded in ADR 0104. As on 4.2, the owner's standing choice skips the staging observation window.
