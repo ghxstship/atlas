@@ -1553,9 +1553,16 @@ export interface Components {
     project_id: string;
     name: string;
     currency_code: string;
+    default_markup_bp: number | null;
     is_baseline: boolean;
   };
-  BudgetCreate: { project_id: string; name: string; currency_code: string; is_baseline?: boolean };
+  BudgetCreate: {
+    project_id: string;
+    name: string;
+    currency_code: string;
+    default_markup_bp?: number | null;
+    is_baseline?: boolean;
+  };
   BudgetLine: {
     id: string;
     org_id: string;
@@ -1576,6 +1583,10 @@ export interface Components {
     unit_basis: Components["UnitCode"];
     unit_price_minor: number | null;
     line_total_minor: number | null;
+    markup_bp: number | null;
+    client_unit_price_minor: number | null;
+    excluded_from_quote: boolean;
+    etc_minor: number | null;
     line_number: number;
     phase_code: Components["PhaseCode"] | null;
     tier_code: Components["TierCode"] | null;
@@ -1595,6 +1606,10 @@ export interface Components {
     quantity?: number;
     unit_basis?: Components["UnitCode"];
     unit_price_minor?: number | null;
+    markup_bp?: number | null;
+    client_unit_price_minor?: number | null;
+    excluded_from_quote?: boolean;
+    etc_minor?: number | null;
     line_number: number;
     phase_code?: Components["PhaseCode"] | null;
     tier_code?: Components["TierCode"] | null;
@@ -1612,6 +1627,10 @@ export interface Components {
     quantity?: number;
     unit_basis?: Components["UnitCode"];
     unit_price_minor?: number | null;
+    markup_bp?: number | null;
+    client_unit_price_minor?: number | null;
+    excluded_from_quote?: boolean;
+    etc_minor?: number | null;
     line_number?: number;
     phase_code?: Components["PhaseCode"] | null;
     tier_code?: Components["TierCode"] | null;
@@ -1624,7 +1643,12 @@ export interface Components {
     actual: Components["MoneyTotal"];
     variance: Components["MoneyTotal"];
   };
-  BudgetUpdate: { name?: string; currency_code?: string; is_baseline?: boolean };
+  BudgetUpdate: {
+    name?: string;
+    currency_code?: string;
+    default_markup_bp?: number | null;
+    is_baseline?: boolean;
+  };
   BulkEditRefusal: { id: string | null; rule: string; message: string };
   Calendar: {
     id: string;
@@ -6622,6 +6646,27 @@ export interface Components {
     tax_minor?: number | null;
     shipping_minor?: number | null;
   };
+  Quote: {
+    id: string;
+    quote_key: string;
+    title: string;
+    project_id: string;
+    budget_id: string;
+    engagement_id: string | null;
+    client_name: string | null;
+    current_version_id: string;
+    current_version_number: number;
+    display_state:
+      "Draft" | "Sent" | "Expired" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
+    valid_until: string;
+    sent_at: string | null;
+    accepted_at: string | null;
+    currency_code: string;
+    client_total_minor: number | null;
+    margin_minor: number | null;
+    has_draft: boolean;
+  };
+  QuotePage: { data: Array<Components["Quote"]>; next_cursor: string | null };
   RFQTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   RadioChannel: {
     id: string;
@@ -24712,6 +24757,30 @@ export interface Operations {
     body: Components["AssetReservationRelease"];
     responses: { 200: Components["AssetReservation"] };
   };
+  "quotes.list": {
+    module: "Finance";
+    method: "get";
+    path: "/quotes";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["QuotePage"] };
+  };
+  "quotes.get": {
+    module: "Finance";
+    method: "get";
+    path: "/quotes/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Quote"] };
+  };
   "form1099Nec.rows": {
     module: "Finance";
     method: "get";
@@ -28750,6 +28819,8 @@ export interface ModuleOperations {
     | "priceBooks.get"
     | "priceBooks.update"
     | "priceBooks.delete"
+    | "quotes.list"
+    | "quotes.get"
     | "form1099Nec.rows";
   Procurement:
     | "rfqs.list"

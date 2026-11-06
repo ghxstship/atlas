@@ -1224,10 +1224,10 @@ export interface BudgetLineInput {
   readonly xyz: XyzTag;
   readonly xyzBasis: "Category" | "Declared";
   /** Left out, a new line takes the database's default and a save keeps the value it has. */
-  readonly markupBp?: number | null;
-  readonly clientUnitPriceMinor?: number | null;
-  readonly excludedFromQuote?: boolean;
-  readonly etcMinor?: number | null;
+  readonly markupBp?: number | null | undefined;
+  readonly clientUnitPriceMinor?: number | null | undefined;
+  readonly excludedFromQuote?: boolean | undefined;
+  readonly etcMinor?: number | null | undefined;
 }
 
 /**

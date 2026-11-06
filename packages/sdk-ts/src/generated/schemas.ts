@@ -12678,6 +12678,11 @@ export interface Budget {
    */
   readonly currency_code: string;
   /**
+   * Default markup of the budget's lines in basis points; 2500 is 25 percent.
+   * Range: 0 to unbounded.
+   */
+  readonly default_markup_bp: number | null;
+  /**
    * Whether this is the gate 3 baseline the final cost report compares against.
    */
   readonly is_baseline: boolean;
@@ -12703,6 +12708,11 @@ export interface BudgetCreate {
    */
   readonly currency_code: string;
   /**
+   * Default markup of the budget's lines in basis points; 2500 is 25 percent.
+   * Range: 0 to unbounded.
+   */
+  readonly default_markup_bp?: number | null;
+  /**
    * Whether this is the gate 3 baseline the final cost report compares against.
    */
   readonly is_baseline?: boolean;
@@ -12722,6 +12732,11 @@ export interface BudgetUpdate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code?: string;
+  /**
+   * Default markup of the budget's lines in basis points; 2500 is 25 percent.
+   * Range: 0 to unbounded.
+   */
+  readonly default_markup_bp?: number | null;
   /**
    * Whether this is the gate 3 baseline the final cost report compares against.
    */
@@ -12836,6 +12851,25 @@ export interface BudgetLine {
    */
   readonly line_total_minor: number | null;
   /**
+   * The line's markup in basis points; null uses the budget's default.
+   * Range: 0 to unbounded.
+   */
+  readonly markup_bp: number | null;
+  /**
+   * Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly client_unit_price_minor: number | null;
+  /**
+   * True for an internal line that never appears on a quote.
+   */
+  readonly excluded_from_quote: boolean;
+  /**
+   * Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly etc_minor: number | null;
+  /**
    * Line number within the budget.
    * Range: 1 to unbounded.
    */
@@ -12909,6 +12943,25 @@ export interface BudgetLineCreate {
    */
   readonly unit_price_minor?: number | null;
   /**
+   * The line's markup in basis points; null uses the budget's default.
+   * Range: 0 to unbounded.
+   */
+  readonly markup_bp?: number | null;
+  /**
+   * Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly client_unit_price_minor?: number | null;
+  /**
+   * True for an internal line that never appears on a quote.
+   */
+  readonly excluded_from_quote?: boolean;
+  /**
+   * Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly etc_minor?: number | null;
+  /**
    * Line number within the budget.
    * Range: 1 to unbounded.
    */
@@ -12955,6 +13008,25 @@ export interface BudgetLineUpdate {
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
+  /**
+   * The line's markup in basis points; null uses the budget's default.
+   * Range: 0 to unbounded.
+   */
+  readonly markup_bp?: number | null;
+  /**
+   * Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly client_unit_price_minor?: number | null;
+  /**
+   * True for an internal line that never appears on a quote.
+   */
+  readonly excluded_from_quote?: boolean;
+  /**
+   * Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly etc_minor?: number | null;
   /**
    * Line number within the budget.
    * Range: 1 to unbounded.
@@ -19653,6 +19725,10 @@ export interface Opportunity {
    * Whether the work can be done remotely.
    */
   readonly is_remote: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked: boolean;
 }
 
 /**
@@ -19745,6 +19821,10 @@ export interface OpportunityCreate {
    * Whether the work can be done remotely.
    */
   readonly is_remote?: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked?: boolean;
 }
 
 /**
@@ -19826,6 +19906,10 @@ export interface OpportunityUpdate {
    * Whether the work can be done remotely.
    */
   readonly is_remote?: boolean;
+  /**
+   * Whether the client and event stay hidden from crew until they are booked.
+   */
+  readonly hide_client_until_booked?: boolean;
 }
 
 /**
@@ -22328,6 +22412,10 @@ export interface MarketplaceListing {
    * Range: 0 to unbounded.
    */
   readonly position_count: number;
+  /**
+   * True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.
+   */
+  readonly client_hidden: boolean;
 }
 
 /**
@@ -39030,6 +39118,199 @@ export interface AssetReservationRelease {
    * Length: 1 to 1000.
    */
   readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface QuotePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Quote>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state.
+ */
+export interface Quote {
+  /**
+   * Identifier of the quote.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Display key, the project key, -Q- and the number.
+   * Length: 1 to 300.
+   */
+  readonly quote_key: string;
+  /**
+   * Title of the current version; frozen once sent.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Identifier of the project of the quote's budget.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the budget the quote prices from.
+   * Format: `uuid`.
+   */
+  readonly budget_id: string;
+  /**
+   * Identifier of the Client engagement the quote is for.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Who the current version is for.
+   * Length: 1 to 300.
+   */
+  readonly client_name: string | null;
+  /**
+   * Identifier of the latest sent version, else the Draft.
+   * Format: `uuid`.
+   */
+  readonly current_version_id: string;
+  /**
+   * Number of the current version.
+   * Range: 1 to unbounded.
+   */
+  readonly current_version_number: number;
+  /**
+   * State; Expired is computed, never stored.
+   */
+  readonly display_state:
+    "Draft" | "Sent" | "Expired" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
+  /**
+   * Last day the client can accept, on the project's calendar.
+   * Format: `date`.
+   */
+  readonly valid_until: string;
+  /**
+   * When the current version was sent.
+   * Format: `date-time`.
+   */
+  readonly sent_at: string | null;
+  /**
+   * When the current version was accepted.
+   * Format: `date-time`.
+   */
+  readonly accepted_at: string | null;
+  /**
+   * ISO 4217 currency code of every money field on the row.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
+  /**
+   * Client total of the current version; null while any line is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly client_total_minor: number | null;
+  /**
+   * Client total less cost; null whenever either is unknown. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly margin_minor: number | null;
+  /**
+   * Whether the quote has a live Draft version.
+   */
+  readonly has_draft: boolean;
+  /**
+   * Internal cost of the current version's lines; returned by GET /quotes/{id}. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly cost_total_minor: number | null;
+  /**
+   * Versions, newest first; returned by GET /quotes/{id}, null in lists.
+   */
+  readonly versions: ReadonlyArray<{
+    /**
+     * Identifier of the quote version.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+    /**
+     * Version number.
+     * Range: 1 to unbounded.
+     */
+    readonly version_number: number;
+    /**
+     * Stored state of the version.
+     */
+    readonly quote_version_state:
+      "Draft" | "Sent" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
+    /**
+     * Last day the client can accept.
+     * Format: `date`.
+     */
+    readonly valid_until: string;
+    /**
+     * Notes and terms.
+     * Length: 1 to 4000.
+     */
+    readonly terms: string | null;
+    /**
+     * SHA-256 of the content frozen at send.
+     * Length: 1 to 64.
+     */
+    readonly content_sha256: string | null;
+    /**
+     * When the version was sent.
+     * Format: `date-time`.
+     */
+    readonly sent_at: string | null;
+    /**
+     * When the version was accepted.
+     * Format: `date-time`.
+     */
+    readonly accepted_at: string | null;
+    /**
+     * Name as signed.
+     * Length: 1 to 300.
+     */
+    readonly accepted_name: string | null;
+  }> | null;
+  /**
+   * Client lines of the current version: live for a Draft, the frozen capture once sent. Returned by GET /quotes/{id}, null in lists.
+   */
+  readonly lines: ReadonlyArray<{
+    /**
+     * Line number.
+     * Range: 1 to unbounded.
+     */
+    readonly line_number: number;
+    /**
+     * Description.
+     * Length: 1 to 300.
+     */
+    readonly description: string;
+    /**
+     * Quantity; defaults to 1.
+     */
+    readonly quantity: number;
+    /**
+     * Unit.
+     * Length: 1 to 300.
+     */
+    readonly unit_basis: string | null;
+    /**
+     * Client unit price; null is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+     * Format: `int64`.
+     */
+    readonly unit_price_minor: number | null;
+    /**
+     * Client amount; null is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+     * Format: `int64`.
+     */
+    readonly amount_minor: number | null;
+  }> | null;
 }
 
 /**

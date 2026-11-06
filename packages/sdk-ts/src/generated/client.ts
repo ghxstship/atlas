@@ -348,6 +348,7 @@ import {
   GuestListEntriesResource,
   AssetUnitHireResource,
   AssetReservationsResource,
+  QuotesResource,
   Form1099NecResource,
   GoodsReturnsResource,
   ReturnLinesResource,
@@ -1220,6 +1221,8 @@ export class XosClient extends XosClientCore {
   readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
   /** Assets: operations on `assetReservations`. */
   readonly assetReservations: AssetReservationsResource = new AssetReservationsResource(this);
+  /** Finance: operations on `quotes`. */
+  readonly quotes: QuotesResource = new QuotesResource(this);
   /** Finance: operations on `form1099Nec`. */
   readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
   /** Procurement: operations on `goodsReturns`. */

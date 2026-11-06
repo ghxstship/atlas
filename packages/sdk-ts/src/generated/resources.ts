@@ -745,6 +745,7 @@ import type {
   PurchaseOrderReturnResult,
   PurchaseOrderTransitionRequest,
   PurchaseOrderUpdate,
+  Quote,
   RFQTransitionRequest,
   RadioChannel,
   RadioChannelCreate,
@@ -35197,6 +35198,62 @@ export class AssetReservationsResource extends $Resource {
     return this.client.request<AssetReservation>(
       $OPERATIONS["assetReservations.release"],
       { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `quotes`, in the Finance module.
+ *
+ * Budgets, expenses, change orders, ledger, periods and the Universal Posting Line (Sections 3.11 and 4.2).
+ */
+export class QuotesResource extends $Resource {
+  /**
+   * List quote rows
+   *
+   * A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns a cursor page of quote rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /quotes` (operation `quotes.list`).
+   * Requires the capability `finance.budget.read`.
+   */
+  list(params?: $ListParams<Quote>, options?: $RequestOptions): Promise<$Page<Quote>> {
+    return this.client.requestPage<Quote>($OPERATIONS["quotes.list"], { query: params }, options);
+  }
+
+  /**
+   * List quote rows
+   *
+   * A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns a cursor page of quote rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /quotes` (operation `quotes.list`).
+   * Requires the capability `finance.budget.read`.
+   */
+  listAll(
+    params?: $ListAllParams<Quote>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Quote, void, undefined> {
+    return this.client.paginate<Quote>($OPERATIONS["quotes.list"], { query: params }, options);
+  }
+
+  /**
+   * Get a quote
+   *
+   * A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns one quote with its `ETag`. A quote the caller may not see returns 404.
+   *
+   * `GET /quotes/{id}` (operation `quotes.get`).
+   * Requires the capability `finance.budget.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Quote>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Quote>> {
+    return this.client.request<Quote>(
+      $OPERATIONS["quotes.get"],
+      { path: { id }, query: params },
       options,
     );
   }

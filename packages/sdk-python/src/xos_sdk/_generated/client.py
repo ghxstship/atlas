@@ -354,6 +354,7 @@ from .resources import (
     GuestListEntriesResource,
     AssetUnitHireResource,
     AssetReservationsResource,
+    QuotesResource,
     Form1099NecResource,
     GoodsReturnsResource,
     ReturnLinesResource,
@@ -795,6 +796,7 @@ class XosClient(XosClientCore):
     guest_list_entries: GuestListEntriesResource
     asset_unit_hire: AssetUnitHireResource
     asset_reservations: AssetReservationsResource
+    quotes: QuotesResource
     form1099_nec: Form1099NecResource
     goods_returns: GoodsReturnsResource
     return_lines: ReturnLinesResource
@@ -1224,6 +1226,7 @@ class XosClient(XosClientCore):
         self.guest_list_entries = GuestListEntriesResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
         self.asset_reservations = AssetReservationsResource(self)
+        self.quotes = QuotesResource(self)
         self.form1099_nec = Form1099NecResource(self)
         self.goods_returns = GoodsReturnsResource(self)
         self.return_lines = ReturnLinesResource(self)

@@ -1018,6 +1018,8 @@ if TYPE_CHECKING:
         PurchaseOrderReturnResult,
         PurchaseOrderTransitionRequest,
         PurchaseOrderUpdate,
+        Quote,
+        QuotePage,
         RFQTransitionRequest,
         RadioChannel,
         RadioChannelCreate,
@@ -32781,6 +32783,65 @@ class AssetReservationsResource(Resource):
         Requires the capability ``advancing.submission.review``.
         """
         return self._client.request(OPERATIONS["assetReservations.release"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class QuotesResource(Resource):
+    """Operations on ``quotes``, in the Finance module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Quote]:
+        """List quote rows
+
+        A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns a cursor page of quote rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /quotes`` (operation ``quotes.list``).
+        Requires the capability ``finance.budget.read``.
+        """
+        return self._client.request_page(OPERATIONS["quotes.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Quote]:
+        """List quote rows
+
+        A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns a cursor page of quote rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /quotes`` (operation ``quotes.list``).
+        Requires the capability ``finance.budget.read``.
+        """
+        return self._client.paginate(OPERATIONS["quotes.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Quote]:
+        """Get a quote
+
+        A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state. Returns one quote with its `ETag`. A quote the caller may not see returns 404.
+
+        ``GET /quotes/{id}`` (operation ``quotes.get``).
+        Requires the capability ``finance.budget.read``.
+        """
+        return self._client.request(OPERATIONS["quotes.get"], path={"id": id}, query={"fields": fields}, options=options)
 
 
 class Form1099NecResource(Resource):

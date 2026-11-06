@@ -1307,6 +1307,8 @@ __all__ = [
     "AssetReservationPage",
     "AssetReservation",
     "AssetReservationRelease",
+    "QuotePage",
+    "Quote",
     "Form1099NecRowPage",
     "Form1099NecRow",
     "GoodsReturnPage",
@@ -8034,6 +8036,8 @@ class Budget(TypedDict):
     name: str
     #: ISO 4217 currency code of every money field.
     currency_code: str
+    #: Default markup of the budget's lines in basis points; 2500 is 25 percent.
+    default_markup_bp: Optional[int]
     #: Whether this is the gate 3 baseline the final cost report compares against.
     is_baseline: bool
 
@@ -8050,6 +8054,8 @@ class _BudgetCreateRequired(TypedDict):
 class BudgetCreate(_BudgetCreateRequired, total=False):
     """Fields accepted when creating a Budget."""
 
+    #: Default markup of the budget's lines in basis points; 2500 is 25 percent.
+    default_markup_bp: Optional[int]
     #: Whether this is the gate 3 baseline the final cost report compares against.
     is_baseline: bool
 
@@ -8061,6 +8067,8 @@ class BudgetUpdate(TypedDict, total=False):
     name: str
     #: ISO 4217 currency code of every money field.
     currency_code: str
+    #: Default markup of the budget's lines in basis points; 2500 is 25 percent.
+    default_markup_bp: Optional[int]
     #: Whether this is the gate 3 baseline the final cost report compares against.
     is_baseline: bool
 
@@ -8121,6 +8129,14 @@ class BudgetLine(TypedDict):
     unit_price_minor: Optional[int]
     #: Line total, generated from quantity and unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     line_total_minor: Optional[int]
+    #: The line's markup in basis points; null uses the budget's default.
+    markup_bp: Optional[int]
+    #: Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+    client_unit_price_minor: Optional[int]
+    #: True for an internal line that never appears on a quote.
+    excluded_from_quote: bool
+    #: Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+    etc_minor: Optional[int]
     #: Line number within the budget.
     line_number: int
     phase_code: Optional[PhaseCode]
@@ -8157,6 +8173,14 @@ class BudgetLineCreate(_BudgetLineCreateRequired, total=False):
     unit_basis: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: The line's markup in basis points; null uses the budget's default.
+    markup_bp: Optional[int]
+    #: Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+    client_unit_price_minor: Optional[int]
+    #: True for an internal line that never appears on a quote.
+    excluded_from_quote: bool
+    #: Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+    etc_minor: Optional[int]
     phase_code: Optional[PhaseCode]
     tier_code: Optional[TierCode]
 
@@ -8181,6 +8205,14 @@ class BudgetLineUpdate(TypedDict, total=False):
     unit_basis: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: The line's markup in basis points; null uses the budget's default.
+    markup_bp: Optional[int]
+    #: Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+    client_unit_price_minor: Optional[int]
+    #: True for an internal line that never appears on a quote.
+    excluded_from_quote: bool
+    #: Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+    etc_minor: Optional[int]
     #: Line number within the budget.
     line_number: int
     phase_code: Optional[PhaseCode]
@@ -11668,6 +11700,8 @@ class Opportunity(TypedDict):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class _OpportunityCreateRequired(TypedDict):
@@ -11710,6 +11744,8 @@ class OpportunityCreate(_OpportunityCreateRequired, total=False):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class OpportunityUpdate(TypedDict, total=False):
@@ -11749,6 +11785,8 @@ class OpportunityUpdate(TypedDict, total=False):
     minimum_age: Optional[int]
     #: Whether the work can be done remotely.
     is_remote: bool
+    #: Whether the client and event stay hidden from crew until they are booked.
+    hide_client_until_booked: bool
 
 
 class _OpportunityTransitionRequestRequired(TypedDict):
@@ -13010,6 +13048,8 @@ class MarketplaceListing(TypedDict):
     opportunity_state: OpportunityState
     #: Number of open positions.
     position_count: int
+    #: True while the client and event stay hidden until the caller is booked: the venue name is null and the distance is measured from a rounded point.
+    client_hidden: bool
 
 
 class SavedSearchPage(TypedDict):
@@ -21627,6 +21667,60 @@ class AssetReservationRelease(TypedDict, total=False):
 
     #: Why the hold is released.
     reason: str
+
+
+class QuotePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Quote]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Quote(TypedDict):
+    """A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state."""
+
+    #: Identifier of the quote.
+    id: str
+    #: Display key, the project key, -Q- and the number.
+    quote_key: str
+    #: Title of the current version; frozen once sent.
+    title: str
+    #: Identifier of the project of the quote's budget.
+    project_id: str
+    #: Identifier of the budget the quote prices from.
+    budget_id: str
+    #: Identifier of the Client engagement the quote is for.
+    engagement_id: Optional[str]
+    #: Who the current version is for.
+    client_name: Optional[str]
+    #: Identifier of the latest sent version, else the Draft.
+    current_version_id: str
+    #: Number of the current version.
+    current_version_number: int
+    #: State; Expired is computed, never stored.
+    display_state: Literal["Draft", "Sent", "Expired", "Accepted", "Declined", "Withdrawn", "Superseded"]
+    #: Last day the client can accept, on the project's calendar.
+    valid_until: str
+    #: When the current version was sent.
+    sent_at: Optional[str]
+    #: When the current version was accepted.
+    accepted_at: Optional[str]
+    #: ISO 4217 currency code of every money field on the row.
+    currency_code: str
+    #: Client total of the current version; null while any line is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    client_total_minor: Optional[int]
+    #: Client total less cost; null whenever either is unknown. Integer minor units of the resource currency; null means unpriced, never zero.
+    margin_minor: Optional[int]
+    #: Whether the quote has a live Draft version.
+    has_draft: bool
+    #: Internal cost of the current version's lines; returned by GET /quotes/{id}. Integer minor units of the resource currency; null means unpriced, never zero.
+    cost_total_minor: Optional[int]
+    #: Versions, newest first; returned by GET /quotes/{id}, null in lists.
+    versions: Optional[List[Dict[str, Any]]]
+    #: Client lines of the current version: live for a Draft, the frozen capture once sent. Returned by GET /quotes/{id}, null in lists.
+    lines: Optional[List[Dict[str, Any]]]
 
 
 class Form1099NecRowPage(TypedDict):

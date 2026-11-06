@@ -133,8 +133,8 @@ const Quote = defineResource({
     current_version_number: fields.int("Number of the current version.", 1, 1),
     display_state: label(QUOTE_DISPLAY_STATES, "State; Expired is computed, never stored."),
     valid_until: fields.date("Last day the client can accept, on the project's calendar."),
-    sent_at: orNull(fields.timestamp("When the current version was sent.")),
-    accepted_at: orNull(fields.timestamp("When the current version was accepted.")),
+    sent_at: orNull(fields.instant("When the current version was sent.")),
+    accepted_at: orNull(fields.instant("When the current version was accepted.")),
     currency_code: currencyCode,
     client_total_minor: orNull(
       fields.money("Client total of the current version; null while any line is unpriced.", 125000),
@@ -143,6 +143,46 @@ const Quote = defineResource({
       fields.money("Client total less cost; null whenever either is unknown.", 25000),
     ),
     has_draft: fields.bool("Whether the quote has a live Draft version.", false),
+    cost_total_minor: orNull(
+      fields.money("Internal cost of the current version's lines; returned by GET /quotes/{id}.", 100000),
+    ),
+    versions: orNull(
+      z
+        .array(
+          z.object({
+            id: fields.ref("quote version"),
+            version_number: fields.int("Version number.", 1, 1),
+            quote_version_state: label(
+              ["Draft", "Sent", "Accepted", "Declined", "Withdrawn", "Superseded"],
+              "Stored state of the version.",
+            ),
+            valid_until: fields.date("Last day the client can accept."),
+            terms: orNull(fields.text("Notes and terms.", "Half on signature.", 4000)),
+            content_sha256: orNull(fields.text("SHA-256 of the content frozen at send.", "ab12", 64)),
+            sent_at: orNull(fields.instant("When the version was sent.")),
+            accepted_at: orNull(fields.instant("When the version was accepted.")),
+            accepted_name: orNull(fields.text("Name as signed.", "Cleo Marsh")),
+          }),
+        )
+        .meta({ description: "Versions, newest first; returned by GET /quotes/{id}, null in lists." }),
+    ),
+    lines: orNull(
+      z
+        .array(
+          z.object({
+            line_number: fields.int("Line number.", 1, 1),
+            description: fields.text("Description.", "Stage deck"),
+            quantity,
+            unit_basis: orNull(fields.text("Unit.", "day")),
+            unit_price_minor: orNull(fields.money("Client unit price; null is unpriced.", 12500)),
+            amount_minor: orNull(fields.money("Client amount; null is unpriced.", 25000)),
+          }),
+        )
+        .meta({
+          description:
+            "Client lines of the current version: live for a Draft, the frozen capture once sent. Returned by GET /quotes/{id}, null in lists.",
+        }),
+    ),
   },
 });
 

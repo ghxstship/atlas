@@ -98,6 +98,7 @@ const quotes = tableResource("quotes", {
   key: "id",
   aliases: { id: "quote_id" },
   softDelete: false,
+  derived: ["cost_total_minor", "versions", "lines"],
 });
 const budgetLines = tableResource("budgetLines", {
   derived: ["line_total_minor", "actual_minor", "account_code"],
@@ -343,6 +344,7 @@ export const handlers = defineHandlers("Finance", {
   ...handlersFor("Finance", quotes),
   "quotes.get": async ({ params }, context) => {
     const head = await quotes.read(context, params.id);
+    // Versions and lines come with one quote; lists leave them null.
     const detail = unwrap(await getQuote(context.db, params.id));
     return ok({
       ...head,

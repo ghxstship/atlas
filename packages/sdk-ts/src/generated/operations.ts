@@ -1380,6 +1380,8 @@ export type OperationId =
   | "assetReservations.list"
   | "assetReservations.get"
   | "assetReservations.release"
+  | "quotes.list"
+  | "quotes.get"
   | "form1099Nec.rows"
   | "goodsReturns.list"
   | "goodsReturns.get"
@@ -33289,6 +33291,52 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "advancing.submission.review",
     scopes: ["advancing"],
   },
+  "quotes.list": {
+    id: "quotes.list",
+    resource: "quotes",
+    verb: "list",
+    method: "GET",
+    path: "/quotes",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: true,
+    fields: true,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "QuotePage",
+    item: "Quote",
+    tag: "Finance",
+    summary: "List quote rows",
+    capability: "finance.budget.read",
+    scopes: ["finance"],
+  },
+  "quotes.get": {
+    id: "quotes.get",
+    resource: "quotes",
+    verb: "get",
+    method: "GET",
+    path: "/quotes/{id}",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: true,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "Quote",
+    item: null,
+    tag: "Finance",
+    summary: "Get a quote",
+    capability: "finance.budget.read",
+    scopes: ["finance"],
+  },
   "form1099Nec.rows": {
     id: "form1099Nec.rows",
     resource: "form1099Nec",
@@ -43463,6 +43511,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
     tag: "Assets",
     operations: ["assetReservations.list", "assetReservations.get", "assetReservations.release"],
   },
+  { name: "quotes", tag: "Finance", operations: ["quotes.list", "quotes.get"] },
   { name: "form1099Nec", tag: "Finance", operations: ["form1099Nec.rows"] },
   {
     name: "goodsReturns",

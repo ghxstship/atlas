@@ -225,7 +225,7 @@ function QuoteDialog({ org, target, onClose }: { org: string; target: Target; on
             type="email"
             width="100%"
             label={t("quotes.send.email")}
-            help={isSend ? t("quotes.send.emailHelp") : undefined}
+            {...(isSend ? { help: t("quotes.send.emailHelp") } : {})}
             required={!isSend}
             error={fieldError(t, state, "email")}
           />
