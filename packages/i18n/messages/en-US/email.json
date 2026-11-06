@@ -301,6 +301,16 @@
         "body": "{outcome, select, Reversed {Another reviewer agreed with your appeal and reversed the decision.} other {Another reviewer looked at your appeal and kept the decision.}} {statement}"
       }
     },
+    "rating_dispute": {
+      "filed": {
+        "subject": "Someone disputed a rating on {project}",
+        "body": "A person your organization rated on {project} disputes the rating. Answer from Opportunities, Ratings. Our platform team decides."
+      },
+      "decided": {
+        "subject": "{outcome, select, Upheld {The rating on {project} was removed after a dispute} other {The rating on {project} stays after a dispute}}",
+        "body": "{outcome, select, Upheld {The dispute was upheld and the rating was removed.} other {The dispute was not upheld and the rating stays.}} {statement}"
+      }
+    },
     "content_report": {
       "filed": {
         "subject": "{subject, select, comment {A comment was reported} message {A message was reported} other {A post was reported}}",

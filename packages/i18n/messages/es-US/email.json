@@ -301,6 +301,16 @@
         "body": "{outcome, select, Reversed {Otra persona revisó tu apelación, estuvo de acuerdo y revirtió la decisión.} other {Otra persona revisó tu apelación y mantuvo la decisión.}} {statement}"
       }
     },
+    "rating_dispute": {
+      "filed": {
+        "subject": "Alguien impugnó una calificación en {project}",
+        "body": "Una persona a la que tu organización calificó en {project} impugna la calificación. Responde desde Oportunidades, Calificaciones. Decide nuestro equipo de la plataforma."
+      },
+      "decided": {
+        "subject": "{outcome, select, Upheld {Se retiró la calificación de {project} tras una impugnación} other {La calificación de {project} sigue tras una impugnación}}",
+        "body": "{outcome, select, Upheld {Se aceptó la impugnación y se retiró la calificación.} other {No se aceptó la impugnación y la calificación sigue.}} {statement}"
+      }
+    },
     "content_report": {
       "filed": {
         "subject": "{subject, select, comment {Se denunció un comentario} message {Se denunció un mensaje} other {Se denunció una publicación}}",

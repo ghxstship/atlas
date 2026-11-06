@@ -1,4 +1,4 @@
--- 6059_notification_kind_seed.test.sql
+-- 6149_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -215,6 +215,14 @@ select set_eq(
   ('moderation_appeal.decided', 'Email', 'account', 'notification'),
   ('moderation_appeal.decided', 'SMS', 'account', null::text),
   ('moderation_appeal.decided', 'Push', 'account', null::text),
+  ('rating_dispute.filed', 'In App', 'account', null::text),
+  ('rating_dispute.filed', 'Email', 'account', 'notification'),
+  ('rating_dispute.filed', 'SMS', 'account', null::text),
+  ('rating_dispute.filed', 'Push', 'account', null::text),
+  ('rating_dispute.decided', 'In App', 'account', null::text),
+  ('rating_dispute.decided', 'Email', 'account', 'notification'),
+  ('rating_dispute.decided', 'SMS', 'account', null::text),
+  ('rating_dispute.decided', 'Push', 'account', null::text),
   ('content_report.filed', 'In App', 'safety', null::text),
   ('content_report.filed', 'Email', 'safety', 'notification'),
   ('content_report.filed', 'SMS', 'safety', null::text),

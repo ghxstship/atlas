@@ -186,7 +186,7 @@
     },
     "ratingsEnabled": {
       "label": "Prompt members to rate parties",
-      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score."
+      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and anyone else who may read a rating see the same ratings either way. Moderation follows policy only (abuse, personal data, a wrong or false statement), whatever the score."
     },
     "messageRetention": {
       "label": "Message retention in days",

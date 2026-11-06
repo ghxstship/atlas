@@ -900,11 +900,15 @@ export interface Rating {
   readonly ratedPersonId: string | null;
   readonly ratedOrganizationId: string | null;
   readonly raterOrganizationId: string | null;
+  readonly raterOrganizationName: string | null;
   readonly reply: string | null;
   readonly repliedAt: string | null;
 }
 
-/** Released ratings about a person or an organization, newest first. */
+/**
+ * Released ratings about a person or an organization, newest first. A rating of a person reads only for that person and
+ * members of the org that gave it (ADR 0156), so asking about anyone else returns nothing.
+ */
 export async function listRatingsAbout(
   db: XosClient,
   subject: { readonly personId: string } | { readonly organizationId: string },
@@ -912,7 +916,7 @@ export async function listRatingsAbout(
   let query = external(db)
     .from("ratings")
     .select(
-      "id, rater_side, score, comment, submitted_at, rated_person_id, rated_organization_id, rater_organization_id, reply, replied_at",
+      "id, rater_side, score, comment, submitted_at, rated_person_id, rated_organization_id, rater_organization_id, rater_organization_name, reply, replied_at",
     );
   query =
     "personId" in subject
@@ -930,17 +934,11 @@ export async function listRatingsAbout(
       ratedPersonId: row.rated_person_id,
       ratedOrganizationId: row.rated_organization_id,
       raterOrganizationId: row.rater_organization_id,
+      raterOrganizationName: row.rater_organization_name,
       reply: row.reply,
       repliedAt: row.replied_at,
     })),
   );
-}
-
-/** The mean score of released ratings to one decimal; null when there are none (never zero). */
-export function averageScore(ratings: readonly Pick<Rating, "score">[]): number | null {
-  if (ratings.length === 0) return null;
-  const mean = ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length;
-  return Math.round(mean * 10) / 10;
 }
 
 /** The party rates the org on a completed engagement; both release together (0740). */
@@ -959,7 +957,7 @@ export async function rateEngagement(
   return error ? fail(toDataError(error)) : ok(null);
 }
 
-/** The rated side replies publicly to a released rating, once. */
+/** The rated side replies to a released rating, once. The reply is read wherever the rating is. */
 export async function replyToRating(
   db: XosClient,
   input: { readonly ratingId: string; readonly body: string },
@@ -968,4 +966,97 @@ export async function replyToRating(
     .from("rating_replies")
     .insert(derivedRow<"rating_replies">({ rating_id: input.ratingId, body: input.body.trim() }));
   return error ? fail(toDataError(error)) : ok(null);
+}
+
+// Showing and disputing ratings of a person (ADR 0156) ---------------------------------------------------------------
+
+/**
+ * The version of the notice beside the rating sharing choice, recorded with each opt-in. Change it whenever that notice's
+ * copy changes in meaning.
+ */
+export const RATING_SHARING_NOTICE_VERSION = "rating-sharing-2026-11-06";
+
+/** Whether the signed-in person's opt-in to show their ratings on their profile stands; off until they turn it on. */
+export async function getRatingSharing(db: XosClient): Promise<Result<boolean>> {
+  const { data, error } = await db
+    .from("rating_sharing_consents")
+    .select("id")
+    .is("withdrawn_at", null)
+    .is("deleted_at", null)
+    .limit(1);
+  if (error) return fail(toDataError(error));
+  return ok(data.length > 0);
+}
+
+/** The signed-in person opts in, recording the notice they saw, or withdraws, which takes effect at once. */
+export async function setRatingSharing(db: XosClient, optIn: boolean): Promise<Result<boolean>> {
+  const { data, error } = await db.rpc("set_rating_sharing", {
+    p_opt_in: optIn,
+    p_notice_version: RATING_SHARING_NOTICE_VERSION,
+    p_source: "Web",
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
+}
+
+export type RatingDisputeGround = Database["app"]["Enums"]["rating_dispute_ground"];
+export type RatingDisputeState = Database["app"]["Enums"]["rating_dispute_state"];
+
+export interface MyRatingDispute {
+  readonly id: string;
+  readonly ratingId: string;
+  readonly ground: RatingDisputeGround;
+  readonly details: string;
+  readonly state: RatingDisputeState;
+  readonly filedAt: string;
+  readonly orgResponse: string | null;
+  readonly decisionStatement: string | null;
+  readonly decidedAt: string | null;
+}
+
+/** The disputes the signed-in person filed, with the org's answer and the decision, newest first. */
+export async function listMyRatingDisputes(
+  db: XosClient,
+  personId: string,
+): Promise<Result<MyRatingDispute[]>> {
+  const { data, error } = await db
+    .from("rating_disputes")
+    .select(
+      "id, rating_id, dispute_ground, details, dispute_state, filed_at, org_response, decision_statement, decided_at",
+    )
+    .eq("disputant_person_id", personId)
+    .is("deleted_at", null)
+    .order("filed_at", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((row) => ({
+      id: row.id,
+      ratingId: row.rating_id,
+      ground: row.dispute_ground,
+      details: row.details,
+      state: row.dispute_state,
+      filedAt: row.filed_at,
+      orgResponse: row.org_response,
+      decisionStatement: row.decision_statement,
+      decidedAt: row.decided_at,
+    })),
+  );
+}
+
+/** The rated person disputes a released rating of them, once per rating. The rating stays shown while it is open. */
+export async function fileRatingDispute(
+  db: XosClient,
+  input: {
+    readonly ratingId: string;
+    readonly ground: RatingDisputeGround;
+    readonly details: string;
+  },
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("file_rating_dispute", {
+    p_rating_id: input.ratingId,
+    p_ground: input.ground,
+    p_details: input.details.trim(),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
 }

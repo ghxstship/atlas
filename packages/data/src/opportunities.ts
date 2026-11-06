@@ -1514,6 +1514,66 @@ export async function listRatings(db: XosClient, orgId: string): Promise<Result<
   );
 }
 
+export type RatingDisputeState = Enums["rating_dispute_state"];
+export type RatingDisputeGround = Enums["rating_dispute_ground"];
+
+export interface RatingDispute {
+  readonly id: string;
+  readonly ratingId: string;
+  readonly ground: RatingDisputeGround;
+  readonly details: string;
+  readonly state: RatingDisputeState;
+  readonly filedAt: string;
+  readonly orgResponse: string | null;
+  readonly decisionStatement: string | null;
+  readonly decidedAt: string | null;
+}
+
+/** Disputes of the ratings this org gave people, open ones first in filing order (ADR 0156). */
+export async function listRatingDisputes(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<RatingDispute[]>> {
+  const { data, error } = await db
+    .from("rating_disputes")
+    .select(
+      "id, rating_id, dispute_ground, details, dispute_state, filed_at, org_response, decision_statement, decided_at",
+    )
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .order("filed_at", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data
+      .map((row) => ({
+        id: row.id,
+        ratingId: row.rating_id,
+        ground: row.dispute_ground,
+        details: row.details,
+        state: row.dispute_state,
+        filedAt: row.filed_at,
+        orgResponse: row.org_response,
+        decisionStatement: row.decision_statement,
+        decidedAt: row.decided_at,
+      }))
+      .sort((a, b) => Number(b.state === "Open") - Number(a.state === "Open")),
+  );
+}
+
+/** The org that gave a rating answers a dispute of it once while it is open. A platform operator decides (ADR 0156). */
+export async function respondToRatingDispute(
+  db: XosClient,
+  disputeId: string,
+  response: string,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("respond_to_rating_dispute", {
+    p_dispute_id: disputeId,
+    p_response: response,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
 /** The org rates the party of a completed engagement; both ratings release together (ADR 0019 item 6). */
 export async function rateParty(
   db: XosClient,
@@ -1529,7 +1589,7 @@ export async function rateParty(
   return ok(null);
 }
 
-/** The org replies once, publicly, to the party's released rating. */
+/** The org replies once to the party's released rating. */
 export async function replyToRating(
   db: XosClient,
   ratingId: string,

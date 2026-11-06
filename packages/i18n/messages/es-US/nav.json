@@ -559,6 +559,8 @@
     "banners": "Avisos del sistema",
     "funnels": "Embudos",
     "team": "Equipo de la plataforma",
-    "activity": "Actividad"
+    "activity": "Actividad",
+    "ratingDisputes": "Impugnaciones de calificaciones",
+    "ratingDispute": "Impugnación de calificación"
   }
 }

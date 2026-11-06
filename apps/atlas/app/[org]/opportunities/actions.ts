@@ -569,6 +569,11 @@ export const replyAction: Action = action(
   (ctx, v) => repo.replyToRating(ctx.viewer.db, v.ratingId, v.body),
 );
 
+export const respondToRatingDisputeAction: Action = action(
+  z.object({ disputeId: uuid, response: text(4000) }),
+  (ctx, v) => repo.respondToRatingDispute(ctx.viewer.db, v.disputeId, v.response),
+);
+
 // Onboarding requirements ---------------------------------------------------------------------------------------------------------
 
 export const createRequirementAction: Action = action(

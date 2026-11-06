@@ -660,7 +660,25 @@
       "drawing_page": "Página del PDF",
       "image_height_px": "Alto de la imagen (px)",
       "image_width_px": "Ancho de la imagen (px)",
-      "calibration_by": "Punto de escala B, y"
+      "calibration_by": "Punto de escala B, y",
+      "captured_at": "Registrado",
+      "captured_ip": "Dirección IP",
+      "decided_by": "Decidido por",
+      "decision_ground": "Motivo de la decisión",
+      "decision_statement": "Motivos",
+      "details": "Detalles",
+      "disputant_person_id": "Impugnada por",
+      "dispute_ground": "Motivo",
+      "dispute_state": "Estado",
+      "filed_at": "Presentada",
+      "notice_version": "Versión del aviso",
+      "org_responded_at": "Respuesta de la organización",
+      "org_responded_by": "Respondió por la organización",
+      "org_response": "Respuesta de la organización",
+      "rater_organization_name": "Organización que calificó",
+      "rating_dispute_id": "Impugnación de calificación",
+      "rating_id": "Calificación",
+      "withdrawn_at": "Retirado"
     }
   },
   "liveLink": {

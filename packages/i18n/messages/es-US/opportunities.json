@@ -90,7 +90,7 @@
     "postings": "Publicaciones",
     "project": "Proyecto",
     "proposedFee": "Tarifa propuesta",
-    "publicComment": "Comentario público",
+    "publicComment": "Comentario",
     "question": "Pregunta",
     "rank": "Posición",
     "rate": "Tarifa",
@@ -190,7 +190,10 @@
       "question_template_not_found": "Esa plantilla de preguntas se eliminó o no está disponible para ti. Elige otra plantilla.",
       "question_template_not_draft": "Una plantilla de preguntas solo se aplica a una publicación en Borrador. Añade las preguntas una por una.",
       "opportunity_hidden_client_named": "Mientras el cliente y el evento están ocultos, el título y la descripción no pueden nombrar el proyecto, su cliente ni el lugar. Quita el nombre o muestra el cliente y el evento.",
-      "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos."
+      "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos.",
+      "rating_dispute_decided": "Esta impugnación ya se decidió.",
+      "rating_dispute_answered": "Tu organización ya respondió a esta impugnación.",
+      "rating_dispute_response": "Escribe tu respuesta en un máximo de 4,000 caracteres."
     },
     "insuredsMissing": "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado.",
     "questionsNotApplied": "El borrador está guardado, pero no se añadieron las preguntas de la plantilla. Abre el borrador y añádelas allí."
@@ -415,7 +418,7 @@
     "reply": "Respuesta pública",
     "sendReply": "Responder",
     "rateTitle": "Valorar a la parte",
-    "ratingHelp": "Pública y nunca se edita. Deja las notas internas fuera de las valoraciones.",
+    "ratingHelp": "Nunca se edita. Solo tu organización y la persona pueden leer la valoración de una persona. La valoración de una empresa la puede leer cualquiera con sesión iniciada. No incluyas notas internas en las valoraciones.",
     "rate": "Enviar valoración",
     "stars": "{score, plural, one {# estrella} other {# estrellas}}",
     "reengagement": "Nueva contratación",
@@ -437,7 +440,27 @@
     "all": "Todas las valoraciones",
     "empty": "Aún no hay valoraciones. Provienen de contrataciones completadas.",
     "emptyAction": "Abrir contrataciones",
-    "replyNeedsWrite": "Una persona con acceso a valoraciones responde."
+    "replyNeedsWrite": "Una persona con acceso a valoraciones responde.",
+    "disputes": {
+      "title": "Impugnaciones de tus valoraciones",
+      "help": "Una persona a la que valoraste puede impugnar la valoración. Puedes responder una vez y nuestro equipo de la plataforma decide. Una puntuación baja por sí sola nunca es motivo para retirar una valoración, y no puedes retirarla tú.",
+      "answer": "Tu respuesta",
+      "sendAnswer": "Enviar respuesta",
+      "answered": "Tu respuesta: {response}",
+      "decided": "Decisión: {statement}",
+      "grounds": {
+        "wrongPerson": "Dice que se refiere a otra persona",
+        "falseStatement": "Dice que es falsa",
+        "abusiveContent": "Dice que es ofensiva",
+        "personalData": "Dice que muestra datos personales",
+        "other": "Otro motivo"
+      },
+      "states": {
+        "open": "Abierta",
+        "upheld": "Aceptada, valoración retirada",
+        "notUpheld": "No aceptada, la valoración sigue"
+      }
+    }
   },
   "marketplace": {
     "title": "Configuración del mercado",

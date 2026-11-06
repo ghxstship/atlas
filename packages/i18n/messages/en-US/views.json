@@ -660,7 +660,25 @@
       "drawing_page": "PDF page",
       "image_height_px": "Image height (px)",
       "image_width_px": "Image width (px)",
-      "calibration_by": "Scale point B, y"
+      "calibration_by": "Scale point B, y",
+      "captured_at": "Captured",
+      "captured_ip": "IP address",
+      "decided_by": "Decided by",
+      "decision_ground": "Ground for the decision",
+      "decision_statement": "Reasons",
+      "details": "Details",
+      "disputant_person_id": "Disputed by",
+      "dispute_ground": "Ground",
+      "dispute_state": "State",
+      "filed_at": "Filed",
+      "notice_version": "Notice version",
+      "org_responded_at": "Org answered",
+      "org_responded_by": "Org answered by",
+      "org_response": "Org answer",
+      "rater_organization_name": "Rating organization",
+      "rating_dispute_id": "Rating dispute",
+      "rating_id": "Rating",
+      "withdrawn_at": "Withdrawn"
     }
   },
   "liveLink": {

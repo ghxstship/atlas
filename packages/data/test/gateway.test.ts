@@ -3,7 +3,6 @@ import {
   acceptRepresentation,
   addAccountMember,
   addAvailabilityBlock,
-  averageScore,
   awaitingSignature,
   base32ToUuid,
   createAvailabilityCalendar,
@@ -22,7 +21,12 @@ import {
   listOnboardingItems,
   listPayments,
   listPayoutAccounts,
+  fileRatingDispute,
+  getRatingSharing,
+  listMyRatingDisputes,
   listRatingsAbout,
+  RATING_SHARING_NOTICE_VERSION,
+  setRatingSharing,
   listRepresentations,
   listSharedRecords,
   listTaxForms,
@@ -672,9 +676,54 @@ describe("ratings", () => {
     expect((await listRatingsAbout(db, { personId: "me" })).ok).toBe(false);
   });
 
-  it("averages to one decimal and never invents a zero", () => {
-    expect(averageScore([])).toBeNull();
-    expect(averageScore([{ score: 5 }, { score: 4 }, { score: 4 }])).toBe(4.3);
+  it("records the person's rating sharing choice with the notice they saw", async () => {
+    const { db, calls } = gatewayClient({
+      "from:rating_sharing_consents": [okResponse([{ id: "c1" }]), okResponse([])],
+      "rpc:set_rating_sharing": [okResponse(true), okResponse(false)],
+    });
+    expect(await getRatingSharing(db)).toEqual({ ok: true, data: true });
+    expect(await getRatingSharing(db)).toEqual({ ok: true, data: false });
+    expect(await setRatingSharing(db, true)).toEqual({ ok: true, data: true });
+    expect(await setRatingSharing(db, false)).toEqual({ ok: true, data: false });
+    expect(calls.at(-2)?.args).toEqual({
+      p_opt_in: true,
+      p_notice_version: RATING_SHARING_NOTICE_VERSION,
+      p_source: "Web",
+    });
+  });
+
+  it("files and lists the person's own rating disputes", async () => {
+    const { db, calls } = gatewayClient({
+      "from:rating_disputes": [
+        okResponse([
+          {
+            id: "d1",
+            rating_id: "r1",
+            dispute_ground: "False Statement",
+            details: "I was on time.",
+            dispute_state: "Open",
+            filed_at: "2026-11-06T12:00:00Z",
+            org_response: null,
+            decision_statement: null,
+            decided_at: null,
+          },
+        ]),
+        errorResponse("08000", "down"),
+      ],
+      "rpc:file_rating_dispute": [okResponse("d1"), errorResponse("XR001", "rating_dispute_exists: x")],
+    });
+    const list = await listMyRatingDisputes(db, "me");
+    expect(list.ok && list.data[0]).toMatchObject({ ratingId: "r1", state: "Open" });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["disputant_person_id", "me"]]);
+    expect((await listMyRatingDisputes(db, "me")).ok).toBe(false);
+    const input = { ratingId: "r1", ground: "Other", details: " Not me. " } as const;
+    expect(await fileRatingDispute(db, input)).toEqual({ ok: true, data: "d1" });
+    expect(calls.at(-1)?.args).toEqual({
+      p_rating_id: "r1",
+      p_ground: "Other",
+      p_details: "Not me.",
+    });
+    expect((await fileRatingDispute(db, input)).ok).toBe(false);
   });
 
   it("rates and replies", async () => {

@@ -3,6 +3,7 @@
 import {
   decideAppeal,
   decideListing,
+  decideRatingDispute,
   endBanner,
   endSupportSession,
   grantOperator,
@@ -80,6 +81,40 @@ export async function decideListingAction(_: ActionState, form: FormData): Promi
   if (result.ok) {
     revalidatePath(`/moderation/${opportunityId}`);
     revalidatePath("/moderation");
+  }
+  return fromResult(result);
+}
+
+/** An operator decides a rating dispute (ADR 0156). Upholding needs a named ground, which the database checks again. */
+export async function decideRatingDisputeAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext("moderation.decide");
+  if (!ctx.ok) return failed(ctx.key);
+  const disputeId = field(form, "disputeId");
+  const outcome = field(form, "outcome");
+  const ground = pick(enums.ratingDisputeGround, field(form, "ground"));
+  const statement = field(form, "statement");
+  if (
+    !Uuid.safeParse(disputeId).success ||
+    (outcome !== "Upheld" && outcome !== "Not Upheld") ||
+    statement === ""
+  ) {
+    return failed("errors.invalid");
+  }
+  if (outcome === "Upheld" && (!ground || ground === "Other")) {
+    return failed("refusals.rating_dispute_decision_ground");
+  }
+  const result = await decideRatingDispute(ctx.db, {
+    disputeId,
+    outcome,
+    ground: outcome === "Upheld" ? (ground ?? null) : null,
+    statement,
+  });
+  if (result.ok) {
+    revalidatePath(`/moderation/rating-disputes/${disputeId}`);
+    revalidatePath("/moderation/rating-disputes");
   }
   return fromResult(result);
 }

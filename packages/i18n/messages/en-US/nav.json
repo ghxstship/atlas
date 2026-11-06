@@ -559,6 +559,8 @@
     "banners": "System Banners",
     "funnels": "Funnels",
     "team": "Platform Team",
-    "activity": "Activity"
+    "activity": "Activity",
+    "ratingDisputes": "Rating Disputes",
+    "ratingDispute": "Rating Dispute"
   }
 }

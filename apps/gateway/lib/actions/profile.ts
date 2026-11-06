@@ -7,6 +7,7 @@ import {
   createExternalAccount,
   endAccountMembership,
   removeAvailabilityBlock,
+  setRatingSharing,
 } from "@xos/data/gateway";
 import {
   fetchProfilePhoto,
@@ -86,6 +87,19 @@ export async function saveProfileAction(
     rateCurrency: rateMinor === null ? null : currency || "USD",
     rateUnit: rateMinor === null ? null : rateUnit.success ? rateUnit.data : "Day",
   });
+  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+}
+
+/**
+ * The person's own choice to show every rating of them on their profile (ADR 0156). Turning it on records the notice they
+ * saw; turning it off takes effect at once.
+ */
+export async function saveRatingSharingAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
+  const ctx = await ctxOr();
+  const result = await setRatingSharing(ctx.db, form.get("shareRatings") === "on");
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 

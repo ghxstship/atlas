@@ -123,7 +123,12 @@
     "operator_revoked": "Este rol ya se revocó.",
     "operator_last_administrator": "El equipo de la plataforma conserva al menos una persona de Administración. Concede otra primero.",
     "funnel_alert_missing": "Esa alerta de embudo ya no existe. Vuelve a cargar la página.",
-    "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada."
+    "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada.",
+    "rating_dispute_own": "Otro operador decide esta impugnación: es tuya.",
+    "rating_dispute_outcome": "Acepta la impugnación o recházala.",
+    "rating_dispute_decision_ground": "Para aceptarla se necesita un motivo concreto: persona equivocada, declaración falsa, contenido ofensivo o datos personales. Una puntuación baja o una opinión desfavorable no lo son.",
+    "rating_dispute_statement": "Escribe los motivos que recibirán la persona y la organización, en un máximo de 4,000 caracteres.",
+    "rating_dispute_transition_not_allowed": "Esta impugnación ya se decidió."
   },
   "tenants": {
     "title": "Organizaciones",
@@ -690,7 +695,9 @@
     "system_banner_ended": "Terminó un aviso",
     "platform_operator_granted": "Concedió un rol de operación",
     "platform_operator_revoked": "Revocó un rol de operación",
-    "funnel_alert_acknowledge": "Marcó como vista una alerta de embudo"
+    "funnel_alert_acknowledge": "Marcó como vista una alerta de embudo",
+    "rating_dispute_viewed": "Abrió una impugnación de calificación",
+    "rating_dispute_decided": "Decidió una impugnación de calificación"
   },
   "notFound": {
     "title": "No se encontró",
@@ -701,5 +708,50 @@
     "title": "Esta página no se cargó",
     "body": "Algo salió mal al cargarla. Inténtalo de nuevo; si sigue fallando, vuelve a cargar la página.",
     "action": "Intentar de nuevo"
+  },
+  "ratingDisputes": {
+    "title": "Impugnaciones de calificaciones",
+    "intro": "Personas que impugnan una calificación que les dio una organización. La puntuación no se muestra porque no puede decidir una impugnación. Acéptala solo por un motivo concreto; los motivos se envían a la persona y a la organización.",
+    "link": "Impugnaciones de calificaciones",
+    "backToListings": "Anuncios denunciados",
+    "none": "Ninguna impugnación espera una decisión.",
+    "noneDecided": "Aún no hay impugnaciones decididas.",
+    "person": "Persona",
+    "org": "Organización",
+    "ground": "Motivo indicado",
+    "state": "Estado",
+    "answered": "Respondió la organización",
+    "waiting": "Presentada",
+    "decidedAt": "Decidida",
+    "detailIntro": "{person} impugna una calificación de {org}, proyecto {project}, dada el {when}.",
+    "what": "Lo que dice la persona",
+    "comment": "El comentario de la calificación",
+    "noComment": "La calificación no tiene comentario.",
+    "reply": "La respuesta de la persona",
+    "orgAnswer": "La respuesta de la organización",
+    "noAnswer": "La organización no ha respondido.",
+    "decideTitle": "Decidir",
+    "outcome": "Resultado",
+    "uphold": "Aceptar y retirar la calificación",
+    "notUphold": "No aceptar; la calificación sigue",
+    "decisionGround": "Motivo para aceptar",
+    "statement": "Motivos enviados a la persona y a la organización",
+    "statementHelp": "Se envía tal como lo escribas. Di qué decidiste y por qué, sin usar la puntuación ni una opinión como motivo.",
+    "decide": "Registrar la decisión",
+    "decided": "Decisión registrada y enviada.",
+    "own": "Esta impugnación es tuya, así que otro operador la decide.",
+    "decidedBy": "{state} el {when} por {name}"
+  },
+  "ratingDisputeGrounds": {
+    "Wrong Person": "Sobre la persona equivocada",
+    "False Statement": "Declaración falsa",
+    "Abusive Content": "Contenido ofensivo",
+    "Personal Data": "Datos personales",
+    "Other": "Otro"
+  },
+  "ratingDisputeStates": {
+    "Open": "Abierta",
+    "Upheld": "Aceptada",
+    "Not Upheld": "No aceptada"
   }
 }

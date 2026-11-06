@@ -25,6 +25,11 @@ export const KNOWN_REFUSALS = [
   "profile_share_engagement",
   "rating_engagement_not_complete",
   "rating_immutable",
+  // A rated person's dispute of a rating and their choice to show ratings (ADR 0156, migrations 6145 and 6146).
+  "rating_dispute_ground",
+  "rating_dispute_details",
+  "rating_dispute_exists",
+  "rating_sharing_notice",
   "tin_format",
   "tax_form_payee",
   "sod_self_grant",

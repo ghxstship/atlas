@@ -90,7 +90,7 @@
     "postings": "Postings",
     "project": "Project",
     "proposedFee": "Proposed fee",
-    "publicComment": "Public comment",
+    "publicComment": "Comment",
     "question": "Question",
     "rank": "Rank",
     "rate": "Rate",
@@ -190,7 +190,10 @@
       "question_template_not_found": "That question template was deleted or is not available to you. Choose another template.",
       "question_template_not_draft": "A question template applies only to a Draft posting. Add questions one at a time instead.",
       "opportunity_hidden_client_named": "While the client and event are hidden, the title and description cannot name the project, its client or the venue. Remove the name, or show the client and event.",
-      "opportunity_hidden_client_published": "This listing already showed its client and event, so they can no longer be hidden. Post a new opportunity to hide them."
+      "opportunity_hidden_client_published": "This listing already showed its client and event, so they can no longer be hidden. Post a new opportunity to hide them.",
+      "rating_dispute_decided": "This dispute has already been decided.",
+      "rating_dispute_answered": "Your organization has already answered this dispute.",
+      "rating_dispute_response": "Write your answer in up to 4,000 characters."
     },
     "insuredsMissing": "Recorded as failed. No current certificate names: {rule}. Ask the vendor for an updated certificate.",
     "questionsNotApplied": "The draft is saved, but the template's questions were not added. Open the draft and add them there."
@@ -415,7 +418,7 @@
     "reply": "Public reply",
     "sendReply": "Reply",
     "rateTitle": "Rate the party",
-    "ratingHelp": "Public, never edited. Keep internal notes off ratings.",
+    "ratingHelp": "Never edited. Only your organization and the person can read a rating of a person. A rating of a company can be read by anyone signed in. Keep internal notes off ratings.",
     "rate": "Submit rating",
     "stars": "{score, plural, one {# star} other {# stars}}",
     "reengagement": "Re-engagement",
@@ -437,7 +440,27 @@
     "all": "All ratings",
     "empty": "No ratings yet. Ratings come from completed engagements.",
     "emptyAction": "Open engagements",
-    "replyNeedsWrite": "Someone with rating access replies."
+    "replyNeedsWrite": "Someone with rating access replies.",
+    "disputes": {
+      "title": "Disputes of your ratings",
+      "help": "A person you rated may dispute the rating. You can answer once, and our platform team decides. A low score alone is never a reason to remove a rating, and you cannot remove one yourself.",
+      "answer": "Your answer",
+      "sendAnswer": "Send answer",
+      "answered": "Your answer: {response}",
+      "decided": "Decision: {statement}",
+      "grounds": {
+        "wrongPerson": "Says it is about the wrong person",
+        "falseStatement": "Says it is false",
+        "abusiveContent": "Says it is abusive",
+        "personalData": "Says it shows personal data",
+        "other": "Another reason"
+      },
+      "states": {
+        "open": "Open",
+        "upheld": "Upheld, rating removed",
+        "notUpheld": "Not upheld, rating stays"
+      }
+    }
   },
   "marketplace": {
     "title": "Marketplace settings",
