@@ -90,13 +90,15 @@ test("a scheduled send emails a link with one-click headers and a footer, and st
   );
   expect(mail.headers["List-Unsubscribe-Post"]?.[0]).toBe("List-Unsubscribe=One-Click");
 
-  // One-click, a POST with no Origin to the function. Kong answers 502 to 504 only when no Edge runtime stands behind it.
+  // One-click, a POST with no Origin to the function. Kong stamps X-Kong-Upstream-Latency on what comes back from behind
+  // it, so an answer without that header is Kong's own: no Edge runtime stands behind it. Anything else is the function's.
   const oneClickUrl = (token: string) => `${url}/functions/v1/email-unsubscribe?token=${token}`;
   const oneClick = await page.request
     .post(oneClickUrl(unsubscribeToken), { headers: { Origin: "" } })
     .catch(() => null);
   const status = oneClick?.status() ?? null;
-  if (status === null || (status >= 502 && status <= 504)) {
+  const served = oneClick?.headers()["x-kong-upstream-latency"] !== undefined;
+  if (!served) {
     test.info().annotations.push({
       type: "not run",
       description: `email-unsubscribe is not being served on this stack (${status ?? "no connection"}), so the POST with no Origin was not exercised. Vitest and pgTAP cover it.`,
