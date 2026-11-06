@@ -425,7 +425,6 @@ insert into register_stored values
   ('app.ratings.score', 'input'),
   ('app.report_runs.row_count', 'fact'),
   ('app.report_runs.unpriced_count', 'fact'),
-  ('app.segment_library.version', 'fact'),
   ('app.share_links.open_count', 'fact'),
   ('app.shipments.pallet_count', 'input'),
   ('app.shipments.piece_count', 'input'),

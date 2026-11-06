@@ -1780,9 +1780,6 @@ stored:
   - column: app.report_runs.unpriced_count
     kind: fact
     note: Unpriced rows of a run; not derivable later (A22 review).
-  - column: app.segment_library.version
-    kind: fact
-    note: A change counter the database raises on every change of the segment, its cues or their calls; copies compare against it, and no history row records it (migration 2921, B3).
   - column: app.share_links.open_count
     kind: fact
     note: Opens are logged by file, not by link, so the count is the only per-link record (migration 1380).

@@ -7,7 +7,7 @@
 --     also clears the flag, so no check fails and no TBC is left without a time.
 --   * api_external.cues (from 1020) and api_external.records (from 0750) append start_tbc, so Gateway shows TBC to a
 --     Client or an artist. The views are redefined verbatim otherwise; their grants survive create or replace.
---   * api_external.engagement_up_next (from 2612) appends next_call_tbc: a set whose cue is TBC is not a firm call on
+--   * api_external.engagement_up_next (from 2701, with roster entry engagements) appends next_call_tbc: a set whose cue is TBC is not a firm call on
 --     Gateway Home.
 -- No column here names a row, so no table becomes eligible for Trash (ADR 0110).
 
@@ -102,7 +102,9 @@ left join lateral (
   order by x.starts_at
   limit 1
 ) n on true
-where e.deleted_at is null and e.id in (select private.my_engagement_ids('engagement'));
+where e.deleted_at is null
+  and (e.id in (select private.my_engagement_ids('engagement'))
+    or e.id in (select r.engagement_id from app.engagement_roster_entries r where r.id in (select private.my_roster_entry_ids('roster'))));
 
 comment on column api_external.engagement_up_next.next_call_tbc is 'True when the next call is a set whose time is an estimate to be confirmed: show TBC, not the time. False for shifts and dock slots, and NULL when there is no next call.';
 

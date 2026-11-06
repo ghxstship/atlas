@@ -776,11 +776,11 @@ begin
   if v_ctx.o_reason is not null then
     return private.live_link_refusal(v_ctx.o_reason);
   end if;
-  v_cue := private.showcaller_target_cue(v_ctx.o_run.id, p_cue_id);
+  v_cue := private.showcaller_target_cue((v_ctx.o_run).id, p_cue_id);
   if v_cue.id is null then
-    return private.showcaller_scope_refusal(v_ctx.o_link.id, v_ctx.o_grant_hash);
+    return private.showcaller_scope_refusal((v_ctx.o_link).id, v_ctx.o_grant_hash);
   end if;
-  perform private.showcaller_begin(v_ctx.o_link.id);
+  perform private.showcaller_begin((v_ctx.o_link).id);
   begin
     v_at := private.call_cue_in_run(v_ctx.o_run, v_cue);
   exception when sqlstate 'XR001' then
@@ -814,12 +814,12 @@ begin
     return private.live_link_refusal(v_ctx.o_reason);
   end if;
   if p_cue_id is not null then
-    v_cue := private.showcaller_target_cue(v_ctx.o_run.id, p_cue_id);
+    v_cue := private.showcaller_target_cue((v_ctx.o_run).id, p_cue_id);
     if v_cue.id is null then
-      return private.showcaller_scope_refusal(v_ctx.o_link.id, v_ctx.o_grant_hash);
+      return private.showcaller_scope_refusal((v_ctx.o_link).id, v_ctx.o_grant_hash);
     end if;
   end if;
-  perform private.showcaller_begin(v_ctx.o_link.id);
+  perform private.showcaller_begin((v_ctx.o_link).id);
   begin
     perform private.standby_cue_in_run(v_ctx.o_run, p_cue_id);
   exception when sqlstate 'XR001' then
@@ -828,7 +828,7 @@ begin
     return private.live_link_refusal(v_reason);
   end;
   perform private.showcaller_end(v_ctx.o_link, 'standby', case when p_cue_id is null then 'app.run_of_show' else 'app.cues' end,
-    coalesce(p_cue_id, v_ctx.o_run.id), p_cue_id);
+    coalesce(p_cue_id, (v_ctx.o_run).id), p_cue_id);
   return jsonb_build_object('status', 'ok');
 end;
 $$;
@@ -853,7 +853,7 @@ begin
   if v_ctx.o_reason is not null then
     return private.live_link_refusal(v_ctx.o_reason);
   end if;
-  perform private.showcaller_begin(v_ctx.o_link.id);
+  perform private.showcaller_begin((v_ctx.o_link).id);
   begin
     v_count := private.shift_cue_plan_in_run(v_ctx.o_run, p_seconds);
   exception when sqlstate 'XR001' then
@@ -861,7 +861,7 @@ begin
     perform private.showcaller_end(v_ctx.o_link, null, null, null, null);
     return private.live_link_refusal(v_reason);
   end;
-  perform private.showcaller_end(v_ctx.o_link, 'shift', 'app.run_of_show', v_ctx.o_run.id, null);
+  perform private.showcaller_end(v_ctx.o_link, 'shift', 'app.run_of_show', (v_ctx.o_run).id, null);
   return jsonb_build_object('status', 'ok', 'moved', v_count);
 end;
 $$;
@@ -887,11 +887,11 @@ begin
   if v_ctx.o_reason is not null then
     return private.live_link_refusal(v_ctx.o_reason);
   end if;
-  v_cue := private.showcaller_target_cue(v_ctx.o_run.id, p_cue_id);
+  v_cue := private.showcaller_target_cue((v_ctx.o_run).id, p_cue_id);
   if v_cue.id is null then
-    return private.showcaller_scope_refusal(v_ctx.o_link.id, v_ctx.o_grant_hash);
+    return private.showcaller_scope_refusal((v_ctx.o_link).id, v_ctx.o_grant_hash);
   end if;
-  perform private.showcaller_begin(v_ctx.o_link.id);
+  perform private.showcaller_begin((v_ctx.o_link).id);
   begin
     v_position := private.move_cue_in_run(v_ctx.o_run, v_cue, p_to_position);
   exception when sqlstate 'XR001' then
@@ -944,9 +944,9 @@ begin
     return private.live_link_refusal(v_ctx.o_reason);
   end if;
   if p_cue_id is not null then
-    v_cue := private.showcaller_target_cue(v_ctx.o_run.id, p_cue_id);
+    v_cue := private.showcaller_target_cue((v_ctx.o_run).id, p_cue_id);
     if v_cue.id is null then
-      return private.showcaller_scope_refusal(v_ctx.o_link.id, v_ctx.o_grant_hash);
+      return private.showcaller_scope_refusal((v_ctx.o_link).id, v_ctx.o_grant_hash);
     end if;
     if v_cue.called_at is not null then
       return private.live_link_refusal('showcaller_cue_called');
@@ -1001,17 +1001,17 @@ begin
 
   if p_cue_id is null then
     select count(*), coalesce(max(c.position), 0) into v_count, v_position
-    from app.cues c where c.run_of_show_id = v_ctx.o_run.id and c.deleted_at is null;
+    from app.cues c where c.run_of_show_id = (v_ctx.o_run).id and c.deleted_at is null;
     if v_count >= 300 then
       return private.live_link_refusal('showcaller_cue_limit');
     end if;
   end if;
 
-  perform private.showcaller_begin(v_ctx.o_link.id);
+  perform private.showcaller_begin((v_ctx.o_link).id);
   begin
     if p_cue_id is null then
       insert into app.cues (run_of_show_id, position, label, segment, description, script, planned_at, start_tbc, duration)
-      values (v_ctx.o_run.id, v_position + 1, v_label, v_segment, v_description, v_script, v_planned, v_tbc,
+      values ((v_ctx.o_run).id, v_position + 1, v_label, v_segment, v_description, v_script, v_planned, v_tbc,
         case when v_duration is null then null else make_interval(secs => v_duration) end)
       returning id, updated_at into v_id, v_updated;
     else
@@ -1061,9 +1061,9 @@ begin
   if v_ctx.o_reason is not null then
     return private.live_link_refusal(v_ctx.o_reason);
   end if;
-  v_cue := private.showcaller_target_cue(v_ctx.o_run.id, p_cue_id);
+  v_cue := private.showcaller_target_cue((v_ctx.o_run).id, p_cue_id);
   if v_cue.id is null then
-    return private.showcaller_scope_refusal(v_ctx.o_link.id, v_ctx.o_grant_hash);
+    return private.showcaller_scope_refusal((v_ctx.o_link).id, v_ctx.o_grant_hash);
   end if;
   if v_cue.called_at is not null then
     return private.live_link_refusal('showcaller_cue_called');
@@ -1071,7 +1071,7 @@ begin
   if exists (select 1 from app.engagement_cues ec where ec.cue_id = v_cue.id and ec.deleted_at is null) then
     return private.live_link_refusal('showcaller_cue_linked');
   end if;
-  perform private.showcaller_begin(v_ctx.o_link.id);
+  perform private.showcaller_begin((v_ctx.o_link).id);
   begin
     update app.cues set deleted_at = now(), standby_at = null where id = v_cue.id;
   exception when sqlstate 'XR001' then
@@ -1104,14 +1104,14 @@ begin
   if v_ctx.o_reason is not null then
     return private.live_link_refusal(v_ctx.o_reason);
   end if;
-  v_cue := private.showcaller_target_cue(v_ctx.o_run.id, p_cue_id);
+  v_cue := private.showcaller_target_cue((v_ctx.o_run).id, p_cue_id);
   if v_cue.id is null then
-    return private.showcaller_scope_refusal(v_ctx.o_link.id, v_ctx.o_grant_hash);
+    return private.showcaller_scope_refusal((v_ctx.o_link).id, v_ctx.o_grant_hash);
   end if;
   if v_cue.called_at is not null then
     return private.live_link_refusal('showcaller_cue_called');
   end if;
-  perform private.showcaller_begin(v_ctx.o_link.id);
+  perform private.showcaller_begin((v_ctx.o_link).id);
   begin
     perform private.save_cue_calls_for_cue(v_cue, p_calls);
   exception

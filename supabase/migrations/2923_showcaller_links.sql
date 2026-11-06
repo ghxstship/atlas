@@ -139,7 +139,7 @@ create index showcaller_links_run_live_idx on app.showcaller_links (run_of_show_
 -- Members read the links of running orders they can read, in their own orgs, without the hashes. Writes go through the
 -- RPCs only.
 call private.install_policies('app.showcaller_links',
-  $$private.is_member(org_id) and private.can_on_project(project_id, 'show.run_of_show.read')$$);
+  $$private.is_member(org_id) and project_id in (select private.project_ids_with('show.run_of_show.read'))$$);
 revoke select on app.showcaller_links from authenticated;
 grant select (id, org_id, project_id, run_of_show_id, caller_name, note, token_hint, expires_at, failed_attempts, open_count,
   last_opened_at, rotated_at, revoked_at, revoked_by, created_at, created_by, updated_at, updated_by, deleted_at)

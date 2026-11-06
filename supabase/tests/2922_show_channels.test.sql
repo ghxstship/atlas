@@ -55,8 +55,8 @@ begin
   perform pg_temp.as_user(p_who);
   select * into v from app.show_channel_status(pg_temp.id('prj_a'));
   perform pg_temp.as_platform();
-  return format('exists=%s member=%s join=%s open=%s conversation=%s', v.channel_exists, v.am_member, v.can_join, v.can_open,
-    v.conversation_id is not null);
+  return format('exists=%s member=%s join=%s open=%s conversation=%s', v.channel_exists::text, v.am_member::text, v.can_join::text,
+    v.can_open::text, (v.conversation_id is not null)::text);
 end $$;
 
 create function pg_temp.members() returns text
@@ -90,6 +90,11 @@ select ok(not private.person_can_on_project(pg_temp.id('rune'), pg_temp.id('prj_
 select ok(private.person_can_on_project(pg_temp.id('erin'), pg_temp.id('prj_a'), 'show.run_of_show.read'), 'erin can');
 select is(current_setting('request.jwt.claims', true), '', 'and the claims come back afterwards');
 
+-- gina reads running orders on the project but does not edit them.
+select pg_temp.as_user('alice');
+insert into app.user_capability_grants (membership_id, capability_code, scope_kind, scope_id, reason) values
+  (pg_temp.id('gina@org_a'), 'show.run_of_show.read', 'project', pg_temp.id('prj_a'), 'Follows the run.');
+select pg_temp.as_platform();
 select is(pg_temp.status('dave'), 'exists=false member=false join=false open=true conversation=false',
   'before a channel exists, an editor may open one');
 select is(pg_temp.status('gina'), 'exists=false member=false join=false open=false conversation=false',
