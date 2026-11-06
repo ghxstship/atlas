@@ -40,6 +40,6 @@ Related: [Venues, spaces and site plans](help:places).
 
 ## Guest passes and guest emails
 
-Each guest can have a pass type (an Access category of the project, such as GUEST or VIP), a table, a host from the project's people, and an email address. When a guest is approved they get a pass code; Print pass and Download pass give their A6 pass with the code the door scans. Guests have passes, not credentials.
+Each guest can have a pass type (an Access category of the project, such as GUEST or VIP), a table, a host from the project's people, and an email address. Add guest asks for the pass type and email; set the table and host from the guest's pass details. When a guest is approved they get a pass code; Print pass and Download pass give their A6 pass with the code the door scans. Guests have passes, not credentials.
 
 Email guests sends the guests you choose an invitation, their pass as a PDF, or a message with a subject and text, in English or Spanish. Guests without an email, and, for a pass, guests not yet approved, are skipped, and addresses that asked your organization to stop are not emailed. Every guest email comes from your organization, with an unsubscribe link and the postal address. Each send lists what happened to every guest.

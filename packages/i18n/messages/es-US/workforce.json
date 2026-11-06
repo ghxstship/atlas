@@ -743,7 +743,7 @@
       "allClearSubmit": "Enviar fin de la suspensión",
       "sent": "Enviado a todos",
       "holdSent": "Suspensión por clima enviada a todas las personas que alcanza.",
-      "allClearSent": "Fin de alerta enviado a todas las personas que alcanza.",
+      "allClearSent": "Fin de la suspensión enviado a todas las personas que alcanza.",
       "cancel": "Cancelar",
       "hazard": "Peligro",
       "noHazard": "Sin peligro indicado",
@@ -758,7 +758,7 @@
       "defaultHold": "Suspensión por clima: deja de trabajar ahora y ve al refugio más cercano. Espera el aviso de fin.",
       "defaultHoldHazard": "Suspensión por clima por {hazard}: deja de trabajar ahora y ve al refugio más cercano. Espera el aviso de fin.",
       "defaultAllClear": "Fin de la suspensión: terminó la suspensión por clima. Vuelve al trabajo cuando tu responsable lo indique.",
-      "defaultHoldWarning": "Suspensión por clima por {event}: deja de trabajar ahora y ve al refugio más cercano. Espera el fin de alerta."
+      "defaultHoldWarning": "Suspensión por clima por {event}: deja de trabajar ahora y ve al refugio más cercano. Espera el aviso de fin."
     }
   },
   "guests": {

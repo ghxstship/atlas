@@ -38,6 +38,6 @@ Las asignaciones dicen lo que recibe cada parte y cada persona para una producci
 
 ## Pases de invitado y correos a invitados
 
-Cada invitado puede tener un tipo de pase (una categoría de acceso del proyecto, como GUEST o VIP), una mesa, un anfitrión entre las personas del proyecto y una dirección de correo. Cuando se aprueba un invitado, recibe un código de pase; Imprimir pase y Descargar pase dan su pase A6 con el código que se escanea a la entrada. Los invitados tienen pases, no credenciales.
+Cada invitado puede tener un tipo de pase (una categoría de acceso del proyecto, como GUEST o VIP), una mesa, un anfitrión entre las personas del proyecto y una dirección de correo. Agregar invitado pide el tipo de pase y el correo; la mesa y el anfitrión se definen en los datos del pase del invitado. Cuando se aprueba un invitado, recibe un código de pase; Imprimir pase y Descargar pase dan su pase A6 con el código que se escanea a la entrada. Los invitados tienen pases, no credenciales.
 
 Enviar correo a invitados manda a los invitados que elija una invitación, su pase en PDF o un mensaje con asunto y texto, en inglés o en español. Se omiten los invitados sin correo y, para un pase, los que aún no están aprobados, y no se envía a las direcciones que pidieron a su organización que deje de escribirles. Cada correo a invitados sale de su organización, con un enlace para darse de baja y la dirección postal. Cada envío muestra qué pasó con cada invitado.

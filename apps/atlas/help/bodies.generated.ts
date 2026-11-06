@@ -100,7 +100,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Each guest can have a pass type (an Access category of the project, such as GUEST or VIP), a table, a host from the project's people, and an email address. When a guest is approved they get a pass code; Print pass and Download pass give their A6 pass with the code the door scans. Guests have passes, not credentials.",
+            v: "Each guest can have a pass type (an Access category of the project, such as GUEST or VIP), a table, a host from the project's people, and an email address. Add guest asks for the pass type and email; set the table and host from the guest's pass details. When a guest is approved they get a pass code; Print pass and Download pass give their A6 pass with the code the door scans. Guests have passes, not credentials.",
           },
         ],
       },
@@ -2222,7 +2222,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "For a venue with a location in the US, turn on the official feed. Every 10 minutes from three days before the project to the day after it ends, it records wind and heat readings from the nearest National Weather Service station, stores the active warnings for the venue's location and the next hours of the forecast. Its readings meet your thresholds as on-site readings do, but a reading from the feed never lowers or clears an alert someone recorded on site. A new Severe or Extreme warning reaches the people in the alert roles and the dispatchers once, even in quiet hours. Warnings are shown in English, as the National Weather Service issues them. Lightning stays a reading you record.",
+            v: "For a venue with a location in the US, turn on the official feed. Every 10 minutes from three days before the project to the day after it ends, it records wind and heat readings from the nearest National Weather Service station, stores the active warnings for the venue's location and the next hours of the forecast. Its readings meet your thresholds as on-site readings do, but a reading from the feed never lowers or clears an alert someone recorded on site, and never goes below the level of the latest reading recorded on site. A new Severe or Extreme warning reaches the people in the alert roles and the dispatchers once, even in quiet hours. Warnings are shown in English, as the National Weather Service issues them. Lightning stays a reading you record.",
           },
         ],
       },
@@ -2232,7 +2232,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "A dispatcher can call a weather hold. The message comes from your hold text, with the hazard, and you can change it before you send it. It reaches the people in the alert roles, the dispatchers and everyone inside the project's zones at once. Call hold leads while an alert is at Restrict or Evacuate or a Severe or Extreme warning is active. Give the all-clear when it is over; it reaches the same people as they are then. Set the hold and all-clear texts under the thresholds. A hold called in Compass while offline is still sent however late it arrives, and says when it was called; an all-clear that reaches the server more than 10 minutes after it was given is not sent, so give it again.",
+            v: "A dispatcher can call a weather hold. The message comes from your hold text, with the hazard, and you can change it before you send it. It reaches the people in the alert roles, the dispatchers and everyone inside the project's zones at once. The hold starts with the hazard or warning filled in when an alert is at Restrict or Evacuate or a Severe or Extreme warning is active, and the message starts again when you change either. Give the all-clear when it is over; it reaches the same people as they are then. Set the hold and all-clear texts under the thresholds. A hold called in Compass while offline is still sent however late it arrives, and says when it was called; an all-clear that reaches the server more than 10 minutes after it was given is not sent, so give it again.",
           },
         ],
       },
@@ -2543,7 +2543,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Cada invitado puede tener un tipo de pase (una categoría de acceso del proyecto, como GUEST o VIP), una mesa, un anfitrión entre las personas del proyecto y una dirección de correo. Cuando se aprueba un invitado, recibe un código de pase; Imprimir pase y Descargar pase dan su pase A6 con el código que se escanea a la entrada. Los invitados tienen pases, no credenciales.",
+            v: "Cada invitado puede tener un tipo de pase (una categoría de acceso del proyecto, como GUEST o VIP), una mesa, un anfitrión entre las personas del proyecto y una dirección de correo. Agregar invitado pide el tipo de pase y el correo; la mesa y el anfitrión se definen en los datos del pase del invitado. Cuando se aprueba un invitado, recibe un código de pase; Imprimir pase y Descargar pase dan su pase A6 con el código que se escanea a la entrada. Los invitados tienen pases, no credenciales.",
           },
         ],
       },
@@ -4641,7 +4641,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Para una sede con ubicación en EE. UU., active el servicio oficial. Cada 10 minutos, desde tres días antes del proyecto hasta el día después de que termina, registra lecturas de viento y calor de la estación más cercana del Servicio Meteorológico Nacional, guarda los avisos vigentes para la ubicación de la sede y las próximas horas del pronóstico. Sus lecturas se comparan con sus umbrales como las lecturas en el sitio, pero una lectura del servicio nunca baja ni cierra un aviso que alguien registró en el sitio. Un aviso nuevo Grave o Extremo llega una vez a las personas de los roles de alerta y a los despachadores, incluso en horas de silencio. Los avisos se muestran en inglés, como los emite el Servicio Meteorológico Nacional. Los rayos siguen siendo una lectura que usted registra.",
+            v: "Para una sede con ubicación en EE. UU., active el servicio oficial. Cada 10 minutos, desde tres días antes del proyecto hasta el día después de que termina, registra lecturas de viento y calor de la estación más cercana del Servicio Meteorológico Nacional, guarda los avisos vigentes para la ubicación de la sede y las próximas horas del pronóstico. Sus lecturas se comparan con sus umbrales como las lecturas en el sitio, pero una lectura del servicio nunca baja ni cierra un aviso que alguien registró en el sitio, y nunca queda por debajo del nivel de la última lectura registrada en el sitio. Un aviso nuevo Grave o Extremo llega una vez a las personas de los roles de alerta y a los despachadores, incluso en horas de silencio. Los avisos se muestran en inglés, como los emite el Servicio Meteorológico Nacional. Los rayos siguen siendo una lectura que usted registra.",
           },
         ],
       },
@@ -4651,7 +4651,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Un despachador puede suspender por clima. El mensaje viene de su texto de suspensión, con el peligro, y puede cambiarlo antes de enviarlo. Llega a la vez a las personas de los roles de alerta, a los despachadores y a todos los que están dentro de las zonas del proyecto. Suspender por clima es la acción principal mientras un aviso está en Restringir o Evacuar o hay un aviso Grave o Extremo vigente. Dé el fin de la suspensión cuando pase; llega a las mismas personas en ese momento. Configure los textos de suspensión y de fin debajo de los umbrales. Una suspensión hecha en Compass sin conexión se envía aunque llegue tarde, e indica cuándo se declaró; un fin de suspensión que llega al servidor más de 10 minutos después de darlo no se envía, así que dé el fin de nuevo.",
+            v: "Un despachador puede suspender por clima. El mensaje viene de su texto de suspensión, con el peligro, y puede cambiarlo antes de enviarlo. Llega a la vez a las personas de los roles de alerta, a los despachadores y a todos los que están dentro de las zonas del proyecto. La suspensión empieza con el peligro o el aviso ya elegidos cuando una alerta está en Restringir o Evacuar o hay un aviso Grave o Extremo vigente, y el mensaje vuelve a empezar cuando cambia cualquiera de los dos. Dé el fin de la suspensión cuando pase; llega a las mismas personas en ese momento. Configure los textos de suspensión y de fin debajo de los umbrales. Una suspensión hecha en Compass sin conexión se envía aunque llegue tarde, e indica cuándo se declaró; un fin de suspensión que llega al servidor más de 10 minutos después de darlo no se envía, así que dé el fin de nuevo.",
           },
         ],
       },
