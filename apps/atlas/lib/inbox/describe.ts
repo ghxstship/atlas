@@ -48,6 +48,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "opportunity.matched": ["count", "searchName"],
   // An offer that waits on the applicant (A127, 2200).
   "offer.sent": ["orgName"],
+  // A request through a reusable vendor intake link (B2, 2915).
+  "vendor_intake.submitted": ["requesterName", "projectName"],
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],

@@ -190,6 +190,11 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "partner.client_left": { org: "Tidewater Events" },
   // A89: marketplace matches and expiry reminders (1462, 1463).
   "offer.sent": { title: "Festival Truss Riggers", orgName: "Demo Productions" },
+  "vendor_intake.submitted": {
+    title: "Audio vendors",
+    requesterName: "Bayside Audio",
+    projectName: "Summer Headline Weekend",
+  },
   "opportunity.matched": {
     title: "Festival Truss Riggers",
     orgName: "Demo Productions",

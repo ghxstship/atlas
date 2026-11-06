@@ -712,6 +712,9 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "vendor_intake": {
+        "submitted": "Nueva solicitud de alta"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

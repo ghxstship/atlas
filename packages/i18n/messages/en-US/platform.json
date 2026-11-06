@@ -712,6 +712,9 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "vendor_intake": {
+        "submitted": "New intake request"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",
