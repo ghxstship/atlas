@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { outcomeFor } from "@/lib/action-result";
+import { CODE_COOKIE } from "@/lib/crew-code-cookie";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
@@ -17,8 +18,6 @@ import { createServerSupabase } from "@/lib/supabase/server";
 const TWELVE_HOURS = 12 * 60 * 60;
 const token = z.string().regex(/^[A-Za-z0-9_-]{16,128}$/);
 const code = z.string().trim().min(4).max(32);
-
-export const CODE_COOKIE = "xos_crew_code";
 
 export interface CrewAccessState {
   readonly refusal?: string;

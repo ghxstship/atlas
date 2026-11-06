@@ -62,10 +62,13 @@ vi.mock("@/components/tokens/crew-shifts", () => ({
   CrewCodeForm: () => null,
   CrewShiftList: () => null,
 }));
-vi.mock("@/components/ui", () => ({ BrandMark: () => null, ButtonLink: () => null }));
+vi.mock("@/components/ui", () => ({
+  BrandMark: () => null,
+  Button: () => null,
+  ButtonLink: () => null,
+}));
 vi.mock("@/lib/actions/registration", () => ({ withdrawRegistrationAction: async () => null }));
 vi.mock("@/lib/actions/crew-shifts", () => ({
-  CODE_COOKIE: "crew-code",
   forgetCrewCodeAction: async () => null,
 }));
 vi.mock("@/lib/shell/translate", () => ({
