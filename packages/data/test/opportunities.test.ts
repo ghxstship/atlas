@@ -922,11 +922,22 @@ describe("opportunities repository: ratings, requirements, pools and settings", 
         ]),
         okResponse([
           {
-            id: "m",
+            id: "m3",
             talent_pool_id: "tp",
-            person_id: "ivy",
-            organization_id: null,
-            standing: "Preferred",
+            person_id: null,
+            organization_id: "acct",
+            standing: "Approved",
+            reason: null,
+            review_on: null,
+          },
+        ]),
+        okResponse([
+          {
+            id: "m3",
+            talent_pool_id: "tp",
+            person_id: null,
+            organization_id: "acct",
+            standing: "Approved",
             reason: null,
             review_on: null,
           },
@@ -938,13 +949,14 @@ describe("opportunities repository: ratings, requirements, pools and settings", 
         okResponse(null),
         hidden,
       ],
-      "from:engagement_board": [
-        okResponse([
-          { person_id: "ivy", account_id: null, party_name: "Ivy Marchetti", account_name: null },
-        ]),
+      "from:pool_member_names": [
+        okResponse([{ pool_member_id: "m", full_name: "Ivy Marchetti" }]),
+        okResponse([]),
         hidden,
         okResponse([]),
+        okResponse([]),
       ],
+      "from:engagement_board": [okResponse([]), hidden, okResponse([])],
       "from:application_board": [
         okResponse([
           {
@@ -973,6 +985,7 @@ describe("opportunities repository: ratings, requirements, pools and settings", 
       "Bayside Audio",
     ]);
     expect(await repo.listPoolMembers(db, "tp")).toEqual({ ok: true, data: [] });
+    expect((await repo.listPoolMembers(db, "tp")).ok).toBe(false);
     expect((await repo.listPoolMembers(db, "tp")).ok).toBe(false);
     expect((await repo.listPoolMembers(db, "tp")).ok).toBe(false);
     expect((await repo.listPoolMembers(db, "tp")).ok).toBe(false);

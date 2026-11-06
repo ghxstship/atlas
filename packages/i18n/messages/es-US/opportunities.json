@@ -887,7 +887,7 @@
     "titleHelp": "Todo el que lee contrataciones lee este título, así que no puede usar la tarifa.",
     "bodyField": "Texto",
     "picker": "Insertar un campo de combinación",
-    "pickerHelp": "Lo agrega al final del texto. Se escribe como {'{{'}nombre{'}}'}.",
+    "pickerHelp": "Lo agrega al final del texto.",
     "pickerChoose": "Elige un campo",
     "save": "Guardar plantilla",
     "saved": "Plantilla guardada.",

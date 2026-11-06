@@ -887,7 +887,7 @@
     "titleHelp": "Everyone who reads engagements reads this title, so it cannot use the rate.",
     "bodyField": "Text",
     "picker": "Insert a merge field",
-    "pickerHelp": "Adds it at the end of the text. Written as {'{{'}name{'}}'}.",
+    "pickerHelp": "Adds it at the end of the text.",
     "pickerChoose": "Choose a field",
     "save": "Save template",
     "saved": "Template saved.",
