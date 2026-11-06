@@ -132,7 +132,7 @@ as $$
                         where a.id = p_application_id and a.applicant_organization_id is not null)));
 $$;
 
-comment on function private.rating_is_of_individual(app.external_role_type, uuid, uuid, uuid) is 'True when an org''s rating on an engagement with these values is of an individual person: it names a person, with no engaged account, or for work a person does themselves. A vendor, client, sponsor or agency engaged through an account is a company even when the engagement names its contact, and so is a company whose own bid won Contractor, Staff, Crew or Artist work, where the engagement names whoever submitted the bid (ADR 0158).';
+comment on function private.rating_is_of_individual(app.external_role_type, uuid, uuid, uuid) is 'True when an org''s rating on an engagement with these values is of an individual person: it names a person, with no engaged account, or for work a person does themselves. A vendor, client, sponsor or agency engaged through an account is a company even when the engagement names its contact, and so is a company whose own bid won Contractor, Staff, Crew or Artist work, even when the engagement made from that bid also names a person (ADR 0158).';
 revoke all on function private.rating_is_of_individual(app.external_role_type, uuid, uuid, uuid) from public, anon;
 grant execute on function private.rating_is_of_individual(app.external_role_type, uuid, uuid, uuid) to authenticated, service_role;
 

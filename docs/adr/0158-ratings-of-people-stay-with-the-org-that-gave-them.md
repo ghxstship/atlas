@@ -22,7 +22,7 @@ XOS is used for hiring. Under the Fair Credit Reporting Act a consumer report is
 | An org's rating of a company or vendor | As before: anyone signed in. The row no longer names the company's contact to them |
 | A party's rating of an org             | As before: anyone signed in                                                        |
 
-- A rating is of an individual when the engagement names a person and either has no engaged account or is for crew, staff, a contractor or an artist that the account supplied (`private.rating_is_of_individual`). An engagement from a company's accepted bid names the applicant as well as the account, so naming a person cannot be the test alone: a vendor, client, sponsor or agency engaged through an account is a company, whoever its named contact is, and so is a company whose own bid won Contractor, Staff, Crew or Artist work (the application has `applicant_organization_id`).
+- A rating is of an individual when the engagement names a person and either has no engaged account or is for crew, staff, a contractor or an artist that the account supplied (`private.rating_is_of_individual`). An engagement can name a contact as well as the account, so naming a person cannot be the test alone: a vendor, client, sponsor or agency engaged through an account is a company, whoever its named contact is, and so is a company whose own bid won Contractor, Staff, Crew or Artist work (the application has `applicant_organization_id`). `app.create_engagement_from_application` names only the account for such a bid; an engagement made directly from it may also name a contact.
 - Crew, staff, a contractor or an artist supplied through an account are individuals. That account does not read their rating or answer it.
 - A partner on a shared project, or the holder of a record grant from another org, may read the engagement but not the rating of an individual.
 - The rule is in row level security on `app.ratings` and `app.rating_replies`, and in the row filter of `api_external.ratings`. API v1 reads `app.ratings` under that security, so no v1 field, filter or list reaches another org's rating of an individual. No v1 operation changed.
@@ -92,7 +92,7 @@ Whether Part 465 applies to ratings between organizations and workers at all is 
 
 ## Alternatives considered
 
-- **Treating any engagement that names a person as an individual.** Simpler, and stricter, but nearly every vendor engagement names its applicant, so it would have made vendor ratings private, which the owner ruled out.
+- **Treating any engagement that names a person as an individual.** Simpler, and stricter, but vendor engagements commonly name a contact, so it would have made those vendor ratings private, which the owner ruled out.
 - **FCRA-compliant handling** (permissible purpose certification, adverse action notices, accuracy procedures). This accepts CRA status for a feature nothing depends on. Rejected.
 - **A disclaimer or terms-only restriction.** Research says it does not cure the fact pattern, and it could mislead. Rejected, though the use restriction stays as a second line.
 - **Opt-in shown on hiring surfaces.** A consumer's instruction may supply a permissible purpose, but it does not remove the report from the statute. Rejected.
