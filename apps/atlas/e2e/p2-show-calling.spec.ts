@@ -147,8 +147,10 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   await move.getByLabel("Position").selectOption("2");
   await move.getByRole("button", { name: "Move" }).click();
   await expect(move).toBeHidden();
-  await expect(list.getByRole("listitem").nth(1)).toContainText("House Lights Up");
-  await expect(list.getByRole("listitem").nth(4)).toContainText("Headliner On");
+  // Cues only: a cue's department calls are list items inside it.
+  const rows = list.locator(":scope > li");
+  await expect(rows.nth(1)).toContainText("House Lights Up");
+  await expect(rows.nth(4)).toContainText("Headliner On");
 
   // A curfew for the console's projected end.
   await page.getByLabel("Curfew").fill("2027-03-13T21:20");

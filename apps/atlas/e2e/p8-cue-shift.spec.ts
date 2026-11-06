@@ -60,7 +60,8 @@ test("shift the cues still to come and undo it", async ({ page }) => {
   await expect(cues).toContainText(/7:15/);
   await expect(cues).toContainText(/7:25/);
 
-  await page.getByRole("heading", { level: 1 }).click();
+  // Focus leaves the field, so Cmd or Ctrl+Z reaches the shell (the page behind the peek is hidden).
+  await shift.getByRole("heading", { name: "Shift cues still to come" }).click();
   await page.keyboard.press("ControlOrMeta+z");
   await expect(page.getByText(/Undone: Shifted 2 cues/)).toBeVisible();
   await expect(cues).toContainText(/7:10/);

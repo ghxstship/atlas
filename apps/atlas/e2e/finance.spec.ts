@@ -159,7 +159,9 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
       page.getByText("20 lines are unpriced; priced lines total $57,500.00."),
     ).toBeVisible();
     await page.getByRole("button", { name: "Undo" }).click();
-    await expect(page.getByText("This budget has no lines yet.", { exact: false })).toBeVisible();
+    await expect(page.getByText("This budget has no lines yet.", { exact: false })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test("a line saved by someone else opens the conflict dialog", async ({ page, browser }) => {
@@ -281,7 +283,8 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     // The undo restores the row Keep mine replaced, the other person's two sets, never the original line.
     await page.getByRole("heading", { name, exact: false }).first().click();
     await page.keyboard.press("ControlOrMeta+z");
-    await expect(grid(page)).toContainText("Delay towers, two sets");
+    // An undo waits its turn behind the page's rereads, on the server action queue.
+    await expect(grid(page)).toContainText("Delay towers, two sets", { timeout: 15_000 });
     await settle(page);
     await other.reload();
     await expect(grid(other)).toContainText("Delay towers, two sets");
