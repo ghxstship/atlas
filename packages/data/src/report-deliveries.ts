@@ -58,11 +58,14 @@ export interface ReportEmail {
   readonly subject: string;
   readonly text: string;
   readonly html: string;
-  readonly attachment: {
+  /** A report's file. A stakeholder pack email (B2, ADR 0141) has none: it carries a sign-in link. */
+  readonly attachment?: {
     readonly filename: string;
     readonly contentType: string;
     readonly content: Uint8Array;
   };
+  /** Extra message headers, such as List-Unsubscribe on a stakeholder pack email (RFC 8058). */
+  readonly headers?: Readonly<Record<string, string>>;
 }
 
 export interface ReportMailer {
@@ -238,13 +241,18 @@ export function mailpitMailer(
           Subject: email.subject,
           Text: email.text,
           HTML: email.html,
-          Attachments: [
-            {
-              Content: toBase64(email.attachment.content),
-              Filename: email.attachment.filename,
-              ContentType: email.attachment.contentType,
-            },
-          ],
+          ...(email.headers ? { Headers: email.headers } : {}),
+          ...(email.attachment
+            ? {
+                Attachments: [
+                  {
+                    Content: toBase64(email.attachment.content),
+                    Filename: email.attachment.filename,
+                    ContentType: email.attachment.contentType,
+                  },
+                ],
+              }
+            : {}),
         }),
       });
       if (!response.ok) {
@@ -265,7 +273,8 @@ export interface ResendLike {
       subject: string;
       text: string;
       html: string;
-      attachments: { filename: string; content: string; contentType?: string }[];
+      attachments?: { filename: string; content: string; contentType?: string }[];
+      headers?: Record<string, string>;
     }): Promise<{ data: { id: string } | null; error: { message: string } | null }>;
   };
 }
@@ -289,13 +298,18 @@ export function resendMailer(
         subject: email.subject,
         text: email.text,
         html: email.html,
-        attachments: [
-          {
-            filename: email.attachment.filename,
-            content: toBase64(email.attachment.content),
-            contentType: email.attachment.contentType,
-          },
-        ],
+        ...(email.headers ? { headers: { ...email.headers } } : {}),
+        ...(email.attachment
+          ? {
+              attachments: [
+                {
+                  filename: email.attachment.filename,
+                  content: toBase64(email.attachment.content),
+                  contentType: email.attachment.contentType,
+                },
+              ],
+            }
+          : {}),
       });
       if (error || !data) throw new Error(`Resend refused the message: ${error?.message ?? ""}`);
       return { messageId: data.id };

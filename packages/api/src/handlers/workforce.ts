@@ -70,7 +70,12 @@ const workforceEvents = tableResource("workforceEvents", {
 const eventRsvps = tableResource("eventRsvps");
 const eventCheckIns = tableResource("eventCheckIns");
 const formTemplates = tableResource("formTemplates");
-const formSubmissions = tableResource("formSubmissions", { verbs: ["list", "get"] });
+// Members' submissions only: the frozen FormSubmission schema requires a member submitter, so a public link response
+// (B2, ADR 0141) is formLinkResponses, never here.
+const formSubmissions = tableResource("formSubmissions", {
+  verbs: ["list", "get"],
+  scope: (q) => q.is("form_link_id", null),
+});
 const trainingCourses = tableResource("trainingCourses");
 const trainingLessons = tableResource("trainingLessons");
 const trainingQuizQuestions = tableResource("trainingQuizQuestions");
@@ -395,6 +400,8 @@ export const handlers = defineHandlers("Workforce", {
     return created((await back(formSubmissions, context, id)) as never);
   },
   "formSubmissions.decide": async ({ params, body }, context) => {
+    // Reads first, so a link response answers 404 rather than being decided and then missing.
+    await formSubmissions.read(context, params.id, ["id"]);
     await call(context, "decide_form_submission", {
       p_submission_id: params.id,
       p_approve: body.approve,

@@ -162,7 +162,7 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   // as in Next's encoded router state header and a sign-in redirect's next= parameter.
   {
     pattern:
-      /(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlch|xlgr|xlnk|xscr|xshr|xshv|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xadv|xagr|xcal|xdlt|xdoc|xfrg|xfrm|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
     replace: "[token]",
   },
   // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,
@@ -172,10 +172,11 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   // A69-012: likewise whatever follows a leading /share/ (a mistyped or truncated share link), but
   // not /usr/share/ or file:///usr/share/ in a stack trace. The lookahead first keeps the
   // lookbehind to the places /share/ occurs, so a long string stays linear. A live link's
-  // /share/view/ or /share/screen/ stays, and what follows it is the token.
+  // /share/view/ or /share/screen/ stays, and what follows it is the token. So does a stakeholder pack's
+  // /share/pack/ and /share/pack/unsubscribe/ (B2, ADR 0141).
   {
     pattern:
-      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/)?)[^/?#\s"'<>]+/gi,
+      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|pack\/(?:unsubscribe\/)?)?)[^/?#\s"'<>]+/gi,
     replace: (_m, prefix) => `${prefix}[token]`,
   },
   { pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi, replace: "[token]" },
