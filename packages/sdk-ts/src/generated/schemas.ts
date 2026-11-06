@@ -35891,9 +35891,9 @@ export interface NotificationActRequest {
   /**
    * What to do.
    */
-  readonly action: "approve" | "reject" | "done";
+  readonly action: "approve" | "reject" | "done" | "accept" | "decline" | "reply";
   /**
-   * Reason, required when rejecting.
+   * Reason, required when rejecting and optional when declining; the reply text, required when replying.
    * Length: 1 to 20000.
    */
   readonly comment?: string;

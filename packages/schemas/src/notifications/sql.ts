@@ -13,14 +13,17 @@ import type { NotificationKindRegistry } from "./model.ts";
  * expiry reminders and A90's marketplace moderation kinds (1473); A89's and A90's own seeds never merged, so 1569
  * carries their kinds. 1620 applies the owner decisions of 2026-10-23: shift.assigned, account.security_changed and
  * access.break_glass_started join the bypass list (ADR 0033 decision 62), and report.delivered reaches only the Inbox and a
- * push (ADR 0033 decision 77). 1639 adds the reported content kinds (ADR 0033 decision 57, 1630) and carries 1620's. 2649 adds the crew roster
- * kinds (R4, ADR 0100 section 6) and the party_invitation platform email; it is the first advancing seed (ADR 0022).
- * 2650 adds R5's roster_entry.project_facts_entered and the names lock's engagement.roster_lock_changed. 2660 adds R6a's
- * account.work_details_moved. 2698 adds R7's allocation.decided, allocation.assigned, allocation.issued and
- * allocation.withdrawn.
+ * push (ADR 0033 decision 77). 1639 adds the reported content kinds (ADR 0033 decision 57, 1630) and carries 1620's.
+ * 2201 adds offer.sent (A127, ADR 0106), the offer that waits on the applicant, and carries 1639's. 2649 adds the crew
+ * roster kinds (R4, ADR 0100 section 6) and the party_invitation platform email; it is the first advancing seed (ADR
+ * 0022). 2650 adds R5's roster_entry.project_facts_entered and the names lock's engagement.roster_lock_changed. 2660
+ * adds R6a's account.work_details_moved. 2698 adds R7's allocation.decided, allocation.assigned, allocation.issued and
+ * allocation.withdrawn. 2869 adds P9's approval.reminder and approval.link_code with its approval_link_code email (ADR
+ * 0138). 3009 adds B11's rfq.quote_reminder and rfq.not_awarded and carries all of them; it is the highest-numbered
+ * seed at merge, and a package whose seed sorts above it regenerates the seed in its own block.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/2698_notification_kind_seed.sql";
+  "supabase/migrations/3009_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(

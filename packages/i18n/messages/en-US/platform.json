@@ -124,6 +124,12 @@
     "moderation_appeal_window": "Appeals are accepted for six months after a decision; this one is older.",
     "moderation_appeal_grounds": "Say why the decision is wrong, in up to 4,000 characters.",
     "moderation_appeal_exists": "This decision has already been appealed.",
+    "approval_subject_beneficiary": "This approval is for you, so someone else decides it.",
+    "approval_step_no_approver": "Nobody this step names has an XOS account to receive approval emails.",
+    "approval_rule_pending": "This request waits on its approval rule. Approve it once every step is approved.",
+    "approval_link_email_off": "Approval emails are turned off, so no code can be sent. Sign in to decide instead.",
+    "approval_reminder_too_soon": "The approvers were notified less than 4 hours ago. Try again later.",
+    "approval_reminder_limit": "Every reminder this step allows has been sent.",
     "import_destination_required": "Choose the running order or project the rows go into.",
     "import_destination_unexpected": "This kind of import goes into the whole organization; it names no running order or project.",
     "import_destination_unknown": "That running order or project no longer exists.",
@@ -632,7 +638,9 @@
       },
       "approval": {
         "requested": "Approval requested",
-        "decided": "Approval decided"
+        "decided": "Approval decided",
+        "reminder": "Approval reminder",
+        "link_code": "Approval access code"
       },
       "assignment": {
         "created": "New assignment"
@@ -723,6 +731,9 @@
       },
       "opportunity": {
         "matched": "New opportunity match"
+      },
+      "offer": {
+        "sent": "New offer"
       },
       "onboarding": {
         "item_expiring": "Onboarding item expiring"

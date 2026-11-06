@@ -268,6 +268,41 @@
     "invalid": "Esta solicitud de inicio de sesión está incompleta. Vuelve a la app y empieza de nuevo.",
     "pageTitle": "Permitir una app"
   },
+  "actionLink": {
+    "pageTitle": "Confirmar desde el correo",
+    "heading": {
+      "approve": "¿Aprobar {title}?",
+      "reject": "¿Rechazar {title}?",
+      "accept": "¿Aceptar {title}?"
+    },
+    "untitled": "este elemento",
+    "org": "De {org}. No pasa nada hasta que confirmes.",
+    "signedInAs": "Sesión iniciada como {email}.",
+    "confirm": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "accept": "Aceptar"
+    },
+    "reason": "¿Por qué lo rechazas?",
+    "reasonHelp": "Quien lo pidió ve tu motivo.",
+    "done": {
+      "approve": "Aprobado. No hay nada más que hacer.",
+      "reject": "Rechazado con tu motivo.",
+      "accept": "Aceptado. No hay nada más que hacer."
+    },
+    "openInbox": "Abrir tu bandeja de entrada",
+    "state": {
+      "used": "Esto ya se resolvió. No hay nada más que hacer.",
+      "expired": "Este enlace venció. Abre el elemento desde tu bandeja de entrada para resolverlo.",
+      "not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+      "elsewhere": "Este enlace se abre en Gateway. Usa el botón del correo para abrirlo allí.",
+      "invalid": "Este enlace no funciona. Abre el elemento desde tu bandeja de entrada."
+    },
+    "errors": {
+      "notification_action_reason": "Di por qué lo rechazas.",
+      "unexpected": "No se hizo. Inténtalo de nuevo o abre el elemento desde tu bandeja de entrada."
+    }
+  },
   "scopes": {
     "home": "Inicio",
     "inbox": "Bandeja de entrada",

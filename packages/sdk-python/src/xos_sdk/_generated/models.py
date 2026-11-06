@@ -19998,13 +19998,13 @@ class MarkAllReadResult(TypedDict):
 
 class _NotificationActRequestRequired(TypedDict):
     #: What to do.
-    action: Literal["approve", "reject", "done"]
+    action: Literal["approve", "reject", "done", "accept", "decline", "reply"]
 
 
 class NotificationActRequest(_NotificationActRequestRequired, total=False):
     """An action on a notification."""
 
-    #: Reason, required when rejecting.
+    #: Reason, required when rejecting and optional when declining; the reply text, required when replying.
     comment: str
 
 

@@ -224,7 +224,13 @@
     },
     "noVendor": "No vendor",
     "endedVendor": "Ended vendor engagement",
-    "linkedVendor": "A vendor engagement is linked"
+    "linkedVendor": "A vendor engagement is linked",
+    "approval": {
+      "label": "Approval",
+      "waiting": "Awaiting approval",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   },
   "yard": {
     "title": "Marshalling yard log",

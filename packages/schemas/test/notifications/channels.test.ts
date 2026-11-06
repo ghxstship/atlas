@@ -39,12 +39,22 @@ describe("the channels a category's kinds reach", () => {
     expect(categoryChannels({ kinds }, "safety")).toEqual([]);
   });
 
-  it("offers no SMS switch for opportunities, whose only kind is never texted", () => {
+  it("offers no SMS switch for opportunities, whose kinds are never texted", () => {
+    // A89's marketplace match, and A127's offer that waits on the applicant (2200).
     expect(
       NOTIFICATION_KINDS.filter((k) => k.category === "opportunities").map((k) => k.kind),
-    ).toEqual(["opportunity.matched"]);
+    ).toEqual(["opportunity.matched", "offer.sent"]);
     expect(notificationCategoryChannels("opportunities")).toEqual(["In App", "Email", "Push"]);
     expect(notificationCategoryChannels("not-a-category")).toEqual([]);
+  });
+
+  it("keeps every channel for approvals, though the access-code kind is sent by email only", () => {
+    // P9: approval.link_code reaches only In App and Email; the category's other kinds still text and push.
+    expect(NOTIFICATION_KINDS.find((k) => k.kind === "approval.link_code")?.channels).toEqual([
+      "In App",
+      "Email",
+    ]);
+    expect(notificationCategoryChannels("approvals")).toEqual(["In App", "Email", "SMS", "Push"]);
   });
 
   it("reads the generated registry for every category, as the preference matrix does", () => {
