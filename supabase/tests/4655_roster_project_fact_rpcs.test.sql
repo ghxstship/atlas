@@ -232,6 +232,9 @@ select ok((select cleared_at is not null from app.sensitive_field_records where 
 select pg_temp.as_user('kai');
 select app.save_roster_travel_request(pg_temp.id('e_kai'), 'MIA', 'MIA', '2027-06-01', '2027-06-04', 'Aisle', null, true, false, null);
 select pg_temp.as_platform();
+select private.begin_trusted_operation('project_facts_erase');
+delete from app.roster_travel_requests where roster_entry_id = pg_temp.id('e_kai') and deleted_at is not null;
+select private.end_trusted_operation('project_facts_erase');
 
 select is((pg_temp.facts('mo', 'e_mo') -> 'entered_by_person' ->> 'vehicle')::boolean, false, 'the company entered it');
 select pg_temp.as_user('mo');
