@@ -1,6 +1,6 @@
 import type { XosClient } from "../client.ts";
 import { readView } from "../gateway-operations.ts";
-import { fail, ok, type Result } from "../result.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
 import { intervalSeconds } from "../show.ts";
 import type { DocumentKind } from "./model.ts";
 import type { DocumentDataMap, DocumentProject } from "./templates.ts";
@@ -20,6 +20,7 @@ export const EXTERNAL_DOCUMENT_KINDS = [
   "change-order",
   "run-of-show",
   "credential-badge",
+  "engagement-document",
 ] as const satisfies readonly DocumentKind[];
 
 export type ExternalDocumentKind = (typeof EXTERNAL_DOCUMENT_KINDS)[number];
@@ -306,6 +307,44 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           revokedByName: null,
           createdAt: c.valid_from,
           updatedAt: c.valid_from,
+        },
+      },
+    });
+  },
+  // The party's own generated document through the view that masks it (B10): a masked reader answers not found.
+  "engagement-document": async (db, id) => {
+    const found = await db
+      .schema("api_external")
+      .from("engagement_document_texts")
+      .select("id, engagement_id, title, body, body_sha256, body_masked, signed_name, signed_at")
+      .eq("id", id)
+      .maybeSingle();
+    if (found.error) return fail(toDataError(found.error));
+    const row = found.data;
+    if (!row?.engagement_id || row.body_masked || row.body === null) return fail(NOT_FOUND);
+    const documents = await readView(db, "engagement_documents", { eq: { id }, limit: 1 });
+    if (!documents.ok) return documents;
+    const engagements = await readView(db, "engagements", { eq: { id: row.engagement_id }, limit: 1 });
+    if (!engagements.ok) return engagements;
+    const engagement = engagements.data[0];
+    if (!engagement?.org_id || !engagement.project_id) return fail(NOT_FOUND);
+    const project = await externalProject(db, engagement.project_id, engagement.project_name);
+    if (!project.ok) return project;
+    return ok({
+      orgId: engagement.org_id,
+      orgName: engagement.org_name ?? project.data.orgName,
+      data: {
+        project: project.data,
+        document: {
+          id,
+          title: row.title ?? "",
+          kind: documents.data[0]?.document_kind ?? "Agreement",
+          state: documents.data[0]?.engagement_document_state ?? "",
+          body: row.body,
+          signedName: row.signed_name,
+          signedAt: row.signed_at,
+          sha256: row.body_sha256,
+          createdAt: row.signed_at ?? new Date(0).toISOString(),
         },
       },
     });

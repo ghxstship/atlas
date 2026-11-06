@@ -8,6 +8,7 @@ import {
   type ImportDestination,
   type ImportTarget,
 } from "@xos/data/imports";
+import { listPools } from "@xos/data/opportunities";
 import { ImportList, ImportWizard } from "@/components/imports/import-wizard";
 import { ErrorPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
@@ -23,7 +24,7 @@ import { getFormatters } from "@/lib/platform/format";
  * Cues and guest list entries (P3) import into a running order or a project the person may write, so for those
  * targets the list asks app.import_destinations (one call per target) rather than the org-wide capabilities.
  * `?target=cues&runOfShow=<id>` and `?target=guest_list_entries&project=<id>` preselect the target and destination,
- * as the Import cues and Import guests links do.
+ * as the Import cues and Import guests links do. `?target=pool_invitations&pool=<id>` preselects a Talent pool (B10).
  */
 export default async function Page({ params, searchParams }: PageProps<"/[org]/import">) {
   const ctx = await requireNode("import", await params);
@@ -129,7 +130,14 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/i
     );
   }
 
-  const imports = await listImports(ctx.viewer.db, ctx.org.id);
+  const [imports, pools] = await Promise.all([
+    listImports(ctx.viewer.db, ctx.org.id),
+    allowed.some((x) => x.code === "pool_invitations")
+      ? listPools(ctx.viewer.db, ctx.org.id)
+      : Promise.resolve(null),
+  ]);
+  const poolParam = text("pool");
+  const initial = initialChoice(allowed, query["target"], preselected);
   return (
     <TemplateCollection
       header={<PageHeader title={title} {...(imports.ok ? { count: imports.data.length } : {})} />}
@@ -141,7 +149,14 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/i
           org={ctx.org.slug}
           targets={allowed.map((x) => x.code)}
           destinations={destinationProps(allowed)}
-          initial={initialChoice(allowed, query["target"], preselected)}
+          initial={
+            initial?.target === "pool_invitations" ? { ...initial, destination: poolParam } : initial
+          }
+          pools={
+            pools?.ok
+              ? pools.data.filter((p) => p.kind === "Talent").map((p) => ({ id: p.id, label: p.name }))
+              : []
+          }
           googleSheets={googleSheets}
           imports={imports.data.map((i) => ({ ...i, when: dateTime(i.createdAt) }))}
         />

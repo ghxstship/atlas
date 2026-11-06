@@ -371,6 +371,7 @@ export interface AgreementBatch {
   readonly id: string;
   readonly projectId: string;
   readonly projectName: string | null;
+  readonly templateId: string;
   readonly templateName: string | null;
   readonly sentAt: string | null;
   readonly counts: Readonly<Partial<Record<EngagementDocumentState, number>>>;
@@ -384,7 +385,7 @@ export async function listBatches(
   let query = db
     .from("engagement_document_batches")
     .select(
-      "id, project_id, sent_at, projects:project_id (name), engagement_document_templates:engagement_document_template_id (name)",
+      "id, project_id, sent_at, engagement_document_template_id, projects:project_id (name), engagement_document_templates:engagement_document_template_id (name)",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
@@ -397,6 +398,7 @@ export async function listBatches(
     id: string;
     project_id: string;
     sent_at: string | null;
+    engagement_document_template_id: string;
     projects: { name: string } | null;
     engagement_document_templates: { name: string } | null;
   }[];
@@ -417,6 +419,7 @@ export async function listBatches(
       id: r.id,
       projectId: r.project_id,
       projectName: r.projects?.name ?? null,
+      templateId: r.engagement_document_template_id,
       templateName: r.engagement_document_templates?.name ?? null,
       sentAt: r.sent_at,
       counts: counts.get(r.id) ?? {},

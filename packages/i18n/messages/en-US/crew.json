@@ -775,5 +775,78 @@
   "timesheets": {
     "clockedBy": "Clocked by {name}",
     "clockedByColumn": "Clocked by"
+  },
+  "crewAccess": {
+    "title": "Crew access links",
+    "viewsLabel": "Views",
+    "views": {
+      "list": "List",
+      "table": "Table"
+    },
+    "issueLinks": "Issue links",
+    "fromCrewTab": "Crew access links",
+    "filterProject": "Project",
+    "allProjects": "All projects",
+    "empty": "No crew access links yet. Issue one so a worker can see and accept their shifts without signing in.",
+    "noProjects": "You cannot staff any project in this organization, so you cannot issue links.",
+    "never": "Never",
+    "status": "Status",
+    "expires": "Expires",
+    "lastOpened": "Last opened",
+    "openCount": "Opens",
+    "actions": "Actions",
+    "listLine": "{project} · expires {expires} · last opened {opened} · {count, plural, one {# open} other {# opens}}",
+    "revoke": "Revoke",
+    "statuses": {
+      "Live": "Live",
+      "Locked": "Locked",
+      "Expired": "Expired",
+      "Revoked": "Revoked",
+      "Closed": "Closed"
+    },
+    "issue": {
+      "title": "Issue links",
+      "project": "Project",
+      "workers": "Workers",
+      "workersHelp": "People with an upcoming Published or Accepted shift on this project.",
+      "workerWithLink": "{name} (has a link)",
+      "validFor": "Valid for",
+      "validDays": "{days, plural, one {# day} other {# days}}",
+      "includeCode": "Include the code on the printed card",
+      "includeCodeHelp": "Leave this off to send the code another way, so a lost card opens nothing.",
+      "submit": "Issue links",
+      "cancel": "Cancel",
+      "replaces": "Issuing replaces a worker's earlier link.",
+      "errors": {
+        "input": "Choose a project and at least one worker.",
+        "notFound": "This project is gone or you can no longer staff it.",
+        "unexpected": "Something went wrong issuing the links. Try again in a moment."
+      }
+    },
+    "result": {
+      "title": "{count, plural, one {# link issued} other {# links issued}}",
+      "once": "Copy or print these now. The links and codes are not shown again.",
+      "card": "{project} · until {expires}",
+      "code": "Code",
+      "qr": "QR code that opens the shifts of {name}",
+      "copyLink": "Copy link",
+      "copyCode": "Copy code",
+      "copiedLink": "Link copied.",
+      "copiedCode": "Code copied.",
+      "print": "Print cards",
+      "close": "Close",
+      "closeConfirm": "The links and codes are not shown again after you close this. Close it?",
+      "closeSure": "Close and refresh",
+      "keepOpen": "Keep open",
+      "unnamed": "Unnamed worker"
+    },
+    "refusals": {
+      "crew_access_batch": "Issue links to 1 to 200 workers at a time.",
+      "crew_access_worker": "One of the workers could not be read. Reload and choose them again.",
+      "crew_access_not_working": "One of the workers has no upcoming shift on this project or no longer works for the organization. Remove them and try again.",
+      "crew_access_validity": "A crew access link works for 1 hour to 30 days.",
+      "org_read_only": "This organization is read-only, so it cannot issue crew access links.",
+      "generic": "The links were refused by rule {rule}. Fix what it names and try again."
+    }
   }
 }

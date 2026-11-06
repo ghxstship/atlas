@@ -292,7 +292,10 @@
       "destinationRun": "Escaleta",
       "destinationProject": "Proyecto",
       "destinationHelp": "Las filas se agregan a esta escaleta o proyecto.",
-      "sourcePaste": "Filas pegadas"
+      "sourcePaste": "Filas pegadas",
+      "destinationPool": "Grupo",
+      "destinationPoolHelp": "Para las filas que no nombran un grupo.",
+      "destinationPoolNone": "Usar el grupo nombrado en cada fila"
     },
     "paste": {
       "label": "Filas",
@@ -317,7 +320,8 @@
       "vendor_products": "Productos de proveedores",
       "asset_units": "Unidades de activos",
       "cues": "Cues de la escaleta",
-      "guest_list_entries": "Lista de invitados"
+      "guest_list_entries": "Lista de invitados",
+      "pool_invitations": "Personal independiente y equipo a invitar"
     },
     "steps": {
       "upload": "Subir",
@@ -410,7 +414,15 @@
       "plus_ones": "Acompañantes",
       "note": "Nota para la puerta",
       "scope_node_id": "Show",
-      "counterparty_id": "En la lista de"
+      "counterparty_id": "En la lista de",
+      "email": "Correo",
+      "pool_name": "Nombre del grupo",
+      "invitee_name": "Nombre",
+      "work_phone": "Teléfono de trabajo",
+      "role": "Rol",
+      "rate": "Tarifa habitual",
+      "rate_currency": "Moneda de la tarifa",
+      "rate_type": "Tipo de tarifa"
     },
     "dryRun": {
       "title": "Simulación",
@@ -429,7 +441,9 @@
       "mergeLabel": "Fusionar la fila {row}",
       "keepLabel": "Mantener aparte la fila {row}",
       "merged": "Fusionado con el registro existente.",
-      "kept": "Se mantiene como registro nuevo."
+      "kept": "Se mantiene como registro nuevo.",
+      "mergedPool": "Omitida: ya está invitada o en un grupo.",
+      "poolHelp": "Combinar significa que esta fila se omite, porque la persona ya está invitada o en un grupo. Mantener separada envía una invitación nueva."
     },
     "issues": {
       "title": "Filas con problemas",
@@ -469,7 +483,17 @@
       "unknown_party": "ninguna empresa de esta organización tiene este nombre",
       "too_long": "demasiado largo",
       "duplicate_in_file": "repite una fila anterior",
-      "other": "no se acepta"
+      "other": "no se acepta",
+      "invalid_email": "no es una sola dirección de correo",
+      "pool_required": "nombra un grupo en esta columna, o elige uno para la importación",
+      "unknown_pool": "ningún grupo de talento de la organización tiene este nombre",
+      "invalid_phone": "no es un número de teléfono",
+      "unknown_role": "ningún rol tiene este código o puesto",
+      "invalid_rate": "no es un monto en el formato numérico elegido",
+      "rate_currency_required": "agrega la moneda: un código o un símbolo que use tu moneda base",
+      "rate_type_required": "di cómo se paga: por hora, por día o fijo",
+      "rate_type_conflict": "la tarifa y su tipo no coinciden",
+      "rate_not_permitted": "fijar una tarifa requiere la capacidad de nómina"
     },
     "commit": {
       "title": "Confirmar",
@@ -511,6 +535,14 @@
       "failed": "Aurora no pudo sugerir asignaciones. Asigne las columnas usted.",
       "applied": "{count, plural, one {Aurora sugirió # columna. Revísela antes de confirmar.} other {Aurora sugirió # columnas. Revíselas antes de confirmar.}}",
       "none": "Aurora no encontró nada que agregar a las sugerencias actuales."
+    },
+    "numberFormat": {
+      "label": "Formato numérico",
+      "help": "Cómo se escriben los montos en este archivo. Solo define los separadores.",
+      "comma-dot": "1,234.56",
+      "dot-comma": "1.234,56",
+      "space-comma": "1 234,56",
+      "apostrophe-dot": "1'234.56"
     }
   },
   "objects": {

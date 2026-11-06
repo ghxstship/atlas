@@ -91,7 +91,9 @@
       "roster_shift_not_assigned": "No one from your roster holds this shift.",
       "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
       "roster_training_not_due": "This training is not due on your roster entry.",
-      "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it."
+      "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it.",
+      "document_text_sign_with_hash": "Read this document in Gateway and sign it there with your typed name.",
+      "registration_not_withdrawable": "This registration was already declined or withdrawn."
     }
   },
   "common": {
@@ -1080,6 +1082,17 @@
     "accountEngagementDuty": {
       "advancingLead": "Advancing Lead",
       "member": "Member"
+    },
+    "registrationPageState": {
+      "draft": "Draft",
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "crewRegistrationState": {
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn"
     }
   },
   "explore": {
@@ -1395,7 +1408,8 @@
         "from": "From {name}",
         "expires": "Open until {date}",
         "accept": "Accept",
-        "decline": "Decline"
+        "decline": "Decline",
+        "pool": "{org} invites you to join its crew list"
       },
       "membership": {
         "title": "Confirm your membership in {account}",
@@ -1626,7 +1640,22 @@
     "expires": "Expires",
     "signedByLink": "Signed by link",
     "signedOn": "Signed {date} by {name}",
-    "tax": "Tax forms"
+    "tax": "Tax forms",
+    "readAndSign": {
+      "textLabel": "Text of {title}",
+      "formLabel": "Sign {title}",
+      "name": "Type your full name to sign",
+      "nameHelp": "Your typed name is your signature on exactly this text.",
+      "sign": "Sign",
+      "masked": "This text holds a rate your representation does not cover."
+    },
+    "decline": {
+      "open": "Decline",
+      "formLabel": "Decline {title}",
+      "reason": "Why you decline",
+      "reasonHelp": "Up to 450 characters. The organization reads this.",
+      "submit": "Decline document"
+    }
   },
   "tokens": {
     "code": "Access code",
@@ -1674,7 +1703,43 @@
       "document_not_awaiting_signature": "This document is not waiting for a signature anymore.",
       "document_signer_name": "Type your full name, at least two characters.",
       "token_invalid": "This link is not valid. Use the latest link the organization sent.",
-      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned."
+      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
+      "crew_access_token_invalid": "This link no longer works. Ask your crew lead for a new one.",
+      "crew_access_token_expired": "This link expired. Ask your crew lead for a new one.",
+      "crew_access_token_locked": "Too many wrong codes. The link is locked; ask your crew lead for a new one.",
+      "crew_access_access_code": "That code does not match. Check the six digits you were given and try again.",
+      "crew_access_not_working": "This link no longer works, because the work it was for ended. Ask your crew lead if that is wrong.",
+      "crew_access_read_only": "This organization is read-only right now, so shifts cannot be accepted here. Tell your crew lead.",
+      "crew_access_shift_not_yours": "That shift is not on this link. Reload the page.",
+      "crew_access_shift_state": "That shift can no longer be accepted. Reload the page to see its state.",
+      "registration_page_closed": "This registration page is not open.",
+      "registration_rate_limited": "Too many registrations in the last hour. Try again later.",
+      "registration_age_unconfirmed": "Confirm the minimum age to register. If you have not confirmed you are 16 or older, do that in your account first.",
+      "registration_answer_required": "Answer every required question.",
+      "registration_answer_unknown": "This page changed. Reload it and answer again.",
+      "registration_answer_length": "Keep each answer to 4,000 characters.",
+      "registration_duplicate": "You are already registered on this page.",
+      "profile_share_not_yours": "That profile share is not yours. Reload and try again.",
+      "registration_not_withdrawable": "This registration was already declined or withdrawn.",
+      "registration_phone": "That is not a phone number. Include the country code, for example +13105550100.",
+      "document_text_missing": "This document has no text to sign here. Sign it the way it was sent.",
+      "document_text_masked": "This text holds a rate your representation does not cover, so only the engaged person can answer it.",
+      "document_text_hash": "The text changed since you opened it. Read it again, then sign.",
+      "document_decline_reason": "Say why you decline, in up to 450 characters.",
+      "document_text_sign_with_hash": "Read this document in Gateway and sign it there with your typed name.",
+      "document_text_signed": "This text was already signed."
+    },
+    "crewShifts": {
+      "title": "My shifts",
+      "codeLabel": "Open your shifts",
+      "codeHelp": "The six-digit code you were given with this link.",
+      "intro": "{name}, these are your shifts on {project}.",
+      "empty": "No shifts in the next 14 days.",
+      "accept": "Accept shift",
+      "accepted": "Shift accepted. Your crew lead sees it now.",
+      "noRole": "Crew",
+      "forget": "Forget this code",
+      "signIn": "Sign in to see all your work"
     }
   },
   "settings": {
@@ -2028,7 +2093,8 @@
       "invitationAccount": "{account} invites you to their company account",
       "invitationRoster": "{party} invites you onto their crew for {project}",
       "accept": "Accept",
-      "decline": "Decline"
+      "decline": "Decline",
+      "invitationPool": "{org} invites you to join its crew list"
     },
     "errors": {
       "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",
@@ -2254,6 +2320,47 @@
       "nothingToUndo": "Nothing to undo.",
       "nothingToRedo": "Nothing to redo.",
       "dismiss": "Dismiss"
+    }
+  },
+  "registration": {
+    "metaTitle": "Crew registration",
+    "closed": "This registration page is not open.",
+    "minimumAge": "You must be {age} or older.",
+    "signedOut": "Sign up or sign in to register. Your account stays yours.",
+    "signUp": "Sign up",
+    "signIn": "I have an account",
+    "formLabel": "Register",
+    "stepQuestions": "Questions {n}",
+    "stepConfirm": "Confirm",
+    "phone": "Work phone",
+    "phoneHelp": "With the country code, or a number in your country. It is saved to your settings.",
+    "ageConfirm": "I am {age} or older",
+    "share": "Share from your profile",
+    "shareHelp": "Optional. Only the sections you choose, with this organization only.",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Register",
+    "refused": "Your registration could not be saved. Check it and try again.",
+    "answerRequired": "Answer every required question on this step.",
+    "withdraw": "Withdraw",
+    "state": {
+      "Submitted": "You registered. The organization reviews it next.",
+      "Approved": "You are approved. Watch Explore for work from this organization."
+    },
+    "states": {
+      "Submitted": "Submitted",
+      "Approved": "Approved"
+    },
+    "sections": {
+      "headline": "Headline",
+      "bio": "Bio",
+      "pronouns": "Pronouns",
+      "location": "Location",
+      "skills": "Skills",
+      "certifications": "Certifications",
+      "rates": "Rates",
+      "languages": "Languages",
+      "links": "Links"
     }
   }
 }

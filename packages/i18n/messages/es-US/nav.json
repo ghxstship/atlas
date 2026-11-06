@@ -105,7 +105,8 @@
         "onboarding": "Incorporación",
         "engagements": "Contrataciones",
         "ratings": "Calificaciones",
-        "marketplaceSettings": "Configuración del mercado"
+        "marketplaceSettings": "Configuración del mercado",
+        "registrationPages": "Páginas de registro"
       },
       "crew": {
         "schedule": "Programación",
@@ -117,7 +118,8 @@
         "payPeriods": "Periodos de pago",
         "payrollExports": "Exportaciones de nómina",
         "timeOff": "Ausencias",
-        "perDiems": "Viáticos"
+        "perDiems": "Viáticos",
+        "accessLinks": "Enlaces de acceso del equipo"
       },
       "finance": {
         "budgets": "Presupuestos",
@@ -450,7 +452,9 @@
       "personProfile": "Perfil de persona",
       "companyProfile": "Perfil de empresa",
       "advanceForm": "Formulario de coordinación previa",
-      "agreementSigning": "Firma de acuerdo"
+      "agreementSigning": "Firma de acuerdo",
+      "crewShifts": "Enlace de mis turnos",
+      "registration": "Registro de equipo"
     }
   },
   "compass": {

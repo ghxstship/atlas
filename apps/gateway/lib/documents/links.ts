@@ -8,6 +8,7 @@ const TAB: Readonly<Record<ExternalDocumentKind, string>> = {
   "change-order": "engagement.change-orders",
   "run-of-show": "engagement.run-of-show",
   "credential-badge": "engagement.credentials",
+  "engagement-document": "engagement.documents",
 };
 
 /**

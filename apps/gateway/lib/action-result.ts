@@ -104,6 +104,11 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
+  // B10: a generated document signs with the hash of its text, a registration withdraws once, an invitation answers once.
+  "document_text_sign_with_hash",
+  "registration_not_withdrawable",
+  "invitation_closed",
+  "invitation_not_yours",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

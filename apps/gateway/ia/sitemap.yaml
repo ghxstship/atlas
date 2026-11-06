@@ -21,6 +21,8 @@ params:
   handle: { type: handle }
   companyHandle: { type: handle }
   token: { type: token }
+  orgSlug: { type: slug }
+  pageSlug: { type: slug }
 audience:
   dimension: account-role
   roles: [individual, account-owner, account-admin, account-finance, account-member]
@@ -672,3 +674,13 @@ nodes:
         label: nav.gateway.public.agreementSigning
         route: "/sign/{token}"
         auth: token
+      - id: crew-shifts
+        kind: page
+        label: nav.gateway.public.crewShifts
+        route: "/shifts/{token}"
+        auth: token
+      - id: registration
+        kind: page
+        label: nav.gateway.public.registration
+        route: "/join/{orgSlug}/{pageSlug}"
+        auth: public

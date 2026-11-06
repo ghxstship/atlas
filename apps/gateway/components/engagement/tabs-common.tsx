@@ -1,17 +1,22 @@
 import { addCalendarDays } from "@xos/data/calendar";
 import {
   APP_ENUMS,
+  listDocumentTexts,
   listEngagementDocuments,
   listMessages,
   listOnboardingItems,
   listThreads,
   onboardingStanding,
   readView,
+  type DocumentText,
+  type EngagementDocument,
   type EngagementDocumentKind,
   type OnboardingItem,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
+import { DocumentActions } from "@/components/documents/document-actions";
 import { RegionError, Section } from "@/components/page/page";
+import { DocumentTextPanel } from "./document-text";
 import {
   Card,
   EngagementTimeline,
@@ -273,8 +278,12 @@ export async function DocumentsTab({
       <RosterMemberDocuments view={view} t={t} locale={locale} engagementKey={engagementKey} />
     );
   }
-  const docs = await listEngagementDocuments(view.ctx.db, view.engagement.id);
-  if (!docs.ok) return <RegionError />;
+  const [docs, texts] = await Promise.all([
+    listEngagementDocuments(view.ctx.db, view.engagement.id),
+    listDocumentTexts(view.ctx.db, view.engagement.id),
+  ]);
+  if (!docs.ok || !texts.ok) return <RegionError />;
+  const textOf = new Map(texts.data.map((x) => [x.documentId, x]));
   const shown = kinds ? docs.data.filter((d) => kinds.includes(d.kind)) : docs.data;
   if (shown.length === 0) {
     return (
@@ -301,21 +310,52 @@ export async function DocumentsTab({
             : null,
         ],
         tag: { label: t(enumLabelKey("engagementDocumentState", d.state)), tone: toneFor(d.state) },
-        ...(d.state === "Sent"
-          ? {
-              action: (
-                <ActionButton
-                  action={signDocumentAction.bind(null, d.id)}
-                  label={t("gateway.common.sign")}
-                  variant="secondary"
-                  done={t("gateway.common.signed")}
-                />
-              ),
-            }
-          : {}),
+        // A generated document is read in full and signed with the hash of what was read (B10), never with one button.
+        ...documentAnswer(d, textOf.get(d.id), { t, engagementKey }),
       }))}
     />
   );
+}
+
+function documentAnswer(
+  d: EngagementDocument,
+  text: DocumentText | undefined,
+  { t, engagementKey }: { t: TabProps["t"]; engagementKey: string },
+) {
+  if (text) {
+    if (text.bodyMasked || text.body === null || text.bodySha256 === null) {
+      return {
+        detail: <p className="m-0 text-text-13 text-text-secondary">{t("gateway.documents.readAndSign.masked")}</p>,
+      };
+    }
+    return {
+      detail: (
+        <div className="flex flex-col gap-8">
+          <DocumentTextPanel
+            documentId={d.id}
+            title={d.title}
+            body={text.body}
+            sha256={text.bodySha256}
+            canAnswer={d.state === "Sent"}
+            path={tabHref(engagementKey, "engagement.documents")}
+          />
+          <DocumentActions kind="engagement-document" id={d.id} engagementKey={engagementKey} />
+        </div>
+      ),
+    };
+  }
+  return d.state === "Sent"
+    ? {
+        action: (
+          <ActionButton
+            action={signDocumentAction.bind(null, d.id)}
+            label={t("gateway.common.sign")}
+            variant="secondary"
+            done={t("gateway.common.signed")}
+          />
+        ),
+      }
+    : {};
 }
 
 export function OfferTab(props: TabProps) {
@@ -386,9 +426,16 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
                         }))}
                       />
                     ) : i.kind === "Electronic Signature" ? (
-                      <p className="m-0 text-text-13 text-text-secondary">
-                        {t("gateway.engagement.onboarding.signHint")}
-                      </p>
+                      <div className="flex flex-col gap-8">
+                        <p className="m-0 text-text-13 text-text-secondary">
+                          {t("gateway.engagement.onboarding.signHint")}
+                        </p>
+                        <div>
+                          <ButtonLink href={tabHref(engagementKey, "engagement.documents")} size="sm">
+                            {t("nav.gateway.engagementTabs.documents")}
+                          </ButtonLink>
+                        </div>
+                      </div>
                     ) : i.kind === "Acknowledgment" ? (
                       // A training or briefing acknowledgment is the person's statement, no file
                       // (journey 42); the organization verifies it like any other step.

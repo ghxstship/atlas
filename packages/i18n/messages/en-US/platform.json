@@ -292,7 +292,10 @@
       "destinationRun": "Running order",
       "destinationProject": "Project",
       "destinationHelp": "Rows are added to this running order or project.",
-      "sourcePaste": "Pasted rows"
+      "sourcePaste": "Pasted rows",
+      "destinationPool": "Pool",
+      "destinationPoolHelp": "For rows that name no pool.",
+      "destinationPoolNone": "Use the pool named in each row"
     },
     "paste": {
       "label": "Rows",
@@ -317,7 +320,8 @@
       "vendor_products": "Vendor products",
       "asset_units": "Asset units",
       "cues": "Run of show cues",
-      "guest_list_entries": "Guest list"
+      "guest_list_entries": "Guest list",
+      "pool_invitations": "Freelancers and crew to invite"
     },
     "steps": {
       "upload": "Upload",
@@ -410,7 +414,15 @@
       "plus_ones": "Plus-ones",
       "note": "Note for the door",
       "scope_node_id": "Show",
-      "counterparty_id": "On the list of"
+      "counterparty_id": "On the list of",
+      "email": "Email",
+      "pool_name": "Pool name",
+      "invitee_name": "Name",
+      "work_phone": "Work phone",
+      "role": "Role",
+      "rate": "Standing rate",
+      "rate_currency": "Rate currency",
+      "rate_type": "Rate type"
     },
     "dryRun": {
       "title": "Dry run",
@@ -429,7 +441,9 @@
       "mergeLabel": "Merge row {row}",
       "keepLabel": "Keep row {row} separate",
       "merged": "Merged into the existing record.",
-      "kept": "Kept as a new record."
+      "kept": "Kept as a new record.",
+      "mergedPool": "Skipped: already invited or in a pool.",
+      "poolHelp": "Merged means this row is skipped, because the person is already invited or in a pool. Keep separate sends a new invitation."
     },
     "issues": {
       "title": "Rows with problems",
@@ -469,7 +483,17 @@
       "unknown_party": "no company of this org has this name",
       "too_long": "too long",
       "duplicate_in_file": "repeats an earlier row",
-      "other": "not accepted"
+      "other": "not accepted",
+      "invalid_email": "not one email address",
+      "pool_required": "name a pool in this column, or choose one for the import",
+      "unknown_pool": "no Talent pool of the organization has this name",
+      "invalid_phone": "not a phone number",
+      "unknown_role": "no role has this code or job title",
+      "invalid_rate": "not an amount in the chosen number format",
+      "rate_currency_required": "add the currency: a code, or a symbol your base currency uses",
+      "rate_type_required": "say how it is paid: per hour, per day or flat",
+      "rate_type_conflict": "the rate and its type disagree",
+      "rate_not_permitted": "setting a rate needs the payroll capability"
     },
     "commit": {
       "title": "Commit",
@@ -511,6 +535,14 @@
       "failed": "Aurora could not suggest mappings. Map the columns yourself.",
       "applied": "{count, plural, one {Aurora suggested # column. Check it before you confirm.} other {Aurora suggested # columns. Check them before you confirm.}}",
       "none": "Aurora found nothing to add to the current suggestions."
+    },
+    "numberFormat": {
+      "label": "Number format",
+      "help": "How amounts are written in this file. It sets the separators only.",
+      "comma-dot": "1,234.56",
+      "dot-comma": "1.234,56",
+      "space-comma": "1 234,56",
+      "apostrophe-dot": "1'234.56"
     }
   },
   "objects": {

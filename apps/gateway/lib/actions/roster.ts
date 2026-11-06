@@ -141,7 +141,7 @@ export async function viewRosterProfileAction(rosterEntryId: string): Promise<
 // Invitations and membership ----------------------------------------------------------------------------
 
 export async function respondPartyInvitationAction(
-  kind: "account" | "roster",
+  kind: "account" | "roster" | "pool",
   invitationId: string,
   accept: boolean,
 ): Promise<ActionResult> {

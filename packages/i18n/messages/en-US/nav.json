@@ -105,7 +105,8 @@
         "onboarding": "Onboarding",
         "engagements": "Engagements",
         "ratings": "Ratings",
-        "marketplaceSettings": "Marketplace Settings"
+        "marketplaceSettings": "Marketplace Settings",
+        "registrationPages": "Registration Pages"
       },
       "crew": {
         "schedule": "Schedule",
@@ -117,7 +118,8 @@
         "payPeriods": "Pay Periods",
         "payrollExports": "Payroll Exports",
         "timeOff": "Time Off",
-        "perDiems": "Per Diems"
+        "perDiems": "Per Diems",
+        "accessLinks": "Crew Access Links"
       },
       "finance": {
         "budgets": "Budgets",
@@ -450,7 +452,9 @@
       "personProfile": "Person Profile",
       "companyProfile": "Company Profile",
       "advanceForm": "Advance Form",
-      "agreementSigning": "Agreement Signing"
+      "agreementSigning": "Agreement Signing",
+      "crewShifts": "My Shifts Link",
+      "registration": "Crew Registration"
     }
   },
   "compass": {

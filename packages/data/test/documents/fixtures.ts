@@ -467,6 +467,20 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       ],
     },
   },
+  "engagement-document": {
+    project,
+    document: {
+      id: "c0000000-0000-4000-8000-000000000001",
+      title: "Crew agreement for Ana Ruiz",
+      kind: "Agreement",
+      state: "Executed",
+      body: "1. Services. You work the show days.\n\n2. Fees. $990.00 per day.",
+      signedName: "Ana Ruiz",
+      signedAt: "2026-09-20T18:12:00Z",
+      sha256: "3f1d0a4c9b7e2f6a8d5c4b3a2918f7e6d5c4b3a29180f7e6d5c4b3a29180f7e6",
+      createdAt: "2026-09-18T12:00:00Z",
+    },
+  },
   "radio-handout": {
     project,
     lines: [

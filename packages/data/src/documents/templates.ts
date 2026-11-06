@@ -85,6 +85,21 @@ export interface DocumentDataMap {
     readonly project: DocumentProject;
     readonly lines: readonly RadioHandoutLine[];
   };
+  /** A generated engagement document with its stored text and signature (B10, ADR 0149 decision 4). */
+  "engagement-document": {
+    readonly project: DocumentProject | null;
+    readonly document: {
+      readonly id: string;
+      readonly title: string;
+      readonly kind: string;
+      readonly state: string;
+      readonly body: string;
+      readonly signedName: string | null;
+      readonly signedAt: string | null;
+      readonly sha256: string | null;
+      readonly createdAt: string;
+    };
+  };
 }
 
 export type DocumentData = { [K in DocumentKind]: DocumentDataMap[K] }[DocumentKind];
@@ -180,6 +195,10 @@ export const DESCRIBE: {
   "radio-handout": (d, generatedAt) => ({
     recordKey: keyed(d.project.key, "RADIOS"),
     issuedAt: generatedAt.toISOString(),
+  }),
+  "engagement-document": (d) => ({
+    recordKey: keyed(d.project?.key ?? "", `DOC-${d.document.id.slice(0, 8)}`),
+    issuedAt: d.document.signedAt ?? d.document.createdAt,
   }),
 };
 
@@ -821,6 +840,35 @@ export const TEMPLATES: TemplateRegistry = {
           },
           { kind: "heading", text: t("agreementCertificate.text") },
           { kind: "paragraph", text: agreement.body },
+        ],
+      }),
+    },
+  ],
+  "engagement-document": [
+    {
+      version: 1,
+      effectiveFrom: V1,
+      build: ({ project, document }, { t, f }) => ({
+        title: document.title,
+        blocks: [
+          {
+            kind: "fields",
+            caption: t("engagementDocument.signature"),
+            fields: [
+              field(t("engagementDocument.kind"), t(`engagementDocument.kinds.${keyOf(document.kind)}`)),
+              field(t("common.project"), project ? projectLabel(project) : t("common.none")),
+              field(t("common.state"), t(`engagementDocument.states.${keyOf(document.state)}`)),
+              field(t("engagementDocument.signedName"), document.signedName ?? t("common.none")),
+              field(t("engagementDocument.signedAt"), f.dateTime(document.signedAt)),
+              field(t("engagementDocument.hash"), document.sha256 ?? t("common.none")),
+            ],
+          },
+          { kind: "paragraph", text: t("engagementDocument.statement") },
+          { kind: "heading", text: t("engagementDocument.text") },
+          ...document.body
+            .split(/\n{2,}/)
+            .filter((part) => part.trim() !== "")
+            .map((text) => ({ kind: "paragraph" as const, text })),
         ],
       }),
     },

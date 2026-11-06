@@ -775,5 +775,78 @@
   "timesheets": {
     "clockedBy": "Fichado por {name}",
     "clockedByColumn": "Fichado por"
+  },
+  "crewAccess": {
+    "title": "Enlaces de acceso del equipo",
+    "viewsLabel": "Vistas",
+    "views": {
+      "list": "Lista",
+      "table": "Tabla"
+    },
+    "issueLinks": "Emitir enlaces",
+    "fromCrewTab": "Enlaces de acceso del equipo",
+    "filterProject": "Proyecto",
+    "allProjects": "Todos los proyectos",
+    "empty": "Aún no hay enlaces de acceso. Emite uno para que una persona vea y acepte sus turnos sin iniciar sesión.",
+    "noProjects": "No puedes programar personal en ningún proyecto de esta organización, así que no puedes emitir enlaces.",
+    "never": "Nunca",
+    "status": "Estado",
+    "expires": "Vence",
+    "lastOpened": "Última apertura",
+    "openCount": "Aperturas",
+    "actions": "Acciones",
+    "listLine": "{project} · vence {expires} · última apertura {opened} · {count, plural, one {# apertura} other {# aperturas}}",
+    "revoke": "Revocar",
+    "statuses": {
+      "Live": "Activo",
+      "Locked": "Bloqueado",
+      "Expired": "Vencido",
+      "Revoked": "Revocado",
+      "Closed": "Cerrado"
+    },
+    "issue": {
+      "title": "Emitir enlaces",
+      "project": "Proyecto",
+      "workers": "Personas",
+      "workersHelp": "Personas con un próximo turno publicado o aceptado en este proyecto.",
+      "workerWithLink": "{name} (tiene un enlace)",
+      "validFor": "Válido por",
+      "validDays": "{days, plural, one {# día} other {# días}}",
+      "includeCode": "Incluir el código en la tarjeta impresa",
+      "includeCodeHelp": "Déjalo sin marcar para enviar el código por otra vía, así una tarjeta perdida no abre nada.",
+      "submit": "Emitir enlaces",
+      "cancel": "Cancelar",
+      "replaces": "Al emitir se reemplaza el enlace anterior de la persona.",
+      "errors": {
+        "input": "Elige un proyecto y al menos una persona.",
+        "notFound": "Este proyecto ya no existe o ya no puedes programar personal en él.",
+        "unexpected": "Algo salió mal al emitir los enlaces. Inténtalo de nuevo en un momento."
+      }
+    },
+    "result": {
+      "title": "{count, plural, one {# enlace emitido} other {# enlaces emitidos}}",
+      "once": "Copia o imprime esto ahora. Los enlaces y códigos no se vuelven a mostrar.",
+      "card": "{project} · hasta {expires}",
+      "code": "Código",
+      "qr": "Código QR que abre los turnos de {name}",
+      "copyLink": "Copiar enlace",
+      "copyCode": "Copiar código",
+      "copiedLink": "Enlace copiado.",
+      "copiedCode": "Código copiado.",
+      "print": "Imprimir tarjetas",
+      "close": "Cerrar",
+      "closeConfirm": "Los enlaces y códigos no se vuelven a mostrar después de cerrar. ¿Cerrar?",
+      "closeSure": "Cerrar y actualizar",
+      "keepOpen": "Mantener abierto",
+      "unnamed": "Persona sin nombre"
+    },
+    "refusals": {
+      "crew_access_batch": "Emite enlaces para 1 a 200 personas a la vez.",
+      "crew_access_worker": "No se pudo leer a una de las personas. Recarga y vuelve a elegirlas.",
+      "crew_access_not_working": "Una de las personas no tiene un próximo turno en este proyecto o ya no trabaja para la organización. Quítala e inténtalo de nuevo.",
+      "crew_access_validity": "Un enlace de acceso funciona de 1 hora a 30 días.",
+      "org_read_only": "Esta organización es de solo lectura, así que no puede emitir enlaces de acceso.",
+      "generic": "Los enlaces se rechazaron por la regla {rule}. Corrige lo que indica e inténtalo de nuevo."
+    }
   }
 }

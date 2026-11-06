@@ -5,7 +5,7 @@
  * renderer writes follows the same order as the page.
  */
 
-/** The twelve Section 11.9 documents and the radio hand-out (R7, ADR 0031 amendment). */
+/** The twelve Section 11.9 documents, the radio hand-out (R7, ADR 0031 amendment) and generated agreements (B10). */
 export const DOCUMENT_KINDS = [
   "purchase-order",
   "invoice",
@@ -20,6 +20,7 @@ export const DOCUMENT_KINDS = [
   "final-cost-report",
   "agreement-certificate",
   "radio-handout",
+  "engagement-document",
 ] as const;
 
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -76,6 +77,8 @@ export const DOCUMENT_CLASSIFICATION: Readonly<
   "final-cost-report": "Internal",
   "agreement-certificate": "Internal",
   "radio-handout": "Internal",
+  // A generated agreement can hold the rate; a reader of a masked text gets 404 before it renders.
+  "engagement-document": "Confidential",
   "deletion-certificate": "Internal",
   "certified-payroll": "Restricted",
   "osha-300": "Confidential",
