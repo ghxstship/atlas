@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(67);
+select plan(64);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -274,7 +274,7 @@ select is((select count(*)::int from app.onboarding_verifications v join app.onb
   where i.engagement_id = pg_temp.k('eng_v')), 0, 'nothing is verified for the reviewer');
 select is(pg_temp.try('carol', format($$select app.transition_engagement(%L, 'Onboarding', 'Active', 'Go.')$$, pg_temp.k('eng_v'))), 'onboarding_incomplete',
   'the engagement cannot become Active until a reviewer verifies');
-select is((select document_state::text from app.engagement_documents where engagement_id = pg_temp.k('eng_v')), 'Signed', 'the agreement is Signed');
+select is((select engagement_document_state::text from app.engagement_documents where engagement_id = pg_temp.k('eng_v')), 'Signed', 'the agreement is Signed');
 select ok((select t.reason ~ '^Signed at intake by Victor Osei on \d{4}-\d{2}-\d{2} \d{2}:\d{2} \S+, version 1$' from app.engagement_document_state_transitions t
     join app.engagement_documents d on d.id = t.engagement_document_id
     where d.engagement_id = pg_temp.k('eng_v') and t.to_state = 'Signed'), 'the ledger reason names the signer, the time in the project''s zone and the version');
@@ -303,7 +303,7 @@ select pg_temp.put('eng_n', app.decide_vendor_intake(pg_temp.k('r_n2'), true), n
 select pg_temp.as_platform();
 select is((select o.organization_id from app.engagements e join app.counterparties o on o.id = e.counterparty_id where e.id = pg_temp.k('eng_n')), pg_temp.id('acct_n'),
   'an account the org has no counterparty for gets one');
-select is((select document_state::text from app.engagement_documents where engagement_id = pg_temp.k('eng_n')), 'Sent',
+select is((select engagement_document_state::text from app.engagement_documents where engagement_id = pg_temp.k('eng_n')), 'Sent',
   'the agreement stays Sent when the document has a newer version than the one signed');
 select is((select count(*)::int from app.onboarding_items i join app.onboarding_requirements q on q.id = i.onboarding_requirement_id
   where i.engagement_id = pg_temp.k('eng_n') and q.item_kind = 'Payout Details' and i.submitted_at is not null), 0,
@@ -346,7 +346,8 @@ select pg_temp.new_user('oona', 'oona@purge.test', 'Oona Reyes');
 select pg_temp.as_user('oona');
 select pg_temp.put('org_del', o.org_id, null) from (select app.create_organization('Short Lived Events', 'short-lived-events') as org_id) o;
 insert into world values ('org_del', pg_temp.k('org_del'));
-select pg_temp.put('prj_del', app.create_project(pg_temp.k('org_del'), 'Closing show', 'CLS'), null);
+with p as (insert into app.projects (org_id, project_key, name, time_zone) values (pg_temp.k('org_del'), 'CLS', 'Closing show', 'America/New_York') returning id)
+  select pg_temp.put('prj_del', p.id, null) from p;
 select pg_temp.as_user('oona');
 select pg_temp.put('ver_del', u.attachment_version_id, u.object_name)
 from app.begin_attachment_upload('app.projects', pg_temp.k('prj_del'), 'site.pdf', 'application/pdf', 1200) u;
@@ -357,7 +358,7 @@ select app.record_attachment_scan(pg_temp.k('ver_del'), true);
 select pg_temp.put('att_del', (select v.attachment_id from app.attachment_versions v where v.id = pg_temp.k('ver_del')), null);
 select pg_temp.as_user('oona');
 select pg_temp.put('pack_del', app.create_stakeholder_pack(pg_temp.k('prj_del'), 'Closing pack', now() + interval '20 days'), null);
-select app.add_stakeholder_pack_item(pg_temp.k('pack_del'), null, pg_temp.k('att_del'), 'Site map');
+select pg_temp.put('item_del', app.add_stakeholder_pack_item(pg_temp.k('pack_del'), null, pg_temp.k('att_del'), 'Site map'), null);
 select pg_temp.put('rec_del', r.recipient_id, r.access_code) from app.add_stakeholder_pack_recipient(pg_temp.k('pack_del'), 'Cleo Client', 'cleo@client.test') r;
 select app.send_stakeholder_pack(pg_temp.k('pack_del'));
 select pg_temp.as_platform();
@@ -366,7 +367,7 @@ select pg_temp.as_anon();
 select set_config('request.headers', json_build_object('x-forwarded-for', '192.0.2.10')::text, true);
 select pg_temp.put('grant_del', null, api_public.open_stakeholder_pack(pg_temp.v('tok_del'), pg_temp.v('rec_del'), '198.51.100.72') ->> 'grant');
 select pg_temp.put('ticket_del', null, (select f.ticket from api_public.stakeholder_pack_file(pg_temp.v('tok_del'), array[pg_temp.v('grant_del')],
-  (select i.id from app.stakeholder_pack_items i where i.stakeholder_pack_id = pg_temp.k('pack_del')), '198.51.100.72') f));
+  pg_temp.k('item_del'), '198.51.100.72') f));
 select pg_temp.as_user('oona');
 select pg_temp.put('intake_del', l.vendor_intake_link_id, l.token || ' ' || l.access_code)
 from app.create_vendor_intake_link(pg_temp.k('prj_del'), 'Closing crew', 'Contractor', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement',
@@ -388,6 +389,7 @@ select set_config('request.headers', json_build_object('x-forwarded-for', '192.0
 select is(api_public.submit_public_form(split_part(pg_temp.v('form_del'), ' ', 1), pg_temp.v('form_del:grant'), 'Rae Ortiz', 'rae@guest.test', '{"notes": "Fine."}', null, '198.51.100.74') ->> 'status', 'ok',
   'the fixture holds a form response');
 select pg_temp.as_platform();
+set local storage.allow_delete_query = 'true';
 delete from storage.objects where bucket_id = 'attachments' and name = pg_temp.v('ver_del');
 select pg_temp.put('cert_del', private.write_deletion_certificate(pg_temp.k('org_del'), 'cancellation', now(), now(), null), null);
 update app.deletion_certificates set storage_cleared_at = now() where id = pg_temp.k('cert_del');

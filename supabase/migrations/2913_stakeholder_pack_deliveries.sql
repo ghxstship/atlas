@@ -88,9 +88,9 @@ create table app.stakeholder_pack_deliveries (
 );
 
 create index stakeholder_pack_deliveries_pack_idx on app.stakeholder_pack_deliveries (stakeholder_pack_id);
-create index stakeholder_pack_deliveries_recipient_idx on app.stakeholder_pack_deliveries (recipient_id, created_at);
 
 call private.install_domain_table('app.stakeholder_pack_deliveries', 'app.stakeholder_packs', 'stakeholder_pack_id');
+create index stakeholder_pack_deliveries_recipient_idx on app.stakeholder_pack_deliveries (recipient_id, created_at);
 create unique index stakeholder_pack_deliveries_scheduled_once on app.stakeholder_pack_deliveries (recipient_id, scheduled_for)
   where delivery_kind = 'Scheduled' and deleted_at is null;
 call private.describe('app.stakeholder_pack_deliveries', 'One email of a stakeholder pack sign-in link to one recipient (ADR 0141): an Invite, a Resend or a Scheduled send, and whether it went out. Written only by app.send_stakeholder_pack, the scheduler and the delivery worker. The email never carries the access code.', array[

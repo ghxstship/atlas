@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(35);
+select plan(34);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -93,7 +93,7 @@ select is(pg_temp.v('fourth'), '0', 'a fourth manual send to one recipient withi
 -- An hour at least 11 hours from now, so the next slot never falls inside a short expiry by chance.
 insert into k values ('hour', null, ((extract(hour from now() at time zone 'UTC')::int + 12) % 24)::text);
 select is(pg_temp.try('carol', format($$select app.set_stakeholder_pack_schedule(%L, 'Daily', %s::smallint, null, null, 'UTC')$$,
-  pg_temp.k('pack'), pg_temp.v('hour')))), 'ok', 'a daily schedule is set');
+  pg_temp.k('pack'), pg_temp.v('hour'))), 'ok', 'a daily schedule is set');
 select pg_temp.as_anon();
 select set_config('request.headers', json_build_object('x-forwarded-for', '192.0.2.10')::text, true);
 select api_public.unsubscribe_stakeholder_pack(split_part(pg_temp.v('m1'), ' ', 2), '198.51.100.7');
@@ -117,7 +117,7 @@ select app.queue_due_pack_schedules();
 select ok((select paused_at is not null from app.stakeholder_pack_schedules where stakeholder_pack_id = pg_temp.k('pack')),
   'a schedule whose next slot falls after the pack''s expiry is paused');
 select is(pg_temp.try('carol', format($$select app.set_stakeholder_pack_schedule(%L, 'Weekly', %s::smallint, 1::smallint, null, 'UTC')$$,
-  pg_temp.k('pack'), pg_temp.v('hour')))), 'stakeholder_pack_schedule_past_expiry', 'a schedule whose first slot falls after the expiry is refused');
+  pg_temp.k('pack'), pg_temp.v('hour'))), 'stakeholder_pack_schedule_past_expiry', 'a schedule whose first slot falls after the expiry is refused');
 
 -- The org's suppression list -------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');

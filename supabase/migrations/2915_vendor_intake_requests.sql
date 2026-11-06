@@ -73,7 +73,6 @@ create table app.vendor_intake_requests (
 
 create index vendor_intake_requests_link_idx on app.vendor_intake_requests (vendor_intake_link_id);
 create index vendor_intake_requests_project_idx on app.vendor_intake_requests (project_id, request_state);
-create index vendor_intake_requests_requested_by_idx on app.vendor_intake_requests (requested_by, vendor_intake_link_id, created_at);
 create index vendor_intake_requests_account_idx on app.vendor_intake_requests (account_id);
 create index vendor_intake_requests_tax_form_idx on app.vendor_intake_requests (tax_form_id);
 create index vendor_intake_requests_payout_idx on app.vendor_intake_requests (payout_account_id);
@@ -104,6 +103,7 @@ create trigger t05_stamp_vendor_intake_request before insert on app.vendor_intak
 call private.install_domain_table('app.vendor_intake_requests', 'app.vendor_intake_links', 'vendor_intake_link_id',
   array['app.tax_forms', 'tax_form_id', 'app.payout_accounts', 'payout_account_id', 'app.document_versions', 'signed_version_id',
         'app.engagements', 'engagement_id', 'app.invoices', 'invoice_id']);
+create index vendor_intake_requests_requested_by_idx on app.vendor_intake_requests (requested_by, vendor_intake_link_id, created_at);
 create unique index vendor_intake_requests_pending_key on app.vendor_intake_requests
   (vendor_intake_link_id, coalesce(account_id, requested_by)) where request_state = 'Pending' and deleted_at is null;
 call private.describe('app.vendor_intake_requests', 'What a vendor or contractor sent through a reusable intake link (ADR 0141): the company account (Vendor) or the person themselves (Contractor), their own tax form and payout provider reference (both written first through the existing payee paths; no tax identifier or bank number is ever stored here), the typed signature on the link''s pinned agreement version, and an optional first invoice draft. Approved into an Onboarding engagement or declined by the team. Written only through the intake RPCs. The requester reads their requests through api_external.my_vendor_intake_requests.', array[

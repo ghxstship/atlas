@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(52);
+select plan(51);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -276,9 +276,9 @@ select pg_temp.as_platform();
 select pg_temp.as_user('carol');
 select pg_temp.as_platform();
 insert into app.attachment_versions (attachment_id, version_number, object_name, filename, content_type, size_bytes, scan_status)
-select v.attachment_id, v.version_number + 1, v.object_name || '-2', v.filename, v.content_type, v.size_bytes, 'Pending'
+select v.attachment_id, v.version_number + 1, v.object_name || '-2', v.filename, v.content_type, v.size_bytes, 'Scanning'
 from app.attachment_versions v where v.attachment_id = pg_temp.k('plan.pdf') order by v.version_number desc limit 1;
-select is((private.pack_file_version(pg_temp.k('plan.pdf'))).id, null, 'a newer Pending version means no current clean version');
+select is((private.pack_file_version(pg_temp.k('plan.pdf'))).id, null, 'a newer version still scanning means no current clean version');
 select is(pg_temp.pack(pg_temp.v('t4'), pg_temp.v('g4')) -> 'items' -> 1 ->> 'available', 'false', 'so the file item reads unavailable rather than serving the older file');
 select pg_temp.as_user('carol');
 select app.revoke_stakeholder_pack_recipient(pg_temp.k('r1'));

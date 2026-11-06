@@ -75,8 +75,9 @@ insert into k values ('invite_entry', app.invite_to_roster(pg_temp.id('eng_vendo
 select pg_temp.as_platform();
 insert into k select 'roster', i.id, null from app.roster_invitations i where i.roster_entry_id = pg_temp.k('invite_entry');
 select pg_temp.as_user('carol');
-insert into k select 'view', l.live_link_id, null from app.create_view_link(
-  app.create_saved_view(pg_temp.id('org_a'), 'run_of_show', 'Show view', pg_temp.id('prj_a')), now() + interval '30 days') l;
+with v as (insert into app.saved_views (membership_id, collection_key, name, view_type, shared)
+  values (pg_temp.id('carol@org_a'), 'project/schedule', 'Venue schedule', 'List', true) returning id) insert into k select 'saved', id, null from v;
+insert into k select 'view', l.live_link_id, null from app.create_view_link(pg_temp.k('saved'), pg_temp.id('prj_a'), now() + interval '30 days') l;
 select pg_temp.as_platform();
 
 select is(pg_temp.sources('alice'),
@@ -94,7 +95,9 @@ select is((pg_temp.row_of('Form link', pg_temp.k('form'))).label, 'Supplier chec
 
 -- File link opens ------------------------------------------------------------------------------------------------------
 select is((pg_temp.row_of('File link', pg_temp.k('file'))).open_count, 0::bigint, 'a file link starts with no opens');
+alter table app.share_links disable trigger user;
 update app.share_links set open_count = 3, last_opened_at = now() where id = pg_temp.k('file');
+alter table app.share_links enable trigger user;
 select is((pg_temp.row_of('File link', pg_temp.k('file'))).open_count, 3::bigint, 'a file link shows its open count');
 select ok((pg_temp.row_of('File link', pg_temp.k('file'))).last_opened_at is not null, 'and when it was last opened');
 
@@ -111,7 +114,7 @@ select is(pg_temp.sources('xavier'), null, 'a member of another org sees nothing
 select is(pg_temp.sources('ivy'), null, 'an external party sees nothing');
 
 select pg_temp.as_user('alice');
-insert into app.project_shares (project_id, partner_org_id, relationship) select pg_temp.id('prj_a'), pg_temp.id('org_p'), 'Partner' where false;
+insert into app.project_shares (project_id, partner_organization_id, project_role) values (pg_temp.id('prj_a'), pg_temp.id('org_p'), 'Coordinator');
 select pg_temp.as_platform();
 select is(pg_temp.sources('paul'), null, 'a partner org reaching the project sees none of it');
 

@@ -284,6 +284,25 @@ select cron.schedule('xos_prune_stakeholder_pack_grants', '47 4 * * *', $$
   delete from private.stakeholder_pack_grants where expires_at < now() - interval '1 day';
 $$);
 
+-- Who manages a pack, which the file item insert policy reads ---------------------------------------------------------
+
+create or replace function private.can_manage_stakeholder_pack(p_pack_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from app.stakeholder_packs p
+    where p.id = p_pack_id and p.deleted_at is null and private.is_member(p.org_id)
+      and private.can_on_project(p.project_id, 'projects.settings.write'));
+$$;
+
+comment on function private.can_manage_stakeholder_pack(uuid) is 'True when the signed-in person is a member of the pack''s org holding projects.settings.write on its project; a partner org reaching the project through a project share never is. Read by the file item insert policy.';
+revoke all on function private.can_manage_stakeholder_pack(uuid) from public, anon;
+grant execute on function private.can_manage_stakeholder_pack(uuid) to authenticated, service_role;
+
 -- Read access and column grants --------------------------------------------------------------------------------------
 
 call private.install_policies('app.stakeholder_pack_items',
@@ -308,23 +327,6 @@ call private.install_policies('app.stakeholder_pack_events',
 revoke insert, update, delete on app.stakeholder_pack_events from authenticated;
 
 -- Who manages a pack ------------------------------------------------------------------------------------------------
-
-create or replace function private.can_manage_stakeholder_pack(p_pack_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1 from app.stakeholder_packs p
-    where p.id = p_pack_id and p.deleted_at is null and private.is_member(p.org_id)
-      and private.can_on_project(p.project_id, 'projects.settings.write'));
-$$;
-
-comment on function private.can_manage_stakeholder_pack(uuid) is 'True when the signed-in person is a member of the pack''s org holding projects.settings.write on its project; a partner org reaching the project through a project share never is. Read by the file item insert policy.';
-revoke all on function private.can_manage_stakeholder_pack(uuid) from public, anon;
-grant execute on function private.can_manage_stakeholder_pack(uuid) to authenticated, service_role;
 
 create or replace function private.manageable_stakeholder_pack(p_pack_id uuid)
 returns app.stakeholder_packs

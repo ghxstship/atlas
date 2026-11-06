@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(46);
+select plan(40);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -167,7 +167,7 @@ select pg_temp.put('resp', (select s.id from app.form_submissions s where s.form
 select is((select submission_state::text || '/' || coalesce(submitted_by_membership_id::text, 'no member') || '/' || respondent_name || '/' || respondent_email || '/' || score::text
   from app.form_submissions where id = pg_temp.k('resp')), 'Submitted/no member/Rae Ortiz/one@guest.test/3', 'stored Submitted with no member, the respondent''s name and lower-case email, and its score');
 select is((select record_id from app.form_submissions where id = pg_temp.k('resp')), null, 'it creates no record');
-select is((select reason from app.form_submission_state_transitions where form_submission_id = pg_temp.k('resp')), 'Submitted via public link', 'the ledger says how it came');
+select is((select count(*)::int from app.form_submission_state_transitions where form_submission_id = pg_temp.k('resp') and reason = 'Submitted via public link' and to_state = 'Submitted'), 1, 'the ledger says how it came');
 select is(pg_temp.submit('a', 'one@guest.test', '{"ok": true}', '198.51.100.88') ->> 'reason', 'form_link_already_answered', 'one response per email');
 select is(pg_temp.try('carol', format($$update app.form_submissions set respondent_email = 'x@y.test' where id = %L$$, pg_temp.k('resp'))), '42501',
   'a member cannot change a response''s submitter fields');
@@ -212,7 +212,7 @@ select pg_temp.as_user('frank');
 select pg_temp.put('member', app.submit_form(pg_temp.k('check'), '{"ok": true, "load": "Heavy"}'::jsonb, pg_temp.id('prj_a')), null);
 select throws_like(format($$select app.submit_form(%L, '{}'::jsonb)$$, pg_temp.k('check')), 'form_answer_required:%', 'app.submit_form refuses with the same code');
 select pg_temp.as_platform();
-select is((select score::text || '/' || max_score::text || '/' || submitted_by_membership_id is not null from app.form_submissions where id = pg_temp.k('member')),
+select is((select score::text || '/' || max_score::text || '/' || (submitted_by_membership_id is not null)::text from app.form_submissions where id = pg_temp.k('member')),
   ((select c.o_score::text || '/' || c.o_max::text || '/true' from private.check_form_answers(
     (select v.fields from app.form_template_versions v where v.form_template_id = pg_temp.k('check')), '{"ok": true, "load": "Heavy"}'::jsonb) c)),
   'a member''s submission scores what private.check_form_answers scores');

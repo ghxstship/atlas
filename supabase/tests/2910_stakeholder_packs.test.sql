@@ -130,15 +130,15 @@ select is((select classification::text from private.column_classifications
   where table_name = 'app.stakeholder_pack_recipients' and column_name = 'email'), 'Confidential', 'a recipient''s email is Confidential');
 
 -- Reset and revoke ----------------------------------------------------------------------------------------------------
-insert into private.stakeholder_pack_grants (grant_hash, recipient_id, expires_at)
-values (extensions.digest('xpkg_fixture', 'sha256'), pg_temp.k('recipient'), now() + interval '1 day');
+insert into private.stakeholder_pack_grants (grant_hash, org_id, recipient_id, expires_at)
+values (extensions.digest('xpkg_fixture', 'sha256'), pg_temp.id('org_a'), pg_temp.k('recipient'), now() + interval '1 day');
 select pg_temp.as_user('carol');
 insert into k values ('new_code', null, app.reset_stakeholder_pack_recipient_code(pg_temp.k('recipient')));
 select pg_temp.as_platform();
 select ok(pg_temp.v('new_code') ~ '^[0-9]{6}$' and (select count(*) from private.stakeholder_pack_grants where recipient_id = pg_temp.k('recipient')) = 0,
   'resetting the code answers a new one and drops the device grants');
-insert into private.stakeholder_pack_grants (grant_hash, recipient_id, expires_at)
-values (extensions.digest('xpkg_fixture_2', 'sha256'), pg_temp.k('recipient'), now() + interval '1 day');
+insert into private.stakeholder_pack_grants (grant_hash, org_id, recipient_id, expires_at)
+values (extensions.digest('xpkg_fixture_2', 'sha256'), pg_temp.id('org_a'), pg_temp.k('recipient'), now() + interval '1 day');
 select is(pg_temp.try('carol', format($$select app.revoke_stakeholder_pack_recipient(%L)$$, pg_temp.k('recipient'))), 'ok', 'a recipient is revoked');
 select is((select count(*)::int from private.stakeholder_pack_grants where recipient_id = pg_temp.k('recipient')), 0, 'revoking drops their grants');
 select is(pg_temp.try('carol', format($$select app.revoke_stakeholder_pack(%L)$$, pg_temp.k('pack'))), 'ok', 'the pack is revoked');
