@@ -219,7 +219,7 @@ describe("import repository", () => {
       p_target_code: "guest_list_entries",
       p_project_id: "prj1",
       p_run_of_show_id: null,
-        p_budget_id: null,
+      p_budget_id: null,
     });
   });
 
