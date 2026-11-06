@@ -97,7 +97,9 @@ test("an edit starts from what the territory holds, and a currency it gives up c
     await form.getByLabel("Name in Spanish", { exact: true }).fill(`Cualquiera ${id}`);
     await reason.fill("Adding by mistake.");
     await save.click();
-    await expect(form.getByText("A territory already has that code", { exact: false })).toBeVisible();
+    await expect(
+      form.getByText("A territory already has that code", { exact: false }),
+    ).toBeVisible();
     await expect(form.getByLabel("Name in English", { exact: true })).toHaveValue(`Anything ${id}`);
     expect(await held()).toEqual(before);
 

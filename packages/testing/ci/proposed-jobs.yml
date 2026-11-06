@@ -55,6 +55,9 @@ e2e:
       if: matrix.app != 'docs'
       run: |
         PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
+        # Journeys open a territory and need the change at once, so the server reads the offering every time.
+        export E2E_OFFERING_FRESH=1
+        echo "E2E_OFFERING_FRESH=1" >> "$GITHUB_ENV"
         (cd apps/${{ matrix.app }} && pnpm exec next start --port "$PORT" &)
         if [ "${{ matrix.app }}" = gateway ]; then (cd apps/atlas && pnpm exec next start --port 3006 &); fi
         echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"

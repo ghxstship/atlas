@@ -44,7 +44,9 @@ export function TerritoryForm({
       hidden={territory ? { editing: territory.code } : {}}
       submitLabel={t("territories.save")}
       successLabel={t("territories.saved")}
-      label={territory ? t("territories.editTitle", { code: territory.code }) : t("territories.add")}
+      label={
+        territory ? t("territories.editTitle", { code: territory.code }) : t("territories.add")
+      }
       variant="secondary"
       testId="territory-form"
     >
