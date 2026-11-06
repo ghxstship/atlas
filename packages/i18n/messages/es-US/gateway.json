@@ -1572,7 +1572,8 @@
         "Withdrawn": "Retirada"
       },
       "withdraw": "Retirar",
-      "submitInvoice": "Envía la factura de tu alta"
+      "submitInvoice": "Envía la factura de tu alta",
+      "invoiceWaits": "Tu primera factura está guardada. Podrás enviarla cuando esta contratación se abra para facturas."
     }
   },
   "messages": {
@@ -2543,6 +2544,8 @@
     "next": "Siguiente",
     "submit": "Enviar",
     "thanks": "Gracias. Tus respuestas se enviaron.",
-    "unexpected": "No se pudo completar. Inténtalo de nuevo."
+    "unexpected": "No se pudo completar. Inténtalo de nuevo.",
+    "unanswered": "Responde estas preguntas antes de continuar: {fields}",
+    "required": "Responde esta pregunta."
   }
 }

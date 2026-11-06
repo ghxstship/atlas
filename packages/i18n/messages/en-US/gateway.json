@@ -1572,7 +1572,8 @@
         "Withdrawn": "Withdrawn"
       },
       "withdraw": "Withdraw",
-      "submitInvoice": "Submit the invoice from your intake"
+      "submitInvoice": "Submit the invoice from your intake",
+      "invoiceWaits": "Your first invoice is saved. You can submit it when this engagement opens for invoices."
     }
   },
   "messages": {
@@ -2543,6 +2544,8 @@
     "next": "Next",
     "submit": "Send",
     "thanks": "Thank you. Your answers were sent.",
-    "unexpected": "That did not go through. Try again."
+    "unexpected": "That did not go through. Try again.",
+    "unanswered": "Answer these before you go on: {fields}",
+    "required": "Answer this question."
   }
 }

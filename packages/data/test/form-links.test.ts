@@ -11,6 +11,7 @@ import {
   planFormWindows,
   readPublicForm,
   submitPublicForm,
+  unansweredFields,
   WINDOW_FIELDS,
   type PublicFormField,
 } from "../src/form-links.ts";
@@ -40,6 +41,32 @@ const field = (key: string, showIf: PublicFormField["showIf"] = null): PublicFor
   required: false,
   choices: null,
   showIf,
+});
+
+describe("required answers", () => {
+  const required = (key: string, kind = "text"): PublicFormField => ({
+    ...field(key),
+    kind,
+    required: true,
+  });
+
+  it("finds what the server would refuse as form_answer_required", () => {
+    const fields = [
+      required("blank"),
+      required("nothing", "choice"),
+      required("none", "multi_choice"),
+      required("cleared", "yes_no"),
+      field("optional"),
+    ];
+    expect(
+      unansweredFields(fields, { blank: "", none: [], cleared: null }).map((f) => f.key),
+    ).toEqual(["blank", "nothing", "none", "cleared"]);
+  });
+
+  it("counts a No and a zero as answers", () => {
+    const fields = [required("yes_no", "yes_no"), required("number", "number")];
+    expect(unansweredFields(fields, { yes_no: false, number: 0 })).toEqual([]);
+  });
 });
 
 describe("the form's windows", () => {

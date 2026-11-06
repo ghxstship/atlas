@@ -1,7 +1,7 @@
 "use client";
 
-import { planFormWindows, type PublicFormField } from "@xos/data/form-links";
-import { Button, Checkbox, InlineAlert, Input, Select, Textarea } from "@xos/ui";
+import { planFormWindows, unansweredFields, type PublicFormField } from "@xos/data/form-links";
+import { Button, InlineAlert, Input, MultiSelect, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { submitPublicFormAction } from "@/lib/actions/public-form";
@@ -13,15 +13,19 @@ type Answers = Readonly<Record<string, unknown>>;
 function FieldInput({
   field,
   value,
+  missing,
   onChange,
 }: {
   field: PublicFormField;
   value: unknown;
+  /** A required field the respondent tried to leave empty. Native validation cannot see a Select or MultiSelect. */
+  missing: boolean;
   onChange: (value: unknown) => void;
 }) {
   const t = useTranslations("gateway.publicForm") as unknown as Translate;
   const id = `field-${field.key}`;
   const common = { id, label: field.label };
+  const error = missing ? { error: t("required") } : {};
   switch (field.kind) {
     case "long_text":
       return (
@@ -60,6 +64,7 @@ function FieldInput({
           {...common}
           value={value === true ? "yes" : value === false ? "no" : ""}
           placeholder={t("choose")}
+          {...error}
           options={[
             { value: "yes", label: t("yes") },
             { value: "no", label: t("no") },
@@ -74,29 +79,22 @@ function FieldInput({
           key={`${field.key}-${String(value ?? "")}`}
           value={typeof value === "string" ? value : ""}
           placeholder={t("choose")}
+          {...error}
           options={(field.choices ?? []).map((c) => ({ value: c, label: c }))}
           onChange={(e) => onChange(e.target.value || null)}
         />
       );
-    case "multi_choice": {
-      const picked = Array.isArray(value) ? (value as string[]) : [];
+    case "multi_choice":
+      // One control however many choices it has (gate 27 counts a checkbox per choice), with a search for long lists.
       return (
-        <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-          <legend className="text-text-13 font-medium">{field.label}</legend>
-          {(field.choices ?? []).map((c) => (
-            <Checkbox
-              key={c}
-              id={`${id}-${c}`}
-              label={c}
-              checked={picked.includes(c)}
-              onChange={(e) =>
-                onChange(e.target.checked ? [...picked, c] : picked.filter((p) => p !== c))
-              }
-            />
-          ))}
-        </fieldset>
+        <MultiSelect
+          {...common}
+          value={Array.isArray(value) ? (value as string[]) : []}
+          placeholder={t("choose")}
+          options={(field.choices ?? []).map((c) => ({ value: c, label: c }))}
+          onChange={(picked) => onChange(picked)}
+        />
       );
-    }
     default:
       return (
         <Input
@@ -115,6 +113,8 @@ function FieldInput({
  * The public form in windows (B2, ADR 0141): the first holds name, email and up to 5 fields, each later window up to 7,
  * with Next and Back, so gate 27's seven-field limit holds for a form of any length. Answers stay in client state across
  * windows, and the windows are worked out from the fields currently shown. Only the last window has the primary Submit.
+ * Required answers are checked before each move, since native validation cannot see a Select or MultiSelect and the
+ * server would otherwise refuse only at the end, spending one of the address's submits and naming no field.
  * The honeypot sits in a wrapper with the hidden attribute: gate 27 counts any element with a width, and the design
  * audit forbids off-screen offsets. The minimum fill time and the rate limits are the main protection.
  */
@@ -134,10 +134,12 @@ export function PublicFormFill({
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
   const [pending, start] = useTransition();
   const windows = useMemo(() => planFormWindows(fields, answers), [fields, answers]);
   const current = Math.min(index, windows.length - 1);
   const last = current === windows.length - 1;
+  const unanswered = checked ? unansweredFields(windows[current] ?? [], answers) : [];
 
   const submit = () =>
     start(async () => {
@@ -160,6 +162,15 @@ export function PublicFormFill({
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!event.currentTarget.reportValidity()) return;
+    // A later answer can bring a required field into an earlier window, so the last window checks them all.
+    const scope = last ? windows : [windows[current] ?? []];
+    const blocked = scope.findIndex((w) => unansweredFields(w, answers).length > 0);
+    if (blocked >= 0) {
+      setChecked(true);
+      if (last) setIndex(blocked);
+      return;
+    }
+    setChecked(false);
     if (last) submit();
     else setIndex(current + 1);
   };
@@ -181,6 +192,11 @@ export function PublicFormFill({
       {refusal ? (
         <InlineAlert tone="danger">
           {refusal === "unexpected" ? t("unexpected") : tokens(refusal)}
+        </InlineAlert>
+      ) : null}
+      {unanswered.length > 0 ? (
+        <InlineAlert tone="danger">
+          {t("unanswered", { fields: unanswered.map((f) => f.label).join(", ") })}
         </InlineAlert>
       ) : null}
       {windows.length > 1 ? (
@@ -230,6 +246,7 @@ export function PublicFormFill({
           key={field.key}
           field={field}
           value={answers[field.key]}
+          missing={unanswered.includes(field)}
           onChange={(value) => setAnswers((all) => ({ ...all, [field.key]: value }))}
         />
       ))}

@@ -7,7 +7,8 @@ import { DEMO, sql, uniqueId } from "./support";
 /**
  * B2 public forms (RRR-226, ADR 0141; gap G-293): a form link from its code through windows of at most seven fields, a
  * conditional field moving between windows as an earlier answer changes, answers surviving Back and Next, a too-fast
- * submit refused, the honeypot out of sight, and a response that becomes a record only when Atlas approves it.
+ * submit refused, the honeypot out of sight, a required multi-choice of eight choices counted as one control and named
+ * when left empty, and a response that becomes a record only when Atlas approves it.
  */
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
@@ -34,6 +35,11 @@ test("a respondent fills a multi-window form and Atlas approves it into a record
     field("dock", "Dock"),
     field("truck", "Truck"),
     field("notes", "Notes"),
+    field("gear", "Gear needed", {
+      kind: "multi_choice",
+      required: true,
+      choices: ["Lights", "Sound", "Video", "Rigging", "Staging", "Power", "Comms", "Radios"],
+    }),
   ];
   const [template] = await sql<{ id: string }>(
     `insert into app.form_templates (org_id, name, description, record_kind, record_subtype, fields)
@@ -88,6 +94,17 @@ test("a respondent fills a multi-window form and Atlas approves it into a record
   await expect(page.getByLabel("Power kind")).toHaveValue("Three phase");
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await page.getByLabel("Notes", { exact: true }).fill("Dock two.");
+
+  // A required multi-choice is one control however many choices it has, and is named when left empty.
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Gear needed" })).toBeVisible();
+  await page.getByLabel("Gear needed").click();
+  await page.getByRole("option", { name: "Rigging", exact: true }).click();
+  await page.getByRole("option", { name: "Power", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("alert").filter({ hasText: "Gear needed" })).toHaveCount(0);
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
 
   // A submit before the minimum fill time is refused and stores nothing; answers stay.
   await sql(

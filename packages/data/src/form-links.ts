@@ -311,7 +311,23 @@ export function liveFormAnswers(
   return live;
 }
 
-/** The shown fields in windows: 5 in the first (beside name and email), then 7 each. */
+/** Required fields with no answer yet, by the rule private.check_form_answers applies: null, "" and [] are all empty. */
+export function unansweredFields(
+  fields: readonly PublicFormField[],
+  answers: Readonly<Record<string, unknown>>,
+): readonly PublicFormField[] {
+  return fields.filter((f) => {
+    if (!f.required) return false;
+    const answer = answers[f.key];
+    if (answer === undefined || answer === null || answer === "") return true;
+    return Array.isArray(answer) && answer.length === 0;
+  });
+}
+
+/**
+ * The shown fields in windows, counted as fields because each is one control on the page (a multi_choice is one
+ * MultiSelect, not a checkbox per choice), and gate 27 counts controls: 5 in the first (beside name and email), then 7 each.
+ */
 export function planFormWindows(
   fields: readonly PublicFormField[],
   answers: Readonly<Record<string, unknown>>,
