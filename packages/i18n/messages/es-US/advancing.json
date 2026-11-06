@@ -803,8 +803,8 @@
     "approval": {
       "label": "Regla de aprobación",
       "waiting": "En espera de aprobación",
-      "approved": "Aprobada",
-      "rejected": "Rechazada"
+      "approved": "Aprobada por la regla",
+      "rejected": "Rechazada por la regla"
     }
   }
 }

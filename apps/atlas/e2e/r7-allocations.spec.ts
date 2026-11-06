@@ -23,6 +23,7 @@ import { expectAccessible, uniqueId } from "./support";
  *   - With allowance overflow at review, a request beyond the radio cap is approved with a reason, and Remaining
  *     allowance reads 0.
  *   - One radio assigned straight to the person and issued by tag, withdrawn when the engagement is canceled.
+ *   - P9b: an Equipment rule holds a radio request until its step approves it, and a reviewer still approves it.
  * Each test makes a project of its own (so its offerings, caps, channels and settings stay its own), its own
  * engagement and its own units, through SQL as postgres on the local stack only, under a person's claims where an
  * RPC needs one, and removes them afterwards. The org's Radios class is shared, so availability is checked against
@@ -35,6 +36,7 @@ const expect = baseExpect.configure({ timeout: 30_000 });
 
 const DEMO_ORG_ID = "01920000-0000-7000-8000-000000000001";
 const OWNER = "01920000-0000-7000-8000-000000000101";
+const ADMIN = "01920000-0000-7000-8000-000000000102";
 const AGENCY = {
   owner: "01920000-0000-7000-8000-000010800101",
   staffOne: "01920000-0000-7000-8000-000010800102",
@@ -776,6 +778,96 @@ test("a radio assigned to a person, issued by tag, is withdrawn when the engagem
     await page.goto(allocationsPath(project, "&filter=Withdrawn"));
     await expect(allocationRow(page, one, radios.name)).toContainText("Withdrawn");
   } finally {
+    await removeProject(project, [tag]);
+  }
+});
+
+test("P9b: an Equipment rule holds a radio request until its step approves, and a reviewer still approves it", async ({
+  page,
+  browser,
+}) => {
+  const id = uniqueId();
+  const tag = `R7G${id.slice(-6)}`.toUpperCase();
+  const { one } = await names();
+  const radios = await radioClass();
+  const project = await newProject("P9b Equipment");
+  let rule: string | undefined;
+  try {
+    await setOnProject(project, "offerings.radios", "provided");
+    await availableRadio(radios.id, tag);
+    const { entry } = await crewedEngagement(project);
+    // Radio requests on this project wait on the org's Admin.
+    const [made] = await localSql<{ id: string }>(
+      `insert into app.approval_rules (project_id, subject, name, asset_class_id)
+       values ($1, 'Equipment', 'Radio requests', $2) returning id`,
+      [project.id, radios.id],
+      OWNER,
+    );
+    rule = made?.id;
+    await localSql(
+      `insert into app.approval_rule_steps (approval_rule_id, step_order, name, approver_membership_id)
+       values ($1, 1, 'Quartermaster', (select m.id from app.memberships m
+         where m.org_id = $2 and m.person_id = $3 and m.deleted_at is null limit 1))`,
+      [rule, DEMO_ORG_ID, ADMIN],
+      OWNER,
+    );
+    await localSql(
+      "select app.transition_approval_rule($1, 'Draft', 'Active', 'P9b journey.')",
+      [rule],
+      OWNER,
+    );
+
+    const producer = await asPerson(browser, "producer@example.com");
+    await producer.goto(allocationsPath(project));
+    await producer.getByRole("button", { name: "Assign", exact: true }).click();
+    const request = producer.getByRole("dialog", { name: "Assign an allocation" });
+    await fillAssign(request, {
+      holder: `entry:${entry}`,
+      kind: "asset",
+      item: `asset:${radios.id}`,
+      quantity: 1,
+      from: FROM,
+      to: TO,
+    });
+    await request.getByRole("button", { name: "Request instead" }).click();
+    await expect(request).toBeHidden();
+    await expect(allocationRow(producer, one, radios.name)).toContainText("Awaiting approval");
+    await producer.context().close();
+
+    // The Owner reviews allocations but cannot approve this one yet; the refusal says why.
+    await signInAs(page, "owner@example.com", DEMO_ORG);
+    await page.goto(allocationsPath(project));
+    await allocationRow(page, one, radios.name).getByRole("button", { name: "Review" }).click();
+    const decide = page.getByRole("dialog", { name: `Review ${radios.name}` });
+    await decide.getByRole("button", { name: "Approve" }).click();
+    await expect(decide).toContainText("This request waits on its project's approval rule.");
+
+    // The step approves. That does not approve the allocation: a reviewer still does.
+    const [approval] = await localSql<{ id: string }>(
+      `select s.id from app.subject_approvals s
+         join app.advance_allocations a on a.id = s.advance_allocation_id
+        where a.roster_entry_id = $1`,
+      [entry],
+    );
+    await localSql("select app.decide_subject_approval($1, true)", [approval?.id], ADMIN);
+    await page.goto(allocationsPath(project));
+    const row = allocationRow(page, one, radios.name);
+    await expect(row).toContainText("Requested");
+    await expect(row).not.toContainText("Awaiting approval");
+    await row.getByRole("button", { name: "Review" }).click();
+    await decide.getByRole("button", { name: "Approve" }).click();
+    await expect(decide).toBeHidden();
+    await expect(allocationRow(page, one, radios.name)).toContainText("Reserved");
+  } finally {
+    if (rule) {
+      await localSql(
+        "select app.transition_approval_rule($1, 'Active', 'Retired', 'P9b journey cleanup.')",
+        [rule],
+        OWNER,
+      ).catch((error: unknown) => {
+        console.warn(`P9b journey cleanup: ${String(error)}`);
+      });
+    }
     await removeProject(project, [tag]);
   }
 });
