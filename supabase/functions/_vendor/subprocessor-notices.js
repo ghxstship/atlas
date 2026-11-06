@@ -91,8 +91,9 @@ async function dispatchPlatformEmails(store, transport, options, limit = 25) {
                 template: "moderation_notice",
                 props: {
                   kind:
-                    claim.args["kind"] === "listing_report.decided"
-                      ? "listing_report.decided"
+                    claim.args["kind"] === "listing_report.decided" ||
+                    claim.args["kind"] === "listing.moderated"
+                      ? claim.args["kind"]
                       : "moderation_appeal.decided",
                   args: claim.args["values"] ?? {},
                 },

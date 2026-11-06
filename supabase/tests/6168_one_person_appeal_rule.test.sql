@@ -272,7 +272,9 @@ select is((select count(*)::int from private.platform_emails where template = 'm
   'is promised to no one, so it honours their settings');
 
 -- Nobody left in the org to tell.
+alter table app.memberships disable trigger user;
 update app.memberships set valid_to = now() - interval '1 minute' where org_id = pg_temp.id('org_a');
+alter table app.memberships enable trigger user;
 select pg_temp.as_op('olga');
 select lives_ok(format($$insert into world select 'removal_i', app.console_decide_listing(%L, 'Removed', 'Terms Violation', 'Acceptable Use Policy 3.2',
   'Asks for a fee.', 'We removed it, and nobody is left to read this.')$$, pg_temp.id('opp_i')), 'a removal when no member is left');

@@ -718,12 +718,12 @@ begin
         end if;
       elsif v_row.source_table in ('private.platform_emails', 'private.moderation_appeal_reviews', 'listing.moderated', 'listing_report.decided') then
         -- The person deleted their account or the org was purged: the notice went with them, and there is nobody left to tell.
-        if not case v_row.source_table
+        if not (case v_row.source_table
              when 'private.platform_emails' then exists (select 1 from private.platform_emails e where e.id = v_row.source_id)
              when 'private.moderation_appeal_reviews' then exists (select 1 from private.moderation_appeal_reviews r where r.moderation_appeal_id = v_row.source_id)
              when 'listing.moderated' then exists (select 1 from app.moderation_actions m where m.id = v_row.source_id)
              else exists (select 1 from app.listing_reports r where r.id = v_row.source_id)
-           end then
+           end) then
           perform private.follow_legal_queue_source(v_row.id, 'Withdrawn');
         end if;
       end if;

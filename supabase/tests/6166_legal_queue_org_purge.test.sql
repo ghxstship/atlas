@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(14);
+select plan(18);
 
 select pg_temp.new_user('olga', 'olga@platform.test', 'Olga Brandt');
 select pg_temp.as_platform();
