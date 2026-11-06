@@ -24,8 +24,8 @@ export interface DaySheetAudienceLabels {
 /**
  * Show > Day sheets, "Download for…" (B7, ADR 0146 decision 3): a day sheet's PDF for one team or one department,
  * optionally with only one show department's cues, on Letter or A4. It only builds the document link; the route
- * reads the sheet as the viewer and prints the audience's part through app.day_sheet_schedule. Loaded on demand
- * (components/lazy-ui/day-sheet-audience-download.tsx); labels come from the server.
+ * reads the sheet as the viewer and prints the audience's part through app.day_sheet_schedule. Imported directly,
+ * since it renders on arrival; labels come from the server.
  */
 export function DaySheetAudienceDownload({
   href,

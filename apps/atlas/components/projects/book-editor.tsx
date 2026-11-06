@@ -54,7 +54,7 @@ export interface BookEditorLabels {
 /**
  * New book, Edit and Delete on the project Documents tab (B7, ADR 0146 decision 4): name, kind, dates and the
  * sections in order (checked, moved up or down), saved by app.save_document_book; Delete moves the book to Trash
- * with the 8-second Undo (A119, A121). Loaded on demand (components/lazy-ui/book-editor.tsx); labels come from the
+ * with the 8-second Undo (A119, A121). Imported directly, since it renders on arrival; labels come from the
  * server.
  */
 export function BookEditor({

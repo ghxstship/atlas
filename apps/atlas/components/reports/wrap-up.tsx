@@ -11,7 +11,7 @@ import {
 import { WRAP_UP_CAPABILITIES } from "@xos/data/documents/sources";
 import { getFormatter, getLocale } from "next-intl/server";
 import { DocumentActions } from "@/components/documents/document-actions";
-import { WrapUpPanel } from "@/components/lazy-ui/wrap-up-panel";
+import { WrapUpPanel } from "./wrap-up-panel";
 import { InlineAlert } from "@/components/ui";
 import { wrapUpLoadOptions } from "@/lib/documents/wrap-up";
 import type { ProjectContext } from "@/lib/projects/context";

@@ -9,7 +9,7 @@ import { addDays, dayIn, hoursFromMinutes } from "@/lib/crew/time";
 import { getTranslate } from "@/lib/shell/translate";
 import { Avatar, StateIcon } from "./ui";
 import { DayTypeTags } from "@/components/schedule/day-type-tags";
-import { ShiftDropIsland } from "./lazy-scheduling";
+import { ShiftDropIsland } from "./shift-drop";
 
 export type LaneMode = "people" | "vendors" | "zones";
 export const LANE_MODES: readonly LaneMode[] = ["people", "vendors", "zones"];

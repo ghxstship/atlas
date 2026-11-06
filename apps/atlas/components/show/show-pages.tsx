@@ -53,7 +53,7 @@ import { DocumentActions } from "@/components/documents/document-actions";
 import { DisplayScreensAction } from "./display-screens-action";
 import { DayTypeTags } from "@/components/schedule/day-type-tags";
 import { dayTypeSlug, listProjectDays } from "@xos/data/schedule-days";
-import { DaySheetAudienceDownload } from "@/components/lazy-ui/day-sheet-audience-download";
+import { DaySheetAudienceDownload } from "./day-sheet-audience-download";
 import { documentHref } from "@/lib/documents/links";
 import { CUE_CALL_KINDS, CUE_CALL_SLUGS } from "@xos/data/cue-calls";
 import { departmentsInUse, getDepartmentsInUse } from "@xos/data/org-setup";

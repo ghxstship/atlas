@@ -5,7 +5,7 @@ import {
   PRODUCTION_ONLY_SECTIONS,
 } from "@xos/data/documents/model";
 import { getFormatter } from "next-intl/server";
-import { BookEditor } from "@/components/lazy-ui/book-editor";
+import { BookEditor } from "./book-editor";
 import { DownloadLink, InlineAlert } from "@/components/ui";
 import { bookHref } from "@/lib/documents/links";
 import type { ProjectContext } from "@/lib/projects/context";

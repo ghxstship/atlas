@@ -11,7 +11,7 @@ import { SHIFT_MIME } from "./shift-drop-mime";
  * resource schedule. The drop ranks that shift first, as the board's own drop does, so a person on an overlapping
  * shift is warned of and not assigned (A132's rule, ADR 0063 item 5); otherwise the shift goes to them through
  * assignShiftAction and the outcome is announced. The keyboard path stays the board's: choose the shift, then press
- * Assign on a ranked person. Loaded on demand (lazy-scheduling.tsx), and it listens on the schedule's table, whose
+ * Assign on a ranked person. Imported directly, since it is on the page on arrival, and it listens on the schedule's table, whose
  * person rows carry data-shift-drop with their membership.
  */
 export function ShiftDropIsland({

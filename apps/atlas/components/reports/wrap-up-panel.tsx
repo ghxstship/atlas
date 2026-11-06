@@ -57,7 +57,7 @@ export interface WrapUpLabels {
  * The editable part of the project wrap-up (B7, ADR 0146 decisions 5 and 6): the management summary, drafted with
  * Aurora (SummaryEntry, kind project_wrap_up) or typed, written only on Save with the request it came from; the
  * debrief points (add, edit, delete with Undo); and Complete or Reopen. A completed debrief locks the points and the
- * summary until it is reopened. Loaded on demand (components/lazy-ui/wrap-up-panel.tsx); labels come from the server.
+ * summary until it is reopened. Imported directly, since it renders on arrival; labels come from the server.
  */
 export function WrapUpPanel({
   org,
