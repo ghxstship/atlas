@@ -112,13 +112,14 @@ describe("the muster list", () => {
     door: null,
   };
 
-  it("reads the view's names and codes, and asks app.person_names only for names it leaves out", async () => {
+  it("reads the names and codes from the view, so the export carries the same names", async () => {
     const { db, calls } = fakeClient({
       "from:muster_list": [
         okResponse([
           {
             ...base,
             person_id: "p1",
+            full_name: "Kai Morgan",
             zone_id: "z1",
             zone_code: "STG",
             zone_name: "Stage",
@@ -147,7 +148,6 @@ describe("the muster list", () => {
           },
         ]),
       ],
-      "rpc:person_names": [okResponse([{ person_id: "p1", full_name: "Kai Morgan" }])],
     });
     const result = await listMuster(db, { projectId: "p" });
     expect(
@@ -158,7 +158,7 @@ describe("the muster list", () => {
       ["Ana Ruiz", "Clock In", null, null, null],
       ["Sasha Bell", "Guest Check In", null, null, null],
     ]);
-    expect(JSON.stringify(calls)).toContain('"p_person_ids":["p1"]');
+    expect(JSON.stringify(calls)).not.toContain("person_names");
   });
 
   it("groups by zone in the zones' order, door check-ins last", () => {

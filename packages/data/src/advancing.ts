@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { Constants, type Database } from "./database.types.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -2159,7 +2160,7 @@ export async function listGuests(
   db: XosClient,
   filter: { readonly orgId: string; readonly projectId?: string; readonly state?: GuestState },
 ): Promise<Result<GuestEntry[]>> {
-  let query = untyped(db)
+  let query = db
     .from("guest_list_entries")
     .select(
       "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by, pass_category_id, table_label, host_person_id, guest_email, pass_code",
@@ -2255,7 +2256,7 @@ export async function addGuest(
   if (guest === null) return fail({ kind: "invalid", message: "guest" });
   const pass = input.pass ? cleanGuestPass(input.pass) : null;
   if (pass === undefined) return fail({ kind: "invalid", message: "guest_pass" });
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("guest_list_entries")
     .insert({
       org_id: input.orgId,
@@ -2343,7 +2344,7 @@ export async function updateGuestPass(
 ): Promise<Result<null>> {
   const pass = cleanGuestPass(input);
   if (pass === undefined) return fail({ kind: "invalid", message: "guest_pass" });
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("guest_list_entries")
     .update({
       pass_category_id: pass.passCategoryId,
@@ -2382,7 +2383,7 @@ export interface GuestPass {
  * is not Approved or Checked In, or has no pass code yet, answers not found, so a Requested guest has no pass.
  */
 export async function getGuestPass(db: XosClient, guestId: string): Promise<Result<GuestPass>> {
-  const { data: raw, error } = await untyped(db)
+  const { data: raw, error } = await db
     .from("guest_list_entries")
     .select(
       "id, project_id, scope_node_id, guest_name, plus_ones, entry_state, pass_code, pass_category_id, table_label, decided_at",
@@ -2441,8 +2442,10 @@ export async function getGuestPass(db: XosClient, guestId: string): Promise<Resu
   });
 }
 
-export type GuestEmailKind = "Invitation" | "Pass" | "Message";
-export type GuestEmailState = "Queued" | "Sending" | "Sent" | "Failed" | "Suppressed" | "Skipped";
+export type GuestEmailKind = Database["app"]["Enums"]["guest_email_kind"];
+export type GuestEmailState = Database["app"]["Enums"]["guest_email_state"];
+export type GuestEmailSkipReason = Database["app"]["Enums"]["guest_email_skip_reason"];
+export const GUEST_EMAIL_KINDS = Constants.app.Enums.guest_email_kind;
 
 export interface GuestEmailSummary {
   readonly queued: number;
@@ -2472,7 +2475,7 @@ export async function queueGuestEmails(
     readonly locale: "en-US" | "es-US";
   },
 ): Promise<Result<{ sendId: string }>> {
-  const { data, error } = await untyped(db).rpc("queue_guest_emails", {
+  const { data, error } = await db.rpc("queue_guest_emails", {
     p_project_id: input.projectId,
     p_entry_ids: [...input.guestIds],
     p_kind: input.kind,
@@ -2489,7 +2492,7 @@ export async function guestEmailSendSummary(
   db: XosClient,
   sendId: string,
 ): Promise<Result<GuestEmailSummary>> {
-  const { data, error } = await untyped(db).rpc("guest_email_send_summary", { p_send_id: sendId });
+  const { data, error } = await db.rpc("guest_email_send_summary", { p_send_id: sendId });
   if (error) return fail(toDataError(error));
   const r = (data as Record<string, number>[] | null)?.[0];
   if (!r) return fail(NOT_FOUND);
@@ -2509,7 +2512,7 @@ export async function guestEmailSendSummary(
 export interface GuestEmailRow {
   readonly guestListEntryId: string;
   readonly state: GuestEmailState;
-  readonly skipReason: "No Email" | "Not Live" | "No Pass" | null;
+  readonly skipReason: GuestEmailSkipReason | null;
   readonly sentAt: string | null;
 }
 
@@ -2529,7 +2532,7 @@ export async function listGuestEmailSends(
   projectId: string,
   limit = 20,
 ): Promise<Result<GuestEmailSend[]>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("guest_email_sends")
     .select(
       "id, email_kind, subject, locale, created_at, created_by, guest_emails(guest_list_entry_id, send_state, skip_reason, sent_at)",
@@ -2577,7 +2580,7 @@ export async function listGuestEmailSends(
 export function guestEmailSkip(
   guest: Pick<GuestEntry, "guestEmail" | "state" | "passCode">,
   kind: GuestEmailKind,
-): "No Email" | "Not Live" | "No Pass" | null {
+): GuestEmailSkipReason | null {
   if (guest.state === "Declined") return "Not Live";
   if (!guest.guestEmail) return "No Email";
   if (kind === "Pass" && (guest.state === "Requested" || guest.passCode === null)) return "No Pass";

@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import { personNames } from "./person-names.ts";
+import type { Database } from "./database.types.ts";
 import type { Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 import {
@@ -251,7 +251,7 @@ export interface WeatherReading {
   readonly observedAt: string;
   readonly recordedBy: string | null;
   /** Manual for a reading on site, NWS for one the official feed recorded (B8, 2976). */
-  readonly source: "Manual" | "NWS";
+  readonly source: Database["app"]["Enums"]["weather_reading_source"];
 }
 
 export interface WeatherAlert {
@@ -776,7 +776,7 @@ export interface WeatherHold {
   readonly allClearMessage: string | null;
 }
 
-export type WeatherMessageKind = "Hold" | "All Clear";
+export type WeatherMessageKind = Database["app"]["Enums"]["weather_message_kind"];
 
 export interface WeatherFeedBoard {
   readonly status: WeatherFeedStatus;
@@ -811,7 +811,7 @@ export async function getWeatherFeedBoard(
       failuresSinceSuccess: numOrNull(r["failures_since_success"]) ?? 0,
     })),
     rows(
-      untyped(db)
+      db
         .from("weather_warnings")
         .select(
           "id, event, severity, headline, description, instruction, onset, ends_at, expires_at",
@@ -833,7 +833,7 @@ export async function getWeatherFeedBoard(
       }),
     ),
     rows(
-      untyped(db)
+      db
         .from("weather_forecast_periods")
         .select("starts_at, temperature_f, wind_speed_mph, precipitation_percent, short_forecast")
         .eq("project_id", projectId)
@@ -849,7 +849,7 @@ export async function getWeatherFeedBoard(
       }),
     ),
     rows(
-      untyped(db)
+      db
         .from("weather_holds")
         .select("id, hazard, message, called_at, cleared_at, all_clear_message")
         .eq("project_id", projectId)
@@ -865,7 +865,7 @@ export async function getWeatherFeedBoard(
       }),
     ),
     rows(
-      untyped(db)
+      db
         .from("weather_message_templates")
         .select("id, message_kind, body")
         .eq("project_id", projectId)
@@ -917,7 +917,7 @@ export async function turnOnWeatherFeed(
 /** Turns the official feed off: its row is deleted, so the worker stops polling. */
 export async function turnOffWeatherFeed(db: XosClient, feedId: string): Promise<Result<null>> {
   const result = await rows(
-    untyped(db)
+    db
       .from("weather_feeds")
       .update({ deleted_at: new Date().toISOString() })
       .eq("id", feedId)
@@ -983,7 +983,7 @@ export async function saveWeatherTemplate(
     return { ok: false, error: { kind: "invalid", message: "body" } };
   if (input.id) {
     return single(
-      untyped(db)
+      db
         .from("weather_message_templates")
         .update({ body })
         .eq("id", input.id)
@@ -1029,24 +1029,26 @@ export interface MusterRow {
   readonly door: string | null;
 }
 
+/** The most rows the muster page reads; at this count the page says the list is cut short and points to the export. */
+export const MUSTER_LIMIT = 5000;
+
 /**
  * The muster list of a project, optionally one zone, read as the caller: scan rows need the project's scan log, clock-in
  * rows its time entries, guest rows the guest list, and their door and plus-ones the door check-ins. The view names
- * zones, categories and parties itself; a person's name the view leaves out (row level security on people, 0204) comes
- * from app.person_names, as the scan log's does.
+ * zones, categories, people and parties itself (private.presence_person_name, 2971), so an export carries the same names.
  */
 export async function listMuster(
   db: XosClient,
   input: { readonly projectId: string; readonly zoneId?: string | null },
 ): Promise<Result<MusterRow[]>> {
-  let query = untyped(db)
+  let query = db
     .from("muster_list")
     .select(
       "person_id, full_name, guest_name, plus_ones, zone_id, zone_code, zone_name, credential_number, credential_category_id, category_code, engagement_id, party_name, entered_at, source, door",
     )
     .eq("project_id", input.projectId);
   if (input.zoneId) query = query.eq("zone_id", input.zoneId);
-  const result = await rows(query.order("entered_at", { ascending: false }).limit(5000), (r) => ({
+  return rows(query.order("entered_at", { ascending: false }).limit(MUSTER_LIMIT), (r) => ({
     personId: strOrNull(r["person_id"]),
     name: strOrNull(r["full_name"]) ?? strOrNull(r["guest_name"]),
     guestName: strOrNull(r["guest_name"]),
@@ -1063,18 +1065,6 @@ export async function listMuster(
     source: str(r["source"]) as MusterSource,
     door: strOrNull(r["door"]),
   }));
-  if (!result.ok) return result;
-  const unnamed = result.data
-    .filter((r) => r.personId !== null && r.name === null)
-    .map((r) => r.personId);
-  if (unnamed.length === 0) return result;
-  const names = await personNames(db, unnamed);
-  return {
-    ok: true,
-    data: result.data.map((r) =>
-      r.personId !== null && r.name === null ? { ...r, name: names.get(r.personId) ?? null } : r,
-    ),
-  };
 }
 
 /** Muster rows grouped by zone, in the order of the zones given, then the door check-ins (zone null) last. */

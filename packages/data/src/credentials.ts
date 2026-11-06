@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { Constants, type Database } from "./database.types.ts";
 import { fillPersonNames, personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
@@ -705,13 +706,12 @@ export async function withdrawZoneAccess(db: XosClient, id: string): Promise<Res
 export type ScanResult = "Granted" | "Denied";
 
 /** In or Out (B8, migration 2970). Exit is never refused. */
-export type ScanDirection = "In" | "Out";
+export type ScanDirection = Database["app"]["Enums"]["scan_direction"];
 
-export const SCAN_DIRECTIONS: readonly ScanDirection[] = ["In", "Out"];
+export const SCAN_DIRECTIONS = Constants.app.Enums.scan_direction;
 
 /** Why the database denied an In scan (2970), in Compass's decideGate order. Denials before 2970 carry none. */
-export type ScanRefusalReason =
-  "Revoked" | "Not Yet Valid" | "Expired" | "No Zone Access" | "Outside Window";
+export type ScanRefusalReason = Database["app"]["Enums"]["scan_refusal_reason"];
 
 /** The catalog key of a refusal reason: credentials.scans.reasons.{key}. */
 export const refusalReasonKey = (reason: ScanRefusalReason) => reason.replace(/ /g, "");
@@ -802,7 +802,7 @@ export async function listAccessScans(
   db: XosClient,
   filter: ScanFilter,
 ): Promise<Result<AccessScan[]>> {
-  let query = untyped(db).from("access_scans").select(SCAN_COLUMNS).eq("org_id", filter.orgId);
+  let query = db.from("access_scans").select(SCAN_COLUMNS).eq("org_id", filter.orgId);
   if (filter.projectId) query = query.eq("credential.category.project_id", filter.projectId);
   if (filter.credentialId) query = query.eq("credential_id", filter.credentialId);
   if (filter.result) query = query.eq("result", filter.result);
@@ -904,7 +904,7 @@ export async function recordScan(
   db: XosClient,
   input: RecordScanInput,
 ): Promise<Result<ScanDecision>> {
-  const { data, error } = await untyped(db).rpc("record_scan", {
+  const { data, error } = await db.rpc("record_scan", {
     p_zone_id: input.zoneId,
     ...(input.credentialId ? { p_credential_id: input.credentialId } : {}),
     ...(input.credentialNumber ? { p_credential_number: input.credentialNumber } : {}),
@@ -938,7 +938,7 @@ export async function overrideScan(
   db: XosClient,
   input: OverrideScanInput,
 ): Promise<Result<ScanDecision & { overriddenScanId: string }>> {
-  const { data, error } = await untyped(db).rpc("override_access_scan", {
+  const { data, error } = await db.rpc("override_access_scan", {
     p_scan_id: input.scanId,
     p_reason: input.reason,
     ...(input.id ? { p_id: input.id } : {}),
@@ -965,7 +965,7 @@ export async function listCategoryRequirements(
   db: XosClient,
   categoryId: string,
 ): Promise<Result<CategoryRequirement[]>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("credential_category_requirements")
     .select(
       "id, credential_category_id, training_course_id, certification_id, course:training_courses(title), certification:certifications(name)",
@@ -1017,7 +1017,7 @@ export async function addCategoryRequirement(
 
 /** Removes a requirement; credentials already issued are untouched. */
 export async function removeCategoryRequirement(db: XosClient, id: string): Promise<Result<null>> {
-  const { error } = await untyped(db)
+  const { error } = await db
     .from("credential_category_requirements")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id);
@@ -1055,7 +1055,7 @@ export async function credentialIssueCheck(
     readonly validTo?: string | null;
   },
 ): Promise<Result<IssueCheck[]>> {
-  const { data, error } = await untyped(db).rpc("credential_issue_check", {
+  const { data, error } = await db.rpc("credential_issue_check", {
     p_category_id: input.categoryId,
     p_holder_person_id: input.holderPersonId,
     ...(input.validFrom ? { p_valid_from: input.validFrom } : {}),
@@ -1114,7 +1114,7 @@ export async function credentialReviews(
   credentialIds: readonly string[],
 ): Promise<Result<Map<string, CredentialReview>>> {
   if (credentialIds.length === 0) return ok(new Map());
-  const { data, error } = await untyped(db).rpc("credential_review", {
+  const { data, error } = await db.rpc("credential_review", {
     p_credential_ids: [...credentialIds].slice(0, 500),
   });
   if (error) return fail(toDataError(error));
@@ -1158,7 +1158,7 @@ export async function credentialBookingsElsewhere(
   db: XosClient,
   credentialId: string,
 ): Promise<Result<BookingElsewhere[]>> {
-  const { data, error } = await untyped(db).rpc("credential_bookings_elsewhere", {
+  const { data, error } = await db.rpc("credential_bookings_elsewhere", {
     p_credential_id: credentialId,
   });
   if (error) return fail(toDataError(error));
@@ -1195,7 +1195,7 @@ export async function zoneCountsLive(
   db: XosClient,
   projectId: string,
 ): Promise<Result<ZoneCount[]>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("zone_counts_live")
     .select("zone_id, credential_category_id, engagement_id, inside, last_entry_at")
     .eq("project_id", projectId);

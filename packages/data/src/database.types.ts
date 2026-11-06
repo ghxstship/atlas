@@ -4048,10 +4048,14 @@ export type Database = {
           credential_id: string;
           deleted_at: string | null;
           device_scanned_at: string | null;
+          direction: Database["app"]["Enums"]["scan_direction"];
           id: string;
           offline_result: Database["app"]["Enums"]["scan_result"] | null;
           org_id: string;
+          override_of_scan_id: string | null;
+          override_reason: string | null;
           project_id: string;
+          refusal_reason: Database["app"]["Enums"]["scan_refusal_reason"] | null;
           result: Database["app"]["Enums"]["scan_result"];
           scanned_at: string;
           updated_at: string;
@@ -4065,10 +4069,14 @@ export type Database = {
           credential_id: string;
           deleted_at?: string | null;
           device_scanned_at?: string | null;
+          direction?: Database["app"]["Enums"]["scan_direction"];
           id?: string;
           offline_result?: Database["app"]["Enums"]["scan_result"] | null;
           org_id: string;
+          override_of_scan_id?: string | null;
+          override_reason?: string | null;
           project_id: string;
+          refusal_reason?: Database["app"]["Enums"]["scan_refusal_reason"] | null;
           result?: Database["app"]["Enums"]["scan_result"];
           scanned_at?: string;
           updated_at?: string;
@@ -4081,10 +4089,14 @@ export type Database = {
           credential_id?: string;
           deleted_at?: string | null;
           device_scanned_at?: string | null;
+          direction?: Database["app"]["Enums"]["scan_direction"];
           id?: string;
           offline_result?: Database["app"]["Enums"]["scan_result"] | null;
           org_id?: string;
+          override_of_scan_id?: string | null;
+          override_reason?: string | null;
           project_id?: string;
+          refusal_reason?: Database["app"]["Enums"]["scan_refusal_reason"] | null;
           result?: Database["app"]["Enums"]["scan_result"];
           scanned_at?: string;
           updated_at?: string;
@@ -15126,72 +15138,82 @@ export type Database = {
           },
         ];
       };
-      credential_vehicles: {
+      credential_category_requirements: {
         Row: {
+          certification_id: string | null;
           created_at: string;
           created_by: string | null;
-          credential_id: string;
+          credential_category_id: string;
           deleted_at: string | null;
           id: string;
           org_id: string;
-          roster_vehicle_id: string | null;
+          training_course_id: string | null;
           updated_at: string;
           updated_by: string | null;
         };
         ComputedFields: never;
         Insert: {
+          certification_id?: string | null;
           created_at?: string;
           created_by?: string | null;
-          credential_id: string;
+          credential_category_id: string;
           deleted_at?: string | null;
           id?: string;
           org_id: string;
-          roster_vehicle_id?: string | null;
+          training_course_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
+          certification_id?: string | null;
           created_at?: string;
           created_by?: string | null;
-          credential_id?: string;
+          credential_category_id?: string;
           deleted_at?: string | null;
           id?: string;
           org_id?: string;
-          roster_vehicle_id?: string | null;
+          training_course_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "credential_vehicles_created_by_fkey";
+            foreignKeyName: "credential_category_requirements_certification_id_fkey";
+            columns: ["certification_id"];
+            isOneToOne: false;
+            referencedRelation: "certifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_category_requirements_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "credential_vehicles_credential_id_fkey";
-            columns: ["credential_id"];
-            isOneToOne: true;
-            referencedRelation: "credentials";
+            foreignKeyName: "credential_category_requirements_credential_category_id_fkey";
+            columns: ["credential_category_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_categories";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "credential_vehicles_org_id_fkey";
+            foreignKeyName: "credential_category_requirements_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "credential_vehicles_roster_vehicle_id_fkey";
-            columns: ["roster_vehicle_id"];
+            foreignKeyName: "credential_category_requirements_training_course_id_fkey";
+            columns: ["training_course_id"];
             isOneToOne: false;
-            referencedRelation: "roster_vehicles";
+            referencedRelation: "training_courses";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "credential_vehicles_updated_by_fkey";
+            foreignKeyName: "credential_category_requirements_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -15297,6 +15319,86 @@ export type Database = {
           },
           {
             foreignKeyName: "credential_photos_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      credential_vehicles: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          credential_id: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          roster_vehicle_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          credential_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          roster_vehicle_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          credential_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          roster_vehicle_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "credential_vehicles_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_vehicles_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: true;
+            referencedRelation: "credential_photo_states";
+            referencedColumns: ["credential_id"];
+          },
+          {
+            foreignKeyName: "credential_vehicles_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: true;
+            referencedRelation: "credentials";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_vehicles_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_vehicles_roster_vehicle_id_fkey";
+            columns: ["roster_vehicle_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_vehicles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_vehicles_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -22627,6 +22729,199 @@ export type Database = {
           },
         ];
       };
+      guest_email_sends: {
+        Row: {
+          body: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          email_kind: Database["app"]["Enums"]["guest_email_kind"];
+          id: string;
+          locale: string;
+          org_id: string;
+          project_id: string;
+          subject: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          body?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          email_kind: Database["app"]["Enums"]["guest_email_kind"];
+          id?: string;
+          locale?: string;
+          org_id: string;
+          project_id: string;
+          subject?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          email_kind?: Database["app"]["Enums"]["guest_email_kind"];
+          id?: string;
+          locale?: string;
+          org_id?: string;
+          project_id?: string;
+          subject?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guest_email_sends_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_email_sends_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_email_sends_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_email_sends_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_email_sends_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_email_sends_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_email_sends_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      guest_emails: {
+        Row: {
+          attempts: number;
+          claimed_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          error: string | null;
+          guest_email_send_id: string;
+          guest_list_entry_id: string;
+          id: string;
+          org_id: string;
+          provider_message_id: string | null;
+          send_state: Database["app"]["Enums"]["guest_email_state"];
+          sent_at: string | null;
+          skip_reason: Database["app"]["Enums"]["guest_email_skip_reason"] | null;
+          to_email: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempts?: number;
+          claimed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          error?: string | null;
+          guest_email_send_id: string;
+          guest_list_entry_id: string;
+          id?: string;
+          org_id: string;
+          provider_message_id?: string | null;
+          send_state?: Database["app"]["Enums"]["guest_email_state"];
+          sent_at?: string | null;
+          skip_reason?: Database["app"]["Enums"]["guest_email_skip_reason"] | null;
+          to_email?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          attempts?: number;
+          claimed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          error?: string | null;
+          guest_email_send_id?: string;
+          guest_list_entry_id?: string;
+          id?: string;
+          org_id?: string;
+          provider_message_id?: string | null;
+          send_state?: Database["app"]["Enums"]["guest_email_state"];
+          sent_at?: string | null;
+          skip_reason?: Database["app"]["Enums"]["guest_email_skip_reason"] | null;
+          to_email?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guest_emails_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_emails_guest_email_send_id_fkey";
+            columns: ["guest_email_send_id"];
+            isOneToOne: false;
+            referencedRelation: "guest_email_sends";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_emails_guest_list_entry_id_fkey";
+            columns: ["guest_list_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "guest_list_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_emails_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_emails_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       guest_list_entries: {
         Row: {
           checked_in_at: string | null;
@@ -22639,14 +22934,19 @@ export type Database = {
           deleted_at: string | null;
           engagement_id: string | null;
           entry_state: Database["app"]["Enums"]["guest_entry_state"];
+          guest_email: string | null;
           guest_name: string;
+          host_person_id: string | null;
           id: string;
           note: string | null;
           org_id: string;
+          pass_category_id: string | null;
+          pass_code: string | null;
           person_id: string | null;
           plus_ones: number;
           project_id: string;
           scope_node_id: string | null;
+          table_label: string | null;
           updated_at: string;
           updated_by: string | null;
         };
@@ -22662,14 +22962,19 @@ export type Database = {
           deleted_at?: string | null;
           engagement_id?: string | null;
           entry_state?: Database["app"]["Enums"]["guest_entry_state"];
+          guest_email?: string | null;
           guest_name: string;
+          host_person_id?: string | null;
           id?: string;
           note?: string | null;
           org_id: string;
+          pass_category_id?: string | null;
+          pass_code?: string | null;
           person_id?: string | null;
           plus_ones?: number;
           project_id: string;
           scope_node_id?: string | null;
+          table_label?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -22684,14 +22989,19 @@ export type Database = {
           deleted_at?: string | null;
           engagement_id?: string | null;
           entry_state?: Database["app"]["Enums"]["guest_entry_state"];
+          guest_email?: string | null;
           guest_name?: string;
+          host_person_id?: string | null;
           id?: string;
           note?: string | null;
           org_id?: string;
+          pass_category_id?: string | null;
+          pass_code?: string | null;
           person_id?: string | null;
           plus_ones?: number;
           project_id?: string;
           scope_node_id?: string | null;
+          table_label?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -22753,10 +23063,24 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "guest_list_entries_host_person_id_fkey";
+            columns: ["host_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "guest_list_entries_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_pass_category_id_fkey";
+            columns: ["pass_category_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_categories";
             referencedColumns: ["id"];
           },
           {
@@ -59068,6 +59392,435 @@ export type Database = {
           },
         ];
       };
+      weather_feeds: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          nws_forecast_hourly_url: string | null;
+          nws_station_id: string | null;
+          org_id: string;
+          points_checked_at: string | null;
+          project_id: string;
+          provider: Database["app"]["Enums"]["weather_provider"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          nws_forecast_hourly_url?: string | null;
+          nws_station_id?: string | null;
+          org_id: string;
+          points_checked_at?: string | null;
+          project_id: string;
+          provider?: Database["app"]["Enums"]["weather_provider"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          nws_forecast_hourly_url?: string | null;
+          nws_station_id?: string | null;
+          org_id?: string;
+          points_checked_at?: string | null;
+          project_id?: string;
+          provider?: Database["app"]["Enums"]["weather_provider"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "weather_feeds_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_feeds_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_feeds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_feeds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_feeds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_feeds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_feeds_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      weather_forecast_periods: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_at: string;
+          fetched_at: string;
+          id: string;
+          org_id: string;
+          precipitation_percent: number | null;
+          project_id: string;
+          provider: Database["app"]["Enums"]["weather_provider"];
+          short_forecast: string | null;
+          starts_at: string;
+          temperature_f: number | null;
+          updated_at: string;
+          updated_by: string | null;
+          wind_speed_mph: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at: string;
+          fetched_at?: string;
+          id?: string;
+          org_id: string;
+          precipitation_percent?: number | null;
+          project_id: string;
+          provider?: Database["app"]["Enums"]["weather_provider"];
+          short_forecast?: string | null;
+          starts_at: string;
+          temperature_f?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          wind_speed_mph?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string;
+          fetched_at?: string;
+          id?: string;
+          org_id?: string;
+          precipitation_percent?: number | null;
+          project_id?: string;
+          provider?: Database["app"]["Enums"]["weather_provider"];
+          short_forecast?: string | null;
+          starts_at?: string;
+          temperature_f?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          wind_speed_mph?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "weather_forecast_periods_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_forecast_periods_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_forecast_periods_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_forecast_periods_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_forecast_periods_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_forecast_periods_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_forecast_periods_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      weather_holds: {
+        Row: {
+          all_clear_message: string | null;
+          all_clear_request_id: string | null;
+          called_at: string;
+          called_on_device_at: string | null;
+          cleared_at: string | null;
+          cleared_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          hazard: Database["app"]["Enums"]["weather_hazard"] | null;
+          id: string;
+          message: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          weather_alert_id: string | null;
+          weather_warning_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          all_clear_message?: string | null;
+          all_clear_request_id?: string | null;
+          called_at?: string;
+          called_on_device_at?: string | null;
+          cleared_at?: string | null;
+          cleared_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          hazard?: Database["app"]["Enums"]["weather_hazard"] | null;
+          id?: string;
+          message: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          weather_alert_id?: string | null;
+          weather_warning_id?: string | null;
+        };
+        Update: {
+          all_clear_message?: string | null;
+          all_clear_request_id?: string | null;
+          called_at?: string;
+          called_on_device_at?: string | null;
+          cleared_at?: string | null;
+          cleared_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          hazard?: Database["app"]["Enums"]["weather_hazard"] | null;
+          id?: string;
+          message?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          weather_alert_id?: string | null;
+          weather_warning_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "weather_holds_cleared_by_fkey";
+            columns: ["cleared_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_holds_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_holds_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_holds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_holds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_holds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_holds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_holds_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_holds_weather_alert_id_fkey";
+            columns: ["weather_alert_id"];
+            isOneToOne: false;
+            referencedRelation: "weather_alerts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_holds_weather_warning_id_fkey";
+            columns: ["weather_warning_id"];
+            isOneToOne: false;
+            referencedRelation: "weather_warnings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      weather_message_templates: {
+        Row: {
+          body: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          message_kind: Database["app"]["Enums"]["weather_message_kind"];
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          message_kind: Database["app"]["Enums"]["weather_message_kind"];
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          message_kind?: Database["app"]["Enums"]["weather_message_kind"];
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "weather_message_templates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_message_templates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_message_templates_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_message_templates_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_message_templates_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_message_templates_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_message_templates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       weather_readings: {
         Row: {
           created_at: string;
@@ -59080,6 +59833,7 @@ export type Database = {
           project_id: string;
           reading_value: number;
           recorded_by_membership_id: string | null;
+          source: Database["app"]["Enums"]["weather_reading_source"];
           updated_at: string;
           updated_by: string | null;
         };
@@ -59095,6 +59849,7 @@ export type Database = {
           project_id: string;
           reading_value: number;
           recorded_by_membership_id?: string | null;
+          source?: Database["app"]["Enums"]["weather_reading_source"];
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -59109,6 +59864,7 @@ export type Database = {
           project_id?: string;
           reading_value?: number;
           recorded_by_membership_id?: string | null;
+          source?: Database["app"]["Enums"]["weather_reading_source"];
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -59266,6 +60022,132 @@ export type Database = {
           },
           {
             foreignKeyName: "weather_thresholds_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      weather_warnings: {
+        Row: {
+          certainty: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          ended_at: string | null;
+          ends_at: string | null;
+          event: string;
+          expires_at: string | null;
+          headline: string | null;
+          id: string;
+          instruction: string | null;
+          onset: string | null;
+          org_id: string;
+          project_id: string;
+          provider: Database["app"]["Enums"]["weather_provider"];
+          provider_alert_id: string;
+          sent_at: string | null;
+          severity: string;
+          updated_at: string;
+          updated_by: string | null;
+          urgency: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          certainty?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          ended_at?: string | null;
+          ends_at?: string | null;
+          event: string;
+          expires_at?: string | null;
+          headline?: string | null;
+          id?: string;
+          instruction?: string | null;
+          onset?: string | null;
+          org_id: string;
+          project_id: string;
+          provider?: Database["app"]["Enums"]["weather_provider"];
+          provider_alert_id: string;
+          sent_at?: string | null;
+          severity: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          urgency?: string | null;
+        };
+        Update: {
+          certainty?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          ended_at?: string | null;
+          ends_at?: string | null;
+          event?: string;
+          expires_at?: string | null;
+          headline?: string | null;
+          id?: string;
+          instruction?: string | null;
+          onset?: string | null;
+          org_id?: string;
+          project_id?: string;
+          provider?: Database["app"]["Enums"]["weather_provider"];
+          provider_alert_id?: string;
+          sent_at?: string | null;
+          severity?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          urgency?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "weather_warnings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_warnings_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_warnings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_warnings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_warnings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "weather_warnings_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "weather_warnings_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -62970,6 +63852,31 @@ export type Database = {
           },
         ];
       };
+      muster_list: {
+        Row: {
+          category_code: string | null;
+          credential_category_id: string | null;
+          credential_id: string | null;
+          credential_number: string | null;
+          door: string | null;
+          engagement_id: string | null;
+          entered_at: string | null;
+          full_name: string | null;
+          guest_name: string | null;
+          org_id: string | null;
+          party_name: string | null;
+          person_id: string | null;
+          plus_ones: number | null;
+          project_id: string | null;
+          source: string | null;
+          venue_id: string | null;
+          zone_code: string | null;
+          zone_id: string | null;
+          zone_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       my_work_export: {
         Row: {
           due_at: string | null;
@@ -65027,6 +65934,46 @@ export type Database = {
         };
         Relationships: [];
       };
+      zone_counts_live: {
+        Row: {
+          category_code: string | null;
+          credential_category_id: string | null;
+          engagement_id: string | null;
+          inside: number | null;
+          last_entry_at: string | null;
+          org_id: string | null;
+          party_name: string | null;
+          project_id: string | null;
+          venue_id: string | null;
+          zone_code: string | null;
+          zone_id: string | null;
+          zone_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      zone_presence: {
+        Row: {
+          category_code: string | null;
+          credential_category_id: string | null;
+          credential_id: string | null;
+          credential_number: string | null;
+          engagement_id: string | null;
+          entered_at: string | null;
+          full_name: string | null;
+          org_id: string | null;
+          party_name: string | null;
+          person_id: string | null;
+          project_id: string | null;
+          source: string | null;
+          venue_id: string | null;
+          zone_code: string | null;
+          zone_id: string | null;
+          zone_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
     };
     Functions: {
       abandon_idempotent_request: { Args: { p_key: string; p_org_id: string }; Returns: undefined };
@@ -65547,6 +66494,18 @@ export type Database = {
         Returns: number;
       };
       call_cue: { Args: { p_cue_id: string }; Returns: string };
+      call_weather_hold: {
+        Args: {
+          p_device_at?: string;
+          p_hazard?: Database["app"]["Enums"]["weather_hazard"];
+          p_id?: string;
+          p_message: string;
+          p_project_id: string;
+          p_weather_alert_id?: string;
+          p_weather_warning_id?: string;
+        };
+        Returns: string;
+      };
       can_add_per_diems: { Args: { p_project_id: string }; Returns: boolean };
       can_export_org: { Args: { p_org_id: string }; Returns: boolean };
       cancel_approval: {
@@ -65717,6 +66676,34 @@ export type Database = {
           source_label: string;
           time_zone: string;
           watermark: boolean;
+        }[];
+      };
+      claim_guest_emails: {
+        Args: { p_limit?: number };
+        Returns: {
+          body: string;
+          decided_at: string;
+          email_kind: Database["app"]["Enums"]["guest_email_kind"];
+          guest_email_id: string;
+          guest_list_entry_id: string;
+          guest_name: string;
+          locale: string;
+          org_id: string;
+          org_name: string;
+          pass_category_code: string;
+          pass_category_name: string;
+          pass_code: string;
+          plus_ones: number;
+          project_id: string;
+          project_key: string;
+          project_name: string;
+          show_day: string;
+          show_name: string;
+          subject: string;
+          table_label: string;
+          time_zone: string;
+          to_email: string;
+          unsubscribe_token: string;
         }[];
       };
       claim_integration_inbound_event: {
@@ -66498,6 +67485,48 @@ export type Database = {
           source: Database["app"]["Enums"]["credential_photo_source"];
         }[];
       };
+      credential_bookings_elsewhere: {
+        Args: { p_credential_id: string };
+        Returns: {
+          ends_at: string;
+          kind: string;
+          project_id: string;
+          project_key: string;
+          starts_at: string;
+        }[];
+      };
+      credential_issue_check: {
+        Args: {
+          p_category_id: string;
+          p_holder_person_id: string;
+          p_valid_from?: string;
+          p_valid_to?: string;
+        };
+        Returns: {
+          blocking: boolean;
+          check_code: string;
+          other_credential_id: string;
+          project_id: string;
+          project_key: string;
+          requirement_id: string;
+          title: string;
+        }[];
+      };
+      credential_review: {
+        Args: { p_credential_ids: string[] };
+        Returns: {
+          booked_elsewhere: boolean;
+          credential_id: string;
+          duplicate_live: boolean;
+          holder_person_id: string;
+          holder_source: string;
+          missing_requirements: number;
+          org_id: string;
+          other_badges_on_project: number;
+          project_id: string;
+          same_name_on_project: number;
+        }[];
+      };
       decide_allocation: {
         Args: {
           p_allocation_id: string;
@@ -66651,9 +67680,28 @@ export type Database = {
           entry_state: Database["app"]["Enums"]["guest_entry_state"];
           guest_list_entry_id: string;
           guest_name: string;
+          host_name: string;
+          host_person_id: string;
           note: string;
+          pass_category_code: string;
+          pass_category_name: string;
+          pass_code: string;
           plus_ones: number;
           plus_ones_admitted: number;
+          table_label: string;
+        }[];
+      };
+      due_weather_feeds: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          feed_id: string;
+          forecast_fetched_at: string;
+          latitude: number;
+          longitude: number;
+          nws_forecast_hourly_url: string;
+          nws_station_id: string;
+          points_checked_at: string;
+          project_id: string;
         }[];
       };
       edit_chat_message: { Args: { p_body: string; p_message_id: string }; Returns: string };
@@ -66925,6 +67973,10 @@ export type Database = {
         Args: { p_checksum_sha256: string; p_imported_version: string; p_link_id: string };
         Returns: Database["app"]["Enums"]["scan_status"];
       };
+      finish_guest_email: {
+        Args: { p_error?: string; p_id: string; p_provider_message_id?: string };
+        Returns: undefined;
+      };
       finish_import_batch: { Args: { p_import_batch_id: string }; Returns: undefined };
       finish_job: {
         Args: { p_error?: string; p_job_id: string; p_succeeded: boolean };
@@ -67008,6 +68060,10 @@ export type Database = {
         Args: { p_engagement_id: string; p_period_end: string; p_period_start: string };
         Returns: string;
       };
+      give_weather_all_clear: {
+        Args: { p_device_at?: string; p_hold_id: string; p_id?: string; p_message: string };
+        Returns: string;
+      };
       global_search: {
         Args: {
           p_embedding?: string;
@@ -67037,6 +68093,20 @@ export type Database = {
       grant_support_session: {
         Args: { p_hours: number; p_org_id: string; p_reason: string };
         Returns: string;
+      };
+      guest_email_send_summary: {
+        Args: { p_send_id: string };
+        Returns: {
+          failed: number;
+          queued: number;
+          sending: number;
+          sent: number;
+          skipped: number;
+          skipped_no_email: number;
+          skipped_no_pass: number;
+          skipped_not_live: number;
+          suppressed: number;
+        }[];
       };
       handbook_acknowledgment_status: {
         Args: { p_article_id: string };
@@ -67727,6 +68797,24 @@ export type Database = {
           skin_disorders: number;
         }[];
       };
+      override_access_scan: {
+        Args: { p_id?: string; p_reason: string; p_scan_id: string };
+        Returns: {
+          category_code: string;
+          credential_id: string;
+          credential_number: string;
+          direction: Database["app"]["Enums"]["scan_direction"];
+          holder_name: string;
+          id: string;
+          overridden_scan_id: string;
+          refusal_reason: Database["app"]["Enums"]["scan_refusal_reason"];
+          replayed: boolean;
+          result: Database["app"]["Enums"]["scan_result"];
+          scanned_at: string;
+          zone_code: string;
+          zone_id: string;
+        }[];
+      };
       partner_client_orgs: {
         Args: { p_partner_org_id: string };
         Returns: {
@@ -67938,6 +69026,17 @@ export type Database = {
       };
       queue_due_report_schedules: { Args: { p_limit?: number }; Returns: number };
       queue_due_warehouse_deliveries: { Args: Record<PropertyKey, never>; Returns: number };
+      queue_guest_emails: {
+        Args: {
+          p_body?: string;
+          p_entry_ids: string[];
+          p_kind: Database["app"]["Enums"]["guest_email_kind"];
+          p_locale?: string;
+          p_project_id: string;
+          p_subject?: string;
+        };
+        Returns: string;
+      };
       queue_subprocessor_notice: {
         Args: { p_effective_on: string; p_list_version: string; p_summary: string };
         Returns: number;
@@ -68408,6 +69507,7 @@ export type Database = {
           p_credential_id?: string;
           p_credential_number?: string;
           p_device_scanned_at?: string;
+          p_direction?: Database["app"]["Enums"]["scan_direction"];
           p_id?: string;
           p_offline_result?: Database["app"]["Enums"]["scan_result"];
           p_zone_id: string;
@@ -68416,8 +69516,10 @@ export type Database = {
           category_code: string;
           credential_id: string;
           credential_number: string;
+          direction: Database["app"]["Enums"]["scan_direction"];
           holder_name: string;
           id: string;
+          refusal_reason: Database["app"]["Enums"]["scan_refusal_reason"];
           replayed: boolean;
           result: Database["app"]["Enums"]["scan_result"];
           scanned_at: string;
@@ -68497,6 +69599,11 @@ export type Database = {
           p_table_key: string;
         };
         Returns: string;
+      };
+      record_weather_feed: { Args: { p_feed_id: string; p_payload: Json }; Returns: Json };
+      record_weather_feed_failure: {
+        Args: { p_error: string; p_feed_id: string };
+        Returns: undefined;
       };
       record_weather_reading: {
         Args: {
@@ -68706,6 +69813,7 @@ export type Database = {
       request_engaged_guest: {
         Args: {
           p_engagement_id: string;
+          p_guest_email?: string;
           p_guest_name: string;
           p_note?: string;
           p_plus_ones?: number;
@@ -70135,6 +71243,17 @@ export type Database = {
         Args: { p_after: string; p_delivery_id: string; p_limit: number; p_table_key: string };
         Returns: Json[];
       };
+      weather_feed_status: {
+        Args: { p_project_id: string };
+        Returns: {
+          failures_since_success: number;
+          feed_id: string;
+          last_error: string;
+          last_failure_at: string;
+          last_success_at: string;
+          supported: boolean;
+        }[];
+      };
       web_push_devices: {
         Args: { p_delivery_id: string };
         Returns: {
@@ -70400,6 +71519,9 @@ export type Database = {
       grant_target_kind: "organization" | "workspace" | "team" | "project" | "record";
       group_kind: "Department" | "Project" | "Crew" | "Custom";
       group_role: "Owner" | "Member";
+      guest_email_kind: "Invitation" | "Pass" | "Message";
+      guest_email_skip_reason: "No Email" | "Not Live" | "No Pass";
+      guest_email_state: "Queued" | "Sending" | "Sent" | "Failed" | "Suppressed" | "Skipped";
       guest_entry_state: "Requested" | "Approved" | "Declined" | "Checked In";
       handbook_article_state: "Draft" | "Published" | "Archived";
       handle_kind: "Person" | "Organization";
@@ -70619,7 +71741,10 @@ export type Database = {
       roster_person_response: "Pending" | "Accepted" | "Declined";
       rsvp_response: "Going" | "Maybe" | "Declined";
       run_status: "Queued" | "Running" | "Succeeded" | "Failed";
+      scan_direction: "In" | "Out";
       scan_mode: "Asset" | "Credential" | "Shipment" | "Inventory" | "Lookup";
+      scan_refusal_reason:
+        "Revoked" | "Not Yet Valid" | "Expired" | "No Zone Access" | "Outside Window";
       scan_resolution: "Matched" | "Created" | "Dismissed";
       scan_result: "Granted" | "Denied";
       scan_status: "Pending Upload" | "Scanning" | "Clean" | "Infected" | "Scan Failed";
@@ -70736,6 +71861,9 @@ export type Database = {
       warehouse_provider: "S3" | "Google Cloud Storage" | "Azure Blob" | "BigQuery" | "Snowflake";
       weather_alert_level: "Monitor" | "Restrict" | "Evacuate";
       weather_hazard: "Wind" | "Lightning" | "Heat";
+      weather_message_kind: "Hold" | "All Clear";
+      weather_provider: "NWS";
+      weather_reading_source: "Manual" | "NWS";
       work_detail_category:
         | "Emergency Contacts"
         | "Contact"
@@ -77048,6 +78176,9 @@ export const Constants = {
       grant_target_kind: ["organization", "workspace", "team", "project", "record"],
       group_kind: ["Department", "Project", "Crew", "Custom"],
       group_role: ["Owner", "Member"],
+      guest_email_kind: ["Invitation", "Pass", "Message"],
+      guest_email_skip_reason: ["No Email", "Not Live", "No Pass"],
+      guest_email_state: ["Queued", "Sending", "Sent", "Failed", "Suppressed", "Skipped"],
       guest_entry_state: ["Requested", "Approved", "Declined", "Checked In"],
       handbook_article_state: ["Draft", "Published", "Archived"],
       handle_kind: ["Person", "Organization"],
@@ -77307,7 +78438,15 @@ export const Constants = {
       roster_person_response: ["Pending", "Accepted", "Declined"],
       rsvp_response: ["Going", "Maybe", "Declined"],
       run_status: ["Queued", "Running", "Succeeded", "Failed"],
+      scan_direction: ["In", "Out"],
       scan_mode: ["Asset", "Credential", "Shipment", "Inventory", "Lookup"],
+      scan_refusal_reason: [
+        "Revoked",
+        "Not Yet Valid",
+        "Expired",
+        "No Zone Access",
+        "Outside Window",
+      ],
       scan_resolution: ["Matched", "Created", "Dismissed"],
       scan_result: ["Granted", "Denied"],
       scan_status: ["Pending Upload", "Scanning", "Clean", "Infected", "Scan Failed"],
@@ -77433,6 +78572,9 @@ export const Constants = {
       warehouse_provider: ["S3", "Google Cloud Storage", "Azure Blob", "BigQuery", "Snowflake"],
       weather_alert_level: ["Monitor", "Restrict", "Evacuate"],
       weather_hazard: ["Wind", "Lightning", "Heat"],
+      weather_message_kind: ["Hold", "All Clear"],
+      weather_provider: ["NWS"],
+      weather_reading_source: ["Manual", "NWS"],
       work_detail_category: [
         "Emergency Contacts",
         "Contact",
