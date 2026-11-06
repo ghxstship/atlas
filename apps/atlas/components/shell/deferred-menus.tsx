@@ -32,8 +32,12 @@ const OPEN_KEYS = new Set(["Enter", " ", "ArrowDown"]);
  * loads the menu module and swaps in the real menu, keeping focus on the trigger; pressing it before
  * the module arrives opens the menu as soon as it does.
  */
-function useDeferredMenu(onOpen?: () => void) {
-  const [wanted, setWanted] = useState(false);
+function useDeferredMenu(onOpen?: () => void, onWanted?: () => void) {
+  const [wanted, setWantedState] = useState(false);
+  const setWanted = (next: boolean) => {
+    setWantedState(next);
+    onWanted?.();
+  };
   const [openOnLoad, setOpenOnLoad] = useState(false);
   const loaded = useOnDemand(menus, wanted);
   const wrapper = useRef<HTMLSpanElement>(null);
@@ -102,6 +106,7 @@ export function DeferredDropdownMenu({
   items,
   compact = false,
   onOpen,
+  onWanted,
 }: {
   label: string;
   icon?: IconName;
@@ -109,9 +114,11 @@ export function DeferredDropdownMenu({
   compact?: boolean;
   /** Called each time the menu opens, including the first open that loads it. */
   onOpen?: () => void;
+  /** Called when someone reaches for the menu, for items that load on demand too. */
+  onWanted?: () => void;
 }) {
   const short = compact && icon !== undefined;
-  const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu(onOpen);
+  const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu(onOpen, onWanted);
   return (
     <Slot wrapper={wrapper}>
       {loaded ? (
