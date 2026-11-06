@@ -797,6 +797,10 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "rfq": {
+        "quote_reminder": "Quote requested",
+        "not_awarded": "Supplier not chosen"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

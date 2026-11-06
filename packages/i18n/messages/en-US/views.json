@@ -531,7 +531,12 @@
       "delivery_window_id": "Delivery window",
       "reference_code": "Reference code",
       "vehicle_identifier": "Vehicle",
-      "dock_slot_id": "Dock slot"
+      "dock_slot_id": "Dock slot",
+      "need_status": "Status",
+      "requested_quantity": "Requested",
+      "drafted_quantity": "Drafted",
+      "ordered_quantity": "Ordered",
+      "received_quantity": "Received"
     }
   }
 }

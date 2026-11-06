@@ -797,6 +797,10 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "rfq": {
+        "quote_reminder": "Cotización solicitada",
+        "not_awarded": "Proveedor no elegido"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

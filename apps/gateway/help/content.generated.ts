@@ -546,6 +546,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "quote-requests",
+        title: "Quote requests",
+        summary: "What companies have asked your account to quote for, and how to answer.",
+        kind: "workflow",
+        nodes: ["work.quote-requests"],
+        order: 1,
+      },
+      {
         slug: "settings-accessibility",
         title: "Accessibility settings",
         summary: "Text size, contrast, motion, haptics, sounds and captions.",
@@ -1245,6 +1253,14 @@ export const HELP_CONTENT: HelpIndex = {
           "Lo que ven las organizaciones sobre ti, qué tan completo está, tus certificaciones, disponibilidad, calificaciones y perfiles compartidos.",
         kind: "page",
         nodes: ["profile"],
+        order: 1,
+      },
+      {
+        slug: "quote-requests",
+        title: "Solicitudes de cotización",
+        summary: "Lo que las empresas pidieron cotizar a tu cuenta y cómo responder.",
+        kind: "workflow",
+        nodes: ["work.quote-requests"],
         order: 1,
       },
       {

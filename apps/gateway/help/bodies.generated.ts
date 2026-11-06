@@ -2930,6 +2930,26 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "quote-requests": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When a company invites your account to quote, the request shows here for your account's Owner and Admins, with what is asked for, how many and by when.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "This page is read only. Send your quote to the contact it names, and they record it. A request leaves this page once the company closes it.",
+          },
+        ],
+      },
+    ],
     "settings-accessibility": [
       {
         t: "ul",
@@ -6737,6 +6757,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Cuando actúas como una cuenta de empresa, esta página muestra el perfil y el equipo de la empresa.",
+          },
+        ],
+      },
+    ],
+    "quote-requests": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una empresa invita a tu cuenta a cotizar, la solicitud aparece aquí para los propietarios y administradores de tu cuenta, con lo que se pide, cuánto y para cuándo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Esta página es de solo lectura. Envía tu cotización al contacto que indica y esa persona la registra. Una solicitud sale de esta página cuando la empresa la cierra.",
           },
         ],
       },

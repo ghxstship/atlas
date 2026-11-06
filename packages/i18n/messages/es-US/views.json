@@ -531,7 +531,12 @@
       "delivery_window_id": "Franja de entrega",
       "reference_code": "Código de referencia",
       "vehicle_identifier": "Vehículo",
-      "dock_slot_id": "Turno de muelle"
+      "dock_slot_id": "Turno de muelle",
+      "need_status": "Estado",
+      "requested_quantity": "Solicitado",
+      "drafted_quantity": "En borrador",
+      "ordered_quantity": "Pedido",
+      "received_quantity": "Recibido"
     }
   }
 }

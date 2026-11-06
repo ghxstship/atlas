@@ -1,4 +1,3 @@
-import { LiveList } from "@/components/live/live-list";
 import { NeedsSection } from "@/components/procurement/needs";
 import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
@@ -11,13 +10,10 @@ export default async function Page({
   const routeParams = await params;
   const ctx = await requireNode("procurement.needs", routeParams);
   return (
-    <>
-      <LiveList org={routeParams.org} tables={["procurement_needs"]} />
-      <NeedsSection
-        ctx={ctx}
-        path={nodeHref("procurement.needs", routeParams) ?? "/"}
-        search={await searchParams}
-      />
-    </>
+    <NeedsSection
+      ctx={ctx}
+      path={nodeHref("procurement.needs", routeParams) ?? "/"}
+      search={await searchParams}
+    />
   );
 }
