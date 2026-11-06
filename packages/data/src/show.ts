@@ -235,11 +235,10 @@ interface CueRow {
 }
 
 /**
- * The live cues of a running order, in order. Untyped until the data types carry 2921 and 2923's
- * columns (segment_instance_id, script, called_via_link_id); every row is mapped here.
+ * The live cues of a running order, in order.
  */
 export async function listCues(db: XosClient, runOfShowId: string): Promise<Result<Cue[]>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("cues")
     .select(
       "id, run_of_show_id, position, label, planned_at, duration, called_at, start_tbc, standby_at, segment, description, script, segment_instance_id, updated_at, caller:people!cues_called_by_fkey(full_name), link:showcaller_links!cues_called_via_link_id_fkey(caller_name)",
@@ -339,7 +338,7 @@ export async function updateCue(
   if (patch.durationSeconds !== undefined) {
     row.duration = patch.durationSeconds === null ? null : `${patch.durationSeconds} seconds`;
   }
-  const { data, error } = await untyped(db).from("cues").update(row).eq("id", id).select("id");
+  const { data, error } = await db.from("cues").update(row).eq("id", id).select("id");
   if (error) return fail(toDataError(error));
   return (data ?? []).length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
@@ -597,7 +596,7 @@ export async function listSegmentColors(
   db: XosClient,
   runOfShowId: string,
 ): Promise<Result<ReadonlyMap<string, SegmentColor>>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("run_segment_colors")
     .select("segment, color_key")
     .eq("run_of_show_id", runOfShowId)
@@ -620,10 +619,11 @@ export async function setSegmentColor(
   segment: string,
   color: SegmentColor | null,
 ): Promise<Result<null>> {
-  const { error } = await untyped(db).rpc("set_segment_color", {
+  const { error } = await db.rpc("set_segment_color", {
     p_run_of_show_id: runOfShowId,
     p_segment: segment,
-    p_color_key: color,
+    // Left out, the argument's default clears the color.
+    ...(color === null ? {} : { p_color_key: color }),
   });
   if (error) return fail(toDataError(error));
   return ok(null);

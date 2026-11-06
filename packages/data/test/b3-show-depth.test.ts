@@ -116,7 +116,6 @@ describe("cues and segment colors (2920)", () => {
     expect(argsOf(calls[2])).toEqual({
       p_run_of_show_id: "r1",
       p_segment: "Act I",
-      p_color_key: null,
     });
     expect((await setSegmentColor(db, "r1", "Act I", "cat-1")).ok).toBe(false);
   });
@@ -505,8 +504,6 @@ describe("show channels (2922)", () => {
     expect(await openShowChannel(db, "p1")).toEqual({ ok: true, data: { conversationId: "cv1" } });
     expect(argsOf(calls[0])).toEqual({
       p_project_id: "p1",
-      p_name_prefix: null,
-      p_description: null,
     });
     expect(
       (await openShowChannel(db, "p1", { namePrefix: "Canal del show", description: "El chat." }))

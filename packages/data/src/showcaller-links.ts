@@ -4,7 +4,6 @@ import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import type { PublicCue } from "./live-links.ts";
 import { isSegmentColor, type Cue, type CueCall, type SegmentColor } from "./show.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * Showcaller links (B3, ADR 0142; migrations 2923 to 2925): a no-account link and access code that let an outside
@@ -16,7 +15,6 @@ import { untyped } from "./untyped.ts";
  * - The portal opens a link with its code ({@link openShowcallerLink}) and gets a device grant, then reads
  *   ({@link readShowcallerRun}) and writes ({@link showcallerWrite}) with token and grant, through a cookie-less
  *   anonymous client. Every write is checked and attributed to the link by the database.
- * - The tables and RPCs are newer than the generated data types, so every row is mapped here (untyped.ts).
  */
 
 export const SHOWCALLER_TOKEN = /^xscl_[0-9a-f]{64}$/;
@@ -149,7 +147,7 @@ export async function listShowcallerLinks(
   db: XosClient,
   runOfShowId: string,
 ): Promise<Result<ShowcallerLink[]>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("showcaller_links")
     .select(LINK_COLUMNS)
     .eq("run_of_show_id", runOfShowId)
@@ -160,7 +158,7 @@ export async function listShowcallerLinks(
   const devices = await Promise.all(
     rows.map(async (r) => {
       if (r.revoked_at !== null) return 0;
-      const { data: count, error: countError } = await untyped(db).rpc("showcaller_link_devices", {
+      const { data: count, error: countError } = await db.rpc("showcaller_link_devices", {
         p_showcaller_link_id: r.id,
       });
       return countError ? null : Number(count);
@@ -210,7 +208,7 @@ export async function createShowcallerLink(
     readonly note: string | null;
   },
 ): Promise<Result<CreatedShowcallerLink>> {
-  const { data, error } = await untyped(db).rpc("create_showcaller_link", {
+  const { data, error } = await db.rpc("create_showcaller_link", {
     p_run_of_show_id: input.runOfShowId,
     p_caller_name: input.callerName,
     ...(input.expiresAt === null ? {} : { p_expires_at: input.expiresAt }),
@@ -239,7 +237,7 @@ export async function regenerateShowcallerLink(
   db: XosClient,
   id: string,
 ): Promise<Result<Omit<CreatedShowcallerLink, "id">>> {
-  const { data, error } = await untyped(db).rpc("regenerate_showcaller_link", {
+  const { data, error } = await db.rpc("regenerate_showcaller_link", {
     p_showcaller_link_id: id,
   });
   if (error) return fail(toDataError(error));
@@ -256,7 +254,7 @@ export async function regenerateShowcallerLink(
 
 /** Revokes a link (app.revoke_showcaller_link). Answers the revocation time. */
 export async function revokeShowcallerLink(db: XosClient, id: string): Promise<Result<string>> {
-  const { data, error } = await untyped(db).rpc("revoke_showcaller_link", {
+  const { data, error } = await db.rpc("revoke_showcaller_link", {
     p_showcaller_link_id: id,
   });
   if (error) return fail(toDataError(error));
@@ -265,7 +263,7 @@ export async function revokeShowcallerLink(db: XosClient, id: string): Promise<R
 
 /** Signs every device out of a link (app.sign_out_showcaller_devices). Answers how many were signed out. */
 export async function signOutShowcallerDevices(db: XosClient, id: string): Promise<Result<number>> {
-  const { data, error } = await untyped(db).rpc("sign_out_showcaller_devices", {
+  const { data, error } = await db.rpc("sign_out_showcaller_devices", {
     p_showcaller_link_id: id,
   });
   if (error) return fail(toDataError(error));

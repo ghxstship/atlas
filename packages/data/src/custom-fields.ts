@@ -8,7 +8,6 @@ import {
   type DefinitionRow,
 } from "./governance.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * Custom field values on built-in tables (A117, RRR-162; Section 4.5.6 org settings item 16, 0540). An org
@@ -87,8 +86,7 @@ export async function listCustomFieldDefinitions(
   orgId: string,
   table: CustomFieldTable,
 ): Promise<Result<CustomField[]>> {
-  // Untyped until the data types carry custom_field_choices.color_key (2920); rows are mapped here.
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("custom_field_definitions")
     .select(SELECT_DEFINITIONS)
     .eq("org_id", orgId)
@@ -126,7 +124,7 @@ export async function setCueFieldAudiences(
   definitionId: string,
   audiences: readonly CueFieldAudience[],
 ): Promise<Result<null>> {
-  const current = await untyped(db)
+  const current = await db
     .from("cue_field_audiences")
     .select("id, audience")
     .eq("custom_field_definition_id", definitionId)
@@ -136,16 +134,19 @@ export async function setCueFieldAudiences(
   const gone = rows.filter((r) => !audiences.includes(r.audience)).map((r) => r.id);
   const added = audiences.filter((a) => !rows.some((r) => r.audience === a));
   if (gone.length > 0) {
-    const { error } = await untyped(db)
+    const { error } = await db
       .from("cue_field_audiences")
       .update({ deleted_at: new Date().toISOString() })
       .in("id", gone);
     if (error) return fail(toDataError(error));
   }
   if (added.length > 0) {
-    const { error } = await untyped(db)
+    const { error } = await db
       .from("cue_field_audiences")
-      .insert(added.map((audience) => ({ custom_field_definition_id: definitionId, audience })));
+      // The database stamps org_id from the field.
+      .insert(
+        added.map((audience) => ({ custom_field_definition_id: definitionId, audience })) as never,
+      );
     if (error) return fail(toDataError(error));
   }
   return ok(null);

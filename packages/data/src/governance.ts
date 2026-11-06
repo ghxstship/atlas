@@ -1,7 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { Constants, type Database } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * Org rules set in Settings (A86, RRR-131, finding A65-004):
@@ -248,8 +247,7 @@ export async function listCustomFields(
   db: XosClient,
   orgId: string,
 ): Promise<Result<CustomField[]>> {
-  // Untyped until the data types carry custom_field_choices.color_key (2920); rows are mapped here.
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("custom_field_definitions")
     .select(
       "id, target_table, field_key, label, data_type, required, filterable, sort_order, custom_field_choices(id, choice_key, label, sort_order, color_key, deleted_at)",
@@ -343,7 +341,7 @@ export async function addCustomFieldChoice(
     readonly colorKey?: string | null;
   },
 ): Promise<Result<{ id: string }>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("custom_field_choices")
     .insert({
       org_id: input.orgId,
@@ -365,7 +363,7 @@ export async function setCustomFieldChoiceColor(
   choiceId: string,
   colorKey: string | null,
 ): Promise<Result<null>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("custom_field_choices")
     .update({ color_key: colorKey })
     .eq("id", choiceId)

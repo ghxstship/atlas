@@ -1,6 +1,5 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * Show channels (B3, ADR 0142 decision 10; migration 2922): a project's crew chat beside the running cue, a Project
@@ -29,7 +28,7 @@ export async function showChannelStatus(
   db: XosClient,
   projectId: string,
 ): Promise<Result<ShowChannelStatus>> {
-  const { data, error } = await untyped(db).rpc("show_channel_status", { p_project_id: projectId });
+  const { data, error } = await db.rpc("show_channel_status", { p_project_id: projectId });
   if (error) return fail(toDataError(error));
   const row = (Array.isArray(data) ? data[0] : data) as {
     channel_exists: boolean;
@@ -61,10 +60,10 @@ export async function openShowChannel(
   projectId: string,
   naming: ShowChannelNaming = {},
 ): Promise<Result<{ conversationId: string }>> {
-  const { data, error } = await untyped(db).rpc("open_show_channel", {
+  const { data, error } = await db.rpc("open_show_channel", {
     p_project_id: projectId,
-    p_name_prefix: naming.namePrefix ?? null,
-    p_description: naming.description ?? null,
+    ...(naming.namePrefix ? { p_name_prefix: naming.namePrefix } : {}),
+    ...(naming.description ? { p_description: naming.description } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ conversationId: String(data) });
@@ -75,7 +74,7 @@ export async function joinShowChannel(
   db: XosClient,
   projectId: string,
 ): Promise<Result<{ conversationId: string }>> {
-  const { data, error } = await untyped(db).rpc("join_show_channel", { p_project_id: projectId });
+  const { data, error } = await db.rpc("join_show_channel", { p_project_id: projectId });
   if (error) return fail(toDataError(error));
   return ok({ conversationId: String(data) });
 }
@@ -86,7 +85,7 @@ export async function unreadInConversation(
   orgId: string,
   conversationId: string,
 ): Promise<Result<number>> {
-  const { data, error } = await untyped(db).rpc("my_conversations", { p_org_id: orgId });
+  const { data, error } = await db.rpc("my_conversations", { p_org_id: orgId });
   if (error) return fail(toDataError(error));
   const row = ((data ?? []) as { conversation_id: string; unread_count: number }[]).find(
     (r) => r.conversation_id === conversationId,

@@ -2,7 +2,6 @@ import type { XosClient } from "./client.ts";
 import { CUE_CALL_KINDS, isCueCallKind, type CueCallKind } from "./cue-calls.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { intervalSeconds, isSegmentColor, type SegmentColor } from "./show.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * The segment library (B3, ADR 0142 decision 9; migration 2921): an org's reusable show segments, each a named block
@@ -96,7 +95,7 @@ export async function listLibrarySegments(
   db: XosClient,
   orgId: string,
 ): Promise<Result<LibrarySegment[]>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("segment_library")
     .select(SEGMENT_COLUMNS)
     .eq("org_id", orgId)
@@ -112,7 +111,7 @@ export async function getLibrarySegment(
   db: XosClient,
   id: string,
 ): Promise<Result<LibrarySegmentDetail>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("segment_library")
     .select(
       `${SEGMENT_COLUMNS}, detail:segment_library_cues(id, position, label, duration, description, script, deleted_at, calls:segment_library_cue_calls(call_kind, instruction, deleted_at))`,
@@ -149,7 +148,7 @@ export async function saveLibrarySegment(
     color_key: input.colorKey,
   };
   if (input.id) {
-    const { data, error } = await untyped(db)
+    const { data, error } = await db
       .from("segment_library")
       .update(row)
       .eq("id", input.id)
@@ -157,7 +156,7 @@ export async function saveLibrarySegment(
     if (error) return fail(toDataError(error));
     return (data ?? []).length === 1 ? ok({ id: input.id }) : fail({ kind: "not-found" });
   }
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("segment_library")
     .insert({ org_id: input.orgId, ...row })
     .select("id")
@@ -168,7 +167,7 @@ export async function saveLibrarySegment(
 
 /** Removes a library segment (soft delete; it can be restored from Trash). Copies in running orders stay. */
 export async function removeLibrarySegment(db: XosClient, id: string): Promise<Result<null>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("segment_library")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
@@ -196,7 +195,7 @@ export async function saveLibraryCue(
     script: input.script === "" ? null : input.script,
   };
   if (input.id) {
-    const { data, error } = await untyped(db)
+    const { data, error } = await db
       .from("segment_library_cues")
       .update(row)
       .eq("id", input.id)
@@ -204,7 +203,7 @@ export async function saveLibraryCue(
     if (error) return fail(toDataError(error));
     return (data ?? []).length === 1 ? ok({ id: input.id }) : fail({ kind: "not-found" });
   }
-  const current = await untyped(db)
+  const current = await db
     .from("segment_library_cues")
     .select("position")
     .eq("segment_library_id", input.segmentId)
@@ -212,9 +211,10 @@ export async function saveLibraryCue(
   if (current.error) return fail(toDataError(current.error));
   const position =
     Math.max(0, ...((current.data ?? []) as { position: number }[]).map((r) => r.position)) + 1;
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("segment_library_cues")
-    .insert({ segment_library_id: input.segmentId, position, ...row })
+    // The database stamps org_id from the segment.
+    .insert({ segment_library_id: input.segmentId, position, ...row } as never)
     .select("id")
     .single();
   if (error) return fail(toDataError(error));
@@ -223,7 +223,7 @@ export async function saveLibraryCue(
 
 /** Removes a cue from a library segment (soft delete; it comes back with the segment). */
 export async function removeLibraryCue(db: XosClient, id: string): Promise<Result<null>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("segment_library_cues")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
@@ -241,7 +241,7 @@ export async function saveLibraryCueCalls(
   cueId: string,
   calls: Partial<Record<CueCallKind, string | null>>,
 ): Promise<Result<null>> {
-  const current = await untyped(db)
+  const current = await db
     .from("segment_library_cue_calls")
     .select("id, call_kind")
     .eq("segment_library_cue_id", cueId)
@@ -252,15 +252,16 @@ export async function saveLibraryCueCalls(
     const text = raw?.trim() ?? "";
     const existing = rows.find((r) => r.call_kind === kind);
     const write = existing
-      ? untyped(db)
+      ? db
           .from("segment_library_cue_calls")
           .update(text === "" ? { deleted_at: new Date().toISOString() } : { instruction: text })
           .eq("id", existing.id)
       : text === ""
         ? null
-        : untyped(db)
+        : db
             .from("segment_library_cue_calls")
-            .insert({ segment_library_cue_id: cueId, call_kind: kind, instruction: text });
+            // The database stamps org_id from the cue.
+            .insert({ segment_library_cue_id: cueId, call_kind: kind, instruction: text } as never);
     if (write) {
       const { error } = await write;
       if (error) return fail(toDataError(error));
@@ -283,11 +284,11 @@ export async function insertLibrarySegment(
     readonly startsAt: string | null;
   },
 ): Promise<Result<{ instanceId: string }>> {
-  const { data, error } = await untyped(db).rpc("insert_library_segment", {
+  const { data, error } = await db.rpc("insert_library_segment", {
     p_run_of_show_id: input.runOfShowId,
     p_segment_library_id: input.segmentId,
-    p_before_position: input.beforePosition,
-    p_starts_at: input.startsAt,
+    ...(input.beforePosition === null ? {} : { p_before_position: input.beforePosition }),
+    ...(input.startsAt === null ? {} : { p_starts_at: input.startsAt }),
   });
   if (error) return fail(toDataError(error));
   return ok({ instanceId: String(data) });
@@ -316,9 +317,9 @@ export async function publishLibrarySegment(
   segmentId: string,
   runIds: readonly string[],
 ): Promise<Result<PublishResult[]>> {
-  const { data, error } = await untyped(db).rpc("publish_library_segment", {
+  const { data, error } = await db.rpc("publish_library_segment", {
     p_segment_library_id: segmentId,
-    p_run_ids: runIds,
+    p_run_ids: [...runIds],
   });
   if (error) return fail(toDataError(error));
   return ok(
@@ -352,7 +353,7 @@ export async function listSegmentCopies(
   db: XosClient,
   segmentId: string,
 ): Promise<Result<SegmentCopy[]>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("run_segment_instances")
     .select(
       "id, run_of_show_id, library_version, run:run_of_show!inner(name, show_date, deleted_at)",
