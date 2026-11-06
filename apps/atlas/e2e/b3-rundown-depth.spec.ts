@@ -71,7 +71,7 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   // The editor is one screen of the peek: at most seven visible fields and one primary action on each tab.
   expect(await cognitiveLoadProblems(page)).toEqual([]);
   await editor.getByRole("tab", { name: "Words" }).click();
-  await editor.getByLabel("Script").fill("Ladies and gentlemen, welcome.");
+  await editor.getByLabel("Script", { exact: true }).fill("Ladies and gentlemen, welcome.");
   expect(await cognitiveLoadProblems(page)).toEqual([]);
   await editor.getByRole("tab", { name: "Calls" }).click();
   expect(await cognitiveLoadProblems(page)).toEqual([]);
