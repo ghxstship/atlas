@@ -2,7 +2,6 @@ import type { XosClient } from "./client.ts";
 import type { Database } from "./database.types.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
-import type { Database } from "./database.types.ts";
 import { untyped } from "./untyped.ts";
 
 /**

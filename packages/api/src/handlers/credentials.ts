@@ -10,7 +10,6 @@ import { overrideScan, recordScan, revokeCredential } from "@xos/data/credential
 import type { Database } from "@xos/data/database.types";
 import { defineHandlers, created, ok } from "../runtime/handler.ts";
 import { handlersFor, tableResource, unwrap } from "./support/table.ts";
-import type { Database } from "@xos/data/database.types";
 
 const categories = tableResource("credentialCategories");
 const credentials = tableResource("credentials");

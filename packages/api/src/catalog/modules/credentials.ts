@@ -12,7 +12,6 @@ import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, setOrder } from "../correct.ts";
-import { Constants } from "@xos/data/database.types";
 import { itemAction, resource } from "../define.ts";
 
 const SINCE = "1.0.0-draft.2";

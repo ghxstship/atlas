@@ -84,13 +84,26 @@ export interface Components {
     project_id: string;
     device_scanned_at: string | null;
     offline_result: "Granted" | "Denied" | null;
+    direction: "In" | "Out";
+    refusal_reason:
+      | "Revoked"
+      | "Not Yet Valid"
+      | "Expired"
+      | "No Zone Access"
+      | "Outside Window"
+      | "Not Approved"
+      | null;
+    override_of_scan_id: string | null;
+    override_reason: string | null;
   };
   AccessScanCreate: {
     zone_id: string;
     credential_id: string;
     device_scanned_at?: string | null;
     offline_result?: "Granted" | "Denied" | null;
+    direction?: "In" | "Out";
   };
+  AccessScanOverrideRequest: { reason: string; id?: string };
   AccessScanPage: { data: Array<Components["AccessScan"]>; next_cursor: string | null };
   AccessibilityNeed:
     | "Step-Free Access"
@@ -381,6 +394,10 @@ export interface Components {
   };
   AdvanceRecipientPage: { data: Array<Components["AdvanceRecipient"]>; next_cursor: string | null };
   AdvanceRecipientSetNamesDueRequest: { names_due_at: string | null };
+  AdvanceRecipientSignOffTrackRequest: {
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+  };
   AdvanceSection: {
     id: string;
     org_id: string;
@@ -410,6 +427,8 @@ export interface Components {
       | null;
     max_lines: number | null;
     per_person: boolean;
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
   };
   AdvanceSectionChoice: {
     id: string;
@@ -474,8 +493,14 @@ export interface Components {
       | null;
     max_lines?: number | null;
     per_person?: boolean;
+    track?:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
   };
   AdvanceSectionPage: { data: Array<Components["AdvanceSection"]>; next_cursor: string | null };
+  AdvanceSectionSetTrackRequest: {
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+  };
   AdvanceSectionUpdate: { position?: number; title?: string; prompt?: string | null };
   AdvanceSubmission: {
     id: string;
@@ -540,6 +565,46 @@ export interface Components {
     next_cursor: string | null;
   };
   AdvanceSubmissionReviewRequest: { outcome: "Accepted" | "Returned"; return_reason?: string };
+  AdvanceTrackProgress: {
+    org_id: string;
+    project_id: string;
+    advance_packet_id: string;
+    advance_recipient_id: string;
+    recipient_label: string | null;
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+    sections_total: number;
+    sections_done: number;
+    sections_outstanding: number;
+    overdue: boolean;
+    signoff_id: string | null;
+    signed_off_at: string | null;
+    signed_off_by_name: string | null;
+    track_state: "Not Started" | "In Progress" | "Ready for Sign-off" | "Signed Off" | "Reopened";
+  };
+  AdvanceTrackProgressPage: {
+    data: Array<Components["AdvanceTrackProgress"]>;
+    next_cursor: string | null;
+  };
+  AdvanceTrackSignoff: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    advance_recipient_id: string;
+    track:
+      "Finance" | "Technical" | "Hospitality" | "Catering" | "Travel" | "Logistics" | "General";
+    signed_off_at: string;
+    revoked_at: string | null;
+    revoke_reason: string | null;
+  };
+  AdvanceTrackSignoffPage: {
+    data: Array<Components["AdvanceTrackSignoff"]>;
+    next_cursor: string | null;
+  };
+  AdvanceTrackSignoffRevokeRequest: { reason: string };
   AgencySlate: {
     id: string;
     org_id: string;
@@ -1265,16 +1330,70 @@ export interface Components {
     redacted_at: string | null;
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
+  AuroraAppliedAdvanceAnswer: { submission_id: string };
+  AuroraAppliedContractIntake: {
+    engagements: Array<{
+      suggestion_ids: Array<string>;
+      engagement_id: string;
+      created: boolean;
+      documents: Array<{
+        suggestion_id: string;
+        engagement_document_id: string | null;
+        document_type: "Contract" | "Rider";
+      }>;
+    }>;
+    riders: number;
+  };
   AuroraAppliedDraft: { written: Array<{ suggestion_id: string; id: string }>; rejected: number };
+  AuroraAppliedInvoiceLines: { written: Array<{ suggestion_id: string; id: string }> };
+  AuroraAppliedItinerary: {
+    written: Array<{ suggestion_id: string; id: string }>;
+    duplicates_checked: number;
+  };
+  AuroraApplyAdvanceAnswerRequest: { suggestion_id: string; values?: Record<string, unknown> };
+  AuroraApplyContractIntakeRequest: {
+    project_id: string;
+    items: Array<{
+      suggestion_ids: Array<string>;
+      party: { person_id?: string; counterparty_id?: string };
+      engagement_id?: string;
+      role_code?: string;
+      worker_classification?: string;
+      pay_basis?: string;
+      arrangement?: string;
+      start_date?: string;
+      end_date?: string | null;
+      agreed_rate_minor?: number | null;
+      currency_code?: string | null;
+      create_riders?: boolean;
+    }>;
+  };
   AuroraApplyDraftRequest: {
     request_id: string;
     items: Array<{ suggestion_id: string; values?: Record<string, unknown> }>;
+  };
+  AuroraApplyInvoiceLinesRequest: {
+    invoice_id: string;
+    items: Array<{ suggestion_id: string; values: Record<string, unknown> }>;
+  };
+  AuroraApplyItineraryRequest: {
+    project_id: string;
+    fulfillment_id?: string | null;
+    items: Array<{ suggestion_id: string; values: Record<string, unknown> }>;
   };
   AuroraAskRequest: { question: string; history?: Array<{ question: string; answer: string }> };
   AuroraBindCodeRequest: {
     code: string;
     description: string | null;
     candidates: Array<{ element_id: string; name: string; urid: string }>;
+  };
+  AuroraDraftAdvanceAnswersRequest: {
+    advance_recipient_id: string;
+    inbound_message_id?: string;
+    media_type?: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    content_base64?: string;
+    file_name?: string;
+    verbiage?: Array<{ term: string; preferred: string }>;
   };
   AuroraDraftRequest: {
     kind:
@@ -1284,15 +1403,27 @@ export interface Components {
       | "day_sheet"
       | "change_order_description"
       | "run_of_show"
-      | "risk_assessment";
+      | "risk_assessment"
+      | "event_plan"
+      | "event_brief"
+      | "approval_pack"
+      | "waste_plan";
     instructions: string;
     target?: { collection: string; id: string };
     context?: Array<{ collection: string; id: string }>;
     verbiage?: Array<{ term: string; preferred: string }>;
   };
   AuroraExtractRequest: {
-    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+    kind:
+      | "rider"
+      | "insurance_certificate"
+      | "invoice"
+      | "receipt"
+      | "quote"
+      | "itinerary"
+      | "contract";
     document_id?: string | null;
+    project_id?: string;
     media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
     content_base64: string;
     file_name: string;
@@ -1309,11 +1440,47 @@ export interface Components {
       ops?: Array<"eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains">;
     }>;
   };
+  AuroraIntakeKind: "itinerary" | "contract";
+  AuroraIntakeOptions: {
+    fee_visible: boolean;
+    can_write_riders: boolean;
+    travelers: Array<{
+      person_id: string;
+      engagement_id: string | null;
+      display_name: string;
+      source: "Member" | "Engagement" | "Roster";
+    }>;
+    segments: Array<{ person_id: string; service_identifier: string | null; departs_at: string }>;
+    parties: Array<{
+      kind: "counterparty" | "person";
+      id: string;
+      name: string;
+      engagement_ids: Array<string>;
+    }>;
+    rate_cards: Array<{
+      role_code: string;
+      role_name: string;
+      worker_classification: string;
+      worker_classification_label: string;
+      pay_basis: string;
+      arrangement: string;
+    }>;
+  };
   AuroraMapColumnsRequest: {
     collection: string;
     columns: Array<{ header: string; samples: Array<string> }>;
     fields: Array<{ name: string; description: string }>;
   };
+  AuroraOpenProposal: {
+    id: string;
+    request_id: string;
+    operation_id: string;
+    target_id: string | null;
+    summary: string;
+    expires_at: string;
+    proposed_fields: Array<Components["AiSuggestionField"]>;
+  };
+  AuroraOpenProposals: { data: Array<Components["AuroraOpenProposal"]> };
   AuroraPreview: {
     records: Array<Components["AuroraPreviewRecord"]>;
     vocabulary_terms: number;
@@ -1329,9 +1496,18 @@ export interface Components {
   };
   AuroraPreviewRequest: {
     feature: "drafting" | "summaries";
-    draft_kind?: "run_of_show" | "risk_assessment";
+    draft_kind?:
+      | "run_of_show"
+      | "risk_assessment"
+      | "event_plan"
+      | "event_brief"
+      | "approval_pack"
+      | "waste_plan"
+      | "advance_answers";
     target?: { collection: string; id: string };
-    kind?: "record_activity" | "project_week" | "gate_readiness";
+    advance_recipient_id?: string;
+    inbound_message_id?: string;
+    kind?: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
     subject_collection?: string;
     subject_id?: string;
     items: Array<{ collection: string; id: string }>;
@@ -1354,7 +1530,7 @@ export interface Components {
     plan_includes_aurora: boolean;
   };
   AuroraSummarizeRequest: {
-    kind: "record_activity" | "project_week" | "gate_readiness";
+    kind: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
     subject_collection: string;
     subject_id: string;
     items: Array<{ collection: string; id: string }>;
@@ -1821,6 +1997,25 @@ export interface Components {
     revoked_at: string | null;
     membership_id: string;
     last_accessed_at: string | null;
+  };
+  CalendarFeedAudience: {
+    kind: "people" | "team" | "department";
+    person_ids?: Array<string>;
+    team_id?: string;
+    department_code?: string;
+  };
+  CalendarFeedConfiguration: {
+    calendar_feed_id: string;
+    name: string | null;
+    sources: Array<"Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"> | null;
+    audience: Components["CalendarFeedAudience"] | null;
+    cue_call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage" | null;
+  };
+  CalendarFeedConfigureRequest: {
+    name?: string | null;
+    sources?: Array<"Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"> | null;
+    audience?: Components["CalendarFeedAudience"] | null;
+    cue_call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage" | null;
   };
   CalendarFeedCreate: { project_id?: string | null };
   CalendarFeedPage: { data: Array<Components["CalendarFeed"]>; next_cursor: string | null };
@@ -2633,6 +2828,26 @@ export interface Components {
     data: Array<Components["CredentialCategory"]>;
     next_cursor: string | null;
   };
+  CredentialCategoryRequirement: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    credential_category_id: string;
+    training_course_id: string | null;
+    certification_id: string | null;
+  };
+  CredentialCategoryRequirementCreate: {
+    credential_category_id: string;
+    training_course_id?: string | null;
+    certification_id?: string | null;
+  };
+  CredentialCategoryRequirementPage: {
+    data: Array<Components["CredentialCategoryRequirement"]>;
+    next_cursor: string | null;
+  };
   CredentialCategoryUpdate: { name?: string; category_kind?: "Access" | "Parking"; code?: string };
   CredentialCreate: {
     credential_category_id: string;
@@ -2725,6 +2940,21 @@ export interface Components {
     description?: string | null;
     space_id?: string | null;
   };
+  CueFieldAudience: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    custom_field_definition_id: string;
+    audience: "Crew" | "Showcaller" | "Client";
+  };
+  CueFieldAudienceCreate: {
+    custom_field_definition_id: string;
+    audience: "Crew" | "Showcaller" | "Client";
+  };
+  CueFieldAudiencePage: { data: Array<Components["CueFieldAudience"]>; next_cursor: string | null };
   CuePage: { data: Array<Components["Cue"]>; next_cursor: string | null };
   CueUpdate: {
     position?: number;
@@ -3155,6 +3385,11 @@ export interface Components {
     checked_in_at: string | null;
     plus_ones_admitted: number | null;
     door: string | null;
+    pass_code: string | null;
+    pass_category_code: string | null;
+    pass_category_name: string | null;
+    table_label: string | null;
+    host_person_id: string | null;
   };
   DoorGuestPage: { data: Array<Components["DoorGuest"]>; next_cursor: string | null };
   DsarRequest: {
@@ -4003,6 +4238,29 @@ export interface Components {
   };
   GuestCheckInPage: { data: Array<Components["GuestCheckIn"]>; next_cursor: string | null };
   GuestDecisionRequest: { outcome: "Approved" | "Declined" };
+  GuestEmailSend: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    email_kind: "Invitation" | "Pass" | "Message";
+    subject: string | null;
+    body: string | null;
+    locale: "en-US" | "es-US";
+  };
+  GuestEmailSendPage: { data: Array<Components["GuestEmailSend"]>; next_cursor: string | null };
+  GuestEmailSendQueued: { send_id: string };
+  GuestEmailSendRequest: {
+    project_id: string;
+    guest_list_entry_ids: Array<string>;
+    email_kind: "Invitation" | "Pass" | "Message";
+    subject?: string;
+    body?: string;
+    locale?: "en-US" | "es-US";
+  };
   GuestListEntry: {
     id: string;
     org_id: string;
@@ -4023,6 +4281,11 @@ export interface Components {
     decided_by: string | null;
     checked_in_at: string | null;
     checked_in_by: string | null;
+    pass_category_id: string | null;
+    table_label: string | null;
+    host_person_id: string | null;
+    guest_email: string | null;
+    pass_code: string | null;
   };
   GuestListEntryCreate: {
     project_id: string;
@@ -4030,6 +4293,10 @@ export interface Components {
     guest_name: string;
     plus_ones: number;
     note?: string | null;
+    pass_category_id?: string | null;
+    table_label?: string | null;
+    host_person_id?: string | null;
+    guest_email?: string | null;
   };
   GuestListEntryPage: { data: Array<Components["GuestListEntry"]>; next_cursor: string | null };
   GuestListEntryUpdate: {
@@ -4037,6 +4304,10 @@ export interface Components {
     guest_name?: string;
     plus_ones?: number;
     note?: string | null;
+    pass_category_id?: string | null;
+    table_label?: string | null;
+    host_person_id?: string | null;
+    guest_email?: string | null;
   };
   HandbookArticle: {
     id: string;
@@ -4658,6 +4929,7 @@ export interface Components {
     invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     total: Components["MoneyTotal"];
     counterparty_id: string | null;
+    printed_total_minor: number | null;
     payee_person_id: string | null;
     engagement_id: string | null;
   };
@@ -4686,6 +4958,7 @@ export interface Components {
     due_on?: string | null;
     currency_code: string;
     counterparty_id?: string | null;
+    printed_total_minor?: number | null;
     engagement_id?: string | null;
   };
   InvoiceLine: {
@@ -4714,6 +4987,20 @@ export interface Components {
     tax_rate_id?: string | null;
     urid?: Components["UridAtAnyGrain"] | null;
   };
+  InvoiceLineHistory: {
+    data: Array<{
+      description_index: number;
+      description: string;
+      quantity: number;
+      unit_price_minor: number | null;
+      currency_code: string;
+      invoice_number: string | null;
+      issued_on: string | null;
+      budget_line_id: string | null;
+      budget_line_name: string | null;
+    }>;
+  };
+  InvoiceLineHistoryRequest: { descriptions: Array<string> };
   InvoiceLinePage: { data: Array<Components["InvoiceLine"]>; next_cursor: string | null };
   InvoiceLineUpdate: {
     description?: string;
@@ -4745,6 +5032,12 @@ export interface Components {
   InvoiceMatchResolveRequest: { resolution_note: string };
   InvoicePage: { data: Array<Components["Invoice"]>; next_cursor: string | null };
   InvoicePaymentRequest: { paid_on: string; amount_minor?: number | null; reference?: string };
+  InvoiceTieOut: {
+    invoice_id: string;
+    printed_total_minor: number | null;
+    computed_total_minor: number | null;
+    residual_minor: number | null;
+  };
   InvoiceTransitionRequest: {
     expected_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     to_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
@@ -4756,6 +5049,7 @@ export interface Components {
     issued_on?: string | null;
     due_on?: string | null;
     currency_code?: string;
+    printed_total_minor?: number | null;
   };
   ItemId: string | null;
   JoinRequest: {
@@ -6192,6 +6486,15 @@ export interface Components {
     last_accessed_at: string | null;
     rotated_at: string | null;
   };
+  PersonCalendarFeedConfiguration: {
+    calendar_feed_id: string;
+    name: string | null;
+    sources: Array<"Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"> | null;
+  };
+  PersonCalendarFeedConfigureRequest: {
+    name?: string | null;
+    sources?: Array<"Shifts" | "Meetings" | "Milestones" | "Deadlines" | "Cues"> | null;
+  };
   PersonCalendarFeedPage: {
     data: Array<Components["PersonCalendarFeed"]>;
     next_cursor: string | null;
@@ -6629,6 +6932,80 @@ export interface Components {
     project_key: string;
     time_zone: string;
     venue_id?: string | null;
+  };
+  ProjectDebrief: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    completed_at: string | null;
+    completed_by: string | null;
+  };
+  ProjectDebriefItem: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    debrief_id: string;
+    area:
+      | "Schedule"
+      | "Budget"
+      | "Safety"
+      | "Audience"
+      | "Sustainability"
+      | "Crew"
+      | "Vendors"
+      | "Other";
+    item_kind: "Went Well" | "To Improve" | "Action";
+    body: string;
+    position: number;
+    owner_membership_id: string | null;
+  };
+  ProjectDebriefItemCreate: {
+    debrief_id: string;
+    area:
+      | "Schedule"
+      | "Budget"
+      | "Safety"
+      | "Audience"
+      | "Sustainability"
+      | "Crew"
+      | "Vendors"
+      | "Other";
+    item_kind: "Went Well" | "To Improve" | "Action";
+    body: string;
+    position: number;
+    owner_membership_id?: string | null;
+  };
+  ProjectDebriefItemPage: {
+    data: Array<Components["ProjectDebriefItem"]>;
+    next_cursor: string | null;
+  };
+  ProjectDebriefItemUpdate: {
+    area?:
+      | "Schedule"
+      | "Budget"
+      | "Safety"
+      | "Audience"
+      | "Sustainability"
+      | "Crew"
+      | "Vendors"
+      | "Other";
+    item_kind?: "Went Well" | "To Improve" | "Action";
+    body?: string;
+    position?: number;
+    owner_membership_id?: string | null;
+  };
+  ProjectDebriefPage: { data: Array<Components["ProjectDebrief"]>; next_cursor: string | null };
+  ProjectDebriefSaveRequest: {
+    project_id: string;
+    management_summary?: string | null;
+    ai_request_id?: string | null;
   };
   ProjectFactKind: "Travel" | "Uniform" | "Vehicle";
   ProjectInbox: {
@@ -8081,6 +8458,21 @@ export interface Components {
   };
   RunOfShowPage: { data: Array<Components["RunOfShow"]>; next_cursor: string | null };
   RunOfShowUpdate: { name?: string; show_date?: string; record_id?: string | null };
+  RunSegmentInstance: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    run_of_show_id: string;
+    segment_library_id: string;
+    library_version: number;
+  };
+  RunSegmentInstancePage: {
+    data: Array<Components["RunSegmentInstance"]>;
+    next_cursor: string | null;
+  };
   SavedProjectFact: { id: string };
   SavedSearch: {
     id: string;
@@ -8254,6 +8646,99 @@ export interface Components {
   ScopeNodePage: { data: Array<Components["ScopeNode"]>; next_cursor: string | null };
   ScopeNodeUpdate: { scope_code?: string; name?: string; node_kind?: string };
   SeatPreference: "Window" | "Aisle" | "No Preference";
+  SegmentInsertRequest: { run_of_show_id: string; before_position?: number; starts_at?: string };
+  SegmentInsertResult: { segment_instance_id: string };
+  SegmentLibraryCue: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    segment_library_id: string;
+    position: number;
+    label: string;
+    duration: string | null;
+    description: string | null;
+    script: string | null;
+  };
+  SegmentLibraryCueCall: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    segment_library_cue_id: string;
+    call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction: string;
+  };
+  SegmentLibraryCueCallCreate: {
+    segment_library_cue_id: string;
+    call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction: string;
+  };
+  SegmentLibraryCueCallPage: {
+    data: Array<Components["SegmentLibraryCueCall"]>;
+    next_cursor: string | null;
+  };
+  SegmentLibraryCueCallUpdate: {
+    call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction?: string;
+  };
+  SegmentLibraryCueCreate: {
+    segment_library_id: string;
+    position: number;
+    label: string;
+    duration?: string | null;
+    description?: string | null;
+    script?: string | null;
+  };
+  SegmentLibraryCuePage: {
+    data: Array<Components["SegmentLibraryCue"]>;
+    next_cursor: string | null;
+  };
+  SegmentLibraryCueUpdate: {
+    position?: number;
+    label?: string;
+    duration?: string | null;
+    description?: string | null;
+    script?: string | null;
+  };
+  SegmentLibrarySegment: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    description: string | null;
+    color_key: string | null;
+    version: number;
+  };
+  SegmentLibrarySegmentCreate: {
+    name: string;
+    description?: string | null;
+    color_key?: string | null;
+  };
+  SegmentLibrarySegmentPage: {
+    data: Array<Components["SegmentLibrarySegment"]>;
+    next_cursor: string | null;
+  };
+  SegmentLibrarySegmentUpdate: {
+    name?: string;
+    description?: string | null;
+    color_key?: string | null;
+  };
+  SegmentPublishRequest: { run_of_show_ids: Array<string> };
+  SegmentPublishResults: {
+    data: Array<{
+      run_of_show_id: string;
+      segment_instance_id: string | null;
+      outcome: "Published" | "Current" | "Called" | "Linked" | "No Instance";
+    }>;
+  };
   SeparationOfDutiesRule: { code: string; enforced_on: string; description: string };
   SeparationOfDutiesRulePage: {
     data: Array<Components["SeparationOfDutiesRule"]>;
@@ -8644,6 +9129,51 @@ export interface Components {
   ShortlistCreate: { opportunity_id: string; application_id: string; rank?: number | null };
   ShortlistPage: { data: Array<Components["Shortlist"]>; next_cursor: string | null };
   ShortlistUpdate: { rank?: number | null };
+  ShowChannelConversation: { conversation_id: string };
+  ShowChannelJoinRequest: { project_id: string };
+  ShowChannelOpenRequest: { project_id: string; name_prefix?: string; description?: string };
+  ShowChannelStatus: {
+    channel_exists: boolean;
+    conversation_id: string | null;
+    am_member: boolean;
+    can_join: boolean;
+    can_open: boolean;
+  };
+  ShowcallerDevicesSignedOut: { devices: number };
+  ShowcallerLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    run_of_show_id: string;
+    caller_name: string;
+    note: string | null;
+    token_hint: string;
+    expires_at: string;
+    failed_attempts: number;
+    open_count: number;
+    last_opened_at: string | null;
+    rotated_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  ShowcallerLinkPage: { data: Array<Components["ShowcallerLink"]>; next_cursor: string | null };
+  ShowcallerLinkRegenerated: { token: string; access_code: string; expires_at: string };
+  ShowcallerLinkRequest: {
+    run_of_show_id: string;
+    caller_name: string;
+    expires_at?: string;
+    note?: string;
+  };
+  ShowcallerLinkToken: {
+    showcaller_link_id: string;
+    token: string;
+    access_code: string;
+    expires_at: string;
+  };
   SitePlan: {
     id: string;
     org_id: string;
@@ -10245,6 +10775,47 @@ export interface Components {
     role_code: string;
   };
   WeatherAlertRolePage: { data: Array<Components["WeatherAlertRole"]>; next_cursor: string | null };
+  WeatherAllClearRequest: { message: string };
+  WeatherFeed: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    provider: "NWS";
+    nws_forecast_hourly_url: string | null;
+    nws_station_id: string | null;
+    points_checked_at: string | null;
+  };
+  WeatherFeedCreate: { project_id: string };
+  WeatherFeedPage: { data: Array<Components["WeatherFeed"]>; next_cursor: string | null };
+  WeatherHold: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    hazard: "Wind" | "Lightning" | "Heat" | null;
+    weather_alert_id: string | null;
+    weather_warning_id: string | null;
+    message: string;
+    called_at: string;
+    cleared_at: string | null;
+    cleared_by: string | null;
+    all_clear_message: string | null;
+  };
+  WeatherHoldCreate: {
+    project_id: string;
+    hazard?: "Wind" | "Lightning" | "Heat" | null;
+    weather_alert_id?: string | null;
+    weather_warning_id?: string | null;
+    message: string;
+  };
+  WeatherHoldPage: { data: Array<Components["WeatherHold"]>; next_cursor: string | null };
   WeatherReading: {
     id: string;
     org_id: string;
@@ -10257,6 +10828,7 @@ export interface Components {
     reading_value: number;
     observed_at: string;
     recorded_by_membership_id: string | null;
+    source: "Manual" | "NWS";
   };
   WeatherReadingCreate: {
     project_id: string;
@@ -10291,6 +10863,30 @@ export interface Components {
   };
   WeatherThresholdPage: { data: Array<Components["WeatherThreshold"]>; next_cursor: string | null };
   WeatherThresholdUpdate: { threshold_value?: number; source_note?: string };
+  WeatherWarning: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    provider: "NWS";
+    provider_alert_id: string;
+    event: string;
+    severity: "Extreme" | "Severe" | "Moderate" | "Minor" | "Unknown";
+    certainty: string | null;
+    urgency: string | null;
+    headline: string | null;
+    description: string | null;
+    instruction: string | null;
+    onset: string | null;
+    expires_at: string | null;
+    ends_at: string | null;
+    sent_at: string | null;
+    ended_at: string | null;
+  };
+  WeatherWarningPage: { data: Array<Components["WeatherWarning"]>; next_cursor: string | null };
   WebhookDelivery: {
     id: string;
     org_id: string;
@@ -12813,6 +13409,15 @@ export interface Operations {
     body: Components["AdvanceSectionConfigureRequest"];
     responses: { 200: Components["AdvanceSection"] };
   };
+  "advanceSections.setTrack": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-sections/{id}/set-track";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceSectionSetTrackRequest"];
+    responses: { 200: Components["AdvanceSection"] };
+  };
   "advanceRecipients.list": {
     module: "Advancing";
     method: "get";
@@ -12872,6 +13477,15 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AdvanceRecipientSetNamesDueRequest"];
     responses: { 200: Components["AdvanceRecipient"] };
+  };
+  "advanceRecipients.signOffTrack": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-recipients/{id}/sign-off-track";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceRecipientSignOffTrackRequest"];
+    responses: { 201: Components["AdvanceTrackSignoff"] };
   };
   "advanceSubmissions.list": {
     module: "Advancing";
@@ -15132,6 +15746,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["AccessScan"] };
   };
+  "accessScans.override": {
+    module: "Credentials";
+    method: "post";
+    path: "/access-scans/{id}/override";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AccessScanOverrideRequest"];
+    responses: { 201: Components["AccessScan"] };
+  };
   "certifications.list": {
     module: "Credentials";
     method: "get";
@@ -15821,6 +16444,24 @@ export interface Operations {
     query: { limit?: number };
     body: undefined;
     responses: { 200: Components["FieldHistoryEventPage"] };
+  };
+  "invoices.tieOut": {
+    module: "Finance";
+    method: "get";
+    path: "/invoices/{id}/tie-out";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["InvoiceTieOut"] };
+  };
+  "invoices.lineHistory": {
+    module: "Finance";
+    method: "post";
+    path: "/invoices/{id}/line-history";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InvoiceLineHistoryRequest"];
+    responses: { 200: Components["InvoiceLineHistory"] };
   };
   "invoiceLines.list": {
     module: "Finance";
@@ -24383,6 +25024,24 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["CalendarFeedToken"] };
   };
+  "calendarFeeds.configure": {
+    module: "Platform";
+    method: "post";
+    path: "/calendar-feeds/{id}/configure";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["CalendarFeedConfigureRequest"];
+    responses: { 200: Components["CalendarFeedConfiguration"] };
+  };
+  "calendarFeeds.configuration": {
+    module: "Platform";
+    method: "get";
+    path: "/calendar-feeds/{id}/configuration";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedConfiguration"] };
+  };
   "trashItems.list": {
     module: "Platform";
     method: "get";
@@ -24752,6 +25411,108 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["ProjectMeasurementSummaryPage"] };
   };
+  "projectDebriefs.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-debriefs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectDebriefPage"] };
+  };
+  "projectDebriefs.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-debriefs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectDebrief"] };
+  };
+  "projectDebriefs.save": {
+    module: "Projects";
+    method: "post";
+    path: "/project-debriefs/save";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectDebriefSaveRequest"];
+    responses: { 200: Components["ProjectDebrief"] };
+  };
+  "projectDebriefs.complete": {
+    module: "Projects";
+    method: "post";
+    path: "/project-debriefs/{id}/complete";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectDebrief"] };
+  };
+  "projectDebriefs.reopen": {
+    module: "Projects";
+    method: "post";
+    path: "/project-debriefs/{id}/reopen";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectDebrief"] };
+  };
+  "projectDebriefItems.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-debrief-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectDebriefItemPage"] };
+  };
+  "projectDebriefItems.create": {
+    module: "Projects";
+    method: "post";
+    path: "/project-debrief-items";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectDebriefItemCreate"];
+    responses: { 201: Components["ProjectDebriefItem"] };
+  };
+  "projectDebriefItems.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-debrief-items/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectDebriefItem"] };
+  };
+  "projectDebriefItems.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/project-debrief-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProjectDebriefItemUpdate"];
+    responses: { 200: Components["ProjectDebriefItem"] };
+  };
+  "projectDebriefItems.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/project-debrief-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
   "cueCalls.list": {
     module: "Show";
     method: "get";
@@ -24802,6 +25563,261 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "segmentLibrary.list": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SegmentLibrarySegmentPage"] };
+  };
+  "segmentLibrary.create": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SegmentLibrarySegmentCreate"];
+    responses: { 201: Components["SegmentLibrarySegment"] };
+  };
+  "segmentLibrary.get": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SegmentLibrarySegment"] };
+  };
+  "segmentLibrary.update": {
+    module: "Show";
+    method: "patch";
+    path: "/segment-library/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentLibrarySegmentUpdate"];
+    responses: { 200: Components["SegmentLibrarySegment"] };
+  };
+  "segmentLibrary.delete": {
+    module: "Show";
+    method: "delete";
+    path: "/segment-library/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "segmentLibrary.insertIntoRun": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library/{id}/insert-into-run";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentInsertRequest"];
+    responses: { 201: Components["SegmentInsertResult"] };
+  };
+  "segmentLibrary.publish": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library/{id}/publish";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentPublishRequest"];
+    responses: { 200: Components["SegmentPublishResults"] };
+  };
+  "segmentLibraryCues.list": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library-cues";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SegmentLibraryCuePage"] };
+  };
+  "segmentLibraryCues.create": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library-cues";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SegmentLibraryCueCreate"];
+    responses: { 201: Components["SegmentLibraryCue"] };
+  };
+  "segmentLibraryCues.get": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library-cues/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SegmentLibraryCue"] };
+  };
+  "segmentLibraryCues.update": {
+    module: "Show";
+    method: "patch";
+    path: "/segment-library-cues/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentLibraryCueUpdate"];
+    responses: { 200: Components["SegmentLibraryCue"] };
+  };
+  "segmentLibraryCues.delete": {
+    module: "Show";
+    method: "delete";
+    path: "/segment-library-cues/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "segmentLibraryCueCalls.list": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library-cue-calls";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SegmentLibraryCueCallPage"] };
+  };
+  "segmentLibraryCueCalls.create": {
+    module: "Show";
+    method: "post";
+    path: "/segment-library-cue-calls";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SegmentLibraryCueCallCreate"];
+    responses: { 201: Components["SegmentLibraryCueCall"] };
+  };
+  "segmentLibraryCueCalls.get": {
+    module: "Show";
+    method: "get";
+    path: "/segment-library-cue-calls/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SegmentLibraryCueCall"] };
+  };
+  "segmentLibraryCueCalls.update": {
+    module: "Show";
+    method: "patch";
+    path: "/segment-library-cue-calls/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SegmentLibraryCueCallUpdate"];
+    responses: { 200: Components["SegmentLibraryCueCall"] };
+  };
+  "segmentLibraryCueCalls.delete": {
+    module: "Show";
+    method: "delete";
+    path: "/segment-library-cue-calls/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "runSegmentInstances.list": {
+    module: "Show";
+    method: "get";
+    path: "/run-segment-instances";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["RunSegmentInstancePage"] };
+  };
+  "runSegmentInstances.get": {
+    module: "Show";
+    method: "get";
+    path: "/run-segment-instances/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["RunSegmentInstance"] };
+  };
+  "showcallerLinks.list": {
+    module: "Show";
+    method: "get";
+    path: "/showcaller-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ShowcallerLinkPage"] };
+  };
+  "showcallerLinks.get": {
+    module: "Show";
+    method: "get";
+    path: "/showcaller-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ShowcallerLink"] };
+  };
+  "showcallerLinks.create": {
+    module: "Show";
+    method: "post";
+    path: "/showcaller-links/create";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShowcallerLinkRequest"];
+    responses: { 201: Components["ShowcallerLinkToken"] };
+  };
+  "showcallerLinks.regenerate": {
+    module: "Show";
+    method: "post";
+    path: "/showcaller-links/{id}/regenerate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShowcallerLinkRegenerated"] };
+  };
+  "showcallerLinks.revoke": {
+    module: "Show";
+    method: "post";
+    path: "/showcaller-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShowcallerLink"] };
+  };
+  "showcallerLinks.signOutDevices": {
+    module: "Show";
+    method: "post";
+    path: "/showcaller-links/{id}/sign-out-devices";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShowcallerDevicesSignedOut"] };
   };
   "rosterEntries.list": {
     module: "Advancing";
@@ -25109,6 +26125,54 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["AdvanceSubmissionFile"] };
   };
+  "advanceTrackSignoffs.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-track-signoffs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AdvanceTrackSignoffPage"] };
+  };
+  "advanceTrackSignoffs.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-track-signoffs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AdvanceTrackSignoff"] };
+  };
+  "advanceTrackSignoffs.revoke": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-track-signoffs/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceTrackSignoffRevokeRequest"];
+    responses: { 200: Components["AdvanceTrackSignoff"] };
+  };
+  "advanceTrackProgress.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-track-progress";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AdvanceTrackProgressPage"] };
+  };
   "guestListEntries.list": {
     module: "Advancing";
     method: "get";
@@ -25177,6 +26241,39 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
+  };
+  "guestListEntries.sendEmail": {
+    module: "Advancing";
+    method: "post";
+    path: "/guest-list-entries/send-email";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["GuestEmailSendRequest"];
+    responses: { 202: Components["GuestEmailSendQueued"] };
+  };
+  "guestEmailSends.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/guest-email-sends";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["GuestEmailSendPage"] };
+  };
+  "guestEmailSends.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/guest-email-sends/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["GuestEmailSend"] };
   };
   "flights.list": {
     module: "Hospitality";
@@ -25369,6 +26466,48 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AssetReservationRelease"];
     responses: { 200: Components["AssetReservation"] };
+  };
+  "credentialCategoryRequirements.list": {
+    module: "Credentials";
+    method: "get";
+    path: "/credential-category-requirements";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["CredentialCategoryRequirementPage"] };
+  };
+  "credentialCategoryRequirements.create": {
+    module: "Credentials";
+    method: "post";
+    path: "/credential-category-requirements";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["CredentialCategoryRequirementCreate"];
+    responses: { 201: Components["CredentialCategoryRequirement"] };
+  };
+  "credentialCategoryRequirements.get": {
+    module: "Credentials";
+    method: "get";
+    path: "/credential-category-requirements/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["CredentialCategoryRequirement"] };
+  };
+  "credentialCategoryRequirements.delete": {
+    module: "Credentials";
+    method: "delete";
+    path: "/credential-category-requirements/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
   };
   "form1099Nec.rows": {
     module: "Finance";
@@ -25714,6 +26853,81 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AuroraBindCodeRequest"];
     responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.intakeOptions": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/intake-options";
+    params: Record<string, never>;
+    query: { kind: Components["AuroraIntakeKind"]; project_id: string };
+    body: undefined;
+    responses: { 200: Components["AuroraIntakeOptions"] };
+  };
+  "aurora.openProposals": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/open-proposals";
+    params: Record<string, never>;
+    query: {
+      project_id: string;
+      operation_id: "travelSegments.create" | "engagements.createFromContract";
+    };
+    body: undefined;
+    responses: { 200: Components["AuroraOpenProposals"] };
+  };
+  "aurora.invoiceLineProposals": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/invoice-line-proposals";
+    params: Record<string, never>;
+    query: { invoice_id: string };
+    body: undefined;
+    responses: { 200: Components["AuroraOpenProposals"] };
+  };
+  "aurora.applyItinerary": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-itinerary";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyItineraryRequest"];
+    responses: { 200: Components["AuroraAppliedItinerary"] };
+  };
+  "aurora.applyContractIntake": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-contract-intake";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyContractIntakeRequest"];
+    responses: { 200: Components["AuroraAppliedContractIntake"] };
+  };
+  "aurora.applyInvoiceLines": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-invoice-lines";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyInvoiceLinesRequest"];
+    responses: { 200: Components["AuroraAppliedInvoiceLines"] };
+  };
+  "aurora.draftAdvanceAnswers": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/draft-advance-answers";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraDraftAdvanceAnswersRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.applyAdvanceAnswer": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-advance-answer";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyAdvanceAnswerRequest"];
+    responses: { 200: Components["AuroraAppliedAdvanceAnswer"] };
   };
   "aurora.preview": {
     module: "Settings";
@@ -26933,6 +28147,39 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["LiveLink"] };
   };
+  "cueFieldAudiences.list": {
+    module: "Platform";
+    method: "get";
+    path: "/cue-field-audiences";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["CueFieldAudiencePage"] };
+  };
+  "cueFieldAudiences.create": {
+    module: "Platform";
+    method: "post";
+    path: "/cue-field-audiences";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["CueFieldAudienceCreate"];
+    responses: { 201: Components["CueFieldAudience"] };
+  };
+  "cueFieldAudiences.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/cue-field-audiences/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
   "personCalendarFeeds.list": {
     module: "Platform";
     method: "get";
@@ -26983,6 +28230,24 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["CalendarFeedToken"] };
+  };
+  "personCalendarFeeds.configure": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds/{id}/configure";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PersonCalendarFeedConfigureRequest"];
+    responses: { 200: Components["PersonCalendarFeedConfiguration"] };
+  };
+  "personCalendarFeeds.configuration": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds/{id}/configuration";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeedConfiguration"] };
   };
   "projectInboxes.list": {
     module: "Platform";
@@ -27262,6 +28527,33 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["WorkforceGroup"] };
+  };
+  "workforceGroups.openShowChannel": {
+    module: "Workforce";
+    method: "post";
+    path: "/groups/open-show-channel";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShowChannelOpenRequest"];
+    responses: { 200: Components["ShowChannelConversation"] };
+  };
+  "workforceGroups.joinShowChannel": {
+    module: "Workforce";
+    method: "post";
+    path: "/groups/join-show-channel";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShowChannelJoinRequest"];
+    responses: { 200: Components["ShowChannelConversation"] };
+  };
+  "workforceGroups.showChannelStatus": {
+    module: "Workforce";
+    method: "get";
+    path: "/groups/show-channel-status";
+    params: Record<string, never>;
+    query: { project_id: string };
+    body: undefined;
+    responses: { 200: Components["ShowChannelStatus"] };
   };
   "workforceGroupMembers.list": {
     module: "Workforce";
@@ -28643,6 +29935,114 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["WeatherAlert"] };
   };
+  "weatherFeeds.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-feeds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherFeedPage"] };
+  };
+  "weatherFeeds.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-feeds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WeatherFeedCreate"];
+    responses: { 201: Components["WeatherFeed"] };
+  };
+  "weatherFeeds.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-feeds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherFeed"] };
+  };
+  "weatherFeeds.delete": {
+    module: "Workforce";
+    method: "delete";
+    path: "/weather-feeds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "weatherWarnings.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-warnings";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherWarningPage"] };
+  };
+  "weatherWarnings.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-warnings/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherWarning"] };
+  };
+  "weatherHolds.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-holds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherHoldPage"] };
+  };
+  "weatherHolds.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-holds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WeatherHoldCreate"];
+    responses: { 201: Components["WeatherHold"] };
+  };
+  "weatherHolds.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-holds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherHold"] };
+  };
+  "weatherHolds.allClear": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-holds/{id}/all-clear";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WeatherAllClearRequest"];
+    responses: { 200: Components["WeatherHold"] };
+  };
   "guestCheckIns.list": {
     module: "Workforce";
     method: "get";
@@ -28825,7 +30225,17 @@ export interface ModuleOperations {
     | "earnedMediaItems.get"
     | "earnedMediaItems.update"
     | "earnedMediaItems.delete"
-    | "projectMeasurementSummary.list";
+    | "projectMeasurementSummary.list"
+    | "projectDebriefs.list"
+    | "projectDebriefs.get"
+    | "projectDebriefs.save"
+    | "projectDebriefs.complete"
+    | "projectDebriefs.reopen"
+    | "projectDebriefItems.list"
+    | "projectDebriefItems.create"
+    | "projectDebriefItems.get"
+    | "projectDebriefItems.update"
+    | "projectDebriefItems.delete";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:
     | "scheduleBaselines.list"
@@ -28912,7 +30322,32 @@ export interface ModuleOperations {
     | "cueCalls.create"
     | "cueCalls.get"
     | "cueCalls.update"
-    | "cueCalls.delete";
+    | "cueCalls.delete"
+    | "segmentLibrary.list"
+    | "segmentLibrary.create"
+    | "segmentLibrary.get"
+    | "segmentLibrary.update"
+    | "segmentLibrary.delete"
+    | "segmentLibrary.insertIntoRun"
+    | "segmentLibrary.publish"
+    | "segmentLibraryCues.list"
+    | "segmentLibraryCues.create"
+    | "segmentLibraryCues.get"
+    | "segmentLibraryCues.update"
+    | "segmentLibraryCues.delete"
+    | "segmentLibraryCueCalls.list"
+    | "segmentLibraryCueCalls.create"
+    | "segmentLibraryCueCalls.get"
+    | "segmentLibraryCueCalls.update"
+    | "segmentLibraryCueCalls.delete"
+    | "runSegmentInstances.list"
+    | "runSegmentInstances.get"
+    | "showcallerLinks.list"
+    | "showcallerLinks.get"
+    | "showcallerLinks.create"
+    | "showcallerLinks.regenerate"
+    | "showcallerLinks.revoke"
+    | "showcallerLinks.signOutDevices";
   Knowledge:
     | "sops.list"
     | "sops.create"
@@ -29024,12 +30459,14 @@ export interface ModuleOperations {
     | "advanceSections.update"
     | "advanceSections.delete"
     | "advanceSections.configure"
+    | "advanceSections.setTrack"
     | "advanceRecipients.list"
     | "advanceRecipients.create"
     | "advanceRecipients.get"
     | "advanceRecipients.delete"
     | "advanceRecipients.bindEngagement"
     | "advanceRecipients.setNamesDue"
+    | "advanceRecipients.signOffTrack"
     | "advanceSubmissions.list"
     | "advanceSubmissions.create"
     | "advanceSubmissions.get"
@@ -29077,13 +30514,20 @@ export interface ModuleOperations {
     | "advanceSubmissionLines.get"
     | "advanceSubmissionFiles.list"
     | "advanceSubmissionFiles.get"
+    | "advanceTrackSignoffs.list"
+    | "advanceTrackSignoffs.get"
+    | "advanceTrackSignoffs.revoke"
+    | "advanceTrackProgress.list"
     | "guestListEntries.list"
     | "guestListEntries.create"
     | "guestListEntries.get"
     | "guestListEntries.update"
     | "guestListEntries.delete"
     | "guestListEntries.decide"
-    | "guestListEntries.checkIn";
+    | "guestListEntries.checkIn"
+    | "guestListEntries.sendEmail"
+    | "guestEmailSends.list"
+    | "guestEmailSends.get";
   Hospitality:
     | "fulfillments.list"
     | "fulfillments.create"
@@ -29399,6 +30843,7 @@ export interface ModuleOperations {
     | "accessScans.list"
     | "accessScans.create"
     | "accessScans.get"
+    | "accessScans.override"
     | "certifications.list"
     | "certifications.create"
     | "certifications.get"
@@ -29408,7 +30853,11 @@ export interface ModuleOperations {
     | "certificationHolders.create"
     | "certificationHolders.get"
     | "certificationHolders.update"
-    | "certificationHolders.delete";
+    | "certificationHolders.delete"
+    | "credentialCategoryRequirements.list"
+    | "credentialCategoryRequirements.create"
+    | "credentialCategoryRequirements.get"
+    | "credentialCategoryRequirements.delete";
   Finance:
     | "budgets.list"
     | "budgets.create"
@@ -29468,6 +30917,8 @@ export interface ModuleOperations {
     | "invoices.bulkPreview"
     | "invoices.bulkUpdate"
     | "invoices.fieldHistory"
+    | "invoices.tieOut"
+    | "invoices.lineHistory"
     | "invoiceLines.list"
     | "invoiceLines.create"
     | "invoiceLines.get"
@@ -29992,6 +31443,14 @@ export interface ModuleOperations {
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"
+    | "aurora.intakeOptions"
+    | "aurora.openProposals"
+    | "aurora.invoiceLineProposals"
+    | "aurora.applyItinerary"
+    | "aurora.applyContractIntake"
+    | "aurora.applyInvoiceLines"
+    | "aurora.draftAdvanceAnswers"
+    | "aurora.applyAdvanceAnswer"
     | "aurora.preview"
     | "aiSuggestions.list"
     | "aiSuggestions.get"
@@ -30267,6 +31726,8 @@ export interface ModuleOperations {
     | "calendarFeeds.get"
     | "calendarFeeds.delete"
     | "calendarFeeds.rotate"
+    | "calendarFeeds.configure"
+    | "calendarFeeds.configuration"
     | "trashItems.list"
     | "trashItems.restore"
     | "templates.list"
@@ -30352,11 +31813,16 @@ export interface ModuleOperations {
     | "liveLinks.createDisplay"
     | "liveLinks.regenerate"
     | "liveLinks.revoke"
+    | "cueFieldAudiences.list"
+    | "cueFieldAudiences.create"
+    | "cueFieldAudiences.delete"
     | "personCalendarFeeds.list"
     | "personCalendarFeeds.create"
     | "personCalendarFeeds.get"
     | "personCalendarFeeds.delete"
     | "personCalendarFeeds.rotate"
+    | "personCalendarFeeds.configure"
+    | "personCalendarFeeds.configuration"
     | "projectInboxes.list"
     | "projectInboxes.create"
     | "projectInboxes.get"
@@ -30385,6 +31851,9 @@ export interface ModuleOperations {
     | "workforceGroups.get"
     | "workforceGroups.update"
     | "workforceGroups.archive"
+    | "workforceGroups.openShowChannel"
+    | "workforceGroups.joinShowChannel"
+    | "workforceGroups.showChannelStatus"
     | "workforceGroupMembers.list"
     | "workforceGroupMembers.create"
     | "workforceGroupMembers.get"
@@ -30519,6 +31988,16 @@ export interface ModuleOperations {
     | "weatherReadings.get"
     | "weatherAlerts.list"
     | "weatherAlerts.get"
+    | "weatherFeeds.list"
+    | "weatherFeeds.create"
+    | "weatherFeeds.get"
+    | "weatherFeeds.delete"
+    | "weatherWarnings.list"
+    | "weatherWarnings.get"
+    | "weatherHolds.list"
+    | "weatherHolds.create"
+    | "weatherHolds.get"
+    | "weatherHolds.allClear"
     | "guestCheckIns.list"
     | "guestCheckIns.create"
     | "guestCheckIns.get"

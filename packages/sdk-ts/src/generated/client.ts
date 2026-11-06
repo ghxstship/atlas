@@ -341,14 +341,24 @@ import {
   ProjectMeasurementCorrectionsResource,
   EarnedMediaItemsResource,
   ProjectMeasurementSummaryResource,
+  ProjectDebriefsResource,
+  ProjectDebriefItemsResource,
   CueCallsResource,
+  SegmentLibraryResource,
+  SegmentLibraryCuesResource,
+  SegmentLibraryCueCallsResource,
+  RunSegmentInstancesResource,
+  ShowcallerLinksResource,
   RosterEntriesResource,
   AdvanceAllocationsResource,
   AssetReservationConflictsResource,
   AdvanceSectionChoicesResource,
   AdvanceSubmissionLinesResource,
   AdvanceSubmissionFilesResource,
+  AdvanceTrackSignoffsResource,
+  AdvanceTrackProgressResource,
   GuestListEntriesResource,
+  GuestEmailSendsResource,
   FlightsResource,
   TransfersResource,
   TransferVehiclesResource,
@@ -357,6 +367,7 @@ import {
   AccommodationNightsResource,
   AssetUnitHireResource,
   AssetReservationsResource,
+  CredentialCategoryRequirementsResource,
   Form1099NecResource,
   GoodsReturnsResource,
   ReturnLinesResource,
@@ -396,6 +407,7 @@ import {
   PartnerStandingGrantsResource,
   ShareLinksResource,
   LiveLinksResource,
+  CueFieldAudiencesResource,
   PersonCalendarFeedsResource,
   ProjectInboxesResource,
   InboundMessagesResource,
@@ -434,6 +446,9 @@ import {
   WeatherAlertRolesResource,
   WeatherReadingsResource,
   WeatherAlertsResource,
+  WeatherFeedsResource,
+  WeatherWarningsResource,
+  WeatherHoldsResource,
   GuestCheckInsResource,
   LostFoundItemsResource,
   LostFoundClaimsResource,
@@ -1215,8 +1230,23 @@ export class XosClient extends XosClientCore {
   /** Projects: operations on `projectMeasurementSummary`. */
   readonly projectMeasurementSummary: ProjectMeasurementSummaryResource =
     new ProjectMeasurementSummaryResource(this);
+  /** Projects: operations on `projectDebriefs`. */
+  readonly projectDebriefs: ProjectDebriefsResource = new ProjectDebriefsResource(this);
+  /** Projects: operations on `projectDebriefItems`. */
+  readonly projectDebriefItems: ProjectDebriefItemsResource = new ProjectDebriefItemsResource(this);
   /** Show: operations on `cueCalls`. */
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
+  /** Show: operations on `segmentLibrary`. */
+  readonly segmentLibrary: SegmentLibraryResource = new SegmentLibraryResource(this);
+  /** Show: operations on `segmentLibraryCues`. */
+  readonly segmentLibraryCues: SegmentLibraryCuesResource = new SegmentLibraryCuesResource(this);
+  /** Show: operations on `segmentLibraryCueCalls`. */
+  readonly segmentLibraryCueCalls: SegmentLibraryCueCallsResource =
+    new SegmentLibraryCueCallsResource(this);
+  /** Show: operations on `runSegmentInstances`. */
+  readonly runSegmentInstances: RunSegmentInstancesResource = new RunSegmentInstancesResource(this);
+  /** Show: operations on `showcallerLinks`. */
+  readonly showcallerLinks: ShowcallerLinksResource = new ShowcallerLinksResource(this);
   /** Advancing: operations on `rosterEntries`. */
   readonly rosterEntries: RosterEntriesResource = new RosterEntriesResource(this);
   /** Advancing: operations on `advanceAllocations`. */
@@ -1234,8 +1264,18 @@ export class XosClient extends XosClientCore {
   /** Advancing: operations on `advanceSubmissionFiles`. */
   readonly advanceSubmissionFiles: AdvanceSubmissionFilesResource =
     new AdvanceSubmissionFilesResource(this);
+  /** Advancing: operations on `advanceTrackSignoffs`. */
+  readonly advanceTrackSignoffs: AdvanceTrackSignoffsResource = new AdvanceTrackSignoffsResource(
+    this,
+  );
+  /** Advancing: operations on `advanceTrackProgress`. */
+  readonly advanceTrackProgress: AdvanceTrackProgressResource = new AdvanceTrackProgressResource(
+    this,
+  );
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Advancing: operations on `guestEmailSends`. */
+  readonly guestEmailSends: GuestEmailSendsResource = new GuestEmailSendsResource(this);
   /** Hospitality: operations on `flights`. */
   readonly flights: FlightsResource = new FlightsResource(this);
   /** Hospitality: operations on `transfers`. */
@@ -1252,6 +1292,9 @@ export class XosClient extends XosClientCore {
   readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
   /** Assets: operations on `assetReservations`. */
   readonly assetReservations: AssetReservationsResource = new AssetReservationsResource(this);
+  /** Credentials: operations on `credentialCategoryRequirements`. */
+  readonly credentialCategoryRequirements: CredentialCategoryRequirementsResource =
+    new CredentialCategoryRequirementsResource(this);
   /** Finance: operations on `form1099Nec`. */
   readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
   /** Procurement: operations on `goodsReturns`. */
@@ -1341,6 +1384,8 @@ export class XosClient extends XosClientCore {
   readonly shareLinks: ShareLinksResource = new ShareLinksResource(this);
   /** Platform: operations on `liveLinks`. */
   readonly liveLinks: LiveLinksResource = new LiveLinksResource(this);
+  /** Platform: operations on `cueFieldAudiences`. */
+  readonly cueFieldAudiences: CueFieldAudiencesResource = new CueFieldAudiencesResource(this);
   /** Platform: operations on `personCalendarFeeds`. */
   readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
   /** Platform: operations on `projectInboxes`. */
@@ -1421,6 +1466,12 @@ export class XosClient extends XosClientCore {
   readonly weatherReadings: WeatherReadingsResource = new WeatherReadingsResource(this);
   /** Workforce: operations on `weatherAlerts`. */
   readonly weatherAlerts: WeatherAlertsResource = new WeatherAlertsResource(this);
+  /** Workforce: operations on `weatherFeeds`. */
+  readonly weatherFeeds: WeatherFeedsResource = new WeatherFeedsResource(this);
+  /** Workforce: operations on `weatherWarnings`. */
+  readonly weatherWarnings: WeatherWarningsResource = new WeatherWarningsResource(this);
+  /** Workforce: operations on `weatherHolds`. */
+  readonly weatherHolds: WeatherHoldsResource = new WeatherHoldsResource(this);
   /** Workforce: operations on `guestCheckIns`. */
   readonly guestCheckIns: GuestCheckInsResource = new GuestCheckInsResource(this);
   /** Workforce: operations on `lostFoundItems`. */

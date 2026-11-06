@@ -17,7 +17,6 @@ import {
   type IssuedCredential,
   type OperationsProject,
 } from "@xos/data/credentials";
-import { approvalBySubject, listSubjectApprovals, type SubjectApproval } from "@xos/data/workflow";
 import { badgePhotos, badgePhotoThumbnail } from "@xos/data/credential-photos";
 import { printSizesFor } from "@xos/data/documents/model";
 import type { Route } from "next";

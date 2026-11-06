@@ -347,14 +347,24 @@ from .resources import (
     ProjectMeasurementCorrectionsResource,
     EarnedMediaItemsResource,
     ProjectMeasurementSummaryResource,
+    ProjectDebriefsResource,
+    ProjectDebriefItemsResource,
     CueCallsResource,
+    SegmentLibraryResource,
+    SegmentLibraryCuesResource,
+    SegmentLibraryCueCallsResource,
+    RunSegmentInstancesResource,
+    ShowcallerLinksResource,
     RosterEntriesResource,
     AdvanceAllocationsResource,
     AssetReservationConflictsResource,
     AdvanceSectionChoicesResource,
     AdvanceSubmissionLinesResource,
     AdvanceSubmissionFilesResource,
+    AdvanceTrackSignoffsResource,
+    AdvanceTrackProgressResource,
     GuestListEntriesResource,
+    GuestEmailSendsResource,
     FlightsResource,
     TransfersResource,
     TransferVehiclesResource,
@@ -363,6 +373,7 @@ from .resources import (
     AccommodationNightsResource,
     AssetUnitHireResource,
     AssetReservationsResource,
+    CredentialCategoryRequirementsResource,
     Form1099NecResource,
     GoodsReturnsResource,
     ReturnLinesResource,
@@ -402,6 +413,7 @@ from .resources import (
     PartnerStandingGrantsResource,
     ShareLinksResource,
     LiveLinksResource,
+    CueFieldAudiencesResource,
     PersonCalendarFeedsResource,
     ProjectInboxesResource,
     InboundMessagesResource,
@@ -440,6 +452,9 @@ from .resources import (
     WeatherAlertRolesResource,
     WeatherReadingsResource,
     WeatherAlertsResource,
+    WeatherFeedsResource,
+    WeatherWarningsResource,
+    WeatherHoldsResource,
     GuestCheckInsResource,
     LostFoundItemsResource,
     LostFoundClaimsResource,
@@ -798,14 +813,24 @@ class XosClient(XosClientCore):
     project_measurement_corrections: ProjectMeasurementCorrectionsResource
     earned_media_items: EarnedMediaItemsResource
     project_measurement_summary: ProjectMeasurementSummaryResource
+    project_debriefs: ProjectDebriefsResource
+    project_debrief_items: ProjectDebriefItemsResource
     cue_calls: CueCallsResource
+    segment_library: SegmentLibraryResource
+    segment_library_cues: SegmentLibraryCuesResource
+    segment_library_cue_calls: SegmentLibraryCueCallsResource
+    run_segment_instances: RunSegmentInstancesResource
+    showcaller_links: ShowcallerLinksResource
     roster_entries: RosterEntriesResource
     advance_allocations: AdvanceAllocationsResource
     asset_reservation_conflicts: AssetReservationConflictsResource
     advance_section_choices: AdvanceSectionChoicesResource
     advance_submission_lines: AdvanceSubmissionLinesResource
     advance_submission_files: AdvanceSubmissionFilesResource
+    advance_track_signoffs: AdvanceTrackSignoffsResource
+    advance_track_progress: AdvanceTrackProgressResource
     guest_list_entries: GuestListEntriesResource
+    guest_email_sends: GuestEmailSendsResource
     flights: FlightsResource
     transfers: TransfersResource
     transfer_vehicles: TransferVehiclesResource
@@ -814,6 +839,7 @@ class XosClient(XosClientCore):
     accommodation_nights: AccommodationNightsResource
     asset_unit_hire: AssetUnitHireResource
     asset_reservations: AssetReservationsResource
+    credential_category_requirements: CredentialCategoryRequirementsResource
     form1099_nec: Form1099NecResource
     goods_returns: GoodsReturnsResource
     return_lines: ReturnLinesResource
@@ -853,6 +879,7 @@ class XosClient(XosClientCore):
     partner_standing_grants: PartnerStandingGrantsResource
     share_links: ShareLinksResource
     live_links: LiveLinksResource
+    cue_field_audiences: CueFieldAudiencesResource
     person_calendar_feeds: PersonCalendarFeedsResource
     project_inboxes: ProjectInboxesResource
     inbound_messages: InboundMessagesResource
@@ -891,6 +918,9 @@ class XosClient(XosClientCore):
     weather_alert_roles: WeatherAlertRolesResource
     weather_readings: WeatherReadingsResource
     weather_alerts: WeatherAlertsResource
+    weather_feeds: WeatherFeedsResource
+    weather_warnings: WeatherWarningsResource
+    weather_holds: WeatherHoldsResource
     guest_check_ins: GuestCheckInsResource
     lost_found_items: LostFoundItemsResource
     lost_found_claims: LostFoundClaimsResource
@@ -1237,14 +1267,24 @@ class XosClient(XosClientCore):
         self.project_measurement_corrections = ProjectMeasurementCorrectionsResource(self)
         self.earned_media_items = EarnedMediaItemsResource(self)
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
+        self.project_debriefs = ProjectDebriefsResource(self)
+        self.project_debrief_items = ProjectDebriefItemsResource(self)
         self.cue_calls = CueCallsResource(self)
+        self.segment_library = SegmentLibraryResource(self)
+        self.segment_library_cues = SegmentLibraryCuesResource(self)
+        self.segment_library_cue_calls = SegmentLibraryCueCallsResource(self)
+        self.run_segment_instances = RunSegmentInstancesResource(self)
+        self.showcaller_links = ShowcallerLinksResource(self)
         self.roster_entries = RosterEntriesResource(self)
         self.advance_allocations = AdvanceAllocationsResource(self)
         self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
         self.advance_section_choices = AdvanceSectionChoicesResource(self)
         self.advance_submission_lines = AdvanceSubmissionLinesResource(self)
         self.advance_submission_files = AdvanceSubmissionFilesResource(self)
+        self.advance_track_signoffs = AdvanceTrackSignoffsResource(self)
+        self.advance_track_progress = AdvanceTrackProgressResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.guest_email_sends = GuestEmailSendsResource(self)
         self.flights = FlightsResource(self)
         self.transfers = TransfersResource(self)
         self.transfer_vehicles = TransferVehiclesResource(self)
@@ -1253,6 +1293,7 @@ class XosClient(XosClientCore):
         self.accommodation_nights = AccommodationNightsResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
         self.asset_reservations = AssetReservationsResource(self)
+        self.credential_category_requirements = CredentialCategoryRequirementsResource(self)
         self.form1099_nec = Form1099NecResource(self)
         self.goods_returns = GoodsReturnsResource(self)
         self.return_lines = ReturnLinesResource(self)
@@ -1292,6 +1333,7 @@ class XosClient(XosClientCore):
         self.partner_standing_grants = PartnerStandingGrantsResource(self)
         self.share_links = ShareLinksResource(self)
         self.live_links = LiveLinksResource(self)
+        self.cue_field_audiences = CueFieldAudiencesResource(self)
         self.person_calendar_feeds = PersonCalendarFeedsResource(self)
         self.project_inboxes = ProjectInboxesResource(self)
         self.inbound_messages = InboundMessagesResource(self)
@@ -1330,6 +1372,9 @@ class XosClient(XosClientCore):
         self.weather_alert_roles = WeatherAlertRolesResource(self)
         self.weather_readings = WeatherReadingsResource(self)
         self.weather_alerts = WeatherAlertsResource(self)
+        self.weather_feeds = WeatherFeedsResource(self)
+        self.weather_warnings = WeatherWarningsResource(self)
+        self.weather_holds = WeatherHoldsResource(self)
         self.guest_check_ins = GuestCheckInsResource(self)
         self.lost_found_items = LostFoundItemsResource(self)
         self.lost_found_claims = LostFoundClaimsResource(self)

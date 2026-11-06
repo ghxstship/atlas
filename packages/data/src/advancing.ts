@@ -2,7 +2,6 @@ import type { XosClient } from "./client.ts";
 import { Constants } from "./database.types.ts";
 import type { Database } from "./database.types.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
-import type { Database } from "./database.types.ts";
 import * as enums from "./enums.generated.ts";
 
 /**

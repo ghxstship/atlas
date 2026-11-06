@@ -24,7 +24,6 @@ import {
   type InsideZone,
   type IssueCheck,
 } from "@xos/data/credentials";
-import { Constants } from "@xos/data/database.types";
 import {
   countOutcomes,
   credentialPhotoStates,

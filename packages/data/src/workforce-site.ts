@@ -18,7 +18,6 @@ import {
   strOrNull,
   type Raw,
 } from "./workforce-shared.ts";
-import type { Database } from "./database.types.ts";
 import * as enums from "./enums.generated.ts";
 
 /**

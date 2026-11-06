@@ -434,7 +434,13 @@ export function bookCoverModel(
       .sort((a, b) => a.version - b.version)
       .filter((v) => Number.isNaN(at) || Date.parse(v.effectiveFrom) <= at)
       .pop() ?? (BOOK_COVER_TEMPLATES[0] as (typeof BOOK_COVER_TEMPLATES)[number]);
-  const out = template.build(data, { t, f, generatedAt: options.now, paper: options.paper });
+  const out = template.build(data, {
+    t,
+    f,
+    generatedAt: options.now,
+    paper: options.paper,
+    options: {},
+  });
   const recordKey = bookRecordKey(data.project.key, data.book.id);
   return {
     kind: "document-book",

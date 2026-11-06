@@ -12,7 +12,6 @@ import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { orNull } from "../correct.ts";
 import { collectionAction, collectionQuery, itemAction, itemQuery, resource } from "../define.ts";
-import { Constants } from "@xos/data/database.types";
 import { showChannelActions } from "./parts/segment-library.ts";
 
 // Shared pieces ------------------------------------------------------------------------------------

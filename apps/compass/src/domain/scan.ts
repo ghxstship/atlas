@@ -7,7 +7,6 @@
  */
 import type { Database } from "@xos/data/database.types";
 import { uuidv7, type MutationInput } from "@xos/sync";
-import type { Database } from "@xos/data/database.types";
 
 export type Symbology =
   "ean13" | "upc_a" | "ean8" | "itf14" | "gs1_128" | "code128" | "qr" | "datamatrix" | "nfc";
