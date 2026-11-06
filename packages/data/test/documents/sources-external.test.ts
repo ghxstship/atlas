@@ -1,11 +1,15 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { generateExternalDocument } from "../../src/documents/generate.ts";
+import {
+  generateExternalDocument,
+  generateTokenQuoteDocument,
+} from "../../src/documents/generate.ts";
 import {
   isExternalDocumentKind,
   loadExternalDocumentData,
 } from "../../src/documents/sources-external.ts";
 import { fakeClient, okResponse } from "../fake-client.ts";
+import { pdfText } from "./pdf-text.ts";
 
 const EN: unknown = JSON.parse(
   readFileSync(new URL("../../../i18n/messages/en-US/documents.json", import.meta.url), "utf8"),
@@ -273,4 +277,93 @@ describe("Gateway documents read the api_external views", () => {
     });
     expect(r.ok && r.data.fileName).toBe("credential-badge-AAA-1-a4.pdf");
   }, 20_000);
+});
+
+describe("a client's quote (B13)", () => {
+  const version = {
+    id: "qv1",
+    quote_id: "q1",
+    quote_key: "NWF26-Q-14",
+    title: "Main stage production",
+    project_id: "p1",
+    project_name: "Northwind",
+    project_time_zone: "America/New_York",
+    org_id: "org-1",
+    org_name: "Northwind Live",
+    client_name: "Coral Group",
+    version_number: 2,
+    quote_version_state: "Accepted",
+    valid_until: "2026-12-01",
+    terms: "Half on signature.",
+    currency_code: "USD",
+    total_minor: 3000,
+    content_sha256: "a".repeat(64),
+    sent_at: "2026-11-02T15:00:00Z",
+    accepted_at: "2026-11-03T15:00:00Z",
+    accepted_name: "Cleo Marsh",
+    accepted_email: "cleo@coral-group.test",
+    legal_entity_name: "Northwind Live Productions LLC",
+    brand_accent_hex: "#3b5bdb",
+    brand_logo_path: null,
+  };
+  const line = {
+    id: "l1",
+    quote_version_id: "qv1",
+    line_number: 1,
+    description: "Deck",
+    quantity: 2,
+    unit_basis: "day",
+    unit_price_minor: 1500,
+    amount_minor: 3000,
+  };
+
+  it("reads only the client-facing views, and builds the brand from the row", async () => {
+    const { db, calls } = fakeClient({
+      [v("quote_versions")]: [okResponse([version])],
+      [v("quote_version_lines")]: [okResponse([line])],
+    });
+    const result = await loadExternalDocumentData(db, "quote", "qv1");
+    if (!result.ok) throw new Error("the quote did not load");
+    expect(calls.map((c) => c.target)).toEqual([v("quote_versions"), v("quote_version_lines")]);
+    expect(result.data.orgName).toBe("Northwind Live");
+    expect(result.data.brand?.legalEntityName).toBe("Northwind Live Productions LLC");
+    expect(result.data.data).toMatchObject({
+      project: { name: "Northwind", timeZone: "America/New_York" },
+      quote: {
+        key: "NWF26-Q-14",
+        clientName: "Coral Group",
+        state: "Accepted",
+        acceptedEmail: "cleo@coral-group.test",
+        totalMinor: 3000,
+        lines: [{ lineNumber: 1, unitPriceMinor: 1500, amountMinor: 3000 }],
+      },
+    });
+  });
+
+  it("answers not found for a quote the views hide, a Draft among them", async () => {
+    const { db } = fakeClient({ [v("quote_versions")]: [okResponse([])] });
+    const result = await loadExternalDocumentData(db, "quote", "qv1");
+    expect(result.ok).toBe(false);
+  });
+
+  it("builds a signing link's PDF from the reader's fields, reading nothing else", async () => {
+    const { db, calls } = fakeClient({});
+    const result = await generateTokenQuoteDocument({
+      db,
+      quote: { ...version, lines: [line] },
+      locale: "en-US",
+      messages: EN,
+      paper: "letter",
+      recordUrl: () => "https://gateway.example.test/documents",
+      now: new Date("2026-11-06T12:00:00Z"),
+    });
+    if (!result.ok) throw new Error("the PDF did not render");
+    expect(calls).toEqual([]);
+    expect(result.data.fileName).toContain("NWF26-Q-14");
+    const shown = await pdfText(result.data.bytes);
+    expect(shown).toContain("Main stage production");
+    expect(shown).toContain("Northwind Live Productions LLC");
+    expect(shown).toContain("https://gateway.example.test/documents");
+    expect(shown).not.toContain("/sign/");
+  }, 60_000);
 });
