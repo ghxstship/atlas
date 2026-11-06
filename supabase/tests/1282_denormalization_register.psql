@@ -285,7 +285,6 @@ insert into register_restated values
   ('app.purchase_orders.payment_terms_days', 'app.vendors.payment_terms_days', 'own'),
   ('app.purchase_orders.vendor_id', 'app.rfq_responses.vendor_id', 'own'),
   ('app.push_tickets.message_status', 'app.notification_deliveries.message_status', 'own'),
-  ('app.quote_versions.version_number', 'app.budget_versions.version_number', 'own'),
   ('app.recognitions.project_id', 'app.feed_posts.project_id', 'own'),
   ('app.recognitions.project_id', 'app.shifts.project_id', 'own'),
   ('app.record_recurrences.time_zone', 'app.records.time_zone', 'own'),

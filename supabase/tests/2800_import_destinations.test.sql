@@ -204,7 +204,7 @@ select app.commit_import_write(pg_temp.id('r_new'), pg_temp.id('batch'), pg_temp
 select app.commit_import_write(pg_temp.id('r_called'), pg_temp.id('batch'), pg_temp.id('cue_called'), 'Created');
 select app.commit_import_write(pg_temp.id('r_match'), pg_temp.id('batch'), pg_temp.id('cue_1'), 'Updated', '{"label": "House to half"}');
 select throws_ok($$select app.commit_import_write((select id from world where key = 'r_other'), (select id from world where key = 'batch'), (select id from world where key = 'cue_a2'), 'Updated', '{"label": "Doors"}')$$,
-  'XR001', 'import_target_outside_destination: The written row must be in the running order or project the import names.',
+  'XR001', 'import_target_outside_destination: The written row must be in the running order, project or budget the import names.',
   'a cue of another running order is never written');
 select app.finish_import_batch(pg_temp.id('batch'));
 update app.import_batches set committed_at = now() - interval '1 hour' where id = pg_temp.id('batch');

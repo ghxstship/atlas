@@ -1221,10 +1221,6 @@ restated:
     parent: app.notification_deliveries.message_status
     kind: own
     note: Status of one push ticket; the delivery's covers the whole delivery.
-  - column: app.quote_versions.version_number
-    parent: app.budget_versions.version_number
-    kind: own
-    note: The quote's own version number; the budget version's number counts the captures of its budget.
   - column: app.recognitions.project_id
     parent: app.feed_posts.project_id
     kind: own

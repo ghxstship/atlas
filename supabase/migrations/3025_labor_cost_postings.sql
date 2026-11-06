@@ -288,6 +288,9 @@ call private.install_policies('app.labor_cost_postings',
 revoke select, insert, update, delete on app.labor_cost_postings from authenticated;
 grant select (id, org_id, timesheet_approval_id, shift_id, role_code, work_date, minutes, segment, multiplier, rate_source,
   currency_code, created_at, created_by, updated_at, updated_by, deleted_at) on app.labor_cost_postings to authenticated;
+-- Trash's restore (1031) plans an update of deleted_at on every table that references the restored row, as the caller.
+-- With this column grant the plan passes and, with no update policy, no posting ever changes.
+grant update (deleted_at) on app.labor_cost_postings to authenticated;
 call private.install_default_retention('app.labor_cost_postings');
 
 insert into private.column_classifications (table_name, column_name, classification, read_capability) values

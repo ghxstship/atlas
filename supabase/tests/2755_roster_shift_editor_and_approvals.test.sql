@@ -37,7 +37,7 @@ $$;
 grant execute on function pg_temp.shifts_on_prj() to public;
 
 select has_function('app', 'save_roster_shift', 'the shift editor saves through one function');
-select is((select prosecdef from pg_proc where oid = 'app.save_roster_shift(uuid, uuid, uuid, text, timestamptz, timestamptz, text, uuid, uuid, uuid, text)'::regprocedure),
+select is((select prosecdef from pg_proc where oid = 'app.save_roster_shift(uuid, uuid, uuid, text, timestamptz, timestamptz, text, uuid, uuid, uuid, text, uuid)'::regprocedure),
   false, 'which runs as the caller, so the shift''s own policies and guards decide the write');
 
 -- Placing through the editor -----------------------------------------------------------------------------------------------------------

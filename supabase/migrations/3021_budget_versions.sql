@@ -144,6 +144,9 @@ call private.install_policies('app.budget_version_lines',
   $$budget_version_id in (select v.id from app.budget_versions v join app.budgets b on b.id = v.budget_id
     where b.project_id in (select private.project_ids_with('finance.budget.read')))$$);
 revoke insert, update, delete on app.budget_version_lines from authenticated;
+-- Trash's restore (1031) plans an update of deleted_at on every table that references the restored row, as the caller.
+-- With this column grant the plan passes and, with no update policy, no line ever changes.
+grant update (deleted_at) on app.budget_version_lines to authenticated;
 call private.install_default_retention('app.budget_version_lines');
 
 -- 4. Capture -----------------------------------------------------------------------------------------------------------

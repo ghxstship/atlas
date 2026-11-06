@@ -60,6 +60,7 @@ import type { GatewayContext } from "@/lib/shell/context";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { tabHref } from "@/lib/engagement";
 import { engagementTitle } from "@/lib/engagement-state";
 import { RosterFactsButton } from "@/components/roster/roster-facts-button";
 

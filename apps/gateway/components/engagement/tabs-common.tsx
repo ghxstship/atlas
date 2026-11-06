@@ -317,11 +317,13 @@ export async function DocumentsTab({
                   documentId={d.id}
                   engagementKey={engagementKey}
                   canSign={d.state === "Sent"}
-                  total={formatMoney(
-                    locale,
-                    quoteOf.get(d.id)?.totalMinor ?? null,
-                    quoteOf.get(d.id)?.currency ?? "USD",
-                  )}
+                  total={
+                    formatMoney(
+                      locale,
+                      quoteOf.get(d.id)?.totalMinor ?? null,
+                      quoteOf.get(d.id)?.currency ?? "USD",
+                    ) ?? ""
+                  }
                   validUntil={formatDate(locale, quoteOf.get(d.id)?.validUntil ?? "")}
                 />
               ),
