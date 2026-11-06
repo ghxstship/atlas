@@ -40,7 +40,7 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
     rows: [],
     count: 0,
     empty: {
-      icon: "HandCoins",
+      icon: "Wallet",
       sentence: t("finance.reimbursements.empty"),
       actionLabel: t("finance.reimbursements.emptyAction"),
       noMatches: t("finance.common.noMatches"),

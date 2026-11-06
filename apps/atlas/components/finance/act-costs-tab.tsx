@@ -52,7 +52,7 @@ export async function ActCostsTab({ page }: { page: FinancePage }) {
     rows: [],
     count: 0,
     empty: {
-      icon: "Calculator",
+      icon: "Handshake",
       sentence: project ? t("finance.actCosts.empty") : t("finance.actCosts.pickProject"),
       actionLabel: t("finance.actCosts.emptyAction"),
       noMatches: t("finance.common.noMatches"),

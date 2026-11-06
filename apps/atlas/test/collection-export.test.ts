@@ -115,7 +115,8 @@ describe("export sources (Section 4.6.4)", () => {
   });
 
   it("exports what tells a credit from a charge", () => {
-    expect(EXPORT_SOURCES["finance/expenses"]?.columns).toEqual(
+    const entry = EXPORT_SOURCES["finance/expenses"];
+    expect(entry && "columns" in entry ? entry.columns : []).toEqual(
       expect.arrayContaining(["credit_of_expense_id", "is_reimbursable", "engagement_id"]),
     );
   });
