@@ -62,7 +62,7 @@ test.describe("Issue checks (B8)", () => {
       );
 
       await page.locator("#issue-category").selectOption({ label: `B8C-${id} · Crew ${id}` });
-      await expect(page.getByText("Already holds a live badge of this category")).toBeVisible();
+      await expect(page.getByText(/Already holds live badge .* of this category/)).toBeVisible();
       await expect(page.getByRole("button", { name: "Issue credential" }).last()).toBeDisabled();
 
       await page.goto(`/${DEMO_ORG}/credentials/issued?project=${PROJECT_KEY}&view=table`);

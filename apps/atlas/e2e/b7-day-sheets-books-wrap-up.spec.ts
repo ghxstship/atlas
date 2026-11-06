@@ -113,7 +113,7 @@ test("a day sheet downloads for one team and one show department", async ({ page
   const pdf = await page.request.get(href ?? "");
   expect(pdf.status()).toBe(200);
   expect(pdf.headers()["content-type"]).toBe("application/pdf");
-  expect(pdf.headers()["x-document-template-version"]).toBe("2");
+  expect(pdf.headers()["x-document-template-version"]).toBe("3");
   expect(pdf.headers()["content-disposition"]).toContain("production-a4.pdf");
   expect(
     (

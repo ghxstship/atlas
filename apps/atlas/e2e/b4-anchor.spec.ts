@@ -1,4 +1,4 @@
-import { expect as baseExpect, test, type Page } from "./engine-test";
+import { expect as baseExpect, settle, test, type Page } from "./engine-test";
 import { expectAccessible } from "./support";
 import { createProject, createTask, newOwnerOrg } from "./b4-support";
 
@@ -35,6 +35,7 @@ test("journey: set and move a project's anchor, with a pinned record staying", a
 
   await page.goto(`/${slug}/p/ANC/schedule`);
   await expect(page.getByText("No anchor day set.")).toBeVisible();
+  await settle(page);
   await page.getByRole("button", { name: "Set anchor" }).click();
   const set = page.getByRole("dialog", { name: "Set the anchor day of ANC" });
   await set.getByLabel("Anchor day").fill("2027-03-13");

@@ -528,7 +528,8 @@ export function EditRecordForm({
         </div>
       </MoreFields>
       <p className="m-0 text-text-12 text-text-secondary">{t("fields.zoneNote", { zone: tz })}</p>
-      {logsReplans ? (
+      {/* Asked once a date changes, so the form shows at most seven fields until then (gate 27). */}
+      {logsReplans && changesDates(changedFields(before, after).after) ? (
         <Textarea
           id="edit-replan"
           label={t("fields.replanReason")}

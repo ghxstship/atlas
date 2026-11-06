@@ -51,7 +51,7 @@
     "advance_submission_immutable": "Una respuesta nunca cambia después de llegar. Devuélvela para que el destinatario responda de nuevo.",
     "advance_submission_reviewed": "Alguien ya revisó esta respuesta. Actualiza para ver la revisión.",
     "advance_review_person": "Inicia sesión de nuevo para revisar respuestas.",
-    "sod_advance_submitter": "Tú registraste esta respuesta, así que otra persona la revisa.",
+    "sod_advance_submitter": "Tú registraste esta respuesta, así que otra persona debe revisarla.",
     "advance_token_email": "Ingresa un correo electrónico válido para el enlace.",
     "advance_token_validity": "Un enlace es válido de 1 a 90 días.",
     "reconciliation_no_requirements": "Este proyecto aún no tiene requisitos. Agrégalos en la pestaña Alcance del proyecto y luego concilia.",

@@ -51,7 +51,7 @@
     "advance_submission_immutable": "An answer never changes after it arrives. Return it so the recipient answers again.",
     "advance_submission_reviewed": "Someone already reviewed this answer. Refresh to see the review.",
     "advance_review_person": "Sign in again to review answers.",
-    "sod_advance_submitter": "You recorded this answer, so someone else reviews it.",
+    "sod_advance_submitter": "You recorded this answer, so someone else must review it.",
     "advance_token_email": "Enter a valid email address for the link.",
     "advance_token_validity": "A link is valid for 1 to 90 days.",
     "reconciliation_no_requirements": "This project has no requirements yet. Add them in the project's Scope tab, then reconcile.",

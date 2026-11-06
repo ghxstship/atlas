@@ -46,7 +46,7 @@ test("journey: mark load-in, show and a split load-out day, and see them across 
   await drawer.getByRole("button", { name: "Save day" }).click();
   await expect(drawer).toBeHidden();
 
-  const table = page.getByRole("table", { name: "Day types" });
+  const table = page.getByRole("grid", { name: "Day types" });
   for (const text of ["Load In", "Show", "Load Out", "Travel to Austin", "America/Chicago"]) {
     await expect(table).toContainText(text);
   }

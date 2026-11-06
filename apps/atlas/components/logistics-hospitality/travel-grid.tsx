@@ -10,6 +10,7 @@ import {
   presetFilters,
 } from "@/lib/hospitality/travel";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { ItineraryEntry } from "@/components/aurora/entry/intake-entry";
 import { OperationsList, OperationsTable } from "./client";
 import { getZonedFormat, param, readView, type PageScope, type SearchParams } from "./kit";
 import { TravelGridViews } from "./travel-grid-views";
@@ -93,6 +94,9 @@ export async function TravelGridSection({
           }))}
         />
       }
+      {...(scope.project && scope.access.can(scope.project.id, "hospitality.fulfillment.write")
+        ? { actions: <ItineraryEntry projectId={scope.project.id} fulfillmentId={null} /> }
+        : {})}
     />
   );
 

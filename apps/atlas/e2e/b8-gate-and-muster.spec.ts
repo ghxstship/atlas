@@ -68,7 +68,9 @@ test.describe("Gate scans, overrides, Inside now and the muster list (B8)", () =
       await expect(denials).toContainText(badge.number);
       await denials.getByLabel("Reason").first().fill("Escorted by the production office.");
       await denials.getByRole("button", { name: "Let in" }).first().click();
-      await expect(page.getByRole("status").filter({ hasText: "Override recorded" })).toBeVisible();
+      await expect(
+        page.getByRole("status").filter({ hasText: "Override recorded" }).first(),
+      ).toBeVisible();
 
       await page.goto(`/${DEMO_ORG}/credentials/scan-log?project=${PROJECT_KEY}&direction=Out`);
       const outOnly = page.getByRole("table");

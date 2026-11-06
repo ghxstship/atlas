@@ -323,7 +323,7 @@ test("advancing progress", async ({ page, browser }) => {
   const stamp = Date.now().toString(36);
   const title = `Progress Advance ${stamp}`;
   const answered = "Bayline Audio Rentals";
-  const missing = "Demo Staging Supply";
+  const missing = "Demo Activation Brand";
   await signIn(page, "producer@example.com");
   await page.goto(`/${ORG}/advancing/packets?create=1`);
   const create = page.getByRole("dialog", { name: "New advance packet" });

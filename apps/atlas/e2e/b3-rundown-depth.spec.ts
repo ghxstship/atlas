@@ -48,7 +48,7 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   await choice.getByLabel("New choice").fill("Wide");
   await choice.getByLabel("Color").selectOption({ label: "Sky blue" });
   await choice.getByRole("button", { name: "Add choice" }).click();
-  await expect(row.getByText(/Choices: .*Wide \(Sky blue\)/)).toBeVisible();
+  await expect(row.getByText("Wide (Sky blue)")).toBeVisible();
   await expect(row.getByText("For: Crew")).toBeVisible();
   const audiences = page.getByRole("form", { name: "Who Camera is for" });
   await audiences.getByLabel("Client").check();

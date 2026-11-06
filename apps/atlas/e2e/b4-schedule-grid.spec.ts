@@ -26,7 +26,7 @@ test("journey: type a day's records into the grid, see a refusal in place, then 
   await expect(drawer).toBeVisible();
   const grid = drawer.getByRole("grid", { name: "Records on 2027-11-13" });
   // The append row: Time, Title, Kind, by typing, Tab and Enter.
-  await grid.getByRole("gridcell").first().click();
+  await grid.locator('td[role="gridcell"]').first().click();
   await page.keyboard.type("8a-10:30a");
   await page.keyboard.press("Tab");
   await page.keyboard.type("Installing the truss");

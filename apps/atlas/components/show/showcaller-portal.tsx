@@ -1,6 +1,12 @@
 "use client";
 
-import { CUE_CALL_KINDS, CUE_CALL_SLUGS, type CueCallKind, type RunOfShow } from "@xos/data/show";
+import {
+  CUE_CALL_KINDS,
+  CUE_CALL_SLUGS,
+  cueProgress,
+  type CueCallKind,
+  type RunOfShow,
+} from "@xos/data/show";
 import {
   consoleCalls,
   consoleCue,
@@ -404,6 +410,10 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
         setAdding("");
     });
   };
+  // The current and standby lines announce once per change, as live mode's in Atlas do; the console's clock does not.
+  const progress = cueProgress(cues);
+  const currentCue = progress.current >= 0 ? cues[progress.current] : undefined;
+  const nextCue = progress.next >= 0 ? cues[progress.next] : undefined;
   const lastCalled = run.cues.reduce((last, c, i) => (c.calledAt ? i : last), -1);
   const grantEnds = Date.parse(meta.grantExpiresAt);
   const time = (iso: string) =>
@@ -462,6 +472,16 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
         </InlineAlert>
       ) : null}
 
+      <p role="status" className="m-0 text-heading-16 font-semibold">
+        {currentCue ? show("live.current", { label: currentCue.label }) : show("live.notStarted")}
+      </p>
+      {nextCue ? (
+        <p role="status" className="m-0 text-text-14">
+          {progress.standby
+            ? show("live.standby", { label: nextCue.label })
+            : show("live.next", { label: nextCue.label })}
+        </p>
+      ) : null}
       <ShowcallerConsole
         org=""
         run={runOfShow}
