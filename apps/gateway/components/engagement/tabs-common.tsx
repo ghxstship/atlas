@@ -1,4 +1,5 @@
 import { addCalendarDays } from "@xos/data/calendar";
+import { QuoteSignButton } from "./quote-sign-button";
 import {
   APP_ENUMS,
   listEngagementDocuments,
@@ -9,6 +10,8 @@ import {
   readView,
   type EngagementDocumentKind,
   type OnboardingItem,
+  listEngagementQuoteVersions,
+  type EngagementQuoteVersion,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -276,6 +279,11 @@ export async function DocumentsTab({
   const docs = await listEngagementDocuments(view.ctx.db, view.engagement.id);
   if (!docs.ok) return <RegionError />;
   const shown = kinds ? docs.data.filter((d) => kinds.includes(d.kind)) : docs.data;
+  // A Quote document's PDF and confirmation read its version (api_external.quote_versions).
+  const quotes = shown.some((d) => d.kind === "Quote")
+    ? await listEngagementQuoteVersions(view.ctx.db, shown.map((d) => d.id))
+    : null;
+  const quoteOf = new Map((quotes?.ok ? quotes.data : []).map((q) => [q.engagementDocumentId, q]));
   if (shown.length === 0) {
     return (
       <TabEmpty
@@ -301,20 +309,61 @@ export async function DocumentsTab({
             : null,
         ],
         tag: { label: t(enumLabelKey("engagementDocumentState", d.state)), tone: toneFor(d.state) },
-        ...(d.state === "Sent"
+        ...(d.kind === "Quote" && quoteOf.get(d.id)
           ? {
               action: (
-                <ActionButton
-                  action={signDocumentAction.bind(null, d.id)}
-                  label={t("gateway.common.sign")}
-                  variant="secondary"
-                  done={t("gateway.common.signed")}
+                <QuoteDocumentActions
+                  quote={quoteOf.get(d.id) as EngagementQuoteVersion}
+                  documentId={d.id}
+                  engagementKey={engagementKey}
+                  canSign={d.state === "Sent"}
+                  total={formatMoney(
+                    locale,
+                    quoteOf.get(d.id)?.totalMinor ?? null,
+                    quoteOf.get(d.id)?.currency ?? "USD",
+                  )}
+                  validUntil={formatDate(locale, quoteOf.get(d.id)?.validUntil ?? "")}
                 />
               ),
             }
-          : {}),
+          : d.state === "Sent"
+            ? {
+                action: (
+                  <ActionButton
+                    action={signDocumentAction.bind(null, d.id)}
+                    label={t("gateway.common.sign")}
+                    variant="secondary"
+                    done={t("gateway.common.signed")}
+                  />
+                ),
+              }
+            : {}),
       }))}
     />
+  );
+}
+
+/** A Quote row: its PDF, and Sign behind a confirmation while it waits for a signature. */
+function QuoteDocumentActions({
+  quote,
+  documentId,
+  engagementKey,
+  canSign,
+  total,
+  validUntil,
+}: {
+  quote: EngagementQuoteVersion;
+  documentId: string;
+  engagementKey: string;
+  canSign: boolean;
+  total: string;
+  validUntil: string;
+}) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-8">
+      <DocumentActions kind="quote" id={quote.id} engagementKey={engagementKey} />
+      {canSign ? <QuoteSignButton documentId={documentId} total={total} validUntil={validUntil} /> : null}
+    </span>
   );
 }
 

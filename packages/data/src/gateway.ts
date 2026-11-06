@@ -192,6 +192,35 @@ export async function listEngagementDocuments(
   return ok(data.map(toDocument));
 }
 
+export interface EngagementQuoteVersion {
+  readonly id: string;
+  readonly engagementDocumentId: string;
+  readonly totalMinor: number | null;
+  readonly currency: string;
+  readonly validUntil: string;
+}
+
+/** The quote versions behind Quote documents the caller can read (api_external.quote_versions). */
+export async function listEngagementQuoteVersions(
+  db: XosClient,
+  documentIds: readonly string[],
+): Promise<Result<EngagementQuoteVersion[]>> {
+  const { data, error } = await external(db)
+    .from("quote_versions")
+    .select("id, engagement_document_id, total_minor, currency_code, valid_until")
+    .in("engagement_document_id", [...documentIds]);
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((r) => ({
+      id: req(r.id, "quote_versions.id"),
+      engagementDocumentId: req(r.engagement_document_id, "quote_versions.engagement_document_id"),
+      totalMinor: r.total_minor,
+      currency: r.currency_code ?? "USD",
+      validUntil: r.valid_until ?? "",
+    })),
+  );
+}
+
 /** The party signs a Sent document (Sent to Signed, app.sign_engagement_document). */
 export async function signEngagementDocument(
   db: XosClient,

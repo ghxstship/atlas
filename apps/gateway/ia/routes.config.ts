@@ -6,6 +6,8 @@
  */
 export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/": "Entry: sends a signed-in person to Home, everyone else to sign in.",
+  "/sign/{token}/quote":
+    "Route handler: a quote's PDF for a signing link; the access code arrives in the form body (B13, POST only).",
   "/auth/sign-in": "Auth template: magic link, OAuth and password sign-in.",
   "/auth/sign-up": "Auth template: account creation.",
   "/auth/check-email": "Auth template: magic link and confirmation sent.",

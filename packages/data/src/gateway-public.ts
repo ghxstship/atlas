@@ -292,6 +292,65 @@ export async function previewTokenDocument(
   });
 }
 
+export interface TokenQuoteLine {
+  readonly id: string;
+  readonly line_number: number;
+  readonly description: string;
+  readonly quantity: number;
+  readonly unit_basis: string | null;
+  readonly unit_price_minor: number | null;
+  readonly amount_minor: number | null;
+}
+
+/** The client-facing fields of api_public.token_quote, as the database names them. */
+export interface TokenQuote {
+  readonly refused: false;
+  readonly quote: {
+    readonly id: string;
+    readonly quote_key: string;
+    readonly title: string;
+    readonly org_id: string;
+    readonly org_name: string;
+    readonly project_name: string;
+    readonly project_time_zone: string;
+    readonly client_name: string | null;
+    readonly legal_entity_name: string | null;
+    readonly brand_accent_hex: string | null;
+    readonly brand_logo_path: string | null;
+    readonly version_number: number;
+    readonly quote_version_state: string;
+    readonly valid_until: string;
+    readonly terms: string | null;
+    readonly currency_code: string;
+    readonly content_sha256: string | null;
+    readonly sent_at: string | null;
+    readonly accepted_at: string | null;
+    readonly accepted_name: string | null;
+    readonly accepted_email: string | null;
+    readonly engagement_document_id: string;
+    readonly total_minor: number | null;
+    readonly lines: readonly TokenQuoteLine[];
+  };
+}
+
+/** The quote a signing link opens, after the access code (api_public.token_quote). */
+export async function previewTokenQuote(
+  db: XosClient,
+  input: { readonly token: string; readonly accessCode: string },
+): Promise<Result<TokenQuote | TokenRefusal>> {
+  const result = await rows<{ refusal: string | null; reason: string | null; quote: TokenQuote["quote"] | null }>(
+    db,
+    "token_quote",
+    { p_token: input.token, p_access_code: input.accessCode },
+  );
+  if (!result.ok) return result;
+  const row = result.data[0];
+  const refused = refusalOf(row);
+  if (refused) return ok(refused);
+  if (!row?.quote) return ok({ refused: true, reason: "quote_not_found" });
+  return ok({ refused: false, quote: row.quote });
+}
+
 /** Signs the document behind a signing link with the typed name (api_public.token_sign_document). */
 export async function signTokenDocument(
   db: XosClient,

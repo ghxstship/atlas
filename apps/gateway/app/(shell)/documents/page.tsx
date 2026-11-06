@@ -113,7 +113,8 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
           rows={docs.map(({ d, e }) => ({
             id: d.id,
             label: d.title,
-            eligible: d.state === "Sent",
+            // A quote is signed on its own, from its engagement's Documents tab.
+            eligible: d.state === "Sent" && d.kind !== "Quote",
             href: e ? `/work/engagements/${e.key}/documents` : "/documents",
             title: d.title,
             kind: t(enumLabelKey("engagementDocumentKind", d.kind)),
@@ -142,7 +143,7 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
               tone: toneFor(d.state),
             },
             ...(e ? { href: `/work/engagements/${e.key}/documents` } : {}),
-            ...(d.state === "Sent"
+            ...(d.state === "Sent" && d.kind !== "Quote"
               ? {
                   action: (
                     <ActionButton

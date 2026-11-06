@@ -499,12 +499,23 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         "FileSignature",
         t("gateway.home.needsYou.sign", { title: item.document.title }),
         `${item.engagement.orgName} · ${t(enumLabelKey("engagementDocumentKind", item.document.kind))}`,
-        <ActionButton
-          action={signDocumentAction.bind(null, item.document.id)}
-          label={t("gateway.common.sign")}
-          variant="secondary"
-          done={t("gateway.common.signed")}
-        />,
+        // A quote is signed from its engagement's Documents tab, after its total and consent are shown.
+        item.document.kind === "Quote" ? (
+          <ButtonLink
+            href={tabHref(item.engagement.key, "engagement.documents")}
+            variant="secondary"
+            size="sm"
+          >
+            {t("gateway.home.needsYou.reviewQuote")}
+          </ButtonLink>
+        ) : (
+          <ActionButton
+            action={signDocumentAction.bind(null, item.document.id)}
+            label={t("gateway.common.sign")}
+            variant="secondary"
+            done={t("gateway.common.signed")}
+          />
+        ),
       );
     case "offer": {
       const o = item.application.opportunity;
