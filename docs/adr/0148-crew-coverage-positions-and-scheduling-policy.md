@@ -49,7 +49,10 @@ An unfilled position's shifts cannot go to a member or to another agency's staff
 placement stays R12's: the agency may place any accepted person of that roster on the slot, because Gateway's per-shift
 placement depends on it. Filling covers shifts not yet ended; vacating covers shifts not yet started, and removes only the
 assignments filling made. A position keeps its agency and project while a live shift or record assignment names it, and a
-shift with waiting claims is not put on a position.
+shift with waiting claims is not put on a position. A swap of a held shift is refused when it is asked for, since applying
+it could only be refused later. A shift planned onto a filled member position with nobody named goes to the holder; a shift
+open on a filled position (the fill skipped it, or the holder declined it) reads as open, and a planner puts the holder back
+through its Edit or takes it off the position.
 
 ### 4. Break types are data on the Break Start punch
 

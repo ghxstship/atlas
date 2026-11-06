@@ -46,7 +46,7 @@ Crew > Faltantes muestra lo que aún no está cubierto entre dos días, en todos
 
 ## Puestos
 
-Crew > Puestos guarda plazas que se cubren después, como Jefe de escena o Aparejador 2. Reserva turnos para un puesto desde el formulario del turno y asígnale registros desde el registro. Nadie reclama ni se arrastra a un turno reservado. Cubrir el puesto da sus turnos a quien lo ocupa y muestra arriba de la página lo cubierto, omitido o con avisos. Dejarlo vacante devuelve los turnos que no han empezado y quita solo las asignaciones que hizo la cobertura.
+Crew > Puestos guarda plazas que se cubren después, como Jefe de escena o Aparejador 2. Reserva turnos para un puesto desde el formulario del turno y asígnale registros desde el registro. Nadie reclama ni se arrastra a un turno reservado. Cubrir el puesto da sus turnos a quien lo ocupa y muestra arriba de la página lo cubierto, omitido o con avisos. Dejarlo vacante devuelve los turnos que no han empezado y quita solo las asignaciones que hizo la cobertura. Se rechaza la solicitud de cambio de un turno reservado. Un turno nuevo en un puesto cubierto pasa a su titular.
 
 ## ¿Sigues yendo? y ausencias
 

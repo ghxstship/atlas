@@ -353,7 +353,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Crew > Positions holds seats filled later, such as Stage Manager or Rigger 2. Hold shifts for a position from the shift form and assign records to it from the record. Nobody claims or is dragged onto a held shift. Filling the position gives its shifts to the holder and shows what was filled, skipped or warned about at the top of the page. Vacating returns shifts that have not started and removes only the assignments filling made.",
+            v: "Crew > Positions holds seats filled later, such as Stage Manager or Rigger 2. Hold shifts for a position from the shift form and assign records to it from the record. Nobody claims or is dragged onto a held shift. Filling the position gives its shifts to the holder and shows what was filled, skipped or warned about at the top of the page. Vacating returns shifts that have not started and removes only the assignments filling made. Someone asking to swap a held shift is refused. A new shift on a filled position goes to its holder.",
           },
         ],
       },
@@ -2628,7 +2628,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Crew > Puestos guarda plazas que se cubren después, como Jefe de escena o Aparejador 2. Reserva turnos para un puesto desde el formulario del turno y asígnale registros desde el registro. Nadie reclama ni se arrastra a un turno reservado. Cubrir el puesto da sus turnos a quien lo ocupa y muestra arriba de la página lo cubierto, omitido o con avisos. Dejarlo vacante devuelve los turnos que no han empezado y quita solo las asignaciones que hizo la cobertura.",
+            v: "Crew > Puestos guarda plazas que se cubren después, como Jefe de escena o Aparejador 2. Reserva turnos para un puesto desde el formulario del turno y asígnale registros desde el registro. Nadie reclama ni se arrastra a un turno reservado. Cubrir el puesto da sus turnos a quien lo ocupa y muestra arriba de la página lo cubierto, omitido o con avisos. Dejarlo vacante devuelve los turnos que no han empezado y quita solo las asignaciones que hizo la cobertura. Se rechaza la solicitud de cambio de un turno reservado. Un turno nuevo en un puesto cubierto pasa a su titular.",
           },
         ],
       },

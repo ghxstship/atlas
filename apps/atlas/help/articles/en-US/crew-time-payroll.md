@@ -46,7 +46,7 @@ Crew > Shortages lists what is not covered yet between two days, across every pr
 
 ## Positions
 
-Crew > Positions holds seats filled later, such as Stage Manager or Rigger 2. Hold shifts for a position from the shift form and assign records to it from the record. Nobody claims or is dragged onto a held shift. Filling the position gives its shifts to the holder and shows what was filled, skipped or warned about at the top of the page. Vacating returns shifts that have not started and removes only the assignments filling made.
+Crew > Positions holds seats filled later, such as Stage Manager or Rigger 2. Hold shifts for a position from the shift form and assign records to it from the record. Nobody claims or is dragged onto a held shift. Filling the position gives its shifts to the holder and shows what was filled, skipped or warned about at the top of the page. Vacating returns shifts that have not started and removes only the assignments filling made. Someone asking to swap a held shift is refused. A new shift on a filled position goes to its holder.
 
 ## Still coming? and no-shows
 
