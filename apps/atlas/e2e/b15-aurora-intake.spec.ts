@@ -184,7 +184,7 @@ test("invoices: a printed total and its lines show a residual, which warns and b
     .setInputFiles(
       textFile(
         "bill.txt",
-        `Invoice ${number}\nCurrency: USD\nLine: 2 x Wedge monitor rental @ 450.00\nTax 80.00\nTotal 1,080.00\n`,
+        `Invoice ${number}\nCurrency: USD\nLine: 2 x Wedge monitor rental @ 450.00\nTax 80.00\nTotal 980.00\n`,
       ),
     );
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
@@ -255,7 +255,7 @@ test("advance answers: an answer from inbox mail is accepted, and a second perso
     "select app.receive_inbound_email($1, 'advance@example.com', 'Our advance', $2, true, $3, 'raw/b15.eml')",
     [local, `<${uniqueId()}@example.com>`, "Hospitality: two cases of water.\nThanks."],
   );
-  await page.goto(`/${ORG}/advancing/packets?peek=${id}`);
+  await page.goto(`/${ORG}/advancing/packets?peek=${id}&full=1`);
   await settle(page);
   await page
     .getByRole("button", { name: "Draft Answers from a Reply", exact: true })
@@ -286,13 +286,20 @@ test("advance answers: an answer from inbox mail is accepted, and a second perso
 
 test("governance: a waste plan draft fills the Document record's editor, and Save is the write", async () => {
   const title = `B15 Plan ${uniqueId()}`;
+  const [scope] = await sql<{ id: string }>(
+    "select id from app.scope_nodes where project_id = $1 and parent_id is null limit 1",
+    [project],
+  );
   const record = await post("/api/v1/records", {
-    project_id: project,
+    scope_node_id: scope?.id,
     record_kind: "Document",
     record_subtype: "Plan",
     title,
+    phase_code: "SCP",
+    xyz: "Y",
+    external_visibility: [],
   });
-  await page.goto(`/${ORG}/r/${projectKey}-${String(record["record_number"])}`);
+  await page.goto(`/${ORG}/r/${String(record["record_key"])}`);
   await settle(page);
   await page.getByRole("button", { name: "Draft with Aurora", exact: true }).click();
   const panel = page

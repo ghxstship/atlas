@@ -166,7 +166,7 @@ test.describe("the wrap-up with Aurora", () => {
     await section.getByLabel("Area").selectOption("Crew");
     await section.getByLabel("Kind").selectOption("To Improve");
     await section
-      .getByLabel("Point")
+      .getByLabel("Point", { exact: true })
       .fill(`B7 ${run}: call the crew 30 minutes earlier on show day.`);
     await section.getByRole("button", { name: "Save point" }).click();
     await expect(
