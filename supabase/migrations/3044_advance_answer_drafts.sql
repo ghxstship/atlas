@@ -79,9 +79,11 @@ as $$
     select 1
     from app.advance_recipients r
     join app.advance_sections s on s.advance_packet_id = r.advance_packet_id
+    join app.advance_packets p on p.id = r.advance_packet_id
     where r.id = p_recipient_id and s.id = p_section_id and r.deleted_at is null and s.deleted_at is null
       and s.section_kind in ('Text', 'Schedule Window', 'Item Request', 'Credential Request')
-      and (s.section_kind in ('Text', 'Schedule Window') or r.engagement_id is not null)
+      and (s.section_kind in ('Text', 'Schedule Window')
+        or (r.engagement_id is not null and private.can_on_project(p.project_id, 'advancing.packet.write')))
       and not exists (
         select 1 from (
           select x.review_outcome from app.advance_submissions x
@@ -90,7 +92,7 @@ as $$
         where a.review_outcome is null or a.review_outcome = 'Accepted'));
 $$;
 
-comment on function private.advance_section_draftable(uuid, uuid) is 'True when Aurora may draft an answer to the section for the recipient (B15): a live Text, Schedule Window, Item Request or Credential Request section of the recipient''s packet whose latest answer is absent or Returned; Item Request and Credential Request only for a recipient with an engagement. Crew Roster, Guest List and File are never drafted.';
+comment on function private.advance_section_draftable(uuid, uuid) is 'True when Aurora may draft an answer to the section for the recipient (B15): an Item Request or Credential Request needs an engagement and the caller''s advancing.packet.write. A live Text, Schedule Window, Item Request or Credential Request section of the recipient''s packet whose latest answer is absent or Returned; Item Request and Credential Request only for a recipient with an engagement. Crew Roster, Guest List and File are never drafted.';
 
 create or replace function app.draftable_advance_sections(p_recipient_id uuid)
 returns jsonb
@@ -205,6 +207,12 @@ begin
          and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing'))) then
     perform private.refuse('advance_section_not_draftable', 'This section is answered already or no longer takes an answer from Aurora.');
   end if;
+  -- Item and credential lines become Requested allocations, and requesting for a party is advancing.packet.write
+  -- (app.request_allocation, 2693).
+  if v_section.section_kind in ('Item Request', 'Credential Request')
+     and not private.can_on_project(v_packet.project_id, 'advancing.packet.write') then
+    raise exception using errcode = '42501', message = 'recording items or credentials for a party needs advancing.packet.write on the packet''s project';
+  end if;
 
   -- (c) The source, checked again as the caller: a verified, live project inbox message of the packet's project the
   -- caller may read, or a file name.
@@ -259,7 +267,7 @@ begin
 end;
 $$;
 
-comment on function app.apply_drafted_advance_answer(uuid, jsonb, jsonb) is 'Records one advance answer drafted with Aurora on the recipient''s behalf (B15, ADR 0154). The suggestion is a Proposed, unexpired aurora.applyAdvanceAnswer suggestion (target_id the section) of the caller''s own Answered drafting request about an app.advance_recipients row (42501 for anyone else; aurora_draft_request_invalid, ai_suggestion_expired). The caller holds advancing.submission.review on the packet''s project (42501); the section is a live Text, Schedule Window, Item Request or Credential Request section of the packet (the last two only under an engagement) and a linked engagement is Onboarding to Closing (advance_section_not_draftable), while an answer still open on it is refused by R9''s guard as advance_answer_pending. p_source is {inbound_message_id}, a DKIM-verified, live, not Rejected or discarded Project Inbox message of the packet''s project in an inbox where the caller holds knowledge.document.write, or {file_name} of 1 to 300 characters (aurora_draft_source_invalid otherwise). p_values (body, lines in R9''s p_lines shape, note) override the proposed fields key by key. Writes through private.record_advance_answer, so advance_answer_pending, the line kinds and limits, roster entries, R7 offerings and caps hold, and the caller becomes the answer''s submitter (sod_advance_submitter keeps them from reviewing it). Inside aurora_batch_apply it adds the app.advance_answer_drafts row and moves the suggestion Proposed, Confirmed, Applied with the answer. Returns the answer id. Calls no model and meters nothing.';
+comment on function app.apply_drafted_advance_answer(uuid, jsonb, jsonb) is 'Records one advance answer drafted with Aurora on the recipient''s behalf (B15, ADR 0154). The suggestion is a Proposed, unexpired aurora.applyAdvanceAnswer suggestion (target_id the section) of the caller''s own Answered drafting request about an app.advance_recipients row (42501 for anyone else; aurora_draft_request_invalid, ai_suggestion_expired). The caller holds advancing.submission.review on the packet''s project, and also advancing.packet.write for an Item Request or Credential Request (42501) (42501); the section is a live Text, Schedule Window, Item Request or Credential Request section of the packet (the last two only under an engagement) and a linked engagement is Onboarding to Closing (advance_section_not_draftable), while an answer still open on it is refused by R9''s guard as advance_answer_pending. p_source is {inbound_message_id}, a DKIM-verified, live, not Rejected or discarded Project Inbox message of the packet''s project in an inbox where the caller holds knowledge.document.write, or {file_name} of 1 to 300 characters (aurora_draft_source_invalid otherwise). p_values (body, lines in R9''s p_lines shape, note) override the proposed fields key by key. Writes through private.record_advance_answer, so advance_answer_pending, the line kinds and limits, roster entries, R7 offerings and caps hold, and the caller becomes the answer''s submitter (sod_advance_submitter keeps them from reviewing it). Inside aurora_batch_apply it adds the app.advance_answer_drafts row and moves the suggestion Proposed, Confirmed, Applied with the answer. Returns the answer id. Calls no model and meters nothing.';
 
 -- 4. What Gateway reads ----------------------------------------------------------------------------------------------------
 -- From 2714 (no later definition), with recorded_by_producer and recorded_from_message appended.
@@ -283,6 +291,9 @@ call private.describe('api_external.advance_submissions', 'Answers given for the
 -- Grants are kept by create or replace; restated so this file reads whole.
 revoke all on api_external.advance_submissions from public, anon;
 grant select on api_external.advance_submissions to authenticated, service_role;
+
+-- receiveInbound strips only replies now, so a forward to a project inbox keeps the message it forwards (ADR 0154 item 6).
+comment on column app.inbound_messages.body_text is 'Plain-text body: a reply without its quoted text, project inbox mail in full.';
 
 -- Privileges ---------------------------------------------------------------------------------------------------------------
 

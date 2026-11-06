@@ -68013,6 +68013,7 @@ export type Database = {
       read_integration_credential: { Args: { p_connection_id: string }; Returns: string };
       read_integration_inbound_secret: { Args: { p_connection_id: string }; Returns: string };
       read_warehouse_credential: { Args: { p_destination_id: string }; Returns: string };
+      reads_pay_rates: { Args: { p_project_id: string }; Returns: boolean };
       reassign_offboarding_records: {
         Args: { p_offboarding_id: string; p_to_person_id: string };
         Returns: number;

@@ -186,6 +186,14 @@ select pg_temp.as_platform();
 select is((select e.agreed_rate_minor from app.engagements e join app.ai_suggestions s on s.applied_id = e.id where s.id = pg_temp.id('c_fee')),
   750000::bigint, 'with the proposed fee as the agreed rate');
 
+select pg_temp.as_user('carol');
+select is(app.reads_pay_rates((select id from world where key = 'prj_a')), false, 'a manager without payroll does not read pay rates');
+select is(app.reads_pay_rates(gen_random_uuid()), false, 'nobody reads pay rates on an unknown project');
+select pg_temp.as_user('alice');
+select is(app.reads_pay_rates((select id from world where key = 'prj_a')), true, 'an owner with payroll reads pay rates');
+select pg_temp.as_platform();
+
+select ok(not has_function_privilege('anon', 'app.reads_pay_rates(uuid)', 'execute'), 'anon cannot ask');
 select ok(not has_function_privilege('anon', 'app.apply_contract_intake(uuid, jsonb)', 'execute'), 'anon cannot apply');
 select ok(not has_function_privilege('authenticated', 'private.intake_suggestion(uuid, uuid, text)', 'execute'), 'the lookup is private');
 

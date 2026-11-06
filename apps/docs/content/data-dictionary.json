@@ -11505,7 +11505,7 @@
           "type": "uuid"
         },
         {
-          "comment": "Public API operation that performs the change, for example records.create or savedViews.create. A drafted list's suggestions (drafting requests about app.run_of_show or app.projects) are applied together by app.apply_drafted_list. An intake batch's suggestions (aurora.applyItineraries, aurora.applyContracts, riders.create and riderLines.create on extraction requests about app.ai_intake_batches) are applied together by app.apply_itinerary_intake or app.apply_contract_intake, and a drafted advance answer (aurora.applyAdvanceAnswer, a drafting request about app.advance_recipients) by app.apply_drafted_advance_answer.",
+          "comment": "Public API operation that performs the change, for example records.create or savedViews.create. A drafted list's suggestions (drafting requests about app.run_of_show or app.projects) are applied together by app.apply_drafted_list. An intake batch's suggestions (auroraIntakes.applyItineraries, auroraIntakes.applyContracts, riders.create and riderLines.create on extraction requests about app.ai_intake_batches) are applied together by app.apply_itinerary_intake or app.apply_contract_intake, and a drafted advance answer (aurora.applyAdvanceAnswer, a drafting request about app.advance_recipients) by app.apply_drafted_advance_answer.",
           "name": "operation_id",
           "nullable": false,
           "references": null,
@@ -25058,14 +25058,14 @@
           "comment": "Email delivery the digest carries.",
           "name": "notification_delivery_id",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.id",
+          "references": "private.notification_deliveries_p202610.id",
           "type": "uuid"
         },
         {
           "comment": "Partition key of the delivery, checked by the foreign key.",
           "name": "notification_created_at",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.notification_created_at",
+          "references": "private.notification_deliveries_p202610.notification_created_at",
           "type": "timestamp with time zone"
         },
         {
@@ -32903,7 +32903,7 @@
           "type": "boolean"
         },
         {
-          "comment": "Plain-text body with quoted text stripped.",
+          "comment": "Plain-text body: a reply without its quoted text, project inbox mail in full.",
           "name": "body_text",
           "nullable": true,
           "references": null,
@@ -39712,14 +39712,14 @@
           "comment": "Notification delivered.",
           "name": "notification_id",
           "nullable": false,
-          "references": "private.notifications_p202609.id",
+          "references": "private.notifications_p202610.id",
           "type": "uuid"
         },
         {
           "comment": "Creation time of the notification: its partition key, checked by the foreign key.",
           "name": "notification_created_at",
           "nullable": false,
-          "references": "private.notifications_p202609.created_at",
+          "references": "private.notifications_p202610.created_at",
           "type": "timestamp with time zone"
         },
         {
@@ -53665,14 +53665,14 @@
           "comment": "Push delivery the ticket belongs to.",
           "name": "notification_delivery_id",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.id",
+          "references": "private.notification_deliveries_p202610.id",
           "type": "uuid"
         },
         {
           "comment": "Partition key of the delivery, checked by the foreign key.",
           "name": "notification_created_at",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.notification_created_at",
+          "references": "private.notification_deliveries_p202610.notification_created_at",
           "type": "timestamp with time zone"
         },
         {
@@ -66395,14 +66395,14 @@
           "comment": "SMS delivery held for the summary.",
           "name": "notification_delivery_id",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.id",
+          "references": "private.notification_deliveries_p202610.id",
           "type": "uuid"
         },
         {
           "comment": "Partition key of the delivery, checked by the foreign key.",
           "name": "notification_created_at",
           "nullable": false,
-          "references": "private.notification_deliveries_p202609.notification_created_at",
+          "references": "private.notification_deliveries_p202610.notification_created_at",
           "type": "timestamp with time zone"
         },
         {

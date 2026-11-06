@@ -411,7 +411,7 @@ describe("extraction into an intake batch", () => {
     const { api, calls, model } = app(
       {
         ...freshBatch({ intake_kind: "Contracts and Riders" }),
-        "rpc:my_capabilities_on_project": [ok(["data.restricted.read.payroll"])],
+        "rpc:reads_pay_rates": [ok(true)],
         "from:ai_never_send": [NEVER_SEND],
         "rpc:ai_begin_request": [ok(id(900))],
         "rpc:ai_complete_request": [ok(null)],

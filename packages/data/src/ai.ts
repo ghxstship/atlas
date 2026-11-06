@@ -797,14 +797,11 @@ export async function applyDraftedAdvanceAnswer(
   return ok(String(data));
 }
 
-/** Whether the caller may read pay rates on the project, decided by the database (never a client flag). */
+/** Whether the caller reads pay rates across the project's org, decided by the database (never a client flag). */
 export async function readsPayroll(db: XosClient, projectId: string): Promise<Result<boolean>> {
-  const { data, error } = await db.rpc("my_capabilities_on_project", {
-    p_project_id: projectId,
-    p_capabilities: ["data.restricted.read.payroll"],
-  });
+  const { data, error } = await db.rpc("reads_pay_rates", { p_project_id: projectId });
   if (error) return fail(toDataError(error));
-  return ok((data ?? []).includes("data.restricted.read.payroll"));
+  return ok(data === true);
 }
 
 /** Which of the codes are active IATA airports (app.airports, R5), for the itinerary checks. */

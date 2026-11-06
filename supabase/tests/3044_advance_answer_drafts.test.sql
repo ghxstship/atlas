@@ -114,6 +114,25 @@ select pg_temp.as_user('gina');
 select throws_ok($$select app.draftable_advance_sections((select id from world where key = 'rcp'))$$,
   '42501', null, 'someone without advancing.submission.review is refused');
 
+-- Review alone (dave's role without packet.write) offers and accepts Text and Schedule Window, not lines requested for
+-- the party (2693).
+select pg_temp.as_platform();
+create temp table held_packet_write on commit drop as
+  with gone as (delete from app.role_capabilities
+    where capability_code = 'advancing.packet.write' and role_id in (select r.id from app.roles r where r.org_id is null and r.code = 'member')
+    returning *)
+  select * from gone;
+select pg_temp.as_user('dave');
+select is((select array_agg(distinct s ->> 'kind' order by s ->> 'kind') from jsonb_array_elements(app.draftable_advance_sections(pg_temp.id('rcp')) -> 'sections') s),
+  array['Schedule Window', 'Text'], 'review alone is offered Text and Schedule Window only');
+select pg_temp.draft('d_review_only', 's_items', '[{"field_path": "lines", "value": [], "confidence": 0.8, "source_excerpt": "Two radios"}]');
+select pg_temp.as_user('dave');
+select throws_ok($$select app.apply_drafted_advance_answer((select id from world where key = 'd_review_only'), '{}', jsonb_build_object('file_name', 'reply.pdf'))$$,
+  '42501', 'recording items or credentials for a party needs advancing.packet.write on the packet''s project',
+  'review alone cannot accept lines requested for a party');
+select pg_temp.as_platform();
+insert into app.role_capabilities select * from held_packet_write;
+
 -- Recording a draft --------------------------------------------------------------------------------------------------------
 select pg_temp.draft('d_text', 's_text', '[{"field_path": "body", "value": "Load in at 07:00 with two trucks.", "confidence": 0.8,
   "source_excerpt": "Load in at 07:00"}]');

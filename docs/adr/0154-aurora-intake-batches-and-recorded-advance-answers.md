@@ -50,8 +50,8 @@ and waste plans. Four questions had no recorded answer:
    the batch; Aurora proposes none of them. `engagements.create` in API v1 is unchanged. The engagement
    guards and the `active_external_engagements_per_month` plan limit apply as for any engagement.
 4. **Restricted fee proposals.** A contract's fee is asked of the model only when the database says the
-   caller reads pay rates (`app.my_capabilities_on_project`), never from a client flag; otherwise it is
-   NO_ANSWER. `app.ai_propose_suggestion` marks such a field with `restricted_capability` itself, from
+   caller reads pay rates across the org (`app.reads_pay_rates`, the check that stores and reads the fee),
+   never from a client flag; otherwise it is NO_ANSWER. `app.ai_propose_suggestion` marks such a field with `restricted_capability` itself, from
    `private.ai_restricted_fields`, and refuses a value from a caller without the capability
    (`aurora_field_restricted`); a marked field is hidden from anyone without it, audit.log.read holders
    included. Only a field with a value or an excerpt is marked, since an excerpt can quote the fee: a
@@ -62,17 +62,20 @@ and waste plans. Four questions had no recorded answer:
    values that become Restricted once written; reading the document is not reading a Restricted column
    (S4.7-10).
 5. **Recorded advance answers (amends ADR 0100).** Any advancing.submission.review holder in an org with
-   Aurora may record a typed answer on a recipient's behalf from a confirmed Aurora draft, including
-   Requested allocations (origin `request`), through R9's single writer `private.record_advance_answer`,
-   so lines, offerings, caps and the one open answer rule hold. Its provenance is
+   Aurora may record a Text or Schedule Window answer on a recipient's behalf from a confirmed Aurora draft.
+   Item Request and Credential Request answers, whose lines become Requested allocations (origin `request`),
+   also need advancing.packet.write, as `app.request_allocation` does, and are neither offered nor accepted
+   without it. All go through R9's single writer `private.record_advance_answer`, so lines, offerings, caps and the one open answer rule hold. Its provenance is
    `app.advance_answer_drafts`: the suggestion and the source, a project inbox message or a file name.
    The recorder becomes the answer's submitter, so separation of duties needs a second reviewer, and an
    org with a single reviewer cannot accept such an answer. Provenance is as trustworthy as the recorder,
    because Aurora artifacts are caller-written. Gateway labels the answer "Recorded by {org}", and "from
    an email to the project" when it was read from mail, since project inbox mail can come from anyone; an
    open answer blocks the party until the org returns it.
-6. **Inbox mail as a source.** Only a DKIM-verified, live Project Inbox message the caller can read, of the
-   packet's or batch's project, is a source, checked again in the caller's session before any metering
+6. **Inbox mail as a source.** `receiveInbound` strips quoted text only from replies to a signed address, so a
+   forward to a project inbox keeps the message it forwards (`inbound-email` is redeployed with this release).
+   Only a DKIM-verified, live Project Inbox message the caller can read, of the packet's or batch's project, is
+   a source, checked again in the caller's session before any metering
    (`aurora_draft_source_invalid`). Its body reaches the model as a text/plain document, which the request
    log records as `[document text/plain]`, never as text: the log is readable by audit.log.read holders
    across the org while the mail is readable only on the project. Excerpts still reach the suggestion
@@ -102,8 +105,5 @@ and waste plans. Four questions had no recorded answer:
   party sees it labeled and may ask for it to be returned.
 - Mail as a source works in production only once the inbound domain of decision 60 is live; until then the
   mail lists are empty and file sources work.
-- The handler asks the model for a fee when the caller reads pay rates on the batch's project
-  (`app.my_capabilities_on_project`), while storing and reading the fee need the capability across the
-  org (`private.has_capability`). Someone who reads pay rates only through a project role is asked for
-  the fee, and storing it then refuses `aurora_field_restricted` after a metered request. Open: an
-  org-wide check the API can call would close the gap.
+- A fee needs data.restricted.read.payroll across the org. Someone who reads pay rates only through a project
+  role is not asked for a fee, and the preview says so.

@@ -358,10 +358,7 @@ describe("drafted advance answers (B15)", () => {
 
   it("asks the database whether the caller reads pay rates, and which airports are active", async () => {
     const { db, calls } = fakeClient({
-      "rpc:my_capabilities_on_project": [
-        okResponse(["data.restricted.read.payroll"]),
-        okResponse([]),
-      ],
+      "rpc:reads_pay_rates": [okResponse(true), okResponse(false)],
       "from:airports": [okResponse([{ iata_code: "MIA" }])],
     });
     expect(await readsPayroll(db, "p1")).toEqual({ ok: true, data: true });

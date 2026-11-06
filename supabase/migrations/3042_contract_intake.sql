@@ -12,6 +12,8 @@
 --     writes the riders (engagement_id for a person, counterparty_id for an account, as riders_one_party and
 --     rider_engagement_artist require) and their lines, marks the kept suggestions Applied, rejects the rest and
 --     closes the batch. Any refusal leaves nothing behind.
+--   * app.reads_pay_rates: whether the signed-in person reads pay rates across the project's org, the same check that
+--     stores and reads a contract's fee, so the model is asked for a fee only when storing it can succeed.
 -- No table, column or view is added.
 
 -- Party candidates ---------------------------------------------------------------------------------------------------------
@@ -378,6 +380,22 @@ $$;
 
 comment on function app.apply_contract_intake(uuid, jsonb) is 'Books the acts of the caller''s own open Contracts and Riders batch in one transaction (B15, ADR 0154; 42501 for anyone else or without opportunities.engagement.write and advancing.rider.write on its project, aurora_intake_closed once closed). p_groups lists 1 to 25 {act_name, engagement: {mode new or existing, engagement_id, contract_suggestion_id, values}, riders: [{header_suggestion_id, title, line_suggestion_ids, line_values}]}. existing: a live Artist engagement of the project takes the riders. new: an Artist engagement at Onboarding with the person''s values (person_id and/or counterparty_id, at least one, else intake_group_party; a person the org already holds; role_code, worker_classification, pay_basis, arrangement) and the contract''s start_date, end_date, fee (fee_minor as agreed_rate_minor) and currency_code, values overriding the proposed fields key by key; a fee from either source without data.restricted.read.payroll refuses intake_fee_restricted. The engagement guards (XOS-ENG rules, the rate card, the active_external_engagements_per_month plan limit) apply. Each rider (at most 25 per act, 100 lines each) is written for the engagement when it names a person and for its account otherwise, with the kept riders.create and riderLines.create suggestions'' title, description and quantity. Every refusal names its act and rolls back every act. Kept suggestions move Proposed, Confirmed, Applied with the engagement, rider or rider line written inside aurora_batch_apply; every other Proposed suggestion of the batch is Rejected and the batch is closed. Returns {applied: [{suggestion_id, id}], engagements, riders, rider_lines, rejected}. Calls no model and meters nothing.';
 
+create or replace function app.reads_pay_rates(p_project_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((
+    select private.is_member(p.org_id) and private.has_capability(p.org_id, 'data.restricted.read.payroll')
+      from app.projects p
+     where p.id = p_project_id and p.deleted_at is null
+  ), false);
+$$;
+
+comment on function app.reads_pay_rates(uuid) is 'True when the signed-in person is a member of the project''s org and holds data.restricted.read.payroll across it, the check that stores and reads a contract''s fee (B15, ADR 0154). Decides whether Aurora is asked for a fee and whether the intake preview shows one; false for an unknown project.';
+
 -- Privileges ---------------------------------------------------------------------------------------------------------------
 
 revoke all on function private.fold_act(text) from public, anon, authenticated;
@@ -385,7 +403,9 @@ revoke all on function private.intake_suggestion(uuid, uuid, text) from public, 
 revoke all on function private.intake_field(uuid, text) from public, anon, authenticated;
 revoke all on function app.intake_party_candidates(uuid, text[]) from public, anon;
 revoke all on function app.apply_contract_intake(uuid, jsonb) from public, anon;
+revoke all on function app.reads_pay_rates(uuid) from public, anon;
 
 grant execute on function private.fold_act(text) to service_role;
 grant execute on function app.intake_party_candidates(uuid, text[]) to authenticated, service_role;
 grant execute on function app.apply_contract_intake(uuid, jsonb) to authenticated, service_role;
+grant execute on function app.reads_pay_rates(uuid) to authenticated, service_role;
