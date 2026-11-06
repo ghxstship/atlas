@@ -61,11 +61,15 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
     r.shiftId
       ? `/${crew.slug}/crew/shifts?peek=${r.shiftId}`
       : `/${crew.slug}/procurement/purchase-orders?peek=${r.purchaseOrderId ?? ""}`;
-  const roleName = (code: string | null) =>
-    code === null ? "" : (roles.get(code)?.title ?? code);
+  const roleName = (code: string | null) => (code === null ? "" : (roles.get(code)?.title ?? code));
   const title = (r: Shortage): string => {
-    const what = r.kind === "vendor_unconfirmed" ? (r.partyName ?? t("crew.shortages.unnamedVendor")) : roleName(r.roleCode);
-    return what === "" ? t(`crew.shortages.kinds.${r.kind}`) : t("crew.common.pair", { a: t(`crew.shortages.kinds.${r.kind}`), b: what });
+    const what =
+      r.kind === "vendor_unconfirmed"
+        ? (r.partyName ?? t("crew.shortages.unnamedVendor"))
+        : roleName(r.roleCode);
+    return what === ""
+      ? t(`crew.shortages.kinds.${r.kind}`)
+      : t("crew.common.pair", { a: t(`crew.shortages.kinds.${r.kind}`), b: what });
   };
   const who = (r: Shortage): string => {
     if (r.kind === "open") {

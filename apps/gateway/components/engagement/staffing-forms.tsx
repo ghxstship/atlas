@@ -46,10 +46,7 @@ export function AssignRosterShiftForm(props: { shiftId: string; options: readonl
  */
 export function MarkNoShowForm(props: { shiftId: string; noShowId: string }) {
   const t = useCopy();
-  const [state, action, pending] = useActionState<FormResult, FormData>(
-    markRosterNoShowAction,
-    {},
-  );
+  const [state, action, pending] = useActionState<FormResult, FormData>(markRosterNoShowAction, {});
   return (
     <FormShell
       row

@@ -24,10 +24,7 @@ export interface BreakTypeInput {
 }
 
 /** The org's live break types, by name. */
-export async function listBreakTypes(
-  db: XosClient,
-  orgId: string,
-): Promise<Result<BreakType[]>> {
+export async function listBreakTypes(db: XosClient, orgId: string): Promise<Result<BreakType[]>> {
   const { data, error } = await db
     .from("break_types")
     .select("id, name, paid, planned_minutes, is_default")

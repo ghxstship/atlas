@@ -55,6 +55,7 @@ import { stateIcon } from "@/lib/crew/states";
 import {
   addDays,
   dayIn,
+  hasStarted,
   hoursFromMinutes,
   isIsoDate,
   isoToZoned,
@@ -246,14 +247,21 @@ export async function ShiftsCollection(props: {
       const asked =
         outcomeOf?.reconfirmation?.answer === "Waiting" &&
         outcomeOf.reconfirmation.personId === viewerPerson &&
-        new Date(s.startsAt).getTime() > Date.now();
+        !hasStarted(s.startsAt);
       const clockOffered =
         myOpen !== undefined ||
         (mine && s.state === "Accepted" && crew.can("crew.time_entry.write"));
       // A planner sees the worker's warnings; a person sees their own on their shift or on an open shift.
-      const warnFor = worker !== null && (canWrite || worker === viewerPerson) ? worker : open ? viewerPerson : null;
+      const warnFor =
+        worker !== null && (canWrite || worker === viewerPerson)
+          ? worker
+          : open
+            ? viewerPerson
+            : null;
       const warned = warnFor ? await shiftPolicyWarnings(db, s.id, [warnFor]) : null;
-      const warnings: readonly PolicyWarning[] = warned?.ok ? (warned.data.get(warnFor as string) ?? []) : [];
+      const warnings: readonly PolicyWarning[] = warned?.ok
+        ? (warned.data.get(warnFor as string) ?? [])
+        : [];
       // Claim approval shows each claimant's warnings; asked only of a planner with claims to decide.
       const claimWarned =
         canWrite && waiting.length > 0
@@ -263,7 +271,7 @@ export async function ShiftsCollection(props: {
               waiting.flatMap((c) => (c.member.personId ? [c.member.personId] : [])),
             )
           : null;
-      const started = new Date(s.startsAt).getTime() <= Date.now();
+      const started = hasStarted(s.startsAt);
       const noShowable =
         canWrite &&
         started &&
@@ -472,7 +480,12 @@ export async function ShiftsCollection(props: {
                 <span>{outcomeOf.noShow.reason}</span>
                 {outcomeOf.noShow.replacementShiftId ? (
                   <Link
-                    href={withParams(base, search, { peek: outcomeOf.noShow.replacementShiftId, full: null }) as Route}
+                    href={
+                      withParams(base, search, {
+                        peek: outcomeOf.noShow.replacementShiftId,
+                        full: null,
+                      }) as Route
+                    }
                     className="text-accent-text underline"
                   >
                     {t("crew.noShow.openReplacement")}

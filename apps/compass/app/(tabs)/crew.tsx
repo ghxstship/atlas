@@ -53,10 +53,7 @@ function Crew(): ReactElement {
   const submitNoShow = async () => {
     if (!marking || !projectId || reason.trim() === "") return;
     await enqueue(
-      buildNoShow(
-        { shiftId: marking.id, orgId: marking.org_id, projectId, reason },
-        Date.now(),
-      ),
+      buildNoShow({ shiftId: marking.id, orgId: marking.org_id, projectId, reason }, Date.now()),
     );
     setMarking(null);
     setReason("");

@@ -61,9 +61,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const roleName = (code: string | null) =>
     code === null ? t("crew.common.noRole") : (roles.get(code)?.title ?? code);
   const holderName = (p: ProjectPosition) =>
-    p.holder
-      ? (p.holder.name ?? t("crew.common.unnamed"))
-      : t("crew.positions.unfilled");
+    p.holder ? (p.holder.name ?? t("crew.common.unnamed")) : t("crew.positions.unfilled");
   const agencyName = (p: ProjectPosition) =>
     p.engagementId ? (p.agencyName ?? t("crew.agency.slotUnnamed")) : t("crew.positions.noAgency");
 
@@ -143,7 +141,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   let fillOptions: Array<{ value: string; label: string }> = [];
   if (filling && canWrite) {
     if (filling.engagementId) {
-      const staff = await listAssignableRosterEntries(db, { engagementIds: [filling.engagementId] });
+      const staff = await listAssignableRosterEntries(db, {
+        engagementIds: [filling.engagementId],
+      });
       if (!staff.ok) throw new Error(`Cannot read the agency's staff: ${staff.error.kind}`);
       fillOptions = staff.data.map((e) => {
         const values = { name: e.name ?? t("crew.common.unnamed"), account: e.accountName ?? "" };
@@ -196,7 +196,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           {
             kind: "select",
             name: "holder",
-            label: t(filling.engagementId ? "crew.positions.holderStaff" : "crew.positions.holderMember"),
+            label: t(
+              filling.engagementId ? "crew.positions.holderStaff" : "crew.positions.holderMember",
+            ),
             help: t("crew.positions.fillHelp"),
             options: fillOptions,
           },
@@ -273,7 +275,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const notice =
     search["filled"] !== undefined ? (
       <InlineAlert
-        tone={Number(search["skipped"] ?? 0) + Number(search["warned"] ?? 0) > 0 ? "warning" : "success"}
+        tone={
+          Number(search["skipped"] ?? 0) + Number(search["warned"] ?? 0) > 0 ? "warning" : "success"
+        }
         title={t("crew.positions.filledNotice")}
       >
         {t("crew.positions.filledSummary", {

@@ -105,7 +105,10 @@ export async function listPositions(
   const shiftCounts = countBy(shifts.data.map((r) => r.project_position_id));
   const recordCounts = countBy(records.data.map((r) => r.project_position_id));
   const rosterNames = new Map(
-    (roster.data as { id: string | null; full_name: string | null }[]).map((r) => [r.id, r.full_name]),
+    (roster.data as { id: string | null; full_name: string | null }[]).map((r) => [
+      r.id,
+      r.full_name,
+    ]),
   );
   const agencyNames = new Map(
     (agencies.data as { engagement_id: string | null; account_name: string | null }[]).map((r) => [

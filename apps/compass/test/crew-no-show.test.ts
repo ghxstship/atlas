@@ -56,10 +56,23 @@ describe("marking", () => {
 
   it("reads as a sentence in the queue", () => {
     const m = buildNoShow(input, NOW, () => "n1");
-    const ctx = { day: () => "", time: () => "", zoneName: () => null, punchAction: () => "", kind: () => "" };
+    const ctx = {
+      day: () => "",
+      time: () => "",
+      zoneName: () => null,
+      punchAction: () => "",
+      kind: () => "",
+    };
     expect(
       summarizeMutation(
-        { op: m.op, target: m.target as string, table: m.table, payload: m.payload, base: null, queuedAt: "" },
+        {
+          op: m.op,
+          target: m.target as string,
+          table: m.table,
+          payload: m.payload,
+          base: null,
+          queuedAt: "",
+        },
         ctx as never,
       ).key,
     ).toBe("noShow");
@@ -114,9 +127,13 @@ describe("what the device downloads", () => {
 
   it("gives a crew or staff worker their org's break types, and not a vendor", () => {
     expect(admits("break_types", { id: "b", org_id: "o1" }, crew)).toBe(true);
-    expect(admits("break_types", { id: "b", org_id: "o1" }, { ...crew, audience: "staff" })).toBe(true);
+    expect(admits("break_types", { id: "b", org_id: "o1" }, { ...crew, audience: "staff" })).toBe(
+      true,
+    );
     expect(admits("break_types", { id: "b", org_id: "o2" }, crew)).toBe(false);
-    expect(admits("break_types", { id: "b", org_id: "o1" }, { ...crew, audience: "vendor" })).toBe(false);
+    expect(admits("break_types", { id: "b", org_id: "o1" }, { ...crew, audience: "vendor" })).toBe(
+      false,
+    );
   });
 
   it("gives no-shows only to internal readers of the project", () => {

@@ -22,9 +22,27 @@ describe("shift policy warnings", () => {
     const { db } = fakeClient({
       "rpc:shift_policy_warnings": [
         okResponse([
-          { person_id: "p1", code: "shift_day_over", minutes: 780, limit_minutes: 720, other_shift_id: null },
-          { person_id: "p1", code: "shift_new_rule", minutes: 1, limit_minutes: 1, other_shift_id: null },
-          { person_id: "p2", code: "shift_rest_short", minutes: 480, limit_minutes: 600, other_shift_id: "s9" },
+          {
+            person_id: "p1",
+            code: "shift_day_over",
+            minutes: 780,
+            limit_minutes: 720,
+            other_shift_id: null,
+          },
+          {
+            person_id: "p1",
+            code: "shift_new_rule",
+            minutes: 1,
+            limit_minutes: 1,
+            other_shift_id: null,
+          },
+          {
+            person_id: "p2",
+            code: "shift_rest_short",
+            minutes: 480,
+            limit_minutes: 600,
+            other_shift_id: "s9",
+          },
         ]),
       ],
     });

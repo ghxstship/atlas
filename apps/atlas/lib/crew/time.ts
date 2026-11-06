@@ -107,3 +107,8 @@ export function isIsoDate(value: string | undefined): value is string {
 export function hoursFromMinutes(minutes: number): number {
   return Math.round((minutes / 60) * 100) / 100;
 }
+
+/** True once an instant has passed, for a shift's record to offer what only a started shift allows. */
+export function hasStarted(iso: string): boolean {
+  return Date.parse(iso) <= Date.now();
+}

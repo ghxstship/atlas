@@ -10,7 +10,12 @@ const context: PunchContext = {
   engagementId: null,
   source: "Mobile",
 };
-const event = { deviceAt: "2027-06-01T15:00:00Z", monotonicAt: 1, bootId: "b", offsetMs: 0 } as never;
+const event = {
+  deviceAt: "2027-06-01T15:00:00Z",
+  monotonicAt: 1,
+  bootId: "b",
+  offsetMs: 0,
+} as never;
 
 describe("what Break does", () => {
   it("asks only with two or more live types", () => {

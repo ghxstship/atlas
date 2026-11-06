@@ -24,19 +24,16 @@ export function RecordPositionPanel(props: { org: string; recordId: string; proj
     void recordPositionsAction(props.org, props.recordId, props.projectId).then(setData);
   }, [props.org, props.recordId, props.projectId]);
   useEffect(load, [load]);
-  const [state, action, pending] = useActionState(
-    async (prev: CrewActionState, form: FormData) => {
-      const next = await (form.get("id")
-        ? unassignRecordFromPositionAction(prev, form)
-        : assignRecordToPositionAction(prev, form));
-      if (next.ok) {
-        load();
-        router.refresh();
-      }
-      return next;
-    },
-    INITIAL,
-  );
+  const [state, action, pending] = useActionState(async (prev: CrewActionState, form: FormData) => {
+    const next = await (form.get("id")
+      ? unassignRecordFromPositionAction(prev, form)
+      : assignRecordToPositionAction(prev, form));
+    if (next.ok) {
+      load();
+      router.refresh();
+    }
+    return next;
+  }, INITIAL);
   const keep = useKeepInput(state, action, (done) => Boolean(done.ok));
   if (data === undefined) {
     return (
@@ -75,7 +72,9 @@ export function RecordPositionPanel(props: { org: string; recordId: string; proj
             name="positionId"
             label={t("position")}
             options={[...data.options]}
-            {...(state.fieldErrors?.["positionId"] ? { error: state.fieldErrors["positionId"] } : {})}
+            {...(state.fieldErrors?.["positionId"]
+              ? { error: state.fieldErrors["positionId"] }
+              : {})}
           />
           <Button type="submit" size="sm" variant="secondary" loading={pending}>
             {t("assignRecordSubmit")}

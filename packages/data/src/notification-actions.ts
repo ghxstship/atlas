@@ -188,7 +188,10 @@ export interface StillComingItem {
  * The signed-in person's live shift.reconfirm notifications still waiting on their answer: among
  * app.my_notifications_awaiting_answer, so one whose shift started or whose ask ended is gone.
  */
-export async function listStillComing(db: XosClient, limit = 20): Promise<Result<StillComingItem[]>> {
+export async function listStillComing(
+  db: XosClient,
+  limit = 20,
+): Promise<Result<StillComingItem[]>> {
   const awaiting = await rpc(db, "my_notifications_awaiting_answer", {}, (data) =>
     (Array.isArray(data) ? data : [])
       .map((v) => (typeof v === "string" ? v : str((v as Raw)["my_notifications_awaiting_answer"])))

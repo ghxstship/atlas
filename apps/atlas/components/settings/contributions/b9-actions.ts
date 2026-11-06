@@ -29,7 +29,8 @@ export async function breakTypeAction(
   const id = field(form, "id");
   if (intent !== "create" && !uuid.safeParse(id).success) return inputError();
   if (intent === "retire" || intent === "default") {
-    const result = intent === "retire" ? await retireBreakType(db, id) : await setDefaultBreakType(db, id);
+    const result =
+      intent === "retire" ? await retireBreakType(db, id) : await setDefaultBreakType(db, id);
     if (!result.ok) return fromDataError(result.error);
     refresh(ctx.org.slug);
     return done(id);

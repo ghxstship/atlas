@@ -79,7 +79,10 @@ describe("shortages", () => {
   it("surfaces the range refusal", async () => {
     const { db } = fakeClient({ "rpc:crew_shortages": [refused("crew_shortages_range")] });
     const result = await listShortages(db, { orgId: "o1", from: "2027-01-01", to: "2027-12-31" });
-    expect(result).toMatchObject({ ok: false, error: { kind: "refusal", rule: "crew_shortages_range" } });
+    expect(result).toMatchObject({
+      ok: false,
+      error: { kind: "refusal", rule: "crew_shortages_range" },
+    });
   });
 });
 

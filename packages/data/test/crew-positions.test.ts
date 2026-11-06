@@ -47,7 +47,9 @@ describe("positions", () => {
           },
         ]),
       ],
-      "from:shifts": [okResponse([{ project_position_id: "pos1" }, { project_position_id: "pos1" }])],
+      "from:shifts": [
+        okResponse([{ project_position_id: "pos1" }, { project_position_id: "pos1" }]),
+      ],
       "from:record_position_assignments": [okResponse([{ project_position_id: "pos2" }])],
       "from:memberships": [okResponse([{ id: "m1", person_id: "x1" }])],
       "rpc:person_names": [okResponse([{ person_id: "x1", full_name: "Frank Adeyemi" }])],
@@ -163,7 +165,9 @@ describe("break types", () => {
   it("lists, saves and picks a default", async () => {
     const { db, calls } = fakeClient({
       "from:break_types": [
-        okResponse([{ id: "b1", name: "Meal", paid: false, planned_minutes: 30, is_default: true }]),
+        okResponse([
+          { id: "b1", name: "Meal", paid: false, planned_minutes: 30, is_default: true },
+        ]),
         okResponse({ id: "b2" }),
       ],
       "rpc:set_default_break_type": [okResponse("b2")],

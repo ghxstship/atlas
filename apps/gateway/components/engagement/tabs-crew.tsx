@@ -47,6 +47,14 @@ function agencyLead(view: TabProps["view"]): boolean {
 
 type ShiftRow = ExternalRow<"shifts">;
 
+function hasPassed(iso: string): boolean {
+  return Date.parse(iso) <= Date.now();
+}
+
+function newNoShowId(): string {
+  return crypto.randomUUID();
+}
+
 /**
  * The shifts a tab lists: a person on the roster their own (R12), the agency's lead the slots and roster shifts of
  * its engagement, anyone else the engagement's own.
@@ -155,7 +163,6 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
     order: ["position_title", "asc"],
   });
   if (!records.ok) return <RegionError />;
-  const now = Date.now();
   // A project position names the group; otherwise the scope, as before (B9, ADR 0148).
   const groups = new Map<string, ShiftRow[]>();
   for (const s of shifts.data) {
@@ -196,7 +203,9 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
                         })
                       : null,
                   ],
-                  ...(r.record_state ? { tag: { label: r.record_state, tone: toneFor(r.record_state) } } : {}),
+                  ...(r.record_state
+                    ? { tag: { label: r.record_state, tone: toneFor(r.record_state) } }
+                    : {}),
                 }))}
             />
           ) : null}
@@ -215,7 +224,12 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
                 lead ? (s.holder_name ?? t("gateway.engagement.staffing.openSlot")) : null,
               ],
               ...(s.has_no_show
-                ? { tag: { label: t("gateway.engagement.staffing.noShowTag"), tone: "warning" as const } }
+                ? {
+                    tag: {
+                      label: t("gateway.engagement.staffing.noShowTag"),
+                      tone: "warning" as const,
+                    },
+                  }
                 : s.shift_state
                   ? {
                       tag: {
@@ -230,29 +244,26 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
                   ? {
                       detail: <AssignRosterShiftForm shiftId={s.id} options={assignable.data(s)} />,
                     }
-                  : s.roster_entry_id &&
-                      !s.has_no_show &&
-                      s.starts_at &&
-                      new Date(s.starts_at).getTime() <= now
+                  : s.roster_entry_id && !s.has_no_show && s.starts_at && hasPassed(s.starts_at)
                     ? {
                         // Started, and nobody marked: the agency's lead says they did not arrive (B9).
-                        detail: <MarkNoShowForm shiftId={s.id} noShowId={crypto.randomUUID()} />,
+                        detail: <MarkNoShowForm shiftId={s.id} noShowId={newNoShowId()} />,
                       }
                     : s.roster_entry_id && !s.has_no_show
-                    ? {
-                        action: (
-                          <ActionButton
-                            action={unassignRosterShiftAction.bind(
-                              null,
-                              s.id,
-                              t("gateway.engagement.staffing.unassignReason"),
-                            )}
-                            label={t("gateway.engagement.staffing.unassign")}
-                            variant="secondary"
-                          />
-                        ),
-                      }
-                    : {}
+                      ? {
+                          action: (
+                            <ActionButton
+                              action={unassignRosterShiftAction.bind(
+                                null,
+                                s.id,
+                                t("gateway.engagement.staffing.unassignReason"),
+                              )}
+                              label={t("gateway.engagement.staffing.unassign")}
+                              variant="secondary"
+                            />
+                          ),
+                        }
+                      : {}
                 : {}),
             }))}
           />

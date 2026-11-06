@@ -110,7 +110,12 @@ export async function declineComingAction(_: State, form: FormData): Promise<Sta
   const { ctx, db, t } = await context(form);
   const id = uuid.safeParse(form.get("id"));
   if (!id.success) return { error: t("crew.errors.notFound") };
-  const result = await respondReconfirmation(db, id.data, false, text(form, "reason").trim() || null);
+  const result = await respondReconfirmation(
+    db,
+    id.data,
+    false,
+    text(form, "reason").trim() || null,
+  );
   if (!result.ok) return failed(t, result.error);
   refresh(ctx.org.slug);
   return { ok: true };
@@ -171,7 +176,9 @@ export async function fillPositionAction(_: State, form: FormData): Promise<Stat
   const result = await fillPosition(
     db,
     id.data,
-    holder[1] === "m" ? { membershipId: holder[2] as string } : { rosterEntryId: holder[2] as string },
+    holder[1] === "m"
+      ? { membershipId: holder[2] as string }
+      : { rosterEntryId: holder[2] as string },
   );
   if (!result.ok) return failed(t, result.error, "holder");
   refresh(ctx.org.slug);

@@ -73,7 +73,8 @@ export async function ForYourInformation({
         : t("gateway.home.fyi.kinds.untitled");
     const path = n.args["gatewayPath"];
     const rosterEntryId =
-      n.kind === "roster_entry.project_facts_entered" && n.subject?.table === "engagement_roster_entries"
+      n.kind === "roster_entry.project_facts_entered" &&
+      n.subject?.table === "engagement_roster_entries"
         ? n.subject.id
         : null;
     return {
