@@ -167,6 +167,20 @@ kinds:
       # P9: the requester hears when a subject approval is approved or rejected.
       - emitter: supabase/migrations/2860_approval_rules.sql#private.decide_subject_approval_as
         test: supabase/tests/2860_approval_rules.test.sql
+  # B11 (G-196): the hourly chase of a pending quote, and word to a supplier that lost. rfq.issued notifies nobody, so
+  # the first reminder is the vendor's first contact. Never a price, a winner or another vendor.
+  - kind: rfq.quote_reminder
+    category: opportunities
+    channels: [In App, Email]
+    emitted_by:
+      - emitter: supabase/migrations/3008_rfq_quote_chase.sql#private.send_rfq_supplier_notice
+        test: supabase/tests/3008_rfq_quote_chase.test.sql
+  - kind: rfq.not_awarded
+    category: opportunities
+    channels: [In App, Email]
+    emitted_by:
+      - emitter: supabase/migrations/3008_rfq_quote_chase.sql#private.send_rfq_supplier_notice
+        test: supabase/tests/3008_rfq_quote_chase.test.sql
   # P9 (G-261): the approvers of a step that waits are reminded, hourly or by the requester's nudge.
   - kind: approval.reminder
     category: approvals
