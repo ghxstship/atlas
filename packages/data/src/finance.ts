@@ -68,6 +68,7 @@ export const NEXT_STATES = {
     Proposed: ["Approved", "Rejected", "Canceled"],
     Rejected: ["Proposed"],
     Approved: ["Paid"],
+    // Paid returns to Approved only through app.void_expense_reimbursement (3012), never as a transition offered here.
     Paid: [],
     Canceled: [],
   },
@@ -1357,10 +1358,51 @@ export interface Expense {
   readonly currency: string;
   readonly state: ExpenseState;
   readonly createdAt: string;
+  /** The charge this credit refunds or credits (3010); null for a charge. A credit's amount stays positive. */
+  readonly creditOfExpenseId: string | null;
+  /** True when the submitter paid out of pocket and is owed the amount (3010). */
+  readonly isReimbursable: boolean;
+  readonly reimbursementId: string | null;
+  /** The act's engagement the cost is for (3017). */
+  readonly engagementId: string | null;
+  /** From app.expense_balances (3011); null when the view returned no row. */
+  readonly balance: ExpenseBalance | null;
+}
+
+export type ReimbursementStatus = "Recorded" | "Owed" | "Paid" | "Not owed";
+
+/**
+ * What an expense's credits have taken back and what its payer is owed (app.expense_balances). A reader without
+ * finance.expense.read on the project cannot read the credits finance recorded, so `withheld` is true and the
+ * figures that depend on them are null, never partial.
+ */
+export interface ExpenseBalance {
+  readonly withheld: boolean;
+  readonly creditedMinor: number | null;
+  readonly pendingCreditMinor: number | null;
+  /** The amount less approved credits for a charge; the negative amount for a credit. */
+  readonly netMinor: number | null;
+  /** What a new credit may still take; null for a credit. */
+  readonly creditableMinor: number | null;
+  readonly reimbursementStatus: ReimbursementStatus | null;
+  readonly owedMinor: number | null;
 }
 
 const EXPENSE_COLUMNS =
-  "id, budget_line_id, counterparty_id, submitter_person_id, description, incurred_on, amount_minor, currency_code, expense_state, created_at, line:budget_lines(description, budget_id, budget:budgets(project_id))";
+  "id, budget_line_id, counterparty_id, submitter_person_id, description, incurred_on, amount_minor, currency_code, expense_state, created_at, credit_of_expense_id, is_reimbursable, reimbursement_id, engagement_id, line:budget_lines(description, budget_id, budget:budgets(project_id))";
+
+export function toExpenseBalance(r: Raw): ExpenseBalance {
+  const status = strOrNull(r["reimbursement_status"]);
+  return {
+    withheld: r["is_balance_withheld"] === true,
+    creditedMinor: numOrNull(r["credited_minor"]),
+    pendingCreditMinor: numOrNull(r["pending_credit_minor"]),
+    netMinor: numOrNull(r["net_minor"]),
+    creditableMinor: numOrNull(r["creditable_minor"]),
+    reimbursementStatus: (status as ReimbursementStatus | null) ?? null,
+    owedMinor: numOrNull(r["owed_minor"]),
+  };
+}
 
 function toExpense(r: Raw): Expense {
   const line = obj(r["line"]);
@@ -1379,16 +1421,42 @@ function toExpense(r: Raw): Expense {
     currency: str(r["currency_code"]).trim(),
     state: str(r["expense_state"]) as ExpenseState,
     createdAt: str(r["created_at"]),
+    creditOfExpenseId: strOrNull(r["credit_of_expense_id"]),
+    isReimbursable: r["is_reimbursable"] === true,
+    reimbursementId: strOrNull(r["reimbursement_id"]),
+    engagementId: strOrNull(r["engagement_id"]),
+    balance: null,
   };
 }
 
-/** Expenses the viewer may read, newest first, optionally for one project. */
+const BALANCE_COLUMNS =
+  "expense_id, is_balance_withheld, credited_minor, pending_credit_minor, net_minor, creditable_minor, reimbursement_status, owed_minor";
+
+/** The balances of the given expenses (app.expense_balances, 3011), keyed by expense id, read in chunks. */
+export async function listExpenseBalances(
+  db: XosClient,
+  expenseIds: readonly string[],
+): Promise<Result<Map<string, ExpenseBalance>>> {
+  const out = new Map<string, ExpenseBalance>();
+  for (let i = 0; i < expenseIds.length; i += 150) {
+    const chunk = expenseIds.slice(i, i + 150);
+    const { data, error } = await untyped(db)
+      .from("expense_balances")
+      .select(BALANCE_COLUMNS)
+      .in("expense_id", chunk);
+    if (error) return fail(toDataError(error));
+    for (const r of (data as Raw[] | null) ?? []) out.set(str(r["expense_id"]), toExpenseBalance(r));
+  }
+  return ok(out);
+}
+
+/** Expenses the viewer may read, newest first, optionally for one project, each with its balance. */
 export async function listExpenses(
   db: XosClient,
   input: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<Expense[]>> {
   const result = await rows(
-    db
+    untyped(db)
       .from("expenses")
       .select(EXPENSE_COLUMNS)
       .eq("org_id", input.orgId)
@@ -1396,8 +1464,16 @@ export async function listExpenses(
       .order("incurred_on", { ascending: false }),
     toExpense,
   );
-  if (!result.ok || !input.projectId) return result;
-  return ok(result.data.filter((e) => e.projectId === input.projectId));
+  if (!result.ok) return result;
+  const listed = input.projectId
+    ? result.data.filter((e) => e.projectId === input.projectId)
+    : result.data;
+  const balances = await listExpenseBalances(
+    db,
+    listed.map((e) => e.id),
+  );
+  if (!balances.ok) return balances;
+  return ok(listed.map((e) => ({ ...e, balance: balances.data.get(e.id) ?? null })));
 }
 
 export interface ExpenseInput {
@@ -1407,6 +1483,10 @@ export interface ExpenseInput {
   readonly incurredOn: string;
   readonly amountMinor: number;
   readonly currency: string;
+  /** Paid out of the submitter's pocket (3010); fixed once the expense leaves Proposed. */
+  readonly isReimbursable?: boolean;
+  /** The act's engagement the cost is for (3017). */
+  readonly engagementId?: string | null;
 }
 
 /** Submits an expense against exactly one budget line (invariant 12); the submitter is the session. */
@@ -1416,7 +1496,7 @@ export async function createExpense(
   input: ExpenseInput,
 ): Promise<Result<{ id: string }>> {
   return one(
-    db
+    untyped(db)
       .from("expenses")
       .insert({
         org_id: orgId,
@@ -1426,11 +1506,130 @@ export async function createExpense(
         incurred_on: input.incurredOn,
         amount_minor: input.amountMinor,
         currency_code: input.currency,
+        is_reimbursable: input.isReimbursable ?? false,
+        engagement_id: input.engagementId ?? null,
       })
       .select("id")
       .single(),
     (r) => ({ id: str(r["id"]) }),
   );
+}
+
+export interface ExpenseCreditInput {
+  readonly originalId: string;
+  readonly amountMinor: number;
+  readonly incurredOn: string;
+  readonly description: string;
+}
+
+/** The row a credit is written as: the original's line and currency, positive amount, the original named. */
+export function expenseCreditRow(
+  orgId: string,
+  original: { readonly budgetLineId: string; readonly currency: string },
+  input: ExpenseCreditInput,
+): Record<string, unknown> {
+  return {
+    org_id: orgId,
+    budget_line_id: original.budgetLineId,
+    credit_of_expense_id: input.originalId,
+    description: input.description.trim(),
+    incurred_on: input.incurredOn,
+    amount_minor: input.amountMinor,
+    currency_code: original.currency,
+  };
+}
+
+/**
+ * Records a credit (refund or vendor credit) against an Approved or Paid charge (3010): on the charge's budget line,
+ * in its currency, with a positive amount. The database sets its counterparty and refuses a credit beyond what is
+ * left, against a reimbursed expense, or by a person who neither approves expenses nor records payments.
+ */
+export async function createExpenseCredit(
+  db: XosClient,
+  orgId: string,
+  input: ExpenseCreditInput,
+): Promise<Result<{ id: string }>> {
+  const original = await one(
+    untyped(db)
+      .from("expenses")
+      .select("id, budget_line_id, currency_code")
+      .eq("id", input.originalId)
+      .maybeSingle(),
+    (r) => ({ budgetLineId: str(r["budget_line_id"]), currency: str(r["currency_code"]).trim() }),
+  );
+  if (!original.ok) return original;
+  return one(
+    untyped(db)
+      .from("expenses")
+      .insert(expenseCreditRow(orgId, original.data, input))
+      .select("id")
+      .single(),
+    (r) => ({ id: str(r["id"]) }),
+  );
+}
+
+/** A look-alike of an expense (3016): a warning, never a refusal. */
+export interface ExpenseDuplicate {
+  readonly expenseId: string | null;
+  readonly candidateId: string;
+  readonly sameVendor: boolean;
+  readonly amountDeltaMinor: number;
+  readonly dayGap: number;
+}
+
+export function toExpenseDuplicate(r: Raw): ExpenseDuplicate {
+  return {
+    expenseId: strOrNull(r["expense_id"]),
+    candidateId: str(r["candidate_id"]),
+    sameVendor: r["same_vendor"] === true,
+    amountDeltaMinor: num(r["amount_delta_minor"]),
+    dayGap: num(r["day_gap"]),
+  };
+}
+
+/** Look-alikes of an expense not yet saved (app.find_expense_duplicates), among rows the viewer can read. */
+export async function findExpenseDuplicates(
+  db: XosClient,
+  input: {
+    readonly budgetLineId: string;
+    readonly counterpartyId: string | null;
+    readonly amountMinor: number;
+    readonly incurredOn: string;
+    readonly excludeExpenseId?: string | null;
+  },
+): Promise<Result<ExpenseDuplicate[]>> {
+  return rows(
+    untyped(db).rpc("find_expense_duplicates", {
+      p_budget_line_id: input.budgetLineId,
+      p_counterparty_id: input.counterpartyId,
+      p_amount_minor: input.amountMinor,
+      p_incurred_on: input.incurredOn,
+      p_exclude_expense_id: input.excludeExpenseId ?? null,
+    }),
+    toExpenseDuplicate,
+  );
+}
+
+/** Look-alikes of saved Proposed or Approved charges (app.expense_duplicate_candidates), keyed by expense id. */
+export async function listExpenseDuplicates(
+  db: XosClient,
+  expenseIds: readonly string[],
+): Promise<Result<Map<string, ExpenseDuplicate[]>>> {
+  const out = new Map<string, ExpenseDuplicate[]>();
+  for (let i = 0; i < expenseIds.length; i += 500) {
+    const result = await rows(
+      untyped(db).rpc("expense_duplicate_candidates", {
+        p_expense_ids: expenseIds.slice(i, i + 500),
+      }),
+      toExpenseDuplicate,
+    );
+    if (!result.ok) return result;
+    for (const d of result.data) {
+      const key = d.expenseId ?? "";
+      out.set(key, [...(out.get(key) ?? []), d]);
+    }
+  }
+  return ok(out);
 }
 
 /** Edits a Proposed expense; the database refuses amount and date changes after submission review. */
@@ -1440,7 +1639,7 @@ export async function updateExpense(
   input: Omit<ExpenseInput, "budgetLineId">,
 ): Promise<Result<null>> {
   return done(
-    db
+    untyped(db)
       .from("expenses")
       .update({
         counterparty_id: input.counterpartyId,
@@ -1448,6 +1647,8 @@ export async function updateExpense(
         incurred_on: input.incurredOn,
         amount_minor: input.amountMinor,
         currency_code: input.currency,
+        ...(input.isReimbursable === undefined ? {} : { is_reimbursable: input.isReimbursable }),
+        ...(input.engagementId === undefined ? {} : { engagement_id: input.engagementId }),
       })
       .eq("id", expenseId),
   );
@@ -2645,4 +2846,276 @@ export function projectUpl(
  */
 export function toCsv(header: readonly string[], body: readonly (readonly string[])[]): string {
   return [header, ...body].map((r) => r.map(csvField).join(",")).join("\r\n") + "\r\n";
+}
+
+// Payments due (B12, 3015) ------------------------------------------------------------------------------------------
+
+export type PaymentDueKind = "invoice" | "instalment" | "settlement" | "per_diem" | "reimbursement";
+
+/** One outstanding payable of app.payments_due: what the org owes, to whom and when. */
+export interface PaymentDue {
+  readonly kind: PaymentDueKind;
+  readonly sourceId: string;
+  readonly projectId: string;
+  readonly projectKey: string;
+  readonly counterpartyId: string | null;
+  readonly payeePersonId: string | null;
+  readonly payeeName: string | null;
+  readonly label: string | null;
+  readonly dueOn: string | null;
+  readonly currency: string;
+  /** Outstanding after Approved payments; null only for an unpriced bill or settlement (Section 3.7). */
+  readonly amountMinor: number | null;
+  /** What Proposed payments will apply. */
+  readonly scheduledMinor: number;
+  readonly sourceState: string | null;
+}
+
+export function toPaymentDue(r: Raw): PaymentDue {
+  return {
+    kind: str(r["kind"]) as PaymentDueKind,
+    sourceId: str(r["source_id"]),
+    projectId: str(r["project_id"]),
+    projectKey: str(r["project_key"]),
+    counterpartyId: strOrNull(r["counterparty_id"]),
+    payeePersonId: strOrNull(r["payee_person_id"]),
+    payeeName: strOrNull(r["payee_name"]),
+    label: strOrNull(r["label"]),
+    dueOn: strOrNull(r["due_on"]),
+    currency: str(r["currency_code"]).trim(),
+    amountMinor: numOrNull(r["amount_minor"]),
+    scheduledMinor: num(r["scheduled_minor"]),
+    sourceState: strOrNull(r["source_state"]),
+  };
+}
+
+/** The org's outstanding payables (app.payments_due), optionally one project. Needs finance.payment.read. */
+export async function listPaymentsDue(
+  db: XosClient,
+  input: { readonly orgId: string; readonly projectId?: string | null },
+): Promise<Result<PaymentDue[]>> {
+  return rows(
+    untyped(db).rpc("payments_due", { p_org_id: input.orgId, p_project_id: input.projectId ?? null }),
+    toPaymentDue,
+  );
+}
+
+export type PaymentDueBucket = "overdue" | "thisWeek" | "later" | "undated";
+export const PAYMENT_DUE_BUCKETS: readonly PaymentDueBucket[] = [
+  "overdue",
+  "thisWeek",
+  "later",
+  "undated",
+];
+
+/** A currency's subtotal in a bucket, NULL-aware: the total is null while any row is unpriced. */
+export interface CurrencySubtotal {
+  readonly currency: string;
+  readonly total: number | null;
+  readonly priced: number | null;
+  readonly unpricedCount: number;
+  readonly scheduled: number;
+}
+
+export interface PaymentDueGroup {
+  readonly bucket: PaymentDueBucket;
+  readonly rows: readonly PaymentDue[];
+  readonly subtotals: readonly CurrencySubtotal[];
+}
+
+/** The last day of the week that holds `today` (YYYY-MM-DD), for a week starting on day 0 (Sunday) or 1 (Monday). */
+export function endOfWeek(today: string, weekStart: 0 | 1): string {
+  const d = new Date(`${today}T00:00:00Z`);
+  const offset = (d.getUTCDay() - weekStart + 7) % 7;
+  d.setUTCDate(d.getUTCDate() + (6 - offset));
+  return d.toISOString().slice(0, 10);
+}
+
+/** Which bucket a due date falls in on the org's calendar `today`, with the org's payroll week. */
+export function paymentDueBucket(
+  dueOn: string | null,
+  today: string,
+  weekStart: 0 | 1,
+): PaymentDueBucket {
+  if (dueOn === null) return "undated";
+  if (dueOn < today) return "overdue";
+  return dueOn <= endOfWeek(today, weekStart) ? "thisWeek" : "later";
+}
+
+/**
+ * Groups the ledger into Overdue (before today), This week (today to the end of the org's week, payroll.week_start),
+ * Later and No due date, each with per-currency subtotals through nullAwareSum. Pure: `today` is the org calendar's.
+ */
+export function groupPaymentsDue(
+  due: readonly PaymentDue[],
+  today: string,
+  weekStart: 0 | 1,
+): PaymentDueGroup[] {
+  const buckets = new Map<PaymentDueBucket, PaymentDue[]>(PAYMENT_DUE_BUCKETS.map((b) => [b, []]));
+  for (const row of due) buckets.get(paymentDueBucket(row.dueOn, today, weekStart))?.push(row);
+  return PAYMENT_DUE_BUCKETS.map((bucket) => {
+    const list = buckets.get(bucket) ?? [];
+    const currencies = [...new Set(list.map((r) => r.currency))].sort();
+    return {
+      bucket,
+      rows: list,
+      subtotals: currencies.map((currency) => {
+        const inCurrency = list.filter((r) => r.currency === currency);
+        const sum = nullAwareSum(inCurrency.map((r) => r.amountMinor));
+        return {
+          currency,
+          total: sum.total,
+          priced: sum.priced,
+          unpricedCount: sum.unpricedCount,
+          scheduled: inCurrency.reduce((n, r) => n + r.scheduledMinor, 0),
+        };
+      }),
+    };
+  });
+}
+
+// Reimbursements (B12, 3012) ---------------------------------------------------------------------------------------
+
+export interface ReimbursementBalance {
+  readonly payeePersonId: string;
+  readonly payeeName: string | null;
+  readonly currency: string;
+  readonly recordedCount: number;
+  readonly recordedMinor: number;
+  readonly owedCount: number;
+  readonly owedMinor: number;
+  readonly paidMinor: number;
+  readonly lastPaidOn: string | null;
+}
+
+/** Recorded, Owed and Paid per payee and currency (app.reimbursement_balances). Needs finance.payment.read. */
+export async function listReimbursementBalances(
+  db: XosClient,
+  input: { readonly orgId: string; readonly projectId?: string | null },
+): Promise<Result<ReimbursementBalance[]>> {
+  return rows(
+    untyped(db).rpc("reimbursement_balances", {
+      p_org_id: input.orgId,
+      p_project_id: input.projectId ?? null,
+    }),
+    (r) => ({
+      payeePersonId: str(r["payee_person_id"]),
+      payeeName: strOrNull(r["payee_name"]),
+      currency: str(r["currency_code"]).trim(),
+      recordedCount: num(r["recorded_count"]),
+      recordedMinor: num(r["recorded_minor"]),
+      owedCount: num(r["owed_count"]),
+      owedMinor: num(r["owed_minor"]),
+      paidMinor: num(r["paid_minor"]),
+      lastPaidOn: strOrNull(r["last_paid_on"]),
+    }),
+  );
+}
+
+export interface OwedExpense {
+  readonly expenseId: string;
+  readonly projectKey: string;
+  readonly description: string;
+  readonly incurredOn: string;
+  readonly currency: string;
+  readonly netMinor: number;
+}
+
+/** The Approved reimbursable charges a payee is owed (app.owed_reimbursable_expenses), at their net. */
+export async function listOwedExpenses(
+  db: XosClient,
+  input: { readonly orgId: string; readonly payeePersonId: string },
+): Promise<Result<OwedExpense[]>> {
+  return rows(
+    untyped(db).rpc("owed_reimbursable_expenses", {
+      p_org_id: input.orgId,
+      p_payee_person_id: input.payeePersonId,
+    }),
+    (r) => ({
+      expenseId: str(r["expense_id"]),
+      projectKey: str(r["project_key"]),
+      description: str(r["description"]),
+      incurredOn: str(r["incurred_on"]),
+      currency: str(r["currency_code"]).trim(),
+      netMinor: num(r["net_minor"]),
+    }),
+  );
+}
+
+export interface Reimbursement {
+  readonly id: string;
+  readonly payeePersonId: string;
+  readonly currency: string;
+  readonly paidMinor: number;
+  readonly paidOn: string;
+  readonly reference: string | null;
+  readonly voidedAt: string | null;
+  readonly voidReason: string | null;
+}
+
+/** Reimbursements recorded to a payee, newest first. The payee and finance.payment.read holders read them. */
+export async function listReimbursements(
+  db: XosClient,
+  input: { readonly orgId: string; readonly payeePersonId: string },
+): Promise<Result<Reimbursement[]>> {
+  return rows(
+    untyped(db)
+      .from("expense_reimbursements")
+      .select("id, payee_person_id, currency_code, paid_minor, paid_on, reference_identifier, voided_at, void_reason")
+      .eq("org_id", input.orgId)
+      .eq("payee_person_id", input.payeePersonId)
+      .is("deleted_at", null)
+      .order("paid_on", { ascending: false }),
+    (r) => ({
+      id: str(r["id"]),
+      payeePersonId: str(r["payee_person_id"]),
+      currency: str(r["currency_code"]).trim(),
+      paidMinor: num(r["paid_minor"]),
+      paidOn: str(r["paid_on"]),
+      reference: strOrNull(r["reference_identifier"]),
+      voidedAt: strOrNull(r["voided_at"]),
+      voidReason: strOrNull(r["void_reason"]),
+    }),
+  );
+}
+
+/** Records that a payee was reimbursed for Approved reimbursable expenses (decision 20: XOS moves no money). */
+export async function recordExpenseReimbursement(
+  db: XosClient,
+  input: {
+    readonly payeePersonId: string;
+    readonly expenseIds: readonly string[];
+    readonly paidOn: string;
+    readonly reference: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const r = await rpcValue<string>(
+    untyped(db).rpc("record_expense_reimbursement", {
+      p_payee_person_id: input.payeePersonId,
+      p_expense_ids: input.expenseIds,
+      p_paid_on: input.paidOn,
+      p_reference: input.reference,
+    }),
+  );
+  return r.ok ? ok({ id: r.data }) : r;
+}
+
+/** Voids a reimbursement recorded in error; its expenses are Owed again. */
+export async function voidExpenseReimbursement(
+  db: XosClient,
+  input: { readonly id: string; readonly reason: string },
+): Promise<Result<null>> {
+  const r = await rpcValue(
+    untyped(db).rpc("void_expense_reimbursement", {
+      p_reimbursement_id: input.id,
+      p_reason: input.reason,
+    }),
+  );
+  return r.ok ? ok(null) : r;
+}
+
+/** Whether the viewer records payments in the org (app.can_record_payments): for showing controls only. */
+export async function canRecordPayments(db: XosClient, orgId: string): Promise<boolean> {
+  const r = await rpcValue<boolean>(untyped(db).rpc("can_record_payments", { p_org_id: orgId }));
+  return r.ok && r.data === true;
 }
