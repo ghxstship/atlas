@@ -186,7 +186,7 @@
       },
       "hold": {
         "subject": "Suspensión por clima: detenga el trabajo",
-        "body": "{message}"
+        "body": "{message}{late, select, yes { Se declaró a las {called_at, time, short} en un dispositivo sin conexión.} other {}}"
       },
       "all_clear": {
         "subject": "Fin de la suspensión: puede volver al trabajo",

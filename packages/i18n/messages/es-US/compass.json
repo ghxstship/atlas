@@ -294,8 +294,11 @@
     "refusedScanOverrideSelf": "Nadie autoriza la denegación de su propia credencial. Pida a otro supervisor.",
     "refusedWeatherHoldOpen": "Ya había una suspensión por clima abierta en este proyecto.",
     "refusedWeatherHoldClosed": "Esta suspensión por clima ya tenía su aviso de fin.",
-    "refusedWeatherHoldStale": "Esta suspensión se creó más de 10 minutos antes de llegar al servidor y no se envió. Revise el clima y vuelva a suspender.",
-    "refusedWeatherHoldIdTaken": "Otra suspensión ya usa este identificador."
+    "refusedWeatherHoldStale": "Este fin de suspensión se creó más de 10 minutos antes de llegar al servidor y no se envió. Revise el clima y vuelva a darlo.",
+    "refusedWeatherHoldIdTaken": "Otra suspensión ya usa este identificador.",
+    "settledTitle": "Resuelto sin su cambio",
+    "settledScanNotDenied": "El servidor dejó pasar a esta persona al subir el escaneo, así que la autorización que dejó en cola no hacía falta y no se envió.",
+    "settledDismiss": "Descartar"
   },
   "today": {
     "title": "Hoy",
@@ -520,6 +523,7 @@
     "out": "Salida",
     "exitRecorded": "Salida registrada",
     "insideNow": "Adentro ahora: {count}",
+    "insideNowNote": "Personas que entraron a esta zona con escaneo. Aquí no se cuentan los registros de entrada ni los invitados registrados en las puertas.",
     "override": "Anular",
     "overrideTitle": "Dejar pasar a esta persona",
     "overrideReason": "Motivo",

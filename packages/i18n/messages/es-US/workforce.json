@@ -909,7 +909,7 @@
     "weather_hold_open": "Ya hay una suspensión por clima abierta en este proyecto. Da primero el fin de la suspensión.",
     "weather_hold_closed": "Esta suspensión por clima ya tiene su fin.",
     "weather_hold_message": "Escribe un mensaje de 1 a 1,000 caracteres.",
-    "weather_hold_stale": "Esto se hizo hace más de 10 minutos y no se envió. Revisa el clima y envíalo de nuevo.",
+    "weather_hold_stale": "Este fin de suspensión se hizo hace más de 10 minutos y no se envió. Revisa el clima y dalo de nuevo.",
     "weather_hold_id_taken": "Otra persona ya lo envió. Recarga para ver la suspensión."
   },
   "settingsPanels": {
@@ -1343,8 +1343,8 @@
   },
   "muster": {
     "title": "Lista de evacuación",
-    "what": "Todas las personas ubicadas ahora en una zona por un escaneo de entrada o un registro de entrada con geocerca, y los invitados registrados en las puertas en las últimas 24 horas. Muestra solo a las personas que puedes ver; alguien cuyo escaneo más reciente no puedes ver puede aparecer en la última zona que sí ves.",
-    "noAccess": "La lista de evacuación necesita el registro de escaneos o los registros de horas del proyecto.",
+    "what": "Todas las personas ubicadas ahora en una zona por un escaneo de entrada o un registro de entrada dentro de la geocerca, y los invitados registrados en las últimas 24 horas, en una puerta o en bloque. Solo muestra a las personas que puedes ver; alguien cuyo escaneo más reciente no puedes ver puede aparecer en la última zona que sí puedes ver. Los invitados solo aparecen para quien puede leer la lista de invitados, y su puerta y acompañantes solo para quien registra invitados en las puertas.",
+    "noAccess": "La lista de evacuación necesita el registro de escaneos, los registros de horas o la lista de invitados del proyecto.",
     "empty": "No hay nadie dentro de una zona de este proyecto.",
     "project": "Proyecto",
     "zone": "Zona",
@@ -1363,6 +1363,21 @@
     "door": "Puerta",
     "guestAt": "Registrado en {door}",
     "zoneCount": "{count, plural, one {# persona} other {# personas}}",
-    "print": "Imprimir"
+    "print": "Imprimir",
+    "updated": "Actualizado {time}",
+    "pause": "Pausar actualizaciones",
+    "resume": "Reanudar actualizaciones",
+    "views": "Vistas de la lista de evacuación",
+    "view": {
+      "table": "Tabla",
+      "list": "Lista"
+    },
+    "hiddenLabel": "No se te muestra",
+    "hiddenScans": "No se muestran los escaneos de entrada: requieren el registro de escaneos del proyecto.",
+    "hiddenClockIns": "No se muestran los registros de entrada: requieren los registros de horas del proyecto.",
+    "hiddenGuests": "No se muestran los invitados: requieren la lista de invitados del proyecto.",
+    "hiddenDoors": "No se muestran la puerta ni los acompañantes de los invitados: requieren el registro de invitados en las puertas.",
+    "plusOnes": "Acompañantes",
+    "plusOnesLine": "{count, plural, one {# acompañante} other {# acompañantes}}"
   }
 }

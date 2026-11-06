@@ -186,7 +186,7 @@
       },
       "hold": {
         "subject": "Weather hold: stop work now",
-        "body": "{message}"
+        "body": "{message}{late, select, yes { Called at {called_at, time, short} on a device that was offline.} other {}}"
       },
       "all_clear": {
         "subject": "All clear: the weather hold is over",

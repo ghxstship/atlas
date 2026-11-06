@@ -162,7 +162,9 @@
     "guest_email_batch": "Email 1 to 500 guests at a time.",
     "guest_email_rate": "Your organization can email up to 2,000 guests a day. Send the rest tomorrow.",
     "guest_email_message": "A message needs a subject of up to 150 characters and a text of up to 5,000.",
-    "guest_email_format": "Enter one email address for the guest, or leave it empty."
+    "guest_email_format": "Enter one email address for the guest, or leave it empty.",
+    "detailMissing": "Missing: {titles}.",
+    "detailExisting": "Existing badge: {numbers}."
   },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",

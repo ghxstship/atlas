@@ -909,7 +909,7 @@
     "weather_hold_open": "A weather hold is already open on this project. Give the all-clear first.",
     "weather_hold_closed": "This weather hold already has its all-clear.",
     "weather_hold_message": "Write a message of 1 to 1,000 characters.",
-    "weather_hold_stale": "This was made more than 10 minutes ago and was not sent. Check the weather and send it again.",
+    "weather_hold_stale": "This all-clear was made more than 10 minutes ago and was not sent. Check the weather and give it again.",
     "weather_hold_id_taken": "Someone else already sent this. Reload to see the hold."
   },
   "settingsPanels": {
@@ -1343,8 +1343,8 @@
   },
   "muster": {
     "title": "Muster list",
-    "what": "Everyone placed in a zone now by an entry scan or a geofenced clock-in, and guests checked in at doors in the last 24 hours. It shows only the people you may see; someone whose newer scan you cannot see may show in their last zone you can.",
-    "noAccess": "The muster list needs the scan log or time entries of the project.",
+    "what": "Everyone placed in a zone now by an entry scan or a geofenced clock-in, and guests checked in in the last 24 hours, at a door or in bulk. It shows only the people you may see; someone whose newer scan you cannot see may show in their last zone you can. Guests show only to people who may read the guest list, and their door and plus-ones only to people who check guests in at the doors.",
+    "noAccess": "The muster list needs the scan log, the time entries or the guest list of the project.",
     "empty": "Nobody is inside a zone of this project.",
     "project": "Project",
     "zone": "Zone",
@@ -1363,6 +1363,21 @@
     "door": "Door",
     "guestAt": "Checked in at {door}",
     "zoneCount": "{count, plural, one {# person} other {# people}}",
-    "print": "Print"
+    "print": "Print",
+    "updated": "Updated {time}",
+    "pause": "Pause updates",
+    "resume": "Resume updates",
+    "views": "Muster list views",
+    "view": {
+      "table": "Table",
+      "list": "List"
+    },
+    "hiddenLabel": "Not shown to you",
+    "hiddenScans": "Entry scans are not shown: they need the project's scan log.",
+    "hiddenClockIns": "Clock-ins are not shown: they need the project's time entries.",
+    "hiddenGuests": "Guests are not shown: they need the project's guest list.",
+    "hiddenDoors": "Guests' doors and plus-ones are not shown: they need guest check-in at the doors.",
+    "plusOnes": "Plus-ones",
+    "plusOnesLine": "{count, plural, one {# plus-one} other {# plus-ones}}"
   }
 }

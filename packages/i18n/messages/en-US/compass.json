@@ -294,8 +294,11 @@
     "refusedScanOverrideSelf": "Nobody overrides a denial of their own badge. Ask another supervisor.",
     "refusedWeatherHoldOpen": "A weather hold was already open on this project.",
     "refusedWeatherHoldClosed": "This weather hold already had its all-clear.",
-    "refusedWeatherHoldStale": "This hold was made more than 10 minutes before it reached the server and was not sent. Check the weather and call it again.",
-    "refusedWeatherHoldIdTaken": "Another hold already uses this id."
+    "refusedWeatherHoldStale": "This all-clear was made more than 10 minutes before it reached the server and was not sent. Check the weather and give it again.",
+    "refusedWeatherHoldIdTaken": "Another hold already uses this id.",
+    "settledTitle": "Settled without you",
+    "settledScanNotDenied": "The server let this person in when the scan uploaded, so the override you queued was not needed and was not sent.",
+    "settledDismiss": "Dismiss"
   },
   "today": {
     "title": "Today",
@@ -520,6 +523,7 @@
     "out": "Out",
     "exitRecorded": "Exit recorded",
     "insideNow": "Inside now: {count}",
+    "insideNowNote": "People scanned in at this zone. Clock-ins and guests checked in at doors are not counted here.",
     "override": "Override",
     "overrideTitle": "Let this person in",
     "overrideReason": "Reason",

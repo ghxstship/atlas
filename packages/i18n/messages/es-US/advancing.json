@@ -162,7 +162,9 @@
     "guest_email_batch": "Envía correos a entre 1 y 500 invitados a la vez.",
     "guest_email_rate": "Tu organización puede escribir a hasta 2,000 invitados por día. Envía el resto mañana.",
     "guest_email_message": "Un mensaje necesita un asunto de hasta 150 caracteres y un texto de hasta 5,000.",
-    "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía."
+    "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía.",
+    "detailMissing": "Falta: {titles}.",
+    "detailExisting": "Credencial existente: {numbers}."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",

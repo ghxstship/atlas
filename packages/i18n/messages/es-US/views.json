@@ -190,6 +190,7 @@
       "casing_rule": "Uso de mayúsculas",
       "cat_urid": "URID",
       "category": "Categoría",
+      "category_code": "Categoría",
       "certification_id": "Certificación",
       "change_order_number": "Orden de cambio",
       "change_order_state": "Estado",
@@ -247,6 +248,7 @@
       "discipline": "Disciplina",
       "domain": "Dominio",
       "domain_event_id": "Qué ocurrió",
+      "door": "Puerta",
       "due_at": "Vence",
       "due_on": "Vence",
       "element_count": "Elementos",
@@ -255,6 +257,7 @@
       "ends_at": "Termina",
       "ends_on": "Termina",
       "engagement_id": "Contratación",
+      "entered_at": "Entrada",
       "entry": "Entrada",
       "entry_date": "Fecha del asiento",
       "entry_state": "Estado",
@@ -505,6 +508,7 @@
       "worked_minutes": "Minutos trabajados",
       "worker_classification": "Clasificación",
       "xyz": "XYZ",
+      "zone_code": "Código de zona",
       "zone_id": "Zona",
       "item_name": "Artículo",
       "display_status": "Estado",
@@ -514,7 +518,8 @@
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "zone_name": "Zona"
     }
   }
 }
