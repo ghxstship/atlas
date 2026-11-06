@@ -97,6 +97,14 @@
       "work_details_moved": {
         "subject": "Uniform sizes and travel preferences moved to each project",
         "body": "{moved, select, uniform {Your uniform sizes were} travel {Your seat, meal and home airport preferences were} other {Your uniform sizes and travel preferences were}} removed from your profile. Productions now ask for them on each project you are rostered on, and keep them only for that project. Your other work details are unchanged."
+      },
+      "sensitive_data_attested": {
+        "subject": "Someone entered data for you",
+        "body": "Someone said they had your authority to enter your {category, select, Accessibility {accessibility} other {dietary}} details. See it, or remove it, under Settings, Work Details."
+      },
+      "sensitive_consent_needed": {
+        "subject": "Confirm or delete your sensitive details",
+        "body": "You have dietary, accessibility or supplier diversity details on file from before we recorded consent. They are hidden from everyone else. Agree under Settings, Work Details, or we delete them in 30 days."
       }
     },
     "report": {

@@ -97,6 +97,14 @@
       "work_details_moved": {
         "subject": "Las tallas de uniforme y las preferencias de viaje pasaron a cada proyecto",
         "body": "{moved, select, uniform {Tus tallas de uniforme se quitaron} travel {Tus preferencias de asiento, comida y aeropuerto de origen se quitaron} other {Tus tallas de uniforme y tus preferencias de viaje se quitaron}} de tu perfil. Ahora las producciones te las piden en cada proyecto en cuya lista estás, y las guardan solo para ese proyecto. Tus demás datos de trabajo no cambiaron."
+      },
+      "sensitive_data_attested": {
+        "subject": "Alguien introdujo datos por ti",
+        "body": "Alguien dijo tener tu autorización para introducir tus datos de {category, select, Accessibility {accesibilidad} other {dieta}}. Consúltalos o elimínalos en Configuración, Datos de trabajo."
+      },
+      "sensitive_consent_needed": {
+        "subject": "Confirma o elimina tus datos sensibles",
+        "body": "Tienes datos de dieta, accesibilidad o diversidad de proveedores guardados de antes de que registráramos el consentimiento. Están ocultos para los demás. Acepta en Configuración, Datos de trabajo, o los eliminaremos en 30 días."
       }
     },
     "report": {

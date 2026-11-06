@@ -451,6 +451,30 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "account.sensitive_data_attested",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.sensitive_data_attested.subject",
+      body: "kinds.account.sensitive_data_attested.body",
+    },
+  },
+  {
+    kind: "account.sensitive_consent_needed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.sensitive_consent_needed.subject",
+      body: "kinds.account.sensitive_consent_needed.body",
+    },
+  },
+  {
     kind: "billing.payment_failed",
     category: "account",
     emailTemplate: "notification",

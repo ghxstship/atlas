@@ -43,6 +43,9 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "account.session_signed_out": ["count"],
   // R6a (4664): which profile facts moved to each project (uniform, travel or both).
   "account.work_details_moved": ["moved"],
+  // ADR 0164: someone entered sensitive data for the person (which category); nothing else travels.
+  "account.sensitive_data_attested": ["category"],
+  "account.sensitive_consent_needed": [],
   "billing.payment_failed": ["days"],
   // B16 (6051, 6052): when a pause resumes (or none), and which connected app proposed which operation.
   "billing.paused": ["resumesOn"],

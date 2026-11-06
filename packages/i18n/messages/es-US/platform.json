@@ -637,7 +637,9 @@
         "security_changed": "Cambió la seguridad de la cuenta",
         "recovery_code_used": "Código de recuperación usado",
         "session_signed_out": "Sesión cerrada",
-        "work_details_moved": "Datos de trabajo pasados a cada proyecto"
+        "work_details_moved": "Datos de trabajo pasados a cada proyecto",
+        "sensitive_data_attested": "Alguien introdujo datos por ti",
+        "sensitive_consent_needed": "Datos sensibles a la espera de tu consentimiento"
       },
       "announcement": {
         "posted": "Anuncio publicado"

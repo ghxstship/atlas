@@ -169,7 +169,16 @@
       "projectFactsExpired": "Project details deleted after the engagement closed",
       "projectFactsErased": "Project details erased",
       "dietaryNeedsCounted": "Counted your dietary needs for catering",
-      "allergiesCounted": "Counted your allergies for catering"
+      "allergiesCounted": "Counted your allergies for catering",
+      "consentGiven": "You agreed to hold this data",
+      "consentWithdrawn": "You withdrew consent and the data was deleted",
+      "consentWithdrawnOnHold": "You withdrew consent; a legal hold keeps the data hidden for now",
+      "attested": "Someone entered data for you",
+      "entryRemoved": "Data entered for you was removed",
+      "valuesCleared": "Data waiting for consent was deleted",
+      "dietaryViewed": "Dietary needs viewed",
+      "accessibilityViewed": "Accessibility needs viewed",
+      "guestNeedsViewed": "Your guest needs were viewed"
     }
   },
   "org": {
@@ -200,7 +209,9 @@
     "reveal": "Reveal passport number",
     "revealReason": "Reason",
     "revealReasonHelp": "Logged with the reveal, for example Booking the June flights.",
-    "revealed": "Passport number: {number}"
+    "revealed": "Passport number: {number}",
+    "dietaryMasked": "Dietary needs: restricted, medical access only",
+    "accessibilityMasked": "Accessibility needs: restricted, medical access only"
   },
   "errors": {
     "passport_number_format": "A passport number has 5 to 20 letters and digits.",
@@ -239,7 +250,14 @@
     "vehicle_fields_required": "Give the make, model, plate and the region that issued it.",
     "plate_format": "A plate is 1 to 10 letters and digits.",
     "plate_region_format": "Give the region as a code such as US-FL, or the country code alone.",
-    "project_fact_kind_required": "Say which details to clear."
+    "project_fact_kind_required": "Say which details to clear.",
+    "sensitive_consent_required": "Agree to the wording before saving this. Nothing else on the form needs it.",
+    "sensitive_notice_version": "This wording changed. Reload the page and read the current version.",
+    "sensitive_notice_locale": "Reload the page and try again.",
+    "sensitive_attestation_required": "Confirm both statements to continue.",
+    "sensitive_person_withdrew": "This person withdrew their consent to this data, so only they can give it again.",
+    "sensitive_entry_not_yours": "Only the person this is about, or whoever entered it, can remove it.",
+    "sensitive_consent_category": "A company holds only supplier diversity status."
   },
   "compass": {
     "edit": "Edit work details",
@@ -399,5 +417,131 @@
       }
     },
     "offline": "You are offline. Project details save only online, so connect to save."
+  },
+  "consent": {
+    "notices": {
+      "dietary": {
+        "title": "Before you add dietary and allergy details",
+        "collected": "Your dietary needs, allergies and dietary notes, and any meal preference you give on a project. These can reveal your health or your religion.",
+        "why": "So a production you choose to share them with can feed you safely. We use them for nothing else, and no AI feature reads them.",
+        "who": "You. If you share this category with a project, that organization's Owner and the catering lead and on-site medical roles on that project also see them, and each read shows in your access log. Other people there see them locked. Catering planners see counts of five or more people, with no names. Your company never sees them.",
+        "withdraw": "Withdraw here at any time, in one step. We stop using the details at once and delete them. If a legal hold reaches your data, we keep them hidden until the hold ends, then delete them.",
+        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can remove it at any time."
+      },
+      "accessibility": {
+        "title": "Before you add accessibility details",
+        "collected": "Your accessibility needs and notes. These can reveal a disability or a health condition.",
+        "why": "So a production you choose to share them with can plan for you and get you out safely. We use them for nothing else, and no AI feature reads them.",
+        "who": "You. If you share this category with a project, that organization's Owner and the catering lead and on-site medical roles on that project also see them, and each read shows in your access log. Other people there see them locked. Your company never sees them.",
+        "withdraw": "Withdraw here at any time, in one step. We stop using the details at once and delete them. If a legal hold reaches your data, we keep them hidden until the hold ends, then delete them.",
+        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can remove it at any time."
+      },
+      "diversity": {
+        "title": "Before you add a supplier diversity certification",
+        "collected": "The kind of certification, the certifying body, its number and its dates. This can reveal race, sex, sexual orientation, disability or veteran status.",
+        "why": "So an organization that runs a supplier diversity program can count it, if you choose to share it with them. We use it for nothing else, and no AI feature reads it.",
+        "who": "You, or the Owners and Admins of the company it belongs to. If you share it with an organization, the members there with restricted data access also see it, and each read shows in your access log.",
+        "withdraw": "Withdraw here at any time, in one step. We stop using it at once, end every share and remove it. If a legal hold reaches your data, we keep it hidden until the hold ends, then remove it.",
+        "attest": "You are declaring this for a company. Do it only if you have authority to speak for the company, and the people it describes have been told what is declared, why and who sees it."
+      }
+    },
+    "headings": {
+      "collected": "What we collect",
+      "why": "Why",
+      "who": "Who sees it",
+      "withdraw": "How to withdraw"
+    },
+    "agree": "I agree",
+    "notNow": "Not now",
+    "gate": {
+      "dietary": "Nothing here is required. Read what we collect before you add any.",
+      "accessibility": "Nothing here is required. Read what we collect before you add any.",
+      "diversity": "Nothing here is required. Read what we collect before you add a certification.",
+      "reviewDietary": "Add dietary details",
+      "reviewAccessibility": "Add accessibility details",
+      "reviewDiversity": "Add a certification",
+      "waiting": "You have details on file from before we recorded consent. They are hidden from everyone else, and we delete them {days} days after we told you unless you agree.",
+      "confirm": "Keep them"
+    },
+    "given": "You agreed on {date}, wording version {version}.",
+    "withdrawAction": {
+      "dietary": "Withdraw consent and delete dietary details",
+      "accessibility": "Withdraw consent and delete accessibility details",
+      "diversity": "Withdraw consent and remove certifications",
+      "title": "Withdraw your consent?",
+      "body": "We stop using this at once, end any sharing and delete it. You can add it again later.",
+      "confirm": "Withdraw and delete",
+      "cancel": "Keep it",
+      "held": "Consent withdrawn. A legal hold reaches your data, so we keep this hidden until the hold ends, then delete it.",
+      "done": "Consent withdrawn. The details are deleted."
+    },
+    "attest": {
+      "authority": "I have this person's authority to enter this.",
+      "notice": "This person has been told what is entered, why and who sees it.",
+      "companyAuthority": "I have authority to declare this for the company.",
+      "companyNotice": "The people it describes have been told what is declared, why and who sees it.",
+      "mealTitle": "Enter a meal preference for this person",
+      "mealBody": "A meal preference can reveal health or religion. It is optional, and the person is told you entered it. They can remove it.",
+      "required": "Confirm both statements to continue."
+    },
+    "meal": {
+      "addOwn": "Add a meal preference",
+      "addForPerson": "Add a meal preference for this person",
+      "locked": "Optional. Agree to the dietary wording first; everything else on this form saves without it."
+    },
+    "about": {
+      "title": "Entered for you by someone else",
+      "description": "Someone said they had your authority to enter these. Remove anything you did not agree to.",
+      "none": "Nobody has entered anything for you.",
+      "by": "{name} on {date}",
+      "byOrg": "{name}, {org}, on {date}",
+      "guest": "Guest list: {guest}",
+      "removeNamed": "Remove {category}"
+    },
+    "categories": {
+      "Dietary and Allergies": "Dietary and allergies",
+      "Accessibility": "Accessibility",
+      "Supplier Diversity": "Supplier diversity"
+    },
+    "report": {
+      "title": "Sensitive data consent",
+      "description": "Consent state for each sensitive field, never the data.",
+      "none": "No sensitive data is shared with this organization.",
+      "subject": "Person or guest",
+      "category": "Category",
+      "field": "Field",
+      "standing": "Consent",
+      "version": "Wording version",
+      "given": "Given",
+      "givenBy": "Given by",
+      "withdrawn": "Withdrawn",
+      "download": "Download",
+      "kinds": {
+        "Person": "Person",
+        "Guest": "Guest",
+        "Company": "Company"
+      },
+      "standings": {
+        "Consent Given": "Consent given",
+        "Attested": "Attested by someone else",
+        "Withdrawn": "Withdrawn",
+        "No Record": "No record"
+      },
+      "fields": {
+        "dietary_needs": "Dietary needs",
+        "allergies": "Allergies",
+        "dietary_notes": "Dietary notes",
+        "meal_preference": "Meal preference",
+        "accessibility_needs": "Accessibility needs",
+        "accessibility_notes": "Accessibility notes",
+        "supplier_diversity_kind": "Certification kind",
+        "supplier_diversity_certificate": "Certificate number",
+        "guest_dietary_needs": "Guest dietary needs",
+        "guest_allergies": "Guest allergies",
+        "guest_dietary_notes": "Guest dietary notes",
+        "guest_accessibility_needs": "Guest accessibility needs",
+        "guest_accessibility_notes": "Guest accessibility notes"
+      }
+    }
   }
 }

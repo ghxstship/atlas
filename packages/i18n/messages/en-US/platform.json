@@ -637,7 +637,9 @@
         "security_changed": "Account security changed",
         "recovery_code_used": "Recovery code used",
         "session_signed_out": "Session signed out",
-        "work_details_moved": "Work details moved to each project"
+        "work_details_moved": "Work details moved to each project",
+        "sensitive_data_attested": "Someone entered data for you",
+        "sensitive_consent_needed": "Sensitive details wait for your consent"
       },
       "announcement": {
         "posted": "Announcement posted"

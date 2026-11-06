@@ -1,4 +1,4 @@
--- 6059_notification_kind_seed.test.sql
+-- 6164_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -143,6 +143,14 @@ select set_eq(
   ('account.work_details_moved', 'Email', 'account', 'notification'),
   ('account.work_details_moved', 'SMS', 'account', null::text),
   ('account.work_details_moved', 'Push', 'account', null::text),
+  ('account.sensitive_data_attested', 'In App', 'account', null::text),
+  ('account.sensitive_data_attested', 'Email', 'account', 'notification'),
+  ('account.sensitive_data_attested', 'SMS', 'account', null::text),
+  ('account.sensitive_data_attested', 'Push', 'account', null::text),
+  ('account.sensitive_consent_needed', 'In App', 'account', null::text),
+  ('account.sensitive_consent_needed', 'Email', 'account', 'notification'),
+  ('account.sensitive_consent_needed', 'SMS', 'account', null::text),
+  ('account.sensitive_consent_needed', 'Push', 'account', null::text),
   ('billing.payment_failed', 'In App', 'account', null::text),
   ('billing.payment_failed', 'Email', 'account', 'notification'),
   ('billing.payment_failed', 'SMS', 'account', null::text),

@@ -294,6 +294,20 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/4664_work_details_profile_move.sql#private.move_profile_work_details
         test: supabase/tests/4664_work_details_profile_move.test.sql
+  # Sensitive data consent (ADR 0164): someone entered a person's sensitive data for them, or a value from before
+  # consent was recorded waits for theirs. category names which; no value travels.
+  - kind: account.sensitive_data_attested
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/6162_guest_needs_and_attestation.sql#app.set_guest_care_needs
+        test: supabase/tests/6162_guest_needs_and_attestation.test.sql
+      - emitter: supabase/migrations/6162_guest_needs_and_attestation.sql#app.attest_roster_meal_preference
+        test: supabase/tests/6162_guest_needs_and_attestation.test.sql
+  - kind: account.sensitive_consent_needed
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/6163_sensitive_data_backlog_and_report.sql#private.run_sensitive_data_job
+        test: supabase/tests/6163_sensitive_data_backlog_and_report.test.sql
   - kind: billing.payment_failed
     category: account
     emitted_by:
