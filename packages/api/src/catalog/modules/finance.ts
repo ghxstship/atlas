@@ -12,7 +12,14 @@ import { canonCodes, defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { fieldHistoryAction, invoiceBulkActions } from "./parts/bulk-edit-and-history.ts";
 import { all, editShape, orNull, putActions, setOrder } from "../correct.ts";
-import { collectionAction, collectionQuery, itemAction, resource, transition } from "../define.ts";
+import {
+  collectionAction,
+  collectionQuery,
+  itemAction,
+  itemQuery,
+  resource,
+  transition,
+} from "../define.ts";
 import { financeFieldHomes } from "./parts/playbook-field-homes.ts";
 import { financeFieldExposure } from "./parts/playbook-field-exposure.ts";
 
@@ -40,6 +47,46 @@ const JOURNAL_STATES = ["Proposed", "Posted", "Canceled"] as const;
 const UPL_TARGETS = ["xero", "quickbooks", "netsuite", "ramp"] as const;
 
 const SINCE = "1.0.0-draft.2";
+
+/** The printed total against the lines (B15): computed, never stored, never a gate. */
+const InvoiceTieOut = z
+  .object({
+    invoice_id: fields.ref("invoice"),
+    printed_total_minor: orNull(fields.int("The total the document printed.", 125000)),
+    computed_total_minor: orNull(fields.int("Subtotal plus tax of the lines; null while unpriced.", 125000)),
+    residual_minor: orNull(fields.int("Printed total minus computed total.", 0, -Number.MAX_SAFE_INTEGER)),
+  })
+  .meta({ id: "InvoiceTieOut", description: "An invoice's printed total against its lines." });
+
+const InvoiceLineHistoryRequest = z
+  .object({
+    descriptions: z
+      .array(z.string().min(1).max(500))
+      .min(1)
+      .max(50)
+      .meta({ description: "Line descriptions to look up.", example: ["Stage labor"] }),
+  })
+  .meta({ id: "InvoiceLineHistoryRequest", description: "Descriptions to look up." });
+
+const InvoiceLineHistory = z
+  .object({
+    data: z
+      .array(
+        z.object({
+          description_index: fields.int("Position in the request, from 1.", 1),
+          description: fields.text("The prior line's description.", "Stage labor", 500),
+          quantity: z.number().meta({ description: "Prior quantity.", example: 2 }),
+          unit_price_minor: orNull(fields.int("Prior unit price in minor units.", 75000)),
+          currency_code: fields.text("Currency of the prior invoice.", "USD", 3),
+          invoice_number: orNull(fields.text("Prior invoice number.", "INV-104", 100)),
+          issued_on: orNull(fields.date("Prior issue date.")),
+          budget_line_id: orNull(fields.ref("budget line, only on the same project")),
+          budget_line_name: orNull(fields.text("Budget line, only on the same project.", "Labor", 500)),
+        }),
+      )
+      .meta({ description: "Up to three prior lines per description.", example: [] }),
+  })
+  .meta({ id: "InvoiceLineHistory", description: "What the same counterparty billed before." });
 
 /** The synchronous UPL export (Section 3.11): the projected CSV, with its header and row count. */
 const PostingExport = z
@@ -137,10 +184,29 @@ export const additions = defineAdditions("Finance", {
       }),
       ...invoiceBulkActions,
       fieldHistoryAction("invoice"),
+      itemQuery("tieOut", {
+        summary: "Read an invoice's tie-out",
+        description:
+          "The total the document printed against the invoice's lines, with the residual: computed, never stored, and it blocks neither approval nor posting (B15).",
+        response: InvoiceTieOut,
+      }),
+      itemAction("lineHistory", {
+        summary: "Read a vendor's line history",
+        description:
+          "For each description, up to three prior lines the same counterparty billed in the same direction, with the budget line only when on the same project. Row level security decides what it reads. Calls no model, and the history is never sent to one (B15).",
+        body: InvoiceLineHistoryRequest,
+        response: InvoiceLineHistory,
+      }),
     ],
   },
   capabilities: {
-    invoices: { actions: { recordPayment: "finance.payment.write" } },
+    invoices: {
+      actions: {
+        recordPayment: "finance.payment.write",
+        tieOut: "finance.invoice.read",
+        lineHistory: "finance.invoice.read",
+      },
+    },
     form1099Nec: { actions: { rows: "finance.payment.read" } },
   },
   corrections: [
@@ -443,6 +509,22 @@ export const additions = defineAdditions("Finance", {
           ),
         ]),
       ),
+    },
+    {
+      id: "invoice-printed-total",
+      since: SINCE,
+      resources: ["invoices"],
+      change: "Adds an optional, nullable `printed_total_minor`.",
+      reason:
+        "app.invoices (3044) keeps the total a document printed as a fact, so app.invoice_tie_out can compare it with the invoice's lines (B15, ADR 0154).",
+      apply: editShape({
+        add: {
+          printed_total_minor: {
+            schema: orNull(fields.int("The total the document printed, in minor units.", 125000)),
+            create: "optional",
+          },
+        },
+      }),
     },
     {
       id: "invoice-individual-payee",

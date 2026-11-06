@@ -208,3 +208,49 @@ export async function discardInboundMessage(
   if (error) return fail(toDataError(error));
   return ok(undefined);
 }
+
+/** Verified project inbox mail Aurora may draft from: no body goes to the page. */
+export interface DraftSource {
+  readonly id: string;
+  readonly subject: string | null;
+  /** Verified means the sender's DKIM passed for any domain, so the sender is always shown. */
+  readonly fromAddress: string;
+  readonly receivedAt: string;
+}
+
+/**
+ * The newest 50 Verified or Filed messages of the project's inbox with a body, not discarded, as the
+ * caller reads them (reading the inbox needs knowledge.document.write).
+ */
+export async function listDraftSources(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<readonly DraftSource[]>> {
+  const addresses = await db.from("inbound_addresses").select("id").eq("project_id", projectId);
+  if (addresses.error) return fail(toDataError(addresses.error));
+  if ((addresses.data ?? []).length === 0) return ok([]);
+  const { data, error } = await db
+    .from("inbound_messages")
+    .select("id, subject_line, from_address, received_at, body_text")
+    .in(
+      "inbound_address_id",
+      (addresses.data ?? []).map((a) => a.id),
+    )
+    .eq("purpose", "Project Inbox")
+    .in("inbound_status", ["Verified", "Filed"])
+    .is("discarded_at", null)
+    .is("deleted_at", null)
+    .order("received_at", { ascending: false })
+    .limit(50);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? [])
+      .filter((m) => (m.body_text ?? "").trim() !== "")
+      .map((m) => ({
+        id: m.id,
+        subject: m.subject_line ?? null,
+        fromAddress: m.from_address,
+        receivedAt: m.received_at,
+      })),
+  );
+}

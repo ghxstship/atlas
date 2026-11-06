@@ -645,4 +645,21 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
       "canonUrns.resolve",
     ],
   },
+  // Aurora intake and drafting extensions (B15, ADR 0154).
+  {
+    module: "Settings",
+    entity: "Aurora intake: itineraries, contracts, invoice lines and drafted advance answers",
+    operations: [
+      "aurora.intakeOptions",
+      "aurora.openProposals",
+      "aurora.invoiceLineProposals",
+      "aurora.applyItinerary",
+      "aurora.applyContractIntake",
+      "aurora.applyInvoiceLines",
+      "aurora.draftAdvanceAnswers",
+      "aurora.applyAdvanceAnswer",
+      "invoices.tieOut",
+      "invoices.lineHistory",
+    ],
+  },
 ];

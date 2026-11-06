@@ -903,6 +903,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "advance_answer.recorded",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.advance_answer.recorded.subject",
+      body: "kinds.advance_answer.recorded.body",
+    },
+  },
+  {
     kind: "allocation.decided",
     category: "approvals",
     emailTemplate: "notification",

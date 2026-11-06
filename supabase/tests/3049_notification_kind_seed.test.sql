@@ -1,4 +1,4 @@
--- 2698_notification_kind_seed.test.sql
+-- 3049_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -295,6 +295,10 @@ select set_eq(
   ('engagement.roster_lock_changed', 'Email', 'assignments', 'notification'),
   ('engagement.roster_lock_changed', 'SMS', 'assignments', null::text),
   ('engagement.roster_lock_changed', 'Push', 'assignments', null::text),
+  ('advance_answer.recorded', 'In App', 'assignments', null::text),
+  ('advance_answer.recorded', 'Email', 'assignments', 'notification'),
+  ('advance_answer.recorded', 'SMS', 'assignments', null::text),
+  ('advance_answer.recorded', 'Push', 'assignments', null::text),
   ('allocation.decided', 'In App', 'approvals', null::text),
   ('allocation.decided', 'Email', 'approvals', 'notification'),
   ('allocation.decided', 'SMS', 'approvals', null::text),

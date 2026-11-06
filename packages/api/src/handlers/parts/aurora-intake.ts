@@ -1,66 +1,25 @@
 /**
- * What B15's Aurora intake and drafting handlers read before any model call (RRR-239, ADR 0154),
- * kept beside handlers/parts/aurora.ts, which wires them into the operations. Everything here runs
- * in the caller's session: an intake batch, an invoice or a project inbox message the caller cannot
- * read is not found, and the checks that refuse a source come before app.ai_begin_request, so a
- * refused request is never metered.
+ * What B15's Aurora handlers read before any model call (RRR-239, ADR 0154), kept beside
+ * handlers/parts/aurora.ts, which wires them into the operations. Everything runs in the caller's
+ * session, and every refusal comes before app.ai_begin_request, so a refused request is never metered.
  */
-import type { GovernanceKind, ItineraryLine, PublicApi, StoredProposal } from "@xos/ai";
-import type { AiIntake } from "@xos/data/ai";
-import { getIntake } from "@xos/data/ai";
+import type { GovernanceKind, PublicApi } from "@xos/ai";
 import type { ResourceSpec } from "../../catalog/types.ts";
 import { notFound, refused } from "../../problem.ts";
 import type { RequestContext } from "../../runtime/context.ts";
-import { requirePerson } from "../../runtime/context.ts";
-import { from, run, unwrap, type Row } from "../support/table.ts";
-
-/** The intake kind each extraction kind reads into. */
-export const INTAKE_KIND_OF: Readonly<Record<string, "Itineraries" | "Contracts and Riders">> = {
-  itinerary: "Itineraries",
-  contract: "Contracts and Riders",
-  intake_rider: "Contracts and Riders",
-};
-
-/** The caller's own intake batch, read under row level security; anyone else's is not found. */
-export async function ownIntake(context: RequestContext, id: string): Promise<AiIntake> {
-  const batch = unwrap(await getIntake(context.db, id));
-  if (batch.created_by !== requirePerson(context)) throw notFound("This intake is not yours.");
-  return batch;
-}
-
-/** The batch as the API returns it. */
-export function intakeBody(batch: AiIntake) {
-  return {
-    id: batch.id,
-    org_id: batch.org_id,
-    created_at: batch.created_at,
-    created_by: batch.created_by,
-    updated_at: batch.updated_at,
-    updated_by: batch.updated_by,
-    project_id: batch.project_id,
-    intake_kind: batch.intake_kind,
-    fulfillment_id: batch.fulfillment_id,
-    file_count: batch.file_count,
-    closed_at: batch.closed_at,
-    requests: batch.requests,
-    suggestions: batch.suggestions,
-  };
-}
-
-const SOURCE_INVALID =
-  "Aurora drafts from a verified message in this project's inbox that you can read.";
+import { from, run, type Row } from "../support/table.ts";
 
 export interface InboxMessage {
   readonly id: string;
-  readonly projectId: string;
-  readonly subject: string | null;
+  readonly fromAddress: string;
   readonly body: string;
 }
 
 /**
- * A project inbox message the caller can read (knowledge.document.write on the inbox's project),
- * verified by DKIM, not Rejected or discarded, in the inbox of `projectId`; otherwise
- * aurora_draft_source_invalid. Reply mail is never a source.
+ * A project inbox message a draft may read. Row level security decides what is readable
+ * (knowledge.document.write). Purpose Reply and anything not Verified or Filed refuses
+ * aurora_advance_source_unverified, since a spoofed sender must never feed an answer; another
+ * project's mail is not found, and a blank body refuses aurora_advance_source_empty.
  */
 export async function readInboxMessage(
   context: RequestContext,
@@ -70,128 +29,51 @@ export async function readInboxMessage(
   const message = (
     await run<Row[]>(
       from(context.db, "inbound_messages")
-        .select(
-          "id, purpose, dkim_verified, inbound_status, discarded_at, subject_line, body_text, inbound_address_id",
-        )
+        .select("id, purpose, inbound_status, discarded_at, from_address, body_text, inbound_address_id")
         .eq("id", id)
         .is("deleted_at", null),
     )
   )[0];
-  const address = message?.["inbound_address_id"]
-    ? (
-        await run<Row[]>(
-          from(context.db, "inbound_addresses")
-            .select("project_id")
-            .eq("id", String(message["inbound_address_id"])),
-        )
-      )[0]
-    : undefined;
-  if (
-    !message ||
-    message["purpose"] !== "Project Inbox" ||
-    message["dkim_verified"] !== true ||
-    message["inbound_status"] === "Rejected" ||
-    message["discarded_at"] !== null ||
-    address?.["project_id"] !== projectId
-  ) {
-    throw refused("REFUSE", SOURCE_INVALID, "aurora_draft_source_invalid");
-  }
-  return {
-    id,
-    projectId,
-    subject: typeof message["subject_line"] === "string" ? message["subject_line"] : null,
-    body: typeof message["body_text"] === "string" ? message["body_text"] : "",
-  };
-}
-
-/** A Proposed payable invoice the caller can read, whose lines Aurora reads (invoice_lines). */
-export async function readProposedInvoice(
-  context: RequestContext,
-  id: string,
-): Promise<{ id: string; currencyCode: string }> {
-  const invoice = (
+  if (!message) throw notFound("The message is not visible to you.");
+  const unverified = () =>
+    refused(
+      "REFUSE",
+      "Aurora drafts only from verified mail in this project's inbox.",
+      "aurora_advance_source_unverified",
+    );
+  if (message["purpose"] !== "Project Inbox") throw unverified();
+  const address = (
     await run<Row[]>(
-      from(context.db, "invoices")
-        .select("id, direction, invoice_state, currency_code")
-        .eq("id", id)
-        .is("deleted_at", null),
+      from(context.db, "inbound_addresses")
+        .select("project_id")
+        .eq("id", String(message["inbound_address_id"])),
     )
   )[0];
-  if (!invoice) throw notFound("The invoice is not visible to you.");
-  if (invoice["direction"] !== "Payable" || invoice["invoice_state"] !== "Proposed") {
+  if (address?.["project_id"] !== projectId) throw notFound("The message is not in this inbox.");
+  if (
+    !["Verified", "Filed"].includes(String(message["inbound_status"])) ||
+    message["discarded_at"] !== null
+  ) {
+    throw unverified();
+  }
+  const body = typeof message["body_text"] === "string" ? message["body_text"] : "";
+  if (body.trim() === "") {
     throw refused(
       "REFUSE",
-      "Aurora reads lines only into a Proposed payable invoice.",
-      "aurora_invoice_not_proposed",
+      "This message has no text to read. Choose a file instead.",
+      "aurora_advance_source_empty",
     );
   }
-  return { id, currencyCode: String(invoice["currency_code"]) };
+  return { id, fromAddress: String(message["from_address"]), body };
 }
 
-/** A proposed field's value, or null when it is NO_ANSWER or absent. */
-export function proposedValue(proposal: StoredProposal, path: string): unknown {
-  const field = proposal.fields.find((f) => f.field_path === path);
-  return field && field.refusal === undefined ? (field.value ?? null) : null;
-}
-
-const text = (value: unknown) => (typeof value === "string" && value.trim() !== "" ? value : null);
-
-/** The segments an itinerary proposed, as `@xos/ai/itinerary` checks them. */
-export function itineraryLines(proposals: readonly StoredProposal[]): ItineraryLine[] {
-  return proposals.map((p) => ({
-    passengerName: text(proposedValue(p, "passenger_name")),
-    travelMode: text(proposedValue(p, "travel_mode")),
-    serviceIdentifier: text(proposedValue(p, "service_identifier")),
-    departsFrom: text(proposedValue(p, "departs_from")),
-    departsLocal: text(proposedValue(p, "departs_local")),
-    departsTimeZone: text(proposedValue(p, "departs_time_zone")),
-    arrivesAtPlace: text(proposedValue(p, "arrives_at_place")),
-    arrivesLocal: text(proposedValue(p, "arrives_local")),
-    arrivesTimeZone: text(proposedValue(p, "arrives_time_zone")),
-  }));
-}
-
-/** The English outline of each governance kind, used when the caller sends none. */
-export const GOVERNANCE_OUTLINES: Readonly<Record<GovernanceKind, readonly string[]>> = {
-  event_plan: [
-    "Overview",
-    "Schedule",
-    "Site and Venue",
-    "Staffing and Roles",
-    "Safety and Risk",
-    "Medical and Emergency",
-    "Communications",
-    "Permits and Approvals",
-  ],
-  event_brief: [
-    "Purpose",
-    "Key Facts",
-    "Schedule Highlights",
-    "Contacts by Role",
-    "What Is Needed",
-  ],
-  approval_pack: [
-    "Cover Letter",
-    "Event Summary",
-    "Permits Held and Pending",
-    "Insurance",
-    "Risk Summary",
-    "Site Plan and Capacity",
-    "Contacts",
-  ],
-  waste_plan: [
-    "Waste Streams",
-    "Bins and Placement",
-    "Vendor Responsibilities",
-    "Collection Schedule",
-    "Diversion Targets",
-    "Reporting",
-  ],
+/** The Document subtype each governance kind is written into (canon, 0150). */
+export const GOVERNANCE_SUBTYPE: Readonly<Record<GovernanceKind, string>> = {
+  event_plan: "Plan",
+  waste_plan: "Plan",
+  event_brief: "Brief",
+  approval_pack: "Package",
 };
-
-/** The most cues and risks a governance draft reads, as P6's lists cap them. */
-const MAX_CUES = 60;
-const MAX_RISKS = 40;
 
 export interface GovernanceItem {
   readonly collection: string;
@@ -201,125 +83,95 @@ export interface GovernanceItem {
 }
 
 /**
- * Everything a governance draft sends, read with the caller's permissions through the in-process
- * API: the project, the cues of its running orders (at most 60), its Risk records (at most 40),
- * for an approval pack its Permit records and insurance certificates, for a waste plan its catering
- * fulfillments and project vendors (the vendors of its purchase orders and its live Vendor
- * engagements), each record once. `aurora.draft` and `aurora.preview` share it, so the panel lists
- * exactly what is sent.
+ * The Document record a governance draft fills: refused when absent or of another collection, kind
+ * or subtype, and not found when the caller cannot read it. Its project comes back, for the scope.
  */
-/** Insurance certificates an approval pack sends at most, all of them the project vendors'. */
-const MAX_CERTIFICATES = 20;
+export async function governanceTarget(
+  api: PublicApi,
+  kind: GovernanceKind,
+  target: { collection: string; id: string } | undefined,
+): Promise<{ id: string; projectId: string }> {
+  if (!target) {
+    throw refused(
+      "REFUSE",
+      "Name the Document record to draft into.",
+      "aurora_draft_target_required",
+    );
+  }
+  const mismatch = () =>
+    refused(
+      "REFUSE",
+      `This draft goes into a Document record of subtype ${GOVERNANCE_SUBTYPE[kind]}.`,
+      "aurora_draft_target_mismatch",
+    );
+  if (target.collection !== "records") throw mismatch();
+  const response = await api.get(`/records/${target.id}`, {});
+  if (response.status !== 200) throw notFound("The record is not visible to you.");
+  const record = response.body as Row;
+  if (record["record_kind"] !== "Document" || record["record_subtype"] !== GOVERNANCE_SUBTYPE[kind]) {
+    throw mismatch();
+  }
+  return { id: target.id, projectId: String(record["project_id"]) };
+}
 
-export async function governanceItems(
+/**
+ * Everything a governance draft sends, read as the caller through the in-process API: the record, its
+ * project, up to 10 Event records and up to 20 named context records; for an approval pack the
+ * project's gate readiness; for a waste plan its objectives and measurements. `aurora.draft` and
+ * `aurora.preview` share it, so the panel lists exactly what is sent.
+ */
+export async function governanceDraftItems(
   api: PublicApi,
   specs: readonly ResourceSpec[],
   kind: GovernanceKind,
-  projectId: string,
+  target: { id: string; projectId: string },
+  context: readonly { collection: string; id: string }[],
 ): Promise<GovernanceItem[]> {
   const out: GovernanceItem[] = [];
   const add = (collection: string, data: unknown) => {
     const spec = specs.find((s) => s.path === `/${collection}`);
     if (!spec || typeof data !== "object" || data === null) return;
     const id = (data as Row)["id"];
-    if (typeof id !== "string" || out.some((r) => r.collection === collection && r.id === id))
+    if (typeof id !== "string" || out.some((r) => r.collection === collection && r.id === id)) {
       return;
+    }
     out.push({ collection, id, table: spec.def.table, data: data as Row });
   };
-  const list = async (collection: string, query: Record<string, string>, limit: number) => {
-    const response = await api.get(`/${collection}`, { ...query, limit: String(limit) });
-    const rows = (response.body as { data?: unknown } | null)?.data;
-    return response.status === 200 && Array.isArray(rows) ? (rows as Row[]) : [];
+  const read = async (collection: string, id: string) => {
+    const response = await api.get(`/${collection}/${id}`, {});
+    if (response.status === 200) add(collection, response.body);
   };
-  const project = await api.get(`/projects/${projectId}`, {});
-  if (project.status !== 200) return out;
-  add("projects", project.body);
-  let cues = 0;
-  for (const running of await list("run-of-show", { "filter[project_id][eq]": projectId }, 10)) {
-    add("run-of-show", running);
-    for (const cue of await list(
-      "cues",
-      { "filter[run_of_show_id][eq]": String(running["id"]) },
-      MAX_CUES - cues,
-    )) {
-      if (cues >= MAX_CUES) break;
-      add("cues", cue);
-      cues += 1;
+  const list = async (collection: string, query: Record<string, string>) => {
+    const response = await api.get(`/${collection}`, query);
+    const rows = (response.body as { data?: unknown } | null)?.data;
+    if (response.status === 200 && Array.isArray(rows)) {
+      for (const row of rows) add(collection, row);
     }
-    if (cues >= MAX_CUES) break;
-  }
-  for (const risk of await list(
-    "records",
-    { "filter[project_id][eq]": projectId, "filter[record_kind][eq]": "Risk" },
-    MAX_RISKS,
-  )) {
-    add("records", risk);
-  }
-  // Project vendors (correction 29): the vendors of the project's purchase orders and of its live Vendor
-  // engagements' counterparties. The approval pack sends only their insurance certificates, since a certificate
-  // belongs to a vendor and not to a project.
-  const vendorIds = new Set<string>();
-  const vendorEngagements: Row[] = [];
-  if (kind === "approval_pack" || kind === "waste_plan") {
-    for (const order of await list(
-      "purchase-orders",
-      { "filter[project_id][eq]": projectId },
-      50,
-    )) {
-      if (typeof order["vendor_id"] === "string") vendorIds.add(order["vendor_id"]);
-    }
-    for (const engagement of await list(
-      "engagements",
-      { "filter[project_id][eq]": projectId, "filter[role_type][eq]": "Vendor" },
-      20,
-    )) {
-      if (["Complete", "Canceled"].includes(String(engagement["engagement_state"]))) continue;
-      vendorEngagements.push(engagement);
-      if (typeof engagement["counterparty_id"] !== "string") continue;
-      for (const vendor of await list(
-        "vendors",
-        { "filter[counterparty_id][eq]": engagement["counterparty_id"] },
-        1,
-      )) {
-        if (typeof vendor["id"] === "string") vendorIds.add(vendor["id"]);
-      }
-    }
-  }
-  const vendors = [...vendorIds].slice(0, 20);
+  };
+  await read("records", target.id);
+  await read("projects", target.projectId);
+  await list("records", {
+    "filter[project_id][eq]": target.projectId,
+    "filter[record_kind][eq]": "Event",
+    limit: "10",
+  });
+  for (const item of context.slice(0, 20)) await read(item.collection, item.id);
   if (kind === "approval_pack") {
-    for (const permit of await list(
-      "records",
-      { "filter[project_id][eq]": projectId, "filter[record_kind][eq]": "Permit" },
-      40,
-    )) {
-      add("records", permit);
-    }
-    let certificates = 0;
-    for (const vendorId of vendors) {
-      for (const certificate of await list(
-        "insurance-certificates",
-        { "filter[vendor_id][eq]": vendorId },
-        MAX_CERTIFICATES - certificates,
-      )) {
-        add("insurance-certificates", certificate);
-        certificates += 1;
-      }
-      if (certificates >= MAX_CERTIFICATES) break;
+    const readiness = await api.get(`/projects/${target.projectId}/gate-readiness`, {});
+    const rows = (readiness.body as { data?: unknown } | null)?.data;
+    if (readiness.status === 200 && Array.isArray(rows)) {
+      out.push({
+        collection: "projects",
+        id: target.projectId,
+        table: "app.gate_criteria_status",
+        data: { gate_readiness: rows as unknown[] },
+      });
     }
   }
   if (kind === "waste_plan") {
-    for (const catering of await list(
-      "fulfillments",
-      { "filter[project_id][eq]": projectId, "filter[fulfillment_kind][eq]": "Catering" },
-      20,
-    )) {
-      add("fulfillments", catering);
-    }
-    for (const vendorId of vendors) {
-      const vendor = await api.get(`/vendors/${vendorId}`, {});
-      if (vendor.status === 200) add("vendors", vendor.body);
-    }
-    for (const engagement of vendorEngagements) add("engagements", engagement);
+    const scoped = { "filter[project_id][eq]": target.projectId, limit: "50" };
+    await list("project-objectives", scoped);
+    await list("project-measurements", scoped);
   }
   return out;
 }

@@ -4,6 +4,7 @@
  * the person's own credential, so Aurora can never see or do more than they can. It holds no model
  * provider code and no secrets, so it is safe in any bundle.
  */
+import type { TieOutResult } from "./intake.ts";
 import type { AiFeature } from "./model.ts";
 
 export interface AuroraProposalSummary {
@@ -92,8 +93,6 @@ export interface AuroraDraft {
   readonly body: string;
   readonly gaps: readonly string[];
   readonly verbiageMisses: readonly string[];
-  /** For a governance kind, the outline headings the draft lacks. */
-  readonly missingHeadings?: readonly string[];
 }
 
 /** One flag of the gaps and clashes check on a drafted run of show (`@xos/ai/lists`). */
@@ -167,193 +166,147 @@ export interface AuroraSummary {
   readonly bullets: readonly { readonly text: string; readonly citations: readonly string[] }[];
 }
 
-/** A value an extraction read for a check, never proposed. */
-export interface AuroraCheckValue {
-  readonly value: unknown;
+/** A value an extraction read and shows, but never proposes. */
+export interface AuroraReadValue {
+  readonly value: string | number;
   readonly source_excerpt: string | null;
 }
 
-/** The tie-out of extracted lines against the printed totals (`@xos/ai/tieout`). */
-export interface AuroraTieOut {
-  readonly linesMinor: number;
-  readonly subtotalResidualMinor: number | null;
-  readonly totalResidualMinor: number | null;
-  readonly unpricedLines: readonly number[];
-  readonly status: "ties" | "residual" | "incomplete";
-  readonly flags: readonly "currency_mismatch"[];
-}
-
-/** An earlier line of the same vendor (app.vendor_line_history), a hint beside an extracted line. */
-export interface AuroraLineHistory {
-  readonly description_index: number;
-  readonly source: "invoice" | "purchase_order";
-  readonly reference: string | null;
-  readonly line_number: number;
-  readonly issued_on: string | null;
-  readonly description: string;
-  readonly quantity: number;
-  readonly unit_price_minor: number | null;
-  readonly currency_code: string;
-  readonly similarity: number;
-}
-
-/** A traveler or party a printed name may be (app.itinerary_traveler_candidates, app.intake_party_candidates). */
-export interface AuroraCandidate {
-  readonly name_index: number;
-  readonly candidate_kind?: "counterparty" | "person" | "engagement";
-  readonly candidate_id?: string;
-  readonly person_id?: string;
-  readonly name?: string;
-  readonly full_name?: string;
-  readonly roster_entry_id?: string | null;
-  readonly engagement_id?: string | null;
-  readonly already_booked?: boolean;
-  readonly similarity: number;
-}
-
-/** One flag of the itinerary checks (`@xos/ai/itinerary`). */
-export interface AuroraItineraryFlag {
-  readonly type:
-    | "arrival_before_departure"
-    | "unknown_airport"
-    | "duplicate_in_batch"
-    | "inferred_zone"
-    | "inferred_year";
-  readonly line: number;
-}
-
-/** The answer of `aurora.extract`. */
+/** The answer of `aurora.extract`, B15 additions included. */
 export interface AuroraExtraction {
   readonly kind: string;
   readonly answered: number;
   readonly refused: number;
-  readonly check?: Readonly<Record<string, AuroraCheckValue | null>>;
-  /** A receipt's items, read-only. */
-  readonly lines?: readonly Readonly<Record<string, AuroraCheckValue | null>>[];
-  readonly tie_out?: AuroraTieOut;
-  readonly history?: readonly AuroraLineHistory[];
-  readonly checks?: readonly AuroraItineraryFlag[];
-  readonly candidates?: readonly AuroraCandidate[];
-  readonly dropped?: number;
-  readonly inferred_year?: readonly number[];
+  readonly read?: Readonly<Record<string, AuroraReadValue | null>>;
+  readonly line_items?: readonly {
+    readonly description: string | null;
+    readonly quantity: number | null;
+    readonly amount_minor: number | null;
+    readonly source_excerpt: string | null;
+  }[];
+  readonly tie_out?: TieOutResult;
+  readonly dropped?: readonly { readonly line: number; readonly reason: string }[];
+  readonly too_many?: number;
 }
 
-/** The kinds `aurora.extract` reads. */
-export type AuroraExtractKind =
-  | "rider"
-  | "insurance_certificate"
-  | "invoice"
-  | "receipt"
-  | "quote"
-  | "itinerary"
-  | "contract"
-  | "intake_rider"
-  | "invoice_lines";
-
-/** An Aurora intake batch with its requests and Proposed suggestions (auroraIntakes.get). */
-export interface AuroraIntake {
-  readonly id: string;
-  readonly project_id: string;
-  readonly intake_kind: "Itineraries" | "Contracts and Riders";
-  readonly fulfillment_id: string | null;
-  readonly file_count: number;
-  readonly closed_at: string | null;
-  readonly requests: readonly {
+/** What an intake review offers (aurora.intakeOptions). */
+export interface AuroraIntakeOptions {
+  readonly fee_visible: boolean;
+  readonly can_write_riders: boolean;
+  readonly travelers: readonly {
+    readonly person_id: string;
+    readonly engagement_id: string | null;
+    readonly display_name: string;
+    readonly source: "Member" | "Engagement" | "Roster";
+  }[];
+  readonly parties: readonly {
+    readonly kind: "counterparty" | "person";
     readonly id: string;
-    readonly outcome: "Pending" | "Answered" | "No Answer" | "Failed";
-    readonly failure_code: string | null;
-    readonly created_at: string;
+    readonly name: string;
+    readonly engagement_ids: readonly string[];
   }[];
-  readonly suggestions: readonly (AuroraSuggestion & { readonly request_id: string })[];
-}
-
-/** One kept segment of an itinerary intake, with the person's values (auroraIntakes.applyItineraries). */
-export interface AuroraItineraryItem {
-  readonly suggestion_id: string;
-  readonly values: Readonly<Record<string, unknown>>;
-}
-
-/** One preview row of an itinerary intake, checked against the traveler's live segments. */
-export interface AuroraItineraryCheckRow {
-  readonly person_id: string;
-  readonly service_identifier?: string | null;
-  readonly departs_at?: string | null;
-}
-
-/** One act of a contract intake (auroraIntakes.applyContracts). */
-export interface AuroraContractGroup {
-  readonly act_name: string;
-  readonly engagement: {
-    readonly mode: "new" | "existing";
-    readonly engagement_id?: string;
-    readonly contract_suggestion_id?: string;
-    readonly values?: Readonly<Record<string, unknown>>;
-  };
-  readonly riders?: readonly {
-    readonly header_suggestion_id: string;
-    readonly title?: string;
-    readonly line_suggestion_ids?: readonly string[];
-    readonly line_values?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  readonly rate_cards: readonly {
+    readonly role_code: string;
+    readonly role_name: string;
+    readonly worker_classification: string;
+    readonly worker_classification_label: string;
+    readonly pay_basis: string;
+    readonly arrangement: string;
   }[];
 }
 
-/** What a contract intake wrote. */
+/** A caller's open proposal, to resume a review (aurora.openProposals). */
+export interface AuroraOpenProposal {
+  readonly id: string;
+  readonly request_id: string;
+  readonly operation_id: string;
+  readonly target_id: string | null;
+  readonly summary: string;
+  readonly expires_at: string;
+  readonly proposed_fields: readonly AuroraSuggestionField[];
+}
+
+/** One group of a contract review (aurora.applyContractIntake). */
+export interface AuroraContractItem {
+  readonly suggestion_ids: readonly string[];
+  readonly party: { readonly person_id?: string; readonly counterparty_id?: string };
+  readonly engagement_id?: string;
+  readonly role_code?: string;
+  readonly worker_classification?: string;
+  readonly pay_basis?: string;
+  readonly arrangement?: string;
+  readonly start_date?: string;
+  readonly end_date?: string;
+  readonly agreed_rate_minor?: number;
+  readonly currency_code?: string;
+  readonly create_riders?: boolean;
+}
+
+/** What a contract review wrote. */
 export interface AuroraAppliedContracts {
-  readonly applied: readonly { readonly suggestion_id: string; readonly id: string }[];
-  readonly engagements: number;
+  readonly engagements: readonly {
+    readonly suggestion_ids: readonly string[];
+    readonly engagement_id: string;
+    readonly created: boolean;
+    readonly documents: readonly {
+      readonly suggestion_id: string;
+      readonly engagement_document_id: string | null;
+      readonly document_type: "Contract" | "Rider";
+    }[];
+  }[];
   readonly riders: number;
-  readonly rider_lines: number;
-  readonly rejected: number;
 }
 
-/** A drafted advance answer line, in R9's line shape with the names it was read as. */
+/** A prior line of the same counterparty (invoices.lineHistory). */
+export interface AuroraLineHistory {
+  readonly description_index: number;
+  readonly description: string;
+  readonly quantity: number;
+  readonly unit_price_minor: number | null;
+  readonly currency_code: string;
+  readonly invoice_number: string | null;
+  readonly issued_on: string | null;
+  readonly budget_line_id: string | null;
+  readonly budget_line_name: string | null;
+}
+
+/** One line of a drafted advance answer. */
 export interface AuroraAdvanceAnswerLine {
-  readonly label: string;
-  readonly asset_class_id?: string;
-  readonly credential_category_id?: string;
+  readonly choice_id?: string;
   readonly quantity?: number;
-  readonly roster_entry_id?: string;
-  readonly person_name?: string;
   readonly needed_window_start?: string;
   readonly needed_window_end?: string;
   readonly window_zone?: string;
-  readonly from_local?: string;
-  readonly to_local?: string;
   readonly note?: string;
 }
 
-/** The answer of `aurora.draft` for advance answers (B15). */
+/** The answer of `aurora.draftAdvanceAnswers`. */
 export interface AuroraAdvanceAnswers {
   readonly answers: readonly {
     readonly suggestion_id: string | null;
     readonly section_id: string;
     readonly section_title: string;
     readonly kind: "Text" | "Schedule Window" | "Item Request" | "Credential Request";
-    readonly body: string | null;
+    readonly text: string | null;
+    readonly note: string | null;
     readonly lines: readonly AuroraAdvanceAnswerLine[];
-    readonly source_excerpt: string | null;
-    readonly dropped: readonly {
-      readonly line: number;
-      readonly reason: string;
-      readonly choice?: string;
-    }[];
+    readonly source_excerpt: string;
+    readonly confidence: number;
+    readonly excerpt_checked: boolean;
   }[];
-  readonly unanswered: readonly { readonly section_id: string; readonly title: string }[];
+  readonly unanswered: readonly { readonly section_id: string; readonly missing: string }[];
+  readonly dropped: readonly { readonly section_id: string; readonly reason: string }[];
+  readonly source:
+    | { readonly kind: "Project Inbox"; readonly from_address: string }
+    | { readonly kind: "File"; readonly file_name: string };
+  readonly sections: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly choices: readonly { readonly id: string; readonly name: string }[];
+  }[];
 }
 
-/** The source of drafted advance answers: a project inbox message or a document. */
-export type AuroraDraftSource =
-  | { readonly inbound_message_id: string }
-  | {
-      readonly document: {
-        readonly media_type:
-          "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
-        readonly content_base64: string;
-        readonly file_name: string;
-      };
-    };
-
-/** The governance kinds drafted into project documents (B15). */
+/** The governance kinds, drafted for a Document record's editor (B15). */
 export type AuroraGovernanceKind = "event_plan" | "event_brief" | "approval_pack" | "waste_plan";
 
 /** The answer of `aurora.bindCode`. */
@@ -369,11 +322,14 @@ export interface AuroraCodeBinding {
 /** `AuroraPreviewRequest` in the OpenAPI document. */
 export interface AuroraPreviewRequest {
   readonly feature: "drafting" | "summaries";
-  /** For a drafted list, advance answers or a governance draft: what is drafted, so the preview reads what the draft reads. */
+  /** For a drafted list: what is drafted, so the preview reads what the draft reads. */
   readonly draft_kind?:
-    "run_of_show" | "risk_assessment" | "advance_answers" | AuroraGovernanceKind;
-  /** For a drafted list: the running order or project it fills. */
+    "run_of_show" | "risk_assessment" | AuroraGovernanceKind | "advance_answers";
+  /** For a drafted list: the running order or project it fills; for a governance kind: its record. */
   readonly target?: { readonly collection: string; readonly id: string };
+  /** For advance answers: the recipient, and the mail read. */
+  readonly advance_recipient_id?: string;
+  readonly inbound_message_id?: string;
   readonly kind?: "record_activity" | "project_week" | "gate_readiness";
   readonly subject_collection?: string;
   readonly subject_id?: string;
@@ -451,39 +407,29 @@ export interface AuroraClient {
     /** A page's own filters, used instead of the collection's API fields (A95). */
     fields?: readonly AuroraFilterField[];
   }): Promise<AuroraCall<AuroraApiResult<AuroraBuiltFilter>>>;
-  /**
-   * Reads a document, or for an itinerary a project inbox message, into proposed fields. B15: an
-   * intake batch or an invoice can be the subject; exactly one of content_base64 and
-   * inbound_message_id is given.
-   */
   extract(input: {
-    kind: AuroraExtractKind;
+    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote" | "itinerary" | "contract";
     document_id?: string | null;
-    intake_batch_id?: string;
-    invoice_id?: string;
-    inbound_message_id?: string;
-    media_type?: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
-    content_base64?: string;
-    file_name?: string;
+    /** The project read for, required for an itinerary or a contract. */
+    project_id?: string;
+    media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    content_base64: string;
+    file_name: string;
   }): Promise<AuroraCall<AuroraApiResult<AuroraExtraction>>>;
-  /** Prose drafts; a governance kind (B15) names its project as `target`. */
-  draft(
-    input:
-      | {
-          kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
-          instructions: string;
-          context?: readonly { collection: string; id: string }[];
-          verbiage?: readonly { term: string; preferred: string }[];
-        }
-      | {
-          kind: AuroraGovernanceKind;
-          instructions: string;
-          target: { collection: "projects"; id: string };
-          verbiage?: readonly { term: string; preferred: string }[];
-          /** The outline headings in the person's locale; the English outline when absent. */
-          outline?: readonly string[];
-        },
-  ): Promise<AuroraCall<AuroraApiResult<AuroraDraft>>>;
+  draft(input: {
+    kind:
+      | "sop"
+      | "advance_packet"
+      | "email"
+      | "day_sheet"
+      | "change_order_description"
+      | AuroraGovernanceKind;
+    instructions: string;
+    /** A governance kind's Document record. */
+    target?: { collection: "records"; id: string };
+    context?: readonly { collection: string; id: string }[];
+    verbiage?: readonly { term: string; preferred: string }[];
+  }): Promise<AuroraCall<AuroraApiResult<AuroraDraft>>>;
   /** A run of show or risk assessment drafted into an empty list (P6); `target` names the list. */
   draft(input: {
     kind: "run_of_show" | "risk_assessment";
@@ -492,44 +438,64 @@ export interface AuroraClient {
     context?: readonly { collection: string; id: string }[];
     verbiage?: readonly { term: string; preferred: string }[];
   }): Promise<AuroraCall<AuroraApiResult<AuroraListDraft>>>;
-  /** Advance answers drafted for a recipient of a sent packet from one source (B15). */
-  draft(input: {
-    kind: "advance_answers";
-    instructions: string;
-    target: { collection: "advance-recipients"; id: string };
-    source: AuroraDraftSource;
-  }): Promise<AuroraCall<AuroraApiResult<AuroraAdvanceAnswers>>>;
-  /** Opens an intake batch: one metered request per file, applied together (B15). */
-  startIntake(input: {
+  /** What an intake review offers: traveler candidates, or parties and rate cards. */
+  intakeOptions(input: {
+    kind: "itinerary" | "contract";
     project_id: string;
-    kind: "Itineraries" | "Contracts and Riders";
-    file_count: number;
-    fulfillment_id?: string;
-  }): Promise<AuroraCall<AuroraIntake>>;
-  /** An intake batch with its requests and Proposed suggestions, so a preview reloads. */
-  getIntake(id: string): Promise<AuroraCall<AuroraIntake>>;
-  /** Closes an intake batch, rejecting what is left. */
-  closeIntake(id: string): Promise<AuroraCall<{ readonly rejected: number }>>;
-  /** Files the kept segments of an itinerary intake in one step. */
-  applyItineraries(
-    id: string,
-    items: readonly AuroraItineraryItem[],
-  ): Promise<AuroraCall<AuroraAppliedDraft>>;
-  /** Which preview rows the traveler already has as live segments (positions from 1), to start them unchecked. */
-  checkItineraries(
-    id: string,
-    segments: readonly AuroraItineraryCheckRow[],
-  ): Promise<AuroraCall<{ readonly booked: readonly number[] }>>;
-  /** Books the kept acts of a contract intake with their riders in one step. */
-  applyContracts(
-    id: string,
-    groups: readonly AuroraContractGroup[],
-  ): Promise<AuroraCall<AuroraAppliedContracts>>;
-  /** Records one drafted advance answer on the recipient's behalf. */
+  }): Promise<AuroraCall<AuroraIntakeOptions>>;
+  /** The caller's open proposals, so a reload resumes the review without a model call. */
+  openProposals(input: {
+    project_id: string;
+    operation_id: "travelSegments.create" | "engagements.createFromContract";
+  }): Promise<AuroraCall<{ readonly data: readonly AuroraOpenProposal[] }>>;
+  /** The caller's open line suggestions of an invoice. */
+  invoiceLineProposals(
+    invoiceId: string,
+  ): Promise<AuroraCall<{ readonly data: readonly AuroraOpenProposal[] }>>;
+  /** Adds kept itinerary lines as travel segments in one step. */
+  applyItinerary(input: {
+    project_id: string;
+    fulfillment_id?: string | null;
+    items: readonly { suggestion_id: string; values: Readonly<Record<string, unknown>> }[];
+  }): Promise<
+    AuroraCall<{
+      readonly written: readonly { suggestion_id: string; id: string }[];
+      readonly duplicates_checked: number;
+    }>
+  >;
+  /** Books the groups of a contract review in one step. */
+  applyContractIntake(input: {
+    project_id: string;
+    items: readonly AuroraContractItem[];
+  }): Promise<AuroraCall<AuroraAppliedContracts>>;
+  /** Adds kept invoice lines in one step. */
+  applyInvoiceLines(input: {
+    invoice_id: string;
+    items: readonly { suggestion_id: string; values: Readonly<Record<string, unknown>> }[];
+  }): Promise<AuroraCall<{ readonly written: readonly { suggestion_id: string; id: string }[] }>>;
+  /** What the same counterparty billed before; computed, and never sent to a model. */
+  lineHistory(
+    invoiceId: string,
+    descriptions: readonly string[],
+  ): Promise<AuroraCall<{ readonly data: readonly AuroraLineHistory[] }>>;
+  /** Proposed answers for a recipient's open sections, from mail or a file. */
+  draftAdvanceAnswers(
+    input: {
+      advance_recipient_id: string;
+      verbiage?: readonly { term: string; preferred: string }[];
+    } & (
+      | { inbound_message_id: string }
+      | {
+          media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+          content_base64: string;
+          file_name: string;
+        }
+    ),
+  ): Promise<AuroraCall<AuroraApiResult<AuroraAdvanceAnswers>>>;
+  /** Records one accepted answer for the person who accepts it. */
   applyAdvanceAnswer(input: {
     suggestion_id: string;
     values?: Readonly<Record<string, unknown>>;
-    source: { inbound_message_id: string } | { file_name: string };
   }): Promise<AuroraCall<{ readonly submission_id: string }>>;
   /**
    * Adds the kept lines of a drafted list in one step (aurora.applyDraft), only while the list is
@@ -651,15 +617,21 @@ export function createAuroraClient(options: AuroraClientOptions): AuroraClient {
     // One route answers every draft overload; the kind decides the answer's shape.
     draft: ((input: unknown) => call("POST", "/aurora/draft", input)) as AuroraClient["draft"],
     applyDraft: (input) => call("POST", "/aurora/apply-draft", input),
-    startIntake: (input) => call("POST", "/aurora/intakes", input),
-    getIntake: (id) => call("GET", `/aurora/intakes/${encodeURIComponent(id)}`),
-    closeIntake: (id) => call("POST", `/aurora/intakes/${encodeURIComponent(id)}/close`, {}),
-    applyItineraries: (id, items) =>
-      call("POST", `/aurora/intakes/${encodeURIComponent(id)}/apply-itineraries`, { items }),
-    checkItineraries: (id, segments) =>
-      call("POST", `/aurora/intakes/${encodeURIComponent(id)}/check-itineraries`, { segments }),
-    applyContracts: (id, groups) =>
-      call("POST", `/aurora/intakes/${encodeURIComponent(id)}/apply-contracts`, { groups }),
+    intakeOptions: ({ kind, project_id }) =>
+      call("GET", `/aurora/intake-options?kind=${kind}&project_id=${encodeURIComponent(project_id)}`),
+    openProposals: ({ project_id, operation_id }) =>
+      call(
+        "GET",
+        `/aurora/open-proposals?project_id=${encodeURIComponent(project_id)}&operation_id=${encodeURIComponent(operation_id)}`,
+      ),
+    invoiceLineProposals: (invoiceId) =>
+      call("GET", `/aurora/invoice-line-proposals?invoice_id=${encodeURIComponent(invoiceId)}`),
+    applyItinerary: (input) => call("POST", "/aurora/apply-itinerary", input),
+    applyContractIntake: (input) => call("POST", "/aurora/apply-contract-intake", input),
+    applyInvoiceLines: (input) => call("POST", "/aurora/apply-invoice-lines", input),
+    lineHistory: (invoiceId, descriptions) =>
+      call("POST", `/invoices/${encodeURIComponent(invoiceId)}/line-history`, { descriptions }),
+    draftAdvanceAnswers: (input) => call("POST", "/aurora/draft-advance-answers", input),
     applyAdvanceAnswer: (input) => call("POST", "/aurora/apply-advance-answer", input),
     summarize: (input) => call("POST", "/aurora/summarize", input),
     mapColumns: (input) => call("POST", "/aurora/map-columns", input),

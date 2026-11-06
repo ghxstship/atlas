@@ -140,6 +140,12 @@ derived:
     reason: API v1 documents an answer's body as required (packages/schemas/src/common/fields.ts), and v1 readers see only the body, so a typed answer carries its locale-neutral summary there
     adr: "0104"
   - objects:
+      - app.advance_answer_sources.source_excerpt
+    source: "`app.ai_suggestion_fields.source_excerpt` of the accepted suggestion"
+    refresh: Written once by `app.record_drafted_advance_answer`; the row never changes (migration 3043, B15)
+    reason: A reviewer cannot read the asker's suggestion, and retention of the answer must not hang on it
+    adr: "0154"
+  - objects:
       - app.advance_allocations.project_id
     source: "The holder's project: the pool engagement's, or the roster entry's engagement's"
     refresh: Stamped by `private.stamp_allocation_project` on every write; a change is refused (allocation_project_fixed, migration 2691, R7)
@@ -400,10 +406,6 @@ restated:
     parent: app.advance_recipient_tokens.advance_recipient_id
     kind: own
     note: Who answered, required on every answer; for an answer through a token, `private.guard_advance_submission` requires the token's recipient.
-  - column: app.ai_intake_batches.project_id
-    parent: app.fulfillments.project_id
-    kind: own
-    note: Project the files are read for; the Travel fulfillment is optional and `t39_ai_intake_batch_project` refuses one of another project (migration 3040, B15).
   - column: app.api_keys.expires_at
     parent: app.service_accounts.expires_at
     kind: own
@@ -1655,9 +1657,6 @@ stored:
   - column: app.addon_purchases.amount_total_minor
     kind: input
     note: Amount paid as Stripe reports it (migration 1250).
-  - column: app.ai_intake_batches.file_count
-    kind: input
-    note: Files the person chose to read into the batch, 1 to 25; the cap the request guard holds requests to (migration 3040, B15).
   - column: app.beos.guest_count
     kind: input
     note: Guests the client guarantees.
@@ -1685,6 +1684,9 @@ stored:
   - column: app.invite_links.use_count
     kind: fact
     note: Memberships do not record the link they came from (A22 review).
+  - column: app.invoices.printed_total_minor
+    kind: fact
+    note: The total a document printed, kept as read; the computed total stays in `app.invoice_totals` and `app.invoice_tie_out` compares them (migration 3044, B15).
   - column: app.notification_deliveries.attempt_count
     kind: fact
     note: No attempts table exists, so the count is the only record (A22 review).

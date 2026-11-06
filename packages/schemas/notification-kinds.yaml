@@ -494,6 +494,12 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/2656_roster_lock.sql#app.set_roster_lock
         test: supabase/tests/2656_roster_lock.test.sql
+  # Advance answers recorded for a recipient from an Aurora draft (B15: 3043)
+  - kind: advance_answer.recorded
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/3043_advance_answer_sources.sql#app.record_drafted_advance_answer
+        test: supabase/tests/3043_advance_answer_sources.test.sql
   # Advance allocations (R7: 2693, 2694). Accepted account members receive them through private.party_org_ids (1131).
   - kind: allocation.decided
     category: approvals

@@ -323,6 +323,12 @@
         "body": "Open the crew roster to see when names close. After that, ask the producing organization to change the roster."
       }
     },
+    "advance_answer": {
+      "recorded": {
+        "subject": "{actorName} recorded your answer to {sectionTitle} for {projectName}",
+        "body": "They recorded it from your message or a file you sent. Ask them to return it if it needs changing."
+      }
+    },
     "allocation": {
       "decided": {
         "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was {decision, select, approved {approved} declined {declined} other {decided}}",
