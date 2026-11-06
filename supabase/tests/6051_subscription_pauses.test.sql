@@ -332,7 +332,7 @@ select is(app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb0r', '
   0, false, null, now() + interval '1 minute')::text, 'canceled', 'a paused status on an org being deleted changes nothing (6140)');
 select pg_temp.as_platform();
 select is((select count(*)::integer from app.subscription_pauses where org_id = pg_temp.id('org_b') and ended_at is null), 0, 'and opens no pause');
-update app.org_deletion_requests set recovered_at = now() where org_id = pg_temp.id('org_b');
+update app.org_deletion_requests set recovered_at = now(), recovered_by = pg_temp.id('xavier') where org_id = pg_temp.id('org_b');
 select pg_temp.as_service();
 select app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb0r', 'sub_H4rb0r', 'team', 'Annual', 'paused', now() + interval '200 days', false,
   0, false, null, now() + interval '1 minute');
