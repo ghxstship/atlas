@@ -14,7 +14,8 @@ Two measurements of the same budget (200 KB gzip):
 
 - **Route JS (build)**: `pnpm --filter @xos/testing budget:js`, from the production build's
   manifests: the scripts the route itself loads. CI can run it on every pull request (proposed job
-  `route-js-budget`). Pages still over budget hold a ceiling in `packages/testing/bundle-ceilings.json`.
+  `route-js-budget`). Pages still over budget hold a ceiling in `packages/testing/bundle-ceilings.json`. The
+  baseline was set at merge train 8 (ADR 0027, amendment of 2026-11-06); from there a ceiling only falls.
 - **Lighthouse JS**: `resource-summary:script:size`, every script fetched during the trace. On Atlas
   signed-in pages it adds 60 to 85 KB that Next.js prefetches for the sidebar links in the viewport,
   which belong to the routes those links open.

@@ -176,3 +176,15 @@ from the server, because the layout does not render again on a client navigation
 splitting it means each rare component registering its own strings, perhaps 2 KB saved. The three
 copies of TemplateSystem across boundaries cost about 0.6 KB. Neither other suspect is worth chasing:
 `@xos/ui`'s barrel tree-shakes, and the bulk and row-menu code is under 0.3 KB on these pages.
+
+## Amendment (2026-11-06): the ceilings' baseline is set at merge train 8
+
+`bundle-ceilings.json` came with A144 (2026-10-28), measured on its branch, and has never been enforced on batch-c, so
+trains 2 to 7 grew pages past numbers nothing checked. Landing the file is therefore a first baseline, not a raise. The
+200 KB limit stands, and every key page is under it with no ceiling (Projects 186 KB, project overview 187 KB, Inbox
+178 KB).
+
+The baseline is set from the merged build of train 8, with the rule of decision 1, measured plus 3 KB, and only for
+pages still over 200 KB: of 326 pages, 214 hold a ceiling. 96 pages were past A144's numbers or had none and took
+measured plus 3 KB, 105 fell to it, 13 kept a lower one, and 15 pages now under 200 KB lost theirs. From here ceilings
+only fall: lower one when a page shrinks, never raise it, and a key page over 200 KB is a failure, never a ceiling.
