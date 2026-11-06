@@ -67,6 +67,7 @@ bucket_definitions:
       - SELECT * FROM app.dock_slots WHERE project_id = bucket.project_id
       - SELECT * FROM app.radio_channels WHERE project_id = bucket.project_id
       - SELECT * FROM app.gate_queue WHERE project_id = bucket.project_id
+      - SELECT * FROM app.delivery_windows WHERE project_id = bucket.project_id
       - SELECT * FROM app.marshalling_log WHERE project_id = bucket.project_id
       - SELECT * FROM app.fulfillments WHERE project_id = bucket.project_id
 
@@ -95,7 +96,7 @@ bucket_definitions:
       - SELECT id, engagement_id, project_id, shift_id, time_entry_id, punch_kind, device_time, effective_at, geofence_verified, skew_flagged, source FROM app.clock_punches WHERE engagement_id = bucket.engagement_id
       - SELECT id, asset_unit_id, custodian_engagement_id, project_id, created_at FROM app.asset_custody WHERE custodian_engagement_id = bucket.engagement_id AND bucket.audience IN ('crew', 'staff')
       - SELECT id, project_id, holder_person_id, credential_number, valid_from, valid_to, revoked_at, engagement_id FROM app.credentials WHERE engagement_id = bucket.engagement_id AND bucket.audience IN ('artist', 'artist-representative')
-      - SELECT id, project_id, zone_id, shipment_id, starts_at, ends_at, engagement_id FROM app.dock_slots WHERE engagement_id = bucket.engagement_id AND bucket.audience = 'vendor'
+      - SELECT id, project_id, zone_id, shipment_id, starts_at, ends_at, engagement_id, reference_code FROM app.dock_slots WHERE engagement_id = bucket.engagement_id AND bucket.audience = 'vendor'
 
   external_project:
     parameters: >-

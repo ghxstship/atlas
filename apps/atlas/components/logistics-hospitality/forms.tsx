@@ -28,7 +28,7 @@ export type FormAction = (state: ActionState, form: FormData) => Promise<ActionS
 export interface FieldSpec {
   readonly name: string;
   readonly label: string;
-  readonly kind: "text" | "textarea" | "select" | "datetime" | "date" | "number" | "money";
+  readonly kind: "text" | "textarea" | "select" | "datetime" | "date" | "time" | "number" | "money";
   readonly options?: readonly { value: string; label: string }[];
   readonly required?: boolean;
   readonly help?: string;
@@ -119,7 +119,9 @@ function Fields({
         const type =
           f.kind === "datetime"
             ? "datetime-local"
-            : f.kind === "date"
+            : f.kind === "time"
+              ? "time"
+              : f.kind === "date"
               ? "date"
               : f.kind === "number"
                 ? "number"

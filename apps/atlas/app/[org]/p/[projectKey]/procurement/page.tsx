@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { SectionTabs } from "@/components/collection-kit/section-tabs";
+import { NeedsSection } from "@/components/procurement/needs";
 import { PurchaseOrdersSection } from "@/components/procurement/purchase-orders";
 import { ReceiptsSection } from "@/components/procurement/receipts";
 import { RfqsSection } from "@/components/procurement/rfqs";
@@ -9,11 +10,11 @@ import { getCopy } from "@/lib/collection-kit/i18n";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { nodeHref } from "@/lib/shell/sitemap";
 
-const SECTIONS = ["orders", "rfqs", "receipts", "submittals"] as const;
+const SECTIONS = ["orders", "needs", "rfqs", "receipts", "submittals"] as const;
 type Section = (typeof SECTIONS)[number];
 
 /**
- * The project Procurement tab (Section 4.5.4): the project's purchase orders, RFQs, receipts and
+ * The project Procurement tab (Section 4.5.4): the project's purchase orders, needs (B11), RFQs, receipts and
  * submittals, using the org-level module sections with the project filter applied.
  */
 export default async function Page({
@@ -39,7 +40,9 @@ export default async function Page({
         current={section}
         options={SECTIONS.map((s) => ({ value: s, label: t(s) }))}
       />
-      {section === "rfqs" ? (
+      {section === "needs" ? (
+        <NeedsSection {...props} />
+      ) : section === "rfqs" ? (
         <RfqsSection {...props} />
       ) : section === "receipts" ? (
         <ReceiptsSection {...props} />

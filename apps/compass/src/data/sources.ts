@@ -161,14 +161,21 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "dock_slots",
     select:
-      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id",
+      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id,delivery_window_id,reference_code,vehicle_identifier",
+    projectColumn: "project_id",
+  },
+  {
+    table: "delivery_windows",
+    schema: "app",
+    relation: "delivery_windows",
+    select: "id,org_id,project_id,zone_id,starts_at,ends_at,vehicle_limit,is_open",
     projectColumn: "project_id",
   },
   {
     table: "gate_queue",
     schema: "app",
     relation: "gate_queue",
-    select: "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at",
+    select: "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at,dock_slot_id",
     projectColumn: "project_id",
   },
   {

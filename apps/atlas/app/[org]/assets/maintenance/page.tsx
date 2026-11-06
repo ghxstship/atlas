@@ -9,6 +9,8 @@ import Link from "next/link";
 import type { Route } from "next";
 import { AssetsCollection, type CollectionRow } from "@/components/assets/collection";
 import { AssetCollab } from "@/components/assets/collab";
+import { MaintenanceSchedule } from "@/components/assets/maintenance-schedule";
+import { SectionTabs } from "@/components/collection-kit/section-tabs";
 import { MaintenanceForm } from "@/components/assets/forms";
 import { Money, PropertyList } from "@/components/assets/ui";
 import { requireNode } from "@/lib/shell/require-node";
@@ -22,15 +24,36 @@ import { getTranslate } from "@/lib/shell/translate";
 /**
  * Assets > Maintenance (Section 4.5.5): work done on units, newest first. An unknown cost stays
  * unknown, never zero (Section 3.7). The board groups work by the unit's current state, so gear
- * still in maintenance stands out; the calendar places work on the day it was done.
+ * still in maintenance stands out; the calendar places work on the day it was done. Schedule (B11, G-95) is what is
+ * due, computed from each plan; Log is the work done. Completing a due plan records work here and moves its next due.
  */
 export default async function MaintenancePage({
   params,
   searchParams,
 }: PageProps<"/[org]/assets/maintenance">) {
   const ctx = await requireNode("assets.maintenance", await params);
-  const query = readQuery(await searchParams);
+  const search = await searchParams;
   const t = await getTranslate();
+  const section = search["section"] === "log" ? "log" : "schedule";
+  const tabs = (
+    <SectionTabs
+      label={t("assets.schedule.sections")}
+      current={section}
+      options={[
+        { value: "schedule", label: t("assets.schedule.schedule") },
+        { value: "log", label: t("assets.schedule.log") },
+      ]}
+    />
+  );
+  if (section === "schedule") {
+    return (
+      <div className="flex flex-col gap-12">
+        {tabs}
+        <MaintenanceSchedule ctx={ctx} search={search} />
+      </div>
+    );
+  }
+  const query = readQuery(search);
   const format = await getFormatter();
   const db = ctx.viewer.db;
   const can = assetCapabilities(ctx);
@@ -81,6 +104,8 @@ export default async function MaintenancePage({
   const unitOptions = units.map((u) => ({ value: u.id, label: `${u.assetTag} · ${u.className}` }));
 
   return (
+    <div className="flex flex-col gap-12">
+      {tabs}
     <AssetsCollection
       title={t("nav.atlas.pages.assets.maintenance")}
       view={view}
@@ -181,5 +206,6 @@ export default async function MaintenancePage({
           : null
       }
     />
+    </div>
   );
 }

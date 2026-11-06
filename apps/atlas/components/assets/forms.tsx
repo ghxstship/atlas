@@ -274,6 +274,8 @@ export function MaintenanceForm({
   currency,
   today,
   unitId,
+  planId,
+  planTitle,
   open: controlledOpen,
   setOpen: controlledSetOpen,
 }: {
@@ -282,6 +284,9 @@ export function MaintenanceForm({
   currency: string;
   today: string;
   unitId?: string;
+  /** The plan this work fulfils (B11, G-95): it moves the plan's next due date. */
+  planId?: string;
+  planTitle?: string;
   open?: boolean;
   setOpen?: (open: boolean) => void;
 }) {
@@ -296,7 +301,11 @@ export function MaintenanceForm({
       submitLabel={t("maintenance.create.submit")}
       action={recordMaintenanceAction}
       org={org}
-      hidden={{ currencyCode: currency, ...(unitId ? { unitId } : {}) }}
+      hidden={{
+        currencyCode: currency,
+        ...(unitId ? { unitId } : {}),
+        ...(planId ? { maintenancePlanId: planId } : {}),
+      }}
       open={open}
       setOpen={setOpen}
     >
@@ -322,6 +331,7 @@ export function MaintenanceForm({
         name="description"
         required
         width="100%"
+        {...(planTitle ? { defaultValue: planTitle } : {})}
         label={t("fields.description")}
       />
       <Input

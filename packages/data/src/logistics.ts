@@ -290,6 +290,10 @@ export interface DockSlot {
   readonly endsAt: string;
   readonly checkedInAt: string | null;
   readonly checkedInByName: string | null;
+  /** The delivery window the slot holds a place in (B11, ADR 0150); null for a slot booked directly. */
+  readonly deliveryWindowId: string | null;
+  readonly referenceCode: string | null;
+  readonly vehicleIdentifier: string | null;
 }
 
 export interface GateEntry {
@@ -556,7 +560,7 @@ export interface DockScope extends OperationsScope {
 }
 
 const DOCK_COLUMNS =
-  "id, project_id, zone_id, shipment_id, engagement_id, starts_at, ends_at, checked_in_at, " +
+  "id, project_id, zone_id, shipment_id, engagement_id, starts_at, ends_at, checked_in_at, delivery_window_id, reference_code, vehicle_identifier, " +
   "project:projects!dock_slots_project_id_fkey(project_key, time_zone), zone:zones!dock_slots_zone_id_fkey(code, name), " +
   "checker:people!dock_slots_checked_in_by_fkey(full_name)";
 
@@ -569,6 +573,9 @@ interface DockRow {
   starts_at: string;
   ends_at: string;
   checked_in_at: string | null;
+  delivery_window_id: string | null;
+  reference_code: string | null;
+  vehicle_identifier: string | null;
   project: { project_key: string; time_zone: string } | null;
   zone: { code: string; name: string } | null;
   checker: { full_name: string | null } | null;
@@ -589,6 +596,9 @@ function toDockSlot(row: DockRow): DockSlot {
     endsAt: row.ends_at,
     checkedInAt: row.checked_in_at,
     checkedInByName: row.checker?.full_name ?? null,
+    deliveryWindowId: row.delivery_window_id,
+    referenceCode: row.reference_code,
+    vehicleIdentifier: row.vehicle_identifier,
   };
 }
 

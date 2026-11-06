@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   APP_ENUMS,
   bidTotal,
@@ -15,6 +16,7 @@ import { hasArea, isLiveEngagement, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
+import { DeliveryBookingActions, DeliveryBookingForm } from "./delivery-forms";
 import { OnboardingUploadForm, SubmittalResponseForm, TaxFormForm } from "./forms";
 import { canUpload, isUpload } from "./tabs-common";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
@@ -176,7 +178,17 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
     dockSlotIds: docks.data.map((d) => d.id ?? "").filter((id) => id !== ""),
   });
   const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
-  if (docks.data.length === 0 && deliveries.data.length === 0) {
+  // B11 (G-115): open windows of this project, and the shipments this vendor carries that a booking can name.
+  const windows = await readView(view.ctx.db, "delivery_windows", {
+    eq: { project_id: view.engagement.projectId },
+    order: ["starts_at", "asc"],
+  });
+  if (!windows.ok) return <RegionError />;
+  const shipments = deliveries.data.filter((d) => d.id);
+  const canBook = isLiveEngagement(view.engagement) && windows.data.some((w) => (w.places_left ?? 0) > 0);
+  // A new id with each render: a second click on one form replays its booking, and the next booking is a new one.
+  const eventId = randomUUID();
+  if (docks.data.length === 0 && deliveries.data.length === 0 && windows.data.length === 0) {
     return (
       <TabEmpty
         icon="Truck"
@@ -188,6 +200,29 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
   }
   return (
     <div className="flex flex-col gap-16">
+      {canBook ? (
+        <Section title={t("gateway.engagement.deliveries.book.title")}>
+          <DeliveryBookingForm
+            key={eventId}
+            eventId={eventId}
+            engagementId={view.engagement.id}
+            windows={windows.data
+              .filter((w) => (w.places_left ?? 0) > 0)
+              .map((w) => ({
+                value: w.id ?? "",
+                label: t("gateway.engagement.deliveries.book.windowLine", {
+                  gate: w.zone_name ?? w.zone_code ?? "",
+                  when: w.starts_at ? formatDateTime(locale, w.starts_at) : "",
+                  places: w.places_left ?? 0,
+                }),
+              }))}
+            shipments={shipments.map((d) => ({
+              value: d.id ?? "",
+              label: d.tracking_identifier ?? d.project_name ?? "",
+            }))}
+          />
+        </Section>
+      ) : null}
       {docks.data.length > 0 ? (
         <Section title={t("gateway.engagement.deliveries.docks")}>
           <RowList
@@ -199,6 +234,10 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
                 d.starts_at ? formatDateTime(locale, d.starts_at) : null,
                 d.ends_at ? formatDateTime(locale, d.ends_at) : null,
                 d.tracking_identifier,
+                d.reference_code
+                  ? t("gateway.engagement.deliveries.reference", { code: d.reference_code })
+                  : null,
+                d.vehicle_identifier,
                 (() => {
                   const state = approvalOf.get(d.id ?? "")?.state;
                   return state && state !== "Canceled"
@@ -214,6 +253,13 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
                       label: t(enumLabelKey("shipmentDirection", d.direction)),
                       tone: "neutral" as const,
                     },
+                  }
+                : {}),
+              ...(d.delivery_window_id && d.id
+                ? {
+                    action: (
+                      <DeliveryBookingActions slotId={d.id} plate={d.vehicle_identifier ?? null} />
+                    ),
                   }
                 : {}),
             }))}

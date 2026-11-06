@@ -221,6 +221,19 @@ nodes:
             label: nav.gateway.work.applications
             route: /work/applications
             list: { views: [list, table, board], default: list }
+          # B11 (G-196): where a quote reminder lands. The Owner and Admin of the invited vendor's account read the RFQs
+          # that ask for a quote and send the quote to the named contact; the buyer records it.
+          - id: work.quote-requests
+            kind: page
+            label: nav.gateway.work.quoteRequests
+            route: /work/quote-requests
+            list: { views: [list], default: list }
+            visibility:
+              individual: hidden
+              account-owner: full
+              account-admin: full
+              account-finance: hidden
+              account-member: hidden
           - id: engagement
             kind: record
             label: nav.gateway.work.engagement

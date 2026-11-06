@@ -561,6 +561,23 @@ nodes:
               artist-representative: hidden
               sponsor: hidden
             list: { views: [list, calendar], default: list }
+          # B11 (G-115): the phone gate view, opened from More > Logistics.
+          - id: logistics.gate
+            kind: page
+            label: nav.compass.more.logisticsGate
+            route: /logistics-gate
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list, calendar], default: list }
           - id: show
             kind: page
             label: nav.compass.more.show

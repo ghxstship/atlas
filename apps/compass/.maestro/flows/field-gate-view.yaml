@@ -1,0 +1,21 @@
+appId: pro.ghxstship.compass
+# Find a delivery booking by its reference code at the gate, then mark it Arrived (B11, G-115).
+# Named after its file: config.yaml orders flows by name.
+name: field-gate-view
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-logistics"
+- tapOn:
+    id: "logistics-open-gate"
+- assertVisible:
+    id: "logistics-gate"
+- tapOn:
+    id: "gate-find"
+- inputText: "NOTHING"
+- assertVisible: "No booking matches"
