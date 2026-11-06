@@ -179,6 +179,25 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_shift_change
         test: supabase/tests/1394_notification_kind_emitters.test.sql
+  # "Still coming?" reconfirmations and no-shows (B9, 2981 and 2982, ADR 0148). The ask reaches the worker even in quiet
+  # hours when the shift starts within 12 hours, like a shift assigned or changed.
+  - kind: shift.reconfirm
+    category: schedule
+    bypasses_quiet_hours:
+      starts_within_hours: 12
+    emitted_by:
+      - emitter: supabase/migrations/2981_shift_reconfirmation.sql#private.send_shift_reconfirmations
+        test: supabase/tests/2981_shift_reconfirmation.test.sql
+  - kind: shift.reconfirm_declined
+    category: schedule
+    emitted_by:
+      - emitter: supabase/migrations/2981_shift_reconfirmation.sql#app.respond_shift_reconfirmation
+        test: supabase/tests/2981_shift_reconfirmation.test.sql
+  - kind: shift.no_show
+    category: schedule
+    emitted_by:
+      - emitter: supabase/migrations/2982_shift_no_shows_and_swap_reasons.sql#app.mark_shift_no_show
+        test: supabase/tests/2982_shift_no_shows_and_swap_reasons.test.sql
   - kind: event.invited
     category: schedule
     emitted_by:

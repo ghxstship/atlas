@@ -59,8 +59,9 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473) and the four
     // reported content kinds of ADR 0033 decision 57 (1630), the three crew roster kinds of R4 (2642), and R5's
     // project facts and names lock kinds (2655, 2656), R6a's account.work_details_moved (2664), R7's four
-    // allocation kinds (2698), and A127's offer.sent (2200).
-    expect(registry.kinds).toHaveLength(65);
+    // allocation kinds (2698), A127's offer.sent (2200), and B9's shift.reconfirm, shift.reconfirm_declined and
+    // shift.no_show (2981, 2982).
+    expect(registry.kinds).toHaveLength(68);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -81,6 +82,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     ).toEqual([
       ["shift.assigned", 12],
       ["shift.changed", 12],
+      // B9 (ADR 0148): "Still coming?" about a shift starting within 12 hours, like a shift assigned or changed.
+      ["shift.reconfirm", 12],
       ["incident.reported", null],
       ["occupancy.threshold", null],
       ["weather.alert", null],

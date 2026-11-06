@@ -27,6 +27,13 @@ derived:
     reason: PowerSync project filter, as above
     adr: "0022"
   - objects:
+      - app.shift_no_shows.project_id
+      - app.shift_responses.project_id
+    source: "`app.shifts.project_id`"
+    refresh: Stamped on insert by the database (2980, 2982); neither table has a direct write grant
+    reason: Row-level read and the Compass project filter
+    adr: "0148"
+  - objects:
       - app.credentials.project_id
     source: "`app.credential_categories.project_id`"
     refresh: Stamped by trigger; changing it is refused (0470)
@@ -1109,6 +1116,22 @@ restated:
     parent: app.memberships.valid_to
     kind: own
     note: When project access ends.
+  - column: app.project_positions.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: Agency whose roster fills the seat; the holder entry's engagement is checked equal by `private.guard_project_position`, and it is set before anyone holds it.
+  - column: app.project_positions.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project the seat is on; a member position has no engagement, and `private.guard_project_position` checks an agency one is on the same project.
+  - column: app.project_positions.role_code
+    parent: app.engagement_roster_entries.role_code
+    kind: own
+    note: Role of the seat, planned before anyone holds it; the holder's entry keeps their own.
+  - column: app.project_positions.role_code
+    parent: app.engagements.role_code
+    kind: own
+    note: Role of the seat; an engagement's role is the party's across all its seats.
   - column: app.projects.jurisdiction_id
     parent: app.venues.jurisdiction_id
     kind: own
@@ -1145,6 +1168,10 @@ restated:
     parent: app.shifts.project_id
     kind: own
     note: Project of the recognition; the shift link is optional.
+  - column: app.record_position_assignments.record_id
+    parent: app.record_assignments.record_id
+    kind: own
+    note: Record planned for the seat; the link to the resolved assignment is set only when filling made one and is empty most of the row's life.
   - column: app.record_recurrences.time_zone
     parent: app.records.time_zone
     kind: own
@@ -1287,6 +1314,14 @@ restated:
     kind: finding
     note: The shift is required, so the claim's project is the shift's.
     finding: A108-003
+  - column: app.shift_no_shows.project_id
+    parent: app.shifts.project_id
+    kind: registered
+    note: Stamped from the shift by `app.mark_shift_no_show` (derived entry).
+  - column: app.shift_responses.project_id
+    parent: app.shifts.project_id
+    kind: registered
+    note: Stamped from the shift by `private.track_shift_offer` and `private.send_shift_reconfirmations` (derived entry).
   - column: app.shift_swaps.project_id
     parent: app.shifts.project_id
     kind: registered
@@ -1299,10 +1334,22 @@ restated:
     parent: app.engagement_roster_entries.engagement_id
     kind: own
     note: An engaged worker or an agency slot; NULL once a roster entry holds the shift, which names the entry instead (`shifts_one_worker`, migration 2750, R12).
+  - column: app.shifts.engagement_id
+    parent: app.project_positions.engagement_id
+    kind: own
+    note: Who works the shift; an open shift of a member position has none, and `private.guard_shift_position` keeps it on the position's agency.
+  - column: app.shifts.membership_id
+    parent: app.project_positions.membership_id
+    kind: own
+    note: Who works the shift; a seat's holder takes shifts only through filling and may swap them away.
   - column: app.shifts.project_id
     parent: app.engagements.project_id
     kind: own
     note: Project of the shift; the engagement link is optional.
+  - column: app.shifts.project_id
+    parent: app.project_positions.project_id
+    kind: own
+    note: Project of the shift; the position link is optional, and `private.guard_shift_position` checks it is the same project.
   - column: app.shifts.project_id
     parent: app.records.project_id
     kind: own
@@ -1319,6 +1366,14 @@ restated:
     parent: app.engagements.role_code
     kind: own
     note: Role worked; the engagement link is optional.
+  - column: app.shifts.role_code
+    parent: app.project_positions.role_code
+    kind: own
+    note: Role of the shift; the position link is optional, and a shift may staff a different role than its seat's label.
+  - column: app.shifts.roster_entry_id
+    parent: app.project_positions.roster_entry_id
+    kind: own
+    note: Roster person on the shift; an agency may place any accepted person of the roster on a slot (ADR 0148 decision 3).
   - column: app.shifts.scope_node_id
     parent: app.records.scope_node_id
     kind: own

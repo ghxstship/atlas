@@ -18,7 +18,8 @@ import type { NotificationKindRegistry } from "./model.ts";
  * 2650 adds R5's roster_entry.project_facts_entered and the names lock's engagement.roster_lock_changed. 2660 adds R6a's
  * account.work_details_moved. 2698 adds R7's allocation.decided, allocation.assigned, allocation.issued and
  * allocation.withdrawn. 2201 adds offer.sent (A127, ADR 0106), the offer that waits on the applicant. 2989 carries
- * both lines, built side by side (B9's block, ADR 0022).
+ * both lines, built side by side (B9's block, ADR 0022), and adds B9's shift.reconfirm, shift.reconfirm_declined and
+ * shift.no_show (ADR 0148).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
   "supabase/migrations/2989_notification_kind_seed.sql";

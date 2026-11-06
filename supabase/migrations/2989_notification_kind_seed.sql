@@ -4,8 +4,8 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 10 email templates, 15 categories, 65 kinds (256 kind and channel rows),
--- 8 kinds that bypass quiet hours (ADR 0033 decision 35).
+-- 10 email templates, 15 categories, 68 kinds (268 kind and channel rows),
+-- 9 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
 -- drift test (2989_notification_kind_seed.test.sql); a kind that names its own channels loses the rows of
 -- the others, and the quiet-hours bypass list is replaced as a set.
@@ -88,6 +88,18 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('shift.changed', 'Email'::app.notification_channel, 'schedule', 'notification'),
   ('shift.changed', 'SMS'::app.notification_channel, 'schedule', null),
   ('shift.changed', 'Push'::app.notification_channel, 'schedule', null),
+  ('shift.reconfirm', 'In App'::app.notification_channel, 'schedule', null),
+  ('shift.reconfirm', 'Email'::app.notification_channel, 'schedule', 'notification'),
+  ('shift.reconfirm', 'SMS'::app.notification_channel, 'schedule', null),
+  ('shift.reconfirm', 'Push'::app.notification_channel, 'schedule', null),
+  ('shift.reconfirm_declined', 'In App'::app.notification_channel, 'schedule', null),
+  ('shift.reconfirm_declined', 'Email'::app.notification_channel, 'schedule', 'notification'),
+  ('shift.reconfirm_declined', 'SMS'::app.notification_channel, 'schedule', null),
+  ('shift.reconfirm_declined', 'Push'::app.notification_channel, 'schedule', null),
+  ('shift.no_show', 'In App'::app.notification_channel, 'schedule', null),
+  ('shift.no_show', 'Email'::app.notification_channel, 'schedule', 'notification'),
+  ('shift.no_show', 'SMS'::app.notification_channel, 'schedule', null),
+  ('shift.no_show', 'Push'::app.notification_channel, 'schedule', null),
   ('event.invited', 'In App'::app.notification_channel, 'schedule', null),
   ('event.invited', 'Email'::app.notification_channel, 'schedule', 'notification'),
   ('event.invited', 'SMS'::app.notification_channel, 'schedule', null),
@@ -329,11 +341,12 @@ where (kind = 'report.delivered' and channel not in ('In App', 'Push'))
 -- Kinds that bypass quiet hours (replaced as a set) -------------------------
 
 delete from private.notification_quiet_hours_bypass
-where kind not in ('shift.assigned', 'shift.changed', 'incident.reported', 'occupancy.threshold', 'weather.alert', 'account.security_changed', 'account.recovery_code_used', 'access.break_glass_started');
+where kind not in ('shift.assigned', 'shift.changed', 'shift.reconfirm', 'incident.reported', 'occupancy.threshold', 'weather.alert', 'account.security_changed', 'account.recovery_code_used', 'access.break_glass_started');
 
 insert into private.notification_quiet_hours_bypass (kind, starts_within) values
   ('shift.assigned', interval '12 hours'),
   ('shift.changed', interval '12 hours'),
+  ('shift.reconfirm', interval '12 hours'),
   ('incident.reported', null::interval),
   ('occupancy.threshold', null::interval),
   ('weather.alert', null::interval),

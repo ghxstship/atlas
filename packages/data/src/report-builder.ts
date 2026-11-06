@@ -143,7 +143,141 @@ export const REPORT_SOURCES: readonly ReportSource[] = [
       { key: "created_at", type: "date" },
     ],
   },
+  // B9 (2987): the crew report sources, owner-rights views with their own row filters.
+  {
+    code: "crew_hours",
+    relation: "crew_shift_hours",
+    orgColumn: "org_id",
+    fields: [
+      { key: "shift_id", type: "text" },
+      { key: "role_code", type: "text" },
+      { key: "worker_kind", type: "text" },
+      { key: "worker_name", type: "text" },
+      { key: "starts_at", type: "date" },
+      { key: "scheduled_hours", type: "number" },
+      { key: "actual_hours", type: "number" },
+      { key: "variance_hours", type: "number" },
+      { key: "no_show", type: "text" },
+    ],
+  },
+  {
+    code: "crew_responses",
+    relation: "crew_responses",
+    orgColumn: "org_id",
+    fields: [
+      { key: "kind", type: "text" },
+      { key: "answer", type: "text" },
+      { key: "asked_at", type: "date" },
+      { key: "answered_at", type: "date" },
+      { key: "person_name", type: "text" },
+      { key: "role_code", type: "text" },
+    ],
+  },
+  {
+    code: "crew_removals",
+    relation: "crew_removals",
+    orgColumn: "org_id",
+    fields: [
+      { key: "removed_at", type: "date" },
+      { key: "from_state", type: "text" },
+      { key: "person_name", type: "text" },
+      { key: "role_code", type: "text" },
+      { key: "engagement_party", type: "text" },
+      { key: "reason", type: "text" },
+      { key: "removed_by_name", type: "text" },
+    ],
+  },
+  {
+    code: "crew_ratings",
+    relation: "crew_ratings",
+    orgColumn: "org_id",
+    fields: [
+      { key: "party_name", type: "text" },
+      { key: "role_type", type: "text" },
+      { key: "score", type: "number" },
+      { key: "submitted_at", type: "date" },
+    ],
+  },
 ];
+
+/** A code-defined report every org can open (B9, ADR 0148 decision 5); Save as my report makes the editable copy. */
+export interface StandardReport {
+  /** Stable code, as the builder's ?standard= reads it; its name is the catalog key `builder.standard.<code>`. */
+  readonly code: string;
+  readonly definition: ReportDefinition;
+}
+
+function standard(
+  code: string,
+  name: string,
+  d: Pick<ReportDefinition, "sourceCode" | "chart" | "groupBy" | "fields" | "filters">,
+): StandardReport {
+  return {
+    code,
+    definition: { id: null, name, customObjectTypeId: null, shared: false, mine: true, ...d },
+  };
+}
+
+/** The five standard crew reports over the crew sources (G-131). Nothing is seeded per org. */
+export const STANDARD_REPORTS: readonly StandardReport[] = [
+  standard("crew-utilization", "Crew utilization", {
+    sourceCode: "crew_hours",
+    chart: "Bar",
+    groupBy: "worker_name",
+    fields: [
+      { field: "shift_id", aggregate: "Count" },
+      { field: "scheduled_hours", aggregate: "Sum" },
+      { field: "actual_hours", aggregate: "Sum" },
+    ],
+    filters: [],
+  }),
+  standard("crew-invitation-responses", "Invitation responses", {
+    sourceCode: "crew_responses",
+    chart: "Pie",
+    groupBy: "answer",
+    fields: [{ field: "kind", aggregate: "Count" }],
+    filters: [{ field: "kind", operator: "eq", value: "Offer" }],
+  }),
+  standard("crew-removals", "Crew removals", {
+    sourceCode: "crew_removals",
+    chart: "Table",
+    groupBy: null,
+    fields: [
+      { field: "removed_at", aggregate: "None" },
+      { field: "person_name", aggregate: "None" },
+      { field: "role_code", aggregate: "None" },
+      { field: "reason", aggregate: "None" },
+    ],
+    // An agency withdrawing a Draft is not a removal.
+    filters: [{ field: "from_state", operator: "eq", value: "Accepted" }],
+  }),
+  standard("crew-ratings", "Crew ratings", {
+    sourceCode: "crew_ratings",
+    chart: "Bar",
+    groupBy: "party_name",
+    fields: [
+      { field: "score", aggregate: "Average" },
+      { field: "submitted_at", aggregate: "Count" },
+    ],
+    filters: [],
+  }),
+  standard("crew-scheduled-vs-actual", "Scheduled against actual hours", {
+    sourceCode: "crew_hours",
+    chart: "Bar",
+    groupBy: "role_code",
+    fields: [
+      { field: "scheduled_hours", aggregate: "Sum" },
+      { field: "actual_hours", aggregate: "Sum" },
+      { field: "variance_hours", aggregate: "Sum" },
+    ],
+    filters: [],
+  }),
+];
+
+/** A standard report by code, or undefined. */
+export function standardReportOf(code: string): StandardReport | undefined {
+  return STANDARD_REPORTS.find((r) => r.code === code);
+}
 
 export function sourceOf(code: string): ReportSource | undefined {
   return REPORT_SOURCES.find((s) => s.code === code);

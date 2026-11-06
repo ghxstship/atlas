@@ -1,0 +1,97 @@
+# Settings registry: B9 (crew scheduling policy, positions and coverage; RRR-233). ADR 0148, parity gaps G-119,
+# G-121 and G-123. Field reference: see a30.yaml.
+#
+# "Still coming?" reconfirmation (G-123): when on, the worker of an Accepted shift is asked once, a set number of
+# hours before it starts, whether they are still coming; a decline can reopen the shift to claiming. Swap reasons
+# (G-119): a swap request may be required to say why. Rest and maximum hours (G-121): org scheduling warnings shown
+# before a person is assigned, never refusals and never pay or state overtime rules (ADR 0033 decision 54 stays
+# deferred). B4's scheduling.workload_day_hours is the workload heatmap's threshold and is a separate setting:
+# scheduling.max_daily_hours counts scheduled shift minutes for an assignment warning and is off at 0.
+contributor: b9
+settings:
+  # Scheduling --------------------------------------------------------------------------------------------------
+  - key: scheduling.reconfirm_shifts
+    type: boolean
+    default: false
+    scopes: [organization, workspace, project]
+    capability: org.scheduling.write
+    label: settings.fields.reconfirmShifts.label
+    help: settings.fields.reconfirmShifts.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2981_shift_reconfirmation.sql#private.send_shift_reconfirmations
+        test: supabase/tests/2981_shift_reconfirmation.test.sql
+  - key: scheduling.reconfirm_lead_hours
+    type: integer
+    min: 2
+    max: 72
+    default: 24
+    scopes: [organization, workspace, project]
+    capability: org.scheduling.write
+    label: settings.fields.reconfirmLeadHours.label
+    help: settings.fields.reconfirmLeadHours.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2981_shift_reconfirmation.sql#private.send_shift_reconfirmations
+        test: supabase/tests/2981_shift_reconfirmation.test.sql
+  - key: scheduling.reconfirm_reopen
+    type: boolean
+    default: true
+    scopes: [organization, workspace, project]
+    capability: org.scheduling.write
+    label: settings.fields.reconfirmReopen.label
+    help: settings.fields.reconfirmReopen.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2981_shift_reconfirmation.sql#app.respond_shift_reconfirmation
+        test: supabase/tests/2981_shift_reconfirmation.test.sql
+  - key: scheduling.swap_reason_required
+    type: boolean
+    default: false
+    scopes: [organization, workspace, project]
+    capability: org.scheduling.write
+    label: settings.fields.swapReasonRequired.label
+    help: settings.fields.swapReasonRequired.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2982_shift_no_shows_and_swap_reasons.sql#private.guard_shift_swap
+        test: supabase/tests/2982_shift_no_shows_and_swap_reasons.test.sql
+  - key: scheduling.min_rest_hours
+    type: integer
+    min: 0
+    max: 24
+    default: 0
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.minRestHours.label
+    help: settings.fields.minRestHours.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2983_scheduling_policy.sql#private.shift_policy_warnings
+        test: supabase/tests/2983_scheduling_policy.test.sql
+  - key: scheduling.max_daily_hours
+    type: integer
+    min: 0
+    max: 24
+    default: 0
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.maxDailyHours.label
+    help: settings.fields.maxDailyHours.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2983_scheduling_policy.sql#private.shift_policy_warnings
+        test: supabase/tests/2983_scheduling_policy.test.sql
+  - key: scheduling.max_weekly_hours
+    type: integer
+    min: 0
+    max: 168
+    default: 0
+    scopes: [organization]
+    capability: org.scheduling.write
+    label: settings.fields.maxWeeklyHours.label
+    help: settings.fields.maxWeeklyHours.help
+    pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/2983_scheduling_policy.sql#private.shift_policy_warnings
+        test: supabase/tests/2983_scheduling_policy.test.sql
