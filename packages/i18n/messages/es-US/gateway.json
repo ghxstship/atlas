@@ -378,7 +378,8 @@
     "compliance": {
       "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
       "insurance": "Certificados de seguro",
-      "noInsurance": "No hay certificado de seguro registrado. Súbelo en Incorporación.",
+      "noInsurance": "No hay certificado de seguro registrado. Cuando la organización lo pida, súbelo en Pasos de cumplimiento en esta página.",
+      "uploadWaiting": "{names}: recibido y en espera de revisión. La organización registra tu certificado después de revisar el archivo.",
       "current": "Vigente",
       "expired": "Vencido",
       "prequalification": "Precalificación",
@@ -2110,7 +2111,7 @@
       "profileUnavailable": "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
       "remove": "Quitar",
       "inviteNote": "La persona invitada inicia sesión en Gateway con la dirección que invitaste y acepta en Inicio. Hasta entonces no figura en ninguna lista del equipo ni tiene contrataciones asignadas, y no se comparte nada sobre ella.",
-      "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden durante la incorporación; súbelos ahí.",
+      "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden en una contratación; abre la contratación y súbelos en su pestaña Cumplimiento.",
       "toEngagements": "Ver contrataciones",
       "noRepresentation": "Tu agencia aún no representa a ningún artista.",
       "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway.",

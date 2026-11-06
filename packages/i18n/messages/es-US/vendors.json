@@ -168,7 +168,17 @@
     "delete": "Quitar certificado",
     "deleteTitle": "¿Quitar este certificado?",
     "deleteBody": "Sale de la lista y del cumplimiento del proveedor; el registro de auditoría lo conserva.",
-    "back": "Volver a los certificados de seguro"
+    "back": "Volver a los certificados de seguro",
+    "uploads": {
+      "heading": "Archivos de proveedores en espera de revisión",
+      "help": "Archivos que los proveedores subieron para elementos de incorporación. Abre uno y, si es un certificado de seguro, regístralo. Registrarlo no verifica el elemento de incorporación: revísalo en la contratación.",
+      "meta": "{item}, subido {date}",
+      "open": "Abrir archivo",
+      "record": "Registrar certificado",
+      "review": "Revisar en la contratación",
+      "fromUpload": "De {vendor}: {item}.",
+      "uploadedFile": "Subido por el proveedor"
+    }
   },
   "scorecards": {
     "title": "Evaluaciones",

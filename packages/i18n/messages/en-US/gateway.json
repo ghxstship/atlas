@@ -378,7 +378,8 @@
     "compliance": {
       "empty": "No compliance items yet. Insurance and prequalification appear here.",
       "insurance": "Insurance certificates",
-      "noInsurance": "No insurance certificate on file. Upload one under Onboarding.",
+      "noInsurance": "No insurance certificate on file. When the organization asks for one, upload it under Compliance steps on this page.",
+      "uploadWaiting": "{names}: received and waiting for review. The organization records your certificate after it has checked the file.",
       "current": "Current",
       "expired": "Expired",
       "prequalification": "Prequalification",
@@ -2110,7 +2111,7 @@
       "profileUnavailable": "The company profile is managed by the organization's Atlas administrators. Ask an Account Owner to set it up.",
       "remove": "Remove",
       "inviteNote": "An invited person signs in to Gateway with the address you invited and accepts on Home. Until then they are not rostered or assigned, and nothing about them is shared.",
-      "noInsurance": "No insurance certificates on file. Organizations request them during onboarding; upload them there.",
+      "noInsurance": "No insurance certificates on file. Organizations ask for them on an engagement; open the engagement and upload them under its Compliance tab.",
       "toEngagements": "See engagements",
       "noRepresentation": "Your agency represents no artists yet.",
       "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway.",

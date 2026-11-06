@@ -168,7 +168,17 @@
     "delete": "Remove certificate",
     "deleteTitle": "Remove this certificate?",
     "deleteBody": "It leaves the list and the vendor's compliance; the audit log keeps the record.",
-    "back": "Back to insurance certificates"
+    "back": "Back to insurance certificates",
+    "uploads": {
+      "heading": "Vendor uploads waiting for review",
+      "help": "Files vendors uploaded for onboarding items. Open one, and if it is an insurance certificate, record it. Recording does not verify the onboarding item: review that on the engagement.",
+      "meta": "{item}, uploaded {date}",
+      "open": "Open file",
+      "record": "Record certificate",
+      "review": "Review on engagement",
+      "fromUpload": "From {vendor}: {item}.",
+      "uploadedFile": "Uploaded by the vendor"
+    }
   },
   "scorecards": {
     "title": "Scorecards",

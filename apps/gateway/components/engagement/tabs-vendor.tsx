@@ -360,6 +360,8 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
     ? compliance.filter((i) => canUpload(i, view.today))
     : [];
   const onFile = compliance.filter((i) => !toUpload.includes(i));
+  // A file uploaded here stays an onboarding item until the org records its certificate: say so, not "none on file".
+  const waiting = compliance.filter((i) => onboardingStanding(i, view.today) === "review");
   // Vendors have no Onboarding tab, so an open tax form step (journey 43's W-9) is filed here.
   const taxStep = items.data.find((i) => i.kind === "Tax Form" && !i.satisfied);
   if (
@@ -394,7 +396,11 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
       <Section title={t("gateway.engagement.compliance.insurance")}>
         {insurance.data.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">
-            {t("gateway.engagement.compliance.noInsurance")}
+            {waiting.length > 0
+              ? t("gateway.engagement.compliance.uploadWaiting", {
+                  names: waiting.map((i) => i.name).join(", "),
+                })
+              : t("gateway.engagement.compliance.noInsurance")}
           </p>
         ) : (
           <RowList
