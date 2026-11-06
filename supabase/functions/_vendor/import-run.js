@@ -726,11 +726,10 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
         (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null),
         "invalid_line_number",
       );
-      if (!text("quantity")) values["quantity"] = 1;
       await set("quantity", (v) => nonNegative(v), "invalid_quantity");
       const price = text("unit_price").trim();
-      if (price === "" || price.toLowerCase() === "unpriced") values["unit_price_minor"] = null;
-      else {
+      if (price.toLowerCase() === "unpriced") values["unit_price_minor"] = null;
+      else if (price !== "") {
         const minor = minorUnits(price, exponent);
         if (minor === null)
           issues.push({
@@ -740,8 +739,7 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
         else values["unit_price_minor"] = minor;
       }
       const type = text("line_type").trim();
-      if (type === "") values["line_type"] = "Cost";
-      else {
+      if (type !== "") {
         const known = BUDGET_LINE_TYPES.find((k) => k.toLowerCase() === type.toLowerCase());
         if (known) values["line_type"] = known;
         else
@@ -1195,6 +1193,13 @@ async function commit(store, batchId, options) {
       const target = valid.mergeInto?.id ?? valid.matchedId;
       if (target) {
         const changes = updateChanges(job.targetCode, checked.values);
+        if (job.targetCode === "budget_lines" && changes["xyz_basis"] === "Category") {
+          const current = await store.lookups.budgetLineTag(target);
+          if (current?.xyzBasis === "Declared" && current.urid === changes["urid"]) {
+            delete changes["xyz"];
+            delete changes["xyz_basis"];
+          }
+        }
         if (job.targetCode === "cues" && (await store.lookups.cueCalled(target)))
           throw new ImportWriteError("This cue was already called");
         const before = await store.lookups.update(job.targetCode, target, changes);
@@ -1267,6 +1272,9 @@ async function createValues(store, job, values) {
         ? values["line_number"]
         : (budget?.maxLineNumber ?? 0) + 1;
     return {
+      quantity: 1,
+      unit_price_minor: null,
+      line_type: "Cost",
       ...values,
       budget_id: job.budgetId,
       line_number,
@@ -1597,6 +1605,17 @@ function supabaseImportStore(client) {
           p_keys: keys,
         });
         return typeof id === "string" ? id : null;
+      },
+      async budgetLineTag(id) {
+        const line = await one(
+          app.from("budget_lines").select("urid, xyz_basis").eq("id", id),
+          "budget_lines",
+        );
+        if (!line) return null;
+        return {
+          urid: text(line, "urid"),
+          xyzBasis: typeof line["xyz_basis"] === "string" ? line["xyz_basis"] : null,
+        };
       },
       async budgetDestination(budgetId) {
         const budget = await one(
