@@ -51504,6 +51504,7 @@ export type Database = {
       };
       subject_approvals: {
         Row: {
+          advance_allocation_id: string | null;
           approval_rule_id: string;
           cancel_reason: string | null;
           canceled_at: string | null;
@@ -51522,6 +51523,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          advance_allocation_id?: string | null;
           approval_rule_id: string;
           cancel_reason?: string | null;
           canceled_at?: string | null;
@@ -51539,6 +51541,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          advance_allocation_id?: string | null;
           approval_rule_id?: string;
           cancel_reason?: string | null;
           canceled_at?: string | null;
@@ -51556,6 +51559,20 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "subject_approvals_advance_allocation_id_fkey";
+            columns: ["advance_allocation_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_allocation_status";
+            referencedColumns: ["allocation_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_advance_allocation_id_fkey";
+            columns: ["advance_allocation_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_allocations";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "subject_approvals_approval_rule_id_fkey";
             columns: ["approval_rule_id"];
@@ -64169,6 +64186,7 @@ export type Database = {
       };
       subject_approval_status: {
         Row: {
+          advance_allocation_id: string | null;
           approval_rule_id: string | null;
           approval_state: Database["app"]["Enums"]["approval_state"] | null;
           cancel_reason: string | null;
@@ -64192,6 +64210,20 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [
+          {
+            foreignKeyName: "subject_approvals_advance_allocation_id_fkey";
+            columns: ["advance_allocation_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_allocation_status";
+            referencedColumns: ["allocation_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_advance_allocation_id_fkey";
+            columns: ["advance_allocation_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_allocations";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "subject_approvals_approval_rule_id_fkey";
             columns: ["approval_rule_id"];
@@ -64945,11 +64977,11 @@ export type Database = {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
-      bulk_update_purchase_orders: {
+      bulk_update_punch_items: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
-      bulk_update_punch_items: {
+      bulk_update_purchase_orders: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
