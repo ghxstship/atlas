@@ -152,6 +152,9 @@ These are numbers on batch-c and train 8 as of 2026-11-06; nothing here acts on 
 - `app.apply_template` and `app.create_template_from_project`: P8's 2851 is 6121 on train 8. `private.project_site_window`:
   2683 is 4683. `private.emit_project_update` (0401), `app.pass_gate` (0301) and `app.transition_submittal` (0492) have
   not moved. 5940 redefines `app.person_names` with the same signature.
+- 3037 restores two definitions the stacked branches overwrote: `private.party_org_ids` (2641 dropped A127's open offers
+  from 2200) and `api_external.engagement_up_next` (2790 dropped R8's roster readers from 2701). At renumbering each must
+  be the union with the latest definition on the train.
 - The notification seed pointer is 6059 on batch-c and 6129 on train 8: regenerate with `generate:notifications`.
 - `create-project.tsx`: batch-c split out `create-project-fields.tsx`, and train 7 moved the dialog behind a static button
   whose first click loads it. The wizard lands behind that button and replaces DrawerFields behind it;

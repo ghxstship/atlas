@@ -13,7 +13,86 @@
 --     clock of each entry's arrival zone, else the target project's; with either date unknown they are left out
 --     (window_dropped). A preview runs inside a BEGIN ... EXCEPTION block that the sentinel XB001 rolls back, so it
 --     writes nothing and queues no email.
--- Consent (account_roster_sharing) follows R4 unchanged. No table or view is created.
+--   * Two definitions the stacked branches overwrote are restored as their union, because B14 is where they first meet
+--     (ADR 0153 Consequences): private.party_org_ids keeps R4's roster entries (2641) and A127's open offers (2200), and
+--     api_external.engagement_up_next keeps R8's roster readers (2701) and P2's next_call_tbc (2790).
+-- Consent (account_roster_sharing) follows R4 unchanged. No new table or view is created.
+
+-- What the stacked branches overwrote ------------------------------------------------------------------------------------
+
+create or replace function private.party_org_ids(p_person_id uuid)
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select e.org_id from app.engagements e
+  where e.person_id = p_person_id and e.deleted_at is null
+  union
+  select c.org_id from app.counterparties c
+  join app.account_memberships m on m.org_id = c.organization_id and m.person_id = p_person_id and m.deleted_at is null
+    and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now())
+  where c.deleted_at is null
+  union
+  select r.org_id from app.engagement_roster_entries r
+  where r.person_id = p_person_id and r.deleted_at is null and r.entry_state <> 'Withdrawn'
+  union
+  select a.org_id from app.applications a
+  join app.offers o on o.application_id = a.id and o.deleted_at is null and o.offer_state in ('Sent', 'Countered')
+  where a.applicant_person_id = p_person_id and a.deleted_at is null;
+$$;
+
+comment on function private.party_org_ids(uuid) is 'Orgs a person works with as an external party: through an engagement of their own, an active membership in an external account the org holds as a counterparty, a live roster entry on one of the org''s engagements (R4), or an application of their own with an offer still open (A127), so the offer''s notices reach them.';
+revoke all on function private.party_org_ids(uuid) from public, anon, authenticated;
+
+create or replace view api_external.engagement_up_next as
+select e.id as engagement_id, e.project_id,
+  v.name as venue_name, v.street_address as venue_street_address, v.locality as venue_locality, v.postal_code as venue_postal_code,
+  case when exists (
+    select 1 from app.memberships m
+    where m.person_id = e.created_by and m.org_id = e.org_id and m.deleted_at is null
+      and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now()))
+  then cp.full_name end as contact_name,
+  n.starts_at as next_call_at, n.time_zone as next_call_time_zone, n.call_kind as next_call_kind,
+  n.start_tbc as next_call_tbc
+from app.engagements e
+join app.projects p on p.id = e.project_id
+left join app.venues v on v.id = p.venue_id and v.deleted_at is null
+left join app.people cp on cp.id = e.created_by
+cross join lateral (select array(select s from private.engagement_scope(e.id) s) as areas) a
+left join lateral (
+  select x.starts_at, x.time_zone, x.call_kind, x.start_tbc
+  from (
+    select s.starts_at, s.time_zone, 'Shift'::text as call_kind, false as start_tbc
+    from app.shifts s
+    where s.engagement_id = e.id and s.deleted_at is null and s.shift_state in ('Published', 'Accepted') and s.starts_at > now()
+    union all
+    select d.starts_at, p.time_zone, 'Dock Slot'::text, false
+    from app.dock_slots d
+    where d.engagement_id = e.id and d.deleted_at is null and d.checked_in_at is null and d.starts_at > now()
+    union all
+    select c.planned_at, p.time_zone, 'Set'::text, c.start_tbc
+    from app.engagement_cues ec
+    join app.cues c on c.id = ec.cue_id and c.deleted_at is null
+    join app.run_of_show r on r.id = c.run_of_show_id and r.deleted_at is null
+    where ec.engagement_id = e.id and ec.deleted_at is null and c.planned_at > now() and c.called_at is null
+  ) x
+  where 'operational' = any (a.areas)
+  order by x.starts_at
+  limit 1
+) n on true
+where e.deleted_at is null
+  and (e.id in (select private.my_engagement_ids('engagement'))
+    or e.id in (select r.engagement_id from app.engagement_roster_entries r where r.id in (select private.my_roster_entry_ids('roster'))));
+
+comment on view api_external.engagement_up_next is 'What Gateway Home''s Up Next card shows for the caller''s engagements (Section 4.4.4): the project''s venue, the org member who set up the engagement while they still belong to the org, and, while the operational area is open, the next call: a Published or Accepted shift, a dock slot not yet checked in or a set cue not yet called. A person on a roster reads the venue and the contact of their entries'' engagements; the party''s calls stay the party''s (R8).';
+comment on column api_external.engagement_up_next.next_call_tbc is 'True when the next call is a set whose time is an estimate to be confirmed: show TBC, not the time. False for shifts and dock slots, and NULL when there is no next call.';
+
+revoke all on api_external.engagement_up_next from public, anon;
+grant select on api_external.engagement_up_next to authenticated, service_role;
+
+-- Reusing a roster --------------------------------------------------------------------------------------------------------
 
 create or replace function app.roster_copy_sources(p_engagement_id uuid)
 returns table (
