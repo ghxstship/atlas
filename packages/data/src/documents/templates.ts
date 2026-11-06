@@ -939,7 +939,7 @@ export const TEMPLATES: TemplateRegistry = {
                 field(t("quote.client"), quote.clientName ?? t("common.none")),
                 field(t("common.project"), projectLabel(project)),
                 field(t("quote.issued"), f.dateTime(quote.issuedAt)),
-                field(t("quote.validUntil"), f.date(quote.validUntil)),
+                field(t("quote.validUntil"), f.day(quote.validUntil)),
                 field(t("common.currency"), quote.currency),
                 ...(draft ? [field(t("common.state"), t("quote.draftNotSent"))] : []),
               ],

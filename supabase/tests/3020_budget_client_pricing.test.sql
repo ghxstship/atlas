@@ -99,5 +99,12 @@ select ok(not exists (select 1 from pg_roles where rolname = 'xos_backup')
       and not has_table_privilege('xos_backup', 'app.budget_price_totals', 'select')),
   'the backup login has no SELECT on either view (1650)');
 
+-- The table packages/data/test/b13-quotes-budget.test.ts checks clientUnitPrice against, so TypeScript and SQL agree.
+select pg_temp.as_platform();
+select results_eq($$select private.client_unit_price_minor(u, b) from (values
+    (10000::bigint, 2500), (10000, 0), (333, 1000), (5, 5000), (1, 2500), (3, 5000), (null, 2500), (10000, null)) as c(u, b)$$,
+  $$values (12500::bigint), (10000), (366), (8), (1), (5), (null), (null)$$,
+  'client prices round half away from zero, and NULL stays NULL');
+
 select * from finish();
 rollback;

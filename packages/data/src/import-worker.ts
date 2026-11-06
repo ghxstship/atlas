@@ -623,13 +623,15 @@ const BUDGET_LINE_TYPES = ["Cost", "Labor", "Fee", "Contingency"] as const;
 
 /** A number of at least zero, or null. */
 function nonNegative(text: string): number | null {
-  const n = Number(text.trim().replace(/,/g, ""));
+  const cleaned = text.trim().replace(/,/g, "");
+  if (cleaned === "") return null;
+  const n = Number(cleaned);
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
 /** Major units of a currency as integer minor units, half away from zero; null when it is no amount. */
 function minorUnits(text: string, exponent: number): number | null {
-  const n = nonNegative(text.replace(/^[^\d.-]+/, ""));
+  const n = nonNegative(text.replace(/^\s*[$€£¥]/u, ""));
   return n === null ? null : Math.round(n * 10 ** exponent);
 }
 
