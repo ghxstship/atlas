@@ -71,8 +71,17 @@ export function typedLine(
 ): readonly BudgetLine[] {
   return current.map((l) => {
     if (l.id !== id) return l;
-    const next = { ...l, ...input };
-    return { ...next, extendedMinor: extendedMinor(input.quantity, input.unitPriceMinor) };
+    // A field the input leaves out keeps the value the line has; null clears it.
+    return {
+      ...l,
+      ...input,
+      markupBp: input.markupBp === undefined ? l.markupBp : input.markupBp,
+      clientUnitPriceMinor:
+        input.clientUnitPriceMinor === undefined ? l.clientUnitPriceMinor : input.clientUnitPriceMinor,
+      excludedFromQuote: input.excludedFromQuote ?? l.excludedFromQuote,
+      etcMinor: input.etcMinor === undefined ? l.etcMinor : input.etcMinor,
+      extendedMinor: extendedMinor(input.quantity, input.unitPriceMinor),
+    };
   });
 }
 

@@ -35,6 +35,7 @@ var documents_default$1 = {
     "agreement-certificate": "Signature certificate",
     "deletion-certificate": "Deletion certificate",
     "radio-handout": "Radio hand-out",
+    quote: "Quote",
   },
   facts: {
     recordKey: "Record key",
@@ -519,6 +520,28 @@ var documents_default$1 = {
       Withdrawn: "Withdrawn",
     },
   },
+  quote: {
+    title: "Quote {key}",
+    key: "Quote",
+    version: "Version",
+    client: "Client",
+    issued: "Date issued",
+    validUntil: "Valid until",
+    draftNotSent: "Draft: not sent",
+    linesCaption: "Lines of quote {key}",
+    unit: "Unit",
+    terms: "Notes and terms",
+    taxNote: "Prices exclude tax, which is added on the invoice where it applies.",
+    fingerprint: "Content fingerprint (SHA-256)",
+    signature: "Signature",
+    nameAsSigned: "Name as signed",
+    signed: "Signed",
+    howSigned: "How signed",
+    signedByLink: "Signing link with access code, sent to {email}",
+    signedIn: "Signed in to Gateway",
+    signatureStatement:
+      "The signer typed their name to accept the exact quote above. XOS fixed the SHA-256 of its content when it was sent; any change to the content changes the fingerprint.",
+  },
 };
 var documents_default = {
   actions: {
@@ -540,6 +563,7 @@ var documents_default = {
     "agreement-certificate": "Certificado de firma",
     "deletion-certificate": "Certificado de eliminación",
     "radio-handout": "Hoja de radios",
+    quote: "Cotización",
   },
   facts: {
     recordKey: "Clave del registro",
@@ -1026,6 +1050,28 @@ var documents_default = {
       Declined: "Rechazada",
       Withdrawn: "Retirada",
     },
+  },
+  quote: {
+    title: "Cotización {key}",
+    key: "Cotización",
+    version: "Versión",
+    client: "Cliente",
+    issued: "Fecha de emisión",
+    validUntil: "Válida hasta",
+    draftNotSent: "Borrador: sin enviar",
+    linesCaption: "Líneas de la cotización {key}",
+    unit: "Unidad",
+    terms: "Notas y términos",
+    taxNote: "Los precios no incluyen impuestos, que se agregan en la factura cuando corresponda.",
+    fingerprint: "Huella del contenido (SHA-256)",
+    signature: "Firma",
+    nameAsSigned: "Nombre como se firmó",
+    signed: "Firmada",
+    howSigned: "Cómo se firmó",
+    signedByLink: "Enlace de firma con código de acceso, enviado a {email}",
+    signedIn: "Con sesión iniciada en Gateway",
+    signatureStatement:
+      "La persona firmante escribió su nombre para aceptar exactamente la cotización anterior. XOS fijó el SHA-256 de su contenido al enviarla; cualquier cambio en el contenido cambia la huella.",
   },
 };
 //#endregion

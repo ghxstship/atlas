@@ -187,6 +187,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "quote.accepted",
+    category: "finance",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.quote.accepted.subject",
+      body: "kinds.quote.accepted.body",
+    },
+  },
+  {
     kind: "incident.reported",
     category: "safety",
     emailTemplate: "notification",
@@ -864,7 +876,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/2698_notification_kind_seed.sql"
+"supabase/migrations/3029_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

@@ -363,6 +363,115 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Client pricing sits beside cost. Set a " },
+          { t: "strong", v: "Default markup %" },
+          { t: "text", v: " on the budget or a " },
+          { t: "strong", v: "Markup %" },
+          { t: "text", v: " on a line, or type a " },
+          { t: "strong", v: "Client unit price" },
+          {
+            t: "text",
+            v: " to override both; clearing it returns to the markup. A line with no cost price and no override has no client price and shows ",
+          },
+          { t: "strong", v: "Unpriced" },
+          { t: "text", v: ". " },
+          { t: "strong", v: "Quote lines" },
+          {
+            t: "text",
+            v: " chooses which lines go on quotes; the rest stay internal. Switch the grid between ",
+          },
+          { t: "strong", v: "Cost" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Client pricing" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "Forecast" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Versions" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Versions" },
+          { t: "text", v: " freezes the budget's plan with " },
+          { t: "strong", v: "Take snapshot" },
+          { t: "text", v: ", and " },
+          { t: "strong", v: "Compare" },
+          {
+            t: "text",
+            v: " shows what was added, removed and changed against the live budget or another version, with deltas that stay blank when either side is unpriced. A version does not replace the gate 3 baseline. Quotes keep their own captures, which cannot be deleted.",
+          },
+        ],
+      },
+      { t: "h2", v: "Forecast" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The " },
+          { t: "strong", v: "Forecast" },
+          { t: "text", v: " columns show " },
+          { t: "strong", v: "Remaining commitment" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Estimate to complete" },
+          { t: "text", v: " (type a figure, or leave it blank to derive it), " },
+          { t: "strong", v: "Estimated final cost" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "Variance at completion" },
+          {
+            t: "text",
+            v: ". They are derived from Actual, Committed and approved change orders, so they move with each expense, approval and purchase order. If you can't read the project's purchase orders, expenses or change orders, the figures stay blank rather than partial.",
+          },
+        ],
+      },
+      { t: "h2", v: "Actual and Transactions" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Actual is approved and paid expenses plus approved crew hours. A shift names the Labor line its time posts to, and approving a timesheet posts that time at the rate in force on each work date. Time with no rate posts unpriced: it shows as ",
+          },
+          { t: "strong", v: "n unpriced hours" },
+          { t: "text", v: " and is never counted as zero. Select a line and choose " },
+          { t: "strong", v: "Transactions" },
+          {
+            t: "text",
+            v: " to see what stands behind Actual and Committed. Vendor invoices on the line are listed apart: they post to the ledger and count in the final cost report, not in Actual.",
+          },
+        ],
+      },
+      { t: "h2", v: "Quotes" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Quotes" },
+          {
+            t: "text",
+            v: " builds a client quote from a budget. A Draft reads live prices, with cost and margin shown only to you under ",
+          },
+          { t: "strong", v: "Internal: never on the quote" },
+          { t: "text", v: ". " },
+          { t: "strong", v: "Send quote" },
+          {
+            t: "text",
+            v: " freezes the version and its content fingerprint. Enter an email to get a signing link and access code, shown once, or leave it blank and the client signs in Gateway's Documents tab. Sending a new version supersedes the last one. When the client signs, the quote is accepted and locked; record later changes as a change order. Atlas never holds funds, so a quote has no payment state.",
+          },
+        ],
+      },
+      { t: "h2", v: "Import lines" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Import lines" },
+          {
+            t: "text",
+            v: " brings budget lines in from .xlsx or .csv through the import wizard, with a reason for every cell it can't read. A row with a line number updates that line, and other rows are added in sheet order. A blank price or the word Unpriced stays unpriced. Undo removes the lines the batch created, unless something has come to depend on them since.",
+          },
+        ],
+      },
       { t: "h2", v: "Expenses and change orders" },
       {
         t: "p",
@@ -2682,6 +2791,115 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: " y nunca cuenta como cero; los totales indican cuántas líneas siguen sin precio. Un proyecto en otra moneda muestra los totales convertidos con la fecha del tipo de cambio.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Los precios al cliente están junto al costo. Define un " },
+          { t: "strong", v: "Recargo predeterminado %" },
+          { t: "text", v: " en el presupuesto o un " },
+          { t: "strong", v: "Recargo %" },
+          { t: "text", v: " en una línea, o escribe un " },
+          { t: "strong", v: "Precio unitario al cliente" },
+          {
+            t: "text",
+            v: " para reemplazar ambos; al borrarlo vuelve al recargo. Una línea sin precio de costo y sin precio escrito no tiene precio al cliente y muestra ",
+          },
+          { t: "strong", v: "Sin precio" },
+          { t: "text", v: ". " },
+          { t: "strong", v: "Líneas de la cotización" },
+          {
+            t: "text",
+            v: " elige qué líneas van en las cotizaciones; las demás son internas. Cambia la cuadrícula entre ",
+          },
+          { t: "strong", v: "Costo" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Precios al cliente" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Pronóstico" },
+          { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Versiones" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Versiones" },
+          { t: "text", v: " congela el plan del presupuesto con " },
+          { t: "strong", v: "Tomar una instantánea" },
+          { t: "text", v: ", y " },
+          { t: "strong", v: "Comparar" },
+          {
+            t: "text",
+            v: " muestra lo agregado, eliminado y cambiado frente al presupuesto actual u otra versión, con diferencias que quedan en blanco cuando alguno de los lados no tiene precio. Una versión no reemplaza la línea base de la compuerta 3. Las cotizaciones guardan sus propias capturas, que no se pueden eliminar.",
+          },
+        ],
+      },
+      { t: "h2", v: "Pronóstico" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las columnas de " },
+          { t: "strong", v: "Pronóstico" },
+          { t: "text", v: " muestran " },
+          { t: "strong", v: "Compromiso pendiente" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Estimado para terminar" },
+          { t: "text", v: " (escribe una cifra o déjalo en blanco para derivarla), " },
+          { t: "strong", v: "Costo final estimado" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Variación al terminar" },
+          {
+            t: "text",
+            v: ". Se derivan de Real, Comprometido y las órdenes de cambio aprobadas, así que cambian con cada gasto, aprobación y orden de compra. Si no puedes leer las órdenes de compra, los gastos o las órdenes de cambio del proyecto, las cifras quedan en blanco en lugar de parciales.",
+          },
+        ],
+      },
+      { t: "h2", v: "Real y Movimientos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Real son los gastos aprobados y pagados más las horas aprobadas del equipo. Un turno indica la línea de mano de obra donde se registra su tiempo, y al aprobar una hoja de horas ese tiempo se registra con la tarifa vigente en cada fecha de trabajo. El tiempo sin tarifa se registra sin precio: aparece como ",
+          },
+          { t: "strong", v: "n horas sin precio" },
+          { t: "text", v: " y nunca cuenta como cero. Selecciona una línea y elige " },
+          { t: "strong", v: "Movimientos" },
+          {
+            t: "text",
+            v: " para ver qué hay detrás de Real y Comprometido. Las facturas de proveedores de la línea se muestran aparte: se registran en el libro mayor y cuentan en el informe de costo final, no en Real.",
+          },
+        ],
+      },
+      { t: "h2", v: "Cotizaciones" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Cotizaciones" },
+          {
+            t: "text",
+            v: " crea una cotización para el cliente a partir de un presupuesto. Un borrador usa los precios actuales, con costo y margen visibles solo para ti bajo ",
+          },
+          { t: "strong", v: "Interno: nunca aparece en la cotización" },
+          { t: "text", v: ". " },
+          { t: "strong", v: "Enviar cotización" },
+          {
+            t: "text",
+            v: " congela la versión y la huella de su contenido. Escribe un correo para obtener un enlace de firma y un código de acceso, que se muestran una sola vez, o déjalo en blanco y el cliente firma en la pestaña Documentos de Gateway. Enviar una versión nueva reemplaza la anterior. Cuando el cliente firma, la cotización queda aceptada y bloqueada; registra los cambios posteriores como una orden de cambio. Atlas nunca retiene fondos, así que una cotización no tiene estado de pago.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar líneas" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Importar líneas" },
+          {
+            t: "text",
+            v: " trae líneas de presupuesto desde .xlsx o .csv con el asistente de importación, con un motivo para cada celda que no pueda leer. Una fila con número de línea actualiza esa línea, y las demás se agregan en el orden de la hoja. Un precio en blanco o la palabra Unpriced queda sin precio. Deshacer quita las líneas que creó el lote, salvo que algo dependa de ellas desde entonces.",
           },
         ],
       },
